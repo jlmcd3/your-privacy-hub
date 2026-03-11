@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-navy text-slate-light pt-14 pb-8 px-8">
+    <footer className="bg-navy text-slate-light pt-14 pb-8 px-4 md:px-8">
       <div className="max-w-[1280px] mx-auto">
-        <div className="grid grid-cols-[280px_1fr_1fr_1fr] gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[280px_1fr_1fr_1fr] gap-8 lg:gap-12 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 bg-gradient-to-br from-steel to-blue rounded-sm flex items-center justify-center text-white text-[13px] font-bold font-display">E</div>
@@ -24,8 +24,15 @@ const Footer = () => {
 
           <div>
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Regulatory Updates</h4>
-            {["U.S. Federal", "U.S. States", "EU & UK", "Global", "Enforcement", "AI & Privacy"].map((l) => (
-              <a key={l} href="#" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l}</a>
+            {[
+              { label: "U.S. Federal", href: "/category/us-federal" },
+              { label: "U.S. States", href: "/category/us-states" },
+              { label: "EU & UK", href: "/category/eu-uk" },
+              { label: "Global", href: "/category/global" },
+              { label: "Enforcement", href: "/category/enforcement" },
+              { label: "AI & Privacy", href: "/category/ai-privacy" },
+            ].map((l) => (
+              <Link key={l.label} to={l.href} className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
             ))}
           </div>
 
@@ -34,26 +41,30 @@ const Footer = () => {
             <Link to="/us-state-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">U.S. State Authorities</Link>
             <Link to="/global-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Global DPA Directory</Link>
             <Link to="/enforcement-tracker" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
-            <a href="#" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Jurisdiction Pages</a>
-            <a href="#" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Regulator Pages</a>
           </div>
 
           <div>
-            <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Platform</h4>
-            {["Research Topics", "Weekly Brief", "Premium Plans", "About", "Privacy Policy", "Terms of Service"].map((l) => (
-              <a key={l} href="#" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l}</a>
+            <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Research</h4>
+            {[
+              { label: "U.S. State Privacy Laws", href: "/us-state-privacy-laws" },
+              { label: "GDPR Enforcement", href: "/gdpr-enforcement" },
+              { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+              { label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
+              { label: "Global Privacy Laws", href: "/global-privacy-laws" },
+            ].map((l) => (
+              <Link key={l.label} to={l.href} className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
             ))}
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-6 border-t border-navy-light text-[12px]">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-6 border-t border-navy-light text-[12px]">
           <div>© 2026 EndUserPrivacy · enduserprivacy.com</div>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center flex-wrap justify-center">
             <a href="#" className="text-slate-light hover:text-silver no-underline">Privacy Policy</a>
             <a href="#" className="text-slate-light hover:text-silver no-underline">Terms</a>
             <a href="#" className="text-slate-light hover:text-silver no-underline">Disclaimer</a>
-            <span className="text-navy-light">·</span>
-            <span>Summaries are AI-generated. Verify against primary sources.</span>
+            <span className="hidden md:inline text-navy-light">·</span>
+            <span className="text-center">Summaries are AI-generated. Verify against primary sources.</span>
           </div>
         </div>
       </div>
