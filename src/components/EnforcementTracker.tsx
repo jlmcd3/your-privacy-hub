@@ -16,11 +16,11 @@ const EnforcementTracker = () => {
   );
 
   return (
-    <section className="py-16 px-8 bg-card">
+    <section className="py-10 md:py-16 px-4 md:px-8 bg-card">
       <div className="max-w-[1280px] mx-auto">
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
-            <h2 className="font-display text-[26px] tracking-tight text-navy">Enforcement Tracker</h2>
+            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Enforcement Tracker</h2>
             <p className="text-sm text-slate mt-1">Recent privacy enforcement actions worldwide</p>
           </div>
           <a href="/enforcement-tracker" className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
@@ -29,15 +29,15 @@ const EnforcementTracker = () => {
         </div>
 
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
-          <div className="px-6 py-5 bg-navy flex justify-between items-center">
+          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h3 className="font-display text-lg text-white">Recent Enforcement Actions</h3>
               <p className="text-[12px] text-slate-light mt-0.5">Top 20 visible free · Full database requires Premium</p>
             </div>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-light" />
               <input
-                className="pl-8 pr-3.5 py-1.5 text-[13px] bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-slate-light focus:border-sky transition-colors"
+                className="w-full sm:w-auto pl-8 pr-3.5 py-1.5 text-[13px] bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-slate-light focus:border-sky transition-colors"
                 placeholder="Search actions…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -45,7 +45,7 @@ const EnforcementTracker = () => {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse min-w-[700px]">
               <thead className="bg-fog">
                 <tr>
                   {["Regulator", "Company", "Jurisdiction", "Alleged Violation", "Fine", "Date"].map((h) => (
@@ -69,7 +69,7 @@ const EnforcementTracker = () => {
               </tbody>
             </table>
           </div>
-          <div className="p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
+          <div className="p-5 md:p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
             <p className="text-slate text-[13px] mb-3">Full searchable enforcement database available with Premium</p>
             <a href="#premium" className="inline-block px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
               Upgrade for Full Access →

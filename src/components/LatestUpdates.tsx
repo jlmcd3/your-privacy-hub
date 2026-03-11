@@ -10,12 +10,14 @@ interface UpdateCard {
   source: string;
   sourceUrl: string;
   featured?: boolean;
+  category: string;
 }
 
 const updates: UpdateCard[] = [
   {
     tag: "🇪🇺 EU",
     tagClass: "tag-eu-uk",
+    category: "eu-uk",
     date: "Mar 10, 2026",
     regulator: "European Data Protection Board (EDPB)",
     title: "EDPB Adopts Binding Guidance on Personal Data Use in AI Model Training",
@@ -32,6 +34,7 @@ const updates: UpdateCard[] = [
   {
     tag: "⚖️ Enforcement",
     tagClass: "tag-enforcement",
+    category: "enforcement",
     date: "Mar 9, 2026",
     regulator: "Texas Attorney General",
     title: "Texas AG Files First TDPSA Enforcement Action Against Data Broker",
@@ -46,6 +49,7 @@ const updates: UpdateCard[] = [
   {
     tag: "🤖 AI & Privacy",
     tagClass: "tag-ai-privacy",
+    category: "ai-privacy",
     date: "Mar 8, 2026",
     regulator: "UK Information Commissioner's Office",
     title: "ICO Publishes Updated Guidance on Biometric Data in Workplace AI Systems",
@@ -60,6 +64,7 @@ const updates: UpdateCard[] = [
   {
     tag: "🗺️ U.S. States",
     tagClass: "tag-us-states",
+    category: "us-states",
     date: "Mar 7, 2026",
     regulator: "California Privacy Protection Agency",
     title: "CPPA Approves Final Automated Decisionmaking Regulations",
@@ -74,6 +79,7 @@ const updates: UpdateCard[] = [
   {
     tag: "🇺🇸 U.S. Federal",
     tagClass: "tag-us-federal",
+    category: "us-federal",
     date: "Mar 6, 2026",
     regulator: "Federal Trade Commission",
     title: "FTC Proposes Rule Expanding Children's Privacy Protections Under COPPA",
@@ -88,6 +94,7 @@ const updates: UpdateCard[] = [
   {
     tag: "🌐 Global",
     tagClass: "tag-global",
+    category: "global",
     date: "Mar 5, 2026",
     regulator: "Brazil ANPD",
     title: "ANPD Issues Guidance on International Data Transfers Under LGPD",
@@ -102,16 +109,27 @@ const updates: UpdateCard[] = [
 ];
 
 const filters = ["All", "🇺🇸 U.S. Federal", "🗺️ U.S. States", "🇪🇺 EU & UK", "🌐 Global", "⚖️ Enforcement", "🤖 AI & Privacy"];
+const filterMap: Record<string, string> = {
+  "All": "all",
+  "🇺🇸 U.S. Federal": "us-federal",
+  "🗺️ U.S. States": "us-states",
+  "🇪🇺 EU & UK": "eu-uk",
+  "🌐 Global": "global",
+  "⚖️ Enforcement": "enforcement",
+  "🤖 AI & Privacy": "ai-privacy",
+};
 
 const LatestUpdates = () => {
   const [activeFilter, setActiveFilter] = useState("All");
 
+  const filtered = activeFilter === "All" ? updates : updates.filter(u => u.category === filterMap[activeFilter]);
+
   return (
-    <section className="py-16 px-8 bg-paper">
+    <section className="py-10 md:py-16 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
-            <h2 className="font-display text-[26px] tracking-tight text-navy">Latest Regulatory Updates</h2>
+            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Latest Regulatory Updates</h2>
             <p className="text-sm text-slate mt-1">Updated continuously from 250+ monitored sources</p>
           </div>
           <a href="#" className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
@@ -119,14 +137,13 @@ const LatestUpdates = () => {
           </a>
         </div>
 
-        {/* Filter bar */}
-        <div className="flex gap-2 flex-wrap mb-7 p-4 bg-card rounded-xl border border-fog shadow-eup-sm items-center">
+        <div className="flex gap-2 flex-wrap mb-7 p-3 md:p-4 bg-card rounded-xl border border-fog shadow-eup-sm items-center">
           <span className="text-[11px] font-semibold tracking-wider uppercase text-slate mr-1">Filter:</span>
           {filters.map((f) => (
             <span
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`px-3.5 py-1.5 text-[12.5px] font-medium border rounded-full cursor-pointer transition-all ${
+              className={`px-2.5 md:px-3.5 py-1 md:py-1.5 text-[11px] md:text-[12.5px] font-medium border rounded-full cursor-pointer transition-all ${
                 activeFilter === f
                   ? "bg-navy text-white border-navy shadow-[0_2px_8px_rgba(13,31,53,0.2)]"
                   : "bg-card text-slate border-silver hover:bg-navy hover:text-white hover:border-navy"
@@ -137,28 +154,27 @@ const LatestUpdates = () => {
           ))}
         </div>
 
-        {/* Cards grid */}
-        <div className="grid grid-cols-3 gap-5">
-          {updates.map((card, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((card, i) => (
             <div
               key={i}
               className={`rounded-xl overflow-hidden transition-all cursor-pointer flex flex-col hover:shadow-eup-md hover:-translate-y-0.5 ${
                 card.featured
-                  ? "col-span-2 bg-gradient-to-br from-navy to-navy-mid text-white border border-navy-light"
+                  ? "md:col-span-2 bg-gradient-to-br from-navy to-navy-mid text-white border border-navy-light"
                   : "bg-card border border-fog hover:border-silver"
               }`}
             >
-              <div className="flex justify-between items-start px-5 pt-4 gap-2.5">
+              <div className="flex justify-between items-start px-4 md:px-5 pt-4 gap-2.5">
                 <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${card.tagClass}`}>
                   {card.tag}
                 </span>
-                <span className={`text-[11px] whitespace-nowrap ${card.featured ? "text-slate-light" : "text-slate-light"}`}>{card.date}</span>
+                <span className="text-[11px] whitespace-nowrap text-slate-light">{card.date}</span>
               </div>
-              <div className="px-5 pt-3 pb-4 flex-1 flex flex-col">
+              <div className="px-4 md:px-5 pt-3 pb-4 flex-1 flex flex-col">
                 <div className={`text-[11px] font-semibold tracking-wide uppercase mb-2 ${card.featured ? "text-sky" : "text-slate"}`}>
                   {card.regulator}
                 </div>
-                <div className={`font-display leading-snug mb-3 ${card.featured ? "text-white text-xl" : "text-navy text-base"}`}>
+                <div className={`font-display leading-snug mb-3 ${card.featured ? "text-white text-lg md:text-xl" : "text-navy text-base"}`}>
                   {card.title}
                 </div>
                 <ul className="list-none flex-1">
@@ -177,10 +193,8 @@ const LatestUpdates = () => {
                   ))}
                 </ul>
               </div>
-              <div className={`flex justify-between items-center px-5 py-3 border-t ${
-                card.featured
-                  ? "bg-black/15 border-white/[0.08]"
-                  : "bg-paper border-fog"
+              <div className={`flex justify-between items-center px-4 md:px-5 py-3 border-t ${
+                card.featured ? "bg-black/15 border-white/[0.08]" : "bg-paper border-fog"
               }`}>
                 <a href={card.sourceUrl} className={`text-[11px] no-underline transition-colors ${
                   card.featured ? "text-slate-light hover:text-sky" : "text-slate-light hover:text-blue"

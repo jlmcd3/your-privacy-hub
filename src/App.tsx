@@ -7,6 +7,14 @@ import Index from "./pages/Index.tsx";
 import USStateAuthorities from "./pages/USStateAuthorities.tsx";
 import GlobalAuthorities from "./pages/GlobalAuthorities.tsx";
 import EnforcementTrackerPage from "./pages/EnforcementTracker.tsx";
+import USStatePrivacyLaws from "./pages/USStatePrivacyLaws.tsx";
+import GDPREnforcement from "./pages/GDPREnforcement.tsx";
+import AIPrivacyRegulations from "./pages/AIPrivacyRegulations.tsx";
+import USFederalPrivacyLaw from "./pages/USFederalPrivacyLaw.tsx";
+import GlobalPrivacyLaws from "./pages/GlobalPrivacyLaws.tsx";
+import JurisdictionPage from "./pages/JurisdictionPage.tsx";
+import RegulatorPage from "./pages/RegulatorPage.tsx";
+import CategoryPage from "./pages/CategoryPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -22,7 +30,14 @@ const App = () => (
           <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
           <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
           <Route path="/enforcement-tracker" element={<EnforcementTrackerPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/us-state-privacy-laws" element={<USStatePrivacyLaws />} />
+          <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
+          <Route path="/ai-privacy-regulations" element={<AIPrivacyRegulations />} />
+          <Route path="/us-federal-privacy-law" element={<USFederalPrivacyLaw />} />
+          <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
+          <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
+          <Route path="/regulator/:slug" element={<RegulatorPage />} />
+          <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
