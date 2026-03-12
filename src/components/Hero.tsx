@@ -22,13 +22,27 @@ const Hero = () => {
             Track regulatory developments from 250+ privacy authorities across 150+ jurisdictions — automatically monitored, AI-summarized, and structured for professionals.
           </p>
           <div className="flex gap-3 items-center flex-wrap">
-            <Link to="/global-privacy-authorities" className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all no-underline inline-flex items-center gap-2">
-              🔍 Browse Regulators
+            <Link to="/signup" className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all no-underline inline-flex items-center gap-2">
+              Start Free — No Credit Card Required
             </Link>
-            <a href="#premium" className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all no-underline inline-flex items-center gap-2">
-              View Premium Plans →
-            </a>
+            <Link to="/subscribe" className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all no-underline inline-flex items-center gap-2">
+              See Premium Plans →
+            </Link>
           </div>
+
+          {/* Stat strip */}
+          <div className="flex items-center gap-2 mt-6 text-[12px] text-slate-light tracking-wide">
+            <span>250+ Regulators</span>
+            <span className="text-white/30">·</span>
+            <span>150+ Jurisdictions</span>
+            <span className="text-white/30">·</span>
+            <span>Updated Daily</span>
+          </div>
+
+          {/* Social proof */}
+          <p className="text-[12px] italic text-slate-light/70 mt-2">
+            Used by privacy professionals, DPOs, and compliance teams worldwide.
+          </p>
 
           <div className="grid grid-cols-2 md:flex gap-5 md:gap-7 mt-8 md:mt-11 pt-6 md:pt-8 border-t border-white/10">
             {[
