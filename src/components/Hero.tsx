@@ -86,7 +86,7 @@ const Hero = () => {
           </div>
           <div className="mt-4 flex items-center justify-between">
             <span className="text-[12px] text-slate-light">Full brief: 8 sections · 12 updates</span>
-            <a href="#premium" className="text-[12px] font-semibold text-navy bg-sky px-4 py-1.5 rounded-lg hover:bg-white transition-colors no-underline">Unlock →</a>
+            <Link to="/subscribe" className="text-[12px] font-semibold text-navy bg-sky px-4 py-1.5 rounded-lg hover:bg-white transition-colors no-underline">Unlock →</Link>
           </div>
         </div>
       </div>
