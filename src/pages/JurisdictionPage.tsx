@@ -96,6 +96,8 @@ const JurisdictionPage = () => {
         </div>
       </div>
 
+      <AdBanner variant="leaderboard" className="py-5" />
+
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
         {/* Overview */}
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
