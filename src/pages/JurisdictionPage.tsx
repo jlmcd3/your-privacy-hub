@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
@@ -95,6 +96,8 @@ const JurisdictionPage = () => {
         </div>
       </div>
 
+      <AdBanner variant="leaderboard" className="py-5" />
+
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
         {/* Overview */}
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
@@ -123,6 +126,8 @@ const JurisdictionPage = () => {
             </div>
           ))}
         </div>
+
+        <AdBanner variant="inline" className="py-4" />
 
         {/* Related */}
         <div className="border-t border-fog pt-8">

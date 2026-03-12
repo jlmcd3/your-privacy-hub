@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
 const statusClass = (s: string | null) => {
@@ -42,6 +43,8 @@ const USStateAuthorities = () => {
           </p>
         </div>
       </div>
+
+      <AdBanner variant="leaderboard" className="py-5" />
 
       <div className="max-w-[1280px] mx-auto px-8 py-10">
         {/* Filters */}
@@ -118,6 +121,7 @@ const USStateAuthorities = () => {
             </table>
           </div>
         </div>
+        <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
     </div>

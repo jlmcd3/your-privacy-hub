@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const categoryMeta: Record<string, { title: string; icon: string; description: string }> = {
   "us-federal": {
@@ -96,6 +97,8 @@ const CategoryPage = () => {
         </div>
       </div>
 
+      <AdBanner variant="leaderboard" className="py-5" />
+
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="space-y-5">
           {updates.map((update, i) => (
@@ -122,6 +125,8 @@ const CategoryPage = () => {
             <p className="text-slate text-[14px]">No updates available yet for this category.</p>
           </div>
         )}
+
+        <AdBanner variant="leaderboard" className="py-6" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">

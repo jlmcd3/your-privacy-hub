@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const enforcementData = [
   { regulator: "CNIL (France)", company: "Clearview AI", jurisdiction: "EU — France", violation: "Unlawful biometric data processing without consent", fine: "€20M", date: "Mar 8, 2026" },
@@ -41,6 +42,8 @@ const EnforcementTrackerPage = () => {
           </p>
         </div>
       </div>
+
+      <AdBanner variant="leaderboard" className="py-5" />
 
       <div className="max-w-[1280px] mx-auto px-8 py-10">
         <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-fog shadow-eup-sm">
@@ -87,6 +90,7 @@ const EnforcementTrackerPage = () => {
             </a>
           </div>
         </div>
+        <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
     </div>
