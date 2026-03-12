@@ -31,6 +31,8 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
         </div>
       </div>
 
+      <AdBanner variant="leaderboard" className="py-5" />
+
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10 md:py-14">
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
           <p className="text-[15px] text-navy leading-relaxed">{intro}</p>
@@ -38,10 +40,15 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
 
         <div className="space-y-8">
           {sections.map((sec, i) => (
-            <div key={i}>
-              <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
-              <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
-            </div>
+            <React.Fragment key={i}>
+              <div>
+                <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+                <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
+              </div>
+              {i === Math.floor(sections.length / 2) - 1 && (
+                <AdBanner variant="inline" className="py-4" />
+              )}
+            </React.Fragment>
           ))}
         </div>
 
