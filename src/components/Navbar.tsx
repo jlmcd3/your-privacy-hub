@@ -116,6 +116,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   const handlePremiumClick = (e: React.MouseEvent) => {
     e.preventDefault();
