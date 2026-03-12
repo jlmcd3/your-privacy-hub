@@ -69,8 +69,8 @@ const Hero = () => {
 
           {/* Live pulse feed */}
           <div className="flex items-center gap-2 mt-4 text-[11.5px]">
-            <span className="flex items-center gap-1.5 text-accent-light font-semibold tracking-wider uppercase text-[10px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-light inline-block" />
+            <span className="flex items-center gap-1.5 text-accent-l font-semibold tracking-wider uppercase text-[10px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-l inline-block" />
               Live
             </span>
             <span className="text-white/30">·</span>
