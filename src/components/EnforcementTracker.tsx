@@ -11,6 +11,7 @@ const enforcementData = [
 ];
 
 const EnforcementTracker = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const filtered = enforcementData.filter((row) =>
     Object.values(row).some((v) => v.toLowerCase().includes(searchTerm.toLowerCase()))
