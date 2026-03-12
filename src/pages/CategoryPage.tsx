@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const categoryMeta: Record<string, { title: string; icon: string; description: string }> = {
   "us-federal": {
