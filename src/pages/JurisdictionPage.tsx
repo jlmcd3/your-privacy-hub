@@ -114,17 +114,54 @@ const JurisdictionPage = () => {
         <div className="space-y-4 mb-10">
           {jurisdiction.authorities.map((auth, i) => (
             <div key={i} className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm">
-              <h3 className="font-display text-[16px] text-navy mb-1">{auth.name}</h3>
-              {auth.abbreviation && <span className="text-[11px] text-slate">{auth.abbreviation}</span>}
+              {(auth as any).stateName ? (
+                <>
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                    <h3 className="font-display text-[22px] leading-tight text-navy">
+                      {(auth as any).stateName}
+                    </h3>
+                    {(auth as any).statute_status && (
+                      <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border ${
+                        (auth as any).statute_status === "Enacted"
+                          ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                          : (auth as any).statute_status === "Pending"
+                            ? "text-amber-700 bg-amber-50 border-amber-200"
+                            : "text-slate-500 bg-slate-50 border-slate-200"
+                      }`}>
+                        {(auth as any).statute_status === "None" ? "No Law" : (auth as any).statute_status}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[12px] font-medium text-slate mb-2">{auth.name}</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-display text-[20px] leading-tight text-navy mb-1">{auth.name}</h3>
+                  {auth.abbreviation && <span className="text-[11px] text-slate">{auth.abbreviation}</span>}
+                </>
+              )}
               {auth.legislation && (
-                <div className="mt-2 text-[13px] text-slate">
-                  <span className="font-medium text-navy">Primary Legislation:</span> {auth.legislation}
+                <div className="text-[12px] text-slate mt-1">
+                  <span className="font-semibold text-navy">Statute: </span>{" "}
+                  {auth.legislation}
+                  {(auth as any).effective_date && (
+                    <span className="text-slate/70 ml-1">
+                      · Effective{" "}
+                      {new Date((auth as any).effective_date)
+                        .toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                    </span>
+                  )}
                 </div>
               )}
-              <div className="mt-3 flex gap-3 flex-wrap">
-                <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-[12px] text-blue hover:underline no-underline">Official Website ↗</a>
+              {(auth as any).notes && (
+                <p className="text-[11.5px] text-slate/75 leading-relaxed mt-2 italic">
+                  {(auth as any).notes}
+                </p>
+              )}
+              <div className="mt-3 flex gap-4 flex-wrap">
+                <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Official Website ↗</a>
                 {auth.complaint_portal && (
-                  <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[12px] text-blue hover:underline no-underline">Complaint Portal ↗</a>
+                  <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Complaint Portal ↗</a>
                 )}
               </div>
             </div>
