@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 const sections = [
   { label: "Executive Summary", locked: false },
   { label: "U.S. Federal Analysis", locked: false },
@@ -10,6 +12,8 @@ const sections = [
 ];
 
 const WeeklyBriefTeaser = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-10 md:py-16 px-4 md:px-8 bg-card">
       <div className="max-w-[1280px] mx-auto">
@@ -18,9 +22,9 @@ const WeeklyBriefTeaser = () => {
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">This Week's Intelligence Brief</h2>
             <p className="text-sm text-slate mt-1">Structured synthesis of all developments · Premium subscribers get full access</p>
           </div>
-          <a href="#premium" className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
+          <button onClick={() => navigate("/subscribe")} className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all bg-transparent border-none cursor-pointer">
             Upgrade for full access →
-          </a>
+          </button>
         </div>
 
         <div className="relative bg-gradient-to-br from-[#0A1929] to-navy rounded-2xl p-5 md:p-9 overflow-hidden border border-navy-light">
@@ -49,9 +53,9 @@ const WeeklyBriefTeaser = () => {
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
             <span className="text-[12px] text-slate">12 regulatory updates · 8 sections · Published every Monday</span>
-            <a href="#premium" className="px-4 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
+            <button onClick={() => navigate("/subscribe")} className="px-4 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
               Read Full Brief →
-            </a>
+            </button>
           </div>
         </div>
       </div>
