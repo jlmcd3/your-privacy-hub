@@ -114,6 +114,16 @@ const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(null);
+  const navigate = useNavigate();
+
+  const handlePremiumClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileOpen(false);
+    navigate("/");
+    setTimeout(() => {
+      document.getElementById("premium")?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
 
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50 shadow-eup-sm">
