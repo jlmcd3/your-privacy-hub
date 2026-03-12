@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 
 const enforcementData = [
@@ -10,6 +11,7 @@ const enforcementData = [
 ];
 
 const EnforcementTracker = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const filtered = enforcementData.filter((row) =>
     Object.values(row).some((v) => v.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -71,9 +73,9 @@ const EnforcementTracker = () => {
           </div>
           <div className="p-5 md:p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
             <p className="text-slate text-[13px] mb-3">Full searchable enforcement database available with Premium</p>
-            <a href="#premium" className="inline-block px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
+            <button onClick={() => navigate("/subscribe")} className="inline-block px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
               Upgrade for Full Access →
-            </a>
+            </button>
           </div>
         </div>
       </div>
