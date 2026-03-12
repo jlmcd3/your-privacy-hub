@@ -9,6 +9,7 @@ import WeeklyBriefTeaser from "@/components/WeeklyBriefTeaser";
 import ResearchTopics from "@/components/ResearchTopics";
 import PremiumBanner from "@/components/PremiumBanner";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const Index = () => {
   return (
@@ -17,13 +18,16 @@ const Index = () => {
       <Navbar />
       <SearchBar />
       <Hero />
+      <AdBanner variant="leaderboard" className="py-4 bg-paper" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
       <EnforcementTracker />
+      <AdBanner variant="inline" className="py-4 bg-paper" />
       <div className="h-px bg-fog" />
       <DirectoriesPreview />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
+      <AdBanner variant="leaderboard" className="py-4 bg-paper" />
       <div className="h-px bg-fog" />
       <ResearchTopics />
       <PremiumBanner />
