@@ -281,10 +281,17 @@ const Navbar = () => {
               </div>
             ))}
             <div className="border-t border-fog pt-3 mt-2 flex flex-col gap-2">
-              <a href="#" className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">Sign In</a>
-              <a href="/#premium" onClick={handlePremiumClick} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
-                Get Premium →
-              </a>
+              {!loading && !user && (
+                <>
+                  <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">Sign In</Link>
+                  <Link to="/signup" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
+                    Start Free →
+                  </Link>
+                </>
+              )}
+              {!loading && user && (
+                <Link to="/account" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">My Account</Link>
+              )}
             </div>
           </div>
         </div>

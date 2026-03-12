@@ -42,6 +42,9 @@ const App = () => (
           <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
           <Route path="/regulator/:slug" element={<RegulatorPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
