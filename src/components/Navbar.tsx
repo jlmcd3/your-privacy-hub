@@ -271,9 +271,9 @@ const Navbar = () => {
             ))}
             <div className="border-t border-fog pt-3 mt-2 flex flex-col gap-2">
               <a href="#" className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">Sign In</a>
-              <Link to="/#premium" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
+              <a href="/#premium" onClick={handlePremiumClick} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
                 Get Premium →
-              </Link>
+              </a>
             </div>
           </div>
         </div>
