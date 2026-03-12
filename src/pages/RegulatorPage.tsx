@@ -100,6 +100,8 @@ const RegulatorPage = () => {
         </div>
       </div>
 
+      <AdBanner variant="leaderboard" className="py-5" />
+
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
         {/* Key info card */}
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm mb-8">
