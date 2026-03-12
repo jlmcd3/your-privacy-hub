@@ -1,0 +1,109 @@
+const hubs = [
+  { cx: 490, cy: 165 },
+  { cx: 475, cy: 155 },
+  { cx: 270, cy: 185 },
+  { cx: 320, cy: 340 },
+  { cx: 820, cy: 190 },
+  { cx: 760, cy: 255 },
+  { cx: 700, cy: 215 },
+  { cx: 830, cy: 360 },
+];
+
+const RegulatorGlobe = () => (
+  <div
+    style={{
+      position: "absolute",
+      right: "-5%",
+      top: "50%",
+      transform: "translateY(-50%)",
+      width: "65%",
+      opacity: 0.7,
+    }}
+  >
+    <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" fill="none">
+      {/* Simplified continental outlines */}
+      {/* North America */}
+      <path
+        d="M120,80 L180,60 L220,55 L260,60 L290,80 L310,100 L300,130 L290,160 L280,180 L260,200 L240,220 L220,230 L200,225 L180,210 L160,220 L150,240 L160,260 L180,270 L200,280 L210,300 L200,310 L180,305 L160,290 L140,270 L120,250 L110,230 L100,200 L95,170 L100,140 L105,110 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Central America */}
+      <path
+        d="M200,310 L210,315 L220,320 L230,330 L240,335 L250,330 L260,325 L265,320"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* South America */}
+      <path
+        d="M265,320 L280,310 L300,305 L320,310 L340,320 L355,340 L360,360 L355,380 L340,400 L320,415 L300,420 L280,410 L270,390 L265,370 L270,350 L275,335 L270,325 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Europe */}
+      <path
+        d="M440,80 L460,75 L480,80 L500,90 L520,100 L530,120 L525,140 L510,155 L500,165 L490,170 L475,168 L460,160 L450,150 L440,140 L435,120 L430,100 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* UK/Ireland */}
+      <path
+        d="M460,130 L465,120 L470,115 L475,120 L478,135 L475,145 L468,148 L462,140 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Africa */}
+      <path
+        d="M460,195 L480,190 L510,195 L530,210 L545,230 L555,260 L555,290 L545,320 L530,350 L510,370 L490,380 L470,375 L455,360 L445,335 L440,310 L440,280 L445,250 L450,225 L455,210 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Asia */}
+      <path
+        d="M540,60 L580,55 L620,50 L660,55 L700,65 L740,80 L770,100 L790,120 L800,140 L810,160 L815,180 L810,200 L790,210 L770,215 L750,220 L730,225 L710,230 L690,225 L670,215 L650,210 L630,200 L610,195 L590,185 L570,175 L555,165 L540,150 L535,130 L530,110 L535,85 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* India */}
+      <path
+        d="M690,225 L700,240 L710,260 L705,280 L695,295 L680,290 L670,270 L665,250 L670,235 L680,228 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Southeast Asia */}
+      <path
+        d="M740,230 L755,240 L765,255 L760,270 L750,280 L740,275 L735,260 L738,245 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Japan */}
+      <path
+        d="M820,150 L825,165 L830,180 L828,195 L822,200 L818,190 L815,175 L816,160 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Australia */}
+      <path
+        d="M780,320 L810,310 L840,315 L860,330 L870,350 L865,370 L850,385 L830,390 L810,385 L795,375 L785,355 L780,335 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+      {/* Greenland */}
+      <path
+        d="M310,30 L340,25 L365,30 L375,45 L370,60 L355,70 L335,72 L320,65 L310,50 Z"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="0.8"
+      />
+
+      {/* Regulatory hub dots */}
+      {hubs.map((h, i) => (
+        <g key={i}>
+          <circle cx={h.cx} cy={h.cy} r={8} fill="none" stroke="rgba(147,197,232,0.2)" />
+          <circle cx={h.cx} cy={h.cy} r={4} fill="rgba(147,197,232,0.5)" />
+        </g>
+      ))}
+    </svg>
+  </div>
+);
+
+export default RegulatorGlobe;
