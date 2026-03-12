@@ -216,9 +216,9 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2.5">
           <a href="#" className="hidden md:inline-block px-3.5 py-1.5 text-[13px] font-medium text-slate bg-transparent rounded-lg hover:text-steel hover:bg-fog transition-colors no-underline">Sign In</a>
-          <Link to="/#premium" className="hidden sm:inline-block px-4 py-2 text-[12px] md:text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:shadow-[0_4px_14px_rgba(59,130,196,0.35)] hover:-translate-y-px transition-all no-underline">
+          <a href="/#premium" onClick={handlePremiumClick} className="hidden sm:inline-block px-4 py-2 text-[12px] md:text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:shadow-[0_4px_14px_rgba(59,130,196,0.35)] hover:-translate-y-px transition-all no-underline">
             Get Premium →
-          </Link>
+          </a>
           <button
             className="lg:hidden p-2 text-navy hover:bg-fog rounded-lg transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
