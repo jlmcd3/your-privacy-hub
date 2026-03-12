@@ -15,6 +15,10 @@ import GlobalPrivacyLaws from "./pages/GlobalPrivacyLaws.tsx";
 import JurisdictionPage from "./pages/JurisdictionPage.tsx";
 import RegulatorPage from "./pages/RegulatorPage.tsx";
 import CategoryPage from "./pages/CategoryPage.tsx";
+import Signup from "./pages/Signup.tsx";
+import Login from "./pages/Login.tsx";
+import Account from "./pages/Account.tsx";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
