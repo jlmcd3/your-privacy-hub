@@ -36,8 +36,8 @@ const RegulatorGlobe = () => (
 
       {hubs.map((h, i) => (
         <g key={i}>
-          <circle cx={h.cx} cy={h.cy} r={8} fill="none" stroke="rgba(147,197,232,0.45)" />
-          <circle cx={h.cx} cy={h.cy} r={4} fill="rgba(147,197,232,0.85)" />
+          <circle cx={h.cx} cy={h.cy} r={8} fill="none" stroke="rgba(147,197,232,0.5)" />
+          <circle cx={h.cx} cy={h.cy} r={4} fill="rgba(147,197,232,0.9)" />
         </g>
       ))}
     </svg>
