@@ -151,6 +151,8 @@ const RegulatorPage = () => {
           </div>
         </div>
 
+        <AdBanner variant="inline" className="py-4" />
+
         {/* Related */}
         <div className="border-t border-fog pt-8">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>

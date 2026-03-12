@@ -150,6 +150,7 @@ const GlobalAuthorities = () => {
             );
           })}
         </div>
+        <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
     </div>

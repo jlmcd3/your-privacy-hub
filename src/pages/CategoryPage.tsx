@@ -126,6 +126,8 @@ const CategoryPage = () => {
           </div>
         )}
 
+        <AdBanner variant="leaderboard" className="py-6" />
+
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
