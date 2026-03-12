@@ -18,6 +18,8 @@ import CategoryPage from "./pages/CategoryPage.tsx";
 import Signup from "./pages/Signup.tsx";
 import Login from "./pages/Login.tsx";
 import Account from "./pages/Account.tsx";
+import Subscribe from "./pages/Subscribe.tsx";
+import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
