@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          is_premium: boolean
+          payment_failed: boolean
+          stripe_customer_id: string | null
+          subscription_end_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          is_premium?: boolean
+          payment_failed?: boolean
+          stripe_customer_id?: string | null
+          subscription_end_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_premium?: boolean
+          payment_failed?: boolean
+          stripe_customer_id?: string | null
+          subscription_end_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
