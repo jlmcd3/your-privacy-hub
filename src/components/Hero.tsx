@@ -92,7 +92,7 @@ const Hero = () => {
               { num: "250+", label: "Regulators monitored" },
               { num: "150+", label: "Jurisdictions covered" },
               { num: "Daily", label: "Automated updates" },
-              { num: "$0", label: "To start browsing" },
+              { num: "$0", label: "Always free to browse" },
             ].map((stat, i) => (
               <div key={i} className="flex items-center gap-5 md:gap-7">
                 {i > 0 && <div className="hidden md:block w-px h-10 bg-white/10 -ml-5 md:-ml-7 mr-0" />}
