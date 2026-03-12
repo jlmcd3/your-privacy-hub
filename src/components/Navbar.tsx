@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 
 interface DropdownItem {
