@@ -27,7 +27,7 @@ const Hero = () => {
       }} />
 
       {/* World map background */}
-      <div className="absolute inset-0 block pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 block pointer-events-none">
         <RegulatorGlobe />
       </div>
 
