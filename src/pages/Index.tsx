@@ -10,11 +10,13 @@ import ResearchTopics from "@/components/ResearchTopics";
 import PremiumBanner from "@/components/PremiumBanner";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Topbar />
+      <BreakingNewsBanner />
       <Navbar />
       <SearchBar />
       <Hero />
