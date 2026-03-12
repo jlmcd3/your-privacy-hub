@@ -51,7 +51,7 @@ const Hero = () => {
           </p>
           <div className="flex gap-3 items-center flex-wrap">
             <Link to="/signup" className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all no-underline inline-flex items-center gap-2">
-              Start Free — No Credit Card Required
+              Explore Free · Upgrade for Full Intelligence
             </Link>
             <Link to="/subscribe" className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all no-underline inline-flex items-center gap-2">
               See Premium Plans →
@@ -92,7 +92,7 @@ const Hero = () => {
               { num: "250+", label: "Regulators monitored" },
               { num: "150+", label: "Jurisdictions covered" },
               { num: "Daily", label: "Automated updates" },
-              { num: "$0", label: "To start browsing" },
+              { num: "$0", label: "Always free to browse" },
             ].map((stat, i) => (
               <div key={i} className="flex items-center gap-5 md:gap-7">
                 {i > 0 && <div className="hidden md:block w-px h-10 bg-white/10 -ml-5 md:-ml-7 mr-0" />}
