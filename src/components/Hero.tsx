@@ -1,6 +1,23 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import RegulatorGlobe from "./RegulatorGlobe";
+
+const liveFeed = [
+  { flag: "🇪🇺", label: "EDPB · AI Training Data Guidance", time: "2 hours ago" },
+  { flag: "🇺🇸", label: "Texas AG · First TDPSA Enforcement", time: "5 hours ago" },
+  { flag: "🇧🇷", label: "ANPD · International Transfer Rules", time: "9 hours ago" },
+];
 
 const Hero = () => {
+  const [feedIndex, setFeedIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFeedIndex(i => (i + 1) % liveFeed.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-navy via-navy-mid to-navy-light text-white py-12 md:py-20 px-4 md:px-8">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_20%,rgba(59,130,196,0.18)_0%,transparent_60%),radial-gradient(ellipse_40%_50%_at_10%_80%,rgba(29,158,111,0.10)_0%,transparent_50%)]" />
@@ -9,14 +26,25 @@ const Hero = () => {
         backgroundSize: "48px 48px"
       }} />
 
+      {/* World map background */}
+      <div className="absolute inset-0 hidden lg:block pointer-events-none overflow-hidden opacity-60">
+        <RegulatorGlobe />
+      </div>
+
       <div className="max-w-[1280px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 lg:gap-16 items-center">
         <div className="animate-fade-up">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-5 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             <span>🌐</span> Global Privacy Intelligence Platform
           </div>
           <h1 className="font-display text-[clamp(28px,5vw,52px)] leading-[1.1] tracking-tight mb-5">
-            Every privacy regulator.<br />
-            <em className="italic text-sky">One platform.</em>
+            Every regulator tracked. Every update summarized.<br />
+            <Link
+              to="/subscribe"
+              className="italic text-sky underline decoration-sky/40 underline-offset-4 hover:decoration-sky transition-all"
+            >
+              Deeper intelligence
+            </Link>
+            <em className="italic text-white/80"> for those who need the full picture.</em>
           </h1>
           <p className="text-sm md:text-base text-slate-light leading-relaxed max-w-[520px] mb-7 md:mb-9">
             Track regulatory developments from 250+ privacy authorities across 150+ jurisdictions — automatically monitored, AI-summarized, and structured for professionals.
@@ -37,6 +65,21 @@ const Hero = () => {
             <span>150+ Jurisdictions</span>
             <span className="text-white/30">·</span>
             <span>Updated Daily</span>
+          </div>
+
+          {/* Live pulse feed */}
+          <div className="flex items-center gap-2 mt-4 text-[11.5px]">
+            <span className="flex items-center gap-1.5 text-accent-light font-semibold tracking-wider uppercase text-[10px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-light inline-block" />
+              Live
+            </span>
+            <span className="text-white/30">·</span>
+            <span className="text-white/75 transition-all duration-500">
+              {liveFeed[feedIndex].flag} {liveFeed[feedIndex].label}
+            </span>
+            <span className="text-white/30 ml-auto text-[10px]">
+              {liveFeed[feedIndex].time}
+            </span>
           </div>
 
           {/* Social proof */}
