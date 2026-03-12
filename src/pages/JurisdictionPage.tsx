@@ -50,11 +50,15 @@ const buildJurisdictionData = () => {
     region: "Americas",
     flag: "🇺🇸",
     overview: "The United States lacks a comprehensive federal privacy law, instead relying on a patchwork of sector-specific federal statutes and state-level privacy legislation. The FTC serves as the primary federal privacy enforcement authority. As of 2026, 20+ states have enacted comprehensive privacy laws.",
-    authorities: usStates.slice(0, 10).map((s: any) => ({
+    authorities: usStates.map((s: any) => ({
       name: s.authority_name,
+      stateName: s.state,
       website: s.website,
       complaint_portal: s.complaint_portal,
       legislation: s.statute_name,
+      statute_status: s.statute_status,
+      effective_date: s.effective_date,
+      notes: s.notes,
     })),
   };
 
