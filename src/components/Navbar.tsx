@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DropdownItem {
   icon: string;
@@ -115,6 +116,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   const handlePremiumClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -215,10 +217,19 @@ const Navbar = () => {
         </ul>
 
         <div className="flex items-center gap-2.5">
-          <a href="#" className="hidden md:inline-block px-3.5 py-1.5 text-[13px] font-medium text-slate bg-transparent rounded-lg hover:text-steel hover:bg-fog transition-colors no-underline">Sign In</a>
-          <a href="/#premium" onClick={handlePremiumClick} className="hidden sm:inline-block px-4 py-2 text-[12px] md:text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:shadow-[0_4px_14px_rgba(59,130,196,0.35)] hover:-translate-y-px transition-all no-underline">
-            Get Premium →
-          </a>
+          {!loading && !user && (
+            <>
+              <Link to="/login" className="hidden md:inline-block px-3.5 py-1.5 text-[13px] font-medium text-slate bg-transparent rounded-lg hover:text-steel hover:bg-fog transition-colors no-underline">Sign In</Link>
+              <Link to="/signup" className="hidden sm:inline-block px-4 py-2 text-[12px] md:text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:shadow-[0_4px_14px_rgba(59,130,196,0.35)] hover:-translate-y-px transition-all no-underline">
+                Start Free →
+              </Link>
+            </>
+          )}
+          {!loading && user && (
+            <>
+              <Link to="/account" className="hidden md:inline-block px-3.5 py-1.5 text-[13px] font-medium text-slate bg-transparent rounded-lg hover:text-steel hover:bg-fog transition-colors no-underline">My Account</Link>
+            </>
+          )}
           <button
             className="lg:hidden p-2 text-navy hover:bg-fog rounded-lg transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -270,10 +281,17 @@ const Navbar = () => {
               </div>
             ))}
             <div className="border-t border-fog pt-3 mt-2 flex flex-col gap-2">
-              <a href="#" className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">Sign In</a>
-              <a href="/#premium" onClick={handlePremiumClick} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
-                Get Premium →
-              </a>
+              {!loading && !user && (
+                <>
+                  <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">Sign In</Link>
+                  <Link to="/signup" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
+                    Start Free →
+                  </Link>
+                </>
+              )}
+              {!loading && user && (
+                <Link to="/account" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">My Account</Link>
+              )}
             </div>
           </div>
         </div>
