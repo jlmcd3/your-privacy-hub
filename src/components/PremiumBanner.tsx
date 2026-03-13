@@ -27,7 +27,7 @@ const PremiumBanner = () => {
               The library is free.<br />The analyst is $15.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
-              Privacy professionals and compliance teams get structured weekly synthesis, full enforcement database access, trend signals, and cross-jurisdictional analysis — delivered every Monday.
+              Browse every regulator and jurisdiction for free, always. Premium adds the analyst layer — weekly synthesis that tells you what it means for your organization before your competitors figure it out.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (
