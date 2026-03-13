@@ -15,6 +15,7 @@ interface PillarPageProps {
   sections: { heading: string; content: string }[];
   relatedLinks: { label: string; href: string }[];
   directoryLink?: { label: string; href: string };
+  intelligenceLabel?: string;
 }
 
 const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink }: PillarPageProps) => {
