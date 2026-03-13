@@ -287,8 +287,8 @@ const Navbar = () => {
               {!loading && !user && (
                 <>
                   <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-medium text-slate rounded-lg hover:bg-fog transition-colors no-underline">Sign In</Link>
-                  <Link to="/signup" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
-                    Start Free →
+                  <Link to="/subscribe" onClick={() => setMobileOpen(false)} className="py-2.5 px-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg text-center no-underline">
+                    Get Premium →
                   </Link>
                 </>
               )}
