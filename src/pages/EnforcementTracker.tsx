@@ -81,14 +81,42 @@ const EnforcementTrackerPage = () => {
                     <td className="px-4 py-3 text-[13px] text-navy border-b border-fog whitespace-nowrap">{row.date}</td>
                   </tr>
                 ))}
+                <tr className="bg-gradient-to-r from-navy/5 to-sky/5 border-t-2 border-sky/20">
+                  <td colSpan={6} className="px-4 py-4">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <Lock className="w-4 h-4 text-sky/70 shrink-0" />
+                        <div>
+                          <span className="text-[13px] font-semibold text-navy">
+                            + 847 additional enforcement actions
+                          </span>
+                          <span className="text-[12px] text-slate ml-2">
+                            — updated daily, fully searchable by regulator, jurisdiction, and violation type
+                          </span>
+                        </div>
+                      </div>
+                      <Link to="/subscribe" className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap">
+                        Unlock Full Database →
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
-          <div className="p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
-            <p className="text-slate text-[13px] mb-3">Showing top 20 enforcement actions. Full database requires Premium access.</p>
-            <a href="/#premium" className="inline-block px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
-              Upgrade for Full Access →
-            </a>
+          <div className="p-7 bg-gradient-to-b from-transparent to-fog border-t border-fog">
+            <div className="max-w-[600px] mx-auto text-center">
+              <Lock className="w-5 h-5 text-slate mx-auto mb-3" />
+              <p className="text-navy font-semibold text-[15px] mb-1">
+                You're seeing 12 of 859 enforcement actions.
+              </p>
+              <p className="text-slate text-[13px] mb-4">
+                Free access shows the most recent actions. Premium unlocks the full database — every fine, every regulator, every jurisdiction — updated daily and fully searchable.
+              </p>
+              <Link to="/subscribe" className="inline-block px-6 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
+                Unlock Full Enforcement Database →
+              </Link>
+            </div>
           </div>
         </div>
         <AdBanner variant="leaderboard" className="py-6" />

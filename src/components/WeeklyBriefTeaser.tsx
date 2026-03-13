@@ -23,7 +23,7 @@ const WeeklyBriefTeaser = () => {
             <p className="text-sm text-slate mt-1">Structured synthesis of all developments · Premium subscribers get full access</p>
           </div>
           <button onClick={() => navigate("/subscribe")} className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all bg-transparent border-none cursor-pointer">
-            Upgrade for full access →
+            Unlock Full Intelligence →
           </button>
         </div>
 
