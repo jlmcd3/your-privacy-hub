@@ -18,7 +18,7 @@ interface PillarPageProps {
   intelligenceLabel?: string;
 }
 
-const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink }: PillarPageProps) => {
+const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink, intelligenceLabel }: PillarPageProps) => {
   return (
     <div className="min-h-screen bg-paper">
       <Topbar />
