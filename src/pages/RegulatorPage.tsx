@@ -141,14 +141,66 @@ const RegulatorPage = () => {
           </div>
         </div>
 
-        {/* Recent updates placeholder */}
+        {/* Recent Intelligence */}
         <div className="mb-8">
-          <h2 className="font-display text-xl text-navy mb-4">Recent Updates</h2>
-          <div className="bg-card border border-fog rounded-xl p-6 text-center">
-            <p className="text-[13px] text-slate mb-3">Regulatory updates from {regulator.abbreviation || regulator.name} will appear here once the monitoring pipeline is active.</p>
-            <Link to="/#premium" className="text-[13px] font-medium text-blue no-underline hover:underline">
-              Subscribe for alerts →
-            </Link>
+          <h2 className="font-display text-xl text-navy mb-4">
+            Recent Intelligence
+          </h2>
+          <div className="rounded-2xl border border-sky/25 overflow-hidden shadow-eup-sm">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
+                  ⭐ Weekly Intelligence
+                </div>
+                <h3 className="font-display text-[15px] text-white">
+                  What moved at {regulator.abbreviation || regulator.name} this week
+                </h3>
+              </div>
+              <Lock className="w-5 h-5 text-sky/50 shrink-0" />
+            </div>
+
+            {/* Blurred content + overlay */}
+            <div className="relative bg-card px-5 py-5">
+              <div className="space-y-3 blur-[3px] select-none pointer-events-none">
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-navy/20 mt-1.5 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-navy/10 rounded w-3/4" />
+                    <div className="h-3 bg-navy/10 rounded w-full" />
+                    <div className="h-3 bg-navy/10 rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-navy/20 mt-1.5 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-navy/10 rounded w-5/6" />
+                    <div className="h-3 bg-navy/10 rounded w-full" />
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-navy/20 mt-1.5 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-navy/10 rounded w-2/3" />
+                    <div className="h-3 bg-navy/10 rounded w-4/5" />
+                    <div className="h-3 bg-navy/10 rounded w-1/2" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                <Lock className="w-5 h-5 text-navy/40 mb-2" />
+                <p className="text-[13px] font-semibold text-navy mb-1 text-center px-4">
+                  Premium subscribers get weekly intelligence for every regulator they follow.
+                </p>
+                <p className="text-[11.5px] text-slate text-center px-6 mb-4">
+                  Enforcement actions, guidance updates, and what each development means — every Monday.
+                </p>
+                <Link to="/subscribe" className="px-5 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg no-underline hover:opacity-90 transition-all shadow-eup-sm">
+                  Unlock Regulator Intelligence →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
