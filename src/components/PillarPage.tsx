@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Lock } from "lucide-react";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,9 +15,10 @@ interface PillarPageProps {
   sections: { heading: string; content: string }[];
   relatedLinks: { label: string; href: string }[];
   directoryLink?: { label: string; href: string };
+  intelligenceLabel?: string;
 }
 
-const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink }: PillarPageProps) => {
+const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink, intelligenceLabel }: PillarPageProps) => {
   return (
     <div className="min-h-screen bg-paper">
       <Topbar />
@@ -47,7 +49,43 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
                 <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
               </div>
               {i === Math.floor(sections.length / 2) - 1 && (
-                <AdBanner variant="inline" className="py-4" />
+                <>
+                  <AdBanner variant="inline" className="py-4" />
+                  {/* Mid-content premium teaser */}
+                  <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm my-2">
+                    <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
+                      <div>
+                        <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
+                          ⭐ Weekly Intelligence
+                        </div>
+                        <h3 className="font-display text-[14px] text-white">
+                          {intelligenceLabel || "What changed in this area this week"}
+                        </h3>
+                      </div>
+                      <Lock className="w-4 h-4 text-sky/50 shrink-0" />
+                    </div>
+                    <div className="relative bg-card px-5 py-4">
+                      <div className="space-y-2 blur-[3px] select-none pointer-events-none">
+                        <div className="h-2.5 bg-navy/10 rounded w-full" />
+                        <div className="h-2.5 bg-navy/10 rounded w-4/5" />
+                        <div className="h-2.5 bg-navy/10 rounded w-3/4" />
+                        <div className="h-2.5 bg-navy/10 rounded w-full mt-2" />
+                        <div className="h-2.5 bg-navy/10 rounded w-2/3" />
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                        <div className="flex items-center gap-3">
+                          <Lock className="w-4 h-4 text-navy/40 shrink-0" />
+                          <span className="text-[12px] text-navy font-medium">
+                            Premium subscribers get weekly updates on every development in this area.
+                          </span>
+                          <Link to="/subscribe" className="text-[11px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap">
+                            Unlock →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </React.Fragment>
           ))}
@@ -77,10 +115,10 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Get the full picture every week</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Premium subscribers receive a structured weekly intelligence brief covering all developments across every jurisdiction.</p>
-          <Link to="/#premium" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
-            View Premium Plans →
+          <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on {title}</h3>
+          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Premium subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
+          <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
+            Unlock Weekly Intelligence →
           </Link>
         </div>
       </div>
