@@ -24,7 +24,7 @@ const PremiumBanner = () => {
               ⭐ Premium Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The complete picture,<br />every week.
+              The library is free.<br />The analyst is $15.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
               Privacy professionals and compliance teams get structured weekly synthesis, full enforcement database access, trend signals, and cross-jurisdictional analysis — delivered every Monday.
