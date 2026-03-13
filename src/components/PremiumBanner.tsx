@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 
 const features = [
-  "Full weekly intelligence brief",
-  "Complete enforcement database",
-  "Cross-jurisdictional trend signals",
-  '"Why This Matters" analysis',
-  "All 8 brief sections unlocked",
+  "Know what changed before your next board meeting",
+  "See every fine — 800+ enforcement actions, all jurisdictions",
+  "Spot coordinated enforcement before it reaches your jurisdiction",
+  "One brief covers your entire global footprint",
   "No ads, ever",
+  "Founding rate locked at $12/mo forever",
 ];
 
 const PremiumBanner = () => {
