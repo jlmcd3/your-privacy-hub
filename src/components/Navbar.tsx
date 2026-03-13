@@ -96,9 +96,9 @@ const navItems: NavDropdown[] = [
     label: "Intelligence",
     sections: [
       { header: "Premium", items: [
-        { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/#premium" },
-        { icon: "📈", label: "Trend Signals", badge: "PRO", href: "/#premium" },
-        { icon: "🔔", label: "Custom Alerts", badge: "PRO", href: "/#premium" },
+        { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/subscribe" },
+        { icon: "📈", label: "Trend Signals", badge: "PRO", href: "/subscribe" },
+        { icon: "🔔", label: "Custom Alerts", badge: "PRO", href: "/subscribe" },
       ]},
       { header: "Research", divider: true, items: [
         { icon: "📰", label: "U.S. State Privacy Laws", href: "/us-state-privacy-laws" },
