@@ -96,9 +96,9 @@ const navItems: NavDropdown[] = [
     label: "Intelligence",
     sections: [
       { header: "Premium", items: [
-        { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/#premium" },
-        { icon: "📈", label: "Trend Signals", badge: "PRO", href: "/#premium" },
-        { icon: "🔔", label: "Custom Alerts", badge: "PRO", href: "/#premium" },
+        { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/subscribe" },
+        { icon: "📈", label: "Trend Signals", badge: "PRO", href: "/subscribe" },
+        { icon: "🔔", label: "Custom Alerts", badge: "PRO", href: "/subscribe" },
       ]},
       { header: "Research", divider: true, items: [
         { icon: "📰", label: "U.S. State Privacy Laws", href: "/us-state-privacy-laws" },
@@ -227,6 +227,9 @@ const Navbar = () => {
           )}
           {!loading && user && (
             <>
+              <Link to="/subscribe" className="hidden md:inline-block px-3.5 py-1.5 text-[12px] font-semibold text-sky bg-sky/10 border border-sky/20 rounded-lg hover:bg-sky/20 transition-colors no-underline">
+                ⭐ Upgrade
+              </Link>
               <Link to="/account" className="hidden md:inline-block px-3.5 py-1.5 text-[13px] font-medium text-slate bg-transparent rounded-lg hover:text-steel hover:bg-fog transition-colors no-underline">My Account</Link>
             </>
           )}

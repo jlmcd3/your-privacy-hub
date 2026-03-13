@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 
 const features = [
-  "Full weekly intelligence brief",
-  "Complete enforcement database",
-  "Cross-jurisdictional trend signals",
-  '"Why This Matters" analysis',
-  "All 8 brief sections unlocked",
+  "Know what changed before your next board meeting",
+  "See every fine — 800+ enforcement actions, all jurisdictions",
+  "Spot coordinated enforcement before it reaches your jurisdiction",
+  "One brief covers your entire global footprint",
   "No ads, ever",
+  "Founding rate locked at $12/mo forever",
 ];
 
 const PremiumBanner = () => {
@@ -24,10 +24,10 @@ const PremiumBanner = () => {
               ⭐ Premium Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The complete picture,<br />every week.
+              The library is free.<br />The analyst is $15.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
-              Privacy professionals and compliance teams get structured weekly synthesis, full enforcement database access, trend signals, and cross-jurisdictional analysis — delivered every Monday.
+              Browse every regulator and jurisdiction for free, always. Premium adds the analyst layer — weekly synthesis that tells you what it means for your organization before your competitors figure it out.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (
@@ -41,7 +41,7 @@ const PremiumBanner = () => {
               <button onClick={() => navigate("/subscribe")} className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all inline-flex items-center gap-2 cursor-pointer border-none">
                 Start Founding Member Plan →
               </button>
-              <button onClick={() => navigate("/premium")} className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all inline-flex items-center gap-2 cursor-pointer">
+              <button onClick={() => navigate("/subscribe")} className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all inline-flex items-center gap-2 cursor-pointer">
                 See what's included
               </button>
             </div>
