@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 
 interface UpdateCard {
   tag: string;
@@ -132,9 +133,6 @@ const LatestUpdates = () => {
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Latest Regulatory Updates</h2>
             <p className="text-sm text-slate mt-1">Updated continuously from 250+ monitored sources</p>
           </div>
-          <a href="#" className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
-            View all updates →
-          </a>
         </div>
 
         <div className="flex gap-2 flex-wrap mb-7 p-3 md:p-4 bg-card rounded-xl border border-fog shadow-eup-sm items-center">
@@ -154,57 +152,82 @@ const LatestUpdates = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="flex flex-col gap-3">
           {filtered.map((card, i) => (
             <div
               key={i}
-              className={`rounded-xl overflow-hidden transition-all cursor-pointer flex flex-col hover:shadow-eup-md hover:-translate-y-0.5 ${
-                card.featured
-                  ? "md:col-span-2 bg-gradient-to-br from-navy to-navy-mid text-white border border-navy-light"
-                  : "bg-card border border-fog hover:border-silver"
+              className={`flex items-start gap-4 p-4 md:p-5 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm hover:-translate-y-px transition-all cursor-pointer ${
+                card.featured ? "border-l-2 border-l-blue" : ""
               }`}
             >
-              <div className="flex justify-between items-start px-4 md:px-5 pt-4 gap-2.5">
-                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${card.tagClass}`}>
-                  {card.tag}
-                </span>
-                <span className="text-[11px] whitespace-nowrap text-slate-light">{card.date}</span>
+              {/* LEFT: Thumbnail */}
+              <div className="w-[120px] h-[80px] flex-shrink-0 rounded-lg overflow-hidden">
+                <img
+                  src="https://placehold.co/120x80/E5E7EB/9CA3AF?text="
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="px-4 md:px-5 pt-3 pb-4 flex-1 flex flex-col">
-                <div className={`text-[11px] font-semibold tracking-wide uppercase mb-2 ${card.featured ? "text-sky" : "text-slate"}`}>
-                  {card.regulator}
+
+              {/* CENTER: Content */}
+              <div className="flex-1 min-w-0">
+                {/* Top row */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <div className="w-5 h-5 rounded-full bg-blue/10 text-blue text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                    {card.regulator.charAt(0)}
+                  </div>
+                  <span className="text-[12px] font-semibold text-slate uppercase tracking-wide">{card.source}</span>
+                  <span className="text-silver text-[10px]">|</span>
+                  <span className="text-[11px] text-slate-light">{card.date}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${card.tagClass}`}>{card.tag}</span>
+                  {card.featured && (
+                    <span className="text-[9px] px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full font-medium">
+                      ★ Featured
+                    </span>
+                  )}
                 </div>
-                <div className={`font-display leading-snug mb-3 ${card.featured ? "text-white text-lg md:text-xl" : "text-navy text-base"}`}>
+
+                {/* Title */}
+                <h3 className="font-display text-[15px] leading-snug text-navy hover:text-blue transition-colors cursor-pointer mb-2">
                   {card.title}
+                </h3>
+
+                {/* Bullets summary */}
+                <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">
+                  {card.bullets[0]}
+                  {card.bullets.length > 1 && (
+                    <span className="text-[11px] text-slate-light ml-1">
+                      +{card.bullets.length - 1} more details
+                    </span>
+                  )}
+                </p>
+
+                {/* Bottom row */}
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-[11px] text-slate-light truncate max-w-[280px]">{card.regulator}</span>
+                  {card.featured && (
+                    <span className="flex items-center gap-1 text-[10px] text-accent font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+                      Top Story
+                    </span>
+                  )}
                 </div>
-                <ul className="list-none flex-1">
-                  {card.bullets.map((b, bi) => (
-                    <li
-                      key={bi}
-                      className={`text-[12.5px] leading-relaxed py-1 pl-3.5 relative ${
-                        card.featured
-                          ? "text-slate-light border-b border-white/[0.06] last:border-b-0"
-                          : "text-slate border-b border-fog last:border-b-0"
-                      }`}
-                    >
-                      <span className={`absolute left-0 top-2.5 w-1.5 h-1.5 rounded-full ${card.featured ? "bg-sky" : "bg-blue-light"}`} />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
               </div>
-              <div className={`flex justify-between items-center px-4 md:px-5 py-3 border-t ${
-                card.featured ? "bg-black/15 border-white/[0.08]" : "bg-paper border-fog"
-              }`}>
-                <a href={card.sourceUrl} className={`text-[11px] no-underline transition-colors ${
-                  card.featured ? "text-slate-light hover:text-sky" : "text-slate-light hover:text-blue"
-                }`}>
-                  {card.source} ↗
+
+              {/* RIGHT: External link */}
+              <div className="flex-shrink-0 pl-4">
+                <a href={card.sourceUrl} className="text-slate-light hover:text-blue transition-colors">
+                  <ExternalLink size={14} />
                 </a>
-                <span className={`text-[12px] ${card.featured ? "text-sky" : "text-blue"}`}>→</span>
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="text-center mt-8">
+          <a href="#" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
+            View all regulatory updates →
+          </a>
         </div>
       </div>
     </section>
