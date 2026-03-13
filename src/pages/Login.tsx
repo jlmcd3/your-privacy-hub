@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
@@ -11,6 +11,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/account";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +28,7 @@ const Login = () => {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate("/account");
+      navigate(redirect);
     }
   };
 
@@ -37,7 +39,11 @@ const Login = () => {
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Sign In</h1>
-          <p className="text-sm text-slate text-center mb-7">Welcome back to EndUserPrivacy</p>
+          <p className="text-sm text-slate text-center mb-7">
+            {redirect === "/subscribe"
+              ? "Sign in to complete your upgrade"
+              : "Welcome back to EndUserPrivacy"}
+          </p>
 
           {error && (
             <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
@@ -78,7 +84,10 @@ const Login = () => {
           </form>
 
           <div className="flex items-center justify-between mt-6 text-[13px]">
-            <Link to="/signup" className="text-blue font-medium hover:underline no-underline">
+            <Link
+              to={`/signup?redirect=${encodeURIComponent(redirect)}`}
+              className="text-blue font-medium hover:underline no-underline"
+            >
               Create account
             </Link>
             <span className="text-slate cursor-default">Forgot password?</span>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
@@ -11,6 +11,8 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/account";
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,13 +23,21 @@ const Signup = () => {
     const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: redirect
+          ? `${window.location.origin}${redirect}`
+          : window.location.origin,
+      },
     });
 
     if (error) {
       setError(error.message);
     } else {
-      setMessage("Check your email to confirm your account.");
+      setMessage(
+        redirect === "/subscribe"
+          ? "Almost there! Check your email to confirm your account, then you'll be taken straight to complete your upgrade."
+          : "Check your email to confirm your account."
+      );
     }
     setLoading(false);
   };
@@ -39,7 +49,11 @@ const Signup = () => {
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Create Account</h1>
-          <p className="text-sm text-slate text-center mb-7">Join EndUserPrivacy for free</p>
+          <p className="text-sm text-slate text-center mb-7">
+            {redirect === "/subscribe"
+              ? "Create a free account to unlock Premium"
+              : "Join EndUserPrivacy for free"}
+          </p>
 
           {message && (
             <div className="mb-5 p-3 rounded-lg bg-accent/10 border border-accent/30 text-accent text-[13px] text-center">
@@ -87,7 +101,10 @@ const Signup = () => {
 
           <p className="text-[13px] text-slate text-center mt-6">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue font-medium hover:underline no-underline">
+            <Link
+              to={`/login?redirect=${encodeURIComponent(redirect)}`}
+              className="text-blue font-medium hover:underline no-underline"
+            >
               Sign in
             </Link>
           </p>
