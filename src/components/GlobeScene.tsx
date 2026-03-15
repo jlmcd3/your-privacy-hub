@@ -20,7 +20,6 @@ function buildEarthCanvas(geojson: any): HTMLCanvasElement {
   canvas.height = CH;
   const ctx = canvas.getContext("2d")!;
 
-  // Ocean
   ctx.fillStyle = "#0d3060";
   ctx.fillRect(0, 0, CW, CH);
 
@@ -36,35 +35,26 @@ function buildEarthCanvas(geojson: any): HTMLCanvasElement {
     for (const [lon, lat] of coords) {
       const [x, y] = project(lon, lat);
       if (prevX !== null && Math.abs(x - prevX) > CW * 0.5) {
-        ctx.fill();
-        ctx.stroke();
-        ctx.beginPath();
-        started = false;
+        ctx.fill(); ctx.stroke(); ctx.beginPath(); started = false;
       }
       if (!started) { ctx.moveTo(x, y); started = true; }
       else ctx.lineTo(x, y);
       prevX = x;
     }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    ctx.closePath(); ctx.fill(); ctx.stroke();
   }
 
-  // Land — uniform dark muted green, no desert differentiation
   ctx.fillStyle = "#1e3d28";
   ctx.strokeStyle = "#162d1e";
   ctx.lineWidth = 0.5;
 
   for (const f of geojson.features) {
     if (!f.geometry) continue;
-    if (f.geometry.type === "Polygon") {
-      drawRing(f.geometry.coordinates[0]);
-    } else if (f.geometry.type === "MultiPolygon") {
+    if (f.geometry.type === "Polygon") drawRing(f.geometry.coordinates[0]);
+    else if (f.geometry.type === "MultiPolygon")
       for (const poly of f.geometry.coordinates) drawRing(poly[0]);
-    }
   }
 
-  // Polar ice caps
   const iceN = ctx.createLinearGradient(0, 0, 0, CH * 0.13);
   iceN.addColorStop(0, "rgba(225,238,255,0.95)");
   iceN.addColorStop(1, "rgba(225,238,255,0)");
@@ -81,22 +71,56 @@ function buildEarthCanvas(geojson: any): HTMLCanvasElement {
 }
 
 const GlobeScene = () => {
-  const mountRef = useRef<HTMLDivElement>(null);
+  const mountRef    = useRef<HTMLDivElement>(null);
+  const starRef     = useRef<HTMLCanvasElement>(null);
+  const animStarRef = useRef<number>(0);
 
   useEffect(() => {
     const el = mountRef.current;
-    if (!el) return;
+    const sc = starRef.current;
+    if (!el || !sc) return;
 
+    // ── Star field ────────────────────────────────────────────────────
     const W = el.clientWidth || 600;
     const H = el.clientHeight || 600;
+    sc.width  = W;
+    sc.height = H;
+    const ctx2 = sc.getContext("2d")!;
 
+    const COUNT = 280;
+    const stars = Array.from({ length: COUNT }, () => ({
+      x:     Math.random() * W,
+      y:     Math.random() * H,
+      r:     Math.random() * 1.1 + 0.2,
+      base:  Math.random() * 0.35 + 0.05,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.4 + 0.15,
+    }));
+
+    let t = 0;
+    function drawStars() {
+      animStarRef.current = requestAnimationFrame(drawStars);
+      ctx2.clearRect(0, 0, sc!.width, sc!.height);
+      t += 0.016;
+      for (const s of stars) {
+        const twinkle = Math.sin(t * s.speed + s.phase) * 0.18;
+        const alpha   = Math.max(0, Math.min(1, s.base + twinkle));
+        ctx2.beginPath();
+        ctx2.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx2.fillStyle = `rgba(200,220,255,${alpha.toFixed(3)})`;
+        ctx2.fill();
+      }
+    }
+    drawStars();
+
+    // ── Three.js globe ────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
     renderer.setClearColor(0x000000, 0);
     el.appendChild(renderer.domElement);
 
-    const scene = new THREE.Scene();
+    const scene  = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
     camera.position.set(0, 0.4, 4.6);
     camera.lookAt(0, 0, 0);
@@ -105,44 +129,40 @@ const GlobeScene = () => {
     globeGroup.rotation.x = 0.18;
     scene.add(globeGroup);
 
-    // Placeholder while texture loads
-    const sphereGeo = new THREE.SphereGeometry(R, 64, 64);
-    const globeMesh = new THREE.Mesh(
+    const sphereGeo  = new THREE.SphereGeometry(R, 64, 64);
+    const globeMesh  = new THREE.Mesh(
       sphereGeo,
       new THREE.MeshBasicMaterial({ color: new THREE.Color("#0d2545") })
     );
     globeGroup.add(globeMesh);
 
-    // Graticule grid
     const gPoints: THREE.Vector3[] = [];
-    for (let lat = -60; lat <= 60; lat += 30) {
+    for (let lat = -60; lat <= 60; lat += 30)
       for (let lon = -180; lon < 180; lon += 4) {
         gPoints.push(toVec3(lat, lon, R + 0.003));
         gPoints.push(toVec3(lat, lon + 4, R + 0.003));
       }
-    }
-    for (let lon = -180; lon < 180; lon += 30) {
+    for (let lon = -180; lon < 180; lon += 30)
       for (let lat = -88; lat < 88; lat += 4) {
         gPoints.push(toVec3(lat, lon, R + 0.003));
         gPoints.push(toVec3(lat + 4, lon, R + 0.003));
       }
-    }
     globeMesh.add(new THREE.LineSegments(
       new THREE.BufferGeometry().setFromPoints(gPoints),
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07 })
     ));
 
-    // Load GeoJSON and build canvas texture async — does not block page render
+    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+
     const loadGlobe = async () => {
       try {
         const [topoRes, topojs] = await Promise.all([
           fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"),
           import("https://cdn.jsdelivr.net/npm/topojson-client@3/+esm" as string) as any,
         ]);
-        const topo = await topoRes.json();
+        const topo    = await topoRes.json();
         const geojson = topojs.feature(topo, topo.objects.countries);
-        const canvas = buildEarthCanvas(geojson);
-        // MeshBasicMaterial = no lighting, perfectly even illumination all the way around
+        const canvas  = buildEarthCanvas(geojson);
         globeMesh.material = new THREE.MeshBasicMaterial({
           map: new THREE.CanvasTexture(canvas),
         });
@@ -152,7 +172,6 @@ const GlobeScene = () => {
     };
     loadGlobe();
 
-    // Animation
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -162,9 +181,9 @@ const GlobeScene = () => {
     animate();
 
     const onResize = () => {
-      const W2 = el.clientWidth;
-      const H2 = el.clientHeight;
+      const W2 = el.clientWidth, H2 = el.clientHeight;
       if (!W2 || !H2) return;
+      sc!.width = W2; sc!.height = H2;
       camera.aspect = W2 / H2;
       camera.updateProjectionMatrix();
       renderer.setSize(W2, H2);
@@ -173,13 +192,19 @@ const GlobeScene = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      cancelAnimationFrame(animStarRef.current);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
   }, []);
 
-  return <div ref={mountRef} style={{ width: "100%", height: "100%" }} />;
+  return (
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <canvas ref={starRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+      <div ref={mountRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+    </div>
+  );
 };
 
 export default GlobeScene;
