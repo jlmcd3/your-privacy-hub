@@ -6,6 +6,7 @@ const supabase = createClient(
 );
 
 const RSS_SOURCES = [
+  // ── EU & UK ────────────────────────────────────────────────────────
   {
     url: "https://www.edpb.europa.eu/feed/news_en",
     source: "EDPB",
@@ -21,12 +22,56 @@ const RSS_SOURCES = [
     regulator: "UK Information Commissioner's Office",
   },
   {
+    url: "https://www.cnil.fr/en/rss.xml",
+    source: "CNIL",
+    domain: "cnil.fr",
+    defaultCategory: "eu-uk",
+    regulator: "Commission Nationale de l'Informatique et des Libertés",
+  },
+  {
+    url: "https://www.bfdi.bund.de/SiteGlobals/Functions/RSSFeed/DE/bfdi_pressemitteilungen.xml",
+    source: "BfDI",
+    domain: "bfdi.bund.de",
+    defaultCategory: "eu-uk",
+    regulator: "German Federal Commissioner for Data Protection",
+  },
+  {
+    url: "https://www.dataprotection.ie/news/rss.xml",
+    source: "DPC Ireland",
+    domain: "dataprotection.ie",
+    defaultCategory: "eu-uk",
+    regulator: "Irish Data Protection Commission",
+  },
+  {
+    url: "https://www.garanteprivacy.it/web/english/home/docweb/-/docweb-display/export/rss",
+    source: "Garante",
+    domain: "garanteprivacy.it",
+    defaultCategory: "eu-uk",
+    regulator: "Italian Data Protection Authority",
+  },
+  // ── U.S. Federal ──────────────────────────────────────────────────
+  {
     url: "https://www.ftc.gov/feeds/press-release.xml",
     source: "FTC",
     domain: "ftc.gov",
     defaultCategory: "us-federal",
     regulator: "Federal Trade Commission",
   },
+  {
+    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
+    source: "NIST",
+    domain: "nist.gov",
+    defaultCategory: "us-federal",
+    regulator: "NIST",
+  },
+  {
+    url: "https://www.hhs.gov/hipaa/newsroom/rss/hipaa-news.xml",
+    source: "HHS OCR",
+    domain: "hhs.gov",
+    defaultCategory: "us-federal",
+    regulator: "HHS Office for Civil Rights",
+  },
+  // ── Global ────────────────────────────────────────────────────────
   {
     url: "https://iapp.org/rss/daily-dashboard/",
     source: "IAPP",
@@ -35,18 +80,25 @@ const RSS_SOURCES = [
     regulator: "IAPP",
   },
   {
-    url: "https://www.cnil.fr/en/rss.xml",
-    source: "CNIL",
-    domain: "cnil.fr",
-    defaultCategory: "eu-uk",
-    regulator: "Commission Nationale de l'Informatique et des Libertés",
+    url: "https://www.priv.gc.ca/en/rss/news-and-announcements/",
+    source: "OPC Canada",
+    domain: "priv.gc.ca",
+    defaultCategory: "global",
+    regulator: "Office of the Privacy Commissioner of Canada",
   },
   {
-    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
-    source: "NIST",
-    domain: "nist.gov",
-    defaultCategory: "us-federal",
-    regulator: "NIST",
+    url: "https://www.oaic.gov.au/rss/news",
+    source: "OAIC",
+    domain: "oaic.gov.au",
+    defaultCategory: "global",
+    regulator: "Office of the Australian Information Commissioner",
+  },
+  {
+    url: "https://www.dataguidance.com/rss/news",
+    source: "DataGuidance",
+    domain: "dataguidance.com",
+    defaultCategory: "global",
+    regulator: "DataGuidance",
   },
 ];
 
