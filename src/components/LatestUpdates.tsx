@@ -226,7 +226,7 @@ const LatestUpdates = () => {
 
         <div className="text-center mt-8">
           <a href="#" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
-            View all regulatory updates →
+            View all updates →
           </a>
         </div>
       </div>

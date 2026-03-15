@@ -26,13 +26,13 @@ const Hero = () => {
         backgroundSize: "48px 48px"
       }} />
 
-      {/* World map background */}
+      {/* Globe background — centered */}
       <div className="absolute inset-0 block pointer-events-none">
         <RegulatorGlobe />
       </div>
 
-      <div className="max-w-[1280px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 lg:gap-16 items-center">
-        <div className="animate-fade-up">
+      <div className="max-w-[1280px] mx-auto relative z-10 flex flex-col items-center text-center">
+        <div className="animate-fade-up max-w-[800px]">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-5 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             <span>🌐</span> Global Privacy Intelligence Platform
           </div>
@@ -46,10 +46,10 @@ const Hero = () => {
             </Link>
             <em className="italic text-white/80"> for those who need the full picture.</em>
           </h1>
-          <p className="text-sm md:text-base text-slate-light leading-relaxed max-w-[520px] mb-7 md:mb-9">
+          <p className="text-sm md:text-base text-slate-light leading-relaxed max-w-[600px] mx-auto mb-7 md:mb-9">
             Track regulatory developments from 250+ privacy authorities across 150+ jurisdictions — automatically monitored, AI-summarized, and structured for professionals.
           </p>
-          <div className="flex gap-3 items-center flex-wrap">
+          <div className="flex gap-3 items-center justify-center flex-wrap">
             <Link to="/enforcement-tracker" className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all no-underline inline-flex items-center gap-2">
               Explore Free →
             </Link>
@@ -59,7 +59,7 @@ const Hero = () => {
           </div>
 
           {/* Stat strip */}
-          <div className="flex items-center gap-2 mt-6 text-[12px] text-slate-light tracking-wide">
+          <div className="flex items-center justify-center gap-2 mt-6 text-[12px] text-slate-light tracking-wide">
             <span>250+ Regulators</span>
             <span className="text-white/30">·</span>
             <span>150+ Jurisdictions</span>
@@ -68,7 +68,7 @@ const Hero = () => {
           </div>
 
           {/* Live pulse feed */}
-          <div className="flex items-center gap-2 mt-4 text-[11.5px]">
+          <div className="flex items-center justify-center gap-2 mt-4 text-[11.5px]">
             <span className="flex items-center gap-1.5 text-accent-l font-semibold tracking-wider uppercase text-[10px]">
               <span className="w-1.5 h-1.5 rounded-full bg-accent-l inline-block" />
               Live
@@ -77,7 +77,7 @@ const Hero = () => {
             <span className="text-white/75 transition-all duration-500">
               {liveFeed[feedIndex].flag} {liveFeed[feedIndex].label}
             </span>
-            <span className="text-white/30 ml-auto text-[10px]">
+            <span className="text-white/30 text-[10px]">
               {liveFeed[feedIndex].time}
             </span>
           </div>
@@ -87,7 +87,7 @@ const Hero = () => {
             Used by privacy professionals, DPOs, and compliance teams worldwide.
           </p>
 
-          <div className="grid grid-cols-2 md:flex gap-5 md:gap-7 mt-8 md:mt-11 pt-6 md:pt-8 border-t border-white/10">
+          <div className="flex justify-center gap-5 md:gap-7 mt-8 md:mt-11 pt-6 md:pt-8 border-t border-white/10 flex-wrap">
             {[
               { num: "250+", label: "Regulators monitored" },
               { num: "150+", label: "Jurisdictions covered" },
@@ -102,34 +102,6 @@ const Hero = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Premium card preview */}
-        <div className="bg-white/[0.06] border border-white/[0.12] rounded-2xl p-5 md:p-7 backdrop-blur-xl animate-fade-up" style={{ animationDelay: "0.12s" }}>
-          <div className="flex justify-between items-start mb-5">
-            <span className="text-[10px] font-bold tracking-widest uppercase text-sky bg-sky/15 px-2.5 py-1 rounded-full border border-sky/25">⭐ Premium Brief</span>
-            <span className="text-[11px] text-slate-light">Week of Mar 3, 2026</span>
-          </div>
-          <h3 className="font-display text-[15px] md:text-[17px] text-white mb-4 leading-snug">
-            EDPB issues binding guidance on AI training data; Texas AG opens first TDPSA enforcement
-          </h3>
-          <div className="bg-white/5 rounded-lg p-3 mb-2 border-l-2 border-sky/40 hover:border-sky transition-colors">
-            <div className="text-[10px] font-semibold tracking-wider uppercase text-slate-light mb-1">Executive Summary</div>
-            <div className="text-[12.5px] text-white/75 leading-relaxed">
-              This week's most consequential developments span AI data processing and state-level enforcement escalation. The EDPB issued binding guidance restricting use of personal data for large language model training without explicit consent…
-            </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-3 border-l-2 border-sky/40 relative overflow-hidden">
-            <div className="text-[10px] font-semibold tracking-wider uppercase text-slate-light mb-1">Trend Signal</div>
-            <div className="text-[12.5px] text-white/75 leading-relaxed">
-              Three enforcement actions across EU, U.S., and Brazil this week point to coordinated regulatory pressure on data brokers — a pattern not observed at this frequency since 2022…
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-navy-mid/95 to-transparent" />
-          </div>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-[12px] text-slate-light">Full brief: 8 sections · 12 updates</span>
-            <Link to="/subscribe" className="text-[12px] font-semibold text-navy bg-sky px-4 py-1.5 rounded-lg hover:bg-white transition-colors no-underline">Unlock →</Link>
           </div>
         </div>
       </div>
