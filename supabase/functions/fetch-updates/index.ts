@@ -6,6 +6,7 @@ const supabase = createClient(
 );
 
 const RSS_SOURCES = [
+  // ── EU & UK ────────────────────────────────────────────────────────
   {
     url: "https://www.edpb.europa.eu/feed/news_en",
     source: "EDPB",
@@ -21,12 +22,28 @@ const RSS_SOURCES = [
     regulator: "UK Information Commissioner's Office",
   },
   {
+    url: "https://www.cnil.fr/en/rss.xml",
+    source: "CNIL",
+    domain: "cnil.fr",
+    defaultCategory: "eu-uk",
+    regulator: "Commission Nationale de l'Informatique et des Libertés",
+  },
+  // ── U.S. Federal ──────────────────────────────────────────────────
+  {
     url: "https://www.ftc.gov/feeds/press-release.xml",
     source: "FTC",
     domain: "ftc.gov",
     defaultCategory: "us-federal",
     regulator: "Federal Trade Commission",
   },
+  {
+    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
+    source: "NIST",
+    domain: "nist.gov",
+    defaultCategory: "us-federal",
+    regulator: "NIST",
+  },
+  // ── Global / Industry ─────────────────────────────────────────────
   {
     url: "https://iapp.org/rss/daily-dashboard/",
     source: "IAPP",
@@ -35,18 +52,11 @@ const RSS_SOURCES = [
     regulator: "IAPP",
   },
   {
-    url: "https://www.cnil.fr/en/rss.xml",
-    source: "CNIL",
-    domain: "cnil.fr",
-    defaultCategory: "eu-uk",
-    regulator: "Commission Nationale de l'Informatique et des Libertés",
-  },
-  {
-    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
-    source: "NIST",
-    domain: "nist.gov",
-    defaultCategory: "us-federal",
-    regulator: "NIST",
+    url: "https://fpf.org/feed/",
+    source: "FPF",
+    domain: "fpf.org",
+    defaultCategory: "global",
+    regulator: "Future of Privacy Forum",
   },
 ];
 
