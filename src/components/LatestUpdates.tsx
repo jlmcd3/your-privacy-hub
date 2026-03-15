@@ -130,7 +130,7 @@ const LatestUpdates = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
-            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Latest Regulatory Updates</h2>
+            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Latest Updates</h2>
             <p className="text-sm text-slate mt-1">Updated continuously from 250+ monitored sources</p>
           </div>
         </div>
@@ -226,7 +226,7 @@ const LatestUpdates = () => {
 
         <div className="text-center mt-8">
           <a href="#" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
-            View all regulatory updates →
+            View all updates →
           </a>
         </div>
       </div>
