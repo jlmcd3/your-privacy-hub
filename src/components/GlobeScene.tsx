@@ -3,17 +3,6 @@ import * as THREE from "three";
 
 const R = 1.5;
 
-const HUBS = [
-  { lat: 50.85, lon: 4.35 },
-  { lat: 51.51, lon: -0.12 },
-  { lat: 38.89, lon: -77.04 },
-  { lat: -23.55, lon: -46.63 },
-  { lat: 35.69, lon: 139.69 },
-  { lat: 1.35, lon: 103.82 },
-  { lat: 28.61, lon: 77.21 },
-  { lat: -35.28, lon: 149.13 },
-];
-
 function toVec3(lat: number, lon: number, r: number): THREE.Vector3 {
   const phi = (lat * Math.PI) / 180;
   const lam = (lon * Math.PI) / 180;
@@ -61,9 +50,9 @@ function buildEarthCanvas(geojson: any): HTMLCanvasElement {
     ctx.stroke();
   }
 
-  // Land base
-  ctx.fillStyle = "#3d7a38";
-  ctx.strokeStyle = "#2d5c28";
+  // Land — uniform dark muted green, no desert differentiation
+  ctx.fillStyle = "#1e3d28";
+  ctx.strokeStyle = "#162d1e";
   ctx.lineWidth = 0.5;
 
   for (const f of geojson.features) {
@@ -74,33 +63,6 @@ function buildEarthCanvas(geojson: any): HTMLCanvasElement {
       for (const poly of f.geometry.coordinates) drawRing(poly[0]);
     }
   }
-
-  // Desert tint — Sahara / Arabian Peninsula band
-  ctx.globalAlpha = 0.22;
-  ctx.fillStyle = "#c9a85c";
-  ctx.strokeStyle = "transparent";
-  ctx.lineWidth = 0;
-  for (const f of geojson.features) {
-    if (!f.geometry) continue;
-    const drawDesert = (ring: number[][]) => {
-      if (!ring || ring.length < 2) return;
-      ctx.beginPath();
-      let st = false, px: number | null = null;
-      for (const [lon, lat] of ring) {
-        if (lat < 35 && lat > 10 && lon > -20 && lon < 75) {
-          const [x, y] = project(lon, lat);
-          if (px !== null && Math.abs(x - px) > CW * 0.5) { ctx.beginPath(); st = false; }
-          if (!st) { ctx.moveTo(x, y); st = true; } else ctx.lineTo(x, y);
-          px = x;
-        }
-      }
-      ctx.closePath();
-      ctx.fill();
-    };
-    if (f.geometry.type === "Polygon") drawDesert(f.geometry.coordinates[0]);
-    else if (f.geometry.type === "MultiPolygon") f.geometry.coordinates.forEach((p: number[][][]) => drawDesert(p[0]));
-  }
-  ctx.globalAlpha = 1.0;
 
   // Polar ice caps
   const iceN = ctx.createLinearGradient(0, 0, 0, CH * 0.13);
@@ -143,10 +105,12 @@ const GlobeScene = () => {
     globeGroup.rotation.x = 0.18;
     scene.add(globeGroup);
 
-    // Placeholder sphere while GeoJSON loads
+    // Placeholder while texture loads
     const sphereGeo = new THREE.SphereGeometry(R, 64, 64);
-    const placeholderMat = new THREE.MeshBasicMaterial({ color: new THREE.Color("#0d2545") });
-    const globeMesh = new THREE.Mesh(sphereGeo, placeholderMat);
+    const globeMesh = new THREE.Mesh(
+      sphereGeo,
+      new THREE.MeshBasicMaterial({ color: new THREE.Color("#0d2545") })
+    );
     globeGroup.add(globeMesh);
 
     // Graticule grid
@@ -168,25 +132,7 @@ const GlobeScene = () => {
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07 })
     ));
 
-    // Hub dots
-    HUBS.forEach((hub) => {
-      const pos = toVec3(hub.lat, hub.lon, R + 0.02);
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.023, 0.04, 16),
-        new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
-      );
-      ring.position.copy(pos);
-      ring.lookAt(pos.clone().multiplyScalar(2));
-      globeMesh.add(ring);
-      const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(0.017, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0xffffff })
-      );
-      dot.position.copy(pos);
-      globeMesh.add(dot);
-    });
-
-    // Load world-atlas TopoJSON and build canvas texture
+    // Load GeoJSON and build canvas texture async — does not block page render
     const loadGlobe = async () => {
       try {
         const [topoRes, topojs] = await Promise.all([
@@ -196,9 +142,10 @@ const GlobeScene = () => {
         const topo = await topoRes.json();
         const geojson = topojs.feature(topo, topo.objects.countries);
         const canvas = buildEarthCanvas(geojson);
-        const tex = new THREE.CanvasTexture(canvas);
-        // MeshBasicMaterial = no lighting, perfectly even illumination all around
-        globeMesh.material = new THREE.MeshBasicMaterial({ map: tex });
+        // MeshBasicMaterial = no lighting, perfectly even illumination all the way around
+        globeMesh.material = new THREE.MeshBasicMaterial({
+          map: new THREE.CanvasTexture(canvas),
+        });
       } catch (e) {
         console.warn("Globe texture failed to load", e);
       }
