@@ -29,25 +29,11 @@ const RSS_SOURCES = [
     regulator: "Commission Nationale de l'Informatique et des Libertés",
   },
   {
-    url: "https://www.bfdi.bund.de/SiteGlobals/Functions/RSSFeed/DE/bfdi_pressemitteilungen.xml",
-    source: "BfDI",
-    domain: "bfdi.bund.de",
-    defaultCategory: "eu-uk",
-    regulator: "German Federal Commissioner for Data Protection",
-  },
-  {
-    url: "https://www.dataprotection.ie/news/rss.xml",
-    source: "DPC Ireland",
-    domain: "dataprotection.ie",
-    defaultCategory: "eu-uk",
-    regulator: "Irish Data Protection Commission",
-  },
-  {
-    url: "https://www.garanteprivacy.it/web/english/home/docweb/-/docweb-display/export/rss",
-    source: "Garante",
-    domain: "garanteprivacy.it",
-    defaultCategory: "eu-uk",
-    regulator: "Italian Data Protection Authority",
+    url: "https://gdprhub.eu/index.php?title=Special:Ask&q=%5B%5BCategory%3ACase%5D%5D&format=rss&limit=20&sort=Date",
+    source: "GDPRhub",
+    domain: "gdprhub.eu",
+    defaultCategory: "enforcement",
+    regulator: "GDPRhub",
   },
   // ── U.S. Federal ──────────────────────────────────────────────────
   {
@@ -64,14 +50,7 @@ const RSS_SOURCES = [
     defaultCategory: "us-federal",
     regulator: "NIST",
   },
-  {
-    url: "https://www.hhs.gov/hipaa/newsroom/rss/hipaa-news.xml",
-    source: "HHS OCR",
-    domain: "hhs.gov",
-    defaultCategory: "us-federal",
-    regulator: "HHS Office for Civil Rights",
-  },
-  // ── Global ────────────────────────────────────────────────────────
+  // ── Global / Industry ─────────────────────────────────────────────
   {
     url: "https://iapp.org/rss/daily-dashboard/",
     source: "IAPP",
@@ -80,25 +59,25 @@ const RSS_SOURCES = [
     regulator: "IAPP",
   },
   {
-    url: "https://www.priv.gc.ca/en/rss/news-and-announcements/",
-    source: "OPC Canada",
-    domain: "priv.gc.ca",
+    url: "https://www.privacyworld.blog/feed/",
+    source: "Privacy World",
+    domain: "privacyworld.blog",
     defaultCategory: "global",
-    regulator: "Office of the Privacy Commissioner of Canada",
+    regulator: "Privacy World",
   },
   {
-    url: "https://www.oaic.gov.au/rss/news",
-    source: "OAIC",
-    domain: "oaic.gov.au",
+    url: "https://fpf.org/feed/",
+    source: "FPF",
+    domain: "fpf.org",
     defaultCategory: "global",
-    regulator: "Office of the Australian Information Commissioner",
+    regulator: "Future of Privacy Forum",
   },
   {
-    url: "https://www.dataguidance.com/rss/news",
-    source: "DataGuidance",
-    domain: "dataguidance.com",
+    url: "https://www.technologylawdispatch.com/feed/",
+    source: "Tech Law Dispatch",
+    domain: "technologylawdispatch.com",
     defaultCategory: "global",
-    regulator: "DataGuidance",
+    regulator: "Technology Law Dispatch",
   },
 ];
 
