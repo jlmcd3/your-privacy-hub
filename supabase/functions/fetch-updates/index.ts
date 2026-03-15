@@ -7,28 +7,28 @@ const supabase = createClient(
 
 const RSS_SOURCES = [
   {
-    url: "https://www.edpb.europa.eu/edpb/rss_en",
+    url: "https://www.edpb.europa.eu/feed/news_en",
     source: "EDPB",
     domain: "edpb.europa.eu",
     defaultCategory: "eu-uk",
     regulator: "European Data Protection Board",
   },
   {
-    url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/rss/",
+    url: "https://ico.org.uk/global/rss-feeds/news-and-blogs",
     source: "ICO",
     domain: "ico.org.uk",
     defaultCategory: "eu-uk",
     regulator: "UK Information Commissioner's Office",
   },
   {
-    url: "https://www.ftc.gov/feeds/press-releases.xml",
+    url: "https://www.ftc.gov/feeds/press-release.xml",
     source: "FTC",
     domain: "ftc.gov",
     defaultCategory: "us-federal",
     regulator: "Federal Trade Commission",
   },
   {
-    url: "https://iapp.org/feed/",
+    url: "https://iapp.org/rss/daily-dashboard/",
     source: "IAPP",
     domain: "iapp.org",
     defaultCategory: "global",
@@ -40,6 +40,13 @@ const RSS_SOURCES = [
     domain: "cnil.fr",
     defaultCategory: "eu-uk",
     regulator: "Commission Nationale de l'Informatique et des Libertés",
+  },
+  {
+    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
+    source: "NIST",
+    domain: "nist.gov",
+    defaultCategory: "us-federal",
+    regulator: "NIST",
   },
 ];
 
