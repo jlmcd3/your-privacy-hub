@@ -28,13 +28,6 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "Commission Nationale de l'Informatique et des Libertés",
   },
-  {
-    url: "https://gdprhub.eu/index.php?title=Special:Ask&q=%5B%5BCategory%3ACase%5D%5D&format=rss&limit=20&sort=Date",
-    source: "GDPRhub",
-    domain: "gdprhub.eu",
-    defaultCategory: "enforcement",
-    regulator: "GDPRhub",
-  },
   // ── U.S. Federal ──────────────────────────────────────────────────
   {
     url: "https://www.ftc.gov/feeds/press-release.xml",
