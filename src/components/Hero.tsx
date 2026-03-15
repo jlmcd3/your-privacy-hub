@@ -37,7 +37,8 @@ const Hero = () => {
             <span>🌐</span> Global Privacy Intelligence Platform
           </div>
           <h1 className="font-display text-[clamp(28px,5vw,52px)] leading-[1.1] tracking-tight mb-5">
-            Every regulator tracked. Every update summarized.<br />
+            Every regulator tracked.<br />
+            Every update summarized.<br />
             <Link
               to="/subscribe"
               className="italic text-sky underline decoration-sky/40 underline-offset-4 hover:decoration-sky transition-all"
