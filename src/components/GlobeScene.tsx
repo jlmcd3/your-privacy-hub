@@ -71,22 +71,26 @@ function buildEarthCanvas(geojson: any): HTMLCanvasElement {
 }
 
 const GlobeScene = () => {
-  const mountRef    = useRef<HTMLDivElement>(null);
-  const starRef     = useRef<HTMLCanvasElement>(null);
-  const animStarRef = useRef<number>(0);
+  const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = mountRef.current;
-    const sc = starRef.current;
-    if (!el || !sc) return;
+    if (!el) return;
 
-    // ── Star field ────────────────────────────────────────────────────
+    el.style.position = "relative";
+
     const W = el.clientWidth || 600;
     const H = el.clientHeight || 600;
-    sc.width  = W;
-    sc.height = H;
-    const ctx2 = sc.getContext("2d")!;
 
+    // ── Star canvas — inserted into DOM first, sits behind Three.js canvas ──
+    const starCanvas = document.createElement("canvas");
+    starCanvas.width = W;
+    starCanvas.height = H;
+    starCanvas.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;";
+    el.appendChild(starCanvas);
+
+    const ctx2 = starCanvas.getContext("2d")!;
     const COUNT = 280;
     const stars = Array.from({ length: COUNT }, () => ({
       x:     Math.random() * W,
@@ -98,9 +102,10 @@ const GlobeScene = () => {
     }));
 
     let t = 0;
+    let starAnimId: number;
     function drawStars() {
-      animStarRef.current = requestAnimationFrame(drawStars);
-      ctx2.clearRect(0, 0, sc!.width, sc!.height);
+      starAnimId = requestAnimationFrame(drawStars);
+      ctx2.clearRect(0, 0, starCanvas.width, starCanvas.height);
       t += 0.016;
       for (const s of stars) {
         const twinkle = Math.sin(t * s.speed + s.phase) * 0.18;
@@ -113,11 +118,14 @@ const GlobeScene = () => {
     }
     drawStars();
 
-    // ── Three.js globe ────────────────────────────────────────────────
+    // ── Three.js globe — appended after star canvas, sits on top ──────────
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
     renderer.setClearColor(0x000000, 0);
+    // Position the WebGL canvas above the star canvas
+    renderer.domElement.style.cssText =
+      "position:relative;z-index:1;display:block;";
     el.appendChild(renderer.domElement);
 
     const scene  = new THREE.Scene();
@@ -129,8 +137,8 @@ const GlobeScene = () => {
     globeGroup.rotation.x = 0.18;
     scene.add(globeGroup);
 
-    const sphereGeo  = new THREE.SphereGeometry(R, 64, 64);
-    const globeMesh  = new THREE.Mesh(
+    const sphereGeo = new THREE.SphereGeometry(R, 64, 64);
+    const globeMesh = new THREE.Mesh(
       sphereGeo,
       new THREE.MeshBasicMaterial({ color: new THREE.Color("#0d2545") })
     );
@@ -183,7 +191,8 @@ const GlobeScene = () => {
     const onResize = () => {
       const W2 = el.clientWidth, H2 = el.clientHeight;
       if (!W2 || !H2) return;
-      sc!.width = W2; sc!.height = H2;
+      starCanvas.width  = W2;
+      starCanvas.height = H2;
       camera.aspect = W2 / H2;
       camera.updateProjectionMatrix();
       renderer.setSize(W2, H2);
@@ -192,19 +201,15 @@ const GlobeScene = () => {
 
     return () => {
       cancelAnimationFrame(animId);
-      cancelAnimationFrame(animStarRef.current);
+      cancelAnimationFrame(starAnimId);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
+      if (el.contains(starCanvas)) el.removeChild(starCanvas);
     };
   }, []);
 
-  return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <canvas ref={starRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-      <div ref={mountRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-    </div>
-  );
+  return <div ref={mountRef} style={{ width: "100%", height: "100%" }} />;
 };
 
 export default GlobeScene;
