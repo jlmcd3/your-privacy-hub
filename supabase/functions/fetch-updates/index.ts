@@ -52,25 +52,11 @@ const RSS_SOURCES = [
     regulator: "IAPP",
   },
   {
-    url: "https://www.privacyworld.blog/feed/",
-    source: "Privacy World",
-    domain: "privacyworld.blog",
-    defaultCategory: "global",
-    regulator: "Privacy World",
-  },
-  {
     url: "https://fpf.org/feed/",
     source: "FPF",
     domain: "fpf.org",
     defaultCategory: "global",
     regulator: "Future of Privacy Forum",
-  },
-  {
-    url: "https://www.technologylawdispatch.com/feed/",
-    source: "Tech Law Dispatch",
-    domain: "technologylawdispatch.com",
-    defaultCategory: "global",
-    regulator: "Technology Law Dispatch",
   },
 ];
 
