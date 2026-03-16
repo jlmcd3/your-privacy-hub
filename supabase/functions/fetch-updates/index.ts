@@ -15,11 +15,11 @@ const RSS_SOURCES = [
     regulator: "European Data Protection Board",
   },
   {
-    url: "https://ico.org.uk/global/rss-feeds/news-and-blogs",
-    source: "ICO",
-    domain: "ico.org.uk",
-    defaultCategory: "eu-uk",
-    regulator: "UK Information Commissioner's Office",
+    url: "https://www.huntonprivacyblog.com/feed/",
+    source: "Hunton Privacy Blog",
+    domain: "hunton.com",
+    defaultCategory: "us-federal",
+    regulator: "Hunton Andrews Kurth",
   },
   {
     url: "https://www.cnil.fr/en/rss.xml",
