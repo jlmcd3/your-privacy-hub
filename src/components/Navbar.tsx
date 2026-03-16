@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
-import SearchBar from "./SearchBar";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   label: string;
   href?: string;
-  active?: boolean;
+  wide?: boolean;
   sections?: {
     header?: string;
     divider?: boolean;
@@ -32,6 +32,52 @@ const navItems: NavItem[] = [
           { icon: "🌏", label: "Global", href: "/category/global" },
         ],
       },
+    ],
+  },
+  {
+    label: "Jurisdictions",
+    wide: true,
+    sections: [
+      { header: "Americas", items: [
+        { icon: "🇺🇸", label: "United States", href: "/jurisdiction/united-states" },
+        { icon: "🇨🇦", label: "Canada", href: "/jurisdiction/canada" },
+        { icon: "🇧🇷", label: "Brazil", href: "/jurisdiction/brazil" },
+        { icon: "🇲🇽", label: "Mexico", href: "/jurisdiction/mexico" },
+      ]},
+      { header: "Asia-Pacific", divider: true, items: [
+        { icon: "🇦🇺", label: "Australia", href: "/jurisdiction/australia" },
+        { icon: "🇯🇵", label: "Japan", href: "/jurisdiction/japan" },
+        { icon: "🇸🇬", label: "Singapore", href: "/jurisdiction/singapore" },
+        { icon: "🇰🇷", label: "South Korea", href: "/jurisdiction/south-korea" },
+      ]},
+      { header: "Europe", items: [
+        { icon: "🇪🇺", label: "European Union", href: "/jurisdiction/european-union" },
+        { icon: "🇬🇧", label: "United Kingdom", href: "/jurisdiction/united-kingdom" },
+        { icon: "🇩🇪", label: "Germany", href: "/jurisdiction/germany" },
+        { icon: "🇫🇷", label: "France", href: "/jurisdiction/france" },
+      ]},
+      { header: "Other", divider: true, items: [
+        { icon: "🌍", label: "Africa", href: "/jurisdiction/south-africa" },
+        { icon: "🌏", label: "Middle East", href: "/jurisdiction/uae" },
+        { icon: "🗂️", label: "All 150+ Jurisdictions →", href: "/global-privacy-authorities" },
+      ]},
+    ],
+  },
+  {
+    label: "Regulators",
+    sections: [
+      { header: "Authority Directories", items: [
+        { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
+        { icon: "🌐", label: "Global DPA Directory", href: "/global-privacy-authorities" },
+      ]},
+      { header: "Key Regulators", divider: true, items: [
+        { icon: "⚖️", label: "EDPB (EU)", href: "/regulator/edpb" },
+        { icon: "⚖️", label: "ICO (UK)", href: "/regulator/ico" },
+        { icon: "⚖️", label: "FTC (U.S.)", href: "/regulator/ftc" },
+        { icon: "⚖️", label: "CNIL (France)", href: "/regulator/cnil" },
+        { icon: "⚖️", label: "DPC (Ireland)", href: "/regulator/dpc" },
+      ]},
+      { items: [{ icon: "🗂️", label: "All 250+ Regulators →", href: "/global-privacy-authorities" }], divider: true },
     ],
   },
   {
@@ -69,30 +115,26 @@ const navItems: NavItem[] = [
       },
     ],
   },
-  {
-    label: "Directories",
-    sections: [
-      {
-        items: [
-          { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
-          { icon: "🇺🇸", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
-        ],
-      },
-    ],
-  },
 ];
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex items-center justify-between h-14">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="font-display text-[18px] text-navy no-underline tracking-tight flex items-center gap-2">
-          <span className="text-blue font-bold">EndUser</span>Privacy
+          <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue to-steel flex items-center justify-center text-white font-bold text-[14px]">
+            E
+          </span>
+          <span className="flex flex-col leading-none">
+            <span className="font-bold text-navy text-[15px]">EndUserPrivacy</span>
+            <span className="text-[9px] text-slate tracking-widest uppercase">Privacy Intelligence</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -105,11 +147,7 @@ const Navbar = () => {
               onMouseLeave={() => setOpenDropdown(null)}
             >
               <button
-                className={`flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer bg-transparent border-none ${
-                  item.active
-                    ? "text-navy border-b-2 border-blue"
-                    : "text-slate hover:text-navy"
-                }`}
+                className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy"
               >
                 {item.label}
                 {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
@@ -117,10 +155,10 @@ const Navbar = () => {
 
               {item.sections && openDropdown === item.label && (
                 <div className="absolute top-full left-0 pt-1 z-50">
-                  <div className="bg-card border border-fog rounded-xl shadow-eup-md p-2 min-w-[240px]">
+                  <div className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 ${item.wide ? "min-w-[480px] grid grid-cols-2 gap-x-2" : "min-w-[240px]"}`}>
                     {item.sections.map((section, si) => (
                       <div key={si}>
-                        {section.divider && <div className="border-t border-fog my-1.5" />}
+                        {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
                         {section.header && (
                           <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
                             {section.header}
@@ -159,13 +197,37 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="hidden md:flex items-center gap-3">
-          <SearchBar />
-          <Link
-            to="/subscribe"
-            className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
-          >
-            Premium
-          </Link>
+          {user ? (
+            <>
+              <Link
+                to="/subscribe"
+                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+              >
+                ⭐ Upgrade
+              </Link>
+              <Link
+                to="/account"
+                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
+              >
+                My Account
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/subscribe"
+                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+              >
+                Get Premium →
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -238,7 +300,7 @@ const Navbar = () => {
               className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
               onClick={() => setMobileOpen(false)}
             >
-              Premium
+              Get Premium →
             </Link>
           </div>
         </div>
