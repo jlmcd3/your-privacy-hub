@@ -21,6 +21,8 @@ import GlossaryTerm from "./pages/GlossaryTerm.tsx";
 import Calendar from "./pages/Calendar.tsx";
 import Timelines from "./pages/Timelines.tsx";
 import TimelineDetail from "./pages/TimelineDetail.tsx";
+import USStateComparison from "./pages/USStateComparison.tsx";
+import TimelineDetail from "./pages/TimelineDetail.tsx";
 import Signup from "./pages/Signup.tsx";
 import Login from "./pages/Login.tsx";
 import Account from "./pages/Account.tsx";
