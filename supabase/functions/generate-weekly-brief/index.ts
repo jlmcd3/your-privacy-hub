@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
       .select("title, summary, source_name, category, published_at, url")
       .gte("published_at", sevenDaysAgo.toISOString())
       .order("published_at", { ascending: false })
-      .limit(60);
+      .limit(25);
 
     if (fetchError || !articles || articles.length === 0) {
       return new Response(
@@ -109,7 +109,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown code fence
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
