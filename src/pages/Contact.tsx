@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -5,6 +6,10 @@ import Footer from "@/components/Footer";
 const Contact = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>Contact | EndUserPrivacy</title>
+        <meta name="description" content="Contact EndUserPrivacy for general inquiries, subscription questions, or data and privacy questions." />
+      </Helmet>
       <Topbar />
       <Navbar />
       <main className="flex-1">

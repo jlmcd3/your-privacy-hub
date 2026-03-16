@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
@@ -17,6 +18,12 @@ import SocialProof from "@/components/SocialProof";
 const Index = () => {
   return (
     <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>Global Privacy Regulation Intelligence | EndUserPrivacy</title>
+        <meta name="description" content="Monitor 250+ privacy authorities across 150+ jurisdictions. AI-summarized enforcement actions, GDPR, CCPA, AI Act and global privacy updates — free to browse, $15/month for full intelligence." />
+        <meta property="og:title" content="Global Privacy Regulation Intelligence | EndUserPrivacy" />
+        <meta property="og:description" content="Monitor 250+ privacy authorities across 150+ jurisdictions. AI-summarized enforcement actions, GDPR, CCPA, AI Act and global privacy updates — free to browse, $15/month for full intelligence." />
+      </Helmet>
       <Topbar />
       <BreakingNewsBanner />
       <Navbar />

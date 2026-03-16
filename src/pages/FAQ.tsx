@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -44,6 +45,10 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>FAQ | EndUserPrivacy — Privacy Intelligence Platform</title>
+        <meta name="description" content="Common questions about EndUserPrivacy — coverage across 150+ jurisdictions, AI analysis methodology, update frequency, pricing, and cancellation." />
+      </Helmet>
       <Topbar />
       <Navbar />
 
