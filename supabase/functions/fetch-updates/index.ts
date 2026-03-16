@@ -43,13 +43,12 @@ const RSS_SOURCES = [
     defaultCategory: "us-federal",
     regulator: "NIST",
   },
-  // ── Global / Industry ─────────────────────────────────────────────
   {
-    url: "https://iapp.org/rss/daily-dashboard/",
-    source: "IAPP",
-    domain: "iapp.org",
+    url: "https://www.insideprivacy.com/feed/",
+    source: "Inside Privacy",
+    domain: "insideprivacy.com",
     defaultCategory: "global",
-    regulator: "IAPP",
+    regulator: "Covington & Burling",
   },
   {
     url: "https://fpf.org/feed/",
