@@ -6,35 +6,93 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const currentWeek = () => {
-  const now = new Date();
-  return now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+interface EnforcementRow {
+  regulator: string;
+  jurisdiction: string;
+  action_type: string;
+  subject: string;
+  amount: string;
+  significance: string;
+}
+
+interface WeeklyBrief {
+  id: string;
+  week_label: string;
+  headline: string;
+  executive_summary: string;
+  us_federal: string | null;
+  us_states: string | null;
+  eu_uk: string | null;
+  global_developments: string | null;
+  enforcement_table: EnforcementRow[] | null;
+  trend_signal: string | null;
+  why_this_matters: string | null;
+  article_count: number;
+  published_at: string;
+}
+
+const ACTION_COLOR: Record<string, string> = {
+  Fine: "bg-red-50 text-red-700 border-red-200",
+  Investigation: "bg-amber-50 text-amber-700 border-amber-200",
+  Guidance: "bg-blue-50 text-blue-700 border-blue-200",
+  Lawsuit: "bg-purple-50 text-purple-700 border-purple-200",
+  Rulemaking: "bg-green-50 text-green-700 border-green-200",
 };
 
-const sampleEnforcement = [
-  { regulator: "ICO (UK)", target: "ClearView Analytics Ltd", fine: "€8.5M", category: "AI / Facial Recognition" },
-  { regulator: "CNIL (France)", target: "AdTrack SAS", fine: "€3.2M", category: "Adtech / Consent" },
-  { regulator: "Texas AG (US)", target: "DataBroker Inc.", fine: "$1.4M", category: "Data Broker Violations" },
-];
+function SectionBlock({ icon, title, content }: { icon: string; title: string; content: string | null }) {
+  if (!content) return null;
+  return (
+    <section className="bg-card rounded-xl border border-border p-6">
+      <h3 className="font-display text-[17px] text-foreground mb-3 flex items-center gap-2">
+        <span>{icon}</span> {title}
+      </h3>
+      <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+        {content.split("\n").filter(Boolean).map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [brief, setBrief] = useState<WeeklyBrief | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
       .select("is_premium")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
-        setIsPremium(data?.is_premium ?? false);
+        const premium = data?.is_premium ?? false;
+        setIsPremium(premium);
+        if (!premium) navigate("/subscribe");
       });
-  }, [user]);
+  }, [user, authLoading, navigate]);
 
-  if (isPremium === null) {
+  useEffect(() => {
+    if (!user || !isPremium) return;
+    async function load() {
+      const { data } = await (supabase as any)
+        .from("weekly_briefs")
+        .select("*")
+        .order("published_at", { ascending: false })
+        .limit(1)
+        .single();
+      setBrief(data as WeeklyBrief | null);
+      setLoading(false);
+    }
+    load();
+  }, [user, isPremium]);
+
+  if (authLoading || isPremium === null) {
     return (
       <div className="min-h-screen bg-background">
         <Topbar />
@@ -47,168 +105,145 @@ const Dashboard = () => {
     );
   }
 
-  if (!isPremium) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Topbar />
-        <Navbar />
-        <div className="flex items-center justify-center py-24 px-4">
-          <div className="text-center max-w-md">
-            <h1 className="font-display text-[28px] text-foreground mb-3">
-              Premium Dashboard
-            </h1>
-            <p className="text-muted-foreground text-[15px] mb-8">
-              Upgrade to Premium to access the full intelligence dashboard, including the Weekly Brief, enforcement data, and trend analysis.
-            </p>
-            <button
-              onClick={() => navigate("/subscribe")}
-              className="bg-primary text-primary-foreground px-6 py-3 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
-            >
-              Upgrade to Premium
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  if (!user || !isPremium) return null;
 
   return (
     <div className="min-h-screen bg-background">
       <Topbar />
       <Navbar />
+
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-10">
           <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
-            Premium Intelligence
+            📋 Weekly Intelligence Brief
           </p>
           <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
-            Weekly Intelligence Brief
+            {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
           </h1>
-          <p className="text-muted-foreground text-[14px] mt-1">
-            Week of {currentWeek()}
-          </p>
-        </div>
-
-        <div className="space-y-10">
-          {/* Executive Summary */}
-          <Section title="Executive Summary">
-            <p>
-              This week's most consequential developments span AI data processing enforcement and
-              accelerating U.S. state-level activity. The EDPB issued binding guidance restricting
-              the use of personal data for large language model training without explicit consent,
-              while the Texas Attorney General opened the first enforcement action under the TDPSA.
-              Meanwhile, Brazil's ANPD signaled coordinated action with EU regulators on cross-border
-              data broker investigations.
-            </p>
-          </Section>
-
-          {/* U.S. Federal */}
-          <Section title="U.S. Federal Analysis">
-            <p>
-              The FTC continued its focus on AI-adjacent enforcement, issuing a proposed order against
-              a major data analytics firm for deceptive practices in algorithmic decision-making.
-              Congressional activity remained stalled, with the APRA markup postponed indefinitely.
-              HHS published updated HIPAA guidance on telehealth data sharing post-PHE expiration.
-            </p>
-          </Section>
-
-          {/* U.S. State */}
-          <Section title="U.S. State Analysis">
-            <p>
-              Texas AG Ken Paxton filed the first enforcement action under the Texas Data Privacy and
-              Security Act (TDPSA), targeting a data broker for failure to honor opt-out requests.
-              Oregon's consumer privacy act amendments took effect, expanding the definition of
-              sensitive data to include neural and biometric inference data. Colorado published
-              its first annual enforcement report under the CPA.
-            </p>
-          </Section>
-
-          {/* EU & UK */}
-          <Section title="EU & UK Analysis">
-            <p>
-              The EDPB adopted guidelines on the use of personal data for AI model training,
-              establishing a high bar for legitimate interest claims. The ICO issued a £8.5M fine
-              against ClearView Analytics for continued processing of UK residents' biometric data.
-              France's CNIL opened a formal investigation into real-time bidding data flows involving
-              three major ad exchanges.
-            </p>
-          </Section>
-
-          {/* Global */}
-          <Section title="Global Developments">
-            <p>
-              Brazil's ANPD published its first international cooperation agreement with the EDPB,
-              focusing on cross-border data broker oversight. India's DPDPA implementation rules
-              entered the public comment phase, with significant industry pushback on data
-              localization requirements. South Korea's PIPC issued updated AI governance guidance
-              aligned with the OECD AI Principles framework.
-            </p>
-          </Section>
-
-          {/* Enforcement Table */}
-          <Section title="Enforcement Summary">
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="py-2 pr-4 font-semibold text-muted-foreground">Regulator</th>
-                    <th className="py-2 pr-4 font-semibold text-muted-foreground">Target</th>
-                    <th className="py-2 pr-4 font-semibold text-muted-foreground">Fine</th>
-                    <th className="py-2 font-semibold text-muted-foreground">Category</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sampleEnforcement.map((row, i) => (
-                    <tr key={i} className="border-b border-border/50">
-                      <td className="py-3 pr-4 text-foreground font-medium">{row.regulator}</td>
-                      <td className="py-3 pr-4 text-foreground">{row.target}</td>
-                      <td className="py-3 pr-4 text-foreground font-semibold">{row.fine}</td>
-                      <td className="py-3 text-muted-foreground">{row.category}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {brief && (
+            <div className="flex flex-wrap items-center gap-2 mt-3 text-[13px] text-muted-foreground">
+              <span>{brief.week_label}</span>
+              <span>·</span>
+              <span>{brief.article_count} regulatory updates synthesized</span>
+              <span>·</span>
+              <span>Published {new Date(brief.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric" })}</span>
             </div>
-          </Section>
-
-          {/* Trend Signal */}
-          <Section title="Trend Signal">
-            <p>
-              Three enforcement actions across EU, U.S., and Brazil this week point to coordinated
-              regulatory pressure on data brokers — a pattern not observed at this frequency since
-              2022. This suggests a potential shift from guidance-first to enforcement-first
-              approaches in the data brokerage sector globally.
-            </p>
-          </Section>
-
-          {/* Why This Matters */}
-          <Section title="Why This Matters">
-            <p>
-              Organizations processing personal data for AI training, operating data brokerage
-              services, or relying on cross-border data transfers should prioritize reviewing their
-              legal bases for processing, opt-out mechanisms, and international transfer safeguards.
-              The convergence of enforcement activity across multiple jurisdictions signals a new
-              phase of coordinated regulatory action.
-            </p>
-          </Section>
+          )}
         </div>
+
+        {loading && (
+          <div className="space-y-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {!loading && !brief && (
+          <div className="text-center py-20">
+            <p className="text-4xl mb-4">📅</p>
+            <p className="font-display text-[20px] text-foreground mb-2">First brief coming Monday</p>
+            <p className="text-[14px] text-muted-foreground max-w-md mx-auto">
+              Your weekly intelligence brief is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
+            </p>
+          </div>
+        )}
+
+        {!loading && brief && (
+          <div className="space-y-8">
+            {/* Executive Summary */}
+            <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
+              <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
+              <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                {brief.executive_summary.split("\n").filter(Boolean).map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            </section>
+
+            {/* Analysis sections */}
+            <div className="grid gap-6">
+              <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} />
+              <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} />
+              <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} />
+              <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} />
+            </div>
+
+            {/* Enforcement table */}
+            {brief.enforcement_table && brief.enforcement_table.length > 0 && (
+              <section className="bg-card rounded-xl border border-border p-6">
+                <h3 className="font-display text-[17px] text-foreground mb-4">
+                  ⚖️ Enforcement Actions This Week
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[13px]">
+                    <thead>
+                      <tr className="border-b border-border text-left">
+                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Regulator</th>
+                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Subject</th>
+                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Type</th>
+                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Amount</th>
+                        <th className="py-2 font-semibold text-muted-foreground">Significance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {brief.enforcement_table.map((row, i) => (
+                        <tr key={i} className="border-b border-border/50">
+                          <td className="py-3 pr-4 text-foreground font-medium">
+                            {row.regulator}
+                            <div className="text-[11px] text-muted-foreground">{row.jurisdiction}</div>
+                          </td>
+                          <td className="py-3 pr-4 text-foreground">{row.subject}</td>
+                          <td className="py-3 pr-4">
+                            <span className={`text-[11px] px-2 py-0.5 rounded-full border ${ACTION_COLOR[row.action_type] || "bg-muted text-muted-foreground border-border"}`}>
+                              {row.action_type}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4 text-foreground font-semibold">{row.amount}</td>
+                          <td className="py-3 text-muted-foreground text-[12px]">{row.significance}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+
+            {/* Trend signal */}
+            {brief.trend_signal && (
+              <section className="bg-amber-50/50 rounded-xl border border-amber-200/50 p-6">
+                <h3 className="font-display text-[17px] text-foreground mb-3">
+                  📡 Trend Signal
+                </h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {brief.trend_signal.split("\n").filter(Boolean).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Why this matters */}
+            {brief.why_this_matters && (
+              <section className="bg-primary/5 rounded-xl border border-primary/15 p-6">
+                <h3 className="font-display text-[17px] text-foreground mb-3">
+                  🎯 Why This Matters — Action Items for This Week
+                </h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {brief.why_this_matters.split("\n").filter(Boolean).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
       </div>
+
       <Footer />
     </div>
   );
 };
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section>
-    <h2 className="font-display text-[20px] text-foreground mb-3 pb-2 border-b border-border">
-      {title}
-    </h2>
-    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-      {children}
-    </div>
-  </section>
-);
 
 export default Dashboard;
