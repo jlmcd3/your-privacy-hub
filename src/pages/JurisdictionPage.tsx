@@ -82,6 +82,14 @@ const deriveCategory = (jurisdiction: { name: string; region: string }) => {
   return "global";
 };
 
+const isLikelyNonEnglish = (text: string): boolean => {
+  const lower = text.toLowerCase();
+  const french = ["le ", "la ", "les ", "de ", "du ", "des ", "délibération", "données", "traitement"].filter(w => lower.includes(w)).length;
+  const german = ["der ", "die ", "das ", "datenschutz", "und ", "werden"].filter(w => lower.includes(w)).length;
+  const spanish = ["el ", "los ", "protección", "también", "para "].filter(w => lower.includes(w)).length;
+  return french >= 3 || german >= 3 || spanish >= 3;
+};
+
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
@@ -103,18 +111,41 @@ const JurisdictionPage = () => {
         .limit(20);
       if (error || !data || data.length === 0) {
         setDevArticles(null);
-      } else {
-        const term = jurisdiction.name.toLowerCase();
-        const sorted = [...data].sort((a: any, b: any) => {
-          const aMatch = (a.title + " " + (a.summary || "")).toLowerCase().includes(term);
-          const bMatch = (b.title + " " + (b.summary || "")).toLowerCase().includes(term);
-          if (aMatch && !bMatch) return -1;
-          if (!aMatch && bMatch) return 1;
-          return 0;
-        });
-        setDevArticles(sorted.slice(0, 4));
+        setDevLoading(false);
+        return;
       }
+
+      const term = jurisdiction.name.toLowerCase();
+      const sorted = [...data].sort((a: any, b: any) => {
+        const aMatch = (a.title + " " + (a.summary || "")).toLowerCase().includes(term);
+        const bMatch = (b.title + " " + (b.summary || "")).toLowerCase().includes(term);
+        if (aMatch && !bMatch) return -1;
+        if (!aMatch && bMatch) return 1;
+        return 0;
+      });
+      let top4 = sorted.slice(0, 4);
+
+      // Show articles immediately
+      setDevArticles(top4);
       setDevLoading(false);
+
+      // Translate non-English articles in background
+      const nonEnglish = top4.filter((a: any) => isLikelyNonEnglish(a.title + " " + (a.summary || "")));
+      if (nonEnglish.length > 0) {
+        try {
+          const { data: translated } = await supabase.functions.invoke("translate-articles", {
+            body: { articles: nonEnglish.map((a: any) => ({ id: a.id, title: a.title, summary: a.summary })) },
+          });
+          if (translated?.articles) {
+            const translatedMap = new Map(translated.articles.map((t: any) => [t.id, t]));
+            setDevArticles(prev =>
+              prev ? prev.map((a: any) => translatedMap.has(a.id) ? { ...a, ...(translatedMap.get(a.id) as any) } : a) : prev
+            );
+          }
+        } catch (e) {
+          console.error("Translation failed:", e);
+        }
+      }
     })();
   }, [jurisdiction, derivedCategory]);
 
@@ -249,7 +280,7 @@ const JurisdictionPage = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5">
-                      {a.source_domain || a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {a.source_domain || a.source_name}{a.wasTranslated && <span className="text-[10px] text-slate/60 ml-1 normal-case">🌐 Translated</span>} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                     <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
                       {a.title}
