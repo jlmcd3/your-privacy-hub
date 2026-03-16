@@ -12,7 +12,8 @@ const dimensions = {
   inline: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
 };
 
-const AdBanner = ({ variant = "leaderboard", className = "" }: AdBannerProps) => {
+const AdBanner = ({ variant = "leaderboard", className = "", adSlot }: AdBannerProps) => {
+  if (!adSlot) return null;
   const dim = dimensions[variant];
 
   return (
