@@ -164,6 +164,33 @@ export type Database = {
         }
         Relationships: []
       }
+      regulator_follows: {
+        Row: {
+          created_at: string | null
+          email: string
+          follow_key: string
+          follow_type: string
+          id: string
+          is_premium: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          follow_key: string
+          follow_type: string
+          id?: string
+          is_premium?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          follow_key?: string
+          follow_type?: string
+          id?: string
+          is_premium?: boolean | null
+        }
+        Relationships: []
+      }
       updates: {
         Row: {
           ai_summary: Json | null
