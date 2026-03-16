@@ -7,7 +7,6 @@ import EmailSignup from "@/components/EmailSignup";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AISummaryPanel from "@/components/AISummaryPanel";
 
 interface Update {
   id: string;
