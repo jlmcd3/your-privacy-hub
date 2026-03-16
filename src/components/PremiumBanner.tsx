@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 const features = [
   "Know what changed before your next board meeting",
-  "See every fine — 800+ enforcement actions, all jurisdictions",
+  "See every enforcement action — all regulators, all jurisdictions",
   "Spot coordinated enforcement before it reaches your jurisdiction",
   "One brief covers your entire global footprint",
   "No ads, ever",
