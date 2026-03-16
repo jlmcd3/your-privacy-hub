@@ -34,6 +34,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import About from "./pages/About.tsx";
+import Contact from "./pages/Contact.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 
 const queryClient = new QueryClient();
@@ -75,6 +77,8 @@ const App = () => (
           <Route path="/faq" element={<FAQ />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
