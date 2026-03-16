@@ -22,6 +22,7 @@ const Index = () => {
       <SearchBar />
       <Hero />
       <AdBanner variant="leaderboard" className="py-4 bg-paper" />
+      <EmailSignup variant="strip" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
       <EnforcementTracker />
