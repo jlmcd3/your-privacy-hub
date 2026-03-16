@@ -164,6 +164,9 @@ const JurisdictionPage = () => {
                 </a>
               ))}
             </div>
+            <Link to="/subscribe" className="text-[12px] text-blue hover:text-navy font-medium no-underline mt-2 inline-block">
+              Full analysis in the weekly Premium brief →
+            </Link>
           </div>
         )}
 
