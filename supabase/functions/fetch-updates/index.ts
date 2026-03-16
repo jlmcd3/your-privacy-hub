@@ -45,11 +45,11 @@ const RSS_SOURCES = [
   },
   // ── Global / Industry ─────────────────────────────────────────────
   {
-    url: "https://www.eff.org/rss/updates.xml",
-    source: "EFF",
-    domain: "eff.org",
+    url: "https://iapp.org/news/rss/",
+    source: "IAPP",
+    domain: "iapp.org",
     defaultCategory: "global",
-    regulator: "Electronic Frontier Foundation",
+    regulator: "International Association of Privacy Professionals",
   },
   {
     url: "https://fpf.org/feed/",
