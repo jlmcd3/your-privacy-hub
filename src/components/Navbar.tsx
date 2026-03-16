@@ -151,14 +151,8 @@ const Navbar = () => {
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
-        <Link to="/" className="font-display text-[18px] text-navy no-underline tracking-tight flex items-center gap-2">
-          <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue to-steel flex items-center justify-center text-white font-bold text-[14px]">
-            E
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="font-bold text-navy text-[15px]">EndUserPrivacy</span>
-            <span className="text-[9px] text-slate tracking-widest uppercase">Privacy Intelligence</span>
-          </span>
+        <Link to="/" className="no-underline flex items-center">
+          <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop nav */}
