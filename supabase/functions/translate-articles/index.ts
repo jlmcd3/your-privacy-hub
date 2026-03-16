@@ -36,11 +36,25 @@ async function translateArticle(
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
+        max_tokens: 500,
         messages: [
           {
             role: "user",
-            content: `Translate this privacy/data protection article title and summary to English. Return ONLY valid JSON with keys "title" and "summary". Title: ${article.title} Summary: ${summaryText}`,
+            content: `Translate the following privacy/data protection article from its source language into professional English.
+
+Rules you must follow:
+1. Regulatory body abbreviations: Keep all official abbreviations in their standard English form. Examples: RGPD becomes GDPR, CNIL stays CNIL, BfDI stays BfDI, ANPD stays ANPD, CPDP stays CPDP, AEPD stays AEPD, Garante stays Garante.
+2. Company and person names: Keep exactly as written in the original.
+3. Numbers and amounts: Preserve all fine amounts, percentages, dates, and article/section numbers verbatim — do not convert currencies or reformat dates.
+4. Jurisdiction names: Use standard English jurisdiction names (France stays France, Deutschland becomes Germany, España becomes Spain).
+5. Style: Translate to natural, professional English as it would appear in a legal or compliance publication — not word-for-word literal.
+6. Do not add, summarize, or remove any information present in the original.
+
+Return ONLY valid JSON with these exact keys:
+{"title": "translated title", "summary": "translated summary or empty string if no summary", "source_language": "the detected source language name in English e.g. French, German, Spanish, Portuguese"}
+
+Title: ${article.title}
+Summary: ${summaryText}`,
           },
         ],
       }),
