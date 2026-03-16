@@ -126,6 +126,7 @@ const navItems: NavItem[] = [
           { icon: "📖", label: "Glossary", href: "/glossary" },
           { icon: "📅", label: "Regulatory Calendar", href: "/calendar" },
           { icon: "📜", label: "Regulatory Timelines", href: "/timelines" },
+          { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
         ],
       },
     ],
