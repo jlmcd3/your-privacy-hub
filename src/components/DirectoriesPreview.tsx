@@ -21,7 +21,7 @@ const statusClass = (s: string) =>
 
 const DirectoriesPreview = () => {
   return (
-    <section className="py-10 md:py-16 px-4 md:px-8 bg-paper">
+    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
         <div className="flex justify-between items-end mb-8">
           <div>

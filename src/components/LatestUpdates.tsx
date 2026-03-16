@@ -184,7 +184,7 @@ const LatestUpdates = () => {
   const tag = (cat: string) => CATEGORY_TAG[cat] || CATEGORY_TAG["global"];
 
   return (
-    <section className="py-10 md:py-16 px-4 md:px-8 bg-paper">
+    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
