@@ -46,7 +46,6 @@ const Footer = () => {
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Directories</h4>
             <Link to="/us-state-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">U.S. State Authorities</Link>
             <Link to="/global-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Global DPA Directory</Link>
-            <Link to="/enforcement-tracker" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
           </div>
 
           <div>
@@ -74,6 +73,8 @@ const Footer = () => {
           <div>© 2026 EndUserPrivacy · enduserprivacy.com</div>
           <div className="flex gap-4 items-center flex-wrap justify-center">
             <Link to="/terms" className="text-slate-light hover:text-silver no-underline">Terms</Link>
+            <span className="hidden md:inline text-navy-light">·</span>
+            <Link to="/privacy-policy" className="text-slate-light hover:text-silver no-underline">Privacy Policy</Link>
             <span className="hidden md:inline text-navy-light">·</span>
             <span className="text-center">Summaries are AI-generated. Verify against primary sources.</span>
           </div>
