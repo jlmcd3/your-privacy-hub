@@ -45,16 +45,7 @@ const navItems: NavDropdown[] = [
         { icon: "🇲🇽", label: "Mexico", href: "/jurisdiction/mexico" },
       ]},
       { header: "Asia-Pacific", divider: true, items: [
-        { icon: "🇦🇺", label: "Australia", href: "/jurisdiction/australia" },
-        { icon: "🇯🇵", label: "Japan", href: "/jurisdiction/japan" },
-        { icon: "🇸🇬", label: "Singapore", href: "/jurisdiction/singapore" },
-        { icon: "🇰🇷", label: "South Korea", href: "/jurisdiction/south-korea" },
-      ]},
-      { header: "Europe", items: [
-        { icon: "🇪🇺", label: "European Union", href: "/jurisdiction/european-union" },
-        { icon: "🇬🇧", label: "United Kingdom", href: "/jurisdiction/united-kingdom" },
-        { icon: "🇩🇪", label: "Germany
-const Navbar = () => {
+        { icon: "🇦
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(null);
