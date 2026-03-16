@@ -1,23 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const BREAKING_NEWS = {
-  id: "bn-001",
+const FALLBACK = {
   headline: "FTC announces emergency rulemaking on AI data collection practices",
   url: "#",
-  active: true,
 };
 
-const STORAGE_KEY = `dismissed-${BREAKING_NEWS.id}`;
-
 const BreakingNewsBanner = () => {
-  const [dismissed, setDismissed] = useState(
-    () => sessionStorage.getItem(STORAGE_KEY) === "true"
-  );
+  const [news, setNews] = useState(FALLBACK);
+  const [dismissed, setDismissed] = useState(false);
 
-  if (!BREAKING_NEWS.active || dismissed) return null;
+  useEffect(() => {
+    supabase
+      .from("updates")
+      .select("title, url")
+      .eq("category", "enforcement")
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setNews({ headline: data[0].title, url: data[0].url });
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    const key = `dismissed-breaking-${news.headline.slice(0, 20)}`;
+    if (sessionStorage.getItem(key) === "true") setDismissed(true);
+  }, [news]);
+
+  if (dismissed) return null;
 
   const handleDismiss = () => {
-    sessionStorage.setItem(STORAGE_KEY, "true");
+    const key = `dismissed-breaking-${news.headline.slice(0, 20)}`;
+    sessionStorage.setItem(key, "true");
     setDismissed(true);
   };
 
@@ -40,10 +56,12 @@ const BreakingNewsBanner = () => {
         </span>
         <span className="text-white opacity-60 flex-shrink-0 text-xs">•</span>
         <a
-          href={BREAKING_NEWS.url}
+          href={news.url}
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-white text-[13px] font-medium truncate no-underline hover:underline"
         >
-          {BREAKING_NEWS.headline}
+          {news.headline}
         </a>
       </div>
       <button
