@@ -67,6 +67,7 @@ const App = () => (
           <Route path="/subscribe" element={<ProtectedRoute><Subscribe /></ProtectedRoute>} />
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/updates" element={<Updates />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
