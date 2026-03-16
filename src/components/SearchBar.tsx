@@ -2,17 +2,22 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 
-const quickChips = [
-  { label: "GDPR", href: "/gdpr-enforcement" },
-  { label: "CCPA", href: "/category/us-states" },
-  { label: "AI Act", href: "/ai-privacy-regulations" },
-  { label: "FTC enforcement", href: "/category/us-federal" },
-  { label: "state privacy laws", href: "/us-state-privacy-laws" },
+const lawChips = ["GDPR", "CCPA", "LGPD", "UK GDPR", "EU AI Act"];
+const topicChips = [
+  { label: "Enforcement fines", href: "/category/enforcement" },
+  { label: "AI regulation", href: "/topics/ai-governance" },
+  { label: "Data transfers", href: "/topics/data-transfers" },
+  { label: "Children's privacy", href: "/topics/children-privacy" },
 ];
 
 const SearchBar = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+
+  const handleSearch = (term: string) => {
+    setQuery(term);
+    navigate(`/search?q=${encodeURIComponent(term)}`);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && query.trim()) {
@@ -35,12 +40,23 @@ const SearchBar = () => {
           />
         </div>
         <div className="flex gap-1.5 items-center flex-wrap">
-          <span className="text-[11px] text-slate-light whitespace-nowrap">Quick:</span>
-          {quickChips.map((chip) => (
+          <span className="text-[10px] text-slate/60 font-semibold tracking-wider uppercase">Laws</span>
+          {lawChips.map((label) => (
+            <span
+              key={label}
+              onClick={() => handleSearch(label)}
+              className="text-[12px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full border border-fog cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap"
+            >
+              {label}
+            </span>
+          ))}
+          <div className="w-px h-4 bg-fog mx-1" />
+          <span className="text-[10px] text-slate/60 font-semibold tracking-wider uppercase">Topics</span>
+          {topicChips.map((chip) => (
             <span
               key={chip.label}
               onClick={() => navigate(chip.href)}
-              className="text-[11.5px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap"
+              className="text-[12px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full border border-fog cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap"
             >
               {chip.label}
             </span>
