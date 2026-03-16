@@ -85,7 +85,7 @@ const Dashboard = () => {
         .select("*")
         .order("published_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       setBrief(data as WeeklyBrief | null);
       setLoading(false);
     }
