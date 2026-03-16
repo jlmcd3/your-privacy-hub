@@ -98,7 +98,7 @@ const RegulatorPage = () => {
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-sky font-display">{regulator.abbreviation}</p>}
-          <p className="text-sm text-slate-light mt-2">{regulator.country} · {regulator.region}</p>
+          <p className="text-sm text-slate-light mt-2">{regulator.country}{regulator.region && regulator.region !== regulator.country ? ` · ${regulator.region}` : ''}</p>
           <div className="mt-4">
             <FollowButton followType="regulator" followKey={slug!} label={regulator.abbreviation || regulator.name} />
           </div>
