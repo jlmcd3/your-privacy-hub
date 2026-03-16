@@ -69,11 +69,28 @@ const buildJurisdictionData = () => {
 
 const allJurisdictions = buildJurisdictionData();
 
+const EU_COUNTRIES = new Set([
+  "austria","belgium","bulgaria","croatia","cyprus","czech republic","denmark","estonia",
+  "finland","france","germany","greece","hungary","ireland","italy","latvia","lithuania",
+  "luxembourg","malta","netherlands","poland","portugal","romania","slovakia","slovenia","spain","sweden",
+]);
+
+const deriveCategory = (jurisdiction: { name: string; region: string }) => {
+  const name = jurisdiction.name.toLowerCase();
+  if (jurisdiction.region === "European Union" || EU_COUNTRIES.has(name)) return "eu-uk";
+  if (jurisdiction.region === "United States" || name === "united states") return "us-federal";
+  return "global";
+};
+
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
 
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [devArticles, setDevArticles] = useState<any[] | null>(null);
+  const [devLoading, setDevLoading] = useState(true);
+
+  const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
 
   useEffect(() => {
     if (!jurisdiction) return;
@@ -92,6 +109,25 @@ const JurisdictionPage = () => {
 
     load();
   }, [jurisdiction]);
+
+  useEffect(() => {
+    if (!jurisdiction) return;
+    setDevLoading(true);
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("updates")
+        .select("id,title,summary,url,source_domain,source_name,image_url,category,published_at")
+        .eq("category", derivedCategory)
+        .order("published_at", { ascending: false })
+        .limit(4);
+      if (error || !data || data.length === 0) {
+        setDevArticles(null);
+      } else {
+        setDevArticles(data);
+      }
+      setDevLoading(false);
+    })();
+  }, [jurisdiction, derivedCategory]);
 
   if (!jurisdiction) {
     return (
@@ -249,6 +285,54 @@ const JurisdictionPage = () => {
             </Link>
           </div>
         </div>
+
+        {/* Recent Developments from category */}
+        {devLoading ? (
+          <div className="mb-10">
+            <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+            <p className="text-sm text-slate mb-4">Latest updates from monitored sources</p>
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
+              ))}
+            </div>
+          </div>
+        ) : devArticles ? (
+          <div className="mb-10">
+            <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+            <p className="text-sm text-slate mb-4">Latest updates from monitored sources</p>
+            <div className="space-y-2">
+              {devArticles.map((a: any) => (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
+                >
+                  {a.image_url && (
+                    <img src={a.image_url} alt="" className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5">
+                      {a.source_domain || a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </div>
+                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
+                      {a.title}
+                    </p>
+                    {a.summary && (
+                      <p className="text-[12px] text-slate line-clamp-2 mt-0.5 mb-0">{a.summary}</p>
+                    )}
+                  </div>
+                  <ExternalLink size={14} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                </a>
+              ))}
+            </div>
+            <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-medium no-underline mt-3 inline-block hover:text-navy transition-colors">
+              View all updates →
+            </Link>
+          </div>
+        ) : null}
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
