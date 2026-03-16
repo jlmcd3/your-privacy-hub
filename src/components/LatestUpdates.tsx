@@ -264,6 +264,7 @@ const LatestUpdates = () => {
                         {u.summary}
                       </p>
                     )}
+                    <AISummaryPanel summary={u.ai_summary || null} />
                   </div>
 
                   {/* Link icon */}
