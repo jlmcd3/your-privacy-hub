@@ -16,6 +16,11 @@ import JurisdictionPage from "./pages/JurisdictionPage.tsx";
 import RegulatorPage from "./pages/RegulatorPage.tsx";
 import CategoryPage from "./pages/CategoryPage.tsx";
 import TopicHub from "./pages/TopicHub.tsx";
+import Glossary from "./pages/Glossary.tsx";
+import GlossaryTerm from "./pages/GlossaryTerm.tsx";
+import Calendar from "./pages/Calendar.tsx";
+import Timelines from "./pages/Timelines.tsx";
+import TimelineDetail from "./pages/TimelineDetail.tsx";
 import Signup from "./pages/Signup.tsx";
 import Login from "./pages/Login.tsx";
 import Account from "./pages/Account.tsx";
@@ -47,6 +52,11 @@ const App = () => (
           <Route path="/regulator/:slug" element={<RegulatorPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/topics/:slug" element={<TopicHub />} />
+          <Route path="/glossary" element={<Glossary />} />
+          <Route path="/glossary/:slug" element={<GlossaryTerm />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/timelines" element={<Timelines />} />
+          <Route path="/timelines/:slug" element={<TimelineDetail />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />

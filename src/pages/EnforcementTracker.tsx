@@ -6,46 +6,85 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import EmailSignup from "@/components/EmailSignup";
 
-const enforcementData = [
-  { regulator: "CNIL (France)", company: "Clearview AI", jurisdiction: "EU — France", violation: "Unlawful biometric data processing without consent", fine: "€20M", date: "Mar 8, 2026" },
-  { regulator: "Texas AG", company: "DataConnect Inc.", jurisdiction: "U.S. — Texas", violation: "TDPSA: selling sensitive data without consumer consent", fine: "$14.2M", date: "Mar 9, 2026" },
-  { regulator: "AEPD (Spain)", company: "CaixaBank", jurisdiction: "EU — Spain", violation: "Insufficient legal basis for profiling activities", fine: "€6.2M", date: "Mar 5, 2026" },
-  { regulator: "ICO (UK)", company: "TikTok Ltd", jurisdiction: "UK", violation: "Processing children's data without parental consent", fine: "£12.7M", date: "Mar 3, 2026" },
-  { regulator: "FTC", company: "HealthTrack App", jurisdiction: "U.S. — Federal", violation: "Deceptive health data sharing practices", fine: "$7.8M", date: "Feb 28, 2026" },
-  { regulator: "DPC (Ireland)", company: "Meta Platforms", jurisdiction: "EU — Ireland", violation: "Insufficient transparency in ad targeting data use", fine: "€390M", date: "Feb 25, 2026" },
-  { regulator: "ANPD (Brazil)", company: "DataBroker LATAM", jurisdiction: "Brazil", violation: "LGPD: international transfer without adequate safeguards", fine: "R$8.5M", date: "Feb 22, 2026" },
-  { regulator: "Garante (Italy)", company: "ChatGPT (OpenAI)", jurisdiction: "EU — Italy", violation: "Insufficient age verification and transparency", fine: "€15M", date: "Feb 18, 2026" },
-  { regulator: "BfDI (Germany)", company: "Palantir Technologies", jurisdiction: "EU — Germany", violation: "Unlawful processing of personal data by law enforcement", fine: "€8.3M", date: "Feb 14, 2026" },
-  { regulator: "AP (Netherlands)", company: "Uber Technologies", jurisdiction: "EU — Netherlands", violation: "Cross-border transfer violations to U.S. servers", fine: "€10M", date: "Feb 10, 2026" },
-  { regulator: "California CPPA", company: "Sephora Inc.", jurisdiction: "U.S. — California", violation: "CCPA: failure to honor opt-out signals", fine: "$1.2M", date: "Feb 6, 2026" },
-  { regulator: "PIPC (South Korea)", company: "Kakao Corp", jurisdiction: "South Korea", violation: "PIPA: inadequate consent mechanisms for data collection", fine: "₩5.6B", date: "Feb 2, 2026" },
+interface EnforcementAction {
+  id: string;
+  etid: string | null;
+  regulator: string;
+  subject: string | null;
+  jurisdiction: string;
+  violation: string | null;
+  law: string | null;
+  fine_amount: string | null;
+  fine_eur: number | null;
+  decision_date: string | null;
+  source_url: string | null;
+  sector: string | null;
+  action_type: string | null;
+}
+
+const FILTER_PILLS = [
+  { key: "all", label: "All" },
+  { key: "eu", label: "🇪🇺 EU/GDPR" },
+  { key: "us-federal", label: "🇺🇸 US Federal" },
+  { key: "us-states", label: "🗺️ US States" },
+  { key: "global", label: "🌐 Global" },
 ];
+
+function matchFilter(action: EnforcementAction, key: string): boolean {
+  if (key === "all") return true;
+  const j = (action.jurisdiction || "").toLowerCase();
+  const l = (action.law || "").toLowerCase();
+  if (key === "eu") return j.includes("eu") || j.includes("uk") || l.includes("gdpr");
+  if (key === "us-federal") return j.includes("federal") || l.includes("ftc");
+  if (key === "us-states") return j.includes("u.s. —") && !j.includes("federal");
+  if (key === "global") return !j.includes("eu") && !j.includes("uk") && !j.includes("u.s.");
+  return true;
+}
 
 const EnforcementTrackerPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [actions, setActions] = useState<EnforcementAction[]>([]);
   const [liveArticles, setLiveArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   useEffect(() => {
-    async function loadArticles() {
-      const { data } = await (supabase as any)
-        .from("updates")
-        .select("id,title,url,source_name,image_url,published_at")
-        .eq("category", "enforcement")
-        .order("published_at", { ascending: false })
-        .limit(20);
-
-      if (data) setLiveArticles(data);
+    async function load() {
+      const [actionsRes, articlesRes] = await Promise.all([
+        supabase.from("enforcement_actions").select("*").order("decision_date", { ascending: false }),
+        supabase.from("updates").select("id,title,url,source_name,image_url,published_at").eq("category", "enforcement").order("published_at", { ascending: false }).limit(20),
+      ]);
+      setActions((actionsRes.data as EnforcementAction[]) || []);
+      setLiveArticles(articlesRes.data || []);
+      setLoading(false);
     }
-    loadArticles();
+    load();
   }, []);
 
-  const filtered = enforcementData.filter((row) =>
-    Object.values(row).some((v) => v.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filtered = actions
+    .filter((a) => matchFilter(a, activeFilter))
+    .filter((a) =>
+      !searchTerm || [a.regulator, a.subject, a.jurisdiction, a.violation, a.law, a.fine_amount]
+        .some((v) => v?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+  // Stats
+  const totalActions = actions.length;
+  const totalFinesEur = actions.reduce((sum, a) => sum + (a.fine_eur || 0), 0);
+  const regulatorCounts = actions.reduce((acc, a) => { acc[a.regulator] = (acc[a.regulator] || 0) + 1; return acc; }, {} as Record<string, number>);
+  const topRegulator = Object.entries(regulatorCounts).sort((a, b) => b[1] - a[1])[0];
+
+  // Top 5 regulators for bar chart
+  const topRegulators = Object.entries(regulatorCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const maxCount = topRegulators[0]?.[1] || 1;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-background">
       <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">
@@ -55,118 +94,234 @@ const EnforcementTrackerPage = () => {
           </div>
           <h1 className="font-display text-[36px] text-white mb-3">Enforcement Tracker</h1>
           <p className="text-base text-slate-light max-w-[700px]">
-            Comprehensive database of global privacy enforcement actions, fines, and sanctions. Searchable by regulator, company, jurisdiction, and violation type.
+            Comprehensive database of global privacy enforcement actions, fines, and sanctions.
           </p>
         </div>
       </div>
 
       <AdBanner variant="leaderboard" className="py-5" />
 
-      <div className="max-w-[1280px] mx-auto px-8 py-10">
-        <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-fog shadow-eup-sm">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+        {/* Stats cards */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Actions</p>
+              <p className="text-3xl font-bold text-foreground">{totalActions}</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Fines (EUR)</p>
+              <p className="text-3xl font-bold text-foreground">€{(totalFinesEur / 1_000_000).toFixed(1)}M</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Most Active Regulator</p>
+              <p className="text-xl font-bold text-foreground">{topRegulator?.[0] || "—"}</p>
+              <p className="text-xs text-muted-foreground">{topRegulator?.[1] || 0} actions</p>
+            </div>
+          </div>
+        )}
+
+        {/* Top regulators bar chart */}
+        {!loading && topRegulators.length > 0 && (
+          <div className="bg-card border border-border rounded-xl p-5 mb-8">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Top Regulators by Number of Actions</p>
+            <div className="space-y-2">
+              {topRegulators.map(([name, count]) => (
+                <div key={name} className="flex items-center gap-3">
+                  <span className="text-xs text-foreground w-[160px] truncate font-medium">{name}</span>
+                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${(count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-muted-foreground w-8 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Search & filters */}
+        <div className="flex flex-col md:flex-row gap-3 items-start md:items-center mb-6">
           <div className="relative flex-1 max-w-[400px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-light w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <input
-              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-paper text-navy outline-none focus:border-blue transition-colors"
+              className="w-full py-2 pl-10 pr-4 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
               placeholder="Search enforcement actions…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <span className="ml-auto text-[12px] text-slate-light">{filtered.length} actions</span>
+          <div className="flex gap-2 flex-wrap">
+            {FILTER_PILLS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setActiveFilter(f.key)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all cursor-pointer bg-transparent ${
+                  activeFilter === f.key
+                    ? "bg-primary/10 text-primary border-primary/25 font-semibold"
+                    : "text-muted-foreground border-border hover:border-primary/20"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowSubmitModal(true)}
+            className="ml-auto text-xs font-medium text-primary hover:text-primary/80 bg-transparent border border-primary/20 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+          >
+            + Submit an Action
+          </button>
         </div>
 
-        {/* Label */}
-        <div className="text-[10px] font-bold tracking-widest uppercase text-slate-light mb-3">
-          Curated Sample — Recent Major Actions
-        </div>
+        <div className="text-xs text-muted-foreground mb-3">{filtered.length} actions</div>
 
-        <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
+        {/* Table */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead className="bg-fog">
+              <thead className="bg-muted">
                 <tr>
-                  {["Regulator", "Company", "Jurisdiction", "Alleged Violation", "Fine", "Date"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-slate text-left border-b border-silver">{h}</th>
+                  {["Regulator", "Company", "Jurisdiction", "Violation", "Fine", "Date"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row, i) => (
-                  <tr key={i} className="hover:bg-paper transition-colors">
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">{row.regulator}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog">{row.company}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">{row.jurisdiction}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog max-w-[300px]">{row.violation}</td>
-                    <td className="px-4 py-3 font-semibold text-warn font-display text-sm border-b border-fog">{row.fine}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog whitespace-nowrap">{row.date}</td>
-                  </tr>
-                ))}
+                {loading ? (
+                  [...Array(6)].map((_, i) => (
+                    <tr key={i}>
+                      {[...Array(6)].map((_, j) => (
+                        <td key={j} className="px-4 py-3 border-b border-border"><div className="h-4 bg-muted rounded animate-pulse" /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  filtered.map((row) => (
+                    <tr key={row.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-foreground border-b border-border">{row.regulator}</td>
+                      <td className="px-4 py-3 text-sm text-foreground font-medium border-b border-border">{row.subject}</td>
+                      <td className="px-4 py-3 text-sm text-foreground border-b border-border">{row.jurisdiction}</td>
+                      <td className="px-4 py-3 text-sm text-foreground border-b border-border max-w-[300px] truncate">{row.violation}</td>
+                      <td className="px-4 py-3 font-semibold text-destructive text-sm border-b border-border">{row.fine_amount}</td>
+                      <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">
+                        {row.decision_date ? new Date(row.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* Honest premium CTA */}
-          <div className="p-7 bg-gradient-to-b from-transparent to-fog border-t border-fog">
-            <div className="max-w-[600px] mx-auto text-center">
-              <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
-              <p className="text-navy font-semibold text-[15px] mb-1">
-                Get full enforcement analysis every Monday
-              </p>
-              <p className="text-slate text-[13px] mb-4">
-                Premium subscribers receive a dedicated enforcement section in the weekly brief, AI-synthesized with compliance implications.
-              </p>
-              <Link to="/subscribe" className="inline-block px-6 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
-                View Premium Plans →
-              </Link>
-            </div>
-          </div>
+        {/* Premium CTA */}
+        <div className="p-7 mt-6 bg-card border border-border rounded-xl text-center">
+          <div className="text-[10px] font-bold tracking-widest uppercase text-primary mb-2">⭐ Premium Intelligence</div>
+          <p className="text-foreground font-semibold text-[15px] mb-1">Get full enforcement analysis every Monday</p>
+          <p className="text-muted-foreground text-sm mb-4">Premium subscribers receive enforcement insights with AI-synthesized compliance implications.</p>
+          <Link to="/subscribe" className="inline-block px-6 py-2.5 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-all no-underline">
+            View Premium Plans →
+          </Link>
         </div>
 
         {/* Live enforcement news */}
         {liveArticles.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="font-display text-xl text-navy">Latest Enforcement News</h2>
-              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
-                Live
-              </span>
+              <h2 className="font-display text-xl text-foreground">Latest Enforcement News</h2>
+              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {liveArticles.map((a) => (
-                <a
-                  key={a.id}
-                  href={a.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-4 p-4 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm transition-all no-underline"
-                >
-                  {a.image_url && (
-                    <img
-                      src={a.image_url}
-                      alt=""
-                      className="w-20 h-14 object-cover rounded-lg flex-shrink-0"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                  )}
+              {liveArticles.map((a: any) => (
+                <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all no-underline">
+                  {a.image_url && <img src={a.image_url} alt="" className="w-20 h-14 object-cover rounded-lg flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate mb-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
                       {a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </div>
-                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2">
-                      {a.title}
-                    </p>
+                    <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">{a.title}</p>
                   </div>
-                  <ExternalLink size={12} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                  <ExternalLink size={12} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
                 </a>
               ))}
             </div>
           </div>
         )}
 
+        <div className="mt-8">
+          <EmailSignup variant="card" />
+        </div>
+
         <AdBanner variant="leaderboard" className="py-6" />
       </div>
+
+      {/* Submit Modal */}
+      {showSubmitModal && <SubmitModal onClose={() => setShowSubmitModal(false)} />}
+
       <Footer />
+    </div>
+  );
+};
+
+const SubmitModal = ({ onClose }: { onClose: () => void }) => {
+  const [form, setForm] = useState({ regulator: "", subject: "", jurisdiction: "", violation: "", law: "", fine_amount: "", source_url: "", submitted_by: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    await supabase.from("enforcement_submissions").insert(form);
+    setSubmitting(false);
+    setDone(true);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-foreground mb-4">Submit an Enforcement Action</h3>
+        {done ? (
+          <div className="text-center py-8">
+            <p className="text-2xl mb-2">✓</p>
+            <p className="font-semibold text-foreground">Thank you! Submission received for review.</p>
+            <button onClick={onClose} className="mt-4 text-sm text-primary cursor-pointer bg-transparent border-none">Close</button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {[
+              { key: "regulator", label: "Regulator", required: true },
+              { key: "subject", label: "Company/Subject" },
+              { key: "jurisdiction", label: "Jurisdiction", required: true },
+              { key: "violation", label: "Violation" },
+              { key: "law", label: "Law" },
+              { key: "fine_amount", label: "Fine Amount" },
+              { key: "source_url", label: "Source URL" },
+              { key: "submitted_by", label: "Your Email (optional)" },
+            ].map((field) => (
+              <div key={field.key}>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">{field.label}</label>
+                <input
+                  type="text"
+                  required={field.required}
+                  value={(form as any)[field.key]}
+                  onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
+                />
+              </div>
+            ))}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-2.5 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-colors disabled:opacity-60 cursor-pointer"
+            >
+              {submitting ? "Submitting…" : "Submit for Review"}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 };
