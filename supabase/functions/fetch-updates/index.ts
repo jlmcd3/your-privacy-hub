@@ -458,7 +458,7 @@ Deno.serve(async (req) => {
 
           // Generate AI summary if API key is available
           if (anthropicKey) {
-            const aiSummary = await generateAISummary(article.title, article.description || "", anthropicKey);
+            const aiSummary = await generateAISummary(article.title, article.description || "", article.source?.name || "", anthropicKey);
             if (aiSummary) {
               row.ai_summary = aiSummary;
               results.summaries_generated++;
