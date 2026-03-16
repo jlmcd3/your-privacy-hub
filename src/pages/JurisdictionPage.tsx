@@ -119,6 +119,9 @@ const JurisdictionPage = () => {
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3">{jurisdiction.name}</h1>
           <p className="text-sm text-slate-light">Region: {jurisdiction.region} · {jurisdiction.authorities.length} regulatory {jurisdiction.authorities.length === 1 ? "authority" : "authorities"}</p>
+          <div className="mt-4">
+            <FollowButton followType="jurisdiction" followKey={slug!} label={jurisdiction.name} />
+          </div>
         </div>
       </div>
 
