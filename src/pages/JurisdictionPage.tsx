@@ -89,6 +89,8 @@ const JurisdictionPage = () => {
   const [devArticles, setDevArticles] = useState<any[] | null>(null);
   const [devLoading, setDevLoading] = useState(true);
 
+  const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
+
   useEffect(() => {
     if (!jurisdiction) return;
     setDevLoading(true);
@@ -98,11 +100,19 @@ const JurisdictionPage = () => {
         .select("id,title,summary,url,source_domain,source_name,image_url,category,published_at")
         .eq("category", derivedCategory)
         .order("published_at", { ascending: false })
-        .limit(4);
+        .limit(20);
       if (error || !data || data.length === 0) {
         setDevArticles(null);
       } else {
-        setDevArticles(data);
+        const term = jurisdiction.name.toLowerCase();
+        const sorted = [...data].sort((a: any, b: any) => {
+          const aMatch = (a.title + " " + (a.summary || "")).toLowerCase().includes(term);
+          const bMatch = (b.title + " " + (b.summary || "")).toLowerCase().includes(term);
+          if (aMatch && !bMatch) return -1;
+          if (!aMatch && bMatch) return 1;
+          return 0;
+        });
+        setDevArticles(sorted.slice(0, 4));
       }
       setDevLoading(false);
     })();
