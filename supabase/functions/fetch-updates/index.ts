@@ -45,11 +45,11 @@ const RSS_SOURCES = [
   },
   // ── Global / Industry ─────────────────────────────────────────────
   {
-    url: "https://www.insideprivacy.com/feed/",
-    source: "Inside Privacy",
-    domain: "insideprivacy.com",
+    url: "https://www.eff.org/rss/updates.xml",
+    source: "EFF",
+    domain: "eff.org",
     defaultCategory: "global",
-    regulator: "Covington & Burling",
+    regulator: "Electronic Frontier Foundation",
   },
   {
     url: "https://fpf.org/feed/",
