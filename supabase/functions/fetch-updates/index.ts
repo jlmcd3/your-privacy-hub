@@ -277,7 +277,63 @@ Return JSON with these exact keys:
   }
 }
 
-Deno.serve(async (req) => {
+// Detects if text is likely non-English using common word patterns
+function isLikelyNonEnglish(text: string): boolean {
+  if (!text || text.length < 10) return false;
+  const lower = text.toLowerCase();
+  const frenchWords = ["le ", "la ", "les ", "de ", "du ", "des ", "et ", "en ", "un ", "une ",
+    "pour ", "sur ", "avec ", "que ", "qui ", "dans ", " est ", " sont ", "cette ", "ces ",
+    "délibération", "cnil", "données", "traitement", "personnes", "règlement"];
+  const germanWords = ["der ", "die ", "das ", "und ", "ist ", "ein ", "eine ", "des ",
+    "dem ", "den ", "mit ", "auf ", "für ", "nicht ", "sich ", "auch ", "werden", "datenschutz"];
+  const spanishWords = ["el ", "la ", "los ", "las ", "de ", "del ", "en ", "con ", "por ",
+    "para ", "que ", "una ", "este ", "esta ", "también", "protección"];
+  const allIndicators = [...frenchWords, ...germanWords, ...spanishWords];
+  const matches = allIndicators.filter(w => lower.includes(w)).length;
+  return matches >= 3;
+}
+
+async function translateToEnglish(
+  title: string,
+  description: string,
+  apiKey: string
+): Promise<{ title: string; description: string }> {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 400,
+        messages: [{
+          role: "user",
+          content: `Translate the following privacy/data protection article title and description to English. Return ONLY a JSON object with keys "title" and "description". Do not add any explanation or markdown.
+
+Title: ${title}
+Description: ${description || ""}`,
+        }],
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return { title, description };
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return { title, description };
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      title: parsed.title || title,
+      description: parsed.description || description,
+    };
+  } catch {
+    return { title, description };
+  }
+}
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
@@ -296,12 +352,20 @@ Deno.serve(async (req) => {
       const items = extractAllItems(xml).slice(0, 10);
 
       for (const item of items) {
-        const title = stripHtml(extractTag(item, "title"));
+        let title = stripHtml(extractTag(item, "title"));
         const link = extractLink(item);
-        const description = stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content"));
+        let description = stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content"));
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
+
+        // Translate non-English content to English before processing
+        if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
+          const translated = await translateToEnglish(title, description, anthropicKey);
+          title = translated.title;
+          description = translated.description;
+        }
+
         if (!isRelevant(title, description)) { results.skipped++; continue; }
 
         const category = categorize(title, description, source.defaultCategory);
