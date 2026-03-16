@@ -280,7 +280,7 @@ const JurisdictionPage = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5">
-                      {a.source_domain || a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {a.source_domain || a.source_name}{a.wasTranslated && <span className="text-[10px] text-slate/60 ml-1 normal-case">🌐 Translated</span>} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                     <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
                       {a.title}
