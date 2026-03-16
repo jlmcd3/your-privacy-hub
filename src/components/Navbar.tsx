@@ -23,10 +23,10 @@ const navItems: NavDropdown[] = [
     label: "Updates",
     sections: [
       { header: "By Jurisdiction", items: [
-        { icon: "🇺🇸", label: "U.S. Federal", badge: "12", href: "/category/us-federal" },
-        { icon: "🗺️", label: "U.S. States", badge: "34", href: "/category/us-states" },
-        { icon: "🇪🇺", label: "EU & UK", badge: "28", href: "/category/eu-uk" },
-        { icon: "🌐", label: "Global", badge: "19", href: "/category/global" },
+        { icon: "🇺🇸", label: "U.S. Federal", href: "/category/us-federal" },
+        { icon: "🗺️", label: "U.S. States", href: "/category/us-states" },
+        { icon: "🇪🇺", label: "EU & UK", href: "/category/eu-uk" },
+        { icon: "🌐", label: "Global", href: "/category/global" },
       ]},
       { header: "By Topic", divider: true, items: [
         { icon: "⚖️", label: "Enforcement Actions", badge: "NEW", badgeGreen: true, href: "/category/enforcement" },
@@ -53,63 +53,7 @@ const navItems: NavDropdown[] = [
       { header: "Europe", items: [
         { icon: "🇪🇺", label: "European Union", href: "/jurisdiction/european-union" },
         { icon: "🇬🇧", label: "United Kingdom", href: "/jurisdiction/united-kingdom" },
-        { icon: "🇩🇪", label: "Germany", href: "/jurisdiction/germany" },
-        { icon: "🇫🇷", label: "France", href: "/jurisdiction/france" },
-      ]},
-      { header: "Other", divider: true, items: [
-        { icon: "🌍", label: "Africa", href: "/jurisdiction/south-africa" },
-        { icon: "🌏", label: "Middle East", href: "/jurisdiction/uae" },
-        { icon: "🗂️", label: "All 150+ Jurisdictions →", href: "/global-privacy-authorities" },
-      ]},
-    ],
-  },
-  {
-    label: "Regulators",
-    sections: [
-      { header: "Authority Directories", items: [
-        { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
-        { icon: "🌐", label: "Global DPA Directory", href: "/global-privacy-authorities" },
-      ]},
-      { header: "Key Regulators", divider: true, items: [
-        { icon: "⚖️", label: "EDPB (EU)", href: "/regulator/edpb" },
-        { icon: "⚖️", label: "ICO (UK)", href: "/regulator/ico" },
-        { icon: "⚖️", label: "FTC (U.S.)", href: "/regulator/ftc" },
-        { icon: "⚖️", label: "CNIL (France)", href: "/regulator/cnil" },
-        { icon: "⚖️", label: "DPC (Ireland)", href: "/regulator/dpc" },
-      ]},
-      { items: [{ icon: "🗂️", label: "All 250+ Regulators →", href: "/global-privacy-authorities" }], divider: true },
-    ],
-  },
-  {
-    label: "Enforcement",
-    sections: [
-      { items: [
-        { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
-        { icon: "💰", label: "Largest Fines", href: "/enforcement-tracker" },
-        { icon: "🔍", label: "By Regulator", href: "/enforcement-tracker" },
-        { icon: "🌍", label: "By Jurisdiction", href: "/enforcement-tracker" },
-      ]},
-    ],
-  },
-  {
-    label: "Intelligence",
-    sections: [
-      { header: "Premium", items: [
-        { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/subscribe" },
-        { icon: "📈", label: "Trend Signals", badge: "PRO", href: "/subscribe" },
-        { icon: "🔔", label: "Custom Alerts", badge: "PRO", href: "/subscribe" },
-      ]},
-      { header: "Research", divider: true, items: [
-        { icon: "📰", label: "U.S. State Privacy Laws", href: "/us-state-privacy-laws" },
-        { icon: "📚", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
-        { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-        { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
-        { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
-      ]},
-    ],
-  },
-];
-
+        { icon: "🇩🇪", label: "Germany
 const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
