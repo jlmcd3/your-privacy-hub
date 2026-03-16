@@ -40,7 +40,7 @@ const Topbar = () => {
         <div className="flex gap-5 items-center">
           <span className="flex items-center gap-1.5 text-accent-light font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-accent-light animate-pulse-dot" />
-            Live monitoring: 250+ regulators
+            Live · 250+ regulators · 150+ jurisdictions · Updated daily
           </span>
           <span className="text-navy-light hidden lg:inline">·</span>
           <span className="hidden lg:inline">Last update: {lastUpdate}</span>
