@@ -46,6 +46,7 @@ export type Database = {
       }
       updates: {
         Row: {
+          ai_summary: Json | null
           category: string
           created_at: string
           id: string
@@ -60,6 +61,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          ai_summary?: Json | null
           category?: string
           created_at?: string
           id?: string
@@ -74,6 +76,7 @@ export type Database = {
           url: string
         }
         Update: {
+          ai_summary?: Json | null
           category?: string
           created_at?: string
           id?: string

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import AISummaryPanel from "@/components/AISummaryPanel";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -18,6 +19,7 @@ interface Update {
   category: string;
   regulator: string | null;
   published_at: string;
+  ai_summary?: any;
 }
 
 const categoryMeta: Record<string, { title: string; icon: string; description: string }> = {
@@ -196,6 +198,7 @@ const CategoryPage = () => {
                       {u.summary}
                     </p>
                   )}
+                  <AISummaryPanel summary={u.ai_summary || null} />
                 </div>
 
                 {/* Link icon */}

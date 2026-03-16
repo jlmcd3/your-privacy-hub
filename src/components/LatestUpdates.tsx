@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import AISummaryPanel from "@/components/AISummaryPanel";
 
 interface Update {
   id: string;
@@ -14,6 +15,7 @@ interface Update {
   regulator: string | null;
   published_at: string;
   is_premium: boolean;
+  ai_summary?: any;
 }
 
 const FALLBACK_UPDATES: Update[] = [
@@ -262,6 +264,7 @@ const LatestUpdates = () => {
                         {u.summary}
                       </p>
                     )}
+                    <AISummaryPanel summary={u.ai_summary || null} />
                   </div>
 
                   {/* Link icon */}
