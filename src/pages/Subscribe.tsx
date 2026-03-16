@@ -7,38 +7,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 
-const plans = [
-  {
-    id: "founding",
-    name: "Founding Member",
-    price: "$12",
-    period: "/month",
-    badge: "Limited",
-    highlight: true,
-    description: "First 200 members · Rate locked forever",
-    features: [
-      "Full Enforcement Tracker access",
-      "Weekly Privacy Brief (full)",
-      "Priority access to new features",
-      "Founding member badge",
-      "Rate locked at $12/mo forever",
-    ],
-  },
-  {
-    id: "standard",
-    name: "Standard",
-    price: "$15",
-    period: "/month",
-    badge: null,
-    highlight: false,
-    description: "Full premium access to all content",
-    features: [
-      "Full Enforcement Tracker access",
-      "Weekly Privacy Brief (full)",
-      "Access to all premium content",
-      "Email support",
-    ],
-  },
+const features = [
+  "Full Enforcement Tracker access — all actions, all regulators, all jurisdictions",
+  "Weekly Privacy Brief (full 8-section AI intelligence report)",
+  "Regional analysis: US Federal, States, EU & UK, Global",
+  "Enforcement table with fine amounts",
+  "Trend signals — forward-looking intelligence",
+  "Why This Matters — action items for GC/CPO",
+  "Priority access to new features",
 ];
 
 const comparisonRows = [
@@ -148,64 +124,43 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* Plan cards */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-card border rounded-2xl p-8 flex flex-col ${
-                plan.highlight
-                  ? "border-blue shadow-eup-md ring-2 ring-blue/20"
-                  : "border-fog"
-              }`}
-            >
-              {plan.badge && (
-                <span className="absolute -top-3 left-6 bg-blue text-white text-[11px] font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-                  {plan.badge}
-                </span>
-              )}
+        {/* Single plan card */}
+        <div className="max-w-md mx-auto">
+          <div className="relative bg-card border border-blue rounded-2xl p-8 flex flex-col shadow-eup-md ring-2 ring-blue/20">
+            <h2 className="font-display text-[22px] text-navy mb-1">Premium</h2>
+            <p className="text-slate text-[13px] mb-5">Full premium access to all content</p>
 
-              <h2 className="font-display text-[20px] text-navy mb-1">
-                {plan.name}
-              </h2>
-              <p className="text-slate text-[13px] mb-5">
-                {plan.description}
-              </p>
-
-              <div className="mb-6">
-                <span className="text-[36px] font-bold text-navy">
-                  {plan.price}
-                </span>
-                <span className="text-slate text-[14px]">
-                  {plan.period}
-                </span>
-              </div>
-
-              <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2 text-[13px] text-navy"
-                  >
-                    <Check className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handleSubscribe(plan.id)}
-                disabled={loading !== null}
-                className={`w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none ${
-                  plan.highlight
-                    ? "bg-gradient-to-br from-steel to-blue text-white shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90"
-                    : "bg-fog text-navy hover:bg-silver"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {loading === plan.id ? "Redirecting…" : "Subscribe"}
-              </button>
+            <div className="mb-6">
+              <span className="text-[36px] font-bold text-navy">$15</span>
+              <span className="text-slate text-[14px]">/month</span>
             </div>
-          ))}
+
+            <ul className="space-y-3 mb-6 flex-1">
+              {features.map((feature) => (
+                <li key={feature} className="flex items-start gap-2 text-[13px] text-navy">
+                  <Check className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+
+            {/* Founding member callout */}
+            <div className="mb-6 border border-sky/40 bg-sky/[0.08] rounded-xl px-5 py-4">
+              <p className="text-[13px] text-navy leading-relaxed">
+                <span className="text-[15px]">🎟️</span>{" "}
+                <strong className="text-blue">Founding Member Rate</strong> — First 200 subscribers lock in $15/month at just{" "}
+                <strong className="text-navy">$12/month forever</strong>. Rate never increases.
+              </p>
+            </div>
+
+            <button
+              onClick={() => handleSubscribe("founding")}
+              disabled={loading !== null}
+              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-gradient-to-br from-steel to-blue text-white shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === "founding" ? "Redirecting…" : "Subscribe — $12/mo"}
+            </button>
+          </div>
         </div>
 
         {error && (
