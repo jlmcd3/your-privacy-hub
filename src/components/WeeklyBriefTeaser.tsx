@@ -60,6 +60,10 @@ const WeeklyBriefTeaser = () => {
             </div>
           )}
 
+          <div className="mb-3">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky/15 text-sky border border-sky/25">✓ FREE PREVIEW</span>
+          </div>
+
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2.5 flex items-center gap-1.5">
             📋 Weekly Intelligence Brief
           </div>
@@ -79,6 +83,13 @@ const WeeklyBriefTeaser = () => {
               {teaserText}
             </p>
           )}
+
+          {/* Premium divider */}
+          <div className="border-t border-amber-500/30 pt-2.5 mb-4">
+            <p className="text-[12px] text-amber-600 font-medium">
+              🔒 EU &amp; UK Analysis · Global Developments · Enforcement Table · Trend Signal · Why This Matters — Premium only
+            </p>
+          </div>
 
           {/* Blurred premium preview */}
           <div className="relative rounded-xl border border-white/10 overflow-hidden mb-4">

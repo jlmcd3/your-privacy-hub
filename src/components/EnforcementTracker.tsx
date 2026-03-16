@@ -34,7 +34,10 @@ const EnforcementTracker = () => {
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h3 className="font-display text-lg text-white">Recent Enforcement Actions</h3>
-              <p className="text-[12px] text-slate-light mt-0.5">Top 20 visible free · Full database requires Premium</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">✓ Free preview</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⭐ Full database with Premium</span>
+              </div>
             </div>
             <div className="relative w-full sm:w-auto">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-light" />
