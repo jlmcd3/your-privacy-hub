@@ -15,7 +15,7 @@ interface Update {
   regulator: string | null;
   published_at: string;
   is_premium: boolean;
-  ai_summary: { why_it_matters: string; takeaways: string[]; compliance_impact: string; who_should_care: string } | null;
+  ai_summary?: { why_it_matters: string; takeaways: string[]; compliance_impact: string; who_should_care: string } | null;
 }
 
 const FALLBACK_UPDATES: Update[] = [

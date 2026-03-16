@@ -198,6 +198,7 @@ const CategoryPage = () => {
                       {u.summary}
                     </p>
                   )}
+                  <AISummaryPanel summary={u.ai_summary || null} />
                 </div>
 
                 {/* Link icon */}
