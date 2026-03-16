@@ -29,6 +29,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Terms from "./pages/Terms.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
