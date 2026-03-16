@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
+import SocialProof from "@/components/SocialProof";
 
 const Index = () => {
   return (
@@ -21,6 +22,7 @@ const Index = () => {
       <Navbar />
       <SearchBar />
       <Hero />
+      <SocialProof />
       <AdBanner variant="leaderboard" className="py-4 bg-paper" />
       <EmailSignup variant="strip" />
       <LatestUpdates />
