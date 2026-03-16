@@ -1,4 +1,7 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,7 +19,6 @@ const buildJurisdictionData = () => {
     authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string }[];
   }> = {};
 
-  // From global authorities
   const regionFlags: Record<string, string> = {
     "European Union": "🇪🇺", "United Kingdom": "🇬🇧", "Canada": "🇨🇦",
     "Asia-Pacific": "🌏", "Latin America": "🌎", "Middle East & Africa": "🌍", "Other Notable": "🌐",
@@ -44,7 +46,6 @@ const buildJurisdictionData = () => {
     });
   });
 
-  // US as a whole
   jurisdictions["united-states"] = {
     name: "United States",
     region: "Americas",
@@ -70,6 +71,26 @@ const allJurisdictions = buildJurisdictionData();
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
+
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!jurisdiction) return;
+
+    async function load() {
+      const term = jurisdiction!.name.toLowerCase();
+      const { data } = await (supabase as any)
+        .from("updates")
+        .select("id,title,summary,url,source_name,published_at")
+        .order("published_at", { ascending: false })
+        .limit(6);
+
+      if (data) setRecentArticles(data.filter((a: any) =>
+        (a.title + " " + (a.summary || "")).toLowerCase().includes(term)));
+    }
+
+    load();
+  }, [jurisdiction]);
 
   if (!jurisdiction) {
     return (
@@ -108,6 +129,39 @@ const JurisdictionPage = () => {
           <h2 className="font-display text-xl text-navy mb-3">Overview</h2>
           <p className="text-[14px] text-slate leading-relaxed">{jurisdiction.overview}</p>
         </div>
+
+        {/* Recent Developments */}
+        {recentArticles.length > 0 && (
+          <div className="mb-8">
+            <h2 className="font-display text-xl text-navy mb-4">
+              Recent Developments
+            </h2>
+            <div className="space-y-3">
+              {recentArticles.map((a) => (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 p-4 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm transition-all no-underline"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate mb-1">
+                      {a.source_name} ·{" "}
+                      {new Date(a.published_at).toLocaleDateString("en-US", {
+                        month: "short", day: "numeric", year: "numeric",
+                      })}
+                    </div>
+                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2">
+                      {a.title}
+                    </p>
+                  </div>
+                  <ExternalLink size={12} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Authorities */}
         <h2 className="font-display text-xl text-navy mb-4">Regulatory Authorities</h2>
@@ -194,7 +248,7 @@ const JurisdictionPage = () => {
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
           <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Premium subscribers receive a structured weekly intelligence brief covering all developments in this jurisdiction.</p>
-          <Link to="/#premium" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
+          <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             View Premium Plans →
           </Link>
         </div>

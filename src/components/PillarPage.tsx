@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,9 +17,29 @@ interface PillarPageProps {
   relatedLinks: { label: string; href: string }[];
   directoryLink?: { label: string; href: string };
   intelligenceLabel?: string;
+  updateCategory?: string;
 }
 
-const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink, intelligenceLabel }: PillarPageProps) => {
+const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relatedLinks, directoryLink, intelligenceLabel, updateCategory }: PillarPageProps) => {
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!updateCategory) return;
+
+    async function load() {
+      const { data } = await (supabase as any)
+        .from("updates")
+        .select("id,title,summary,url,source_name,image_url,published_at")
+        .eq("category", updateCategory)
+        .order("published_at", { ascending: false })
+        .limit(6);
+
+      if (data) setRecentArticles(data);
+    }
+
+    load();
+  }, [updateCategory]);
+
   return (
     <div className="min-h-screen bg-paper">
       <Topbar />
@@ -90,6 +111,47 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
             </React.Fragment>
           ))}
         </div>
+
+        {/* Recent Developments from live data */}
+        {recentArticles.length > 0 && (
+          <div className="mt-12 mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="font-display text-xl text-navy">Recent Developments</h2>
+              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+                Live
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentArticles.map((a) => (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-4 p-4 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm transition-all no-underline"
+                >
+                  {a.image_url && (
+                    <img
+                      src={a.image_url}
+                      alt=""
+                      className="w-20 h-14 object-cover rounded-lg flex-shrink-0"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "https://picsum.photos/seed/privacy/400/200"; }}
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate mb-1">
+                      {a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </div>
+                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2">
+                      {a.title}
+                    </p>
+                  </div>
+                  <ExternalLink size={12} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Related links */}
         <div className="mt-12 pt-8 border-t border-fog">
