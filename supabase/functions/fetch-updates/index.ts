@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     try {
       const res = await fetch(source.url, {
         signal: AbortSignal.timeout(12000),
-        headers: { "User-Agent": "Mozilla/5.0 EndUserPrivacy-Bot/1.0" },
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; EndUserPrivacy/1.0)" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const xml = await res.text();
