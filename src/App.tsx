@@ -30,6 +30,7 @@ import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Terms from "./pages/Terms.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
