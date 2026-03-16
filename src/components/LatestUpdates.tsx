@@ -186,32 +186,20 @@ const LatestUpdates = () => {
   return (
     <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
-          <div>
-            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">
-              Latest Updates
-            </h2>
-            <p className="text-sm text-slate mt-1">
-              Updated daily from 250+ monitored regulatory sources
-            </p>
-          </div>
-          <a href="/updates" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
-            View all updates →
-          </a>
-        </div>
-
         {/* Outer container */}
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div>
-              <h3 className="font-display text-[16px] text-white tracking-tight">
-                Latest Privacy Updates
-              </h3>
-              <p className="text-[12px] text-slate-light">
-                Updated daily · AI-summarized
-              </p>
+            <div className="flex items-center gap-4 justify-between w-full sm:w-auto">
+              <div>
+                <h2 className="font-display text-[16px] text-white tracking-tight">
+                  Latest Privacy Updates
+                </h2>
+                <p className="text-[12px] text-slate-light">
+                  Updated daily · AI-summarized
+                </p>
+              </div>
+              <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap sm:ml-4">View all →</a>
             </div>
             <div className="flex gap-2 flex-wrap items-center">
               {FILTERS.map((f) => (
