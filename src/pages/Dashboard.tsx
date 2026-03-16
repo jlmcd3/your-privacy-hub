@@ -56,18 +56,29 @@ function SectionBlock({ icon, title, content }: { icon: string; title: string; c
 }
 
 const Dashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
-    if (profile && !profile.is_premium) { navigate("/subscribe"); return; }
-  }, [user, profile, navigate]);
+    supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        const premium = data?.is_premium ?? false;
+        setIsPremium(premium);
+        if (!premium) navigate("/subscribe");
+      });
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (!user || !profile?.is_premium) return;
+    if (!user || !isPremium) return;
     async function load() {
       const { data } = await (supabase as any)
         .from("weekly_briefs")
@@ -79,9 +90,22 @@ const Dashboard = () => {
       setLoading(false);
     }
     load();
-  }, [user, profile]);
+  }, [user, isPremium]);
 
-  if (!user || !profile?.is_premium) return null;
+  if (authLoading || isPremium === null) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Topbar />
+        <Navbar />
+        <div className="flex items-center justify-center py-24">
+          <span className="text-muted-foreground text-sm">Loading…</span>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!user || !isPremium) return null;
 
   return (
     <div className="min-h-screen bg-background">
