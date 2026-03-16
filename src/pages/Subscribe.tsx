@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
@@ -73,6 +74,10 @@ const Subscribe = () => {
 
   return (
     <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>Subscribe to Privacy Intelligence | EndUserPrivacy</title>
+        <meta name="description" content="Get the weekly AI Intelligence Brief covering GDPR, US state privacy laws, enforcement actions, and global developments. First 25 subscribers get the first year free." />
+      </Helmet>
       <Topbar />
       <Navbar />
 

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -5,6 +6,10 @@ import Footer from "@/components/Footer";
 const About = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>About EndUserPrivacy | Privacy Regulatory Intelligence Platform</title>
+        <meta name="description" content="EndUserPrivacy monitors 250+ regulatory authorities daily and delivers AI-synthesized weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
+      </Helmet>
       <Topbar />
       <Navbar />
       <main className="flex-1">
