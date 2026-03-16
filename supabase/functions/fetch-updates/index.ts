@@ -179,9 +179,44 @@ const REQUIRED_KEYWORDS = [
   "machine learning privacy", "deepfake", "synthetic data",
 ];
 
+const EXCLUSION_KEYWORDS = [
+  "freedom of information",
+  "foia request",
+  "public records request",
+  "sunshine week",
+  "government transparency",
+  "net neutrality",
+  "section 230",
+  "copyright infringement",
+  "free speech",
+  "first amendment",
+  "open source license",
+  "patent lawsuit",
+  "antitrust",
+  "merger review",
+  "trade secret",
+  "whistleblower",
+];
+
 function isRelevant(title: string, description: string): boolean {
   const text = (title + " " + (description || "")).toLowerCase();
-  return REQUIRED_KEYWORDS.some(keyword => text.includes(keyword.toLowerCase()));
+  const titleLower = title.toLowerCase();
+
+  const TITLE_KEYWORDS = [
+    "privacy", "data protection", "gdpr", "ccpa", "cpra", "data breach",
+    "enforcement", "fine", "penalty", "regulator", "dpa", "ico ", "edpb",
+    "cnil", "ftc ", "cppa", "lgpd", "pipl", "ai act", "biometric",
+    "personal data", "surveillance law", "data security", "privacy law",
+    "consent", "data transfer", "privacy regulation",
+  ];
+  const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
+  if (!titleHasKeyword) return false;
+
+  const isExcluded = EXCLUSION_KEYWORDS.some(k => text.includes(k));
+  if (isExcluded) return false;
+
+  const matchCount = REQUIRED_KEYWORDS.filter(k => text.includes(k.toLowerCase())).length;
+  return matchCount >= 2;
 }
 
 // ── AI Summary Generation ──────────────────────────────────────────
