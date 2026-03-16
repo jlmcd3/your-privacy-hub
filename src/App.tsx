@@ -34,6 +34,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import About from "./pages/About.tsx";
+import Contact from "./pages/Contact.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 
 const queryClient = new QueryClient();
