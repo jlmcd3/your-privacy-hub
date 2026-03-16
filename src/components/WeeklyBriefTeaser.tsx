@@ -34,7 +34,7 @@ const WeeklyBriefTeaser = () => {
     : null;
 
   return (
-    <section className="py-10 md:py-16 px-4 md:px-8 bg-card">
+    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-card">
       <div className="max-w-[1280px] mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
