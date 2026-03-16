@@ -51,6 +51,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── Fetch previous week's brief for trend comparison ──────────────
+    const { data: prevBrief } = await supabase
+      .from("weekly_briefs")
+      .select("headline, trend_signal, week_label")
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    const previousContext = prevBrief
+      ? `PREVIOUS WEEK (${prevBrief.week_label}):\nHeadline: ${prevBrief.headline}\nTrend Signal: ${prevBrief.trend_signal || "N/A"}`
+      : "No previous week data available.";
+
     // ── Format articles for the prompt ────────────────────────────────
     const articleList = articles
       .map(
@@ -73,9 +85,19 @@ Deno.serve(async (req) => {
 
     const systemPrompt = `You are the lead analyst at a premium privacy regulatory intelligence platform used by DPOs, privacy lawyers, and compliance professionals at multinational companies. Your weekly brief is the most trusted synthesis of global privacy regulatory developments in the industry. Write with authoritative precision — no filler, no hedging, no generic statements. Every sentence must contain specific, actionable intelligence. Use the exact regulator names, regulation names, and jurisdictions from the source material. Format all output as valid JSON exactly matching the schema provided.`;
 
-    const userPrompt = `Here are all regulatory updates published this week (${weekLabel}):
+    const userPrompt = `PREVIOUS WEEK CONTEXT (use for trend comparison in trend_signal field):
+${previousContext}
+
+Here are all regulatory updates published this week (${weekLabel}):
 
 ${articleList}
+
+STRICT RULES — violations will cause this brief to be rejected:
+1. Every entry in enforcement_table MUST be sourced from a numbered article above. Add a source_ref field with the article number (e.g. '[3]').
+2. Every fine amount must appear verbatim in the source articles. If the amount is not explicitly stated, write 'Not disclosed' — never estimate.
+3. The trend_signal MUST compare this week's developments to the previous week context provided above.
+4. If a regional section has no source articles, write exactly: 'No monitored developments in this category this week.'
+5. Do not invent facts, names, amounts, or dates not present in the source articles.
 
 Generate a complete Weekly Intelligence Brief as a JSON object with exactly these fields:
 
@@ -92,11 +114,13 @@ Generate a complete Weekly Intelligence Brief as a JSON object with exactly thes
       "jurisdiction": "Country/State",
       "action_type": "Fine | Investigation | Guidance | Lawsuit | Rulemaking",
       "subject": "Who or what sector was targeted",
-      "amount": "Fine amount or 'N/A'",
-      "significance": "One sentence on why this matters"
+      "amount": "exact figure or Not disclosed",
+      "legal_basis": "specific regulation and article/section if stated, else N/A",
+      "significance": "One sentence on why this matters",
+      "source_ref": "[article number]"
     }
   ],
-  "trend_signal": "The single most important forward-looking signal from this week's data — what pattern is emerging, what regulators are telegraphing, what companies should prepare for in the next 30-90 days. 2 paragraphs. Be specific and predictive.",
+  "trend_signal": "The single most important forward-looking signal from this week's data — what pattern is emerging, what regulators are telegraphing, what companies should prepare for in the next 30-90 days. 2 paragraphs. Be specific and predictive. Compare to previous week's trends.",
   "why_this_matters": "2 paragraphs written for a busy General Counsel or Chief Privacy Officer who has 2 minutes to read this. What are the top 3 things they need to act on this week? Bullet-point style, actionable."
 }
 
@@ -156,6 +180,40 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown code fence
       brief = JSON.parse(jsonMatch[0]);
     }
 
+    // ── Verification pass ─────────────────────────────────────────────
+    const verifyPrompt = `You are a fact-checker for a regulatory intelligence publication. Review this generated Weekly Intelligence Brief against its source articles. Return ONLY valid JSON.
+
+SOURCE ARTICLES:
+${articleList}
+
+GENERATED BRIEF ENFORCEMENT TABLE:
+${JSON.stringify(brief.enforcement_table || [])}
+
+Check each enforcement_table entry. For each entry, verify the fine amount and regulator name appear in the source articles. Return:
+{"verified": true/false, "issues": ["list any unverified amounts or names"], "quality_score": 1-10, "fabricated_facts": ["any facts not in source articles"]}`;
+
+    const verifyResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: verifyPrompt }],
+      }),
+    });
+
+    let verificationReport = null;
+    if (verifyResponse.ok) {
+      const verifyData = await verifyResponse.json();
+      const verifyText = verifyData.choices?.[0]?.message?.content || "";
+      try {
+        const verifyJson = verifyText.match(/\{[\s\S]*\}/);
+        if (verifyJson) verificationReport = JSON.parse(verifyJson[0]);
+      } catch { /* ignore verification parse errors */ }
+    }
+
     // ── Store in database ──────────────────────────────────────────────
     const { data: inserted, error: insertError } = await supabase
       .from("weekly_briefs")
@@ -172,6 +230,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown code fence
         why_this_matters: brief.why_this_matters,
         article_count: articles.length,
         published_at: new Date().toISOString(),
+        verification_report: verificationReport,
       })
       .select()
       .single();
@@ -184,7 +243,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown code fence
     }
 
     return new Response(
-      JSON.stringify({ success: true, id: inserted.id, week: isoWeek, article_count: articles.length }),
+      JSON.stringify({ success: true, id: inserted.id, week: isoWeek, article_count: articles.length, verification: verificationReport }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
