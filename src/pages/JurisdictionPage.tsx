@@ -286,6 +286,54 @@ const JurisdictionPage = () => {
           </div>
         </div>
 
+        {/* Recent Developments from category */}
+        {devLoading ? (
+          <div className="mb-10">
+            <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+            <p className="text-sm text-slate mb-4">Latest updates from monitored sources</p>
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
+              ))}
+            </div>
+          </div>
+        ) : devArticles ? (
+          <div className="mb-10">
+            <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+            <p className="text-sm text-slate mb-4">Latest updates from monitored sources</p>
+            <div className="space-y-2">
+              {devArticles.map((a: any) => (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
+                >
+                  {a.image_url && (
+                    <img src={a.image_url} alt="" className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5">
+                      {a.source_domain || a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </div>
+                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
+                      {a.title}
+                    </p>
+                    {a.summary && (
+                      <p className="text-[12px] text-slate line-clamp-2 mt-0.5 mb-0">{a.summary}</p>
+                    )}
+                  </div>
+                  <ExternalLink size={14} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                </a>
+              ))}
+            </div>
+            <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-medium no-underline mt-3 inline-block hover:text-navy transition-colors">
+              View all updates →
+            </Link>
+          </div>
+        ) : null}
+
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
