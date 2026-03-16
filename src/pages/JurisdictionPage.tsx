@@ -6,6 +6,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import FollowButton from "@/components/FollowButton";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
