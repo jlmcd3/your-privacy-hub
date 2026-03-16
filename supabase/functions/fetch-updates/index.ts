@@ -131,6 +131,35 @@ function extractLink(itemXml: string): string {
   return "";
 }
 
+const REQUIRED_KEYWORDS = [
+  // Core privacy terms
+  "privacy", "data protection", "personal data", "gdpr", "ccpa", "cpra",
+  "data breach", "data security", "surveillance", "tracking", "consent",
+  "data subject", "data controller", "data processor", "right to erasure",
+  "right to access", "opt-out", "opt out", "cookie", "biometric",
+  // Regulators
+  "edpb", "ico ", "cnil", "dpc ", "anpd", "cppa", "ftc ", "nist",
+  "information commissioner", "data protection authority", "dpa ",
+  "attorney general", "privacy commissioner",
+  // Laws & frameworks
+  "lgpd", "pipl", "pdpa", "tdpsa", "vcdpa", "coppa", "hipaa",
+  "privacy act", "privacy law", "privacy regulation", "privacy rule",
+  "privacy bill", "privacy legislation", "data privacy",
+  // Enforcement
+  "privacy fine", "privacy penalty", "privacy enforcement", "privacy violation",
+  "privacy lawsuit", "privacy settlement", "privacy investigation",
+  "data protection fine", "regulatory action", "enforcement action",
+  // AI & privacy
+  "ai privacy", "ai regulation", "ai act", "ai data", "facial recognition",
+  "generative ai", "llm privacy", "algorithmic", "automated decision",
+  "machine learning privacy", "deepfake", "synthetic data",
+];
+
+function isRelevant(title: string, description: string): boolean {
+  const text = (title + " " + (description || "")).toLowerCase();
+  return REQUIRED_KEYWORDS.some(keyword => text.includes(keyword.toLowerCase()));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
