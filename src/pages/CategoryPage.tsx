@@ -19,6 +19,7 @@ interface Update {
   category: string;
   regulator: string | null;
   published_at: string;
+  ai_summary?: { why_it_matters: string; takeaways: string[]; compliance_impact: string; who_should_care: string } | null;
 }
 
 const categoryMeta: Record<string, { title: string; icon: string; description: string }> = {
