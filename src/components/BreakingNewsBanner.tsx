@@ -22,11 +22,12 @@ const BreakingNewsBanner = () => {
   }, []);
 
   useEffect(() => {
+    if (!news) return;
     const key = `dismissed-breaking-${news.headline.slice(0, 20)}`;
     if (sessionStorage.getItem(key) === "true") setDismissed(true);
   }, [news]);
 
-  if (dismissed) return null;
+  if (!loaded || !news || dismissed) return null;
 
   const handleDismiss = () => {
     const key = `dismissed-breaking-${news.headline.slice(0, 20)}`;
