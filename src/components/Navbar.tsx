@@ -21,7 +21,6 @@ interface NavDropdown {
 const navItems: NavDropdown[] = [
   {
     label: "Updates",
-    active: true,
     sections: [
       { header: "By Jurisdiction", items: [
         { icon: "🇺🇸", label: "U.S. Federal", badge: "12", href: "/category/us-federal" },
