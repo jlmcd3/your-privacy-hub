@@ -116,7 +116,7 @@ const EnforcementTrackerPage = () => {
             <div className="bg-card border border-border rounded-xl p-5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Most Active Regulator</p>
               <p className="text-xl font-bold text-foreground">{topRegulator?.[0] || "—"}</p>
-              <p className="text-xs text-muted-foreground">{topRegulator?.[1] || 0} actions</p>
+              <p className="text-xs text-muted-foreground">{topRegulator?.[1] === 1 ? "1 action" : `${topRegulator?.[1] || 0} actions`}</p>
             </div>
           </div>
         )}
