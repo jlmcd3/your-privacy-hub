@@ -42,7 +42,7 @@ const PremiumBanner = () => {
                 Start Founding Member Plan →
               </button>
               <button onClick={() => navigate("/subscribe")} className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all inline-flex items-center gap-2 cursor-pointer">
-                Compare plans →
+                See pricing →
               </button>
             </div>
           </div>
