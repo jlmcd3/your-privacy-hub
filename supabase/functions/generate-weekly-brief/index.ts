@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
       .select("title, summary, source_name, category, published_at, url")
       .gte("published_at", sevenDaysAgo.toISOString())
       .order("published_at", { ascending: false })
-      .limit(60);
+      .limit(25);
 
     if (fetchError || !articles || articles.length === 0) {
       return new Response(
