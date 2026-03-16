@@ -80,10 +80,10 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free. The analyst is $15.
+            The library is free. The analyst is $15/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse is always free. The weekly AI brief that synthesizes what it means for your organization is $15/month.
+            Everything you can browse is always free. The first 25 subscribers get the full Intelligence Brief free for one year. After that, just $15/month.
           </p>
         </div>
       </div>
@@ -154,7 +154,7 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">$15/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">From $15/month →</p>
             </div>
           </div>
         </div>
@@ -163,7 +163,7 @@ const Subscribe = () => {
         <div className="max-w-md mx-auto">
           <div className="relative bg-card border border-blue rounded-2xl p-8 flex flex-col shadow-eup-md ring-2 ring-blue/20">
             <h2 className="font-display text-[22px] text-navy mb-1">Premium</h2>
-            <p className="text-slate text-[13px] mb-5">Full premium access to all content</p>
+            <p className="text-slate text-[13px] mb-5">First 25 subscribers: free for one year. Then $15/month.</p>
 
             <div className="mb-6">
               <span className="text-[36px] font-bold text-navy">$15</span>
@@ -179,12 +179,9 @@ const Subscribe = () => {
               ))}
             </ul>
 
-            {/* Founding member callout */}
-            <div className="mb-6 border border-sky/40 bg-sky/[0.08] rounded-xl px-5 py-4">
-              <p className="text-[13px] text-navy leading-relaxed">
-                <span className="text-[15px]">🎟️</span>{" "}
-                <strong className="text-blue">Founding Member Rate</strong> — First 200 subscribers lock in $15/month at just{" "}
-                <strong className="text-navy">$12/month forever</strong>. Rate never increases.
+            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+              <p className="text-[13px] text-amber-900 leading-relaxed">
+                🎁 First 25 subscribers get the full Intelligence Brief free for the first year. Other subscribers pay only $15 per month.
               </p>
             </div>
 
@@ -193,7 +190,7 @@ const Subscribe = () => {
               disabled={loading !== null}
               className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-gradient-to-br from-steel to-blue text-white shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading === "founding" ? "Redirecting…" : "Subscribe — $12/mo"}
+              {loading === "founding" ? "Redirecting…" : "Get Started →"}
             </button>
           </div>
         </div>

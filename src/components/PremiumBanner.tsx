@@ -6,7 +6,7 @@ const features = [
   "Spot coordinated enforcement before it reaches your jurisdiction",
   "One brief covers your entire global footprint",
   "Ad-free, always — your feed is never sponsored.",
-  "Founding Member rate: $12/month, locked forever (first 200 only).",
+  "First 25 subscribers get the first year free — then $15/month.",
 ];
 
 const PremiumBanner = () => {
@@ -39,7 +39,7 @@ const PremiumBanner = () => {
             </div>
             <div className="flex gap-3 items-center flex-wrap">
               <button onClick={() => navigate("/subscribe")} className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all inline-flex items-center gap-2 cursor-pointer border-none">
-                Start Founding Member Plan →
+                Get Started Free →
               </button>
               <button onClick={() => navigate("/subscribe")} className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all inline-flex items-center gap-2 cursor-pointer">
                 See pricing →
@@ -48,13 +48,12 @@ const PremiumBanner = () => {
           </div>
 
           <div className="relative z-10 bg-white/[0.06] border border-white/15 rounded-2xl p-6 md:p-7 text-center min-w-[180px] md:min-w-[200px]">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">🔒 Founding Member Rate</div>
+            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Special Offer</div>
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
-              <sup className="text-[18px] md:text-[22px] align-super">$</sup>12
+              <sup className="text-[18px] md:text-[22px] align-super">$</sup>15
             </div>
             <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month</div>
-            <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">First 200 members · Locked forever</div>
-            <div className="text-[12px] text-slate-light mt-2 line-through">Regular price: $15/month</div>
+            <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">First 25 subscribers: free for 1 year</div>
           </div>
         </div>
       </div>
