@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const FALLBACK = {
-  headline: "FTC announces emergency rulemaking on AI data collection practices",
-  url: "#",
-};
-
 const BreakingNewsBanner = () => {
-  const [news, setNews] = useState(FALLBACK);
+  const [news, setNews] = useState<{ headline: string; url: string } | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     supabase
@@ -21,6 +17,7 @@ const BreakingNewsBanner = () => {
         if (data && data.length > 0) {
           setNews({ headline: data[0].title, url: data[0].url });
         }
+        setLoaded(true);
       });
   }, []);
 
