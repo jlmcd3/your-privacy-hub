@@ -89,6 +89,57 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_briefs: {
+        Row: {
+          article_count: number | null
+          created_at: string
+          enforcement_table: Json | null
+          eu_uk: string | null
+          executive_summary: string
+          global_developments: string | null
+          headline: string
+          id: string
+          published_at: string
+          trend_signal: string | null
+          us_federal: string | null
+          us_states: string | null
+          week_label: string
+          why_this_matters: string | null
+        }
+        Insert: {
+          article_count?: number | null
+          created_at?: string
+          enforcement_table?: Json | null
+          eu_uk?: string | null
+          executive_summary: string
+          global_developments?: string | null
+          headline: string
+          id?: string
+          published_at?: string
+          trend_signal?: string | null
+          us_federal?: string | null
+          us_states?: string | null
+          week_label: string
+          why_this_matters?: string | null
+        }
+        Update: {
+          article_count?: number | null
+          created_at?: string
+          enforcement_table?: Json | null
+          eu_uk?: string | null
+          executive_summary?: string
+          global_developments?: string | null
+          headline?: string
+          id?: string
+          published_at?: string
+          trend_signal?: string | null
+          us_federal?: string | null
+          us_states?: string | null
+          week_label?: string
+          why_this_matters?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
