@@ -32,6 +32,18 @@ const navItems: NavItem[] = [
           { icon: "🌏", label: "Global", href: "/category/global" },
         ],
       },
+      {
+        header: "Topic Hubs",
+        divider: true,
+        items: [
+          { icon: "🤖", label: "AI Governance", href: "/topics/ai-governance" },
+          { icon: "🔓", label: "Data Breaches", href: "/topics/data-breaches" },
+          { icon: "👁️", label: "Biometric Data", href: "/topics/biometric-data" },
+          { icon: "🌐", label: "Data Transfers", href: "/topics/data-transfers" },
+          { icon: "👶", label: "Children's Privacy", href: "/topics/children-privacy" },
+          { icon: "🍪", label: "AdTech & Consent", href: "/topics/adtech" },
+        ],
+      },
     ],
   },
   {

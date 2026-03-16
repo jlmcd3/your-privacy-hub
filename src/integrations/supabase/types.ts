@@ -58,6 +58,7 @@ export type Database = {
           source_name: string | null
           summary: string | null
           title: string
+          topic_tags: string[] | null
           url: string
         }
         Insert: {
@@ -73,6 +74,7 @@ export type Database = {
           source_name?: string | null
           summary?: string | null
           title: string
+          topic_tags?: string[] | null
           url: string
         }
         Update: {
@@ -88,6 +90,7 @@ export type Database = {
           source_name?: string | null
           summary?: string | null
           title?: string
+          topic_tags?: string[] | null
           url?: string
         }
         Relationships: []

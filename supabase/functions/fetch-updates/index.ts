@@ -101,6 +101,18 @@ function categorize(title: string, description: string, defaultCat: string): str
   return defaultCat;
 }
 
+function assignTopicTags(title: string, description: string): string[] {
+  const text = (title + " " + (description || "")).toLowerCase();
+  const tags: string[] = [];
+  if (/\b(ai act|ai governance|artificial intelligence|ai regulation|ai policy|algorithmic accountability|foundation model|generative ai|llm|large language model)\b/.test(text)) tags.push("ai-governance");
+  if (/\b(data breach|breach notification|incident response|cyber incident|security incident|ransomware|data leak|unauthorized access)\b/.test(text)) tags.push("data-breaches");
+  if (/\b(biometric|facial recognition|fingerprint|iris scan|voiceprint|faceprint|face detection)\b/.test(text)) tags.push("biometric-data");
+  if (/\b(cross-border|data transfer|international transfer|adequacy decision|standard contractual|binding corporate rules|sccs|bcrs|data localization)\b/.test(text)) tags.push("data-transfers");
+  if (/\b(children|child|coppa|age verification|age assurance|minors|under 13|under 16|kids|teen|parental consent)\b/.test(text)) tags.push("children-privacy");
+  if (/\b(adtech|advertising technology|cookie|consent banner|tracking pixel|targeted advertising|real-time bidding|rtb|programmatic|third-party cookie|consent management)\b/.test(text)) tags.push("adtech");
+  return tags;
+}
+
 async function extractOgImage(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
@@ -251,6 +263,7 @@ Deno.serve(async (req) => {
           source_domain: source.domain,
           image_url: imageUrl,
           category,
+          topic_tags: assignTopicTags(title, description),
           regulator: source.regulator,
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
@@ -304,6 +317,7 @@ Deno.serve(async (req) => {
             source_domain: domain,
             image_url: article.urlToImage || FALLBACK_IMAGES[category],
             category,
+            topic_tags: assignTopicTags(article.title, article.description || ""),
             regulator: article.source?.name || "",
             published_at: article.publishedAt || new Date().toISOString(),
             is_premium: false,
