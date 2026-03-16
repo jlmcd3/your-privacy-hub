@@ -1,8 +1,24 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+
+interface Update {
+  id: string;
+  title: string;
+  summary: string | null;
+  url: string;
+  source_name: string | null;
+  source_domain: string | null;
+  image_url: string | null;
+  category: string;
+  regulator: string | null;
+  published_at: string;
+}
 
 const categoryMeta: Record<string, { title: string; icon: string; description: string }> = {
   "us-federal": {
@@ -37,46 +53,66 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
   },
 };
 
-// Sample updates per category
-const sampleUpdates: Record<string, { title: string; regulator: string; date: string; bullets: string[] }[]> = {
-  "us-federal": [
-    { title: "FTC Proposes Rule Expanding Children's Privacy Protections Under COPPA", regulator: "Federal Trade Commission", date: "Mar 6, 2026", bullets: ["FTC proposed rule would require verifiable parental consent for targeted advertising directed at children under 16.", "Proposed rule expands the definition of personal information to include biometric identifiers.", "Public comment period open for 90 days."] },
-    { title: "HHS Proposes Updates to HIPAA Privacy Rule for Reproductive Health Data", regulator: "Department of Health & Human Services", date: "Mar 1, 2026", bullets: ["Proposed rule would prohibit use of PHI for investigations into lawful reproductive health care.", "New attestation requirement for disclosures of reproductive health information.", "60-day comment period."] },
-  ],
-  "us-states": [
-    { title: "CPPA Approves Final Automated Decisionmaking Regulations", regulator: "California Privacy Protection Agency", date: "Mar 7, 2026", bullets: ["CPPA board approved final ADMT regulations requiring pre-use notices.", "Consumers gain opt-out rights for ADM in employment, housing, and credit.", "Regulations take effect January 1, 2027."] },
-    { title: "Texas AG Files First TDPSA Enforcement Action Against Data Broker", regulator: "Texas Attorney General", date: "Mar 9, 2026", bullets: ["Texas AG filed suit for selling sensitive data without consent.", "TDPSA authorizes civil penalties of up to $7,500 per violation.", "First enforcement action under the Texas Data Privacy and Security Act."] },
-  ],
-  "eu-uk": [
-    { title: "EDPB Adopts Binding Guidance on Personal Data Use in AI Model Training", regulator: "European Data Protection Board", date: "Mar 10, 2026", bullets: ["Training LLMs on scraped personal data without valid legal basis constitutes GDPR violation.", "Controllers must identify legal basis for each processing phase.", "Guidance applies regardless of controller establishment location."] },
-    { title: "ICO Publishes Updated Guidance on Biometric Data in Workplace AI Systems", regulator: "UK Information Commissioner's Office", date: "Mar 8, 2026", bullets: ["Biometric data processed by workplace AI is special category data.", "Employers must complete DPIA before deploying biometric systems.", "90-day grace period for existing deployments."] },
-  ],
-  "global": [
-    { title: "ANPD Issues Guidance on International Data Transfers Under LGPD", regulator: "Brazil ANPD", date: "Mar 5, 2026", bullets: ["Standard contractual clauses for cross-border data transfers established.", "Controllers must maintain records of all international transfers.", "Effective September 1, 2026."] },
-  ],
-  "enforcement": [
-    { title: "CNIL Fines Clearview AI €20M for Unlawful Biometric Processing", regulator: "CNIL (France)", date: "Mar 8, 2026", bullets: ["Unlawful biometric data processing without consent.", "Clearview AI ordered to delete all data on French individuals.", "Fine reflects severity and systematic nature of violations."] },
-    { title: "Texas AG Files First TDPSA Enforcement Action Against Data Broker", regulator: "Texas Attorney General", date: "Mar 9, 2026", bullets: ["Selling sensitive personal data without required consumer consent.", "Failure to honor opt-out requests.", "Civil penalties of up to $7,500 per violation."] },
-  ],
-  "ai-privacy": [
-    { title: "EDPB Adopts Binding Guidance on AI Training Data", regulator: "EDPB", date: "Mar 10, 2026", bullets: ["LLMs trained on scraped personal data require valid GDPR legal basis.", "Legitimate interest cannot be automatically assumed for AI training.", "Applies to all controllers processing EU residents' data."] },
-    { title: "ICO Updated Guidance on Biometric Data in Workplace AI", regulator: "ICO (UK)", date: "Mar 8, 2026", bullets: ["Biometric data from workplace AI classified as special category.", "DPIA required before deployment.", "90-day grace period for compliance."] },
-  ],
+const FALLBACK_IMAGES: Record<string, string> = {
+  "us-federal": "https://picsum.photos/seed/federal-law/400/200",
+  "us-states": "https://picsum.photos/seed/state-capitol/400/200",
+  "eu-uk": "https://picsum.photos/seed/european-union/400/200",
+  "global": "https://picsum.photos/seed/global-privacy/400/200",
+  "enforcement": "https://picsum.photos/seed/legal-court/400/200",
+  "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
 };
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+const SkeletonCard = () => (
+  <div className="flex gap-4 p-4 md:p-5 bg-card border border-border rounded-xl animate-pulse">
+    <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg bg-muted shrink-0" />
+    <div className="flex-1 space-y-2">
+      <div className="h-3 w-1/3 bg-muted rounded" />
+      <div className="h-4 w-3/4 bg-muted rounded" />
+      <div className="h-3 w-full bg-muted rounded" />
+    </div>
+  </div>
+);
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const meta = slug ? categoryMeta[slug] : null;
-  const updates = slug ? sampleUpdates[slug] || [] : [];
+  const [updates, setUpdates] = useState<Update[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    async function load() {
+      const { data } = await supabase
+        .from("updates")
+        .select("*")
+        .eq("category", slug!)
+        .order("published_at", { ascending: false })
+        .limit(50);
+      setUpdates((data as Update[]) || []);
+      setLoading(false);
+    }
+    load();
+  }, [slug]);
 
   if (!meta) {
     return (
-      <div className="min-h-screen bg-paper">
+      <div className="min-h-screen flex flex-col bg-background">
         <Topbar />
         <Navbar />
-        <div className="max-w-[860px] mx-auto px-4 md:px-8 py-20 text-center">
-          <h1 className="font-display text-3xl text-navy mb-4">Category Not Found</h1>
-          <Link to="/" className="text-blue hover:underline">Return to homepage →</Link>
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Category Not Found</h1>
+          <Link to="/" className="text-primary hover:underline">
+            Return to homepage →
+          </Link>
         </div>
         <Footer />
       </div>
@@ -84,60 +120,125 @@ const CategoryPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen flex flex-col bg-background">
       <Topbar />
       <Navbar />
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[1280px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="max-w-5xl mx-auto px-4 py-10 md:py-14">
+          <p className="text-sm font-medium text-muted-foreground mb-2">
             {meta.icon} Category
-          </div>
-          <h1 className="font-display text-[28px] md:text-[36px] text-white mb-3">{meta.title}</h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">{meta.description}</p>
+          </p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
+            {meta.title}
+          </h1>
+          <p className="text-muted-foreground max-w-2xl leading-relaxed">
+            {meta.description}
+          </p>
+          {!loading && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              {updates.length} article{updates.length !== 1 ? "s" : ""} · Updated daily
+            </p>
+          )}
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" className="py-5" />
+      <AdBanner />
 
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
-        <div className="space-y-5">
-          {updates.map((update, i) => (
-            <div key={i} className="bg-card border border-fog rounded-xl p-5 md:p-6 shadow-eup-sm hover:shadow-eup-md hover:-translate-y-0.5 transition-all">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-3">
-                <div className="text-[11px] font-semibold tracking-wide uppercase text-slate">{update.regulator}</div>
-                <span className="text-[11px] text-slate-light">{update.date}</span>
-              </div>
-              <h3 className="font-display text-[16px] md:text-[18px] text-navy mb-3">{update.title}</h3>
-              <ul className="list-none space-y-1.5">
-                {update.bullets.map((b, bi) => (
-                  <li key={bi} className="text-[13px] text-slate leading-relaxed pl-3.5 relative">
-                    <span className="absolute left-0 top-2 w-1.5 h-1.5 rounded-full bg-blue-light" />
-                    {b}
-                  </li>
-                ))}
-              </ul>
+      <div className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
+        {/* Article list */}
+        <div className="space-y-4">
+          {loading && [...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+
+          {!loading &&
+            updates.map((u) => (
+              <a
+                key={u.id}
+                href={u.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex gap-4 p-4 md:p-5 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:-translate-y-px transition-all no-underline cursor-pointer"
+              >
+                {/* Thumbnail */}
+                <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
+                  <img
+                    src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
+                    }}
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1 flex-wrap">
+                    <span className="font-medium text-foreground/70">
+                      {u.source_domain || u.source_name}
+                    </span>
+                    <span>·</span>
+                    <span>{formatDate(u.published_at)}</span>
+                    {u.regulator && (
+                      <>
+                        <span>·</span>
+                        <span>{u.regulator}</span>
+                      </>
+                    )}
+                  </div>
+                  <h3 className="text-sm md:text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                    {u.title}
+                  </h3>
+                  {u.summary && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                      {u.summary}
+                    </p>
+                  )}
+                </div>
+
+                {/* Link icon */}
+                <div className="hidden md:flex items-center text-muted-foreground group-hover:text-primary transition-colors">
+                  <ExternalLink className="w-4 h-4" />
+                </div>
+              </a>
+            ))}
+
+          {!loading && updates.length === 0 && (
+            <div className="text-center py-16">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="font-semibold text-foreground">No articles yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Articles for this category will appear here as they are fetched daily.
+              </p>
             </div>
-          ))}
+          )}
         </div>
-
-        {updates.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-slate text-[14px]">No updates available yet for this category.</p>
-          </div>
-        )}
-
-        <AdBanner variant="leaderboard" className="py-6" />
 
         {/* Premium CTA */}
-        <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Get all {meta.title} updates in your weekly brief</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Premium subscribers receive a structured weekly intelligence brief with analysis across all categories.</p>
-          <Link to="/#premium" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
-            View Premium Plans →
-          </Link>
+        <div className="hidden md:block">
+          <div className="sticky top-24 border border-border rounded-xl p-5 bg-card">
+            <p className="text-xs font-semibold text-primary mb-2">
+              ⭐ Premium Intelligence
+            </p>
+            <p className="text-sm font-bold text-foreground mb-2">
+              Get all {meta.title} updates in your weekly brief
+            </p>
+            <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+              Premium subscribers receive a structured weekly intelligence brief with AI analysis
+              across all categories.
+            </p>
+            <Link
+              to="/subscribe"
+              className="block text-center text-xs font-semibold text-primary-foreground bg-primary rounded-lg py-2 hover:opacity-90 transition-opacity"
+            >
+              View Premium Plans →
+            </Link>
+          </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );
