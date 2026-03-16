@@ -43,6 +43,7 @@ const RSS_SOURCES = [
     defaultCategory: "us-federal",
     regulator: "NIST",
   },
+  // ── Global / Industry ─────────────────────────────────────────────
   {
     url: "https://www.insideprivacy.com/feed/",
     source: "Inside Privacy",
