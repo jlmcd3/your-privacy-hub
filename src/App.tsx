@@ -29,6 +29,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Terms from "./pages/Terms.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/subscribe" element={<ProtectedRoute><Subscribe /></ProtectedRoute>} />
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
