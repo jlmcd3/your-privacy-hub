@@ -223,6 +223,7 @@ function isRelevant(title: string, description: string): boolean {
 async function generateAISummary(
   title: string,
   summary: string,
+  sourceName: string,
   apiKey: string
 ): Promise<Record<string, unknown> | null> {
   try {
@@ -235,21 +236,33 @@ async function generateAISummary(
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 600,
+        max_tokens: 800,
         messages: [
           {
+            role: "system",
+            content: "You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON.",
+          },
+          {
             role: "user",
-            content: `You are a privacy regulation analyst. Given this article title and description, produce a structured JSON analysis. Return ONLY valid JSON, no markdown.
+            content: `Analyze this privacy/data protection article.
 
 Title: ${title}
 Description: ${summary || "No description available."}
+Source: ${sourceName || "Unknown"}
 
-Return JSON with these exact keys:
+STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations (e.g. it is about general business pricing, non-privacy topics, or entertainment), return exactly: {"skip": true}
+
+STEP 2 — If relevant, return this JSON:
 {
-  "why_it_matters": "One paragraph (2-3 sentences) explaining why this development matters for privacy professionals.",
-  "takeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"],
-  "compliance_impact": "One sentence on what organizations should do in response.",
-  "who_should_care": "One sentence identifying the specific roles or industries most affected."
+  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "takeaways": [
+    "Specific factual point from this article — cite regulator or law name",
+    "Specific implication, deadline, or scope if present in the article",
+    "Specific type of organization affected and what they must review or do"
+  ],
+  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
+  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+  "urgency": "Immediate | This quarter | Monitor — choose based on whether article contains enforcement action, binding deadline, or new binding guidance"
 }`,
           },
         ],
@@ -266,11 +279,15 @@ Return JSON with these exact keys:
     const text = data.content?.[0]?.text;
     if (!text) return null;
 
-    // Extract JSON from the response (handle potential markdown wrapping)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
 
-    return JSON.parse(jsonMatch[0]);
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // If the AI determined the article is not relevant, skip it
+    if (parsed.skip === true) return null;
+
+    return parsed;
   } catch (e) {
     console.error("AI summary generation failed:", e);
     return null;
