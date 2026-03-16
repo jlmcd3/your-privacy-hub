@@ -75,14 +75,14 @@ const Hero = () => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-navy via-navy-mid to-navy-light text-white py-12 md:py-20 px-4 md:px-8">
       <canvas ref={starCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_20%,rgba(59,130,196,0.18)_0%,transparent_60%),radial-gradient(ellipse_40%_50%_at_10%_80%,rgba(29,158,111,0.10)_0%,transparent_50%)]" />
-      <div className="absolute inset-0" style={{
+      <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_60%_80%_at_80%_20%,rgba(59,130,196,0.18)_0%,transparent_60%),radial-gradient(ellipse_40%_50%_at_10%_80%,rgba(29,158,111,0.10)_0%,transparent_50%)]" />
+      <div className="absolute inset-0 z-[1]" style={{
         backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
         backgroundSize: "48px 48px"
       }} />
 
       {/* Globe background — centered */}
-      <div className="absolute inset-0 block pointer-events-none">
+      <div className="absolute inset-0 z-[1] block pointer-events-none">
         <RegulatorGlobe />
       </div>
 
