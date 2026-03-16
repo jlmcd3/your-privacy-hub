@@ -15,11 +15,11 @@ const RSS_SOURCES = [
     regulator: "European Data Protection Board",
   },
   {
-    url: "https://ico.org.uk/global/rss-feeds/news-and-blogs",
-    source: "ICO",
-    domain: "ico.org.uk",
-    defaultCategory: "eu-uk",
-    regulator: "UK Information Commissioner's Office",
+    url: "https://www.huntonprivacyblog.com/feed/",
+    source: "Hunton Privacy Blog",
+    domain: "hunton.com",
+    defaultCategory: "us-federal",
+    regulator: "Hunton Andrews Kurth",
   },
   {
     url: "https://www.cnil.fr/en/rss.xml",
@@ -45,11 +45,11 @@ const RSS_SOURCES = [
   },
   // ── Global / Industry ─────────────────────────────────────────────
   {
-    url: "https://iapp.org/rss/daily-dashboard/",
-    source: "IAPP",
-    domain: "iapp.org",
+    url: "https://www.eff.org/rss/updates.xml",
+    source: "EFF",
+    domain: "eff.org",
     defaultCategory: "global",
-    regulator: "IAPP",
+    regulator: "Electronic Frontier Foundation",
   },
   {
     url: "https://fpf.org/feed/",
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     try {
       const res = await fetch(source.url, {
         signal: AbortSignal.timeout(12000),
-        headers: { "User-Agent": "Mozilla/5.0 EndUserPrivacy-Bot/1.0" },
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; EndUserPrivacy/1.0)" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const xml = await res.text();
