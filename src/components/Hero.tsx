@@ -10,6 +10,7 @@ const liveFeed = [
 
 const Hero = () => {
   const [feedIndex, setFeedIndex] = useState(0);
+  const starCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,8 +19,62 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const canvas = starCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    let t = 0;
+
+    const makeStars = (w: number, h: number) => {
+      const stars: { x: number; y: number; r: number; base: number; speed: number; phase: number }[] = [];
+      for (let i = 0; i < 500; i++) {
+        stars.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.1 + 0.2, base: Math.random() * 0.5 + 0.15, speed: Math.random() * 3.0 + 1.5, phase: Math.random() * Math.PI * 2 });
+      }
+      for (let i = 0; i < 30; i++) {
+        stars.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.6 + 0.8, base: Math.random() * 0.3 + 0.5, speed: Math.random() * 2.0 + 1.0, phase: Math.random() * Math.PI * 2 });
+      }
+      return stars;
+    };
+
+    const resize = () => {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    };
+    resize();
+    let stars = makeStars(canvas.width, canvas.height);
+
+    const onResize = () => {
+      resize();
+      stars = makeStars(canvas.width, canvas.height);
+    };
+    window.addEventListener("resize", onResize);
+
+    const draw = () => {
+      t += 0.016;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const s of stars) {
+        const alpha = Math.max(0, Math.min(1, s.base + Math.sin(t * s.speed + s.phase) * 0.45));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200,220,255,${alpha})`;
+        ctx.fill();
+      }
+      animId = requestAnimationFrame(draw);
+    };
+    animId = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-navy via-navy-mid to-navy-light text-white py-12 md:py-20 px-4 md:px-8">
+      <canvas ref={starCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_20%,rgba(59,130,196,0.18)_0%,transparent_60%),radial-gradient(ellipse_40%_50%_at_10%_80%,rgba(29,158,111,0.10)_0%,transparent_50%)]" />
       <div className="absolute inset-0" style={{
         backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
