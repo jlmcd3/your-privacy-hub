@@ -44,6 +44,39 @@ const About = () => {
               </a>
             </p>
           </div>
+
+          <div className="mt-12">
+            <h2 className="font-display text-[20px] text-navy mb-6">The alternative to expensive enterprise platforms</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
+                <thead>
+                  <tr className="bg-fog">
+                    <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / OneTrust / Bloomberg</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Price", "$15/month", "$2,000–$5,000+/year"],
+                    ["Format", "Weekly AI intelligence brief", "Large research databases"],
+                    ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
+                    ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
+                    ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding"],
+                  ].map(([label, us, them], i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
+                      <td className="px-5 py-3 text-navy font-medium border-t border-fog">{label}</td>
+                      <td className="px-5 py-3 text-center text-navy font-medium border-t border-fog">
+                        <span className="text-accent mr-1">✓</span>{us}
+                      </td>
+                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{them}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          </div>
         </section>
       </main>
       <Footer />
