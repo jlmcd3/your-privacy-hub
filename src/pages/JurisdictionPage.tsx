@@ -167,6 +167,10 @@ const JurisdictionPage = () => {
 
   return (
     <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>{jurisdiction.name} Privacy Law & Regulatory Updates | EndUserPrivacy</title>
+        <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
+      </Helmet>
       <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
