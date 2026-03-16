@@ -74,6 +74,8 @@ const Footer = () => {
           <div className="flex gap-4 items-center flex-wrap justify-center">
             <Link to="/terms" className="text-slate-light hover:text-silver no-underline">Terms</Link>
             <span className="hidden md:inline text-navy-light">·</span>
+            <Link to="/privacy-policy" className="text-slate-light hover:text-silver no-underline">Privacy Policy</Link>
+            <span className="hidden md:inline text-navy-light">·</span>
             <span className="text-center">Summaries are AI-generated. Verify against primary sources.</span>
           </div>
         </div>
