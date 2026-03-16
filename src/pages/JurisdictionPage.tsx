@@ -69,11 +69,28 @@ const buildJurisdictionData = () => {
 
 const allJurisdictions = buildJurisdictionData();
 
+const EU_COUNTRIES = new Set([
+  "austria","belgium","bulgaria","croatia","cyprus","czech republic","denmark","estonia",
+  "finland","france","germany","greece","hungary","ireland","italy","latvia","lithuania",
+  "luxembourg","malta","netherlands","poland","portugal","romania","slovakia","slovenia","spain","sweden",
+]);
+
+const deriveCategory = (jurisdiction: { name: string; region: string }) => {
+  const name = jurisdiction.name.toLowerCase();
+  if (jurisdiction.region === "European Union" || EU_COUNTRIES.has(name)) return "eu-uk";
+  if (jurisdiction.region === "United States" || name === "united states") return "us-federal";
+  return "global";
+};
+
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
 
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [devArticles, setDevArticles] = useState<any[] | null>(null);
+  const [devLoading, setDevLoading] = useState(true);
+
+  const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
 
   useEffect(() => {
     if (!jurisdiction) return;
@@ -92,6 +109,25 @@ const JurisdictionPage = () => {
 
     load();
   }, [jurisdiction]);
+
+  useEffect(() => {
+    if (!jurisdiction) return;
+    setDevLoading(true);
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("updates")
+        .select("id,title,summary,url,source_domain,source_name,image_url,category,published_at")
+        .eq("category", derivedCategory)
+        .order("published_at", { ascending: false })
+        .limit(4);
+      if (error || !data || data.length === 0) {
+        setDevArticles(null);
+      } else {
+        setDevArticles(data);
+      }
+      setDevLoading(false);
+    })();
+  }, [jurisdiction, derivedCategory]);
 
   if (!jurisdiction) {
     return (
