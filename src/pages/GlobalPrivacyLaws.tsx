@@ -2,6 +2,7 @@ import PillarPage from "@/components/PillarPage";
 
 const GlobalPrivacyLaws = () => (
   <PillarPage
+    updateCategory="global"
     title="Global Privacy Laws"
     subtitle="Comparative guide to privacy regulation outside the U.S. and EU, covering APAC, Latin America, Middle East, and Africa frameworks."
     icon="🌐"

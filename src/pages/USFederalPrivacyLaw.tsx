@@ -2,6 +2,7 @@ import PillarPage from "@/components/PillarPage";
 
 const USFederalPrivacyLaw = () => (
   <PillarPage
+    updateCategory="us-federal"
     title="U.S. Federal Privacy Law"
     subtitle="Overview of the U.S. federal privacy regulatory framework including FTC authority, HIPAA, COPPA, and federal privacy bill activity."
     icon="🏛️"

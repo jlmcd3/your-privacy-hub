@@ -2,6 +2,7 @@ import PillarPage from "@/components/PillarPage";
 
 const GDPREnforcement = () => (
   <PillarPage
+    updateCategory="eu-uk"
     title="GDPR Enforcement"
     subtitle="History and framework of GDPR enforcement across all 27 EU member states, including DPA activity, major fines, and enforcement trends."
     icon="⚖️"

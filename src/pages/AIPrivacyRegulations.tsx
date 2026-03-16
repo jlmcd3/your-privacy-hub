@@ -2,6 +2,7 @@ import PillarPage from "@/components/PillarPage";
 
 const AIPrivacyRegulations = () => (
   <PillarPage
+    updateCategory="ai-privacy"
     title="AI Privacy Regulations"
     subtitle="Global overview of AI-specific privacy regulation, covering the EU AI Act, national AI strategies, and emerging enforcement at the AI-data intersection."
     icon="🤖"

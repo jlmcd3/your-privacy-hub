@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, Lock } from "lucide-react";
+import { Search, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -23,6 +24,21 @@ const enforcementData = [
 
 const EnforcementTrackerPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [liveArticles, setLiveArticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadArticles() {
+      const { data } = await (supabase as any)
+        .from("updates")
+        .select("id,title,url,source_name,image_url,published_at")
+        .eq("category", "enforcement")
+        .order("published_at", { ascending: false })
+        .limit(20);
+
+      if (data) setLiveArticles(data);
+    }
+    loadArticles();
+  }, []);
 
   const filtered = enforcementData.filter((row) =>
     Object.values(row).some((v) => v.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -60,6 +76,11 @@ const EnforcementTrackerPage = () => {
           <span className="ml-auto text-[12px] text-slate-light">{filtered.length} actions</span>
         </div>
 
+        {/* Label */}
+        <div className="text-[10px] font-bold tracking-widest uppercase text-slate-light mb-3">
+          Curated Sample — Recent Major Actions
+        </div>
+
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -81,44 +102,68 @@ const EnforcementTrackerPage = () => {
                     <td className="px-4 py-3 text-[13px] text-navy border-b border-fog whitespace-nowrap">{row.date}</td>
                   </tr>
                 ))}
-                <tr className="bg-gradient-to-r from-navy/5 to-sky/5 border-t-2 border-sky/20">
-                  <td colSpan={6} className="px-4 py-4">
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <Lock className="w-4 h-4 text-sky/70 shrink-0" />
-                        <div>
-                          <span className="text-[13px] font-semibold text-navy">
-                            + 847 additional enforcement actions
-                          </span>
-                          <span className="text-[12px] text-slate ml-2">
-                            — updated daily, fully searchable by regulator, jurisdiction, and violation type
-                          </span>
-                        </div>
-                      </div>
-                      <Link to="/subscribe" className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap">
-                        Unlock Full Database →
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
               </tbody>
             </table>
           </div>
+
+          {/* Honest premium CTA */}
           <div className="p-7 bg-gradient-to-b from-transparent to-fog border-t border-fog">
             <div className="max-w-[600px] mx-auto text-center">
-              <Lock className="w-5 h-5 text-slate mx-auto mb-3" />
+              <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
               <p className="text-navy font-semibold text-[15px] mb-1">
-                You're seeing 12 of 859 enforcement actions.
+                Get full enforcement analysis every Monday
               </p>
               <p className="text-slate text-[13px] mb-4">
-                Free access shows the most recent actions. Premium unlocks the full database — every fine, every regulator, every jurisdiction — updated daily and fully searchable.
+                Premium subscribers receive a dedicated enforcement section in the weekly brief, AI-synthesized with compliance implications.
               </p>
               <Link to="/subscribe" className="inline-block px-6 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all no-underline">
-                Unlock Full Enforcement Database →
+                View Premium Plans →
               </Link>
             </div>
           </div>
         </div>
+
+        {/* Live enforcement news */}
+        {liveArticles.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="font-display text-xl text-navy">Latest Enforcement News</h2>
+              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+                Live
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {liveArticles.map((a) => (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-4 p-4 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm transition-all no-underline"
+                >
+                  {a.image_url && (
+                    <img
+                      src={a.image_url}
+                      alt=""
+                      className="w-20 h-14 object-cover rounded-lg flex-shrink-0"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate mb-1">
+                      {a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </div>
+                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2">
+                      {a.title}
+                    </p>
+                  </div>
+                  <ExternalLink size={12} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
