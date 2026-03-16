@@ -2,6 +2,7 @@ import PillarPage from "@/components/PillarPage";
 
 const USStatePrivacyLaws = () => (
   <PillarPage
+    updateCategory="us-states"
     title="U.S. State Privacy Laws"
     subtitle="Comprehensive guide to enacted and pending state privacy legislation across all 50 states, including enforcement authority, effective dates, and compliance requirements."
     icon="🗺️"
