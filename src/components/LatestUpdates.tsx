@@ -285,7 +285,7 @@ const LatestUpdates = () => {
         {/* View all */}
         {!loading && (
           <div className="text-center mt-8">
-            <a href="#" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
+            <a href="/category/us-federal" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
               View all updates →
             </a>
           </div>
