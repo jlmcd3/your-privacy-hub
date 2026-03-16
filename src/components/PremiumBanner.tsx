@@ -6,7 +6,7 @@ const features = [
   "Spot coordinated enforcement before it reaches your jurisdiction",
   "One brief covers your entire global footprint",
   "Ad-free, always — your feed is never sponsored.",
-  "Founding Member rate: $12/month, locked forever (first 200 only).",
+  "First 25 subscribers get the first year free — then $15/month.",
 ];
 
 const PremiumBanner = () => {
