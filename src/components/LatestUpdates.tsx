@@ -196,100 +196,107 @@ const LatestUpdates = () => {
               Updated daily from 250+ monitored regulatory sources
             </p>
           </div>
+          <a href="/updates" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
+            View all updates →
+          </a>
         </div>
 
-        {/* Filter pills */}
-        <div className="flex gap-2 flex-wrap mb-7 p-3 md:p-4 bg-card rounded-xl border border-fog shadow-eup-sm items-center">
-          {FILTERS.map((f) => (
-            <span
-              key={f.key}
-              onClick={() => setActiveFilter(f.key)}
-              className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
-                activeFilter === f.key
-                  ? "bg-navy/10 text-navy border-navy/25 font-semibold"
-                  : "bg-card text-slate border-fog hover:border-silver hover:text-navy"
-              }`}
-            >
-              {f.label}
-            </span>
-          ))}
-        </div>
-
-        {/* Cards */}
-        <div className="flex flex-col gap-3">
-          {loading
-            ? [...Array(6)].map((_, i) => <SkeletonCard key={i} />)
-            : displayed.map((u) => (
-                <a
-                  key={u.id}
-                  href={u.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex gap-4 p-4 bg-card border border-fog rounded-2xl hover:border-silver hover:shadow-eup-sm hover:-translate-y-px transition-all no-underline cursor-pointer"
+        {/* Outer container */}
+        <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
+          {/* Dark header bar */}
+          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-display text-[16px] text-white tracking-tight">
+                Latest Privacy Updates
+              </h3>
+              <p className="text-[12px] text-slate-light">
+                Updated daily · AI-summarized
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap items-center">
+              {FILTERS.map((f) => (
+                <span
+                  key={f.key}
+                  onClick={() => setActiveFilter(f.key)}
+                  className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
+                    activeFilter === f.key
+                      ? "bg-white/15 text-white border-white/20 font-semibold"
+                      : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
+                  }`}
                 >
-                  {/* Thumbnail */}
-                  <div className="w-[100px] h-[68px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
-                      }}
-                    />
-                  </div>
+                  {f.label}
+                </span>
+              ))}
+            </div>
+          </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
-                        {u.source_domain || u.source_name}
-                      </span>
-                      <span className="text-silver text-[10px]">·</span>
-                      <span className="text-[11px] text-slate/70">
-                        {formatDate(u.published_at)}
-                      </span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${tag(u.category).classes}`}>
-                        {tag(u.category).label}
-                      </span>
+          {/* Cards */}
+          <div className="px-4 md:px-6 py-4 gap-3 flex flex-col">
+            {loading
+              ? [...Array(6)].map((_, i) => <SkeletonCard key={i} />)
+              : displayed.map((u) => (
+                  <a
+                    key={u.id}
+                    href={u.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex gap-4 p-4 bg-card border border-fog rounded-2xl hover:border-silver hover:shadow-eup-sm hover:-translate-y-px transition-all no-underline cursor-pointer"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-[100px] h-[68px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
+                        }}
+                      />
                     </div>
 
-                    <h3 className="font-display text-[14px] leading-snug text-navy group-hover:text-blue transition-colors mb-1.5 line-clamp-2">
-                      {u.title}
-                    </h3>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+                          {u.source_domain || u.source_name}
+                        </span>
+                        <span className="text-silver text-[10px]">·</span>
+                        <span className="text-[11px] text-slate/70">
+                          {formatDate(u.published_at)}
+                        </span>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${tag(u.category).classes}`}>
+                          {tag(u.category).label}
+                        </span>
+                      </div>
 
-                    {u.summary && (
-                      <p className="text-[12px] text-slate leading-relaxed line-clamp-2">
-                        {u.summary}
-                      </p>
-                    )}
-                    <AISummaryPanel summary={u.ai_summary || null} />
-                  </div>
+                      <h3 className="font-display text-[14px] leading-snug text-navy group-hover:text-blue transition-colors mb-1.5 line-clamp-2">
+                        {u.title}
+                      </h3>
 
-                  {/* Link icon */}
-                  <div className="flex-shrink-0 pt-1">
-                    <ExternalLink size={13} className="text-slate/40 group-hover:text-blue transition-colors" />
-                  </div>
-                </a>
-              ))}
-        </div>
+                      {u.summary && (
+                        <p className="text-[12px] text-slate leading-relaxed line-clamp-2">
+                          {u.summary}
+                        </p>
+                      )}
+                      <AISummaryPanel summary={u.ai_summary || null} />
+                    </div>
 
-        {/* Empty state */}
-        {!loading && displayed.length === 0 && (
-          <p className="text-center text-sm text-slate py-8">
-            No updates found for this filter.
-          </p>
-        )}
+                    {/* Link icon */}
+                    <div className="flex-shrink-0 pt-1">
+                      <ExternalLink size={13} className="text-slate/40 group-hover:text-blue transition-colors" />
+                    </div>
+                  </a>
+                ))}
 
-        {/* View all */}
-        {!loading && (
-          <div className="text-center mt-8">
-            <a href="/updates" className="inline-flex items-center gap-2 text-[13px] font-medium text-blue hover:text-navy transition-colors no-underline">
-              View all updates →
-            </a>
+            {/* Empty state */}
+            {!loading && displayed.length === 0 && (
+              <p className="text-center text-sm text-slate py-8">
+                No updates found for this filter.
+              </p>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </section>
   );
