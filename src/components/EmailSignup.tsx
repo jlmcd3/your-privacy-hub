@@ -39,7 +39,7 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
             <h3 className="font-display text-lg text-white mb-1">Free weekly digest — top 5 developments, every Monday</h3>
-            <p className="text-sm text-slate-light">Join privacy professionals who start their week with EndUserPrivacy.</p>
+            <p className="text-sm text-slate-light">Every Monday: the 5 privacy developments that matter most, delivered free.</p>
           </div>
           {status === "success" ? (
             <p className="text-sm font-medium text-accent">✓ You're subscribed — check your inbox Monday</p>

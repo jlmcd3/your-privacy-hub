@@ -23,7 +23,7 @@ const EnforcementTracker = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Enforcement Tracker</h2>
-            <p className="text-sm text-slate mt-1">Recent privacy enforcement actions worldwide</p>
+            <p className="text-sm text-slate mt-1">Every fine, order and sanction — all jurisdictions, updated as decisions are issued.</p>
           </div>
           <a href="/enforcement-tracker" className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
             View full tracker →
