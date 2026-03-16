@@ -61,7 +61,7 @@ const WeeklyBriefTeaser = () => {
           )}
 
           <div className="mb-3">
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky/15 text-sky border border-sky/25">✓ FREE PREVIEW</span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-accent bg-accent/10 px-2.5 py-1 rounded-full border border-accent/20">✓ FREE PREVIEW</span>
           </div>
 
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2.5 flex items-center gap-1.5">
