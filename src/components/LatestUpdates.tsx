@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import AISummaryPanel from "@/components/AISummaryPanel";
 
 interface Update {
   id: string;
