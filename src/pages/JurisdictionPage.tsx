@@ -86,29 +86,8 @@ const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
 
-  const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [devArticles, setDevArticles] = useState<any[] | null>(null);
   const [devLoading, setDevLoading] = useState(true);
-
-  const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
-
-  useEffect(() => {
-    if (!jurisdiction) return;
-
-    async function load() {
-      const term = jurisdiction!.name.toLowerCase();
-      const { data } = await (supabase as any)
-        .from("updates")
-        .select("id,title,summary,url,source_name,published_at")
-        .order("published_at", { ascending: false })
-        .limit(6);
-
-      if (data) setRecentArticles(data.filter((a: any) =>
-        (a.title + " " + (a.summary || "")).toLowerCase().includes(term)));
-    }
-
-    load();
-  }, [jurisdiction]);
 
   useEffect(() => {
     if (!jurisdiction) return;
