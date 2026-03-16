@@ -96,10 +96,19 @@ const GlobeScene = () => {
       x:     Math.random() * W,
       y:     Math.random() * H,
       r:     Math.random() * 1.1 + 0.2,
-      base:  Math.random() * 0.35 + 0.05,
+      base:  Math.random() * 0.5 + 0.15,
       phase: Math.random() * Math.PI * 2,
-      speed: Math.random() * 0.4 + 0.15,
+      speed: Math.random() * 3.0 + 1.5,
     }));
+    const heroStars = Array.from({ length: 20 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.6 + 0.8,
+      base: Math.random() * 0.3 + 0.5,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 2.0 + 1.0,
+    }));
+    const allStars = [...stars, ...heroStars];
 
     let t = 0;
     let starAnimId: number;
@@ -107,8 +116,8 @@ const GlobeScene = () => {
       starAnimId = requestAnimationFrame(drawStars);
       ctx2.clearRect(0, 0, starCanvas.width, starCanvas.height);
       t += 0.016;
-      for (const s of stars) {
-        const twinkle = Math.sin(t * s.speed + s.phase) * 0.18;
+      for (const s of allStars) {
+        const twinkle = Math.sin(t * s.speed + s.phase) * 0.45;
         const alpha   = Math.max(0, Math.min(1, s.base + twinkle));
         ctx2.beginPath();
         ctx2.arc(s.x, s.y, s.r, 0, Math.PI * 2);
