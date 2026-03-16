@@ -243,6 +243,10 @@ const CategoryPage = () => {
         </div>
       </div>
 
+      <div className="max-w-5xl mx-auto px-4 pb-8">
+        <EmailSignup variant="card" />
+      </div>
+
       <Footer />
     </div>
   );
