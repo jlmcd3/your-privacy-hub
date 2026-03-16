@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 const Topbar = () => {
   const [briefLabel, setBriefLabel] = useState("Week 10 Intelligence Brief now available");
+  const [lastUpdate, setLastUpdate] = useState("Today");
 
   useEffect(() => {
     supabase
@@ -13,6 +15,21 @@ const Topbar = () => {
       .then(({ data }) => {
         if (data && data.length > 0) {
           setBriefLabel(`${data[0].week_label} Intelligence Brief now available`);
+        }
+      });
+
+    supabase
+      .from("updates")
+      .select("published_at")
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0 && data[0].published_at) {
+          try {
+            setLastUpdate(formatDistanceToNow(new Date(data[0].published_at), { addSuffix: true }));
+          } catch {
+            setLastUpdate("Today");
+          }
         }
       });
   }, []);
@@ -26,7 +43,7 @@ const Topbar = () => {
             Live monitoring: 250+ regulators
           </span>
           <span className="text-navy-light hidden lg:inline">·</span>
-          <a href="#" className="hover:text-sky transition-colors hidden lg:inline">Last update: 14 minutes ago</a>
+          <span className="hidden lg:inline">Last update: {lastUpdate}</span>
           <span className="text-navy-light hidden xl:inline">·</span>
           <a href="#" className="hover:text-sky transition-colors hidden xl:inline">{briefLabel}</a>
         </div>
