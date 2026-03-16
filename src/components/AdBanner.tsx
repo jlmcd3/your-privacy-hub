@@ -2,6 +2,8 @@ interface AdBannerProps {
   /** "leaderboard" = 728x90 (desktop) / 320x100 (mobile), "sidebar" = 300x250, "inline" = 728x90 mid-content */
   variant?: "leaderboard" | "sidebar" | "inline";
   className?: string;
+  /** Pass an ad slot/unit ID to render the banner. If omitted, nothing renders. */
+  adSlot?: string;
 }
 
 const dimensions = {
