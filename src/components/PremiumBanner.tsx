@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 const features = [
   "Know what changed before your next board meeting",
-  "See every fine — 800+ enforcement actions, all jurisdictions",
+  "See every enforcement action — all regulators, all jurisdictions",
   "Spot coordinated enforcement before it reaches your jurisdiction",
   "One brief covers your entire global footprint",
   "No ads, ever",
@@ -42,7 +42,7 @@ const PremiumBanner = () => {
                 Start Founding Member Plan →
               </button>
               <button onClick={() => navigate("/subscribe")} className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all inline-flex items-center gap-2 cursor-pointer">
-                Compare plans →
+                See pricing →
               </button>
             </div>
           </div>
