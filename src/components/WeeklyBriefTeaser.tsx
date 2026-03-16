@@ -84,34 +84,21 @@ const WeeklyBriefTeaser = () => {
             </p>
           )}
 
-          {/* Premium divider */}
-          <div className="border-t border-amber-500/30 pt-2.5 mb-4">
-            <p className="text-[12px] text-amber-600 font-medium">
-              🔒 EU &amp; UK Analysis · Global Developments · Enforcement Table · Trend Signal · Why This Matters — Premium only
-            </p>
-          </div>
-
-          {/* Blurred premium preview */}
-          <div className="relative rounded-xl border border-white/10 overflow-hidden mb-4">
-            <div className="px-4 py-4 space-y-3 blur-sm select-none pointer-events-none">
-              <div className="text-[10px] font-bold tracking-widest uppercase text-sky/60">EU & UK Analysis</div>
-              <div className="h-2.5 bg-white/10 rounded w-full" />
-              <div className="h-2.5 bg-white/10 rounded w-4/5" />
-              <div className="h-2.5 bg-white/10 rounded w-3/4 mt-3" />
-              <div className="text-[10px] font-bold tracking-widest uppercase text-sky/60 mt-3">Trend Signal</div>
-              <div className="h-2.5 bg-white/10 rounded w-full" />
-              <div className="h-2.5 bg-white/10 rounded w-2/3" />
+          {/* Premium wall */}
+          <div className="bg-navy rounded-2xl p-6 md:p-8 text-center">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-amber-400 mb-3">🔒 PREMIUM INTELLIGENCE</p>
+            <p className="font-display text-[18px] text-white mb-4">5 more sections in this week's brief:</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 max-w-sm mx-auto mb-6 text-left">
+              {["EU & UK Analysis", "U.S. Federal Analysis", "Global Developments", "Enforcement Table", "Trend Signal", "Why This Matters"].map((s) => (
+                <p key={s} className="text-[13px] text-slate-light">✓ {s}</p>
+              ))}
             </div>
-            <div className="absolute inset-0 flex items-center justify-center bg-navy/60 backdrop-blur-[2px]">
-              <div className="text-center px-4">
-                <div className="text-[11px] font-semibold text-white/80 mb-2">
-                  🔒 {SECTIONS_LOCKED.length} more sections — Premium only
-                </div>
-                <div className="text-[10.5px] text-white/50">
-                  {SECTIONS_LOCKED.join(" · ")}
-                </div>
-              </div>
-            </div>
+            <Link
+              to="/subscribe"
+              className="inline-block px-6 py-3 bg-gradient-to-br from-amber-500 to-amber-400 text-navy font-bold text-[14px] rounded-lg hover:opacity-90 transition-all no-underline shadow-lg"
+            >
+              Unlock Full Brief — $15/month →
+            </Link>
           </div>
 
           {/* Section pills */}
