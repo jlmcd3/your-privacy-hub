@@ -131,7 +131,14 @@ const CategoryPage = () => {
       <div className="border-b border-border bg-card">
         <div className="max-w-5xl mx-auto px-4 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">
-            {meta.icon} Category
+            {meta.icon} {({
+              "enforcement": "Enforcement Intelligence",
+              "us-federal": "U.S. Federal Updates",
+              "us-states": "U.S. State Updates",
+              "eu-uk": "EU & UK Updates",
+              "global": "Global Updates",
+              "ai-privacy": "AI & Privacy Updates",
+            } as Record<string, string>)[slug!] || "Updates"}
           </p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
             {meta.title}
