@@ -317,6 +317,7 @@ Deno.serve(async (req) => {
             source_domain: domain,
             image_url: article.urlToImage || FALLBACK_IMAGES[category],
             category,
+            topic_tags: assignTopicTags(article.title, article.description || ""),
             regulator: article.source?.name || "",
             published_at: article.publishedAt || new Date().toISOString(),
             is_premium: false,
