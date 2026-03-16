@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import AISummaryPanel from "@/components/AISummaryPanel";
+import EmailSignup from "@/components/EmailSignup";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AISummaryPanel from "@/components/AISummaryPanel";
 
 interface Update {
   id: string;
@@ -231,6 +232,10 @@ const TopicHub = () => {
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 pb-8">
+        <EmailSignup variant="card" />
       </div>
 
       <Footer />

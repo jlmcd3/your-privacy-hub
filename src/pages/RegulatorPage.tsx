@@ -4,6 +4,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import FollowButton from "@/components/FollowButton";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 
 // Build regulator lookup from JSON
@@ -98,6 +99,9 @@ const RegulatorPage = () => {
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-sky font-display">{regulator.abbreviation}</p>}
           <p className="text-sm text-slate-light mt-2">{regulator.country} · {regulator.region}</p>
+          <div className="mt-4">
+            <FollowButton followType="regulator" followKey={slug!} label={regulator.abbreviation || regulator.name} />
+          </div>
         </div>
       </div>
 

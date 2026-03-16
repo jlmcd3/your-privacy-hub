@@ -14,6 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_subscribers: {
+        Row: {
+          confirmed: boolean | null
+          email: string
+          id: string
+          source: string | null
+          subscribed_at: string | null
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          confirmed?: boolean | null
+          email: string
+          id?: string
+          source?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          confirmed?: boolean | null
+          email?: string
+          id?: string
+          source?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
+      enforcement_actions: {
+        Row: {
+          action_type: string | null
+          created_at: string | null
+          decision_date: string | null
+          etid: string | null
+          fine_amount: string | null
+          fine_eur: number | null
+          id: string
+          jurisdiction: string
+          law: string | null
+          regulator: string
+          sector: string | null
+          source_url: string | null
+          subject: string | null
+          violation: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          created_at?: string | null
+          decision_date?: string | null
+          etid?: string | null
+          fine_amount?: string | null
+          fine_eur?: number | null
+          id?: string
+          jurisdiction: string
+          law?: string | null
+          regulator: string
+          sector?: string | null
+          source_url?: string | null
+          subject?: string | null
+          violation?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          created_at?: string | null
+          decision_date?: string | null
+          etid?: string | null
+          fine_amount?: string | null
+          fine_eur?: number | null
+          id?: string
+          jurisdiction?: string
+          law?: string | null
+          regulator?: string
+          sector?: string | null
+          source_url?: string | null
+          subject?: string | null
+          violation?: string | null
+        }
+        Relationships: []
+      }
+      enforcement_submissions: {
+        Row: {
+          created_at: string | null
+          fine_amount: string | null
+          id: string
+          jurisdiction: string
+          law: string | null
+          regulator: string
+          reviewed: boolean | null
+          source_url: string | null
+          subject: string | null
+          submitted_by: string | null
+          violation: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fine_amount?: string | null
+          id?: string
+          jurisdiction: string
+          law?: string | null
+          regulator: string
+          reviewed?: boolean | null
+          source_url?: string | null
+          subject?: string | null
+          submitted_by?: string | null
+          violation?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fine_amount?: string | null
+          id?: string
+          jurisdiction?: string
+          law?: string | null
+          regulator?: string
+          reviewed?: boolean | null
+          source_url?: string | null
+          subject?: string | null
+          submitted_by?: string | null
+          violation?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -41,6 +161,33 @@ export type Database = {
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      regulator_follows: {
+        Row: {
+          created_at: string | null
+          email: string
+          follow_key: string
+          follow_type: string
+          id: string
+          is_premium: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          follow_key: string
+          follow_type: string
+          id?: string
+          is_premium?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          follow_key?: string
+          follow_type?: string
+          id?: string
+          is_premium?: boolean | null
         }
         Relationships: []
       }

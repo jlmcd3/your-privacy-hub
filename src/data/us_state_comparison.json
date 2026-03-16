@@ -1,0 +1,38 @@
+{
+  "provisions": [
+    "Consumer access right",
+    "Deletion right",
+    "Portability",
+    "Correction",
+    "Opt-out of sale",
+    "Opt-out of targeted ads",
+    "Opt-out of profiling",
+    "Sensitive data category",
+    "DPIA required",
+    "Data broker registration",
+    "Private right of action",
+    "Enforcement authority"
+  ],
+  "states": [
+    { "abbr": "CA", "name": "California", "law": "CPRA", "status": "enacted", "effective": "2023-01-01", "provisions": [true, true, true, true, true, true, true, true, true, true, true, "CPPA & AG"] },
+    { "abbr": "CO", "name": "Colorado", "law": "CPA", "status": "enacted", "effective": "2023-07-01", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] },
+    { "abbr": "CT", "name": "Connecticut", "law": "CTDPA", "status": "enacted", "effective": "2023-07-01", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] },
+    { "abbr": "DE", "name": "Delaware", "law": "DPDPA", "status": "enacted", "effective": "2025-01-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "FL", "name": "Florida", "law": "FDBR", "status": "enacted", "effective": "2024-07-01", "provisions": [true, true, false, true, true, true, false, true, false, false, false, "FDLE"] },
+    { "abbr": "IA", "name": "Iowa", "law": "ICDPA", "status": "enacted", "effective": "2025-01-01", "provisions": [true, true, true, false, true, true, false, true, false, false, false, "AG"] },
+    { "abbr": "IN", "name": "Indiana", "law": "INCDPA", "status": "enacted", "effective": "2026-01-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "KY", "name": "Kentucky", "law": "KCDPA", "status": "enacted", "effective": "2026-01-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "MD", "name": "Maryland", "law": "MODPA", "status": "enacted", "effective": "2026-04-01", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] },
+    { "abbr": "MN", "name": "Minnesota", "law": "MCDPA", "status": "enacted", "effective": "2026-07-01", "provisions": [true, true, true, true, true, true, true, true, true, false, true, "AG"] },
+    { "abbr": "MT", "name": "Montana", "law": "MCDPA", "status": "enacted", "effective": "2024-10-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "NE", "name": "Nebraska", "law": "NEDPA", "status": "enacted", "effective": "2026-10-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "NH", "name": "New Hampshire", "law": "NHPA", "status": "enacted", "effective": "2025-01-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "NJ", "name": "New Jersey", "law": "NJDPA", "status": "enacted", "effective": "2025-01-15", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] },
+    { "abbr": "OR", "name": "Oregon", "law": "OCPA", "status": "enacted", "effective": "2024-07-01", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] },
+    { "abbr": "RI", "name": "Rhode Island", "law": "RIDPA", "status": "enacted", "effective": "2026-01-01", "provisions": [true, true, true, true, true, true, true, true, false, false, false, "AG"] },
+    { "abbr": "TN", "name": "Tennessee", "law": "TIPA", "status": "enacted", "effective": "2024-07-01", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] },
+    { "abbr": "TX", "name": "Texas", "law": "TDPSA", "status": "enacted", "effective": "2024-07-01", "provisions": [true, true, true, true, true, true, true, true, true, true, false, "AG"] },
+    { "abbr": "UT", "name": "Utah", "law": "UCPA", "status": "enacted", "effective": "2023-12-31", "provisions": [true, true, true, false, true, true, false, true, false, false, false, "AG"] },
+    { "abbr": "VA", "name": "Virginia", "law": "VCDPA", "status": "enacted", "effective": "2023-01-01", "provisions": [true, true, true, true, true, true, true, true, true, false, false, "AG"] }
+  ]
+}

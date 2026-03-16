@@ -1,0 +1,14 @@
+[
+  { "date": "2018-06-28", "title": "California Consumer Privacy Act (CCPA) Signed", "description": "California Governor Jerry Brown signed the CCPA (AB 375) into law, making California the first US state with a comprehensive consumer privacy law.", "type": "law", "source_url": "https://oag.ca.gov" },
+  { "date": "2020-01-01", "title": "CCPA Takes Effect", "description": "The California Consumer Privacy Act became enforceable, granting California residents rights to know, delete, and opt out of sale of personal information.", "type": "law", "source_url": "https://oag.ca.gov" },
+  { "date": "2021-03-02", "title": "Virginia CDPA Signed", "description": "Virginia became the second US state to enact a comprehensive privacy law with the Consumer Data Protection Act.", "type": "law", "source_url": "https://law.lis.virginia.gov" },
+  { "date": "2021-07-08", "title": "Colorado Privacy Act Signed", "description": "Colorado became the third state with comprehensive privacy legislation.", "type": "law", "source_url": "https://leg.colorado.gov" },
+  { "date": "2022-03-24", "title": "Utah Consumer Privacy Act Signed", "description": "Utah became the fourth state with comprehensive privacy law, notable for its more business-friendly approach.", "type": "law", "source_url": "https://le.utah.gov" },
+  { "date": "2022-05-10", "title": "Connecticut SB 6 Signed", "description": "Connecticut enacted its comprehensive Data Privacy Act.", "type": "law", "source_url": "https://cga.ct.gov" },
+  { "date": "2023-01-01", "title": "CPRA Takes Effect (California)", "description": "The California Privacy Rights Act expanded CCPA with new rights and established the California Privacy Protection Agency.", "type": "law", "source_url": "https://cppa.ca.gov" },
+  { "date": "2023-07-01", "title": "Multiple State Laws Take Effect", "description": "Colorado Privacy Act, Connecticut Data Privacy Act, and Virginia CDPA enforcement all began on this date.", "type": "enforcement", "source_url": "" },
+  { "date": "2024-01-01", "title": "Montana, Oregon, and Texas Privacy Laws Take Effect", "description": "Three more states began enforcing comprehensive privacy legislation.", "type": "law", "source_url": "" },
+  { "date": "2024-07-01", "title": "Tennessee TIPA Takes Effect", "description": "Tennessee Information Protection Act became enforceable.", "type": "law", "source_url": "" },
+  { "date": "2025-01-01", "title": "Delaware, Iowa, New Hampshire, New Jersey Privacy Laws Take Effect", "description": "Four additional states began comprehensive privacy enforcement.", "type": "law", "source_url": "" },
+  { "date": "2026-01-01", "title": "Indiana, Kentucky, Rhode Island Privacy Laws Take Effect", "description": "Three more states join the comprehensive privacy law landscape.", "type": "law", "source_url": "/jurisdiction/united-states" }
+]
