@@ -130,7 +130,24 @@ async function extractOgImage(url: string): Promise<string | null> {
 }
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, "").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").trim();
+  return html
+    // Decode double-encoded ampersands first (&amp; → &)
+    .replace(/&amp;/gi, "&")
+    // Remove all HTML tags
+    .replace(/<[^>]+>/g, " ")
+    // Decode common HTML entities
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#\d+;/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    // Remove any leftover tag fragments like "p " or "div " at the start
+    .replace(/^[a-z]{1,10}\s+/i, "")
+    // Collapse whitespace
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function extractLink(itemXml: string): string {
