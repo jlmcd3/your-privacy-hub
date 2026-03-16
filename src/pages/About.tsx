@@ -76,7 +76,6 @@ const About = () => {
               </table>
             </div>
           </div>
-          </div>
         </section>
       </main>
       <Footer />
