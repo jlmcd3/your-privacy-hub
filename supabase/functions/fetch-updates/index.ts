@@ -132,24 +132,19 @@ function extractLink(itemXml: string): string {
 }
 
 const REQUIRED_KEYWORDS = [
-  // Core privacy terms
   "privacy", "data protection", "personal data", "gdpr", "ccpa", "cpra",
   "data breach", "data security", "surveillance", "tracking", "consent",
   "data subject", "data controller", "data processor", "right to erasure",
   "right to access", "opt-out", "opt out", "cookie", "biometric",
-  // Regulators
   "edpb", "ico ", "cnil", "dpc ", "anpd", "cppa", "ftc ", "nist",
   "information commissioner", "data protection authority", "dpa ",
   "attorney general", "privacy commissioner",
-  // Laws & frameworks
   "lgpd", "pipl", "pdpa", "tdpsa", "vcdpa", "coppa", "hipaa",
   "privacy act", "privacy law", "privacy regulation", "privacy rule",
   "privacy bill", "privacy legislation", "data privacy",
-  // Enforcement
   "privacy fine", "privacy penalty", "privacy enforcement", "privacy violation",
   "privacy lawsuit", "privacy settlement", "privacy investigation",
   "data protection fine", "regulatory action", "enforcement action",
-  // AI & privacy
   "ai privacy", "ai regulation", "ai act", "ai data", "facial recognition",
   "generative ai", "llm privacy", "algorithmic", "automated decision",
   "machine learning privacy", "deepfake", "synthetic data",
@@ -160,12 +155,71 @@ function isRelevant(title: string, description: string): boolean {
   return REQUIRED_KEYWORDS.some(keyword => text.includes(keyword.toLowerCase()));
 }
 
+// ── AI Summary Generation ──────────────────────────────────────────
+async function generateAISummary(
+  title: string,
+  summary: string,
+  apiKey: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 600,
+        messages: [
+          {
+            role: "user",
+            content: `You are a privacy regulation analyst. Given this article title and description, produce a structured JSON analysis. Return ONLY valid JSON, no markdown.
+
+Title: ${title}
+Description: ${summary || "No description available."}
+
+Return JSON with these exact keys:
+{
+  "why_it_matters": "One paragraph (2-3 sentences) explaining why this development matters for privacy professionals.",
+  "takeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"],
+  "compliance_impact": "One sentence on what organizations should do in response.",
+  "who_should_care": "One sentence identifying the specific roles or industries most affected."
+}`,
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!res.ok) {
+      console.error(`Anthropic API error: ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text;
+    if (!text) return null;
+
+    // Extract JSON from the response (handle potential markdown wrapping)
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    return JSON.parse(jsonMatch[0]);
+  } catch (e) {
+    console.error("AI summary generation failed:", e);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
-  const results = { inserted: 0, skipped: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, summaries_generated: 0, errors: [] as string[] };
+  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   for (const source of RSS_SOURCES) {
     try {
@@ -189,7 +243,7 @@ Deno.serve(async (req) => {
         const category = categorize(title, description, source.defaultCategory);
         const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
 
-        const row = {
+        const row: Record<string, unknown> = {
           title: title.slice(0, 400),
           summary: description.slice(0, 500) || null,
           url: link,
@@ -201,6 +255,15 @@ Deno.serve(async (req) => {
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
         };
+
+        // Generate AI summary if API key is available
+        if (anthropicKey) {
+          const aiSummary = await generateAISummary(title, description, anthropicKey);
+          if (aiSummary) {
+            row.ai_summary = aiSummary;
+            results.summaries_generated++;
+          }
+        }
 
         const { error } = await supabase
           .from("updates")
@@ -233,7 +296,7 @@ Deno.serve(async (req) => {
           if (!isRelevant(article.title, article.description || "")) { results.skipped++; continue; }
           const domain = new URL(article.url).hostname.replace("www.", "");
           const category = categorize(article.title, article.description || "", "global");
-          const row = {
+          const row: Record<string, unknown> = {
             title: article.title.slice(0, 400),
             summary: (article.description || "").slice(0, 500) || null,
             url: article.url,
@@ -245,6 +308,16 @@ Deno.serve(async (req) => {
             published_at: article.publishedAt || new Date().toISOString(),
             is_premium: false,
           };
+
+          // Generate AI summary if API key is available
+          if (anthropicKey) {
+            const aiSummary = await generateAISummary(article.title, article.description || "", anthropicKey);
+            if (aiSummary) {
+              row.ai_summary = aiSummary;
+              results.summaries_generated++;
+            }
+          }
+
           const { error } = await supabase
             .from("updates")
             .upsert(row, { onConflict: "url", ignoreDuplicates: true });
