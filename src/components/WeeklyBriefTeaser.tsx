@@ -23,7 +23,7 @@ const WeeklyBriefTeaser = () => {
         .select("week_label, headline, executive_summary, article_count")
         .order("published_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       if (data) setBrief(data as BriefPreview);
     }
     load();
