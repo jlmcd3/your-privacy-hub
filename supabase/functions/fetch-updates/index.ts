@@ -352,12 +352,20 @@ Description: ${description || ""}`,
       const items = extractAllItems(xml).slice(0, 10);
 
       for (const item of items) {
-        const title = stripHtml(extractTag(item, "title"));
+        let title = stripHtml(extractTag(item, "title"));
         const link = extractLink(item);
-        const description = stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content"));
+        let description = stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content"));
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
+
+        // Translate non-English content to English before processing
+        if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
+          const translated = await translateToEnglish(title, description, anthropicKey);
+          title = translated.title;
+          description = translated.description;
+        }
+
         if (!isRelevant(title, description)) { results.skipped++; continue; }
 
         const category = categorize(title, description, source.defaultCategory);
