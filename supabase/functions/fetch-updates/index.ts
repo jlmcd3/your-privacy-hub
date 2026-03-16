@@ -230,6 +230,7 @@ Deno.serve(async (req) => {
         const json = await res.json();
         for (const article of json.articles || []) {
           if (!article.title || !article.url || article.title === "[Removed]") continue;
+          if (!isRelevant(article.title, article.description || "")) { results.skipped++; continue; }
           const domain = new URL(article.url).hostname.replace("www.", "");
           const category = categorize(article.title, article.description || "", "global");
           const row = {
