@@ -184,6 +184,7 @@ Deno.serve(async (req) => {
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
+        if (!isRelevant(title, description)) { results.skipped++; continue; }
 
         const category = categorize(title, description, source.defaultCategory);
         const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
