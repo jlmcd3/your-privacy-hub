@@ -263,6 +263,7 @@ Deno.serve(async (req) => {
           source_domain: source.domain,
           image_url: imageUrl,
           category,
+          topic_tags: assignTopicTags(title, description),
           regulator: source.regulator,
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
