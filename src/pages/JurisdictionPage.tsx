@@ -159,42 +159,6 @@ const JurisdictionPage = () => {
           <p className="text-[14px] text-slate leading-relaxed">{jurisdiction.overview}</p>
         </div>
 
-        {/* Recent Developments */}
-        {recentArticles.length > 0 && (
-          <div className="mb-8">
-            <h2 className="font-display text-xl text-navy mb-4">
-              Recent Developments
-            </h2>
-            <div className="space-y-3">
-              {recentArticles.map((a) => (
-                <a
-                  key={a.id}
-                  href={a.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-3 p-4 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm transition-all no-underline"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate mb-1">
-                      {a.source_name} ·{" "}
-                      {new Date(a.published_at).toLocaleDateString("en-US", {
-                        month: "short", day: "numeric", year: "numeric",
-                      })}
-                    </div>
-                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2">
-                      {a.title}
-                    </p>
-                  </div>
-                  <ExternalLink size={12} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
-                </a>
-              ))}
-            </div>
-            <Link to="/subscribe" className="text-[12px] text-blue hover:text-navy font-medium no-underline mt-2 inline-block">
-              Full analysis in the weekly Premium brief →
-            </Link>
-          </div>
-        )}
-
         {/* Authorities */}
         <h2 className="font-display text-xl text-navy mb-4">Regulatory Authorities</h2>
         <div className="space-y-4 mb-10">
@@ -256,30 +220,11 @@ const JurisdictionPage = () => {
 
         <AdBanner variant="inline" className="py-4" />
 
-        {/* Related */}
-        <div className="border-t border-fog pt-8">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link to="/global-privacy-authorities" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> Global Authority Directory
-            </Link>
-            <Link to="/enforcement-tracker" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> Enforcement Tracker
-            </Link>
-            <Link to="/global-privacy-laws" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> Global Privacy Laws
-            </Link>
-            <Link to="/gdpr-enforcement" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> GDPR Enforcement
-            </Link>
-          </div>
-        </div>
-
         {/* Recent Developments from category */}
         {devLoading ? (
           <div className="mb-10">
             <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
-            <p className="text-sm text-slate mb-4">Latest updates from monitored sources</p>
+            <p className="text-sm text-slate mb-4">Latest regulatory news from {jurisdiction.name} and its authorities</p>
             <div className="flex flex-col gap-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
@@ -289,7 +234,7 @@ const JurisdictionPage = () => {
         ) : devArticles ? (
           <div className="mb-10">
             <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
-            <p className="text-sm text-slate mb-4">Latest updates from monitored sources</p>
+            <p className="text-sm text-slate mb-4">Latest regulatory news from {jurisdiction.name} and its authorities</p>
             <div className="space-y-2">
               {devArticles.map((a: any) => (
                 <a
@@ -322,6 +267,25 @@ const JurisdictionPage = () => {
             </Link>
           </div>
         ) : null}
+
+        {/* Related */}
+        <div className="border-t border-fog pt-8 mb-8">
+          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link to="/global-privacy-authorities" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+              <span className="text-blue">→</span> Global Authority Directory
+            </Link>
+            <Link to="/enforcement-tracker" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+              <span className="text-blue">→</span> Enforcement Tracker
+            </Link>
+            <Link to="/global-privacy-laws" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+              <span className="text-blue">→</span> Global Privacy Laws
+            </Link>
+            <Link to="/gdpr-enforcement" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+              <span className="text-blue">→</span> GDPR Enforcement
+            </Link>
+          </div>
+        </div>
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
