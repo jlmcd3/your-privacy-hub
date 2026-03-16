@@ -103,14 +103,14 @@ const Hero = () => {
             <em className="italic text-white/80"> for those who need the full picture.</em>
           </h1>
           <p className="text-sm md:text-base text-slate-light leading-relaxed max-w-[600px] mx-auto mb-7 md:mb-9">
-            Track regulatory developments from 250+ privacy authorities across 150+ jurisdictions — automatically monitored, AI-summarized, and structured for professionals.
+            Stay ahead of every regulator. 250+ authorities, 150+ jurisdictions, monitored 24/7 so you don't have to.
           </p>
           <div className="flex gap-3 items-center justify-center flex-wrap">
             <Link to="/enforcement-tracker" className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all no-underline inline-flex items-center gap-2">
-              Explore Free →
+              Browse Free →
             </Link>
             <Link to="/subscribe" className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all no-underline inline-flex items-center gap-2">
-              Get Full Intelligence →
+              Get Premium →
             </Link>
           </div>
 

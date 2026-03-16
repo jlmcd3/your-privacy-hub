@@ -5,8 +5,8 @@ const features = [
   "See every enforcement action — all regulators, all jurisdictions",
   "Spot coordinated enforcement before it reaches your jurisdiction",
   "One brief covers your entire global footprint",
-  "No ads, ever",
-  "Founding rate locked at $12/mo forever",
+  "Ad-free, always — your feed is never sponsored.",
+  "Founding Member rate: $12/month, locked forever (first 200 only).",
 ];
 
 const PremiumBanner = () => {

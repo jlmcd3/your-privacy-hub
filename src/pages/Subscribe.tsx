@@ -83,7 +83,7 @@ const Subscribe = () => {
             The library is free. The analyst is $15.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Browse every regulator, jurisdiction, and news article at no cost. Upgrade for the weekly AI brief that synthesizes it all into actionable intelligence.
+            Everything you can browse is always free. The weekly AI brief that synthesizes what it means for your organization is $15/month.
           </p>
         </div>
       </div>
