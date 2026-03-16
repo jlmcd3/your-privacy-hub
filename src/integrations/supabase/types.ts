@@ -41,6 +41,99 @@ export type Database = {
         }
         Relationships: []
       }
+      enforcement_actions: {
+        Row: {
+          action_type: string | null
+          created_at: string | null
+          decision_date: string | null
+          etid: string | null
+          fine_amount: string | null
+          fine_eur: number | null
+          id: string
+          jurisdiction: string
+          law: string | null
+          regulator: string
+          sector: string | null
+          source_url: string | null
+          subject: string | null
+          violation: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          created_at?: string | null
+          decision_date?: string | null
+          etid?: string | null
+          fine_amount?: string | null
+          fine_eur?: number | null
+          id?: string
+          jurisdiction: string
+          law?: string | null
+          regulator: string
+          sector?: string | null
+          source_url?: string | null
+          subject?: string | null
+          violation?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          created_at?: string | null
+          decision_date?: string | null
+          etid?: string | null
+          fine_amount?: string | null
+          fine_eur?: number | null
+          id?: string
+          jurisdiction?: string
+          law?: string | null
+          regulator?: string
+          sector?: string | null
+          source_url?: string | null
+          subject?: string | null
+          violation?: string | null
+        }
+        Relationships: []
+      }
+      enforcement_submissions: {
+        Row: {
+          created_at: string | null
+          fine_amount: string | null
+          id: string
+          jurisdiction: string
+          law: string | null
+          regulator: string
+          reviewed: boolean | null
+          source_url: string | null
+          subject: string | null
+          submitted_by: string | null
+          violation: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fine_amount?: string | null
+          id?: string
+          jurisdiction: string
+          law?: string | null
+          regulator: string
+          reviewed?: boolean | null
+          source_url?: string | null
+          subject?: string | null
+          submitted_by?: string | null
+          violation?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fine_amount?: string | null
+          id?: string
+          jurisdiction?: string
+          law?: string | null
+          regulator?: string
+          reviewed?: boolean | null
+          source_url?: string | null
+          subject?: string | null
+          submitted_by?: string | null
+          violation?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
