@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
+import NewsfeedList from "@/components/NewsfeedList";
 import EmailSignup from "@/components/EmailSignup";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
@@ -158,63 +159,8 @@ const CategoryPage = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
         {/* Article list */}
-        <div className="space-y-4">
-          {loading && [...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
-
-          {!loading &&
-            updates.map((u) => (
-              <a
-                key={u.id}
-                href={u.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex gap-4 p-4 md:p-5 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:-translate-y-px transition-all no-underline cursor-pointer"
-              >
-                {/* Thumbnail */}
-                <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
-                  <img
-                    src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
-                    }}
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1 flex-wrap">
-                    <span className="font-medium text-foreground/70">
-                      {u.source_domain || u.source_name}
-                    </span>
-                    <span>·</span>
-                    <span>{formatDate(u.published_at)}</span>
-                    {u.regulator && (
-                      <>
-                        <span>·</span>
-                        <span>{u.regulator}</span>
-                      </>
-                    )}
-                  </div>
-                  <h3 className="text-sm md:text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                    {u.title}
-                  </h3>
-                  {u.summary && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                      {u.summary}
-                    </p>
-                  )}
-                  <AISummaryPanel summary={u.ai_summary || null} />
-                </div>
-
-                {/* Link icon */}
-                <div className="hidden md:flex items-center text-muted-foreground group-hover:text-primary transition-colors">
-                  <ExternalLink className="w-4 h-4" />
-                </div>
-              </a>
-            ))}
+        <div>
+          {loading && <div className="space-y-4">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>}
 
           {!loading && updates.length === 0 && (
             <div className="text-center py-16">
@@ -224,6 +170,60 @@ const CategoryPage = () => {
                 Articles for this category will appear here as they are fetched daily.
               </p>
             </div>
+          )}
+
+          {!loading && updates.length > 0 && (
+            <NewsfeedList
+              articles={updates}
+              renderArticle={(u) => (
+                <a
+                  key={u.id}
+                  href={u.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex gap-4 p-4 md:p-5 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:-translate-y-px transition-all no-underline cursor-pointer"
+                >
+                  <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
+                    <img
+                      src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1 flex-wrap">
+                      <span className="font-medium text-foreground/70">
+                        {u.source_domain || u.source_name}
+                      </span>
+                      <span>·</span>
+                      <span>{formatDate(u.published_at)}</span>
+                      {u.regulator && (
+                        <>
+                          <span>·</span>
+                          <span>{u.regulator}</span>
+                        </>
+                      )}
+                    </div>
+                    <h3 className="text-sm md:text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                      {u.title}
+                    </h3>
+                    {u.summary && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                        {u.summary}
+                      </p>
+                    )}
+                    <AISummaryPanel summary={u.ai_summary || null} />
+                  </div>
+                  <div className="hidden md:flex items-center text-muted-foreground group-hover:text-primary transition-colors">
+                    <ExternalLink className="w-4 h-4" />
+                  </div>
+                </a>
+              )}
+            />
           )}
         </div>
 
