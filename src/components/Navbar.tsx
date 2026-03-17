@@ -238,6 +238,12 @@ const Navbar = () => {
                 ⭐ Upgrade
               </Link>
               <Link
+                to="/brief-preferences"
+                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
+              >
+                My Brief
+              </Link>
+              <Link
                 to="/account"
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
               >

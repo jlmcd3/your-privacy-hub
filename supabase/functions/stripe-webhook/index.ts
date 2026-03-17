@@ -74,11 +74,28 @@ serve(async (req) => {
         const session = event.data.object;
         const userId = session.metadata?.user_id;
         if (userId) {
+          // Fetch subscription to determine price_id for Pro detection
+          const subId = session.subscription;
+          let priceId: string | null = null;
+          let isPro = false;
+          if (subId) {
+            const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")!;
+            const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subId}`, {
+              headers: { Authorization: `Bearer ${stripeKey}` },
+            });
+            const subData = await subRes.json();
+            priceId = subData?.items?.data?.[0]?.price?.id ?? null;
+            const proPriceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
+            isPro = !!(proPriceId && priceId === proPriceId);
+          }
+
           await supabase
             .from("profiles")
             .update({
               is_premium: true,
+              is_pro: isPro,
               stripe_customer_id: session.customer,
+              stripe_price_id: priceId,
               payment_failed: false,
               updated_at: new Date().toISOString(),
             })

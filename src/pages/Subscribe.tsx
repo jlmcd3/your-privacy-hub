@@ -300,8 +300,9 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* Single plan card */}
-        <div className="max-w-md mx-auto">
+        {/* Plan cards */}
+        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Premium card */}
           <div className="relative bg-card border border-blue rounded-2xl p-8 flex flex-col shadow-eup-md ring-2 ring-blue/20">
             <h2 className="font-display text-[22px] text-navy mb-1">Premium</h2>
             <p className="text-slate text-[13px] mb-5">First 25 subscribers: free for one year. Then $15/month.</p>
@@ -322,7 +323,7 @@ const Subscribe = () => {
 
             <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
               <p className="text-[13px] text-amber-900 leading-relaxed">
-                🎁 First 25 subscribers get the full Intelligence Brief free for the first year. Other subscribers pay only $15 per month.
+                🎁 First 25 subscribers get the full Intelligence Brief free for the first year.
               </p>
             </div>
 
@@ -333,6 +334,44 @@ const Subscribe = () => {
             >
               {loading === "founding" ? "Redirecting…" : "Get Started →"}
             </button>
+          </div>
+
+          {/* Premium Pro card */}
+          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 border-2 border-blue/40 relative flex flex-col">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+              Most Powerful
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">⭐ Premium Pro</div>
+            <div className="text-white font-display font-bold text-3xl mb-1">
+              $25<span className="text-lg font-normal text-blue-200">/month</span>
+            </div>
+            <p className="text-blue-200 text-xs mb-5">Everything in Premium, plus your brief tailored to you.</p>
+            <ul className="space-y-2 mb-6 flex-1">
+              {[
+                "Custom-tailored weekly brief",
+                "Industry lens (Healthcare, AdTech, AI, etc.)",
+                "Jurisdiction focus (EU-only, US-only, etc.)",
+                "Subject-matter filter (litigation, biometric, AI...)",
+                "Priority Monday delivery",
+                "Early access to new features",
+                "Everything in standard Premium",
+              ].map(item => (
+                <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                  <span className="text-accent-light font-bold flex-shrink-0 mt-0.5">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => handleSubscribe("pro")}
+              disabled={loading !== null}
+              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-white text-navy hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === "pro" ? "Redirecting…" : "Get Premium Pro →"}
+            </button>
+            <p className="text-center text-blue-300 text-[10px] mt-2">
+              Standard Premium founding offer ($15 free year) does not apply to Pro tier.
+            </p>
           </div>
         </div>
 

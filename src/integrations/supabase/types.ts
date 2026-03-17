@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_briefs: {
+        Row: {
+          base_brief_id: string | null
+          custom_sections: Json
+          generated_at: string | null
+          id: string
+          preferences_snapshot: Json | null
+          user_id: string
+          week_label: string
+        }
+        Insert: {
+          base_brief_id?: string | null
+          custom_sections?: Json
+          generated_at?: string | null
+          id?: string
+          preferences_snapshot?: Json | null
+          user_id: string
+          week_label: string
+        }
+        Update: {
+          base_brief_id?: string | null
+          custom_sections?: Json
+          generated_at?: string | null
+          id?: string
+          preferences_snapshot?: Json | null
+          user_id?: string
+          week_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_briefs_base_brief_id_fkey"
+            columns: ["base_brief_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_briefs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_subscribers: {
         Row: {
           confirmed: boolean | null
@@ -139,8 +177,10 @@ export type Database = {
           created_at: string
           id: string
           is_premium: boolean
+          is_pro: boolean | null
           payment_failed: boolean
           stripe_customer_id: string | null
+          stripe_price_id: string | null
           subscription_end_date: string | null
           updated_at: string
         }
@@ -148,8 +188,10 @@ export type Database = {
           created_at?: string
           id: string
           is_premium?: boolean
+          is_pro?: boolean | null
           payment_failed?: boolean
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           subscription_end_date?: string | null
           updated_at?: string
         }
@@ -157,8 +199,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_premium?: boolean
+          is_pro?: boolean | null
           payment_failed?: boolean
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           subscription_end_date?: string | null
           updated_at?: string
         }
@@ -239,6 +283,39 @@ export type Database = {
           title?: string
           topic_tags?: string[] | null
           url?: string
+        }
+        Relationships: []
+      }
+      user_brief_preferences: {
+        Row: {
+          created_at: string | null
+          format: string | null
+          id: string
+          industries: string[] | null
+          jurisdictions: string[] | null
+          topics: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          format?: string | null
+          id?: string
+          industries?: string[] | null
+          jurisdictions?: string[] | null
+          topics?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          format?: string | null
+          id?: string
+          industries?: string[] | null
+          jurisdictions?: string[] | null
+          topics?: string[] | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

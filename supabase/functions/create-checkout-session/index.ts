@@ -47,9 +47,11 @@ serve(async (req) => {
     const { plan } = await req.json();
 
     const priceId =
-      plan === "founding"
-        ? Deno.env.get("STRIPE_FOUNDING_PRICE_ID")
-        : Deno.env.get("STRIPE_STANDARD_PRICE_ID");
+      plan === "pro"
+        ? Deno.env.get("STRIPE_PRO_PRICE_ID")
+        : plan === "founding"
+          ? Deno.env.get("STRIPE_FOUNDING_PRICE_ID")
+          : Deno.env.get("STRIPE_STANDARD_PRICE_ID");
 
     if (!priceId) {
       return new Response(
