@@ -147,6 +147,44 @@ const Dashboard = () => {
           )}
         </div>
 
+        {/* Custom brief for Pro users */}
+        {customBrief && (
+          <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-blue bg-blue/10 border border-blue/20 px-2.5 py-1 rounded-full">
+                ⭐ Your Custom Focus — {customBrief.week_label}
+              </span>
+            </div>
+            {customBrief.custom_sections?.industry_focus && (
+              <div className="mb-4">
+                <h3 className="font-bold text-navy text-[14px] mb-2">Industry Focus</h3>
+                <p className="text-slate text-[13px] leading-relaxed">
+                  {customBrief.custom_sections.industry_focus}
+                </p>
+              </div>
+            )}
+            {customBrief.custom_sections?.jurisdiction_focus && (
+              <div className="mb-4">
+                <h3 className="font-bold text-navy text-[14px] mb-2">Jurisdiction Highlights</h3>
+                <p className="text-slate text-[13px] leading-relaxed">
+                  {customBrief.custom_sections.jurisdiction_focus}
+                </p>
+              </div>
+            )}
+            {customBrief.custom_sections?.topic_focus && (
+              <div>
+                <h3 className="font-bold text-navy text-[14px] mb-2">Topic Focus</h3>
+                <p className="text-slate text-[13px] leading-relaxed">
+                  {customBrief.custom_sections.topic_focus}
+                </p>
+              </div>
+            )}
+            <Link to="/brief-preferences" className="text-[12px] text-blue font-medium no-underline hover:text-navy mt-3 inline-block">
+              Edit your preferences →
+            </Link>
+          </div>
+        )}
+
         {loading && (
           <div className="space-y-6">
             {[...Array(6)].map((_, i) => (
