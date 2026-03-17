@@ -402,7 +402,7 @@ export default function SpinTheGlobe() {
         {phase === "result" && picked && (
           <div className="flex flex-col items-center gap-4 animate-fade-up">
             <div className="bg-white border border-fog rounded-2xl shadow-eup-md p-6 max-w-sm text-center">
-              <div className="text-5xl mb-3"><span className="flag-emoji">{picked.flag}</span></div>
+              <div className="text-5xl mb-3"><img src={`https://flagcdn.com/48x36/${picked.cc}.png`} alt={`${picked.name} flag`} className="inline-block w-12 h-9 object-cover rounded" /></div>
               <div className="text-[10px] font-bold uppercase tracking-widest text-slate mb-1">The globe chose</div>
               <h3 className="font-display font-bold text-navy text-2xl mb-1">{picked.name}</h3>
               <div className="flex items-center justify-center gap-2 mb-3">
