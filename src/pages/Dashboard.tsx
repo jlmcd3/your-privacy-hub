@@ -239,6 +239,10 @@ const Dashboard = () => {
               </section>
             )}
           </div>
+
+          <div className="mt-8">
+            <AskPrivacy isPremium={isPremium === true} />
+          </div>
         )}
       </div>
 
