@@ -242,6 +242,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_watchlist: {
+        Row: {
+          created_at: string | null
+          flag: string | null
+          id: string
+          label: string
+          slug: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          flag?: string | null
+          id?: string
+          label: string
+          slug: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          flag?: string | null
+          id?: string
+          label?: string
+          slug?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_briefs: {
         Row: {
           article_count: number | null
