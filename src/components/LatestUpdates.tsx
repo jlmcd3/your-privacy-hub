@@ -220,70 +220,68 @@ const LatestUpdates = () => {
           </div>
 
           {/* Cards */}
-          <div className="px-4 md:px-6 py-4 gap-3 flex flex-col">
+          <div className="px-4 md:px-6 py-4">
             {loading
-              ? [...Array(6)].map((_, i) => <SkeletonCard key={i} />)
-              : displayed.map((u) => (
-                  <a
-                    key={u.id}
-                    href={u.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex gap-4 p-4 bg-card border border-fog rounded-2xl hover:border-silver hover:shadow-eup-sm hover:-translate-y-px transition-all no-underline cursor-pointer"
-                  >
-                    {/* Thumbnail */}
-                    <div className="w-[100px] h-[68px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                      <img
-                        src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
-                        }}
-                      />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
-                          {u.source_domain || u.source_name}
-                        </span>
-                        <span className="text-silver text-[10px]">·</span>
-                        <span className="text-[11px] text-slate/70">
-                          {formatDate(u.published_at)}
-                        </span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${tag(u.category).classes}`}>
-                          {tag(u.category).label}
-                        </span>
-                      </div>
-
-                      <h3 className="font-display text-[14px] leading-snug text-navy group-hover:text-blue transition-colors mb-1.5 line-clamp-2">
-                        {u.title}
-                      </h3>
-
-                      {u.summary && (
-                        <p className="text-[12px] text-slate leading-relaxed line-clamp-2">
-                          {u.summary}
-                        </p>
-                      )}
-                      <AISummaryPanel summary={u.ai_summary || null} />
-                    </div>
-
-                    {/* Link icon */}
-                    <div className="flex-shrink-0 pt-1">
-                      <ExternalLink size={13} className="text-slate/40 group-hover:text-blue transition-colors" />
-                    </div>
-                  </a>
-                ))}
-
-            {/* Empty state */}
-            {!loading && displayed.length === 0 && (
-              <p className="text-center text-sm text-slate py-8">
-                No updates found for this filter.
-              </p>
-            )}
+              ? <div className="gap-3 flex flex-col">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>
+              : filtered.length === 0
+                ? (
+                  <p className="text-center text-sm text-slate py-8">
+                    No updates found for this filter.
+                  </p>
+                )
+                : (
+                  <NewsfeedList
+                    articles={filtered}
+                    renderArticle={(u, i) => (
+                      <a
+                        key={u.id}
+                        href={u.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex gap-4 p-4 bg-card border border-fog rounded-2xl hover:border-silver hover:shadow-eup-sm hover:-translate-y-px transition-all no-underline cursor-pointer"
+                      >
+                        <div className="w-[100px] h-[68px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                          <img
+                            src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+                              {u.source_domain || u.source_name}
+                            </span>
+                            <span className="text-silver text-[10px]">·</span>
+                            <span className="text-[11px] text-slate/70">
+                              {formatDate(u.published_at)}
+                            </span>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${tag(u.category).classes}`}>
+                              {tag(u.category).label}
+                            </span>
+                          </div>
+                          <h3 className="font-display text-[14px] leading-snug text-navy group-hover:text-blue transition-colors mb-1.5 line-clamp-2">
+                            {u.title}
+                          </h3>
+                          {u.summary && (
+                            <p className="text-[12px] text-slate leading-relaxed line-clamp-2">
+                              {u.summary}
+                            </p>
+                          )}
+                          <AISummaryPanel summary={u.ai_summary || null} />
+                        </div>
+                        <div className="flex-shrink-0 pt-1">
+                          <ExternalLink size={13} className="text-slate/40 group-hover:text-blue transition-colors" />
+                        </div>
+                      </a>
+                    )}
+                  />
+                )
+            }
           </div>
         </div>
       </div>
