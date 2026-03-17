@@ -212,12 +212,12 @@ const Index = () => {
         )}
       </div>
 
-      <AdBanner variant="leaderboard" className="py-4 bg-paper" />
+      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper" />
       <EmailSignup variant="strip" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
       <EnforcementTracker />
-      <AdBanner variant="inline" className="py-4 bg-paper" />
+      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <PremiumBanner />
