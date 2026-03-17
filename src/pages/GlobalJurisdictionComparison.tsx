@@ -4,6 +4,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
+import AdBanner from "@/components/AdBanner";
 
 const DIMENSIONS = [
   { key: "hasLaw",          label: "Comprehensive Privacy Law",      type: "bool"   },
