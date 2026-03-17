@@ -62,6 +62,7 @@ const App = () => (
           <Route path="/us-federal-privacy-law" element={<USFederalPrivacyLaw />} />
           <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
           <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
+          <Route path="/jurisdictions" element={<JurisdictionsHub />} />
           <Route path="/regulator/:slug" element={<RegulatorPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/topics/:slug" element={<TopicHub />} />
