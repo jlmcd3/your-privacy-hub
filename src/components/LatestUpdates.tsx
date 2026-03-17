@@ -181,7 +181,6 @@ const LatestUpdates = () => {
       ? updates
       : updates.filter((u) => u.category === activeFilter);
 
-  const displayed = filtered.slice(0, 6);
   const tag = (cat: string) => CATEGORY_TAG[cat] || CATEGORY_TAG["global"];
 
   return (
