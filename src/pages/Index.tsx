@@ -82,7 +82,16 @@ const Index = () => {
         }));
       setRegionItems(regions);
 
-      // Topic lanes
+      // Topic lanes — deduplicate by ID
+      function dedupeById<T extends { id: string }>(arr: T[]): T[] {
+        const seen = new Set<string>();
+        return arr.filter(item => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        });
+      }
+
       const lanes: Record<string, any[]> = {};
       const laneConfigs = [
         { key: "ai-privacy", take: 8 },
@@ -91,8 +100,7 @@ const Index = () => {
         { key: "eu-uk", take: 8 },
       ];
       for (const lane of laneConfigs) {
-        lanes[lane.key] = articles
-          .filter((a) => a.category === lane.key)
+        lanes[lane.key] = dedupeById(articles.filter((a) => a.category === lane.key))
           .slice(0, lane.take)
           .map((a) => ({
             title: a.title,

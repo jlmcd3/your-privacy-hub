@@ -135,7 +135,7 @@ export default function LegislationTracker() {
               return (
                 <div key={bill.id} className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl flex-shrink-0">{bill.flag}</div>
+                    <div className="text-2xl flex-shrink-0 flag-emoji">{bill.flag}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
