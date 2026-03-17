@@ -267,6 +267,9 @@ const Dashboard = () => {
               </section>
             )}
 
+            {/* Enforcement trends */}
+            <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} />
+
             {/* Trend signal */}
             {brief.trend_signal && (
               <section className="bg-amber-50/50 rounded-xl border border-amber-200/50 p-6">
