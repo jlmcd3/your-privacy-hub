@@ -99,7 +99,7 @@ const navItems: NavItem[] = [
         { icon: "⚖️", label: "CNIL (France)", href: "/regulator/cnil" },
         { icon: "⚖️", label: "DPC (Ireland)", href: "/regulator/dpc" },
       ]},
-      { items: [{ icon: "🗂️", label: "All 250+ Regulators →", href: "/global-privacy-authorities" }], divider: true },
+      { items: [{ icon: "🗂️", label: "All 119 Regulators →", href: "/global-privacy-authorities" }], divider: true },
     ],
   },
   {
