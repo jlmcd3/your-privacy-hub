@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AskPrivacy from "@/components/ai/AskPrivacy";
 
 interface EnforcementRow {
   regulator: string;
