@@ -50,18 +50,17 @@ export { JURISDICTIONS };
 const REGIONS = ["All Regions", "Americas", "Europe", "Asia-Pacific", "Africa & Middle East"];
 
 export default function GlobalPrivacyMap() {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const svgRef      = useRef<SVGSVGElement>(null);
+  const containerRef= useRef<HTMLDivElement>(null);
   const [worldData, setWorldData] = useState<any>(null);
   const [topoReady, setTopoReady] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [tooltip, setTooltip] = useState<any>(null);
-  const [region, setRegion] = useState("All Regions");
-  const [view, setView] = useState<"map" | "grid">("map");
-  const [dims, setDims] = useState({ w: 860, h: 440 });
+  const [loading,   setLoading]   = useState(true);
+  const [tooltip,   setTooltip]   = useState<any>(null);
+  const [region,    setRegion]    = useState("All Regions");
+  const [view,      setView]      = useState<"map" | "grid">("map");
+  const [dims,      setDims]      = useState({ w: 860, h: 440 });
 
-  // Load topojson
+  // Load topojson CDN script
   useEffect(() => {
     if ((window as any).topojson) { setTopoReady(true); return; }
     const s = document.createElement("script");
@@ -70,7 +69,7 @@ export default function GlobalPrivacyMap() {
     document.head.appendChild(s);
   }, []);
 
-  // Fetch world atlas
+  // Fetch world atlas GeoJSON
   useEffect(() => {
     if (!topoReady) return;
     fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
@@ -90,7 +89,7 @@ export default function GlobalPrivacyMap() {
     return () => obs.disconnect();
   }, []);
 
-  // Draw SVG map — FIX 1: region added to deps, opacity filtering, direct navigation
+  // EFFECT 1: Draw the full map. Runs only when data/dims change. NOT on region change.
   useEffect(() => {
     if (!worldData || !topoReady || !svgRef.current) return;
     const topo = (window as any).topojson;
@@ -101,55 +100,58 @@ export default function GlobalPrivacyMap() {
     const proj = d3.geoNaturalEarth1().scale(w / 6.2).translate([w / 2, h / 2]);
     const path = d3.geoPath().projection(proj);
     const countries = topo.feature(worldData, worldData.objects.countries);
-    const mesh = topo.mesh(worldData, worldData.objects.countries, (a: any, b: any) => a !== b);
+    const mesh      = topo.mesh(worldData, worldData.objects.countries,
+                        (a: any, b: any) => a !== b);
 
+    // Ocean background
     svg.append("path")
       .datum({ type: "Sphere" })
       .attr("d", path as any)
       .attr("fill", "#deeef8")
       .attr("stroke", "none");
 
-    svg.append("g")
+    // Country paths — store slug as data attribute for later opacity updates
+    svg.append("g").attr("class", "countries")
       .selectAll("path")
       .data((countries as any).features)
       .join("path")
       .attr("d", path as any)
+      .attr("data-id", (d: any) => String(d.id))
+      .attr("data-region", (d: any) => JURISDICTIONS[String(d.id)]?.region ?? "")
       .attr("fill", (d: any) => {
         const jur = JURISDICTIONS[String(d.id)];
         return STATUS_CONFIG[(jur?.status ?? "none") as keyof typeof STATUS_CONFIG]?.color ?? "#c8d8e8";
       })
-      .attr("opacity", (d: any) => {
-        if (region === "All Regions") return 1;
-        const jur = JURISDICTIONS[String(d.id)];
-        if (!jur) return 0.15;
-        return jur.region === region ? 1 : 0.12;
-      })
+      .attr("opacity", 1)
       .attr("stroke", "#fff")
       .attr("stroke-width", 0.4)
       .style("cursor", (d: any) => JURISDICTIONS[String(d.id)] ? "pointer" : "default")
-      .on("mouseenter", function (event: MouseEvent, d: any) {
+      .on("mouseenter", function(event: MouseEvent, d: any) {
         const jur = JURISDICTIONS[String(d.id)];
         if (!jur) return;
-        if (region !== "All Regions" && jur.region !== region) return;
+        const currentRegion = (svgRef.current as any)?._currentRegion ?? "All Regions";
+        if (currentRegion !== "All Regions" && jur.region !== currentRegion) return;
         d3.select(this).attr("stroke", "#f59e0b").attr("stroke-width", 1.5).raise();
         const [mx, my] = d3.pointer(event, svgRef.current);
         setTooltip({ x: mx, y: my, jur });
       })
-      .on("mousemove", function (event: MouseEvent) {
+      .on("mousemove", function(event: MouseEvent) {
         const [mx, my] = d3.pointer(event, svgRef.current);
         setTooltip((t: any) => t ? { ...t, x: mx, y: my } : null);
       })
-      .on("mouseleave", function () {
+      .on("mouseleave", function() {
         d3.select(this).attr("stroke", "#fff").attr("stroke-width", 0.4);
         setTooltip(null);
       })
-      .on("click", (_: any, d: any) => {
+      .on("click", function(_: any, d: any) {
         const jur = JURISDICTIONS[String(d.id)];
         if (!jur) return;
-        if (region !== "All Regions" && jur.region !== region) return;
-        navigate(`/jurisdiction/${jur.slug}`);
+        const currentRegion = (svgRef.current as any)?._currentRegion ?? "All Regions";
+        if (currentRegion !== "All Regions" && jur.region !== currentRegion) return;
+        window.location.href = `/jurisdiction/${jur.slug}`;
       });
 
+    // Country border mesh
     svg.append("path")
       .datum(mesh)
       .attr("d", path as any)
@@ -157,7 +159,23 @@ export default function GlobalPrivacyMap() {
       .attr("stroke", "#fff")
       .attr("stroke-width", 0.4);
 
-  }, [worldData, topoReady, dims, region, navigate]);
+  }, [worldData, topoReady, dims]); // NOTE: region intentionally NOT here
+
+  // EFFECT 2: Update opacity only when region changes — no full redraw needed
+  useEffect(() => {
+    if (!svgRef.current) return;
+    (svgRef.current as any)._currentRegion = region;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll(".countries path").attr("opacity", function() {
+      const el = this as SVGPathElement;
+      const countryRegion = el.getAttribute("data-region") ?? "";
+      const id = el.getAttribute("data-id") ?? "";
+      if (region === "All Regions") return 1;
+      if (!JURISDICTIONS[id]) return 0.1;
+      return countryRegion === region ? 1 : 0.1;
+    });
+  }, [region]);
 
   const gridItems = Object.values(JURISDICTIONS)
     .filter((j: any) => region === "All Regions" || j.region === region)
