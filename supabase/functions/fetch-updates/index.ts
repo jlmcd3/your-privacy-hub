@@ -137,6 +137,8 @@ function extractAllItems(xml: string): string[] {
 
 function categorize(title: string, description: string, defaultCat: string): string {
   const text = (title + " " + description).toLowerCase();
+  // Litigation-specific detection (check first)
+  if (/\b(class action|lawsuit filed|complaint filed|court filing|litigation|bipa|vppa|cipa|wiretap|suit alleges|plaintiffs allege|settlement reached|jury verdict|class certified)\b/.test(text)) return "enforcement";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";
