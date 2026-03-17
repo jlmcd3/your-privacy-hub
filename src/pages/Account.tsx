@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WatchlistManager from "@/components/watchlist/WatchlistManager";
 
 const Account = () => {
   const { user } = useAuth();
@@ -70,6 +71,10 @@ const Account = () => {
           >
             Sign Out
           </button>
+
+          <div className="mt-8">
+            <WatchlistManager isPremium={isPremium} />
+          </div>
         </div>
       </div>
       <Footer />

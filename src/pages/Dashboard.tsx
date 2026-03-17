@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AskPrivacy from "@/components/ai/AskPrivacy";
 
 interface EnforcementRow {
   regulator: string;
@@ -151,16 +152,17 @@ const Dashboard = () => {
         )}
 
         {!loading && brief && (
-          <div className="space-y-8">
-            {/* Executive Summary */}
-            <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
-              <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
-              <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                {brief.executive_summary.split("\n").filter(Boolean).map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            </section>
+          <>
+            <div className="space-y-8">
+              {/* Executive Summary */}
+              <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
+                <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {brief.executive_summary.split("\n").filter(Boolean).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              </section>
 
             {/* Analysis sections */}
             <div className="grid gap-6">
@@ -237,7 +239,12 @@ const Dashboard = () => {
                 </div>
               </section>
             )}
-          </div>
+            </div>
+
+            <div className="mt-8">
+              <AskPrivacy isPremium={isPremium === true} />
+            </div>
+          </>
         )}
       </div>
 

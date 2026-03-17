@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import FollowButton from "@/components/FollowButton";
+import ExportPDFButton from "@/components/jurisdiction/ExportPDFButton";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
@@ -180,8 +181,9 @@ const JurisdictionPage = () => {
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3">{jurisdiction.name}</h1>
           <p className="text-sm text-slate-light">Region: {jurisdiction.region} · {jurisdiction.authorities.length} regulatory {jurisdiction.authorities.length === 1 ? "authority" : "authorities"}</p>
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-3">
             <FollowButton followType="jurisdiction" followKey={slug!} label={jurisdiction.name} />
+            <ExportPDFButton jurisdictionName={jurisdiction.name} />
           </div>
         </div>
       </div>
