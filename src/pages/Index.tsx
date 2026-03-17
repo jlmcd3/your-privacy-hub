@@ -156,6 +156,8 @@ const Index = () => {
         </div>
       )}
 
+      <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+
       {/* Dashboard content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-6 md:pt-8">
         {/* Featured brief */}
