@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import NewsfeedPaywallCard from "./NewsfeedPaywallCard";
+import InFeedAd from "./InFeedAd";
 
 const FREE_LIMIT = 15;
 const BATCH_SIZE = 15;
