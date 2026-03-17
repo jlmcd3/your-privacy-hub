@@ -239,11 +239,12 @@ const Dashboard = () => {
                 </div>
               </section>
             )}
-          </div>
+            </div>
 
-          <div className="mt-8">
-            <AskPrivacy isPremium={isPremium === true} />
-          </div>
+            <div className="mt-8">
+              <AskPrivacy isPremium={isPremium === true} />
+            </div>
+          </>
         )}
       </div>
 
