@@ -5,6 +5,7 @@ import calendarData from "@/data/regulatory_calendar.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 
 const FILTERS = [
   { key: "all", label: "All" },
