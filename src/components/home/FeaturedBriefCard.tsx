@@ -1,5 +1,19 @@
 import { Link } from "react-router-dom";
 
+const ISO_TO_FLAG: Record<string, string> = {
+  "US": "🇺🇸", "EU": "🇪🇺", "GB": "🇬🇧", "FR": "🇫🇷", "DE": "🇩🇪",
+  "IT": "🇮🇹", "ES": "🇪🇸", "NL": "🇳🇱", "IE": "🇮🇪", "BE": "🇧🇪",
+  "PL": "🇵🇱", "SE": "🇸🇪", "NO": "🇳🇴", "CH": "🇨🇭", "TR": "🇹🇷",
+  "BR": "🇧🇷", "CA": "🇨🇦", "AU": "🇦🇺", "JP": "🇯🇵", "KR": "🇰🇷",
+  "CN": "🇨🇳", "IN": "🇮🇳", "SG": "🇸🇬", "ZA": "🇿🇦", "IL": "🇮🇱",
+  "AE": "🇦🇪", "SA": "🇸🇦", "MX": "🇲🇽", "AR": "🇦🇷",
+  "GLOBAL": "🌐", "US-FEDERAL": "🇺🇸", "US-STATES": "🗺️",
+};
+
+export function getFlag(code: string): string {
+  return ISO_TO_FLAG[code?.toUpperCase()] ?? "🌐";
+}
+
 interface FeaturedBriefProps {
   headline: string;
   summary: string;
@@ -31,7 +45,7 @@ export default function FeaturedBriefCard({
           <span className="text-blue-200 text-xs">{date}</span>
         </div>
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl flex-shrink-0">{jurisdictionFlag}</span>
+          <span className="text-2xl flex-shrink-0 flag-emoji">{getFlag(jurisdictionFlag) !== "🌐" ? getFlag(jurisdictionFlag) : jurisdictionFlag}</span>
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1 block">
               {category} · {jurisdiction}

@@ -37,20 +37,19 @@ export default function JurisdictionsHub() {
 
               <div className="flex gap-6 mt-6 flex-wrap">
                 {[
-                  { color: "#0d2240", border: "2px solid #3b5278", num: "42",   label: "Comprehensive laws" },
-                  { color: "#1d4ed8", border: "none",               num: "14",  label: "Sector-specific" },
-                  { color: "#38bdf8", border: "none",               num: "12",  label: "Partial coverage" },
-                  { color: "#93c5fd", border: "none",               num: "9",   label: "Proposed / In progress" },
-                  { color: "#c8d8e8", border: "1px solid #94a3b8",  num: "250+",label: "Regulators tracked" },
+                  { color: "#0d2240", num: "42",   label: "Comprehensive laws"      },
+                  { color: "#1d4ed8", num: "14",   label: "Sector-specific"         },
+                  { color: "#38bdf8", num: "12",   label: "Partial coverage"        },
+                  { color: "#93c5fd", num: "9",    label: "Proposed / In progress"  },
                 ].map((stat) => (
-                  <div key={stat.label} className="flex items-center gap-2">
+                  <div key={stat.label} className="flex items-center gap-2.5">
                     <div
-                      className="w-4 h-4 rounded-sm flex-shrink-0"
-                      style={{ background: stat.color, border: stat.border }}
+                      className="w-4 h-4 rounded flex-shrink-0"
+                      style={{ background: stat.color }}
                     />
                     <div>
                       <div className="font-bold text-white text-lg leading-none">{stat.num}</div>
-                      <div className="text-blue-300 text-[11px]">{stat.label}</div>
+                      <div className="text-blue-300 text-[11px] mt-0.5">{stat.label}</div>
                     </div>
                   </div>
                 ))}
