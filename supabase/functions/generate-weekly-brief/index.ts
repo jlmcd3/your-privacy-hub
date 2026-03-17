@@ -15,8 +15,7 @@ function getWeekLabel(): string {
   const now = new Date();
   const start = new Date(now);
   start.setDate(now.getDate() - 7);
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   return `${fmt(start)} – ${fmt(now)}`;
 }
 
@@ -27,34 +26,80 @@ function getISOWeek(): string {
   return `Week ${week} · ${now.getFullYear()}`;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+async function getEnforcementHistory() {
+  const { data: recentBriefs } = await supabase
+    .from("weekly_briefs")
+    .select("week_label, enforcement_table, published_at")
+    .order("published_at", { ascending: false })
+    .limit(24);
+
+  if (!recentBriefs || recentBriefs.length === 0) {
+    return { monthly: null, sixMonth: null, annual: null, briefCount: 0 };
   }
 
+  const now = new Date();
+  const oneMonthAgo = new Date(now); oneMonthAgo.setMonth(now.getMonth() - 1);
+  const sixMonthsAgo = new Date(now); sixMonthsAgo.setMonth(now.getMonth() - 6);
+  const oneYearAgo = new Date(now); oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+  const getActions = (since: Date) =>
+    recentBriefs
+      .filter(b => new Date(b.published_at) >= since)
+      .flatMap(b => (b.enforcement_table as any[]) || []);
+
+  const thisMonthActions = getActions(oneMonthAgo);
+  const lastMonthStart = new Date(oneMonthAgo); lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  const lastMonthActions = recentBriefs
+    .filter(b => new Date(b.published_at) >= lastMonthStart && new Date(b.published_at) < oneMonthAgo)
+    .flatMap(b => (b.enforcement_table as any[]) || []);
+
+  const sixMonthActions = getActions(sixMonthsAgo);
+  const annualActions = getActions(oneYearAgo);
+
+  const summarize = (actions: any[]) => ({
+    count: actions.length,
+    topRegulators: [...new Set(actions.map(a => a.regulator))].slice(0, 5),
+    actionTypes: actions.reduce((acc: any, a) => {
+      acc[a.action_type] = (acc[a.action_type] || 0) + 1; return acc;
+    }, {}),
+  });
+
+  return {
+    monthly: {
+      thisMonth: summarize(thisMonthActions),
+      lastMonth: summarize(lastMonthActions),
+      change: thisMonthActions.length - lastMonthActions.length,
+    },
+    sixMonth: summarize(sixMonthActions),
+    annual: summarize(annualActions),
+    briefCount: recentBriefs.length,
+  };
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
   try {
-    // ── Pull last 7 days of articles from updates table ────────────────
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const { data: articles, error: fetchError } = await supabase
       .from("updates")
-      .select("title, summary, source_name, category, published_at, url")
+      .select("title, summary, source_name, category, topic_tags, published_at, url")
       .gte("published_at", sevenDaysAgo.toISOString())
       .order("published_at", { ascending: false })
-      .limit(25);
+      .limit(40);
 
     if (fetchError || !articles || articles.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No articles found for this week", detail: fetchError }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "No articles found", detail: fetchError }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ── Fetch previous week's brief for trend comparison ──────────────
+    const enforcementHistory = await getEnforcementHistory();
+
     const { data: prevBrief } = await supabase
       .from("weekly_briefs")
-      .select("headline, trend_signal, week_label")
+      .select("headline, trend_signal, week_label, enforcement_table")
       .order("published_at", { ascending: false })
       .limit(1)
       .single();
@@ -63,108 +108,109 @@ Deno.serve(async (req) => {
       ? `PREVIOUS WEEK (${prevBrief.week_label}):\nHeadline: ${prevBrief.headline}\nTrend Signal: ${prevBrief.trend_signal || "N/A"}`
       : "No previous week data available.";
 
-    // ── Format articles for the prompt ────────────────────────────────
     const articleList = articles
-      .map(
-        (a, i) =>
-          `[${i + 1}] [${a.category?.toUpperCase()}] ${a.source_name} — ${a.title}${a.summary ? `\n    Summary: ${a.summary}` : ""}`
-      )
+      .map((a, i) => {
+        const tags = (a.topic_tags as string[] || []).join(", ");
+        return `[${i + 1}] [${a.category?.toUpperCase()}]${tags ? ` [TAGS: ${tags}]` : ""} ${a.source_name} — ${a.title}${a.summary ? `\n    Summary: ${a.summary}` : ""}`;
+      })
       .join("\n\n");
 
     const weekLabel = getWeekLabel();
     const isoWeek = getISOWeek();
 
-    // ── Call Lovable AI Gateway ───────────────────────────────────────
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY is not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const trendContext = enforcementHistory.briefCount >= 4
+      ? `ENFORCEMENT TREND DATA:
+Month-over-month: ${(enforcementHistory.monthly?.change ?? 0) >= 0 ? "+" : ""}${enforcementHistory.monthly?.change ?? 0} actions vs last month (this month: ${enforcementHistory.monthly?.thisMonth.count ?? 0}, last month: ${enforcementHistory.monthly?.lastMonth.count ?? 0})
+Last 6 months: ${enforcementHistory.sixMonth?.count ?? 0} total actions, top regulators: ${(enforcementHistory.sixMonth?.topRegulators ?? []).join(", ")}
+Last 12 months: ${enforcementHistory.annual?.count ?? 0} total actions, breakdown: ${JSON.stringify(enforcementHistory.annual?.actionTypes ?? {})}
+Note: Based on ${enforcementHistory.briefCount} weeks of tracked data.`
+      : `ENFORCEMENT TREND NOTE: Insufficient historical data for statistical trends (only ${enforcementHistory.briefCount} weeks tracked so far). Describe directional trends from this week's data only; do not fabricate historical comparisons.`;
+
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) {
+      return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const systemPrompt = `You are the lead analyst at a premium privacy regulatory intelligence platform used by DPOs, privacy lawyers, and compliance professionals at multinational companies. Your weekly brief is the most trusted synthesis of global privacy regulatory developments in the industry. Write with authoritative precision — no filler, no hedging, no generic statements. Every sentence must contain specific, actionable intelligence. Use the exact regulator names, regulation names, and jurisdictions from the source material. Format all output as valid JSON exactly matching the schema provided.`;
+    const systemPrompt = `You are the lead analyst at EndUserPrivacy.com, a premium privacy regulatory intelligence platform whose subscribers include DPOs, privacy lawyers, General Counsel, and Chief Privacy Officers at multinational companies. Your Weekly Intelligence Brief is their primary trusted source for global privacy regulatory developments.
 
-    const userPrompt = `PREVIOUS WEEK CONTEXT (use for trend comparison in trend_signal field):
+Your writing standard: Every sentence must carry specific, actionable intelligence. Name the exact regulator, regulation, jurisdiction, and article/section number where applicable. No filler. No hedging. No generic statements like "organizations should consider" — instead say exactly what they must do, by when, under which law, enforced by whom.
+
+Citation format: When referencing a source article, embed [ref:N] inline in the text immediately after the claim it supports. Example: "The ICO issued a £12.7M fine against TikTok [ref:1] for children's data violations."
+
+Format: Return ONLY a valid JSON object matching the schema exactly. No markdown, no preamble.`;
+
+    const userPrompt = `PREVIOUS WEEK CONTEXT:
 ${previousContext}
 
-Here are all regulatory updates published this week (${weekLabel}):
+${trendContext}
 
+ARTICLES THIS WEEK (${weekLabel}):
 ${articleList}
 
-STRICT RULES — violations will cause this brief to be rejected:
-1. Every entry in enforcement_table MUST be sourced from a numbered article above. Add a source_ref field with the article number (e.g. '[3]').
-2. Every fine amount must appear verbatim in the source articles. If the amount is not explicitly stated, write 'Not disclosed' — never estimate.
-3. The trend_signal MUST compare this week's developments to the previous week context provided above.
-4. If a regional section has no source articles, write exactly: 'No monitored developments in this category this week.'
-5. Do not invent facts, names, amounts, or dates not present in the source articles.
+STRICT ACCURACY RULES — violations invalidate this brief:
+1. Every enforcement_table entry MUST cite a specific article number as source_ref: "[N]"
+2. Fine amounts must appear verbatim in the source articles — write "Not disclosed" if absent
+3. Do not invent facts, names, dates, or amounts not present in the articles
+4. The enforcement_trends section MUST use the quantitative data provided above (or acknowledge insufficient data)
+5. Every substantive claim in narrative sections should have an inline [ref:N] citation
+6. If a dedicated section (AI, biometric, litigation) has no source articles this week, write the exact phrase: "No monitored developments in this category this week." followed by what to watch for in the next 30 days
 
-Generate a complete Weekly Intelligence Brief as a JSON object with exactly these fields:
+Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these fields:
 
 {
-  "headline": "A single punchy 20-30 word headline capturing the most significant theme of the week — specific, not generic. Must name specific regulators or regulations.",
-  "executive_summary": "3-4 paragraphs of authoritative executive synthesis. Cover: (1) the dominant regulatory theme of the week and why it matters, (2) the most significant enforcement or guidance action and its practical implications, (3) what compliance teams should be doing right now in response. Be specific — name regulators, cite exact guidance documents or actions. No generic statements. ~300 words.",
-  "us_federal": "2-3 paragraphs covering all US federal developments this week — FTC, Congress, NIST, HHS, etc. If no federal developments, say 'No significant US federal developments this week' and explain what to watch for next week.",
-  "us_states": "2-3 paragraphs covering all US state privacy developments — new laws, enforcement actions, agency guidance, AG actions. Call out the 3 highest-risk states for enforcement right now. If sparse, note what's on the horizon.",
-  "eu_uk": "2-3 paragraphs covering GDPR, EDPB, UK ICO, individual DPAs (CNIL, DPC, etc.). Identify the most active enforcement authority this week and what it signals about their agenda.",
-  "global_developments": "2-3 paragraphs on non-EU/non-US developments — APAC, LATAM, Middle East, Africa. Focus on developments with cross-border implications for multinationals.",
-  "enforcement_table": [
-    {
-      "regulator": "Regulator name",
-      "jurisdiction": "Country/State",
-      "action_type": "Fine | Investigation | Guidance | Lawsuit | Rulemaking",
-      "subject": "Who or what sector was targeted",
-      "amount": "exact figure or Not disclosed",
-      "legal_basis": "specific regulation and article/section if stated, else N/A",
-      "significance": "One sentence on why this matters",
-      "source_ref": "[article number]"
-    }
-  ],
-  "trend_signal": "The single most important forward-looking signal from this week's data — what pattern is emerging, what regulators are telegraphing, what companies should prepare for in the next 30-90 days. 2 paragraphs. Be specific and predictive. Compare to previous week's trends.",
-  "why_this_matters": "2 paragraphs written for a busy General Counsel or Chief Privacy Officer who has 2 minutes to read this. What are the top 3 things they need to act on this week? Bullet-point style, actionable."
+  "headline": "25-35 word headline capturing the single most significant development this week. Must name specific regulators or regulations. Not generic.",
+
+  "executive_summary": "4-5 paragraphs of authoritative executive synthesis. ~400 words. Use [ref:N] citations throughout.",
+
+  "us_federal": "3-4 paragraphs on FTC, Congressional bills, NIST/HHS/FCC actions, 30-day outlook. ~250 words. Use [ref:N] citations.",
+
+  "us_states": "3-4 paragraphs on state law enactments, highest-risk states, compliance items, advancing bills. ~300 words. Use [ref:N] citations.",
+
+  "eu_uk": "3-4 paragraphs on EDPB, individual DPA actions with fines, UK-specific, cross-border patterns. ~350 words. Use [ref:N] citations.",
+
+  "global_developments": "3 paragraphs: APAC, LATAM, Middle East/Africa. ~250 words. Use [ref:N] citations.",
+
+  "ai_governance": "2-3 paragraphs on AI and privacy regulatory developments (EU AI Act, EDPB AI guidance, automated decision enforcement, LLM scraping). If none: 'No monitored developments in this category this week.' ~200 words.",
+
+  "biometric_data": "2 paragraphs on biometric privacy (facial recognition, BIPA, voiceprint, age verification). If none: 'No monitored developments in this category this week.' ~150 words.",
+
+  "privacy_litigation": "2-3 paragraphs on privacy lawsuits (BIPA, CCPA, VPPA, CIPA class actions). If none: 'No monitored litigation developments this week.' ~200 words.",
+
+  "enforcement_table": [{"regulator":"Name","jurisdiction":"Country/State","action_type":"Fine|Investigation opened|Guidance issued|Lawsuit filed|Settlement|Rulemaking","subject":"Company","amount":"Exact figure or Not disclosed","legal_basis":"Specific regulation","significance":"Why it matters","source_ref":"[N]"}],
+
+  "enforcement_trends": "3 paragraphs: month-over-month using provided data, 3-6 month patterns, year-over-year context. ~300 words.",
+
+  "trend_signal": "2 paragraphs: most important forward-looking signal, specific 30-90 day prediction. ~200 words.",
+
+  "why_this_matters": "3 paragraphs for GC/CPO: urgent action this week, 30-day action, 30-90 day horizon. ~300 words."
 }
 
-Return ONLY the JSON object. No preamble, no explanation, no markdown code fences.`;
+Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
       }),
     });
 
     if (!aiResponse.ok) {
       const err = await aiResponse.text();
-      const status = aiResponse.status;
-      if (status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded, please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required, please add credits to your workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      console.error("AI gateway error:", status, err);
-      return new Response(
-        JSON.stringify({ error: "AI gateway error", detail: err }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "AI API error", detail: err }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const aiData = await aiResponse.json();
-    const rawText = aiData.choices?.[0]?.message?.content || "";
+    const rawText = aiData.content?.[0]?.text || "";
 
     let brief: any;
     try {
@@ -172,34 +218,30 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown code fence
     } catch {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        return new Response(
-          JSON.stringify({ error: "Failed to parse AI response", raw: rawText.slice(0, 500) }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: rawText.slice(0, 500) }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       brief = JSON.parse(jsonMatch[0]);
     }
 
-    // ── Verification pass ─────────────────────────────────────────────
-    const verifyPrompt = `You are a fact-checker for a regulatory intelligence publication. Review this generated Weekly Intelligence Brief against its source articles. Return ONLY valid JSON.
+    // Verification pass
+    const verifyPrompt = `You are a fact-checker for a regulatory intelligence publication. Return ONLY valid JSON.
 
 SOURCE ARTICLES:
 ${articleList}
 
-GENERATED BRIEF ENFORCEMENT TABLE:
+ENFORCEMENT TABLE TO VERIFY:
 ${JSON.stringify(brief.enforcement_table || [])}
 
-Check each enforcement_table entry. For each entry, verify the fine amount and regulator name appear in the source articles. Return:
-{"verified": true/false, "issues": ["list any unverified amounts or names"], "quality_score": 1-10, "fabricated_facts": ["any facts not in source articles"]}`;
+For each entry in the enforcement table: verify the fine amount and regulator name appear in the source articles cited in source_ref.
+Return: {"verified": true/false, "issues": ["list any unverified amounts or fabricated names"], "quality_score": 1-10, "fabricated_facts": ["any facts not traceable to source articles"]}`;
 
-    const verifyResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const verifyResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1000,
         messages: [{ role: "user", content: verifyPrompt }],
       }),
     });
@@ -207,14 +249,12 @@ Check each enforcement_table entry. For each entry, verify the fine amount and r
     let verificationReport = null;
     if (verifyResponse.ok) {
       const verifyData = await verifyResponse.json();
-      const verifyText = verifyData.choices?.[0]?.message?.content || "";
-      try {
-        const verifyJson = verifyText.match(/\{[\s\S]*\}/);
-        if (verifyJson) verificationReport = JSON.parse(verifyJson[0]);
-      } catch { /* ignore verification parse errors */ }
+      const verifyText = verifyData.content?.[0]?.text || "";
+      try { const m = verifyText.match(/\{[\s\S]*\}/); if (m) verificationReport = JSON.parse(m[0]); } catch {}
     }
 
-    // ── Store in database ──────────────────────────────────────────────
+    const sourceMap = Object.fromEntries(articles.map((a, i) => [i + 1, { title: a.title, url: a.url, source: a.source_name }]));
+
     const { data: inserted, error: insertError } = await supabase
       .from("weekly_briefs")
       .insert({
@@ -225,9 +265,14 @@ Check each enforcement_table entry. For each entry, verify the fine amount and r
         us_states: brief.us_states,
         eu_uk: brief.eu_uk,
         global_developments: brief.global_developments,
+        ai_governance: brief.ai_governance,
+        biometric_data: brief.biometric_data,
+        privacy_litigation: brief.privacy_litigation,
         enforcement_table: brief.enforcement_table,
+        enforcement_trends: brief.enforcement_trends,
         trend_signal: brief.trend_signal,
         why_this_matters: brief.why_this_matters,
+        source_map: sourceMap,
         article_count: articles.length,
         published_at: new Date().toISOString(),
         verification_report: verificationReport,
@@ -236,10 +281,8 @@ Check each enforcement_table entry. For each entry, verify the fine amount and r
       .single();
 
     if (insertError) {
-      return new Response(
-        JSON.stringify({ error: "Failed to store brief", detail: insertError }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Failed to store brief", detail: insertError }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(
@@ -247,10 +290,7 @@ Check each enforcement_table entry. For each entry, verify the fine amount and r
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    console.error("generate-weekly-brief error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
