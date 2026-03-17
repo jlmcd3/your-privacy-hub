@@ -55,7 +55,7 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" className="py-5" />
+      <AdBanner variant="leaderboard" adSlot={`eup-pillar-top`} className="py-3" />
 
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10 md:py-14">
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
@@ -71,7 +71,7 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
               </div>
               {i === Math.floor(sections.length / 2) - 1 && (
                 <>
-                  <AdBanner variant="inline" className="py-4" />
+                  <AdBanner variant="inline" adSlot={`eup-pillar-mid`} className="py-4" />
                   {/* Mid-content premium teaser */}
                   <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm my-2">
                     <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
@@ -172,7 +172,7 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
           )}
         </div>
 
-        <AdBanner variant="leaderboard" className="py-6" />
+        <AdBanner variant="leaderboard" adSlot={`eup-pillar-bottom`} className="py-6" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">

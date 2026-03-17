@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
 
@@ -128,6 +129,8 @@ export default function LegislationTracker() {
               })}
             </div>
           </div>
+
+          <AdBanner variant="leaderboard" adSlot="eup-legislation-top" className="py-3" />
 
           <div className="space-y-4">
             {filtered.map(bill => {

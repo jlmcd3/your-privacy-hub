@@ -5,6 +5,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
+import AdBanner from "@/components/AdBanner";
 
 export default function JurisdictionsHub() {
   const [recentUpdates, setRecentUpdates] = useState([
@@ -94,6 +95,8 @@ export default function JurisdictionsHub() {
               </div>
             </div>
           </div>
+
+          <AdBanner variant="leaderboard" adSlot="eup-map-top" className="py-3" />
 
           {/* Map section */}
           <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-8">

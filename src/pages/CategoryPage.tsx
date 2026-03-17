@@ -155,7 +155,7 @@ const CategoryPage = () => {
         </div>
       </div>
 
-      <AdBanner />
+      <AdBanner variant="leaderboard" adSlot="eup-category-top" className="py-3" />
 
       <div className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
         {/* Article list */}
@@ -227,7 +227,7 @@ const CategoryPage = () => {
           )}
         </div>
 
-        {/* Premium CTA */}
+        {/* Premium CTA + Sidebar Ad */}
         <div className="hidden md:block">
           <div className="sticky top-24 border border-border rounded-xl p-5 bg-card">
             <p className="text-xs font-semibold text-primary mb-2">
@@ -247,12 +247,17 @@ const CategoryPage = () => {
               View Premium Plans →
             </Link>
           </div>
+          <div className="mt-4">
+            <AdBanner variant="sidebar" adSlot="eup-category-sidebar" />
+          </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-8">
         <EmailSignup variant="card" />
       </div>
+
+      <AdBanner variant="leaderboard" adSlot="eup-category-bottom" className="py-3" />
 
       <Footer />
     </div>

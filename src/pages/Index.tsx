@@ -156,6 +156,8 @@ const Index = () => {
         </div>
       )}
 
+      <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+
       {/* Dashboard content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-6 md:pt-8">
         {/* Featured brief */}
@@ -186,6 +188,7 @@ const Index = () => {
             cards={laneData["ai-privacy"]}
           />
         )}
+        <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3" />
         {(laneData["us-states"]?.length ?? 0) > 0 && (
           <TopicLaneScroller
             laneTitle="U.S. State Developments"
@@ -212,12 +215,12 @@ const Index = () => {
         )}
       </div>
 
-      <AdBanner variant="leaderboard" className="py-4 bg-paper" />
+      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper" />
       <EmailSignup variant="strip" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
       <EnforcementTracker />
-      <AdBanner variant="inline" className="py-4 bg-paper" />
+      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <PremiumBanner />

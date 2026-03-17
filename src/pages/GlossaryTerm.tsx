@@ -3,6 +3,7 @@ import glossaryData from "@/data/glossary.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const GlossaryTerm = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -51,6 +52,8 @@ const GlossaryTerm = () => {
           <p className="text-sm text-muted-foreground leading-relaxed">{term.definition}</p>
           <p className="text-xs text-muted-foreground mt-4 italic">Source: {term.source}</p>
         </div>
+
+        <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
 
         {relatedTerms.length > 0 && (
           <div>

@@ -4,6 +4,7 @@ import comparisonData from "@/data/us_state_comparison.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const USStateComparison = () => {
   const [showAll, setShowAll] = useState(false);
@@ -36,6 +37,8 @@ const USStateComparison = () => {
             Include pending laws
           </label>
         </div>
+
+        <AdBanner variant="leaderboard" adSlot="eup-comparison-top" className="py-3" />
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
@@ -75,6 +78,8 @@ const USStateComparison = () => {
             </table>
           </div>
         </div>
+
+        <AdBanner variant="inline" adSlot="eup-comparison-bottom" className="py-3" />
       </div>
 
       <Footer />

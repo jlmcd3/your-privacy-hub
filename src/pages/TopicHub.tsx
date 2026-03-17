@@ -7,6 +7,7 @@ import EmailSignup from "@/components/EmailSignup";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 interface Update {
   id: string;
@@ -143,6 +144,8 @@ const TopicHub = () => {
           )}
         </div>
       </div>
+
+      <AdBanner variant="leaderboard" adSlot="eup-topichub-top" className="py-3" />
 
       <div className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
         {/* Article list */}

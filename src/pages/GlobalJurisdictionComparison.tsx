@@ -4,6 +4,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
+import AdBanner from "@/components/AdBanner";
 
 const DIMENSIONS = [
   { key: "hasLaw",          label: "Comprehensive Privacy Law",      type: "bool"   },
@@ -176,6 +177,7 @@ export default function GlobalJurisdictionComparison() {
               );
             })}
           </div>
+          <AdBanner variant="leaderboard" adSlot="eup-jurisdcomp-top" className="py-3" />
 
           <div className="overflow-x-auto rounded-2xl border border-fog shadow-eup-sm">
             <table className="w-full text-left border-collapse">

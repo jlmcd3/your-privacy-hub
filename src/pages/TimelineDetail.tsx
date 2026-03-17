@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 import gdprData from "@/data/timelines/gdpr-enforcement.json";
 import usStateData from "@/data/timelines/us-state-privacy-laws.json";
@@ -56,6 +57,7 @@ const TimelineDetail = () => {
   }
 
   const sorted = [...meta.data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const midIndex = Math.floor(sorted.length / 2);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -84,6 +86,8 @@ const TimelineDetail = () => {
         </div>
       </div>
 
+      <AdBanner variant="leaderboard" adSlot="eup-timeline-top" className="py-3 max-w-3xl mx-auto" />
+
       {/* Timeline */}
       <div className="max-w-3xl mx-auto px-4 pb-12 flex-1">
         <div className="relative">
@@ -95,27 +99,32 @@ const TimelineDetail = () => {
               const color = TYPE_COLORS[event.type] || TYPE_COLORS.milestone;
               const isFuture = new Date(event.date) > new Date();
               return (
-                <div key={i} className={`relative pl-8 ${isFuture ? "opacity-70" : ""}`}>
-                  {/* Dot */}
-                  <div className={`absolute left-0 top-1 w-[15px] h-[15px] rounded-full border-2 border-background ${color}`} />
+                <div key={i}>
+                  <div className={`relative pl-8 ${isFuture ? "opacity-70" : ""}`}>
+                    {/* Dot */}
+                    <div className={`absolute left-0 top-1 w-[15px] h-[15px] rounded-full border-2 border-background ${color}`} />
 
-                  <div className="flex items-baseline gap-3 mb-1">
-                    <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
-                      {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </span>
-                    <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${color} text-white`}>
-                      {TYPE_LABELS[event.type] || event.type}
-                    </span>
-                    {isFuture && <span className="text-[9px] font-bold text-muted-foreground uppercase">Upcoming</span>}
+                    <div className="flex items-baseline gap-3 mb-1">
+                      <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
+                        {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${color} text-white`}>
+                        {TYPE_LABELS[event.type] || event.type}
+                      </span>
+                      {isFuture && <span className="text-[9px] font-bold text-muted-foreground uppercase">Upcoming</span>}
+                    </div>
+
+                    <h3 className="text-sm font-semibold text-foreground mb-1">{event.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
+
+                    {event.source_url && event.source_url.startsWith("http") && (
+                      <a href={event.source_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline mt-1 inline-block no-underline">
+                        Source →
+                      </a>
+                    )}
                   </div>
-
-                  <h3 className="text-sm font-semibold text-foreground mb-1">{event.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
-
-                  {event.source_url && event.source_url.startsWith("http") && (
-                    <a href={event.source_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline mt-1 inline-block no-underline">
-                      Source →
-                    </a>
+                  {i === midIndex && (
+                    <AdBanner variant="inline" adSlot="eup-timeline-mid" className="py-4" />
                   )}
                 </div>
               );

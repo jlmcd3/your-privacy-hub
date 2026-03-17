@@ -4,6 +4,7 @@ import glossaryData from "@/data/glossary.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AdBanner from "@/components/AdBanner";
 
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -20,6 +21,9 @@ const Glossary = () => {
     if (terms.length > 0) acc[letter] = terms;
     return acc;
   }, {} as Record<string, typeof glossaryData>);
+
+  const groupedEntries = Object.entries(grouped);
+  const midIndex = Math.ceil(groupedEntries.length / 2);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -60,26 +64,33 @@ const Glossary = () => {
           ))}
         </div>
 
-        {Object.entries(grouped).map(([letter, terms]) => (
-          <div key={letter} id={`letter-${letter}`} className="mb-8">
-            <h2 className="text-xl font-bold text-foreground mb-4 border-b border-border pb-2">{letter}</h2>
-            <div className="space-y-3">
-              {terms.map((t) => (
-                <Link
-                  key={t.slug}
-                  to={`/glossary/${t.slug}`}
-                  className="block p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all no-underline"
-                >
-                  <h3 className="text-sm font-semibold text-foreground mb-1">{t.term}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.definition}</p>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {t.regulations.map((r) => (
-                      <span key={r} className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
-                    ))}
-                  </div>
-                </Link>
-              ))}
+        <AdBanner variant="leaderboard" adSlot="eup-glossary-top" className="py-3" />
+
+        {groupedEntries.map(([letter, terms], idx) => (
+          <div key={letter}>
+            <div id={`letter-${letter}`} className="mb-8">
+              <h2 className="text-xl font-bold text-foreground mb-4 border-b border-border pb-2">{letter}</h2>
+              <div className="space-y-3">
+                {terms.map((t) => (
+                  <Link
+                    key={t.slug}
+                    to={`/glossary/${t.slug}`}
+                    className="block p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all no-underline"
+                  >
+                    <h3 className="text-sm font-semibold text-foreground mb-1">{t.term}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.definition}</p>
+                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                      {t.regulations.map((r) => (
+                        <span key={r} className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
+                      ))}
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
+            {idx === midIndex - 1 && (
+              <AdBanner variant="inline" adSlot="eup-glossary-mid" className="py-4" />
+            )}
           </div>
         ))}
 
