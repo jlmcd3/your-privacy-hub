@@ -77,7 +77,6 @@ const USStateComparison = () => {
               </tbody>
             </table>
           </div>
-          </div>
         </div>
 
         <AdBanner variant="inline" adSlot="eup-comparison-bottom" className="py-3" />
