@@ -247,6 +247,7 @@ export default function SpinTheGlobe() {
     const animate = () => {
       animRef.current = requestAnimationFrame(animate);
       globe.rotation.y += spinRef.current;
+      starCanvas.style.opacity = (0.5 + 0.3 * Math.sin(Date.now() * 0.001 + 1.5)).toFixed(3);
       pulseRef.current += 0.04;
 
       const sr = sceneRef.current;
