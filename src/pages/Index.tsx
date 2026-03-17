@@ -127,7 +127,7 @@ const Index = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Global Privacy Regulation Intelligence | EndUserPrivacy</title>
-        <meta name="description" content="Monitor 250+ privacy authorities across 150+ jurisdictions. AI-summarized enforcement actions, GDPR, CCPA, AI Act and global privacy updates." />
+        <meta name="description" content="Monitor 119 privacy authorities across 150+ jurisdictions. AI-summarized enforcement actions, GDPR, CCPA, AI Act and global privacy updates." />
       </Helmet>
       <Topbar />
       <BreakingNewsBanner />
