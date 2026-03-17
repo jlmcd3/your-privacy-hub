@@ -130,6 +130,8 @@ export default function LegislationTracker() {
             </div>
           </div>
 
+          <AdBanner variant="leaderboard" adSlot="eup-legislation-top" className="py-3" />
+
           <div className="space-y-4">
             {filtered.map(bill => {
               const cfg = STAGE_CONFIG[bill.stage];
