@@ -40,6 +40,7 @@ import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
+import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
           <Route path="/timelines" element={<Timelines />} />
           <Route path="/timelines/:slug" element={<TimelineDetail />} />
           <Route path="/compare/us-states" element={<USStateComparison />} />
+          <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />

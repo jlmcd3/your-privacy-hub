@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import EmailSignup from "@/components/EmailSignup";
+import EnforcementCharts from "@/components/enforcement/EnforcementCharts";
 
 interface EnforcementAction {
   id: string;
@@ -255,6 +256,8 @@ const EnforcementTrackerPage = () => {
             </div>
           </div>
         )}
+
+        <EnforcementCharts />
 
         <div className="mt-8">
           <EmailSignup variant="card" />
