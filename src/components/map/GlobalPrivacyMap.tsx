@@ -254,11 +254,14 @@ export default function GlobalPrivacyMap() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
           {gridItems.map((j: any) => (
-            <Link
+            <a
               key={j.slug}
-              to={`/jurisdiction/${j.slug}`}
-              className="bg-white rounded-xl border border-fog p-4 text-left hover:shadow-eup-sm hover:-translate-y-0.5 transition-all cursor-pointer no-underline"
-              style={{ borderLeftWidth: 3, borderLeftColor: STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color }}
+              href={`/jurisdiction/${j.slug}`}
+              className="bg-white rounded-xl border border-fog p-4 text-left hover:shadow-eup-sm hover:-translate-y-0.5 transition-all cursor-pointer no-underline block"
+              style={{
+                borderLeftWidth: 3,
+                borderLeftColor: STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color,
+              }}
             >
               <div className="text-2xl mb-1.5 flag-emoji">{j.flag}</div>
               <div className="font-bold text-navy text-[13px] leading-tight">{j.name}</div>
@@ -266,7 +269,7 @@ export default function GlobalPrivacyMap() {
               <div
                 className="inline-block mt-2 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
                 style={{
-                  background: `${STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color}15`,
+                  background: `${STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color}18`,
                   color: STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color,
                 }}
               >
@@ -277,7 +280,7 @@ export default function GlobalPrivacyMap() {
                   ⚖️ {j.fines.length} fine{j.fines.length > 1 ? "s" : ""}
                 </div>
               )}
-            </Link>
+            </a>
           ))}
         </div>
       )}

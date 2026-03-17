@@ -45,7 +45,7 @@ export default function FeaturedBriefCard({
           <span className="text-blue-200 text-xs">{date}</span>
         </div>
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl flex-shrink-0">{jurisdictionFlag}</span>
+          <span className="text-2xl flex-shrink-0 flag-emoji">{getFlag(jurisdictionFlag) !== "🌐" ? getFlag(jurisdictionFlag) : jurisdictionFlag}</span>
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1 block">
               {category} · {jurisdiction}
