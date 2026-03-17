@@ -75,10 +75,10 @@ export default function JurisdictionsHub() {
 
               <div className="flex gap-6 mt-6 flex-wrap">
                 {[
-                  { color: "#0d2240", num: "42",   label: "Comprehensive laws"      },
-                  { color: "#1d4ed8", num: "14",   label: "Sector-specific"         },
-                  { color: "#38bdf8", num: "12",   label: "Partial coverage"        },
-                  { color: "#93c5fd", num: "9",    label: "Proposed / In progress"  },
+                  { color: "#1a8a52", num: "46",   label: "Comprehensive laws"      },
+                  { color: "#2563eb", num: "3",    label: "Sector-specific"         },
+                  { color: "#38bdf8", num: "14",   label: "Partial coverage"        },
+                  { color: "#d4a017", num: "7",    label: "Proposed / In progress"  },
                 ].map((stat) => (
                   <div key={stat.label} className="flex items-center gap-2.5">
                     <div
@@ -98,6 +98,11 @@ export default function JurisdictionsHub() {
           {/* Map section */}
           <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-8">
             <GlobalPrivacyMap />
+            <p className="text-xs text-slate-light text-center mt-3">
+              Some small jurisdictions (e.g. Singapore, Luxembourg city-state areas) are
+              tracked in our database but are too small to render at this map scale.
+              Use Grid view or search to find them.
+            </p>
           </div>
 
           {/* Recently updated strip — dynamic */}
