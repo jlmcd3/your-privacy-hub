@@ -58,6 +58,50 @@ const RSS_SOURCES = [
     defaultCategory: "global",
     regulator: "Future of Privacy Forum",
   },
+  // ── Litigation / Courts ──────────────────────────────────────────────
+  {
+    url: "https://feeds.law360.com/privacy",
+    source: "Law360 Privacy",
+    domain: "law360.com",
+    defaultCategory: "enforcement",
+    regulator: "Law360",
+  },
+  {
+    url: "https://www.reuters.com/legal/privacy/rss",
+    source: "Reuters Legal",
+    domain: "reuters.com",
+    defaultCategory: "enforcement",
+    regulator: "Reuters Legal",
+  },
+  {
+    url: "https://www.jdsupra.com/topics/privacy/rss/",
+    source: "JD Supra Privacy",
+    domain: "jdsupra.com",
+    defaultCategory: "global",
+    regulator: "JD Supra",
+  },
+  // ── Additional regulatory sources ────────────────────────────────────
+  {
+    url: "https://www.ico.org.uk/about-the-ico/media-centre/news-and-blogs/rss/",
+    source: "ICO",
+    domain: "ico.org.uk",
+    defaultCategory: "eu-uk",
+    regulator: "Information Commissioner's Office",
+  },
+  {
+    url: "https://www.dataprotection.ie/en/news-media/press-releases/rss",
+    source: "DPC Ireland",
+    domain: "dataprotection.ie",
+    defaultCategory: "eu-uk",
+    regulator: "Data Protection Commission",
+  },
+  {
+    url: "https://edps.europa.eu/press-publications/press-news/news_en/rss",
+    source: "EDPS",
+    domain: "edps.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "European Data Protection Supervisor",
+  },
 ];
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -93,6 +137,8 @@ function extractAllItems(xml: string): string[] {
 
 function categorize(title: string, description: string, defaultCat: string): string {
   const text = (title + " " + description).toLowerCase();
+  // Litigation-specific detection (check first)
+  if (/\b(class action|lawsuit filed|complaint filed|court filing|litigation|bipa|vppa|cipa|wiretap|suit alleges|plaintiffs allege|settlement reached|jury verdict|class certified)\b/.test(text)) return "enforcement";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";

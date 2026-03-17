@@ -222,6 +222,9 @@ const Dashboard = () => {
               <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} />
               <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} />
               <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} />
+              <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} />
+              <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} />
+              <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} />
             </div>
 
             {/* Enforcement table */}
@@ -263,6 +266,9 @@ const Dashboard = () => {
                 </div>
               </section>
             )}
+
+            {/* Enforcement trends */}
+            <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} />
 
             {/* Trend signal */}
             {brief.trend_signal && (

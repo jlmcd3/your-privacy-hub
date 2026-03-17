@@ -351,50 +351,68 @@ export type Database = {
       }
       weekly_briefs: {
         Row: {
+          ai_governance: string | null
           article_count: number | null
+          biometric_data: string | null
           created_at: string
           enforcement_table: Json | null
+          enforcement_trends: string | null
           eu_uk: string | null
           executive_summary: string
           global_developments: string | null
           headline: string
           id: string
+          privacy_litigation: string | null
           published_at: string
+          source_map: Json | null
           trend_signal: string | null
           us_federal: string | null
           us_states: string | null
+          verification_report: Json | null
           week_label: string
           why_this_matters: string | null
         }
         Insert: {
+          ai_governance?: string | null
           article_count?: number | null
+          biometric_data?: string | null
           created_at?: string
           enforcement_table?: Json | null
+          enforcement_trends?: string | null
           eu_uk?: string | null
           executive_summary: string
           global_developments?: string | null
           headline: string
           id?: string
+          privacy_litigation?: string | null
           published_at?: string
+          source_map?: Json | null
           trend_signal?: string | null
           us_federal?: string | null
           us_states?: string | null
+          verification_report?: Json | null
           week_label: string
           why_this_matters?: string | null
         }
         Update: {
+          ai_governance?: string | null
           article_count?: number | null
+          biometric_data?: string | null
           created_at?: string
           enforcement_table?: Json | null
+          enforcement_trends?: string | null
           eu_uk?: string | null
           executive_summary?: string
           global_developments?: string | null
           headline?: string
           id?: string
+          privacy_litigation?: string | null
           published_at?: string
+          source_map?: Json | null
           trend_signal?: string | null
           us_federal?: string | null
           us_states?: string | null
+          verification_report?: Json | null
           week_label?: string
           why_this_matters?: string | null
         }
