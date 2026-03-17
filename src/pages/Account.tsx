@@ -71,6 +71,10 @@ const Account = () => {
           >
             Sign Out
           </button>
+
+          <div className="mt-8">
+            <WatchlistManager isPremium={isPremium} />
+          </div>
         </div>
       </div>
       <Footer />
