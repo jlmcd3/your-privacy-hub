@@ -251,6 +251,7 @@ const CategoryPage = () => {
             <AdBanner variant="sidebar" adSlot="eup-category-sidebar" />
           </div>
         </div>
+      </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-8">
         <EmailSignup variant="card" />
