@@ -8,7 +8,7 @@ const About = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>About EndUserPrivacy | Privacy Regulatory Intelligence Platform</title>
-        <meta name="description" content="EndUserPrivacy monitors 250+ regulatory authorities daily and delivers AI-synthesized weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
+        <meta name="description" content="EndUserPrivacy monitors 119 regulatory authorities daily and delivers AI-synthesized weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
       </Helmet>
       <Topbar />
       <Navbar />

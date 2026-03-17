@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +21,7 @@ const features = [
 const comparisonRows = [
   { feature: "Daily privacy news feed", free: true, premium: true },
   { feature: "Jurisdiction profiles (150+ countries)", free: true, premium: true },
-  { feature: "Regulator directory (250+ authorities)", free: true, premium: true },
+  { feature: "Regulator directory (119 authorities)", free: true, premium: true },
   { feature: "Research guides (GDPR, AI, US laws)", free: true, premium: true },
   { feature: "Top 12 recent enforcement actions", free: true, premium: true },
   { feature: "Preview of weekly brief headline", free: true, premium: true },
@@ -90,6 +90,109 @@ const Subscribe = () => {
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
             Everything you can browse is always free. The first 25 subscribers get the full Intelligence Brief free for one year. After that, just $15/month.
           </p>
+        </div>
+      </div>
+
+      {/* Sample Brief Preview */}
+      <div className="max-w-[760px] mx-auto px-4 py-12">
+        <div className="text-center mb-6">
+          <h2 className="font-display font-bold text-navy text-2xl mb-2">
+            What does the Intelligence Brief look like?
+          </h2>
+          <p className="text-slate text-sm">
+            Every Monday morning, Premium subscribers receive this 8-section analysis.
+            Here's a real excerpt from Week 11, 2026.
+          </p>
+        </div>
+
+        <div className="space-y-3 mb-5">
+          {/* Executive Summary preview */}
+          <div className="bg-card border border-fog rounded-xl p-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
+                ✓ FREE PREVIEW
+              </span>
+              <span className="text-[10px] text-slate-light uppercase tracking-wider">Executive Summary</span>
+            </div>
+            <p className="text-[13px] text-slate leading-relaxed line-clamp-3">
+              This week's dominant regulatory theme is enforcement convergence: three separate
+              authorities — the UK ICO, Texas AG, and EU EDPB — each took significant action
+              within the same seven-day window, signaling accelerating enforcement activity
+              across all major jurisdictions simultaneously.
+            </p>
+          </div>
+
+          {/* Enforcement Table preview */}
+          <div className="bg-card border border-amber-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                ⭐ Premium
+              </span>
+              <span className="text-[10px] text-slate-light uppercase tracking-wider">Enforcement Table</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[12px]">
+                <thead>
+                  <tr className="border-b border-fog text-[10px] uppercase tracking-wider text-slate">
+                    <th className="pb-2 pr-3 text-left font-semibold">Regulator</th>
+                    <th className="pb-2 pr-3 text-left font-semibold">Company</th>
+                    <th className="pb-2 pr-3 text-left font-semibold">Fine</th>
+                    <th className="pb-2 text-left font-semibold">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { reg: "ICO (UK)", co: "TikTok Ltd", fine: "£12.7M", date: "Mar 3" },
+                    { reg: "Texas AG", co: "DataConnect Inc", fine: "$14.2M", date: "Mar 9" },
+                    { reg: "CNIL (France)", co: "Clearview AI", fine: "€20M", date: "Mar 8" },
+                  ].map((r, i) => (
+                    <tr key={i} className="border-b border-fog/50 last:border-0">
+                      <td className="py-2 pr-3 font-medium text-navy">{r.reg}</td>
+                      <td className="py-2 pr-3 text-slate">{r.co}</td>
+                      <td className="py-2 pr-3 font-semibold text-navy">{r.fine}</td>
+                      <td className="py-2 text-slate">{r.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 text-center">
+              <span className="text-[11px] text-slate-light italic">+ 4 more enforcement actions in the full brief</span>
+            </div>
+          </div>
+
+          {/* Action Items preview — blurred */}
+          <div className="relative bg-card border border-amber-200 rounded-xl p-5 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white z-10 flex flex-col items-center justify-end pb-4">
+              <p className="text-[12px] font-semibold text-navy mb-2">
+                🔒 "Why This Matters" action items — Premium only
+              </p>
+              <Link
+                to="/subscribe"
+                className="bg-navy text-white font-semibold text-[12px] px-5 py-2 rounded-lg no-underline hover:opacity-90"
+              >
+                Unlock for $15/month →
+              </Link>
+            </div>
+            <div className="filter blur-[3px] select-none">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-3 block w-fit">⭐ Premium</span>
+              <p className="text-[10px] text-slate-light uppercase tracking-wider mb-3">Why This Matters — Action Items for GC/CPO</p>
+              <p className="text-[13px] text-slate leading-relaxed">
+                Review your children's data practices immediately. The ICO's TikTok fine establishes
+                that legitimate interests cannot justify algorithmic personalization for minors.
+                If your platform serves or may serve users under 18, review consent mechanisms...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <Link
+            to="/sample-brief"
+            className="text-blue font-semibold text-sm no-underline hover:text-navy transition-colors"
+          >
+            Read the full sample brief →
+          </Link>
         </div>
       </div>
 

@@ -103,7 +103,7 @@ const Hero = () => {
             <em className="italic text-white/80"> for those who need the full picture.</em>
           </h1>
           <p className="text-sm md:text-base text-slate-light leading-relaxed max-w-[600px] mx-auto mb-7 md:mb-9">
-            Stay ahead of every regulator. 250+ authorities, 150+ jurisdictions, monitored 24/7 so you don't have to.
+            Stay ahead of every regulator. 119 authorities, 150+ jurisdictions, monitored 24/7 so you don't have to.
           </p>
           <div className="flex gap-3 items-center justify-center flex-wrap">
             <Link to="/enforcement-tracker" className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all no-underline inline-flex items-center gap-2">
@@ -116,7 +116,7 @@ const Hero = () => {
 
           {/* Stat strip */}
           <div className="flex items-center justify-center gap-2 mt-6 text-[12px] text-slate-light tracking-wide">
-            <span>250+ Regulators</span>
+            <span>119 Regulators</span>
             <span className="text-white/30">·</span>
             <span>150+ Jurisdictions</span>
             <span className="text-white/30">·</span>
@@ -145,7 +145,7 @@ const Hero = () => {
 
           <div className="flex justify-center gap-5 md:gap-7 mt-8 md:mt-11 pt-6 md:pt-8 border-t border-white/10 flex-wrap">
             {[
-              { num: "250+", label: "Regulators monitored" },
+              { num: "119", label: "Regulators monitored" },
               { num: "150+", label: "Jurisdictions covered" },
               { num: "Daily", label: "Automated updates" },
               { num: "$0", label: "Always free to browse" },

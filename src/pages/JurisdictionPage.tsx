@@ -428,6 +428,12 @@ const JurisdictionPage = () => {
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             View Premium Plans →
           </Link>
+          <p className="mt-3 text-slate-light text-[12px]">
+            Not sure yet?{" "}
+            <Link to="/sample-brief" className="text-sky hover:text-white transition-colors no-underline underline underline-offset-2">
+              See a sample brief first →
+            </Link>
+          </p>
         </div>
       </div>
       <Footer />

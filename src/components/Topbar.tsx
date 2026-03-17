@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
@@ -40,7 +41,7 @@ const Topbar = () => {
         <div className="flex gap-5 items-center">
           <span className="flex items-center gap-1.5 text-accent-light font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-accent-light animate-pulse-dot" />
-            Live · 250+ regulators · 150+ jurisdictions · Updated daily
+            Live · 119 regulators · 150+ jurisdictions · Updated daily
           </span>
           <span className="text-navy-light hidden lg:inline">·</span>
           <span className="hidden lg:inline">Last update: {lastUpdate}</span>
@@ -48,9 +49,9 @@ const Topbar = () => {
           <a href="#" className="hover:text-sky transition-colors hidden xl:inline">{briefLabel}</a>
         </div>
         <div className="flex gap-4 items-center">
-          <a href="#" className="hover:text-sky transition-colors">About</a>
-          <a href="#" className="hover:text-sky transition-colors">Contact</a>
-          <a href="#" className="hover:text-sky transition-colors">Log In</a>
+          <Link to="/about" className="hover:text-sky transition-colors no-underline text-slate-light">About</Link>
+          <Link to="/contact" className="hover:text-sky transition-colors no-underline text-slate-light">Contact</Link>
+          <Link to="/login" className="hover:text-sky transition-colors no-underline text-slate-light">Log In</Link>
         </div>
       </div>
     </div>

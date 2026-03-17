@@ -89,7 +89,7 @@ const EnforcementTrackerPage = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Privacy Enforcement Tracker | EndUserPrivacy</title>
-        <meta name="description" content="Track privacy fines and enforcement actions from the FTC, ICO, CNIL, EDPB and 250+ global authorities. Updated daily." />
+        <meta name="description" content="Track privacy fines and enforcement actions from the FTC, ICO, CNIL, EDPB and 119 global authorities. Updated daily." />
       </Helmet>
       <Topbar />
       <Navbar />

@@ -1,10 +1,48 @@
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
 
 export default function JurisdictionsHub() {
+  const [recentUpdates, setRecentUpdates] = useState([
+    { flag: "🇫🇷", name: "France", update: "Clearview AI €20M fine", days: "2 days ago" },
+    { flag: "🇬🇧", name: "UK", update: "DUAA provisions in force", days: "5 days ago" },
+    { flag: "🇮🇳", name: "India", update: "DPDP rules draft released", days: "1 week ago" },
+    { flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
+    { flag: "🇺🇸", name: "US Federal", update: "FTC AI commercial practices", days: "10 days ago" },
+  ]);
+
+  useEffect(() => {
+    supabase
+      .from("updates")
+      .select("title, category, published_at")
+      .order("published_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const mapped = data.map((a: any) => ({
+            flag: ({ "eu-uk": "🇪🇺", "us-federal": "🇺🇸", "us-states": "🗺️",
+                    "global": "🌐", "enforcement": "⚖️", "ai-privacy": "🤖" } as Record<string, string>)[a.category] ?? "🌐",
+            name: ({ "eu-uk": "EU & UK", "us-federal": "U.S. Federal", "us-states": "U.S. States",
+                    "global": "Global", "enforcement": "Enforcement", "ai-privacy": "AI & Privacy" } as Record<string, string>)[a.category] ?? a.category,
+            update: a.title.length > 55 ? a.title.substring(0, 52) + "…" : a.title,
+            days: (() => {
+              const diff = Date.now() - new Date(a.published_at).getTime();
+              const days = Math.floor(diff / 86400000);
+              if (days === 0) return "Today";
+              if (days === 1) return "Yesterday";
+              if (days < 7) return `${days} days ago`;
+              return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
+            })(),
+          }));
+          setRecentUpdates(mapped);
+        }
+      });
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -62,20 +100,14 @@ export default function JurisdictionsHub() {
             <GlobalPrivacyMap />
           </div>
 
-          {/* Recently updated strip */}
+          {/* Recently updated strip — dynamic */}
           <div className="border-t border-fog bg-white">
             <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-6">
               <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
                 🕐 Recently Updated Jurisdictions
               </h2>
               <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-                {[
-                  { flag: "🇫🇷", name: "France", update: "Clearview AI €20M fine", days: "2 days ago" },
-                  { flag: "🇬🇧", name: "UK", update: "DUAA provisions in force", days: "5 days ago" },
-                  { flag: "🇮🇳", name: "India", update: "DPDP rules draft released", days: "1 week ago" },
-                  { flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
-                  { flag: "🇺🇸", name: "US Federal", update: "FTC AI commercial practices", days: "10 days ago" },
-                ].map((item) => (
+                {recentUpdates.map((item) => (
                   <div
                     key={item.name}
                     className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs"
