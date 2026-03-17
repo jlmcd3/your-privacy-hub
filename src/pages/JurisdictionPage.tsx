@@ -104,44 +104,74 @@ const JurisdictionPage = () => {
   useEffect(() => {
     if (!jurisdiction) return;
     setDevLoading(true);
+
     (async () => {
+      // Fetch a larger pool so we can score relevance properly
       const { data, error } = await (supabase as any)
         .from("updates")
         .select("id,title,summary,url,source_domain,source_name,image_url,category,published_at")
         .eq("category", derivedCategory)
         .order("published_at", { ascending: false })
-        .limit(20);
+        .limit(60);
+
       if (error || !data || data.length === 0) {
         setDevArticles(null);
         setDevLoading(false);
         return;
       }
 
-      const term = jurisdiction.name.toLowerCase();
-      const sorted = [...data].sort((a: any, b: any) => {
-        const aMatch = (a.title + " " + (a.summary || "")).toLowerCase().includes(term);
-        const bMatch = (b.title + " " + (b.summary || "")).toLowerCase().includes(term);
-        if (aMatch && !bMatch) return -1;
-        if (!aMatch && bMatch) return 1;
-        return 0;
-      });
-      let top4 = sorted.slice(0, 4);
+      // Build a relevance score for each article based on jurisdiction name mentions
+      const name = jurisdiction.name.toLowerCase();
+      const authorityTerms = jurisdiction.authorities
+        .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
+      const allTerms = [name, ...authorityTerms];
 
-      // Show articles immediately
-      setDevArticles(top4);
+      const scored = data.map((a: any) => {
+        const text = ((a.title || "") + " " + (a.summary || "")).toLowerCase();
+        const titleLower = (a.title || "").toLowerCase();
+        let score = 0;
+        if (allTerms.some(t => titleLower.includes(t))) score += 3;
+        if (allTerms.some(t => text.includes(t))) score += 1;
+        // Recency bonus: articles within 7 days get +1
+        const ageMs = Date.now() - new Date(a.published_at).getTime();
+        if (ageMs < 7 * 24 * 60 * 60 * 1000) score += 1;
+        return { ...a, _score: score, _isExact: score >= 3 };
+      });
+
+      const sorted = scored.sort((a: any, b: any) => {
+        if (b._score !== a._score) return b._score - a._score;
+        return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+      });
+
+      const top8 = sorted.slice(0, 8);
+      setDevArticles(top8);
       setDevLoading(false);
 
       // Translate non-English articles in background
-      const nonEnglish = top4.filter((a: any) => isLikelyNonEnglish(a.title + " " + (a.summary || "")));
+      const nonEnglish = top8.filter((a: any) =>
+        isLikelyNonEnglish(a.title + " " + (a.summary || ""))
+      );
       if (nonEnglish.length > 0) {
         try {
           const { data: translated } = await supabase.functions.invoke("translate-articles", {
-            body: { articles: nonEnglish.map((a: any) => ({ id: a.id, title: a.title, summary: a.summary })) },
+            body: {
+              articles: nonEnglish.map((a: any) => ({
+                id: a.id, title: a.title, summary: a.summary,
+              })),
+            },
           });
           if (translated?.articles) {
-            const translatedMap = new Map(translated.articles.map((t: any) => [t.id, t]));
+            const translatedMap = new Map(
+              translated.articles.map((t: any) => [t.id, t])
+            );
             setDevArticles(prev =>
-              prev ? prev.map((a: any) => translatedMap.has(a.id) ? { ...a, ...(translatedMap.get(a.id) as any) } : a) : prev
+              prev
+                ? prev.map((a: any) =>
+                    translatedMap.has(a.id)
+                      ? { ...a, ...(translatedMap.get(a.id) as any) }
+                      : a
+                  )
+                : prev
             );
           }
         } catch (e) {
@@ -165,6 +195,9 @@ const JurisdictionPage = () => {
       </div>
     );
   }
+
+  const categoryLabel = derivedCategory === "eu-uk" ? "EU & UK" :
+    derivedCategory === "us-federal" ? "U.S. Federal" : "Global";
 
   return (
     <div className="min-h-screen bg-paper">
@@ -196,6 +229,22 @@ const JurisdictionPage = () => {
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
           <h2 className="font-display text-xl text-navy mb-3">Overview</h2>
           <p className="text-[14px] text-slate leading-relaxed">{jurisdiction.overview}</p>
+        </div>
+
+        {/* Key Facts strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {[
+            { label: "Region", value: jurisdiction.region, icon: "🌍" },
+            { label: "Authorities", value: `${jurisdiction.authorities.length} regulator${jurisdiction.authorities.length !== 1 ? "s" : ""}`, icon: "🏛️" },
+            { label: "Coverage", value: `${categoryLabel} feed`, icon: "📡" },
+            { label: "Updates", value: "Daily monitoring", icon: "🔄" },
+          ].map((fact) => (
+            <div key={fact.label} className="bg-card border border-fog rounded-xl p-4 text-center">
+              <div className="text-2xl mb-1">{fact.icon}</div>
+              <div className="text-[11px] text-slate-light uppercase tracking-wider mb-0.5">{fact.label}</div>
+              <div className="text-[13px] font-bold text-navy">{fact.value}</div>
+            </div>
+          ))}
         </div>
 
         {/* Authorities */}
@@ -262,8 +311,15 @@ const JurisdictionPage = () => {
         {/* Recent Developments from category */}
         {devLoading ? (
           <div className="mb-10">
-            <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
-            <p className="text-sm text-slate mb-4">Latest regulatory news from {jurisdiction.name} and its authorities</p>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="font-display text-[20px] text-navy">Recent Developments</h2>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">
+                Live
+              </span>
+            </div>
+            <p className="text-sm text-slate mb-4">
+              Top stories relevant to {jurisdiction.name} — AI-curated from our daily monitoring
+            </p>
             <div className="flex flex-col gap-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
@@ -272,8 +328,15 @@ const JurisdictionPage = () => {
           </div>
         ) : devArticles ? (
           <div className="mb-10">
-            <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
-            <p className="text-sm text-slate mb-4">Latest regulatory news from {jurisdiction.name} and its authorities</p>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="font-display text-[20px] text-navy">Recent Developments</h2>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">
+                Live
+              </span>
+            </div>
+            <p className="text-sm text-slate mb-4">
+              Top stories relevant to {jurisdiction.name} — AI-curated from our daily monitoring
+            </p>
             <div className="space-y-2">
               {devArticles.map((a: any) => (
                 <a
@@ -284,26 +347,57 @@ const JurisdictionPage = () => {
                   className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
                 >
                   {a.image_url && (
-                    <img src={a.image_url} alt="" className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0" />
+                    <img
+                      src={a.image_url}
+                      alt=""
+                      className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0"
+                    />
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5">
-                      {a.source_domain || a.source_name}{a.wasTranslated && <span className="text-[10px] text-slate/60 ml-1 normal-case">🌐 Translated</span>} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5 flex items-center gap-2 flex-wrap">
+                      <span>{a.source_domain || a.source_name}</span>
+                      {a.wasTranslated && (
+                        <span className="text-[10px] text-slate/60 normal-case">🌐 Translated</span>
+                      )}
+                      {!a._isExact && (
+                        <span className="text-[9px] bg-fog text-slate-light px-1.5 py-0.5 rounded-full normal-case font-normal">
+                          Regional
+                        </span>
+                      )}
+                      <span>·</span>
+                      <span>
+                        {new Date(a.published_at).toLocaleDateString("en-US", {
+                          month: "short", day: "numeric", year: "numeric",
+                        })}
+                      </span>
                     </div>
                     <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
                       {a.title}
                     </p>
                     {a.summary && (
-                      <p className="text-[12px] text-slate line-clamp-2 mt-0.5 mb-0">{a.summary}</p>
+                      <p className="text-[12px] text-slate line-clamp-2 mt-0.5 mb-0">
+                        {a.summary}
+                      </p>
                     )}
                   </div>
-                  <ExternalLink size={14} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+                  <ExternalLink
+                    size={14}
+                    className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1"
+                  />
                 </a>
               ))}
             </div>
-            <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-medium no-underline mt-3 inline-block hover:text-navy transition-colors">
-              View all updates →
-            </Link>
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-fog">
+              <p className="text-[11px] text-slate-light">
+                Showing top {devArticles.length} articles from the {categoryLabel} feed most relevant to {jurisdiction.name}
+              </p>
+              <Link
+                to={`/category/${derivedCategory}`}
+                className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors"
+              >
+                View all {categoryLabel} updates →
+              </Link>
+            </div>
           </div>
         ) : null}
 

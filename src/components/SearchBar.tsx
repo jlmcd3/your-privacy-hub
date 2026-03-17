@@ -2,26 +2,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 
-const lawChips = ["GDPR", "CCPA", "LGPD", "UK GDPR", "EU AI Act"];
-const topicChips = [
-  { label: "Enforcement fines", href: "/category/enforcement" },
-  { label: "AI regulation", href: "/topics/ai-governance" },
-  { label: "Data transfers", href: "/topics/data-transfers" },
-  { label: "Children's privacy", href: "/topics/children-privacy" },
+const QUICK_LINKS = [
+  { label: "🇪🇺 GDPR",         href: "/jurisdiction/european-union" },
+  { label: "🇺🇸 US State Laws", href: "/us-state-privacy-laws"       },
+  { label: "🤖 AI Act",         href: "/topics/ai-governance"         },
+  { label: "⚖️ Enforcement",    href: "/enforcement-tracker"          },
+  { label: "🌐 Global Laws",    href: "/global-privacy-laws"          },
+  { label: "Enforcement fines", href: "/category/enforcement"         },
+  { label: "Data transfers",    href: "/topics/data-transfers"        },
+  { label: "Children's privacy",href: "/topics/children-privacy"      },
 ];
 
 const SearchBar = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
-  const handleSearch = (term: string) => {
-    setQuery(term);
-    navigate(`/search?q=${encodeURIComponent(term)}`);
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+      navigate(`/updates?q=${encodeURIComponent(query.trim())}`);
     }
   };
 
@@ -40,26 +38,14 @@ const SearchBar = () => {
           />
         </div>
         <div className="flex gap-1.5 items-center flex-wrap">
-          <span className="text-[10px] text-slate/60 font-semibold tracking-wider uppercase">Laws</span>
-          {lawChips.map((label) => (
-            <span
-              key={label}
-              onClick={() => handleSearch(label)}
-              className="text-[12px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full border border-fog cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap"
+          {QUICK_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-[12px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full border border-fog cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap no-underline"
             >
-              {label}
-            </span>
-          ))}
-          <div className="w-px h-4 bg-fog mx-1" />
-          <span className="text-[10px] text-slate/60 font-semibold tracking-wider uppercase">Topics</span>
-          {topicChips.map((chip) => (
-            <span
-              key={chip.label}
-              onClick={() => navigate(chip.href)}
-              className="text-[12px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full border border-fog cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap"
-            >
-              {chip.label}
-            </span>
+              {link.label}
+            </a>
           ))}
         </div>
       </div>

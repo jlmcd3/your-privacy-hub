@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 const ISO_TO_FLAG: Record<string, string> = {
   "US": "🇺🇸", "EU": "🇪🇺", "GB": "🇬🇧", "FR": "🇫🇷", "DE": "🇩🇪",
   "IT": "🇮🇹", "ES": "🇪🇸", "NL": "🇳🇱", "IE": "🇮🇪", "BE": "🇧🇪",
@@ -58,12 +56,14 @@ export default function FeaturedBriefCard({
         <p className="text-blue-100 text-sm leading-relaxed mb-5 max-w-2xl">
           {summary}
         </p>
-        <Link
-          to={href}
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 transition-all text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline"
         >
-          Read full analysis →
-        </Link>
+          Read full analysis ↗
+        </a>
       </div>
     </div>
   );
