@@ -162,7 +162,7 @@ const Index = () => {
         {topArticle && (
           <FeaturedBriefCard
             headline={topArticle.title}
-            summary={topArticle.summary || ""}
+            summary={decodeHtml(topArticle.summary)}
             jurisdiction={CATEGORY_META[topArticle.category]?.jurisdiction || topArticle.category}
             jurisdictionFlag={CATEGORY_META[topArticle.category]?.flag || "🌐"}
             category={topArticle.category}
