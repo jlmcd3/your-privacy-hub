@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import * as d3 from "d3";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import MapLegend, { STATUS_CONFIG } from "./MapLegend";
 
 // Key = ISO numeric country code (matches topojson world-atlas)
