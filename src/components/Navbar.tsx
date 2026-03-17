@@ -56,6 +56,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Jurisdictions",
+    href: "/jurisdictions",
     wide: true,
     sections: [
       { header: "Americas", items: [
@@ -164,12 +165,22 @@ const Navbar = () => {
               onMouseEnter={() => setOpenDropdown(item.label)}
               onMouseLeave={() => setOpenDropdown(null)}
             >
-              <button
-                className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy"
-              >
-                {item.label}
-                {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
-              </button>
+              {item.href ? (
+                <Link
+                  to={item.href}
+                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors text-slate hover:text-navy no-underline"
+                >
+                  {item.label}
+                  {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy"
+                >
+                  {item.label}
+                  {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
+                </button>
+              )}
 
               {item.sections && openDropdown === item.label && (
                 <div className="absolute top-full left-0 pt-1 z-50">
