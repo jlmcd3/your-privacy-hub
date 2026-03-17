@@ -94,6 +94,19 @@ const Dashboard = () => {
     load();
   }, [user, isPremium]);
 
+  // Fetch custom brief for Pro users
+  useEffect(() => {
+    if (!user) return;
+    (supabase as any)
+      .from("custom_briefs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }: any) => setCustomBrief(data));
+  }, [user]);
+
   if (authLoading || isPremium === null) {
     return (
       <div className="min-h-screen bg-background">
