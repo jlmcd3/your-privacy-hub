@@ -160,7 +160,7 @@ const LatestUpdates = () => {
           .from("updates")
           .select("*")
           .order("published_at", { ascending: false })
-          .limit(30);
+          .limit(50);
 
         if (!error && data && data.length > 0) {
           setUpdates(data as Update[]);
