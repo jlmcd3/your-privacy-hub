@@ -170,7 +170,7 @@ export default function GlobalJurisdictionComparison() {
                       : "bg-white text-slate border-fog hover:border-navy/30"
                   }`}
                 >
-                  {j.flag} {j.name}
+                  <span className="flag-emoji">{j.flag}</span> {j.name}
                   {active && <span className="ml-0.5 opacity-70">✓</span>}
                 </button>
               );
