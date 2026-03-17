@@ -227,7 +227,7 @@ const CategoryPage = () => {
           )}
         </div>
 
-        {/* Premium CTA */}
+        {/* Premium CTA + Sidebar Ad */}
         <div className="hidden md:block">
           <div className="sticky top-24 border border-border rounded-xl p-5 bg-card">
             <p className="text-xs font-semibold text-primary mb-2">
@@ -247,8 +247,10 @@ const CategoryPage = () => {
               View Premium Plans →
             </Link>
           </div>
+          <div className="mt-4">
+            <AdBanner variant="sidebar" adSlot="eup-category-sidebar" />
+          </div>
         </div>
-      </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-8">
         <EmailSignup variant="card" />
