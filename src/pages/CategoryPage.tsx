@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
+import NewsfeedList from "@/components/NewsfeedList";
 import EmailSignup from "@/components/EmailSignup";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
