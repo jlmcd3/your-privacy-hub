@@ -60,6 +60,7 @@ const Calendar = () => {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+        <DeadlineCountdown />
         {/* Filter pills */}
         <div className="flex gap-2 flex-wrap mb-6">
           {FILTERS.map((f) => (

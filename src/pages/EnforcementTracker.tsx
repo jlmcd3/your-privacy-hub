@@ -257,6 +257,8 @@ const EnforcementTrackerPage = () => {
           </div>
         )}
 
+        <EnforcementCharts />
+
         <div className="mt-8">
           <EmailSignup variant="card" />
         </div>
