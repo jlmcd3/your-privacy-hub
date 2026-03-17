@@ -56,6 +56,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Jurisdictions",
+    href: "/jurisdictions",
     wide: true,
     sections: [
       { header: "Americas", items: [
