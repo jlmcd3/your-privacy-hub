@@ -75,9 +75,11 @@ export default function TopicLaneScroller({
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {cards.map((card, i) => (
-          <Link
+          <a
             key={i}
-            to={card.href}
+            href={card.href}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex-shrink-0 w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
           >
             <div className="flex items-center gap-1.5 mb-2">
@@ -100,7 +102,7 @@ export default function TopicLaneScroller({
             {card.date && (
               <p className="text-slate-light text-[10px] mt-2">{card.date}</p>
             )}
-          </Link>
+          </a>
         ))}
       </div>
     </div>
