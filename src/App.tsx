@@ -41,6 +41,7 @@ import SampleBrief from "./pages/SampleBrief.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
 import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
+import LegislationTracker from "./pages/LegislationTracker.tsx";
 
 const queryClient = new QueryClient();
 
