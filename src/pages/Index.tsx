@@ -38,6 +38,13 @@ const CATEGORY_META: Record<string, { flag: string; jurisdiction: string }> = {
   "ai-privacy": { flag: "🤖", jurisdiction: "AI & Privacy" },
 };
 
+function decodeHtml(str: string | null | undefined): string {
+  if (!str) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
