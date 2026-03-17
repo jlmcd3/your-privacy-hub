@@ -130,6 +130,13 @@ export default function JurisdictionsHub() {
               </div>
             </div>
           </div>
+
+          {/* Spin the Globe — desktop only */}
+          <div className="hidden md:block border-t border-fog bg-gradient-to-b from-white to-paper">
+            <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-16">
+              <SpinTheGlobe />
+            </div>
+          </div>
         </main>
 
         <Footer />
