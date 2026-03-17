@@ -71,7 +71,7 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
               </div>
               {i === Math.floor(sections.length / 2) - 1 && (
                 <>
-                  <AdBanner variant="inline" className="py-4" />
+                  <AdBanner variant="inline" adSlot={`eup-pillar-mid`} className="py-4" />
                   {/* Mid-content premium teaser */}
                   <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm my-2">
                     <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
