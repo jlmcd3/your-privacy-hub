@@ -39,7 +39,7 @@ const USStateComparison = () => {
         </div>
 
         <AdBanner variant="leaderboard" adSlot="eup-comparison-top" className="py-3" />
-          <div className="overflow-x-auto">
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-muted">
