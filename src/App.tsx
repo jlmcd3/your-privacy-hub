@@ -40,6 +40,7 @@ import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
+import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
 
 const queryClient = new QueryClient();
 
