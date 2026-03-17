@@ -77,6 +77,7 @@ const App = () => (
           <Route path="/compare/us-states" element={<USStateComparison />} />
           <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
           <Route path="/legislation-tracker" element={<LegislationTracker />} />
+          <Route path="/brief-preferences" element={<ProtectedRoute><BriefPreferences /></ProtectedRoute>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
