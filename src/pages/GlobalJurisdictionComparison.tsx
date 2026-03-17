@@ -170,7 +170,7 @@ export default function GlobalJurisdictionComparison() {
                       : "bg-white text-slate border-fog hover:border-navy/30"
                   }`}
                 >
-                  {j.flag} {j.name}
+                  <span className="flag-emoji">{j.flag}</span> {j.name}
                   {active && <span className="ml-0.5 opacity-70">✓</span>}
                 </button>
               );
@@ -186,7 +186,7 @@ export default function GlobalJurisdictionComparison() {
                   </th>
                   {cols.map(j => (
                     <th key={j.name} className="px-4 py-3 text-center min-w-[140px]">
-                      <div className="text-lg">{j.flag}</div>
+                      <div className="text-lg flag-emoji">{j.flag}</div>
                       <div className="text-white font-bold text-[13px]">{j.name}</div>
                     </th>
                   ))}

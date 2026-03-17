@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import * as d3 from "d3";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MapLegend, { STATUS_CONFIG } from "./MapLegend";
-import CountryPanel from "./CountryPanel";
 
 // Key = ISO numeric country code (matches topojson world-atlas)
 const JURISDICTIONS: Record<string, any> = {
@@ -53,10 +52,10 @@ const REGIONS = ["All Regions", "Americas", "Europe", "Asia-Pacific", "Africa & 
 export default function GlobalPrivacyMap() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const [worldData, setWorldData] = useState<any>(null);
   const [topoReady, setTopoReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<any>(null);
   const [tooltip, setTooltip] = useState<any>(null);
   const [region, setRegion] = useState("All Regions");
   const [view, setView] = useState<"map" | "grid">("map");
@@ -91,7 +90,7 @@ export default function GlobalPrivacyMap() {
     return () => obs.disconnect();
   }, []);
 
-  // Draw SVG map
+  // Draw SVG map — FIX 1: region added to deps, opacity filtering, direct navigation
   useEffect(() => {
     if (!worldData || !topoReady || !svgRef.current) return;
     const topo = (window as any).topojson;
@@ -104,20 +103,34 @@ export default function GlobalPrivacyMap() {
     const countries = topo.feature(worldData, worldData.objects.countries);
     const mesh = topo.mesh(worldData, worldData.objects.countries, (a: any, b: any) => a !== b);
 
-    svg.append("path").datum({ type: "Sphere" }).attr("d", path as any).attr("fill", "#deeef8").attr("stroke", "none");
+    svg.append("path")
+      .datum({ type: "Sphere" })
+      .attr("d", path as any)
+      .attr("fill", "#deeef8")
+      .attr("stroke", "none");
 
     svg.append("g")
       .selectAll("path")
       .data((countries as any).features)
       .join("path")
       .attr("d", path as any)
-      .attr("fill", (d: any) => STATUS_CONFIG[(JURISDICTIONS[String(d.id)]?.status ?? "none") as keyof typeof STATUS_CONFIG]?.color ?? "#c8d8e8")
+      .attr("fill", (d: any) => {
+        const jur = JURISDICTIONS[String(d.id)];
+        return STATUS_CONFIG[(jur?.status ?? "none") as keyof typeof STATUS_CONFIG]?.color ?? "#c8d8e8";
+      })
+      .attr("opacity", (d: any) => {
+        if (region === "All Regions") return 1;
+        const jur = JURISDICTIONS[String(d.id)];
+        if (!jur) return 0.15;
+        return jur.region === region ? 1 : 0.12;
+      })
       .attr("stroke", "#fff")
       .attr("stroke-width", 0.4)
       .style("cursor", (d: any) => JURISDICTIONS[String(d.id)] ? "pointer" : "default")
       .on("mouseenter", function (event: MouseEvent, d: any) {
         const jur = JURISDICTIONS[String(d.id)];
         if (!jur) return;
+        if (region !== "All Regions" && jur.region !== region) return;
         d3.select(this).attr("stroke", "#f59e0b").attr("stroke-width", 1.5).raise();
         const [mx, my] = d3.pointer(event, svgRef.current);
         setTooltip({ x: mx, y: my, jur });
@@ -132,11 +145,19 @@ export default function GlobalPrivacyMap() {
       })
       .on("click", (_: any, d: any) => {
         const jur = JURISDICTIONS[String(d.id)];
-        if (jur) setSelected(jur);
+        if (!jur) return;
+        if (region !== "All Regions" && jur.region !== region) return;
+        navigate(`/jurisdiction/${jur.slug}`);
       });
 
-    svg.append("path").datum(mesh).attr("d", path as any).attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", 0.4);
-  }, [worldData, topoReady, dims]);
+    svg.append("path")
+      .datum(mesh)
+      .attr("d", path as any)
+      .attr("fill", "none")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 0.4);
+
+  }, [worldData, topoReady, dims, region, navigate]);
 
   const gridItems = Object.values(JURISDICTIONS)
     .filter((j: any) => region === "All Regions" || j.region === region)
@@ -179,53 +200,49 @@ export default function GlobalPrivacyMap() {
       </div>
 
       {view === "map" ? (
-        <div className="flex gap-5 items-start">
-          <div ref={containerRef} className="flex-1 min-w-0">
-            {loading ? (
-              <div className="h-[400px] flex items-center justify-center bg-fog rounded-2xl text-slate text-sm animate-pulse">
-                Loading map data…
-              </div>
-            ) : (
-              <div className="relative rounded-2xl overflow-hidden shadow-eup-md border border-fog">
-                <svg ref={svgRef} width={dims.w} height={dims.h} style={{ display: "block" }} />
+        <div ref={containerRef} className="min-w-0">
+          {loading ? (
+            <div className="h-[400px] flex items-center justify-center bg-fog rounded-2xl text-slate text-sm animate-pulse">
+              Loading map data…
+            </div>
+          ) : (
+            <div className="relative rounded-2xl overflow-hidden shadow-eup-md border border-fog">
+              <svg ref={svgRef} width={dims.w} height={dims.h} style={{ display: "block" }} />
 
-                {tooltip && (
-                  <div
-                    className="absolute pointer-events-none z-50 bg-navy text-white px-4 py-3 rounded-xl shadow-eup-md text-xs"
-                    style={{
-                      left: Math.min(tooltip.x + 16, dims.w - 200),
-                      top: Math.max(tooltip.y - 70, 8),
-                      minWidth: 180,
-                    }}
-                  >
-                    <div className="font-bold text-[14px] mb-0.5">{tooltip.jur.flag} {tooltip.jur.name}</div>
-                    <div className="text-blue-200 text-[10px] font-semibold uppercase tracking-wide mb-1">
-                      {STATUS_CONFIG[tooltip.jur.status as keyof typeof STATUS_CONFIG]?.label}
-                    </div>
-                    <div className="text-blue-300 text-[11px] leading-snug">{tooltip.jur.law}</div>
-                    <div className="text-blue-400 text-[10px] mt-1.5">Click to explore →</div>
+              {tooltip && (
+                <div
+                  className="absolute pointer-events-none z-50 bg-navy text-white px-4 py-3 rounded-xl shadow-eup-md text-xs"
+                  style={{
+                    left: Math.min(tooltip.x + 16, dims.w - 200),
+                    top: Math.max(tooltip.y - 70, 8),
+                    minWidth: 180,
+                  }}
+                >
+                  <div className="font-bold text-[14px] mb-0.5">
+                    <span className="flag-emoji">{tooltip.jur.flag}</span> {tooltip.jur.name}
                   </div>
-                )}
+                  <div className="text-blue-200 text-[10px] font-semibold uppercase tracking-wide mb-1">
+                    {STATUS_CONFIG[tooltip.jur.status as keyof typeof STATUS_CONFIG]?.label}
+                  </div>
+                  <div className="text-blue-300 text-[11px] leading-snug">{tooltip.jur.law}</div>
+                  <div className="text-blue-400 text-[10px] mt-1.5">Click to explore →</div>
+                </div>
+              )}
 
-                <MapLegend />
-              </div>
-            )}
-          </div>
-
-          {selected && (
-            <CountryPanel jurisdiction={selected} onClose={() => setSelected(null)} />
+              <MapLegend />
+            </div>
           )}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
           {gridItems.map((j: any) => (
-            <button
+            <Link
               key={j.slug}
-              onClick={() => { setSelected(j); setView("map"); }}
-              className="bg-white rounded-xl border border-fog p-4 text-left hover:shadow-eup-sm hover:-translate-y-0.5 transition-all cursor-pointer"
+              to={`/jurisdiction/${j.slug}`}
+              className="bg-white rounded-xl border border-fog p-4 text-left hover:shadow-eup-sm hover:-translate-y-0.5 transition-all cursor-pointer no-underline"
               style={{ borderLeftWidth: 3, borderLeftColor: STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color }}
             >
-              <div className="text-2xl mb-1.5">{j.flag}</div>
+              <div className="text-2xl mb-1.5 flag-emoji">{j.flag}</div>
               <div className="font-bold text-navy text-[13px] leading-tight">{j.name}</div>
               <div className="text-[10px] text-slate mt-0.5">{j.region}</div>
               <div
@@ -242,7 +259,7 @@ export default function GlobalPrivacyMap() {
                   ⚖️ {j.fines.length} fine{j.fines.length > 1 ? "s" : ""}
                 </div>
               )}
-            </button>
+            </Link>
           ))}
         </div>
       )}

@@ -2,6 +2,12 @@ import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+function decodeHtml(html: string): string {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 interface TopicCard {
   title: string;
   badge?: string;
@@ -37,7 +43,7 @@ export default function TopicLaneScroller({
       {/* Lane header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{laneIcon}</span>
+          <span className="text-lg flag-emoji">{laneIcon}</span>
           <h3 className="font-display font-bold text-navy text-[15px]">{laneTitle}</h3>
         </div>
         <div className="flex items-center gap-2">
@@ -75,7 +81,7 @@ export default function TopicLaneScroller({
             className="flex-shrink-0 w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
           >
             <div className="flex items-center gap-1.5 mb-2">
-              {card.flag && <span className="text-base">{card.flag}</span>}
+              {card.flag && <span className="text-base flag-emoji">{card.flag}</span>}
               {card.jurisdiction && (
                 <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
                   {card.jurisdiction}
@@ -90,7 +96,7 @@ export default function TopicLaneScroller({
             <h4 className="font-bold text-navy text-[13px] leading-snug mb-1.5 group-hover:text-blue transition-colors">
               {card.title}
             </h4>
-            <p className="text-slate text-[11px] leading-relaxed line-clamp-2">{card.excerpt}</p>
+            <p className="text-slate text-[11px] leading-relaxed line-clamp-2">{decodeHtml(card.excerpt)}</p>
             {card.date && (
               <p className="text-slate-light text-[10px] mt-2">{card.date}</p>
             )}

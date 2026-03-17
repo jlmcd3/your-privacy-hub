@@ -15,35 +15,35 @@ const UPCOMING_DEADLINES: Deadline[] = [
   {
     id: "1", flag: "🇬🇧", jurisdiction: "UK", priority: "critical",
     title: "UK DUAA — DSARs & ICO Powers in Force",
-    date: new Date("2026-06-01"),
+    date: new Date(2026, 5, 1), // June 1
     type: "effective_date",
     description: "Data (Use & Access) Act 2025 complaints handling and ICO reformation provisions take effect.",
   },
   {
     id: "2", flag: "🇮🇳", jurisdiction: "India", priority: "high",
     title: "India DPDP — Rules Expected",
-    date: new Date("2026-04-30"),
+    date: new Date(2026, 3, 30), // April 30
     type: "effective_date",
     description: "India's Data Protection Board rules expected to be finalized, triggering enforcement readiness requirements.",
   },
   {
     id: "3", flag: "🇪🇺", jurisdiction: "EU", priority: "high",
     title: "EU AI Act — GPAI Code of Practice Final",
-    date: new Date("2026-05-02"),
+    date: new Date(2026, 4, 2), // May 2
     type: "consultation_close",
     description: "Final version of Code of Practice for General-Purpose AI models due.",
   },
   {
     id: "4", flag: "🇦🇺", jurisdiction: "Australia", priority: "medium",
     title: "Australia Privacy Reform — Tranche 2 Bill",
-    date: new Date("2026-07-01"),
+    date: new Date(2026, 6, 1), // July 1
     type: "effective_date",
     description: "Second tranche of Australian Privacy Act reforms expected in Parliament.",
   },
   {
     id: "5", flag: "🇺🇸", jurisdiction: "US", priority: "medium",
     title: "Vermont TDPSA — Effective Date",
-    date: new Date("2026-01-01"),
+    date: new Date(2026, 0, 1), // January 1
     type: "effective_date",
     description: "Vermont's comprehensive consumer data privacy law takes effect.",
   },
@@ -56,7 +56,7 @@ function getDaysRemaining(date: Date): number {
 }
 
 function getPriorityStyle(_priority: string, days: number) {
-  if (days < 0)   return { bg: "bg-slate-100", border: "border-slate-200", badge: "bg-slate-200 text-slate-500", text: "Passed" };
+  if (days < 0)   return { bg: "bg-slate-50", border: "border-slate-200", badge: "bg-slate-200 text-slate-500", text: "Done" };
   if (days <= 14) return { bg: "bg-red-50",    border: "border-red-200",   badge: "bg-red-500 text-white",      text: `${days}d` };
   if (days <= 60) return { bg: "bg-amber-50",  border: "border-amber-200", badge: "bg-amber-400 text-white",    text: `${days}d` };
   return           { bg: "bg-blue-50",   border: "border-blue-100",  badge: "bg-blue/10 text-blue border border-blue/20", text: `${days}d` };
@@ -88,14 +88,14 @@ export default function DeadlineCountdown() {
             <div key={d.id} className={`flex items-center gap-4 px-6 py-4 ${style.bg} transition-colors`}>
               <div className={`flex-shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center text-center font-bold ${style.badge}`}>
                 <span className="text-lg leading-none">{style.text}</span>
-                <span className="text-[9px] uppercase tracking-wide opacity-80 mt-0.5">
-                  {d.days >= 0 ? "left" : "ago"}
-                </span>
+                {d.days >= 0 && (
+                  <span className="text-[9px] uppercase tracking-wide opacity-80 mt-0.5">left</span>
+                )}
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-base">{d.flag}</span>
+                  <span className="text-base flag-emoji">{d.flag}</span>
                   <span className="text-[10px] font-bold text-slate uppercase tracking-wider">{d.jurisdiction}</span>
                   <span className="text-[10px] px-1.5 py-0.5 bg-fog rounded-full text-slate-light capitalize">
                     {d.type.replace(/_/g, " ")}

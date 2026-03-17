@@ -128,3 +128,9 @@
 .status-pending { background: #FEF9EC; color: #8A6500; }
 .status-none { background: hsl(var(--fog)); color: hsl(var(--slate)); }
 .status-active { background: #EAF6F1; color: #145E41; }
+
+/* Flag emoji font stack — ensures flags render as images not ISO codes */
+.flag-emoji {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
+                    "Android Emoji", "EmojiSymbols", sans-serif;
+}

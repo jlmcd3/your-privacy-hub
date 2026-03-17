@@ -60,6 +60,7 @@ const navItems: NavItem[] = [
     wide: true,
     sections: [
       { header: "Americas", items: [
+        { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions", badge: "NEW", badgeGreen: true },
         { icon: "🇺🇸", label: "United States", href: "/jurisdiction/united-states" },
         { icon: "🇨🇦", label: "Canada", href: "/jurisdiction/canada" },
         { icon: "🇧🇷", label: "Brazil", href: "/jurisdiction/brazil" },
