@@ -62,6 +62,7 @@ const Dashboard = () => {
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  const [customBrief, setCustomBrief] = useState<any>(null);
 
   useEffect(() => {
     if (authLoading) return;
