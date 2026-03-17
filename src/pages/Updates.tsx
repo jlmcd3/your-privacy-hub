@@ -2,6 +2,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LatestUpdates from "@/components/LatestUpdates";
+import AdBanner from "@/components/AdBanner";
 
 const Updates = () => (
   <div className="min-h-screen flex flex-col bg-background">
@@ -20,7 +21,11 @@ const Updates = () => (
       </div>
     </section>
 
+    <AdBanner variant="leaderboard" adSlot="eup-updates-top" className="py-3 bg-paper" />
+
     <LatestUpdates />
+
+    <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-3 bg-paper" />
 
     <Footer />
   </div>

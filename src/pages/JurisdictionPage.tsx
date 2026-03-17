@@ -306,7 +306,7 @@ const JurisdictionPage = () => {
           ))}
         </div>
 
-        <AdBanner variant="inline" className="py-4" />
+        <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
         {/* Recent Developments from category */}
         {devLoading ? (

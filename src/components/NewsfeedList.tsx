@@ -53,7 +53,13 @@ export default function NewsfeedList({
     <div>
       {/* Article list */}
       <div className="space-y-0">
-        {visibleArticles.map((article, i) => renderArticle(article, i))}
+        {visibleArticles.map((article, i) => (
+          <div key={article.id || i}>
+            {renderArticle(article, i)}
+            {i === 3 && <InFeedAd adSlot="eup-infeed-1" />}
+            {i === 8 && <InFeedAd adSlot="eup-infeed-2" />}
+          </div>
+        ))}
       </div>
 
       {isLoading && (

@@ -263,7 +263,7 @@ const EnforcementTrackerPage = () => {
           <EmailSignup variant="card" />
         </div>
 
-        <AdBanner variant="leaderboard" className="py-6" />
+        <AdBanner variant="inline" adSlot="eup-enforcement-mid" className="py-3" />
       </div>
 
       {/* Submit Modal */}

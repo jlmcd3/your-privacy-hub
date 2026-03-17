@@ -256,6 +256,8 @@ const CategoryPage = () => {
         <EmailSignup variant="card" />
       </div>
 
+      <AdBanner variant="leaderboard" adSlot="eup-category-bottom" className="py-3" />
+
       <Footer />
     </div>
   );

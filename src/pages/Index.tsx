@@ -188,6 +188,7 @@ const Index = () => {
             cards={laneData["ai-privacy"]}
           />
         )}
+        <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3" />
         {(laneData["us-states"]?.length ?? 0) > 0 && (
           <TopicLaneScroller
             laneTitle="U.S. State Developments"

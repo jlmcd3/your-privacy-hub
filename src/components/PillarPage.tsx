@@ -172,7 +172,7 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
           )}
         </div>
 
-        <AdBanner variant="leaderboard" className="py-6" />
+        <AdBanner variant="leaderboard" adSlot={`eup-pillar-bottom`} className="py-6" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">

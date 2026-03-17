@@ -208,7 +208,7 @@ const RegulatorPage = () => {
           </div>
         </div>
 
-        <AdBanner variant="inline" className="py-4" />
+        <AdBanner variant="inline" adSlot="eup-regulator-mid" className="py-4" />
 
         {/* Related */}
         <div className="border-t border-fog pt-8">
