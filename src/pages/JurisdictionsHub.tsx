@@ -5,6 +5,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
+import AdBanner from "@/components/AdBanner";
 
 export default function JurisdictionsHub() {
   const [recentUpdates, setRecentUpdates] = useState([
