@@ -21,7 +21,7 @@ const features = [
 const comparisonRows = [
   { feature: "Daily privacy news feed", free: true, premium: true },
   { feature: "Jurisdiction profiles (150+ countries)", free: true, premium: true },
-  { feature: "Regulator directory (250+ authorities)", free: true, premium: true },
+  { feature: "Regulator directory (119 authorities)", free: true, premium: true },
   { feature: "Research guides (GDPR, AI, US laws)", free: true, premium: true },
   { feature: "Top 12 recent enforcement actions", free: true, premium: true },
   { feature: "Preview of weekly brief headline", free: true, premium: true },

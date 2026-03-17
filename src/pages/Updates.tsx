@@ -15,7 +15,7 @@ const Updates = () => (
           Privacy Regulatory Updates
         </h1>
         <p className="text-[15px] text-white/70 max-w-2xl mx-auto">
-          Daily intelligence from 250+ monitored regulatory sources — filtered by jurisdiction and topic.
+          Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction and topic.
         </p>
       </div>
     </section>

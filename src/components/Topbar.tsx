@@ -49,9 +49,9 @@ const Topbar = () => {
           <a href="#" className="hover:text-sky transition-colors hidden xl:inline">{briefLabel}</a>
         </div>
         <div className="flex gap-4 items-center">
-          <a href="#" className="hover:text-sky transition-colors">About</a>
-          <a href="#" className="hover:text-sky transition-colors">Contact</a>
-          <a href="#" className="hover:text-sky transition-colors">Log In</a>
+          <Link to="/about" className="hover:text-sky transition-colors no-underline text-slate-light">About</Link>
+          <Link to="/contact" className="hover:text-sky transition-colors no-underline text-slate-light">Contact</Link>
+          <Link to="/login" className="hover:text-sky transition-colors no-underline text-slate-light">Log In</Link>
         </div>
       </div>
     </div>

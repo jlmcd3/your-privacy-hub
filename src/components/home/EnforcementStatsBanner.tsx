@@ -11,7 +11,7 @@ const STATS: StatItem[] = [
   { label: "Total fines tracked (2026 YTD)", value: "$2.4B+", sub: "across all jurisdictions", color: "text-red-400" },
   { label: "Active investigations", value: "47", sub: "open regulatory probes", color: "text-amber-400" },
   { label: "New laws in force (2026)", value: "12", sub: "jurisdictions this year", color: "text-green-400" },
-  { label: "Regulators tracked", value: "250+", sub: "globally, updated daily", color: "text-blue-400" },
+  { label: "Regulators tracked", value: "119", sub: "global DPAs + US state AGs", color: "text-blue-400" },
 ];
 
 export default function EnforcementStatsBanner() {

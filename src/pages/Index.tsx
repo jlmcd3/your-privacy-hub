@@ -142,7 +142,7 @@ const Index = () => {
               Every regulator tracked. Every update summarized.
             </h1>
             <p className="text-blue-200 mb-5 text-sm">
-              250+ authorities · 150+ jurisdictions · monitored 24/7
+              119 authorities · 150+ jurisdictions · monitored 24/7
             </p>
             <div className="flex gap-3 justify-center">
               <Link to="/updates" className="bg-white text-navy font-bold px-6 py-2.5 rounded-xl text-sm no-underline">

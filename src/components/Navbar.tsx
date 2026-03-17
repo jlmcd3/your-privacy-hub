@@ -119,7 +119,7 @@ const navItems: NavItem[] = [
       {
         header: "Premium",
         items: [
-          { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/subscribe" },
+          { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/sample-brief" },
           { icon: "📈", label: "Trend Signals", badge: "SOON", href: "/subscribe" },
           { icon: "🔔", label: "Custom Alerts", badge: "SOON", href: "/subscribe" },
         ],

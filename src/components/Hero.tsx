@@ -145,7 +145,7 @@ const Hero = () => {
 
           <div className="flex justify-center gap-5 md:gap-7 mt-8 md:mt-11 pt-6 md:pt-8 border-t border-white/10 flex-wrap">
             {[
-              { num: "250+", label: "Regulators monitored" },
+              { num: "119", label: "Regulators monitored" },
               { num: "150+", label: "Jurisdictions covered" },
               { num: "Daily", label: "Automated updates" },
               { num: "$0", label: "Always free to browse" },
