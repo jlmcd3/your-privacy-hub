@@ -39,6 +39,7 @@ import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
 
 const queryClient = new QueryClient();
 
