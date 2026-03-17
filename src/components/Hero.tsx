@@ -116,7 +116,7 @@ const Hero = () => {
 
           {/* Stat strip */}
           <div className="flex items-center justify-center gap-2 mt-6 text-[12px] text-slate-light tracking-wide">
-            <span>250+ Regulators</span>
+            <span>119 Regulators</span>
             <span className="text-white/30">·</span>
             <span>150+ Jurisdictions</span>
             <span className="text-white/30">·</span>
