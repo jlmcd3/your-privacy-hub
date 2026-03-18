@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 export default function CheckEmail() {
   const [searchParams] = useSearchParams();
-  const email = searchParams.get("email") || "your email";
+  const email = searchParams.get("email");
 
   return (
     <div className="min-h-screen bg-paper">
