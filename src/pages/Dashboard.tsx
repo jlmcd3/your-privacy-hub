@@ -127,94 +127,118 @@ const Dashboard = () => {
   if (!user) return null;
 
   if (!isPremium) {
+    // Free users still see the brief — but with Pro upsell
     return (
-      <div className="min-h-screen bg-paper">
+      <div className="min-h-screen bg-background">
         <Topbar />
         <Navbar />
-        <div className="max-w-[680px] mx-auto px-4 py-14">
-          <div className="text-center mb-10">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
-              My Account
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="mb-6">
+            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
+                ⭐ Upgrade to Premium Pro
+              </div>
+              <h3 className="font-display font-bold text-white text-[18px] mb-2">
+                Get this brief re-written for your industry
+              </h3>
+              <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
+                Same intelligence, re-analyzed from your perspective. Sector-specific
+                action items. Your jurisdiction focus. $25/month.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link
+                  to="/subscribe"
+                  className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
+                >
+                  Get Premium Pro — $25/month →
+                </Link>
+              </div>
             </div>
-            <h1 className="font-display font-bold text-navy text-[26px] mb-3">
-              Welcome back, {user.email?.split("@")[0]}.
-            </h1>
-            <p className="text-slate text-[14px]">
-              You have a free EndUserPrivacy account. Upgrade to unlock the
-              weekly Intelligence Brief and full enforcement database.
-            </p>
           </div>
 
-          {/* What they have access to */}
-          <div className="bg-card border border-fog rounded-2xl p-6 mb-6">
-            <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
-              Your Free Access
-            </h2>
-            <div className="space-y-2.5">
-              {[
-                "Daily privacy news feed",
-                "150+ jurisdiction profiles",
-                "119 regulator directory",
-                "Research guides (GDPR, AI, US laws)",
-                "Glossary of privacy terms",
-                "Enforcement tracker (top 12 recent actions)",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-2.5 text-[13px] text-navy">
-                  <div className="w-4 h-4 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center flex-shrink-0">
-                    <span className="text-accent text-[10px] font-bold">✓</span>
-                  </div>
-                  {item}
-                </div>
+          {/* Brief header */}
+          <div className="mb-10">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
+              📋 Weekly Intelligence Brief
+            </p>
+            <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
+              {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
+            </h1>
+            {brief && (
+              <div className="flex flex-wrap items-center gap-2 mt-3 text-[13px] text-muted-foreground">
+                <span>{brief.week_label}</span>
+                <span>·</span>
+                <span>{brief.article_count} regulatory updates synthesized</span>
+              </div>
+            )}
+          </div>
+
+          {loading && (
+            <div className="space-y-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
               ))}
             </div>
-          </div>
+          )}
 
-          {/* Upgrade CTA */}
-          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 mb-6 text-center">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-              ⭐ Go Premium
+          {!loading && !brief && (
+            <div className="text-center py-20">
+              <p className="text-4xl mb-4">📅</p>
+              <p className="font-display text-[20px] text-foreground mb-2">First brief coming Monday</p>
+              <p className="text-[14px] text-muted-foreground max-w-md mx-auto">
+                Your weekly intelligence brief is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
+              </p>
             </div>
-            <h3 className="font-display font-bold text-white text-[20px] mb-2">
-              Unlock the Intelligence Brief
-            </h3>
-            <p className="text-slate-light text-[13px] mb-5 max-w-md mx-auto">
-              Every Monday: 8-section AI analyst synthesis, full enforcement table,
-              trend signals, and GC/CPO action items. First 25 subscribers get the
-              first year free.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                to="/subscribe"
-                className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
-              >
-                See Plans — from $15/month →
-              </Link>
-              <Link
-                to="/sample-brief"
-                className="bg-white/10 border border-white/20 text-white font-semibold text-[14px] py-2.5 px-6 rounded-xl no-underline hover:bg-white/20 transition-all"
-              >
-                See a sample brief
-              </Link>
-            </div>
-          </div>
+          )}
 
-          {/* Quick links */}
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Browse Updates", href: "/updates" },
-              { label: "Global Map", href: "/jurisdictions" },
-              { label: "Enforcement Tracker", href: "/enforcement-tracker" },
-              { label: "My Account Settings", href: "/account" },
-            ].map((l) => (
-              <Link
-                key={l.label}
-                to={l.href}
-                className="bg-card border border-fog rounded-xl p-4 text-[13px] font-medium text-navy hover:bg-fog transition-colors no-underline text-center"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
+          {!loading && brief && (
+            <>
+              <div className="space-y-8">
+                <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
+                  <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
+                  <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                    <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
+                  </div>
+                  <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.executive_summary} />
+                </section>
+
+                <div className="grid gap-6">
+                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={(brief as any).adtech_advertising} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} sourceMap={brief.source_map ?? {}} />
+                </div>
+
+                <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
+
+                {brief.trend_signal && (
+                  <section className="bg-amber-50/50 rounded-xl border border-amber-200/50 p-6">
+                    <h3 className="font-display text-[17px] text-foreground mb-3">📡 Trend Signal</h3>
+                    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                      <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
+                    </div>
+                  </section>
+                )}
+
+                {brief.why_this_matters && (
+                  <section className="bg-primary/5 rounded-xl border border-primary/15 p-6">
+                    <h3 className="font-display text-[17px] text-foreground mb-3">🎯 Why This Matters</h3>
+                    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                      <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              <div className="mt-8">
+                <AskPrivacy isPremium={isPremium === true} />
+              </div>
+            </>
+          )}
         </div>
         <Footer />
       </div>
