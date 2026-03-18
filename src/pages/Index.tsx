@@ -66,8 +66,18 @@ const Index = () => {
 
       const articles = (data as Update[]) || [];
 
-      // Featured: most recent article
-      if (articles.length > 0) setTopArticle(articles[0]);
+      // Featured card: priority order:
+      // 1. Most recent enforcement article
+      // 2. Most recent article with urgency = "Immediate"
+      // 3. Most recent article with any ai_summary
+      // 4. Most recent article overall (fallback)
+      const enforcementArticle = articles.find(a => a.category === "enforcement");
+      const immediateArticle = articles.find(
+        a => (a as any).ai_summary?.urgency === "Immediate"
+      );
+      const anyAiArticle = articles.find(a => (a as any).ai_summary != null);
+      const featured = enforcementArticle ?? immediateArticle ?? anyAiArticle ?? articles[0] ?? null;
+      if (featured) setTopArticle(featured);
 
       // Region feed: one from eu-uk, us-federal, global
       const regionCats = ["eu-uk", "us-federal", "global"];
