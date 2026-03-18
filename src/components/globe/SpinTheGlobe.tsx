@@ -37,13 +37,17 @@ type Jurisdiction = typeof RICH_JURISDICTIONS[number];
 //   +Y = north pole, texture lon=0 maps to the BACK (-Z) face.
 // So we apply Math.PI offset to the longitude when placing markers
 // AND when rotating the globe to face a country toward the camera (+Z).
+// Converts geographic coordinates to a 3D point on a Three.js SphereGeometry
+// that matches the default equirectangular texture UV mapping.
+// Derivation: phi = π + lon_rad, theta = π/2 - lat_rad in the Three.js formula
+// gives: x = cos(lat)*cos(lon), y = sin(lat), z = -cos(lat)*sin(lon)
 function latLonToVec3(lat: number, lon: number, r: number): THREE.Vector3 {
-  const phi = (lat * Math.PI) / 180;       // latitude → angle from equator
-  const lam = (lon * Math.PI) / 180;       // longitude → angle around Y axis
+  const latRad = (lat * Math.PI) / 180;
+  const lonRad = (lon * Math.PI) / 180;
   return new THREE.Vector3(
-    r * Math.cos(phi) * Math.sin(lam),     // X (east)
-    r * Math.sin(phi),                      // Y (up)
-    r * Math.cos(phi) * Math.cos(lam),     // Z (south→north through prime meridian)
+    r * Math.cos(latRad) * Math.cos(lonRad),   // x
+    r * Math.sin(latRad),                       // y (up)
+    -r * Math.cos(latRad) * Math.sin(lonRad),  // z (negative sin)
   );
 }
 
@@ -296,7 +300,10 @@ export default function SpinTheGlobe() {
     // To bring longitude `lon` to face +Z: rotation.y = -lon * PI/180
     // BUT the Blue Marble texture is oriented with lon=0 at the FRONT (+Z),
     // so the formula is simply:
-    globe.rotation.y = (-jur.lon * Math.PI) / 180;
+    // Three.js SphereGeometry has lon=-90° at the camera-facing +Z axis
+    // when rotation.y = 0. To bring longitude L to the front:
+    // rotation.y = -(L_rad + π/2)
+    globe.rotation.y = -(jur.lon * Math.PI / 180 + Math.PI / 2);
 
     spinRef.current = 0;   // stop rotation so country stays centered
     pulseRef.current = 0;
