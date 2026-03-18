@@ -311,6 +311,16 @@ const REQUIRED_KEYWORDS = [
   "ai privacy", "ai regulation", "ai act", "ai data", "facial recognition",
   "generative ai", "llm privacy", "algorithmic", "automated decision",
   "machine learning privacy", "deepfake", "synthetic data",
+  // AdTech additions
+  "real-time bidding", "programmatic advertising", "consent management",
+  "transparency consent framework", "tcf ", "cookie consent",
+  "third-party cookie", "behavioral advertising", "targeted advertising",
+  "ad targeting", "commercial surveillance", "privacy sandbox",
+  "identity resolution", "first-party data", "data clean room",
+  "ad exchange", "ad network", "tracking pixel", "retargeting",
+  "lookalike audience", "iab europe", "network advertising initiative",
+  "digital advertising alliance", "cookieless", "contextual advertising",
+  "ad fraud", "cross-site tracking", "browser fingerprinting",
 ];
 
 const EXCLUSION_KEYWORDS = [
