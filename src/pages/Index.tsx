@@ -141,64 +141,6 @@ const Index = () => {
       <Topbar />
       <BreakingNewsBanner />
       <Navbar />
-      <SearchBar />
-
-      {/* First-visit hero — slim banner */}
-      {isFirstVisit && (
-        <div className="bg-gradient-to-br from-navy to-steel text-white text-center py-10 px-4 mb-0">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="font-display font-bold text-3xl md:text-4xl mb-3">
-              Every regulator tracked. Every update summarized.
-            </h1>
-            <p className="text-blue-200 mb-5 text-sm">
-              119 authorities · 150+ jurisdictions · monitored 24/7
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Link to="/updates" className="bg-white text-navy font-bold px-6 py-2.5 rounded-xl text-sm no-underline">
-                Browse Free →
-              </Link>
-              <Link to="/subscribe" className="bg-blue/30 text-white font-semibold px-6 py-2.5 rounded-xl text-sm no-underline border border-white/20">
-                Get Premium
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Value proposition strip — always visible above the fold */}
-      <div className="bg-gradient-to-r from-navy/[0.03] via-primary/[0.04] to-navy/[0.03] border-b border-border">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-6 flex-wrap">
-            <p className="text-[13px] font-semibold text-foreground">
-              Regulatory intelligence for privacy professionals —
-            </p>
-            <div className="flex items-center gap-4 flex-wrap">
-              {[
-                { icon: "⚖️", text: "119 regulators tracked" },
-                { icon: "🌍", text: "150+ jurisdictions" },
-                { icon: "🤖", text: "AI-summarized daily" },
-                { icon: "📋", text: "Weekly analyst brief" },
-              ].map((item) => (
-                <span key={item.text} className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
-                  <span>{item.icon}</span>
-                  <span>{item.text}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-muted-foreground hidden lg:inline">
-              Used by DPOs, privacy counsel, and compliance teams
-            </span>
-            <Link
-              to="/subscribe"
-              className="text-[12px] font-bold text-primary-foreground bg-gradient-to-br from-navy to-primary px-4 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
-            >
-              See Plans →
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Dashboard content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-6 md:pt-8">
@@ -218,6 +160,14 @@ const Index = () => {
 
         {/* Ad moved below featured brief — never before editorial content */}
         <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+
+        {/* Browse section — search + topic chips */}
+        <div className="my-6">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate mb-3">
+            Browse the intelligence
+          </p>
+          <SearchBar />
+        </div>
 
         {/* Enforcement stats */}
         <EnforcementStatsBanner />
