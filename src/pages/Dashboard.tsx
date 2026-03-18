@@ -34,6 +34,7 @@ interface WeeklyBrief {
   why_this_matters: string | null;
   article_count: number;
   published_at: string;
+  source_map: Record<string, { title: string; url: string; source: string }> | null;
 }
 
 const ACTION_COLOR: Record<string, string> = {
