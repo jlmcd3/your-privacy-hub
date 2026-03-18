@@ -16,6 +16,8 @@ interface TopicCard {
   flag?: string;
   href: string;
   date?: string;
+  urgency?: string | null;
+  whyItMatters?: string | null;
 }
 
 interface TopicLaneScrollerProps {
@@ -89,9 +91,18 @@ export default function TopicLaneScroller({
                   {card.jurisdiction}
                 </span>
               )}
-              {card.badge && (
+            {card.badge && (
                 <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 px-1.5 py-0.5 rounded-full">
                   {card.badge}
+                </span>
+              )}
+              {!card.badge && card.urgency && card.urgency !== "Monitor" && (
+                <span className={`ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${
+                  card.urgency === "Immediate"
+                    ? "bg-red-50 text-red-700 border-red-200"
+                    : "bg-amber-50 text-amber-700 border-amber-200"
+                }`}>
+                  {card.urgency === "Immediate" ? "⚡ Act now" : "📅 This quarter"}
                 </span>
               )}
             </div>
