@@ -262,7 +262,7 @@ const Navbar = () => {
                 to="/subscribe"
                 className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
               >
-                Get Premium →
+                See Plans →
               </Link>
             </>
           )}
