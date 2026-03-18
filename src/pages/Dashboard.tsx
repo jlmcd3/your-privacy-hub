@@ -309,10 +309,9 @@ const Dashboard = () => {
               <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
                 <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  {brief.executive_summary.split("\n").filter(Boolean).map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
+                  <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
                 </div>
+                <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.executive_summary} />
               </section>
 
             {/* Analysis sections */}
