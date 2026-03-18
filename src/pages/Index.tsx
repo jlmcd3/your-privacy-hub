@@ -239,7 +239,7 @@ const Index = () => {
                 to="/subscribe"
                 className="block text-center text-[12px] font-medium text-white/70 hover:text-white transition-colors no-underline"
               >
-                From $15/month — or tailored for $25 →
+                Free brief included — Pro tailored for $25/mo →
               </Link>
             </div>
 

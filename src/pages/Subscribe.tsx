@@ -9,33 +9,21 @@ import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 
-const features = [
-  "Full Enforcement Tracker access — all actions, all regulators, all jurisdictions",
-  "Weekly Privacy Brief (full 8-section AI intelligence report)",
-  "Regional analysis: US Federal, States, EU & UK, Global",
-  "Enforcement table with fine amounts",
-  "Trend signals — forward-looking intelligence",
-  "Why This Matters — action items for GC/CPO",
-  "Priority access to new features",
-];
-
 const comparisonRows = [
-  { feature: "Daily privacy news feed",                             free: true,  premium: true,  pro: true  },
-  { feature: "Jurisdiction profiles (150+ countries)",              free: true,  premium: true,  pro: true  },
-  { feature: "Regulator directory (119 authorities)",               free: true,  premium: true,  pro: true  },
-  { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  premium: true,  pro: true  },
-  { feature: "Top 12 recent enforcement actions",                   free: true,  premium: true,  pro: true  },
-  { feature: "Preview of weekly brief headline",                    free: true,  premium: true,  pro: true  },
-  { feature: "Full weekly AI intelligence brief (8 sections)",      free: false, premium: true,  pro: true  },
-  { feature: "Complete enforcement database — all actions",         free: false, premium: true,  pro: true  },
-  { feature: "Regional analysis: US Federal, States, EU, Global",  free: false, premium: true,  pro: true  },
-  { feature: "Enforcement table with fine amounts",                 free: false, premium: true,  pro: true  },
-  { feature: "Trend signals — forward-looking intelligence",        free: false, premium: true,  pro: true  },
-  { feature: "Why This Matters — action items for GC/CPO",         free: false, premium: true,  pro: true  },
-  { feature: "Brief written for your industry & regulatory exposure", free: false, premium: false, pro: true  },
-  { feature: "Sector-specific compliance action items",             free: false, premium: false, pro: true  },
-  { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, premium: false, pro: true  },
-  { feature: "Priority Monday delivery",                           free: false, premium: false, pro: true  },
+  { feature: "Daily privacy news feed",                             free: true,  pro: true  },
+  { feature: "Jurisdiction profiles (150+ countries)",              free: true,  pro: true  },
+  { feature: "Regulator directory (119 authorities)",               free: true,  pro: true  },
+  { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  pro: true  },
+  { feature: "Enforcement tracker (all actions)",                   free: true,  pro: true  },
+  { feature: "Full weekly AI intelligence brief (8 sections)",      free: true,  pro: true  },
+  { feature: "Enforcement table with fine amounts",                 free: true,  pro: true  },
+  { feature: "Trend signals — forward-looking intelligence",        free: true,  pro: true  },
+  { feature: "Why This Matters — GC/CPO action items",             free: true,  pro: true  },
+  { feature: "Brief written for your industry",                     free: false, pro: true  },
+  { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, pro: true  },
+  { feature: "Subject-matter depth (AI, biometric, litigation…)",  free: false, pro: true  },
+  { feature: "Sector-specific compliance action items",            free: false, pro: true  },
+  { feature: "Priority Monday delivery",                           free: false, pro: true  },
 ];
 
 const Subscribe = () => {
@@ -44,33 +32,21 @@ const Subscribe = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async () => {
     if (!user) {
       navigate("/signup?redirect=/subscribe");
       return;
     }
-
-    setLoading(planId);
+    setLoading("pro");
     setError(null);
-
     try {
       const { data, error: fnError } = await supabase.functions.invoke(
         "create-checkout-session",
-        { body: { plan: planId } }
+        { body: { plan: "pro" } }
       );
-
-      if (fnError) {
-        setError(fnError.message || "Something went wrong");
-        setLoading(null);
-        return;
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
-      } else if (data?.error) {
-        setError(data.error);
-        setLoading(null);
-      }
+      if (fnError) { setError(fnError.message || "Something went wrong"); setLoading(null); return; }
+      if (data?.url) { window.location.href = data.url; }
+      else if (data?.error) { setError(data.error); setLoading(null); }
     } catch (e: any) {
       setError(e.message || "Something went wrong");
       setLoading(null);
@@ -90,14 +66,13 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Your analyst starts at $15/month.
+            The library is free.<br />Your analyst is $25/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse is always free. Premium gives you the full
-            weekly Intelligence Brief every Monday — 8-section AI analysis covering
-            every major privacy jurisdiction. Premium Pro goes further: your brief
-            is written specifically for your industry, your jurisdictions, and your
-            compliance priorities. It reads like an analyst briefed you personally.
+            Everything you can browse and read is always free — including the weekly
+            Intelligence Brief. Your analyst is something different: a brief re-written
+            every Monday specifically for your industry, your jurisdictions, and your
+            compliance obligations. That's $25/month.
           </p>
         </div>
       </div>
@@ -123,7 +98,7 @@ const Subscribe = () => {
             What does the Intelligence Brief look like?
           </h2>
           <p className="text-slate text-sm">
-            Every Monday morning, Premium subscribers receive this 8-section analysis.
+            Every Monday morning, all members receive this 8-section analysis.
             Here's a real excerpt from Week 11, 2026.
           </p>
         </div>
@@ -133,7 +108,7 @@ const Subscribe = () => {
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
-                ✓ FREE PREVIEW
+                ✓ FREE
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Executive Summary</span>
             </div>
@@ -146,10 +121,10 @@ const Subscribe = () => {
           </div>
 
           {/* Enforcement Table preview */}
-          <div className="bg-card border border-amber-200 rounded-xl p-5">
+          <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
-                ⭐ Premium
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
+                ✓ FREE
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Enforcement Table</span>
             </div>
@@ -184,26 +159,26 @@ const Subscribe = () => {
             </div>
           </div>
 
-          {/* Action Items preview — blurred */}
+          {/* Pro teaser — blurred */}
           <div className="relative bg-card border border-amber-200 rounded-xl p-5 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white z-10 flex flex-col items-center justify-end pb-4">
               <p className="text-[12px] font-semibold text-navy mb-2">
-                🔒 "Why This Matters" action items — Premium only
+                🎯 Pro subscribers get this same story re-analyzed for their industry
               </p>
-              <Link
-                to="/subscribe"
-                className="bg-navy text-white font-semibold text-[12px] px-5 py-2 rounded-lg no-underline hover:opacity-90"
+              <button
+                onClick={handleSubscribe}
+                className="bg-navy text-white font-semibold text-[12px] px-5 py-2 rounded-lg hover:opacity-90 cursor-pointer border-none"
               >
-                Unlock for $15/month →
-              </Link>
+                Get Premium Pro — $25/month →
+              </button>
             </div>
             <div className="filter blur-[3px] select-none">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-3 block w-fit">⭐ Premium</span>
-              <p className="text-[10px] text-slate-light uppercase tracking-wider mb-3">Why This Matters — Action Items for GC/CPO</p>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-3 block w-fit">⭐ Pro</span>
+              <p className="text-[10px] text-slate-light uppercase tracking-wider mb-3">Your Industry Lens — Healthcare</p>
               <p className="text-[13px] text-slate leading-relaxed">
-                Review your children's data practices immediately. The ICO's TikTok fine establishes
-                that legitimate interests cannot justify algorithmic personalization for minors.
-                If your platform serves or may serve users under 18, review consent mechanisms...
+                The ICO's TikTok ruling extends beyond social media. The legitimate interests
+                prohibition for algorithmic personalization of minors directly applies to
+                pediatric health app recommendation engines and patient portal personalization…
               </p>
             </div>
           </div>
@@ -222,16 +197,19 @@ const Subscribe = () => {
       <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
         {/* Comparison table */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Premium</h2>
+          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Pro</h2>
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-fog">
                     <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate">Feature</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[100px]">Free ($0)</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-blue w-[120px]">Premium ($15/mo)</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[130px]">Pro ($25/mo)</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[120px]">
+                      Free
+                    </th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[140px]">
+                      Pro ($25/mo)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -239,13 +217,10 @@ const Subscribe = () => {
                     <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
                       <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{row.feature}</td>
                       <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.free    ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
+                        {row.free ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
                       </td>
                       <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.premium ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
-                      </td>
-                      <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.pro     ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
+                        {row.pro ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
                       </td>
                     </tr>
                   ))}
@@ -265,11 +240,10 @@ const Subscribe = () => {
               Same story. Different brief.
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
               {/* Standard */}
               <div className="bg-card border border-fog rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-slate mb-3">
-                  ⭐ Standard Premium brief
+                  ✓ Free brief
                 </div>
                 <p className="text-[12px] font-semibold text-navy mb-2 leading-snug">
                   ICO fines TikTok £12.7M for children's data violations
@@ -306,51 +280,50 @@ const Subscribe = () => {
                   for US-facing services.
                 </p>
               </div>
-
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {/* Free column */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Free */}
             <div className="bg-fog border border-silver rounded-2xl p-6">
-              <p className="font-display text-[16px] text-navy font-bold mb-1">📰 Free News Digest</p>
-              <p className="text-[12px] text-slate mb-4">Delivered every Monday, free forever</p>
+              <p className="font-display text-[18px] text-navy font-bold mb-1">Free — Always</p>
+              <p className="text-[12px] text-slate mb-4">No account required for browsing. Free account for saved features.</p>
               <ul className="space-y-2.5">
-                {["Top 5 privacy headlines of the week","One-line summary per article","Links to original sources","No account required"].map((item) => (
+                {[
+                  "Daily privacy news from 119 regulators",
+                  "Full weekly Intelligence Brief every Monday",
+                  "150+ jurisdiction profiles",
+                  "Enforcement tracker",
+                  "Research guides (GDPR, AI Act, US laws)",
+                  "Global privacy law map",
+                ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-navy">
-                    <Check className="h-4 w-4 text-slate-light mt-0.5 shrink-0" /> {item}
+                    <Check className="h-4 w-4 text-accent mt-0.5 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
               <p className="text-[13px] text-accent font-semibold mt-4">Always free →</p>
             </div>
 
-            {/* Premium column */}
-            <div className="bg-navy rounded-2xl p-6">
-              <p className="font-display text-[16px] text-white font-bold mb-1">⭐ Intelligence Brief</p>
-              <p className="text-[12px] text-slate-light mb-4">Full analyst report, every Monday</p>
+            {/* Pro */}
+            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
+              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium Pro — $25/month</p>
+              <p className="text-[12px] text-sky mb-4">Your analyst. Written for your world.</p>
               <ul className="space-y-2.5">
-                {["8-section AI analyst synthesis","Executive summary with regulatory context","Enforcement table — all fines, all jurisdictions","EU, US Federal, US States, Global analysis","Trend signal comparing week-over-week","Why This Matters — GC/CPO action items"].map((item) => (
+                {[
+                  "Everything in Free",
+                  "Brief re-analyzed for your industry",
+                  "Your jurisdiction focus: EU, US, APAC, or custom",
+                  "Subject-matter depth: AI, biometric, litigation…",
+                  "Sector-specific GC/CPO action items",
+                  "Priority Monday delivery",
+                ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white">
                     <Check className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">$15/month →</p>
-            </div>
-
-            {/* Premium Pro column */}
-            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 border border-blue/30">
-              <p className="font-display text-[16px] text-white font-bold mb-1">🎯 Premium Pro</p>
-              <p className="text-[12px] text-sky mb-4">Your analyst, briefed on your world</p>
-              <ul className="space-y-2.5">
-                {["Everything in Intelligence Brief","Brief written for your industry & exposure","Not filtered — re-analyzed from your perspective","Sector-specific action items every week","Jurisdiction focus: EU, US, APAC, or custom","Priority Monday delivery"].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
-                    <Check className="h-4 w-4 text-accent-light mt-0.5 shrink-0" /> {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-[13px] text-accent-light font-semibold mt-4">$25/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$25/month →</p>
             </div>
           </div>
         </div>
@@ -369,7 +342,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "From $15/month", "$300–$3,500+/year"],
+                  ["Price", "$25/month", "$300–$3,500+/year"],
                   ["Format", "Weekly AI intelligence brief", "Large research databases"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
@@ -388,79 +361,58 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* Plan cards */}
-        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Premium card */}
-          <div className="relative bg-card border border-blue rounded-2xl p-8 flex flex-col shadow-eup-md ring-2 ring-blue/20">
-            <h2 className="font-display text-[22px] text-navy mb-1">Premium</h2>
-            <p className="text-slate text-[13px] mb-5">First 25 subscribers: free for one year. Then $15/month.</p>
-
-            <div className="mb-6">
-              <span className="text-[36px] font-bold text-navy">$15</span>
-              <span className="text-slate text-[14px]">/month</span>
+        {/* Single Pro plan card */}
+        <div className="max-w-md mx-auto">
+          <div
+            id="pro-plan-card"
+            className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 border-2 border-blue/40 relative"
+          >
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+              The only paid tier
             </div>
-
-            <ul className="space-y-3 mb-6 flex-1">
-              {features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2 text-[13px] text-navy">
-                  <Check className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
-              <p className="text-[13px] text-amber-900 leading-relaxed">
-                🎁 First 25 subscribers get the full Intelligence Brief free for the first year.
-              </p>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
+              ⭐ Premium Pro
             </div>
-
-            <button
-              onClick={() => handleSubscribe("founding")}
-              disabled={loading !== null}
-              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-gradient-to-br from-steel to-blue text-white shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === "founding" ? "Redirecting…" : "Get Started →"}
-            </button>
-          </div>
-
-          {/* Premium Pro card */}
-          <div id="pro-plan-card" className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 border-2 border-blue/40 relative flex flex-col">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-              Most Powerful
-            </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">⭐ Premium Pro</div>
-            <div className="text-white font-display font-bold text-3xl mb-1">
+            <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
               $25<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
-            <p className="text-blue-200 text-xs mb-5">Your analyst, briefed on your world. Not filtered — re-analyzed.</p>
-            <ul className="space-y-2 mb-6 flex-1">
+            <p className="text-blue-200 text-sm mb-5">
+              Your analyst. Written for your industry and jurisdiction. Every Monday.
+            </p>
+            <ul className="space-y-2.5 mb-6">
               {[
-                "Your brief written for your industry and regulatory exposure",
-                "Not filtered — actually re-analyzed from your perspective",
-                "Sector-specific compliance action items every week",
-                "Jurisdiction focus: EU, US, APAC, or your custom combination",
+                "Everything in Free (all library features)",
+                "Full weekly Intelligence Brief re-analyzed for you",
+                "Industry lens: Healthcare, AdTech, AI, Legal, Fintech, Retail",
+                "Jurisdiction focus: EU, US, APAC, or your combination",
                 "Subject-matter depth: AI, biometric, litigation, or your priorities",
+                "Sector-specific GC/CPO action items every week",
                 "Priority Monday delivery — lands before your week starts",
-                "Everything in standard Premium",
-              ].map(item => (
+              ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
-                  <span className="text-accent-light font-bold flex-shrink-0 mt-0.5">✓</span>
+                  <span className="text-amber-400 font-bold flex-shrink-0 mt-0.5">✓</span>
                   {item}
                 </li>
               ))}
             </ul>
+
+            {/* Founding offer */}
+            <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-4 mb-5">
+              <p className="text-[13px] text-amber-200 leading-relaxed">
+                🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium Pro
+                free for one year, then $25/month.
+              </p>
+            </div>
+
             <button
-              onClick={() => navigate("/subscribe?interest=pro")}
-              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-white text-navy hover:opacity-90"
+              onClick={handleSubscribe}
+              disabled={loading !== null}
+              className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-white text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              Join Pro Waitlist →
+              {loading === "pro" ? "Redirecting…" : "Get Premium Pro →"}
             </button>
-            <p className="text-center text-blue-300 text-[10px] mt-1">
-              Launching soon — join the waitlist to be first.
-            </p>
-            <p className="text-center text-blue-300 text-[10px] mt-2">
-              Standard Premium founding offer does not apply to Pro tier.
+            <p className="text-center text-blue-300 text-[11px] mt-3">
+              Cancel anytime · Secure checkout via Stripe
             </p>
           </div>
         </div>

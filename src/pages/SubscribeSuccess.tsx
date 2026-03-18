@@ -15,7 +15,6 @@ export default function SubscribeSuccess() {
 
   useEffect(() => {
     if (!user) return;
-    // Poll profile until is_premium flips true (Stripe webhook may take a moment)
     let attempts = 0;
     const poll = setInterval(async () => {
       const { data } = await supabase
@@ -27,16 +26,21 @@ export default function SubscribeSuccess() {
         setIsPremium(true);
         clearInterval(poll);
       }
-      if (++attempts >= 10) clearInterval(poll); // give up after 10s
+      if (++attempts >= 10) clearInterval(poll);
     }, 1000);
     return () => clearInterval(poll);
   }, [user]);
 
   const NEXT_STEPS = [
     {
+      icon: "🎯",
+      title: "Configure your analyst",
+      body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
+    },
+    {
       icon: "📧",
       title: "Brief arrives Monday",
-      body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET. It covers the past week's most important global privacy developments.",
+      body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET. It covers the past week's most important global privacy developments — re-analyzed for your world.",
     },
     {
       icon: "⚖️",
@@ -48,17 +52,12 @@ export default function SubscribeSuccess() {
       title: "Explore 150+ jurisdiction profiles",
       body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history.",
     },
-    {
-      icon: "🎯",
-      title: "Customize your brief",
-      body: "Premium Pro subscribers can tailor the brief to their industry and jurisdiction. Set your preferences in My Account.",
-    },
   ];
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Welcome to Premium | EndUserPrivacy</title>
+        <title>Welcome to Premium Pro | EndUserPrivacy</title>
       </Helmet>
       <Topbar />
       <Navbar />
@@ -74,11 +73,11 @@ export default function SubscribeSuccess() {
             ⭐ Payment Confirmed
           </div>
           <h1 className="font-display font-bold text-navy text-[28px] md:text-[34px] mb-3 leading-tight">
-            Welcome to Premium.
+            Welcome to Premium Pro.
           </h1>
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
-            Your subscription is active. You now have full access to the Intelligence Brief,
-            Enforcement Tracker, and all Premium content.
+            Your personal analyst is now active. Every Monday morning, you'll receive
+            an Intelligence Brief re-written specifically for your regulatory world.
           </p>
           {!isPremium && (
             <p className="text-slate-light text-[12px] mt-3 animate-pulse">
@@ -114,23 +113,23 @@ export default function SubscribeSuccess() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
           <p className="text-amber-800 text-[13px] font-medium">
             🎁 You're one of the first 25 subscribers — your first year is free.
-            Your $15/month billing begins in 12 months.
+            Your $25/month billing begins in 12 months.
           </p>
         </div>
 
-        {/* Primary CTA */}
+        {/* Primary CTAs */}
         <div className="flex flex-col sm:flex-row gap-3">
+          <Link
+            to="/brief-preferences"
+            className="flex-1 text-center bg-amber-500 text-white font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
+          >
+            Configure your analyst →
+          </Link>
           <Link
             to="/dashboard"
             className="flex-1 text-center bg-gradient-to-br from-navy to-blue text-white font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Open My Intelligence Brief →
-          </Link>
-          <Link
-            to="/account"
-            className="flex-1 text-center bg-fog border border-silver text-navy font-semibold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:bg-silver/40 transition-all"
-          >
-            My Account
           </Link>
         </div>
 
