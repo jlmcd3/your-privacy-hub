@@ -351,6 +351,7 @@ export type Database = {
       }
       weekly_briefs: {
         Row: {
+          adtech_advertising: string | null
           ai_governance: string | null
           article_count: number | null
           biometric_data: string | null
@@ -373,6 +374,7 @@ export type Database = {
           why_this_matters: string | null
         }
         Insert: {
+          adtech_advertising?: string | null
           ai_governance?: string | null
           article_count?: number | null
           biometric_data?: string | null
@@ -395,6 +397,7 @@ export type Database = {
           why_this_matters?: string | null
         }
         Update: {
+          adtech_advertising?: string | null
           ai_governance?: string | null
           article_count?: number | null
           biometric_data?: string | null

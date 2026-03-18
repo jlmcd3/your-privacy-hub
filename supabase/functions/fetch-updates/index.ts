@@ -102,6 +102,91 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "European Data Protection Supervisor",
   },
+  // ── AdTech & Advertising Privacy ─────────────────────────────────────
+  {
+    url: "https://www.adexchanger.com/feed/",
+    source: "AdExchanger",
+    domain: "adexchanger.com",
+    defaultCategory: "adtech",
+    regulator: "AdExchanger",
+  },
+  {
+    url: "https://iabeurope.eu/feed/",
+    source: "IAB Europe",
+    domain: "iabeurope.eu",
+    defaultCategory: "adtech",
+    regulator: "IAB Europe",
+  },
+  {
+    url: "https://www.nai.me/blog/feed/",
+    source: "NAI",
+    domain: "nai.me",
+    defaultCategory: "adtech",
+    regulator: "Network Advertising Initiative",
+  },
+  {
+    url: "https://digitalcontentnext.org/feed/",
+    source: "DCN",
+    domain: "digitalcontentnext.org",
+    defaultCategory: "adtech",
+    regulator: "Digital Content Next",
+  },
+  {
+    url: "https://www.performancein.com/feed/",
+    source: "Performance IN",
+    domain: "performancein.com",
+    defaultCategory: "adtech",
+    regulator: "Performance IN",
+  },
+  {
+    url: "https://clearcode.cc/blog/feed/",
+    source: "Clearcode",
+    domain: "clearcode.cc",
+    defaultCategory: "adtech",
+    regulator: "Clearcode",
+  },
+  {
+    url: "https://www.ftc.gov/feeds/press-release.xml",
+    source: "FTC Advertising",
+    domain: "ftc.gov",
+    defaultCategory: "adtech",
+    regulator: "Federal Trade Commission",
+  },
+  {
+    url: "https://www.thedrums.com/rss/",
+    source: "The Drum",
+    domain: "thedrum.com",
+    defaultCategory: "adtech",
+    regulator: "The Drum",
+  },
+  {
+    url: "https://digiday.com/feed/",
+    source: "Digiday",
+    domain: "digiday.com",
+    defaultCategory: "adtech",
+    regulator: "Digiday",
+  },
+  {
+    url: "https://martechalliance.com/feed/",
+    source: "MarTech Alliance",
+    domain: "martechalliance.com",
+    defaultCategory: "adtech",
+    regulator: "MarTech Alliance",
+  },
+  {
+    url: "https://blog.iab.com/feed/",
+    source: "IAB Blog",
+    domain: "iab.com",
+    defaultCategory: "adtech",
+    regulator: "Interactive Advertising Bureau",
+  },
+  {
+    url: "https://www.cpcstrategy.com/blog/feed/",
+    source: "Tinuiti Blog",
+    domain: "tinuiti.com",
+    defaultCategory: "adtech",
+    regulator: "Tinuiti",
+  },
 ];
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -111,6 +196,7 @@ const FALLBACK_IMAGES: Record<string, string> = {
   "global": "https://picsum.photos/seed/global-privacy/400/200",
   "enforcement": "https://picsum.photos/seed/legal-court/400/200",
   "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
+  "adtech": "https://picsum.photos/seed/advertising-technology/400/200",
 };
 
 function extractTag(xml: string, tag: string): string {
@@ -139,6 +225,8 @@ function categorize(title: string, description: string, defaultCat: string): str
   const text = (title + " " + description).toLowerCase();
   // Litigation-specific detection (check first)
   if (/\b(class action|lawsuit filed|complaint filed|court filing|litigation|bipa|vppa|cipa|wiretap|suit alleges|plaintiffs allege|settlement reached|jury verdict|class certified)\b/.test(text)) return "enforcement";
+  // AdTech-specific detection — check BEFORE general enforcement
+  if (/\b(adtech|ad tech|real-time bidding|rtb|programmatic|tcf|consent management platform|cmp\b|iab europe|transparency consent framework|third.party cookie|third party cookie|cookie deprecation|cookieless|privacy sandbox|topics api|protected audience|fledge|cookie consent|consent banner|consent signal|behavioral advertising|targeted advertising|ad targeting|ad network|demand.side platform|dsp\b|supply.side platform|ssp\b|data management platform|dmp\b|ad exchange|ad server|pixel tracking|tracking pixel|retargeting|lookalike audience|contextual advertising|identity resolution|first.party data|zero.party data|data clean room|id bridging|unified id|prebid|header bidding|ad fraud|viewability|brand safety|garm\b|nai\b|daa\b|commercial surveillance|behavioral tracking|cross.site tracking|fingerprinting|device fingerprint|supercookie|evercookie)\b/.test(text)) return "adtech";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";
@@ -155,7 +243,7 @@ function assignTopicTags(title: string, description: string): string[] {
   if (/\b(biometric|facial recognition|fingerprint|iris scan|voiceprint|faceprint|face detection)\b/.test(text)) tags.push("biometric-data");
   if (/\b(cross-border|data transfer|international transfer|adequacy decision|standard contractual|binding corporate rules|sccs|bcrs|data localization)\b/.test(text)) tags.push("data-transfers");
   if (/\b(children|child|coppa|age verification|age assurance|minors|under 13|under 16|kids|teen|parental consent)\b/.test(text)) tags.push("children-privacy");
-  if (/\b(adtech|advertising technology|cookie|consent banner|tracking pixel|targeted advertising|real-time bidding|rtb|programmatic|third-party cookie|consent management)\b/.test(text)) tags.push("adtech");
+  if (/\b(adtech|ad tech|advertising technology|cookie\b|consent banner|tracking pixel|targeted advertising|behavioral advertising|real-time bidding|rtb\b|programmatic|third.party cookie|third party cookie|consent management|cmp\b|tcf\b|iab europe|iab\b|transparency consent|privacy sandbox|topics api|protected audience|fledge|cookieless|identity resolution|first.party data|zero.party data|data clean room|id bridging|unified id|prebid|header bidding|ad fraud|viewability|brand safety|garm\b|nai\b|daa\b|commercial surveillance|behavioral tracking|cross.site tracking|fingerprinting|device fingerprint|supercookie|demand.side|supply.side|dsp\b|ssp\b|dmp\b|ad exchange|ad server|retargeting|lookalike|contextual advertising)\b/.test(text)) tags.push("adtech");
   return tags;
 }
 
@@ -223,6 +311,16 @@ const REQUIRED_KEYWORDS = [
   "ai privacy", "ai regulation", "ai act", "ai data", "facial recognition",
   "generative ai", "llm privacy", "algorithmic", "automated decision",
   "machine learning privacy", "deepfake", "synthetic data",
+  // AdTech additions
+  "real-time bidding", "programmatic advertising", "consent management",
+  "transparency consent framework", "tcf ", "cookie consent",
+  "third-party cookie", "behavioral advertising", "targeted advertising",
+  "ad targeting", "commercial surveillance", "privacy sandbox",
+  "identity resolution", "first-party data", "data clean room",
+  "ad exchange", "ad network", "tracking pixel", "retargeting",
+  "lookalike audience", "iab europe", "network advertising initiative",
+  "digital advertising alliance", "cookieless", "contextual advertising",
+  "ad fraud", "cross-site tracking", "browser fingerprinting",
 ];
 
 const EXCLUSION_KEYWORDS = [
@@ -254,6 +352,10 @@ function isRelevant(title: string, description: string): boolean {
     "cnil", "ftc ", "cppa", "lgpd", "pipl", "ai act", "biometric",
     "personal data", "surveillance law", "data security", "privacy law",
     "consent", "data transfer", "privacy regulation",
+    "adtech", "ad tech", "cookie consent", "tcf", "programmatic",
+    "real-time bidding", "behavioral advertising", "commercial surveillance",
+    "third-party cookie", "privacy sandbox", "consent management", "iab ",
+    "ad targeting", "tracking pixel",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;
@@ -475,6 +577,13 @@ Deno.serve(async (req) => {
       "data privacy regulation enforcement",
       "GDPR privacy fine",
       "privacy law compliance",
+      "AdTech advertising privacy regulation",
+      "cookie consent enforcement GDPR",
+      "FTC commercial surveillance advertising",
+      "IAB TCF transparency consent framework",
+      "behavioral advertising privacy law",
+      "third party cookie privacy",
+      "programmatic advertising regulation",
     ];
     for (const q of queries) {
       try {
