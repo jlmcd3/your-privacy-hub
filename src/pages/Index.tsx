@@ -117,6 +117,8 @@ const Index = () => {
             flag: CATEGORY_META[a.category]?.flag,
             href: a.url,
             date: formatDate(a.published_at),
+            urgency: (a as any).ai_summary?.urgency ?? null,
+            whyItMatters: (a as any).ai_summary?.why_it_matters ?? null,
           }));
       }
       setLaneData(lanes);
