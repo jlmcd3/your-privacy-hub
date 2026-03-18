@@ -8,19 +8,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center">
-        <div className="text-slate text-sm">Loading…</div>
+        <div className="w-6 h-6 border-2 border-blue/30 border-t-blue rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!user) {
-    const from = location.pathname;
-    return (
-      <Navigate
-        to={`/signup?redirect=${encodeURIComponent(from)}`}
-        replace
-      />
-    );
+    const from = location.pathname + location.search;
+    // Send to LOGIN (not signup) — existing users going to /account shouldn't
+    // be shown a registration form
+    return <Navigate to={`/login?redirect=${encodeURIComponent(from)}`} replace />;
   }
 
   return <>{children}</>;
