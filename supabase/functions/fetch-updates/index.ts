@@ -352,6 +352,10 @@ function isRelevant(title: string, description: string): boolean {
     "cnil", "ftc ", "cppa", "lgpd", "pipl", "ai act", "biometric",
     "personal data", "surveillance law", "data security", "privacy law",
     "consent", "data transfer", "privacy regulation",
+    "adtech", "ad tech", "cookie consent", "tcf", "programmatic",
+    "real-time bidding", "behavioral advertising", "commercial surveillance",
+    "third-party cookie", "privacy sandbox", "consent management", "iab ",
+    "ad targeting", "tracking pixel",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;
