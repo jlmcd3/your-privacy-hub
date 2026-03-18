@@ -5,6 +5,8 @@ interface RegionItem {
   category: string;
   href: string;
   date: string;
+  whyItMatters?: string | null;
+  urgency?: string | null;
 }
 
 interface RegionFeedStripProps {
@@ -16,13 +18,12 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       {items.map((item, i) => {
         const isExternal = item.href.startsWith("http");
-        const Tag = isExternal ? "a" : "a";
         const props = isExternal
-          ? { href: item.href, target: "_blank", rel: "noopener noreferrer" }
+          ? { href: item.href, target: "_blank" as const, rel: "noopener noreferrer" }
           : { href: item.href };
 
         return (
-          <Tag
+          <a
             key={i}
             {...props}
             className="bg-white rounded-xl border border-fog p-5 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
@@ -42,7 +43,12 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
             <h4 className="font-bold text-navy text-[14px] leading-snug group-hover:text-blue transition-colors">
               {item.headline}
             </h4>
-          </Tag>
+            {item.whyItMatters && (
+              <p className="text-[11px] text-muted-foreground leading-snug mt-1 line-clamp-2">
+                {item.whyItMatters.split(/\.\s+/)[0] + "."}
+              </p>
+            )}
+          </a>
         );
       })}
     </div>
