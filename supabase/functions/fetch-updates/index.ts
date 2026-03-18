@@ -577,6 +577,13 @@ Deno.serve(async (req) => {
       "data privacy regulation enforcement",
       "GDPR privacy fine",
       "privacy law compliance",
+      "AdTech advertising privacy regulation",
+      "cookie consent enforcement GDPR",
+      "FTC commercial surveillance advertising",
+      "IAB TCF transparency consent framework",
+      "behavioral advertising privacy law",
+      "third party cookie privacy",
+      "programmatic advertising regulation",
     ];
     for (const q of queries) {
       try {
