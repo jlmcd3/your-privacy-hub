@@ -241,34 +241,47 @@ const Subscribe = () => {
         {/* What's the difference? */}
         <div className="mb-14">
           <h2 className="font-display text-[22px] text-navy text-center mb-8">What's the difference?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {/* Free column */}
             <div className="bg-fog border border-silver rounded-2xl p-6">
               <p className="font-display text-[16px] text-navy font-bold mb-1">📰 Free News Digest</p>
               <p className="text-[12px] text-slate mb-4">Delivered every Monday, free forever</p>
               <ul className="space-y-2.5">
-                {["Top 5 privacy headlines of the week", "One-line summary per article", "Links to original sources", "No account required"].map((item) => (
+                {["Top 5 privacy headlines of the week","One-line summary per article","Links to original sources","No account required"].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-navy">
-                    <Check className="h-4 w-4 text-slate-light mt-0.5 shrink-0" />
-                    {item}
+                    <Check className="h-4 w-4 text-slate-light mt-0.5 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
               <p className="text-[13px] text-accent font-semibold mt-4">Always free →</p>
             </div>
+
             {/* Premium column */}
             <div className="bg-navy rounded-2xl p-6">
               <p className="font-display text-[16px] text-white font-bold mb-1">⭐ Intelligence Brief</p>
               <p className="text-[12px] text-slate-light mb-4">Full analyst report, every Monday</p>
               <ul className="space-y-2.5">
-                {["8-section AI analyst synthesis", "Executive summary with regulatory context", "Enforcement table — all fines, all jurisdictions", "EU, US Federal, US States, Global analysis", "Trend signal comparing week-over-week", "Why This Matters — GC/CPO action items"].map((item) => (
+                {["8-section AI analyst synthesis","Executive summary with regulatory context","Enforcement table — all fines, all jurisdictions","EU, US Federal, US States, Global analysis","Trend signal comparing week-over-week","Why This Matters — GC/CPO action items"].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white">
-                    <Check className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-                    {item}
+                    <Check className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">From $15/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$15/month →</p>
+            </div>
+
+            {/* Premium Pro column */}
+            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 border border-blue/30">
+              <p className="font-display text-[16px] text-white font-bold mb-1">🎯 Premium Pro</p>
+              <p className="text-[12px] text-sky mb-4">Your brief, tailored to you</p>
+              <ul className="space-y-2.5">
+                {["Everything in Intelligence Brief","Custom industry lens (AdTech, Healthcare, AI…)","Jurisdiction focus (EU-only, US-only, APAC…)","Subject-matter filter (AI, biometric, litigation)","Priority Monday delivery","Early access to new features"].map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                    <Check className="h-4 w-4 text-accent-light mt-0.5 shrink-0" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[13px] text-accent-light font-semibold mt-4">$25/month →</p>
             </div>
           </div>
         </div>
