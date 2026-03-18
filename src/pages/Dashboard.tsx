@@ -316,13 +316,13 @@ const Dashboard = () => {
 
             {/* Analysis sections */}
             <div className="grid gap-6">
-              <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} />
-              <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} />
-              <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} />
-              <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} />
-              <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} />
-              <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} />
-              <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} />
+              <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} sourceMap={brief.source_map ?? {}} />
             </div>
 
             {/* Enforcement table */}
