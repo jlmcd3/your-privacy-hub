@@ -11,16 +11,15 @@ export default function NewsfeedPaywallCard() {
           You've reached the free preview limit
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">
-          Premium members get unlimited access to the full article archive,
-          advanced search, and weekly analyst briefs — starting at $15/month.
-          First 25 subscribers get the first year free.
+          Premium Pro members get unlimited access to the full article archive,
+          advanced search, and a weekly analyst brief written for their industry — $25/month.
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Link
             to="/subscribe"
             className="bg-gradient-to-br from-steel to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all"
           >
-            Get Premium — $15/mo →
+            Get Premium Pro — $25/mo →
           </Link>
           <Link
             to="/signup"

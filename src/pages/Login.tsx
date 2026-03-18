@@ -40,8 +40,12 @@ const Login = () => {
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Sign In</h1>
           <p className="text-sm text-slate text-center mb-7">
-            {redirect === "/subscribe"
-              ? "Sign in to complete your upgrade"
+            {redirect.includes("subscribe")
+              ? "Sign in to complete your subscription"
+              : redirect.includes("dashboard")
+              ? "Sign in to access your Intelligence Brief"
+              : redirect.includes("account")
+              ? "Sign in to manage your account"
               : "Welcome back to EndUserPrivacy"}
           </p>
 

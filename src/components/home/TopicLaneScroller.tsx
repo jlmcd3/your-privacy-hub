@@ -109,7 +109,11 @@ export default function TopicLaneScroller({
             <h4 className="font-bold text-navy text-[13px] leading-snug mb-1.5 group-hover:text-blue transition-colors">
               {card.title}
             </h4>
-            <p className="text-slate text-[11px] leading-relaxed line-clamp-2">{decodeHtml(card.excerpt)}</p>
+            <p className="text-slate text-[11px] leading-relaxed line-clamp-2">
+              {card.whyItMatters
+                ? card.whyItMatters.split(/\.\s+/)[0] + "."
+                : decodeHtml(card.excerpt)}
+            </p>
             {card.date && (
               <p className="text-slate-light text-[10px] mt-2">{card.date}</p>
             )}

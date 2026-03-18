@@ -7,9 +7,9 @@ const Footer = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[280px_1fr_1fr_1fr_1fr] gap-8 lg:gap-12 mb-12">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-gradient-to-br from-steel to-blue rounded-sm flex items-center justify-center text-white text-[13px] font-bold font-display">E</div>
-              <span className="font-display text-[15px] text-white">EndUserPrivacy</span>
+            <div className="flex items-center gap-2.5 mb-3">
+              <img src="/logo.png" alt="EndUserPrivacy" className="h-7 w-auto" />
+              <span className="font-display font-bold text-white text-[15px]">EndUserPrivacy</span>
             </div>
             <p className="text-[13px] leading-relaxed mb-5">
               Global privacy regulatory intelligence for professionals. Monitoring 119 authorities across 150+ jurisdictions, automatically.

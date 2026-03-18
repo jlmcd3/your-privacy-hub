@@ -12,7 +12,7 @@ const SectionBadge = ({ free }: { free?: boolean }) => (
         : "bg-amber-50 text-amber-700 border border-amber-200"
     }`}
   >
-    {free ? "✓ FREE PREVIEW" : "⭐ PREMIUM"}
+    {free ? "✓ FREE" : "⭐ PRO"}
   </span>
 );
 
@@ -50,17 +50,20 @@ const SampleBrief = () => {
               📋 SAMPLE INTELLIGENCE BRIEF
             </span>
             <h1 className="font-display text-[28px] md:text-[36px] font-extrabold text-white leading-tight mb-4">
-              See exactly what Premium subscribers receive every Monday
+              See what your analyst sends you every Monday
             </h1>
             <p className="text-slate-light text-[15px] max-w-[600px] mx-auto mb-6">
-              The following is a representative sample of the full 8-section Intelligence Brief. Premium subscribers receive this analysis every Monday morning, synthesized from all monitored regulatory developments of the prior week.
+              This is a representative sample of the full Intelligence Brief —
+              every section written by AI from that week's actual regulatory developments.
+              Premium Pro subscribers receive this same brief re-analyzed specifically
+              for their industry and jurisdiction.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
                 to="/subscribe"
                 className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
               >
-                Get Premium →
+                Get Premium Pro →
               </Link>
               <Link
                 to="/"
@@ -111,8 +114,8 @@ const SampleBrief = () => {
           </div>
 
           {/* Section 4 — EU & UK */}
-          <div className="bg-card border border-amber-200 rounded-xl p-6 mb-4">
-            <SectionBadge />
+          <div className="bg-card border border-fog rounded-xl p-6 mb-4">
+            <SectionBadge free />
             <SectionLabel label="EU & UK ANALYSIS" />
             <p className="text-[14px] text-slate leading-relaxed">
               The ICO's £12.7M TikTok fine is the largest UK GDPR children's privacy fine to date and the second-largest UK GDPR fine overall. The ICO found that TikTok failed to obtain valid parental consent for users under 13 and failed to implement adequate age verification. Significantly, the ICO rejected TikTok's legitimate interests argument for processing children's data for algorithmic recommendations — a ruling with broad implications for any platform that targets or knowingly serves minors. EU DPAs are expected to open parallel investigations under Article 60 GDPR. The EDPB's Opinion 28/2026 on AI training data establishes that: (1) scraping personal data from public sources without a GDPR-compliant legal basis constitutes a violation regardless of whether the data was originally public; (2) legitimate interests cannot justify AI training on personal data without a robust balancing test; (3) data minimization obligations apply to AI training datasets. This opinion is binding on all EU DPAs and will directly affect every organization using EU residents' personal data in AI model training.
@@ -120,8 +123,8 @@ const SampleBrief = () => {
           </div>
 
           {/* Section 5 — Global */}
-          <div className="bg-card border border-amber-200 rounded-xl p-6 mb-4">
-            <SectionBadge />
+          <div className="bg-card border border-fog rounded-xl p-6 mb-4">
+            <SectionBadge free />
             <SectionLabel label="GLOBAL DEVELOPMENTS" />
             <p className="text-[14px] text-slate leading-relaxed">
               Brazil's ANPD published Resolution No. 19 establishing standard contractual clauses for international data transfers — the first formal transfer mechanism under the LGPD. Organizations transferring personal data from Brazil to the US, EU, or APAC must now either use these SCCs or obtain explicit consent. The 90-day implementation period ends June 14, 2026. Canada's Bill C-27 (CPPA/AIDA) remains stalled in committee but parliamentary sources indicate a vote is expected before summer recess. Organizations with Canadian operations should begin CPPA compliance gap assessments now. Singapore's PDPC issued updated AI governance guidelines expanding the definition of 'significant decisions' subject to human review requirements.
@@ -129,8 +132,8 @@ const SampleBrief = () => {
           </div>
 
           {/* Section 6 — Enforcement Table */}
-          <div className="bg-card border border-amber-200 rounded-xl p-6 mb-4">
-            <SectionBadge />
+          <div className="bg-card border border-fog rounded-xl p-6 mb-4">
+            <SectionBadge free />
             <SectionLabel label="ENFORCEMENT TABLE" />
             <div className="overflow-x-auto">
               <table className="w-full text-[12px] text-left">
@@ -161,8 +164,8 @@ const SampleBrief = () => {
           </div>
 
           {/* Section 7 — Trend Signal */}
-          <div className="bg-card border border-amber-200 rounded-xl p-6 mb-4">
-            <SectionBadge />
+          <div className="bg-card border border-fog rounded-xl p-6 mb-4">
+            <SectionBadge free />
             <SectionLabel label="TREND SIGNAL" />
             <p className="text-[14px] text-slate leading-relaxed">
               Week-over-week pattern: Enforcement volume is up 40% compared to the same period in 2025. The concentration of simultaneous enforcement actions across UK, US, and EU in a single week is unusual and suggests coordinated intelligence-sharing between regulators — a pattern that has preceded major enforcement waves in the past (see 2021 GDPR enforcement surge). The 30-90 day outlook: organizations should expect (1) follow-on EU investigations against TikTok within 60 days; (2) additional Texas TDPSA enforcement actions against data brokers within 30 days; (3) first ADMT enforcement actions from CPPA in Q2 2026 following the April 1 effective date. The EDPB AI training opinion is likely to be followed by coordinated DPA investigations against major AI developers in Q2-Q3 2026.
@@ -171,7 +174,7 @@ const SampleBrief = () => {
 
           {/* Section 8 — Why This Matters */}
           <div className="bg-navy text-white rounded-xl p-6 mb-8">
-            <SectionBadge />
+            <SectionBadge free />
             <SectionLabel label="WHY THIS MATTERS — ACTION ITEMS FOR GC/CPO" />
             <div className="space-y-4">
               {actionItems.map((item, i) => (
@@ -190,23 +193,20 @@ const SampleBrief = () => {
             <h3 className="font-display text-[22px] font-bold text-white mb-2">
               Receive this analysis every Monday morning.
             </h3>
-            <p className="text-sky text-[13px] font-semibold mb-1">
-              Choose your tier:
-            </p>
             <p className="text-slate-light text-[14px] mb-5 max-w-[500px] mx-auto">
-              The full Intelligence Brief is delivered to Premium subscribers every Monday. First 25 subscribers get the first year free.
+              Everything above is free. Premium Pro re-writes this brief for your industry and jurisdiction — $25/month.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/subscribe" className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]">
-                Get Premium — $15/month →
+            <div className="text-center">
+              <Link
+                to="/subscribe"
+                className="inline-block bg-white text-navy font-bold text-[14px] py-3 px-10 rounded-xl no-underline hover:opacity-90 transition-all"
+              >
+                Get Premium Pro — $25/month →
               </Link>
-              <Link to="/subscribe#pro" className="inline-block px-6 py-3 bg-white/15 border border-white/30 text-white font-semibold rounded-lg hover:bg-white/25 transition-all no-underline text-[14px]">
-                Premium Pro — $25/month →
-              </Link>
+              <p className="text-blue-300 text-[12px] mt-3">
+                First 25 subscribers get the first year free · Cancel anytime
+              </p>
             </div>
-            <p className="text-blue-300 text-[12px] mt-3">
-              Premium Pro includes everything above plus a brief tailored to your industry and jurisdiction.
-            </p>
           </div>
         </div>
       </main>

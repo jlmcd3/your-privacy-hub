@@ -29,7 +29,7 @@ const About = () => {
         <section className="max-w-[760px] mx-auto px-4 py-12">
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
-              End User Privacy monitors 250+ regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
+              End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
             </p>
             <p>
               Our platform uses AI to ingest, filter, and summarize primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.
@@ -63,7 +63,7 @@ const About = () => {
                 </thead>
                 <tbody>
                   {[
-                    ["Price", "$15/month", "$2,000–$5,000+/year"],
+                    ["Price", "$25/month (Pro)", "$2,000–$5,000+/year"],
                     ["Format", "Weekly AI intelligence brief", "Large research databases"],
                     ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
                     ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],

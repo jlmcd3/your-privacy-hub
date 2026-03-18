@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 export default function CheckEmail() {
   const [searchParams] = useSearchParams();
-  const email = searchParams.get("email") || "your email";
+  const email = searchParams.get("email");
 
   return (
     <div className="min-h-screen bg-paper">
@@ -22,7 +22,11 @@ export default function CheckEmail() {
           <p className="text-slate text-[14px] leading-relaxed mb-2">
             We sent a confirmation link to
           </p>
-          <p className="font-semibold text-navy text-[15px] mb-5">{email}</p>
+          {email ? (
+            <p className="font-semibold text-navy text-[15px] mb-5">{email}</p>
+          ) : (
+            <p className="text-slate text-[14px] mb-5">your registered email address</p>
+          )}
           <p className="text-slate text-[13px] leading-relaxed mb-7">
             Click the link in that email to confirm your account and proceed to checkout.
             The link expires in 24 hours.
