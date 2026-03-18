@@ -283,6 +283,7 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
         eu_uk: brief.eu_uk,
         global_developments: brief.global_developments,
         ai_governance: brief.ai_governance,
+        adtech_advertising: brief.adtech_advertising,
         biometric_data: brief.biometric_data,
         privacy_litigation: brief.privacy_litigation,
         enforcement_table: brief.enforcement_table,
