@@ -38,7 +38,7 @@ const PremiumBanner = () => {
             </div>
             <div className="flex gap-3 items-center flex-wrap">
               <Link to="/subscribe" className="px-5 md:px-7 py-3 md:py-3.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all no-underline inline-flex items-center gap-2">
-                Get Premium →
+                Get Premium — from $15/month →
               </Link>
               <Link to="/sample-brief" className="px-5 md:px-6 py-3 md:py-3.5 text-sm font-medium text-white/85 bg-white/[0.08] border border-white/[0.18] rounded-lg hover:bg-white/[0.14] hover:text-white transition-all no-underline inline-flex items-center gap-2">
                 See a sample brief →
