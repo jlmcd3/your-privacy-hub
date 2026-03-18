@@ -66,7 +66,7 @@ const Index = () => {
       // Fetch recent updates for featured card, region strip, and lanes
       const { data } = await supabase
         .from("updates")
-        .select("id,title,summary,url,category,regulator,published_at,source_name")
+        .select("id,title,summary,url,category,regulator,published_at,source_name,ai_summary")
         .order("published_at", { ascending: false })
         .limit(100);
 
