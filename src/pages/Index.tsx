@@ -27,6 +27,7 @@ interface Update {
   regulator: string | null;
   published_at: string;
   source_name: string | null;
+  ai_summary?: any;
 }
 
 const CATEGORY_META: Record<string, { flag: string; jurisdiction: string }> = {
