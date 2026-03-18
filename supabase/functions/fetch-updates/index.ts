@@ -102,6 +102,91 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "European Data Protection Supervisor",
   },
+  // ── AdTech & Advertising Privacy ─────────────────────────────────────
+  {
+    url: "https://www.adexchanger.com/feed/",
+    source: "AdExchanger",
+    domain: "adexchanger.com",
+    defaultCategory: "adtech",
+    regulator: "AdExchanger",
+  },
+  {
+    url: "https://iabeurope.eu/feed/",
+    source: "IAB Europe",
+    domain: "iabeurope.eu",
+    defaultCategory: "adtech",
+    regulator: "IAB Europe",
+  },
+  {
+    url: "https://www.nai.me/blog/feed/",
+    source: "NAI",
+    domain: "nai.me",
+    defaultCategory: "adtech",
+    regulator: "Network Advertising Initiative",
+  },
+  {
+    url: "https://digitalcontentnext.org/feed/",
+    source: "DCN",
+    domain: "digitalcontentnext.org",
+    defaultCategory: "adtech",
+    regulator: "Digital Content Next",
+  },
+  {
+    url: "https://www.performancein.com/feed/",
+    source: "Performance IN",
+    domain: "performancein.com",
+    defaultCategory: "adtech",
+    regulator: "Performance IN",
+  },
+  {
+    url: "https://clearcode.cc/blog/feed/",
+    source: "Clearcode",
+    domain: "clearcode.cc",
+    defaultCategory: "adtech",
+    regulator: "Clearcode",
+  },
+  {
+    url: "https://www.ftc.gov/feeds/press-release.xml",
+    source: "FTC Advertising",
+    domain: "ftc.gov",
+    defaultCategory: "adtech",
+    regulator: "Federal Trade Commission",
+  },
+  {
+    url: "https://www.thedrums.com/rss/",
+    source: "The Drum",
+    domain: "thedrum.com",
+    defaultCategory: "adtech",
+    regulator: "The Drum",
+  },
+  {
+    url: "https://digiday.com/feed/",
+    source: "Digiday",
+    domain: "digiday.com",
+    defaultCategory: "adtech",
+    regulator: "Digiday",
+  },
+  {
+    url: "https://martechalliance.com/feed/",
+    source: "MarTech Alliance",
+    domain: "martechalliance.com",
+    defaultCategory: "adtech",
+    regulator: "MarTech Alliance",
+  },
+  {
+    url: "https://blog.iab.com/feed/",
+    source: "IAB Blog",
+    domain: "iab.com",
+    defaultCategory: "adtech",
+    regulator: "Interactive Advertising Bureau",
+  },
+  {
+    url: "https://www.cpcstrategy.com/blog/feed/",
+    source: "Tinuiti Blog",
+    domain: "tinuiti.com",
+    defaultCategory: "adtech",
+    regulator: "Tinuiti",
+  },
 ];
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -111,6 +196,7 @@ const FALLBACK_IMAGES: Record<string, string> = {
   "global": "https://picsum.photos/seed/global-privacy/400/200",
   "enforcement": "https://picsum.photos/seed/legal-court/400/200",
   "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
+  "adtech": "https://picsum.photos/seed/advertising-technology/400/200",
 };
 
 function extractTag(xml: string, tag: string): string {
