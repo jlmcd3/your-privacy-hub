@@ -20,6 +20,11 @@ interface FeaturedBriefProps {
   category: string;
   date: string;
   href: string;
+  aiSummary?: {
+    why_it_matters?: string;
+    urgency?: string;
+    compliance_impact?: string;
+  } | null;
 }
 
 export default function FeaturedBriefCard({
@@ -30,6 +35,7 @@ export default function FeaturedBriefCard({
   category,
   date,
   href,
+  aiSummary,
 }: FeaturedBriefProps) {
   return (
     <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-navy to-steel text-white mb-8">
@@ -53,9 +59,32 @@ export default function FeaturedBriefCard({
             </h2>
           </div>
         </div>
-        <p className="text-blue-100 text-sm leading-relaxed mb-5 max-w-2xl">
-          {summary}
+
+        {/* Show ai_summary why_it_matters if available, else fall back to summary */}
+        <p className="text-blue-100 text-sm leading-relaxed mb-4 max-w-2xl">
+          {aiSummary?.why_it_matters
+            ? aiSummary.why_it_matters.split(/\.\s+/)[0] + "."
+            : summary}
         </p>
+
+        {/* Urgency + compliance impact strip if ai_summary available */}
+        {aiSummary?.urgency && aiSummary.urgency !== "Monitor" && (
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+              aiSummary.urgency === "Immediate"
+                ? "bg-red-900/40 text-red-300 border-red-700/40"
+                : "bg-amber-900/30 text-amber-300 border-amber-700/30"
+            }`}>
+              {aiSummary.urgency === "Immediate" ? "⚡ Immediate action" : "📅 This quarter"}
+            </span>
+            {aiSummary.compliance_impact && (
+              <span className="text-blue-300 text-[11px] line-clamp-1 flex-1">
+                {aiSummary.compliance_impact.split(".")[0]}
+              </span>
+            )}
+          </div>
+        )}
+
         <a
           href={href}
           target="_blank"

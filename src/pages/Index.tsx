@@ -87,6 +87,8 @@ const Index = () => {
           category: a!.category,
           href: `/category/${a!.category}`,
           date: formatDate(a!.published_at),
+          whyItMatters: (a as any).ai_summary?.why_it_matters ?? null,
+          urgency: (a as any).ai_summary?.urgency ?? null,
         }));
       setRegionItems(regions);
 
