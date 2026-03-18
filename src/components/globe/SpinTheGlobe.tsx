@@ -37,13 +37,17 @@ type Jurisdiction = typeof RICH_JURISDICTIONS[number];
 //   +Y = north pole, texture lon=0 maps to the BACK (-Z) face.
 // So we apply Math.PI offset to the longitude when placing markers
 // AND when rotating the globe to face a country toward the camera (+Z).
+// Converts geographic coordinates to a 3D point on a Three.js SphereGeometry
+// that matches the default equirectangular texture UV mapping.
+// Derivation: phi = π + lon_rad, theta = π/2 - lat_rad in the Three.js formula
+// gives: x = cos(lat)*cos(lon), y = sin(lat), z = -cos(lat)*sin(lon)
 function latLonToVec3(lat: number, lon: number, r: number): THREE.Vector3 {
-  const phi = (lat * Math.PI) / 180;       // latitude → angle from equator
-  const lam = (lon * Math.PI) / 180;       // longitude → angle around Y axis
+  const latRad = (lat * Math.PI) / 180;
+  const lonRad = (lon * Math.PI) / 180;
   return new THREE.Vector3(
-    r * Math.cos(phi) * Math.sin(lam),     // X (east)
-    r * Math.sin(phi),                      // Y (up)
-    r * Math.cos(phi) * Math.cos(lam),     // Z (south→north through prime meridian)
+    r * Math.cos(latRad) * Math.cos(lonRad),   // x
+    r * Math.sin(latRad),                       // y (up)
+    -r * Math.cos(latRad) * Math.sin(lonRad),  // z (negative sin)
   );
 }
 
