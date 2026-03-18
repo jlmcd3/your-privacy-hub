@@ -213,7 +213,8 @@ const Subscribe = () => {
                   <tr className="bg-fog">
                     <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate">Feature</th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[100px]">Free ($0)</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-blue w-[130px]">Premium ($15/mo)</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-blue w-[120px]">Premium ($15/mo)</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[130px]">Pro ($25/mo)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -221,14 +222,13 @@ const Subscribe = () => {
                     <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
                       <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{row.feature}</td>
                       <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.free ? (
-                          <Check className="w-4 h-4 text-accent mx-auto" />
-                        ) : (
-                          <XIcon className="w-4 h-4 text-slate-light mx-auto" />
-                        )}
+                        {row.free    ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
                       </td>
                       <td className="px-5 py-3 text-center border-t border-fog">
-                        <Check className="w-4 h-4 text-accent mx-auto" />
+                        {row.premium ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
+                      </td>
+                      <td className="px-5 py-3 text-center border-t border-fog">
+                        {row.pro     ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
                       </td>
                     </tr>
                   ))}
