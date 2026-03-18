@@ -382,14 +382,16 @@ const Subscribe = () => {
               ))}
             </ul>
             <button
-              onClick={() => handleSubscribe("pro")}
-              disabled={loading !== null}
-              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-white text-navy hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => navigate("/subscribe?interest=pro")}
+              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-white text-navy hover:opacity-90"
             >
-              {loading === "pro" ? "Redirecting…" : "Get Premium Pro →"}
+              Join Pro Waitlist →
             </button>
+            <p className="text-center text-blue-300 text-[10px] mt-1">
+              Launching soon — join the waitlist to be first.
+            </p>
             <p className="text-center text-blue-300 text-[10px] mt-2">
-              Standard Premium founding offer ($15 free year) does not apply to Pro tier.
+              Standard Premium founding offer does not apply to Pro tier.
             </p>
           </div>
         </div>

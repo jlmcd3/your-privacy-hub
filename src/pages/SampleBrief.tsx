@@ -190,15 +190,23 @@ const SampleBrief = () => {
             <h3 className="font-display text-[22px] font-bold text-white mb-2">
               Receive this analysis every Monday morning.
             </h3>
+            <p className="text-sky text-[13px] font-semibold mb-1">
+              Choose your tier:
+            </p>
             <p className="text-slate-light text-[14px] mb-5 max-w-[500px] mx-auto">
               The full Intelligence Brief is delivered to Premium subscribers every Monday. First 25 subscribers get the first year free.
             </p>
-            <Link
-              to="/subscribe"
-              className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
-            >
-              Get Premium — $15/month →
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/subscribe" className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]">
+                Get Premium — $15/month →
+              </Link>
+              <Link to="/subscribe#pro" className="inline-block px-6 py-3 bg-white/15 border border-white/30 text-white font-semibold rounded-lg hover:bg-white/25 transition-all no-underline text-[14px]">
+                Premium Pro — $25/month →
+              </Link>
+            </div>
+            <p className="text-blue-300 text-[12px] mt-3">
+              Premium Pro includes everything above plus a brief tailored to your industry and jurisdiction.
+            </p>
           </div>
         </div>
       </main>

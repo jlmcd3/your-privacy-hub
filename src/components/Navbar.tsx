@@ -338,7 +338,7 @@ const Navbar = () => {
               className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
               onClick={() => setMobileOpen(false)}
             >
-              Get Premium →
+              See Plans →
             </Link>
           </div>
         </div>

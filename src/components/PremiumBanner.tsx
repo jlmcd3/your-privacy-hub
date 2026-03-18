@@ -51,8 +51,11 @@ const PremiumBanner = () => {
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
               <sup className="text-[18px] md:text-[22px] align-super">$</sup>15
             </div>
-            <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month</div>
-            <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">First 25 subscribers: free for 1 year</div>
+            <div className="text-[13px] text-slate-light mt-1 mb-1.5">/ month · Premium</div>
+            <div className="text-[13px] text-sky/80 mt-1 mb-1.5">$25 / month · Premium Pro</div>
+            <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block mt-1">
+              First 25 subscribers: Premium free for 1 year
+            </div>
           </div>
         </div>
       </div>
