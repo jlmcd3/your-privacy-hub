@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
           { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
+          { icon: "📡", label: "AdTech", href: "/category/adtech" },
         ],
       },
       {

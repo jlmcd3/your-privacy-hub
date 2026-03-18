@@ -55,6 +55,11 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
     icon: "🤖",
     description: "Regulatory developments at the intersection of artificial intelligence and data privacy. Covers the EU AI Act, automated decision-making regulations, AI training data guidance, and biometric data processing.",
   },
+  "adtech": {
+    title: "AdTech & Advertising Privacy",
+    icon: "📡",
+    description: "Regulatory intelligence on advertising technology, cookie consent, behavioral targeting, programmatic advertising, the IAB TCF, and FTC commercial surveillance enforcement.",
+  },
 };
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -64,6 +69,7 @@ const FALLBACK_IMAGES: Record<string, string> = {
   "global": "https://picsum.photos/seed/global-privacy/400/200",
   "enforcement": "https://picsum.photos/seed/legal-court/400/200",
   "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
+  "adtech": "https://picsum.photos/seed/advertising-tech/400/200",
 };
 
 function formatDate(iso: string): string {
