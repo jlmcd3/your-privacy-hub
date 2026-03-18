@@ -38,6 +38,7 @@ const CATEGORY_META: Record<string, { flag: string; jurisdiction: string }> = {
   "global": { flag: "🌐", jurisdiction: "Global" },
   "enforcement": { flag: "⚖️", jurisdiction: "Enforcement" },
   "ai-privacy": { flag: "🤖", jurisdiction: "AI & Privacy" },
+  "adtech":      { flag: "📡", jurisdiction: "AdTech" },
 };
 
 function decodeHtml(str: string | null | undefined): string {
@@ -105,6 +106,7 @@ const Index = () => {
       const lanes: Record<string, any[]> = {};
       const laneConfigs = [
         { key: "ai-privacy", take: 8 },
+        { key: "adtech", take: 8 },
         { key: "us-states", take: 8 },
         { key: "enforcement", take: 8 },
         { key: "eu-uk", take: 8 },
@@ -183,6 +185,12 @@ const Index = () => {
               <TopicLaneScroller
                 laneTitle="AI & Privacy" laneIcon="🤖" laneHref="/category/ai-privacy"
                 cards={laneData["ai-privacy"]}
+              />
+            )}
+            {(laneData["adtech"]?.length ?? 0) > 0 && (
+              <TopicLaneScroller
+                laneTitle="AdTech & Advertising Privacy" laneIcon="📡" laneHref="/category/adtech"
+                cards={laneData["adtech"]}
               />
             )}
             <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3" />
