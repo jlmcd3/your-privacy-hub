@@ -1,0 +1,1 @@
+ALTER TABLE public.weekly_briefs ADD COLUMN IF NOT EXISTS adtech_advertising text;
