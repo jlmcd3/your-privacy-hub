@@ -7,6 +7,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
+import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 
 const features = [
   "Full Enforcement Tracker access — all actions, all regulators, all jurisdictions",
@@ -31,9 +32,9 @@ const comparisonRows = [
   { feature: "Enforcement table with fine amounts",                 free: false, premium: true,  pro: true  },
   { feature: "Trend signals — forward-looking intelligence",        free: false, premium: true,  pro: true  },
   { feature: "Why This Matters — action items for GC/CPO",         free: false, premium: true,  pro: true  },
-  { feature: "Custom-tailored brief for your industry",            free: false, premium: false, pro: true  },
+  { feature: "Brief written for your industry & regulatory exposure", free: false, premium: false, pro: true  },
+  { feature: "Sector-specific compliance action items",             free: false, premium: false, pro: true  },
   { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, premium: false, pro: true  },
-  { feature: "Subject-matter filter (AI, biometric, litigation…)", free: false, premium: false, pro: true  },
   { feature: "Priority Monday delivery",                           free: false, premium: false, pro: true  },
 ];
 
@@ -80,7 +81,7 @@ const Subscribe = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Subscribe to Privacy Intelligence | EndUserPrivacy</title>
-        <meta name="description" content="Get the weekly AI Intelligence Brief covering GDPR, US state privacy laws, enforcement actions, and global developments. First 25 subscribers get the first year free." />
+        <meta name="description" content="Get the weekly AI Intelligence Brief covering GDPR, US state privacy laws, enforcement actions, and global developments. Premium Pro: your AI analyst, briefed on your world." />
       </Helmet>
       <Topbar />
       <Navbar />
@@ -89,14 +90,30 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />The analyst starts at $15/month.
+            The library is free.<br />Your analyst starts at $15/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse is always free. Choose Premium at $15/month for the weekly
-            Intelligence Brief, or Premium Pro at $25/month for a brief tailored to your
-            industry, jurisdiction, and focus areas. First 25 subscribers get Premium free for one year.
+            Everything you can browse is always free. Premium gives you the full
+            weekly Intelligence Brief every Monday — 8-section AI analysis covering
+            every major privacy jurisdiction. Premium Pro goes further: your brief
+            is written specifically for your industry, your jurisdictions, and your
+            compliance priorities. It reads like an analyst briefed you personally.
           </p>
         </div>
+      </div>
+
+      {/* Interactive Pro Brief Preview */}
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <div className="text-center mb-6">
+          <h2 className="font-display font-bold text-navy text-[20px] mb-2">
+            See what your Pro brief would look like this week
+          </h2>
+          <p className="text-slate text-[13px]">
+            Pick your sector and region. We'll show you what your Monday brief
+            would have opened with.
+          </p>
+        </div>
+        <ProBriefPreview />
       </div>
 
       {/* Sample Brief Preview */}
@@ -241,6 +258,58 @@ const Subscribe = () => {
         {/* What's the difference? */}
         <div className="mb-14">
           <h2 className="font-display text-[22px] text-navy text-center mb-8">What's the difference?</h2>
+
+          {/* Standard vs Pro comparison */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <h3 className="font-display font-bold text-navy text-[16px] text-center mb-5">
+              Same story. Different brief.
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Standard */}
+              <div className="bg-card border border-fog rounded-2xl p-5">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate mb-3">
+                  ⭐ Standard Premium brief
+                </div>
+                <p className="text-[12px] font-semibold text-navy mb-2 leading-snug">
+                  ICO fines TikTok £12.7M for children's data violations
+                </p>
+                <p className="text-[12px] text-slate leading-relaxed">
+                  The ICO issued a £12.7M fine against TikTok Ltd for processing
+                  the personal data of children under 13 without appropriate consent.
+                  The case establishes that algorithmic personalization for minors
+                  cannot rely on legitimate interests as a lawful basis.
+                </p>
+                <p className="text-[11px] text-slate-light mt-3 italic">
+                  Action: Review children's data practices against the ICO standard.
+                </p>
+              </div>
+
+              {/* Pro — Healthcare */}
+              <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-3">
+                  ⭐ Premium Pro brief — Healthcare sector
+                </div>
+                <p className="text-[12px] font-semibold text-white mb-2 leading-snug">
+                  ICO children's data ruling: direct implications for pediatric health platforms
+                </p>
+                <p className="text-[12px] text-blue-100/80 leading-relaxed">
+                  The ICO's TikTok ruling extends beyond social media. The legitimate interests
+                  prohibition for algorithmic personalization of minors directly applies to
+                  pediatric health app recommendation engines and patient portal personalization
+                  for users under 13. If your platform serves or may serve users under 18,
+                  your consent mechanisms and personalization logic need immediate review.
+                </p>
+                <p className="text-[11px] text-amber-300 mt-3">
+                  Action: Audit pediatric portal personalization against the ICO standard
+                  before your next ICO engagement. COPPA implications are also in play
+                  for US-facing services.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {/* Free column */}
             <div className="bg-fog border border-silver rounded-2xl p-6">
@@ -273,9 +342,9 @@ const Subscribe = () => {
             {/* Premium Pro column */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 border border-blue/30">
               <p className="font-display text-[16px] text-white font-bold mb-1">🎯 Premium Pro</p>
-              <p className="text-[12px] text-sky mb-4">Your brief, tailored to you</p>
+              <p className="text-[12px] text-sky mb-4">Your analyst, briefed on your world</p>
               <ul className="space-y-2.5">
-                {["Everything in Intelligence Brief","Custom industry lens (AdTech, Healthcare, AI…)","Jurisdiction focus (EU-only, US-only, APAC…)","Subject-matter filter (AI, biometric, litigation)","Priority Monday delivery","Early access to new features"].map((item) => (
+                {["Everything in Intelligence Brief","Brief written for your industry & exposure","Not filtered — re-analyzed from your perspective","Sector-specific action items every week","Jurisdiction focus: EU, US, APAC, or custom","Priority Monday delivery"].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white">
                     <Check className="h-4 w-4 text-accent-light mt-0.5 shrink-0" /> {item}
                   </li>
@@ -356,7 +425,7 @@ const Subscribe = () => {
           </div>
 
           {/* Premium Pro card */}
-          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 border-2 border-blue/40 relative flex flex-col">
+          <div id="pro-plan-card" className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 border-2 border-blue/40 relative flex flex-col">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
               Most Powerful
             </div>
@@ -364,15 +433,15 @@ const Subscribe = () => {
             <div className="text-white font-display font-bold text-3xl mb-1">
               $25<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
-            <p className="text-blue-200 text-xs mb-5">Everything in Premium, plus your brief tailored to you.</p>
+            <p className="text-blue-200 text-xs mb-5">Your analyst, briefed on your world. Not filtered — re-analyzed.</p>
             <ul className="space-y-2 mb-6 flex-1">
               {[
-                "Custom-tailored weekly brief",
-                "Industry lens (Healthcare, AdTech, AI, etc.)",
-                "Jurisdiction focus (EU-only, US-only, etc.)",
-                "Subject-matter filter (litigation, biometric, AI...)",
-                "Priority Monday delivery",
-                "Early access to new features",
+                "Your brief written for your industry and regulatory exposure",
+                "Not filtered — actually re-analyzed from your perspective",
+                "Sector-specific compliance action items every week",
+                "Jurisdiction focus: EU, US, APAC, or your custom combination",
+                "Subject-matter depth: AI, biometric, litigation, or your priorities",
+                "Priority Monday delivery — lands before your week starts",
                 "Everything in standard Premium",
               ].map(item => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
