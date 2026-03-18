@@ -19,18 +19,22 @@ const features = [
 ];
 
 const comparisonRows = [
-  { feature: "Daily privacy news feed", free: true, premium: true },
-  { feature: "Jurisdiction profiles (150+ countries)", free: true, premium: true },
-  { feature: "Regulator directory (119 authorities)", free: true, premium: true },
-  { feature: "Research guides (GDPR, AI, US laws)", free: true, premium: true },
-  { feature: "Top 12 recent enforcement actions", free: true, premium: true },
-  { feature: "Preview of weekly brief headline", free: true, premium: true },
-  { feature: "Full weekly AI intelligence brief (8 sections)", free: false, premium: true },
-  { feature: "Complete enforcement database — all actions", free: false, premium: true },
-  { feature: "Regional analysis: US Federal, States, EU, Global", free: false, premium: true },
-  { feature: "Enforcement table with fine amounts", free: false, premium: true },
-  { feature: "Trend signals — forward-looking intelligence", free: false, premium: true },
-  { feature: "Why This Matters — action items for GC/CPO", free: false, premium: true },
+  { feature: "Daily privacy news feed",                             free: true,  premium: true,  pro: true  },
+  { feature: "Jurisdiction profiles (150+ countries)",              free: true,  premium: true,  pro: true  },
+  { feature: "Regulator directory (119 authorities)",               free: true,  premium: true,  pro: true  },
+  { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  premium: true,  pro: true  },
+  { feature: "Top 12 recent enforcement actions",                   free: true,  premium: true,  pro: true  },
+  { feature: "Preview of weekly brief headline",                    free: true,  premium: true,  pro: true  },
+  { feature: "Full weekly AI intelligence brief (8 sections)",      free: false, premium: true,  pro: true  },
+  { feature: "Complete enforcement database — all actions",         free: false, premium: true,  pro: true  },
+  { feature: "Regional analysis: US Federal, States, EU, Global",  free: false, premium: true,  pro: true  },
+  { feature: "Enforcement table with fine amounts",                 free: false, premium: true,  pro: true  },
+  { feature: "Trend signals — forward-looking intelligence",        free: false, premium: true,  pro: true  },
+  { feature: "Why This Matters — action items for GC/CPO",         free: false, premium: true,  pro: true  },
+  { feature: "Custom-tailored brief for your industry",            free: false, premium: false, pro: true  },
+  { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, premium: false, pro: true  },
+  { feature: "Subject-matter filter (AI, biometric, litigation…)", free: false, premium: false, pro: true  },
+  { feature: "Priority Monday delivery",                           free: false, premium: false, pro: true  },
 ];
 
 const Subscribe = () => {
@@ -85,10 +89,12 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free. The analyst is $15/month.
+            The library is free.<br />The analyst starts at $15/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse is always free. The first 25 subscribers get the full Intelligence Brief free for one year. After that, just $15/month.
+            Everything you can browse is always free. Choose Premium at $15/month for the weekly
+            Intelligence Brief, or Premium Pro at $25/month for a brief tailored to your
+            industry, jurisdiction, and focus areas. First 25 subscribers get Premium free for one year.
           </p>
         </div>
       </div>
@@ -207,7 +213,8 @@ const Subscribe = () => {
                   <tr className="bg-fog">
                     <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate">Feature</th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[100px]">Free ($0)</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-blue w-[130px]">Premium ($15/mo)</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-blue w-[120px]">Premium ($15/mo)</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[130px]">Pro ($25/mo)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -215,14 +222,13 @@ const Subscribe = () => {
                     <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
                       <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{row.feature}</td>
                       <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.free ? (
-                          <Check className="w-4 h-4 text-accent mx-auto" />
-                        ) : (
-                          <XIcon className="w-4 h-4 text-slate-light mx-auto" />
-                        )}
+                        {row.free    ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
                       </td>
                       <td className="px-5 py-3 text-center border-t border-fog">
-                        <Check className="w-4 h-4 text-accent mx-auto" />
+                        {row.premium ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
+                      </td>
+                      <td className="px-5 py-3 text-center border-t border-fog">
+                        {row.pro     ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
                       </td>
                     </tr>
                   ))}
@@ -235,34 +241,47 @@ const Subscribe = () => {
         {/* What's the difference? */}
         <div className="mb-14">
           <h2 className="font-display text-[22px] text-navy text-center mb-8">What's the difference?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {/* Free column */}
             <div className="bg-fog border border-silver rounded-2xl p-6">
               <p className="font-display text-[16px] text-navy font-bold mb-1">📰 Free News Digest</p>
               <p className="text-[12px] text-slate mb-4">Delivered every Monday, free forever</p>
               <ul className="space-y-2.5">
-                {["Top 5 privacy headlines of the week", "One-line summary per article", "Links to original sources", "No account required"].map((item) => (
+                {["Top 5 privacy headlines of the week","One-line summary per article","Links to original sources","No account required"].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-navy">
-                    <Check className="h-4 w-4 text-slate-light mt-0.5 shrink-0" />
-                    {item}
+                    <Check className="h-4 w-4 text-slate-light mt-0.5 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
               <p className="text-[13px] text-accent font-semibold mt-4">Always free →</p>
             </div>
+
             {/* Premium column */}
             <div className="bg-navy rounded-2xl p-6">
               <p className="font-display text-[16px] text-white font-bold mb-1">⭐ Intelligence Brief</p>
               <p className="text-[12px] text-slate-light mb-4">Full analyst report, every Monday</p>
               <ul className="space-y-2.5">
-                {["8-section AI analyst synthesis", "Executive summary with regulatory context", "Enforcement table — all fines, all jurisdictions", "EU, US Federal, US States, Global analysis", "Trend signal comparing week-over-week", "Why This Matters — GC/CPO action items"].map((item) => (
+                {["8-section AI analyst synthesis","Executive summary with regulatory context","Enforcement table — all fines, all jurisdictions","EU, US Federal, US States, Global analysis","Trend signal comparing week-over-week","Why This Matters — GC/CPO action items"].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white">
-                    <Check className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-                    {item}
+                    <Check className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">From $15/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$15/month →</p>
+            </div>
+
+            {/* Premium Pro column */}
+            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 border border-blue/30">
+              <p className="font-display text-[16px] text-white font-bold mb-1">🎯 Premium Pro</p>
+              <p className="text-[12px] text-sky mb-4">Your brief, tailored to you</p>
+              <ul className="space-y-2.5">
+                {["Everything in Intelligence Brief","Custom industry lens (AdTech, Healthcare, AI…)","Jurisdiction focus (EU-only, US-only, APAC…)","Subject-matter filter (AI, biometric, litigation)","Priority Monday delivery","Early access to new features"].map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                    <Check className="h-4 w-4 text-accent-light mt-0.5 shrink-0" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[13px] text-accent-light font-semibold mt-4">$25/month →</p>
             </div>
           </div>
         </div>
@@ -276,12 +295,12 @@ const Subscribe = () => {
                 <tr className="bg-fog">
                   <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / OneTrust / Bloomberg</th>
+                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / DataGuidance / Bloomberg</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Price", "$15/month", "$2,000–$5,000+/year"],
+                  ["Price", "From $15/month", "$300–$3,500+/year"],
                   ["Format", "Weekly AI intelligence brief", "Large research databases"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
@@ -363,14 +382,16 @@ const Subscribe = () => {
               ))}
             </ul>
             <button
-              onClick={() => handleSubscribe("pro")}
-              disabled={loading !== null}
-              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-white text-navy hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => navigate("/subscribe?interest=pro")}
+              className="w-full py-3 rounded-lg text-[14px] font-semibold transition-all cursor-pointer border-none bg-white text-navy hover:opacity-90"
             >
-              {loading === "pro" ? "Redirecting…" : "Get Premium Pro →"}
+              Join Pro Waitlist →
             </button>
+            <p className="text-center text-blue-300 text-[10px] mt-1">
+              Launching soon — join the waitlist to be first.
+            </p>
             <p className="text-center text-blue-300 text-[10px] mt-2">
-              Standard Premium founding offer ($15 free year) does not apply to Pro tier.
+              Standard Premium founding offer does not apply to Pro tier.
             </p>
           </div>
         </div>
