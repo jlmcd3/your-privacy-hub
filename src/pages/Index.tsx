@@ -106,6 +106,7 @@ const Index = () => {
       const lanes: Record<string, any[]> = {};
       const laneConfigs = [
         { key: "ai-privacy", take: 8 },
+        { key: "adtech", take: 8 },
         { key: "us-states", take: 8 },
         { key: "enforcement", take: 8 },
         { key: "eu-uk", take: 8 },
