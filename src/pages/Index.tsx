@@ -51,12 +51,6 @@ function formatDate(iso: string): string {
 }
 
 const Index = () => {
-  const [isFirstVisit] = useState(() => {
-    const visited = localStorage.getItem("eup_visited");
-    if (!visited) localStorage.setItem("eup_visited", "1");
-    return !visited;
-  });
-
   const [topArticle, setTopArticle] = useState<Update | null>(null);
   const [regionItems, setRegionItems] = useState<any[]>([]);
   const [laneData, setLaneData] = useState<Record<string, any[]>>({});
