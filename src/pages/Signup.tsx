@@ -33,11 +33,10 @@ const Signup = () => {
     if (error) {
       setError(error.message);
     } else {
-      setMessage(
-        redirect === "/subscribe"
-          ? "Almost there! Check your email to confirm your account, then you'll be taken straight to complete your upgrade."
-          : "Check your email to confirm your account."
-      );
+      // Redirect to check-email page instead of showing inline message
+      const nav = await import("react-router-dom");
+      window.location.href = `/check-email?redirect=${encodeURIComponent(redirect)}&email=${encodeURIComponent(email.trim())}`;
+      return;
     }
     setLoading(false);
   };
