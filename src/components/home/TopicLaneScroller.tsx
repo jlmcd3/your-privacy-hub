@@ -16,6 +16,8 @@ interface TopicCard {
   flag?: string;
   href: string;
   date?: string;
+  urgency?: string | null;
+  whyItMatters?: string | null;
 }
 
 interface TopicLaneScrollerProps {
