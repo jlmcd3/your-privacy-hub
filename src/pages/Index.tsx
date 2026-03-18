@@ -159,7 +159,40 @@ const Index = () => {
         </div>
       )}
 
-      <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+      {/* Value proposition strip — always visible above the fold */}
+      <div className="bg-gradient-to-r from-navy/[0.03] via-primary/[0.04] to-navy/[0.03] border-b border-border">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-6 flex-wrap">
+            <p className="text-[13px] font-semibold text-foreground">
+              Regulatory intelligence for privacy professionals —
+            </p>
+            <div className="flex items-center gap-4 flex-wrap">
+              {[
+                { icon: "⚖️", text: "119 regulators tracked" },
+                { icon: "🌍", text: "150+ jurisdictions" },
+                { icon: "🤖", text: "AI-summarized daily" },
+                { icon: "📋", text: "Weekly analyst brief" },
+              ].map((item) => (
+                <span key={item.text} className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                  <span>{item.icon}</span>
+                  <span>{item.text}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-muted-foreground hidden lg:inline">
+              Used by DPOs, privacy counsel, and compliance teams
+            </span>
+            <Link
+              to="/subscribe"
+              className="text-[12px] font-bold text-primary-foreground bg-gradient-to-br from-navy to-primary px-4 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
+            >
+              See Plans →
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* Dashboard content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-6 md:pt-8">
@@ -173,8 +206,12 @@ const Index = () => {
             category={topArticle.category}
             date={formatDate(topArticle.published_at)}
             href={topArticle.url}
+            aiSummary={(topArticle as any).ai_summary ?? null}
           />
         )}
+
+        {/* Ad moved below featured brief — never before editorial content */}
+        <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
 
         {/* Enforcement stats */}
         <EnforcementStatsBanner />
