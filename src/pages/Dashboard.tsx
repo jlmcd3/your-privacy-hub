@@ -6,6 +6,10 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AskPrivacy from "@/components/ai/AskPrivacy";
+import { CitedParagraphs } from "@/components/brief/CitedText";
+import { SourcesList } from "@/components/brief/SourcesList";
+import type { SourceMap } from "@/components/brief/CitedText";
+import { ExternalLink } from "lucide-react";
 
 interface EnforcementRow {
   regulator: string;
