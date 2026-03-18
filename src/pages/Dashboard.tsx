@@ -45,7 +45,7 @@ const ACTION_COLOR: Record<string, string> = {
   Rulemaking: "bg-green-50 text-green-700 border-green-200",
 };
 
-function SectionBlock({ icon, title, content }: { icon: string; title: string; content: string | null }) {
+function SectionBlock({ icon, title, content, sourceMap }: { icon: string; title: string; content: string | null; sourceMap: SourceMap }) {
   if (!content) return null;
   return (
     <section className="bg-card rounded-xl border border-border p-6">
@@ -53,10 +53,9 @@ function SectionBlock({ icon, title, content }: { icon: string; title: string; c
         <span>{icon}</span> {title}
       </h3>
       <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-        {content.split("\n").filter(Boolean).map((p, i) => (
-          <p key={i}>{p}</p>
-        ))}
+        <CitedParagraphs content={content} sourceMap={sourceMap} />
       </div>
+      <SourcesList sourceMap={sourceMap} usedIn={content} />
     </section>
   );
 }
