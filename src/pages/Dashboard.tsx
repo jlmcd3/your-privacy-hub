@@ -388,10 +388,9 @@ const Dashboard = () => {
                   🎯 Why This Matters — Action Items for This Week
                 </h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  {brief.why_this_matters.split("\n").filter(Boolean).map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
+                  <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
                 </div>
+                <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.why_this_matters ?? ""} />
               </section>
             )}
             </div>
