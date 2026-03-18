@@ -300,7 +300,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$15/month", "$2,000–$5,000+/year"],
+                  ["Price", "From $15/month", "$300–$3,500+/year"],
                   ["Format", "Weekly AI intelligence brief", "Large research databases"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
