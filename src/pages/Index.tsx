@@ -6,7 +6,6 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import LatestUpdates from "@/components/LatestUpdates";
-import EnforcementTracker from "@/components/EnforcementTracker";
 import WeeklyBriefTeaser from "@/components/WeeklyBriefTeaser";
 import PremiumBanner from "@/components/PremiumBanner";
 import Footer from "@/components/Footer";
@@ -17,6 +16,8 @@ import FeaturedBriefCard from "@/components/home/FeaturedBriefCard";
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
 import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
+import HeadlinesTicker from "@/components/home/HeadlinesTicker";
+import IdentityBand from "@/components/home/IdentityBand";
 
 interface Update {
   id: string;
@@ -57,7 +58,6 @@ const Index = () => {
 
   useEffect(() => {
     async function load() {
-      // Fetch recent updates for featured card, region strip, and lanes
       const { data } = await supabase
         .from("updates")
         .select("id,title,summary,url,category,regulator,published_at,source_name,ai_summary")
@@ -66,11 +66,7 @@ const Index = () => {
 
       const articles = (data as Update[]) || [];
 
-      // Featured card: priority order:
-      // 1. Most recent enforcement article
-      // 2. Most recent article with urgency = "Immediate"
-      // 3. Most recent article with any ai_summary
-      // 4. Most recent article overall (fallback)
+      // Featured card priority: enforcement → immediate urgency → any ai_summary → most recent
       const enforcementArticle = articles.find(a => a.category === "enforcement");
       const immediateArticle = articles.find(
         a => (a as any).ai_summary?.urgency === "Immediate"
@@ -79,7 +75,7 @@ const Index = () => {
       const featured = enforcementArticle ?? immediateArticle ?? anyAiArticle ?? articles[0] ?? null;
       if (featured) setTopArticle(featured);
 
-      // Region feed: one from eu-uk, us-federal, global
+      // Region feed
       const regionCats = ["eu-uk", "us-federal", "global"];
       const regions = regionCats
         .map((cat) => articles.find((a) => a.category === cat))
@@ -96,7 +92,7 @@ const Index = () => {
         }));
       setRegionItems(regions);
 
-      // Topic lanes — deduplicate by ID
+      // Topic lanes
       function dedupeById<T extends { id: string }>(arr: T[]): T[] {
         const seen = new Set<string>();
         return arr.filter(item => {
@@ -136,86 +132,130 @@ const Index = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Global Privacy Regulation Intelligence | EndUserPrivacy</title>
-        <meta name="description" content="Monitor 119 privacy authorities across 150+ jurisdictions. AI-summarized enforcement actions, GDPR, CCPA, AI Act and global privacy updates." />
+        <meta name="description" content="The intelligence platform for privacy professionals. Monitor 119 privacy authorities across 150+ jurisdictions — GDPR, AI Act, CCPA, PIPL, enforcement actions, and global developments." />
       </Helmet>
+
+      {/* Layer 1: Topbar */}
       <Topbar />
+
+      {/* Layer 2: Breaking news */}
       <BreakingNewsBanner />
+
+      {/* Layer 3: Identity band */}
+      <IdentityBand />
+
+      {/* Layer 4: Headlines ticker */}
+      <HeadlinesTicker />
+
+      {/* Layer 5: Navbar */}
       <Navbar />
 
-      {/* Dashboard content */}
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-6 md:pt-8">
-        {/* Featured brief */}
-        {topArticle && (
-          <FeaturedBriefCard
-            headline={topArticle.title}
-            summary={decodeHtml(topArticle.summary)}
-            jurisdiction={CATEGORY_META[topArticle.category]?.jurisdiction || topArticle.category}
-            jurisdictionFlag={CATEGORY_META[topArticle.category]?.flag || "🌐"}
-            category={topArticle.category}
-            date={formatDate(topArticle.published_at)}
-            href={topArticle.url}
-            aiSummary={(topArticle as any).ai_summary ?? null}
-          />
-        )}
+      {/* Layer 6: Main editorial content */}
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-7 md:pt-9">
 
-        {/* Ad moved below featured brief — never before editorial content */}
-        <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+        {/* Two-column layout: main content + sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
 
-        {/* Browse section — search + topic chips */}
-        <div className="my-6">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate mb-3">
-            Browse the intelligence
-          </p>
-          <SearchBar />
+          {/* === LEFT COLUMN === */}
+          <div>
+            {/* Featured story */}
+            {topArticle && (
+              <FeaturedBriefCard
+                headline={topArticle.title}
+                summary={decodeHtml(topArticle.summary)}
+                jurisdiction={CATEGORY_META[topArticle.category]?.jurisdiction || topArticle.category}
+                jurisdictionFlag={CATEGORY_META[topArticle.category]?.flag || "🌐"}
+                category={topArticle.category}
+                date={formatDate(topArticle.published_at)}
+                href={topArticle.url}
+                aiSummary={(topArticle as any).ai_summary ?? null}
+              />
+            )}
+
+            {/* Region strip */}
+            {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
+
+            {/* Ad — below editorial content */}
+            <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+
+            {/* Topic lanes */}
+            {(laneData["ai-privacy"]?.length ?? 0) > 0 && (
+              <TopicLaneScroller
+                laneTitle="AI & Privacy" laneIcon="🤖" laneHref="/category/ai-privacy"
+                cards={laneData["ai-privacy"]}
+              />
+            )}
+            <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3" />
+            {(laneData["us-states"]?.length ?? 0) > 0 && (
+              <TopicLaneScroller
+                laneTitle="U.S. State Developments" laneIcon="🗺️" laneHref="/category/us-states"
+                cards={laneData["us-states"]}
+              />
+            )}
+            {(laneData["enforcement"]?.length ?? 0) > 0 && (
+              <TopicLaneScroller
+                laneTitle="Enforcement Actions" laneIcon="⚖️" laneHref="/category/enforcement"
+                cards={laneData["enforcement"]}
+              />
+            )}
+            {(laneData["eu-uk"]?.length ?? 0) > 0 && (
+              <TopicLaneScroller
+                laneTitle="EU & UK Developments" laneIcon="🇪🇺" laneHref="/category/eu-uk"
+                cards={laneData["eu-uk"]}
+              />
+            )}
+          </div>
+
+          {/* === RIGHT SIDEBAR === */}
+          <aside className="space-y-6">
+
+            {/* Weekly brief teaser */}
+            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5 text-white">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-2">
+                ⭐ Weekly Intelligence Brief
+              </div>
+              <p className="font-display font-bold text-[16px] leading-snug mb-2">
+                Every Monday. AI-synthesized. 8 sections.
+              </p>
+              <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
+                Enforcement table · trend signals · GC/CPO action items ·
+                regional analysis · why it matters for your organization.
+              </p>
+              <Link
+                to="/sample-brief"
+                className="block text-center text-[12px] font-semibold text-navy bg-white hover:opacity-90 transition-all px-4 py-2 rounded-lg no-underline mb-2"
+              >
+                See a sample brief →
+              </Link>
+              <Link
+                to="/subscribe"
+                className="block text-center text-[12px] font-medium text-white/70 hover:text-white transition-colors no-underline"
+              >
+                From $15/month — or tailored for $25 →
+              </Link>
+            </div>
+
+            {/* Live enforcement snapshot */}
+            <EnforcementStatsBanner />
+
+            {/* Search */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
+                Search the platform
+              </p>
+              <SearchBar />
+            </div>
+
+          </aside>
+
         </div>
-
-        {/* Enforcement stats */}
-        <EnforcementStatsBanner />
-
-        {/* Region feed strip */}
-        {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
-
-        {/* Topic lane scrollers */}
-        {(laneData["ai-privacy"]?.length ?? 0) > 0 && (
-          <TopicLaneScroller
-            laneTitle="AI & Privacy"
-            laneIcon="🤖"
-            laneHref="/category/ai-privacy"
-            cards={laneData["ai-privacy"]}
-          />
-        )}
-        <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3" />
-        {(laneData["us-states"]?.length ?? 0) > 0 && (
-          <TopicLaneScroller
-            laneTitle="U.S. State Developments"
-            laneIcon="🗺️"
-            laneHref="/category/us-states"
-            cards={laneData["us-states"]}
-          />
-        )}
-        {(laneData["enforcement"]?.length ?? 0) > 0 && (
-          <TopicLaneScroller
-            laneTitle="Enforcement Actions"
-            laneIcon="⚖️"
-            laneHref="/category/enforcement"
-            cards={laneData["enforcement"]}
-          />
-        )}
-        {(laneData["eu-uk"]?.length ?? 0) > 0 && (
-          <TopicLaneScroller
-            laneTitle="EU & UK Developments"
-            laneIcon="🇪🇺"
-            laneHref="/category/eu-uk"
-            cards={laneData["eu-uk"]}
-          />
-        )}
       </div>
 
+      {/* Below-fold content */}
       <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper" />
       <EmailSignup variant="strip" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
-      <EnforcementTracker />
       <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
