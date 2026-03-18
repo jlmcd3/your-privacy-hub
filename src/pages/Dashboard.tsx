@@ -75,7 +75,7 @@ const Dashboard = () => {
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
-        if (!premium) navigate("/subscribe");
+        // Don't redirect — show a free-member view instead
       });
   }, [user, authLoading, navigate]);
 
