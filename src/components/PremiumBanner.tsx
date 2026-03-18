@@ -7,6 +7,7 @@ const features = [
   "One brief covers your entire global footprint",
   "Ad-free, always — your feed is never sponsored.",
   "First 25 subscribers get the first year free — then $15/month.",
+  "Premium Pro: custom-tailored brief for your industry — $25/month.",
 ];
 
 const PremiumBanner = () => {
