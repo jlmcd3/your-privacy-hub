@@ -19,18 +19,22 @@ const features = [
 ];
 
 const comparisonRows = [
-  { feature: "Daily privacy news feed", free: true, premium: true },
-  { feature: "Jurisdiction profiles (150+ countries)", free: true, premium: true },
-  { feature: "Regulator directory (119 authorities)", free: true, premium: true },
-  { feature: "Research guides (GDPR, AI, US laws)", free: true, premium: true },
-  { feature: "Top 12 recent enforcement actions", free: true, premium: true },
-  { feature: "Preview of weekly brief headline", free: true, premium: true },
-  { feature: "Full weekly AI intelligence brief (8 sections)", free: false, premium: true },
-  { feature: "Complete enforcement database — all actions", free: false, premium: true },
-  { feature: "Regional analysis: US Federal, States, EU, Global", free: false, premium: true },
-  { feature: "Enforcement table with fine amounts", free: false, premium: true },
-  { feature: "Trend signals — forward-looking intelligence", free: false, premium: true },
-  { feature: "Why This Matters — action items for GC/CPO", free: false, premium: true },
+  { feature: "Daily privacy news feed",                             free: true,  premium: true,  pro: true  },
+  { feature: "Jurisdiction profiles (150+ countries)",              free: true,  premium: true,  pro: true  },
+  { feature: "Regulator directory (119 authorities)",               free: true,  premium: true,  pro: true  },
+  { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  premium: true,  pro: true  },
+  { feature: "Top 12 recent enforcement actions",                   free: true,  premium: true,  pro: true  },
+  { feature: "Preview of weekly brief headline",                    free: true,  premium: true,  pro: true  },
+  { feature: "Full weekly AI intelligence brief (8 sections)",      free: false, premium: true,  pro: true  },
+  { feature: "Complete enforcement database — all actions",         free: false, premium: true,  pro: true  },
+  { feature: "Regional analysis: US Federal, States, EU, Global",  free: false, premium: true,  pro: true  },
+  { feature: "Enforcement table with fine amounts",                 free: false, premium: true,  pro: true  },
+  { feature: "Trend signals — forward-looking intelligence",        free: false, premium: true,  pro: true  },
+  { feature: "Why This Matters — action items for GC/CPO",         free: false, premium: true,  pro: true  },
+  { feature: "Custom-tailored brief for your industry",            free: false, premium: false, pro: true  },
+  { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, premium: false, pro: true  },
+  { feature: "Subject-matter filter (AI, biometric, litigation…)", free: false, premium: false, pro: true  },
+  { feature: "Priority Monday delivery",                           free: false, premium: false, pro: true  },
 ];
 
 const Subscribe = () => {
