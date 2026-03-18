@@ -188,6 +188,8 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 
   "ai_governance": "2-3 paragraphs on AI and privacy regulatory developments (EU AI Act, EDPB AI guidance, automated decision enforcement, LLM scraping). If none: 'No monitored developments in this category this week.' ~200 words.",
 
+  "adtech_advertising": "2-3 paragraphs on advertising technology privacy regulation. Cover IAB TCF, cookie consent enforcement, FTC commercial surveillance, Privacy Sandbox, EDPB cookie guidance, programmatic RTB compliance, DSA advertising obligations, COPPA in ad-supported environments. If none: 'No monitored AdTech regulatory developments this week.' then name 2-3 developments to watch. Use [ref:N]. ~200 words.",
+
   "biometric_data": "2 paragraphs on biometric privacy (facial recognition, BIPA, voiceprint, age verification). If none: 'No monitored developments in this category this week.' ~150 words.",
 
   "privacy_litigation": "2-3 paragraphs on privacy lawsuits (BIPA, CCPA, VPPA, CIPA class actions). If none: 'No monitored litigation developments this week.' ~200 words.",
