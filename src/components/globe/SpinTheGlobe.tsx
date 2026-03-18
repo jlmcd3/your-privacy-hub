@@ -300,7 +300,10 @@ export default function SpinTheGlobe() {
     // To bring longitude `lon` to face +Z: rotation.y = -lon * PI/180
     // BUT the Blue Marble texture is oriented with lon=0 at the FRONT (+Z),
     // so the formula is simply:
-    globe.rotation.y = (-jur.lon * Math.PI) / 180;
+    // Three.js SphereGeometry has lon=-90° at the camera-facing +Z axis
+    // when rotation.y = 0. To bring longitude L to the front:
+    // rotation.y = -(L_rad + π/2)
+    globe.rotation.y = -(jur.lon * Math.PI / 180 + Math.PI / 2);
 
     spinRef.current = 0;   // stop rotation so country stays centered
     pulseRef.current = 0;
