@@ -366,7 +366,7 @@ const Dashboard = () => {
             )}
 
             {/* Enforcement trends */}
-            <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} />
+            <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
 
             {/* Trend signal */}
             {brief.trend_signal && (
