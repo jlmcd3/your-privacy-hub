@@ -98,7 +98,7 @@ export default function BriefPreferences() {
 
   return (
     <>
-      <Helmet><title>Customize Your Brief | EndUserPrivacy Premium Pro</title></Helmet>
+      <Helmet><title>Configure Your Analyst | EndUserPrivacy Premium Pro</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Topbar /><Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 md:px-8 py-10 w-full">
@@ -106,19 +106,19 @@ export default function BriefPreferences() {
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
               <span>⭐</span> Premium Pro
             </div>
-            <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
-              Customize Your Weekly Brief
+            <h1 className="font-display font-bold text-navy text-[24px] mb-2">
+              Configure your analyst
             </h1>
-            <p className="text-slate text-sm max-w-xl">
-              Select the industries, jurisdictions, and topics that matter most to your
-              organization. Your brief will include a personalized "Your Focus" section
-              every Monday in addition to the standard intelligence brief.
+            <p className="text-slate text-[14px] mb-8 max-w-lg">
+              Your Pro brief is written by AI specifically for your regulatory
+              environment. The more context you provide, the more precisely it
+              speaks to your actual compliance obligations.
             </p>
           </div>
 
           {/* Industries */}
           <div className="mb-8">
-            <h2 className="font-bold text-navy text-[15px] mb-1">Your Industry</h2>
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your sector</h2>
             <p className="text-slate text-xs mb-4">Select all that apply to your organization.</p>
             <div className="flex flex-wrap gap-2">
               {INDUSTRIES.map(i => (
@@ -129,7 +129,7 @@ export default function BriefPreferences() {
 
           {/* Jurisdictions */}
           <div className="mb-8">
-            <h2 className="font-bold text-navy text-[15px] mb-1">Priority Jurisdictions</h2>
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your regulatory geography</h2>
             <p className="text-slate text-xs mb-4">Which regions are most relevant to your compliance footprint?</p>
             <div className="flex flex-wrap gap-2">
               {PREF_JURISDICTIONS.map(j => (
@@ -140,8 +140,8 @@ export default function BriefPreferences() {
 
           {/* Topics */}
           <div className="mb-8">
-            <h2 className="font-bold text-navy text-[15px] mb-1">Subject-Matter Focus</h2>
-            <p className="text-slate text-xs mb-4">Prioritize specific compliance areas in your brief.</p>
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your compliance priorities</h2>
+            <p className="text-slate text-xs mb-4">Tell your analyst which areas to prioritize in your brief.</p>
             <div className="flex flex-wrap gap-2">
               {TOPICS.map(t => (
                 <Toggle key={t.id} {...t} selected={prefs.topics.includes(t.id)} onToggle={id => toggle("topics", id)} />
@@ -159,15 +159,15 @@ export default function BriefPreferences() {
               {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
             </button>
             <p className="text-slate text-xs">
-              Your preferences take effect with the next Monday brief.
+              Your analyst's focus updates with the next Monday brief.
             </p>
           </div>
 
           {/* Upgrade prompt */}
           <div className="mt-8 bg-fog rounded-2xl p-6 text-center">
             <p className="text-slate text-sm mb-3">
-              Customized briefs require Premium Pro ($25/month).
-              Standard Premium subscribers see the shared weekly brief.
+              Your analyst requires Premium Pro ($25/month).
+              Standard Premium subscribers receive the shared weekly brief.
             </p>
             <Link
               to="/subscribe"
