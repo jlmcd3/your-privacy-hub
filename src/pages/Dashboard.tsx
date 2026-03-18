@@ -84,7 +84,7 @@ const Dashboard = () => {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (!user || !isPremium) return;
+    if (!user) return;
     async function load() {
       const { data } = await (supabase as any)
         .from("weekly_briefs")
@@ -96,7 +96,7 @@ const Dashboard = () => {
       setLoading(false);
     }
     load();
-  }, [user, isPremium]);
+  }, [user]);
 
   // Fetch custom brief for Pro users
   useEffect(() => {
