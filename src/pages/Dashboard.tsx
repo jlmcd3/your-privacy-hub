@@ -395,6 +395,42 @@ const Dashboard = () => {
             )}
             </div>
 
+            {/* Full sources reference */}
+            {brief.source_map && Object.keys(brief.source_map).length > 0 && (
+              <section className="bg-card rounded-xl border border-border p-6 mt-2">
+                <h3 className="font-display text-[17px] text-foreground mb-3 flex items-center gap-2">
+                  <span>📚</span> All Source Articles This Week
+                </h3>
+                <p className="text-[12px] text-muted-foreground mb-4">
+                  {Object.keys(brief.source_map).length} articles monitored and synthesized to produce this brief. Click any title to read the original.
+                </p>
+                <div className="grid gap-2">
+                  {Object.entries(brief.source_map)
+                    .sort(([a], [b]) => Number(a) - Number(b))
+                    .map(([num, src]) => (
+                      <a
+                        key={num}
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-muted-foreground hover:bg-muted/40 transition-all no-underline group"
+                      >
+                        <span className="text-[11px] font-bold text-muted-foreground flex-shrink-0 w-6 text-right mt-0.5">
+                          [{num}]
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                            {src.title}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">{src.source}</p>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                      </a>
+                    ))}
+                </div>
+              </section>
+            )}
+
             <div className="mt-8">
               <AskPrivacy isPremium={isPremium === true} />
             </div>
