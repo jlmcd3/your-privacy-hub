@@ -38,6 +38,7 @@ const CATEGORY_META: Record<string, { flag: string; jurisdiction: string }> = {
   "global": { flag: "🌐", jurisdiction: "Global" },
   "enforcement": { flag: "⚖️", jurisdiction: "Enforcement" },
   "ai-privacy": { flag: "🤖", jurisdiction: "AI & Privacy" },
+  "adtech":      { flag: "📡", jurisdiction: "AdTech" },
 };
 
 function decodeHtml(str: string | null | undefined): string {
