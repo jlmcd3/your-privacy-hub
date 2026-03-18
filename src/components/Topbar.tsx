@@ -46,7 +46,7 @@ const Topbar = () => {
           <span className="text-navy-light hidden lg:inline">·</span>
           <span className="hidden lg:inline">Last update: {lastUpdate}</span>
           <span className="text-navy-light hidden xl:inline">·</span>
-          <a href="#" className="hover:text-sky transition-colors hidden xl:inline">{briefLabel}</a>
+          <Link to="/dashboard" className="hover:text-sky transition-colors hidden xl:inline no-underline text-slate-light">{briefLabel}</Link>
         </div>
         <div className="flex gap-4 items-center">
           <Link to="/about" className="hover:text-sky transition-colors no-underline text-slate-light">About</Link>

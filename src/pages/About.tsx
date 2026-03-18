@@ -63,7 +63,7 @@ const About = () => {
                 </thead>
                 <tbody>
                   {[
-                    ["Price", "$15/month", "$2,000–$5,000+/year"],
+                    ["Price", "$25/month (Pro)", "$2,000–$5,000+/year"],
                     ["Format", "Weekly AI intelligence brief", "Large research databases"],
                     ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
                     ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
