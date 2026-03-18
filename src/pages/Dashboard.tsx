@@ -375,10 +375,9 @@ const Dashboard = () => {
                   📡 Trend Signal
                 </h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  {brief.trend_signal.split("\n").filter(Boolean).map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
+                  <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
                 </div>
+                <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.trend_signal ?? ""} />
               </section>
             )}
 
