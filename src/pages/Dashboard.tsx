@@ -75,7 +75,7 @@ const Dashboard = () => {
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
-        if (!premium) navigate("/subscribe");
+        // Don't redirect — show a free-member view instead
       });
   }, [user, authLoading, navigate]);
 
@@ -120,7 +120,102 @@ const Dashboard = () => {
     );
   }
 
-  if (!user || !isPremium) return null;
+  if (!user) return null;
+
+  if (!isPremium) {
+    return (
+      <div className="min-h-screen bg-paper">
+        <Topbar />
+        <Navbar />
+        <div className="max-w-[680px] mx-auto px-4 py-14">
+          <div className="text-center mb-10">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
+              My Account
+            </div>
+            <h1 className="font-display font-bold text-navy text-[26px] mb-3">
+              Welcome back, {user.email?.split("@")[0]}.
+            </h1>
+            <p className="text-slate text-[14px]">
+              You have a free EndUserPrivacy account. Upgrade to unlock the
+              weekly Intelligence Brief and full enforcement database.
+            </p>
+          </div>
+
+          {/* What they have access to */}
+          <div className="bg-card border border-fog rounded-2xl p-6 mb-6">
+            <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+              Your Free Access
+            </h2>
+            <div className="space-y-2.5">
+              {[
+                "Daily privacy news feed",
+                "150+ jurisdiction profiles",
+                "119 regulator directory",
+                "Research guides (GDPR, AI, US laws)",
+                "Glossary of privacy terms",
+                "Enforcement tracker (top 12 recent actions)",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2.5 text-[13px] text-navy">
+                  <div className="w-4 h-4 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-accent text-[10px] font-bold">✓</span>
+                  </div>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upgrade CTA */}
+          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 mb-6 text-center">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
+              ⭐ Go Premium
+            </div>
+            <h3 className="font-display font-bold text-white text-[20px] mb-2">
+              Unlock the Intelligence Brief
+            </h3>
+            <p className="text-slate-light text-[13px] mb-5 max-w-md mx-auto">
+              Every Monday: 8-section AI analyst synthesis, full enforcement table,
+              trend signals, and GC/CPO action items. First 25 subscribers get the
+              first year free.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/subscribe"
+                className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
+              >
+                See Plans — from $15/month →
+              </Link>
+              <Link
+                to="/sample-brief"
+                className="bg-white/10 border border-white/20 text-white font-semibold text-[14px] py-2.5 px-6 rounded-xl no-underline hover:bg-white/20 transition-all"
+              >
+                See a sample brief
+              </Link>
+            </div>
+          </div>
+
+          {/* Quick links */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Browse Updates", href: "/updates" },
+              { label: "Global Map", href: "/jurisdictions" },
+              { label: "Enforcement Tracker", href: "/enforcement-tracker" },
+              { label: "My Account Settings", href: "/account" },
+            ].map((l) => (
+              <Link
+                key={l.label}
+                to={l.href}
+                className="bg-card border border-fog rounded-xl p-4 text-[13px] font-medium text-navy hover:bg-fog transition-colors no-underline text-center"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

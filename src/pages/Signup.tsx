@@ -33,11 +33,10 @@ const Signup = () => {
     if (error) {
       setError(error.message);
     } else {
-      setMessage(
-        redirect === "/subscribe"
-          ? "Almost there! Check your email to confirm your account, then you'll be taken straight to complete your upgrade."
-          : "Check your email to confirm your account."
-      );
+      // Redirect to check-email page instead of showing inline message
+      const nav = await import("react-router-dom");
+      window.location.href = `/check-email?redirect=${encodeURIComponent(redirect)}&email=${encodeURIComponent(email.trim())}`;
+      return;
     }
     setLoading(false);
   };
@@ -50,9 +49,9 @@ const Signup = () => {
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Create Account</h1>
           <p className="text-sm text-slate text-center mb-7">
-            {redirect === "/subscribe"
-              ? "Create a free account to unlock Premium"
-              : "Join EndUserPrivacy for free"}
+            {redirect.includes("subscribe") || redirect.includes("success")
+              ? "Create your account to complete your Premium subscription"
+              : "Join EndUserPrivacy — free to start, Premium from $15/month"}
           </p>
 
           {message && (

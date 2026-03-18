@@ -1,16 +1,20 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Helmet } from "react-helmet-async";
+import { Check, ChevronRight } from "lucide-react";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
 
-const Account = () => {
+export default function Account() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isPremium, setIsPremium] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [cancelMsg, setCancelMsg] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -21,6 +25,7 @@ const Account = () => {
       .single()
       .then(({ data }) => {
         if (data) setIsPremium(data.is_premium);
+        setLoading(false);
       });
   }, [user]);
 
@@ -29,57 +34,160 @@ const Account = () => {
     navigate("/");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-blue/30 border-t-blue rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>My Account | EndUserPrivacy</title>
+      </Helmet>
       <Topbar />
       <Navbar />
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-sm p-8">
-          <h1 className="font-display text-[24px] text-foreground text-center mb-7">My Account</h1>
 
-          <div className="space-y-4 mb-8">
-            <div className="flex justify-between items-center py-3 px-4 bg-background rounded-lg border border-border">
-              <span className="text-[13px] font-medium text-muted-foreground">Email</span>
-              <span className="text-[13px] text-foreground">{user?.email}</span>
+      <div className="max-w-[640px] mx-auto px-4 py-12">
+        <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
+
+        {/* Account details */}
+        <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+            Account Details
+          </h2>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2.5 border-b border-fog">
+              <span className="text-[13px] text-slate">Email</span>
+              <span className="text-[13px] font-medium text-navy">{user?.email}</span>
             </div>
-            <div className="flex justify-between items-center py-3 px-4 bg-background rounded-lg border border-border">
-              <span className="text-[13px] font-medium text-muted-foreground">Subscription</span>
+            <div className="flex justify-between items-center py-2.5 border-b border-fog">
+              <span className="text-[13px] text-slate">Plan</span>
               {isPremium ? (
-                <span className="text-[12px] font-semibold text-accent-foreground bg-accent px-2.5 py-1 rounded-full">
-                  Premium
+                <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
+                  ⭐ Premium
                 </span>
               ) : (
-                <span className="text-[12px] font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate bg-fog border border-silver px-2.5 py-1 rounded-full">
                   Free
                 </span>
               )}
             </div>
-          </div>
-
-          {!isPremium && (
-            <button
-              onClick={() => navigate("/subscribe")}
-              className="w-full py-3 text-[14px] font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors cursor-pointer mb-3"
-            >
-              Upgrade to Premium
-            </button>
-          )}
-
-          <button
-            onClick={handleSignOut}
-            className="w-full py-3 text-[14px] font-medium text-muted-foreground bg-background border border-border rounded-lg hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-          >
-            Sign Out
-          </button>
-
-          <div className="mt-8">
-            <WatchlistManager isPremium={isPremium} />
+            <div className="flex justify-between items-center py-2.5">
+              <span className="text-[13px] text-slate">Password</span>
+              <Link
+                to="/forgot-password"
+                className="text-[13px] text-blue hover:text-navy no-underline font-medium"
+              >
+                Change password →
+              </Link>
+            </div>
           </div>
         </div>
+
+        {/* Subscription management */}
+        {isPremium ? (
+          <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+            <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+              Subscription
+            </h2>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2.5 border-b border-fog">
+                <span className="text-[13px] text-slate">Status</span>
+                <span className="text-[13px] font-medium text-accent flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> Active
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2.5 border-b border-fog">
+                <span className="text-[13px] text-slate">Brief preferences</span>
+                <Link
+                  to="/brief-preferences"
+                  className="text-[13px] text-blue hover:text-navy no-underline font-medium flex items-center gap-1"
+                >
+                  Customize <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[13px] text-slate">Cancel subscription</span>
+                <a
+                  href="mailto:support@enduserprivacy.com?subject=Cancel%20my%20subscription"
+                  className="text-[13px] text-slate hover:text-warn no-underline"
+                >
+                  Contact us to cancel
+                </a>
+              </div>
+            </div>
+            {cancelMsg && (
+              <p className="text-[12px] text-slate-light mt-3 text-center">{cancelMsg}</p>
+            )}
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 mb-4 text-center">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
+              ⭐ Upgrade
+            </div>
+            <h3 className="font-display font-bold text-white text-[18px] mb-2">
+              Unlock the Intelligence Brief
+            </h3>
+            <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
+              Get the weekly 8-section AI analysis — enforcement table, trend signals,
+              and GC/CPO action items. From $15/month.
+            </p>
+            <Link
+              to="/subscribe"
+              className="inline-block bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
+            >
+              See Plans →
+            </Link>
+          </div>
+        )}
+
+        {/* Quick links */}
+        <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+            Quick Links
+          </h2>
+          <div className="space-y-2">
+            {[
+              { label: "My Intelligence Brief", href: "/dashboard", premium: true },
+              { label: "My Watchlist", href: "#watchlist", premium: false },
+              { label: "Sample Brief", href: "/sample-brief", premium: false },
+              { label: "FAQ", href: "/faq", premium: false },
+              { label: "Contact Support", href: "/contact", premium: false },
+            ]
+              .filter((l) => !l.premium || isPremium)
+              .map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-fog transition-colors no-underline group"
+                >
+                  <span className="text-[13px] text-navy group-hover:text-blue transition-colors">
+                    {link.label}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-light" />
+                </Link>
+              ))}
+          </div>
+        </div>
+
+        {/* Watchlist */}
+        <div id="watchlist" className="mb-4">
+          <WatchlistManager isPremium={isPremium} />
+        </div>
+
+        {/* Sign out */}
+        <button
+          onClick={handleSignOut}
+          className="w-full py-3 text-[14px] font-medium text-slate bg-card border border-fog rounded-xl hover:bg-fog hover:text-navy transition-colors cursor-pointer"
+        >
+          Sign Out
+        </button>
       </div>
+
       <Footer />
     </div>
   );
-};
-
-export default Account;
+}

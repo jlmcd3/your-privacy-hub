@@ -90,7 +90,12 @@ const Login = () => {
             >
               Create account
             </Link>
-            <span className="text-slate cursor-default">Forgot password?</span>
+            <Link
+              to="/forgot-password"
+              className="text-slate hover:text-navy transition-colors no-underline"
+            >
+              Forgot password?
+            </Link>
           </div>
         </div>
       </div>
