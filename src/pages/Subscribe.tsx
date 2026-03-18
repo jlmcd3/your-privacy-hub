@@ -295,7 +295,7 @@ const Subscribe = () => {
                 <tr className="bg-fog">
                   <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / OneTrust / Bloomberg</th>
+                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / DataGuidance / Bloomberg</th>
                 </tr>
               </thead>
               <tbody>
