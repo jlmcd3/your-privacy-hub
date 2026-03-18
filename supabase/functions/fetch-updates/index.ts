@@ -225,6 +225,8 @@ function categorize(title: string, description: string, defaultCat: string): str
   const text = (title + " " + description).toLowerCase();
   // Litigation-specific detection (check first)
   if (/\b(class action|lawsuit filed|complaint filed|court filing|litigation|bipa|vppa|cipa|wiretap|suit alleges|plaintiffs allege|settlement reached|jury verdict|class certified)\b/.test(text)) return "enforcement";
+  // AdTech-specific detection — check BEFORE general enforcement
+  if (/\b(adtech|ad tech|real-time bidding|rtb|programmatic|tcf|consent management platform|cmp\b|iab europe|transparency consent framework|third.party cookie|third party cookie|cookie deprecation|cookieless|privacy sandbox|topics api|protected audience|fledge|cookie consent|consent banner|consent signal|behavioral advertising|targeted advertising|ad targeting|ad network|demand.side platform|dsp\b|supply.side platform|ssp\b|data management platform|dmp\b|ad exchange|ad server|pixel tracking|tracking pixel|retargeting|lookalike audience|contextual advertising|identity resolution|first.party data|zero.party data|data clean room|id bridging|unified id|prebid|header bidding|ad fraud|viewability|brand safety|garm\b|nai\b|daa\b|commercial surveillance|behavioral tracking|cross.site tracking|fingerprinting|device fingerprint|supercookie|evercookie)\b/.test(text)) return "adtech";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";
