@@ -259,35 +259,43 @@ const Index = () => {
           </div>
 
           {/* === RIGHT SIDEBAR === */}
-          <aside className="space-y-6">
+          <aside className="hidden lg:flex flex-col gap-6">
 
-            {/* Weekly brief teaser */}
+            {/* Weekly brief sidebar card */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5 text-white">
               <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-2">
                 ⭐ Weekly Intelligence Brief
               </div>
-              <p className="font-display font-bold text-[16px] leading-snug mb-2">
-                Every Monday. AI-synthesized. 8 sections.
+              <p className="font-display font-bold text-[15px] leading-snug mb-2">
+                Every Monday. Free. 8-section AI analysis.
               </p>
               <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
                 Enforcement table · trend signals · GC/CPO action items ·
-                regional analysis · why it matters for your organization.
+                regional analysis. Always free with registration.
               </p>
               <Link
                 to="/sample-brief"
-                className="block text-center text-[12px] font-semibold text-navy bg-white hover:opacity-90 transition-all px-4 py-2 rounded-lg no-underline mb-2"
+                className="block text-center text-[12px] font-semibold text-navy bg-white hover:opacity-90 px-4 py-2 rounded-lg no-underline mb-3"
               >
                 See a sample brief →
               </Link>
-              <Link
-                to="/subscribe"
-                className="block text-center text-[12px] font-medium text-white/70 hover:text-white transition-colors no-underline"
-              >
-                Free brief included — Pro tailored for $25/mo →
-              </Link>
+              <div className="border-t border-white/10 pt-3">
+                <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
+                  ⭐ Pro — $25/month
+                </p>
+                <p className="text-[11px] text-blue-200 leading-snug mb-2">
+                  Re-written for your industry and jurisdictions.
+                </p>
+                <Link
+                  to="/subscribe"
+                  className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
+                >
+                  Get your analyst →
+                </Link>
+              </div>
             </div>
 
-            {/* Live enforcement snapshot */}
+            {/* Enforcement stats */}
             <EnforcementStatsBanner />
 
             {/* Search */}
