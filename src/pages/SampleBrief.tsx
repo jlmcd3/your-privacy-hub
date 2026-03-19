@@ -264,7 +264,7 @@ const SampleBrief = () => {
               Receive this analysis every Monday morning.
             </h3>
             <p className="text-slate-light text-[14px] mb-5 max-w-[500px] mx-auto">
-              Everything above is free. Premium Pro re-writes this brief for your industry and jurisdiction — $25/month.
+              Everything above is free. Premium Pro re-writes this brief for your industry and jurisdiction — $20/month.
             </p>
             <div className="text-center">
               <Link
