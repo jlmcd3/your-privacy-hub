@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
       .limit(40);
 
     if (fetchError || !articles || articles.length === 0) {
-      return new Response(JSON.stringify({ error: "No articles found", detail: fetchError }),
+      if (fetchError) console.error("Fetch articles error:", fetchError);
+      return new Response(JSON.stringify({ error: "No articles found for this period" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -357,7 +358,8 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
       .single();
 
     if (insertError) {
-      return new Response(JSON.stringify({ error: "Failed to store brief", detail: insertError }),
+      console.error("Insert brief error:", insertError);
+      return new Response(JSON.stringify({ error: "Failed to store brief" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -366,7 +368,8 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+    console.error("generate-weekly-brief error:", e);
+    return new Response(JSON.stringify({ error: "An internal error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     const { error } = await supabase
       .from("email_subscribers")
-      .insert({ email: email.toLowerCase().trim(), confirmed: true, source: "website" });
+      .insert({ email: email.toLowerCase().trim(), confirmed: false, source: "website" });
 
     if (error) {
       if (error.code === "23505") {
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     });
   } catch (e: any) {
     console.error("subscribe-email error:", e);
-    return new Response(JSON.stringify({ error: e.message || "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
