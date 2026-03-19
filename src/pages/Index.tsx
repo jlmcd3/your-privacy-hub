@@ -312,7 +312,7 @@ const Index = () => {
       </div>
 
       {/* Below-fold content */}
-      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper" />
+      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper hidden" />
       <EmailSignup variant="strip" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
