@@ -72,7 +72,7 @@ const Subscribe = () => {
             Everything you can browse and read is always free — including the weekly
             Intelligence Brief. Your analyst is something different: a brief re-written
             every Monday specifically for your industry, your jurisdictions, and your
-            compliance obligations. That's $25/month.
+            compliance obligations. That's $20/month.
           </p>
         </div>
       </div>
