@@ -198,7 +198,7 @@ const Subscribe = () => {
                 onClick={handleSubscribe}
                 className="bg-navy text-white font-semibold text-[12px] px-5 py-2 rounded-lg hover:opacity-90 cursor-pointer border-none"
               >
-                Get Premium Pro — $25/month →
+                Get Premium Pro — $20/month →
               </button>
             </div>
             <div className="filter blur-[3px] select-none">
