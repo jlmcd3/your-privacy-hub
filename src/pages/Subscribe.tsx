@@ -429,7 +429,7 @@ const Subscribe = () => {
             <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-4 mb-5">
               <p className="text-[13px] text-amber-200 leading-relaxed">
                 🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium Pro
-                free for one year, then $25/month.
+                free for one year, then $20/month.
               </p>
             </div>
 

@@ -271,7 +271,7 @@ const SampleBrief = () => {
                 to="/subscribe"
                 className="inline-block bg-white text-navy font-bold text-[14px] py-3 px-10 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Get Premium Pro — $25/month →
+                Get Premium Pro — $20/month →
               </Link>
               <p className="text-blue-300 text-[12px] mt-3">
                 First 25 subscribers get the first year free · Cancel anytime

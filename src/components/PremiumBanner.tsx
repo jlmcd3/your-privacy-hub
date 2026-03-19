@@ -6,7 +6,7 @@ const features = [
   "Brief re-written specifically for your industry every week",
   "Sector-specific action items — not generic advice",
   "Ad-free, always",
-  "First 25 subscribers get the first year free — then $25/month.",
+  "First 25 subscribers get the first year free — then $20/month.",
 ];
 
 const PremiumBanner = () => {
@@ -22,7 +22,7 @@ const PremiumBanner = () => {
               ⭐ Premium Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The library is free.<br />Your analyst is $25/month.
+              The library is free.<br />Your analyst is $20/month.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
               Browse every regulator and jurisdiction for free, always. Premium Pro adds the analyst layer — weekly synthesis re-written for your industry and jurisdictions, telling you what it means for your organization before your competitors figure it out.
@@ -48,7 +48,7 @@ const PremiumBanner = () => {
           <div className="relative z-10 bg-white/[0.06] border border-white/15 rounded-2xl p-6 md:p-7 text-center min-w-[180px] md:min-w-[200px]">
             <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Pro</div>
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
-              <sup className="text-[18px] md:text-[22px] align-super">$</sup>25
+              <sup className="text-[18px] md:text-[22px] align-super">$</sup>20
             </div>
             <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month · Premium Pro</div>
             <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">

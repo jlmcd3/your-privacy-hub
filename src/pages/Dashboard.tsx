@@ -150,7 +150,7 @@ const Dashboard = () => {
                   to="/subscribe"
                   className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
-                  Get Premium Pro — $25/month →
+                  Get Premium Pro — $20/month →
                 </Link>
               </div>
             </div>

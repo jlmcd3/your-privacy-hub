@@ -19,7 +19,7 @@ export default function NewsfeedPaywallCard() {
             to="/subscribe"
             className="bg-gradient-to-br from-steel to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all"
           >
-            Get Premium Pro — $25/mo →
+            Get Premium Pro — $20/mo →
           </Link>
           <Link
             to="/signup"

@@ -76,9 +76,9 @@ export default function TopicLaneScroller({
         className="flex gap-4 overflow-x-auto pb-3"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {cards.map((card, i) => (
+        {cards.filter((card, i, arr) => arr.findIndex(c => c.title === card.title) === i).map((card, i) => (
           <a
-            key={i}
+            key={card.title + i}
             href={card.href}
             target="_blank"
             rel="noopener noreferrer"
