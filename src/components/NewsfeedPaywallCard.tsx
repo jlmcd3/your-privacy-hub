@@ -12,7 +12,7 @@ export default function NewsfeedPaywallCard() {
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">
           Premium Pro members get unlimited access to the full article archive,
-          advanced search, and a weekly analyst brief written for their industry — $25/month.
+          advanced search, and a weekly analyst brief written for their industry — $20/month.
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Link
