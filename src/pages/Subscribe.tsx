@@ -78,7 +78,36 @@ const Subscribe = () => {
       </div>
 
       {/* Interactive Pro Brief Preview */}
-      <div className="max-w-3xl mx-auto px-4 py-12">
+      <div className="max-w-3xl mx-auto px-4 pt-12 pb-8">
+        {/* Social proof bar */}
+        <div className="max-w-3xl mx-auto mb-8 text-center">
+          <p className="text-[12px] text-slate mb-4 uppercase tracking-wider font-semibold">
+            Trusted by privacy professionals
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 text-[13px] text-slate">
+            <span className="flex items-center gap-1.5">
+              <span className="text-navy font-bold">DPOs</span>
+            </span>
+            <span className="text-fog">·</span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-navy font-bold">Privacy Counsel</span>
+            </span>
+            <span className="text-fog">·</span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-navy font-bold">Compliance Leads</span>
+            </span>
+            <span className="text-fog">·</span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-navy font-bold">CPOs</span>
+            </span>
+            <span className="text-fog">·</span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-navy font-bold">Privacy Consultants</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             See what your Pro brief would look like this week

@@ -129,11 +129,11 @@ export default function Account() {
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
-              Unlock the Intelligence Brief
+              Get Your Pro Intelligence Brief
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
-              Get the weekly 8-section AI analysis — enforcement table, trend signals,
-              and GC/CPO action items. From $15/month.
+              The weekly brief re-written for your industry and jurisdictions — $25/month.
+              The standard brief is always free.
             </p>
             <Link
               to="/subscribe"

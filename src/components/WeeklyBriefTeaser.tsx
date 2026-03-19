@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BriefPreview {
@@ -9,11 +9,7 @@ interface BriefPreview {
   article_count: number;
 }
 
-const SECTIONS_FREE = ["Executive Summary", "U.S. Federal Analysis", "U.S. State Analysis"];
-const SECTIONS_LOCKED = ["EU & UK Analysis", "Global Developments", "Enforcement Table", "Trend Signal", "Why This Matters"];
-
 const WeeklyBriefTeaser = () => {
-  const navigate = useNavigate();
   const [brief, setBrief] = useState<BriefPreview | null>(null);
 
   useEffect(() => {
@@ -34,99 +30,92 @@ const WeeklyBriefTeaser = () => {
     : null;
 
   return (
-    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-card">
+    <section className="py-10 md:py-14 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
+
+        {/* Section header */}
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">
               This Week's Intelligence Brief
             </h2>
-            <p className="text-sm text-slate mt-1">
-              Structured synthesis of all developments · Premium subscribers get full access
+            <p className="text-[13px] text-slate mt-1">
+              AI-synthesized from {brief?.article_count ?? "—"} regulatory updates ·
+              8 sections · Published every Monday · <strong>Free</strong>
             </p>
           </div>
-          <button
-            onClick={() => navigate("/subscribe")}
-            className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all bg-transparent border-none cursor-pointer"
+          <Link
+            to="/sample-brief"
+            className="text-[13px] font-medium text-blue hover:underline no-underline hidden sm:block"
           >
-            Unlock Full Intelligence →
-          </button>
+            See a sample brief →
+          </Link>
         </div>
 
-        <div className="relative bg-gradient-to-br from-[#0A1929] to-navy rounded-2xl p-5 md:p-9 overflow-hidden border border-navy-light">
-          {brief && (
-            <div className="absolute top-6 right-7 text-[10px] font-bold tracking-[0.12em] text-slate hidden md:block">
-              {brief.week_label}
+        {/* Brief card — fully open, no paywall */}
+        <div className="bg-gradient-to-br from-[#0A1929] to-navy rounded-2xl overflow-hidden border border-navy-light">
+
+          {/* Header */}
+          <div className="p-6 md:p-8 border-b border-white/10">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[9px] font-bold tracking-widest uppercase text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-0.5 rounded-full">
+                ✓ Free — no subscription required
+              </span>
+              {brief?.week_label && (
+                <span className="text-[11px] text-slate ml-auto">{brief.week_label}</span>
+              )}
             </div>
-          )}
-
-          <div className="mb-3">
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-accent bg-accent/10 px-2.5 py-1 rounded-full border border-accent/20">✓ FREE PREVIEW</span>
-          </div>
-
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2.5 flex items-center gap-1.5">
-            📋 Weekly Intelligence Brief
-          </div>
-
-          <h3 className="font-display text-[18px] md:text-[22px] text-white mb-4">
-            {brief?.headline ?? "This week's brief is being generated…"}
-          </h3>
-
-          {teaserText && (
-            <p
-              className="text-[13px] md:text-[13.5px] text-slate-light leading-relaxed mb-5 max-h-20 overflow-hidden"
-              style={{
-                maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-                WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-              }}
-            >
-              {teaserText}
-            </p>
-          )}
-
-          {/* Premium wall */}
-          <div className="bg-navy rounded-2xl p-6 md:p-8 text-center">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-amber-400 mb-3">🔒 PREMIUM INTELLIGENCE</p>
-            <p className="font-display text-[18px] text-white mb-4">5 more sections in this week's brief:</p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 max-w-sm mx-auto mb-6 text-left">
-              {["EU & UK Analysis", "U.S. Federal Analysis", "Global Developments", "Enforcement Table", "Trend Signal", "Why This Matters"].map((s) => (
-                <p key={s} className="text-[13px] text-slate-light">✓ {s}</p>
+            <h3 className="font-display text-[17px] md:text-[20px] text-white leading-snug mb-4">
+              {brief?.headline ?? "This week's brief is being prepared…"}
+            </h3>
+            {teaserText && (
+              <p className="text-[13px] text-slate-light leading-relaxed mb-5">
+                {teaserText}
+              </p>
+            )}
+            {/* Section pills — all free */}
+            <div className="flex flex-wrap gap-1.5 mb-5">
+              {[
+                "Executive Summary", "US Federal", "US States",
+                "EU & UK", "Global", "Enforcement Table",
+                "Trend Signal", "Why This Matters"
+              ].map((s) => (
+                <span
+                  key={s}
+                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/10 text-white/70"
+                >
+                  {s}
+                </span>
               ))}
             </div>
             <Link
-              to="/subscribe"
-              className="inline-block px-6 py-3 bg-gradient-to-br from-amber-500 to-amber-400 text-navy font-bold text-[14px] rounded-lg hover:opacity-90 transition-all no-underline shadow-lg"
+              to="/dashboard"
+              className="inline-flex items-center gap-2 bg-white text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
-              Unlock Full Brief — $15/month →
+              Read this week's brief →
             </Link>
           </div>
 
-          {/* Section pills */}
-          <div className="flex flex-wrap gap-1.5 mb-5">
-            {SECTIONS_FREE.map((s) => (
-              <span
-                key={s}
-                className="text-[10px] md:text-[11px] font-medium px-2 md:px-2.5 py-1 rounded-full bg-white/[0.08] border border-white/15 text-white/80"
-              >
-                {s}
-              </span>
-            ))}
-            <span className="text-[10px] md:text-[11px] font-medium px-2 md:px-2.5 py-1 rounded-full bg-sky/10 border border-sky/25 text-sky/80">
-              🔒 +{SECTIONS_LOCKED.length} Premium sections
-            </span>
+          {/* Pro upgrade strip — clearly separated, additive not gating */}
+          <div className="px-6 md:px-8 py-5 bg-white/[0.03] flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <p className="text-[12px] font-bold text-amber-400 uppercase tracking-wider mb-1">
+                ⭐ Premium Pro — $25/month
+              </p>
+              <p className="text-[13px] text-slate-light leading-snug">
+                The same brief re-written specifically for your industry,
+                your jurisdictions, and your compliance priorities.
+                <span className="text-white"> Not filtered — actually re-analyzed for you.</span>
+              </p>
+            </div>
+            <Link
+              to="/subscribe"
+              className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl no-underline transition-all text-center"
+            >
+              Get your analyst →
+            </Link>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
-            <span className="text-[12px] text-slate">
-              {brief ? `${brief.article_count} regulatory updates · 8 sections · Published every Monday` : "Published every Monday · 8 sections"}
-            </span>
-            <button
-              onClick={() => navigate("/subscribe")}
-              className="px-4 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer"
-            >
-              Read Full Brief →
-            </button>
-          </div>
         </div>
       </div>
     </section>

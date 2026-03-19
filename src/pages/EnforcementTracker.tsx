@@ -100,12 +100,12 @@ const EnforcementTrackerPage = () => {
           </div>
           <h1 className="font-display text-[36px] text-white mb-3">Enforcement Tracker</h1>
           <p className="text-base text-slate-light max-w-[700px]">
-            Comprehensive database of global privacy enforcement actions, fines, and sanctions.
+            Live enforcement tracking across 119+ regulatory authorities — updated as actions are confirmed.
           </p>
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3" />
+      <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3 hidden" />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         {/* Stats cards */}

@@ -51,7 +51,7 @@ const Signup = () => {
           <p className="text-sm text-slate text-center mb-7">
             {redirect.includes("subscribe") || redirect.includes("success")
               ? "Create your account to complete your Premium subscription"
-              : "Join EndUserPrivacy — free to start, Premium from $15/month"}
+              : "Join EndUserPrivacy — free to browse, Pro from $25/month"}
           </p>
 
           {message && (

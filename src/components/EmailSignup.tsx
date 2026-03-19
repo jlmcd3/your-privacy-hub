@@ -38,8 +38,13 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
       <div className={`bg-gradient-to-r from-navy to-navy-mid py-8 px-4 md:px-8 ${className}`}>
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
-            <h3 className="font-display text-lg text-white mb-1">Free weekly digest — top 5 developments, every Monday</h3>
-            <p className="text-sm text-slate-light">Every Monday: the 5 privacy developments that matter most, delivered free.</p>
+            <h3 className="font-display text-lg text-white mb-1">
+              Free: the full weekly Intelligence Brief, every Monday
+            </h3>
+            <p className="text-sm text-slate-light">
+              8-section AI analysis of every significant privacy development.
+              Enforcement table included. Always free.
+            </p>
           </div>
           {status === "success" ? (
             <p className="text-sm font-medium text-accent">✓ You're subscribed — check your inbox Monday</p>
@@ -60,7 +65,7 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
                 disabled={status === "loading"}
                 className="px-5 py-2.5 text-sm font-semibold text-navy bg-white rounded-lg hover:bg-white/90 transition-colors disabled:opacity-60"
               >
-                {status === "loading" ? "…" : "Get free digest"}
+                {status === "loading" ? "…" : "Get free brief"}
               </button>
             </form>
           )}
@@ -71,8 +76,13 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
 
   return (
     <div className={`bg-card border border-border rounded-xl p-5 ${className}`}>
-      <h4 className="font-display text-base text-foreground mb-1">📬 Free Weekly Digest</h4>
-      <p className="text-xs text-muted-foreground mb-3">Top 5 privacy developments delivered every Monday. Free forever.</p>
+      <h4 className="font-display text-base text-foreground mb-1">
+        📬 Weekly Intelligence Brief — Free
+      </h4>
+      <p className="text-xs text-muted-foreground mb-3">
+        Full 8-section AI analysis, every Monday. Enforcement table included.
+        Always free with registration.
+      </p>
       {status === "success" ? (
         <p className="text-sm font-medium text-accent">✓ You're subscribed — check your inbox Monday</p>
       ) : status === "duplicate" ? (

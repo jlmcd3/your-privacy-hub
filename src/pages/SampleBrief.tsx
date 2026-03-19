@@ -122,6 +122,76 @@ const SampleBrief = () => {
             </p>
           </div>
 
+          {/* Pro comparison — shows the same section rewritten for Healthcare */}
+          <div className="relative mb-8 mt-2">
+            {/* Connector */}
+            <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-px h-4 bg-amber-400/50" />
+
+            <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-6 border border-amber-400/20">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[9px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+                  ⭐ Pro version — Healthcare sector
+                </span>
+                <span className="text-[11px] text-white/40 ml-2">
+                  Same developments. Re-analyzed for your world.
+                </span>
+              </div>
+
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400/70 mb-2">
+                EU & UK — Healthcare Analysis
+              </p>
+
+              <p className="text-[14px] text-white/85 leading-relaxed mb-4">
+                The ICO's TikTok ruling has a direct implication that most healthcare
+                platforms will miss: the <strong className="text-white">legitimate interests prohibition
+                for algorithmic personalization</strong> now established by the ICO applies to
+                pediatric health app recommendation engines and patient portal
+                personalization for users under 13. If your platform serves or
+                may serve users under 18, your consent mechanisms and personalization
+                logic need immediate review under both UK GDPR and COPPA.
+              </p>
+
+              <p className="text-[14px] text-white/85 leading-relaxed mb-4">
+                The EDPB's Opinion 28/2026 on AI training data creates a
+                specific and urgent problem for healthcare AI developers:
+                the opinion's prohibition on scraping personal data for AI training
+                without a GDPR-compliant legal basis directly implicates any
+                organization that has used EU patient records, clinical notes,
+                or diagnostic imaging to train diagnostic AI models.
+                The Article 9 special category data obligation compounds this —
+                health data processed for AI training requires explicit consent
+                or a specific Article 9(2) exemption. Review your AI training
+                datasets against this opinion before Q2 DPA inquiries begin.
+              </p>
+
+              <div className="bg-white/10 rounded-lg px-4 py-3 mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                  🎯 Your action item this week (Healthcare)
+                </p>
+                <p className="text-[13px] text-white/80 leading-relaxed">
+                  Audit pediatric portal personalization and any AI training datasets
+                  containing EU patient data. EDPB enforcement coordination is
+                  expected in Q2-Q3. Healthcare operators have the shortest
+                  lead time — the Article 9 analysis must be completed and documented
+                  before the first DPA inquiry lands.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between flex-wrap gap-3 pt-3 border-t border-white/10">
+                <p className="text-[12px] text-white/50">
+                  This section also available for: AdTech, AI, Financial Services,
+                  Legal, Retail
+                </p>
+                <Link
+                  to="/subscribe"
+                  className="text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-all"
+                >
+                  Get your Pro brief — $25/month →
+                </Link>
+              </div>
+            </div>
+          </div>
+
           {/* Section 5 — Global */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
             <SectionBadge free />
