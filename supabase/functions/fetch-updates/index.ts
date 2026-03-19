@@ -187,6 +187,136 @@ const RSS_SOURCES = [
     defaultCategory: "adtech",
     regulator: "Tinuiti",
   },
+  // ── EU Enforcement — Additional DPAs ─────────────────────────────────────────
+  {
+    url: "https://gdprhub.eu/index.php?title=Special:RecentChanges&feed=rss",
+    source: "GDPRhub",
+    domain: "gdprhub.eu",
+    defaultCategory: "enforcement",
+    regulator: "GDPRhub (multi-DPA)",
+  },
+  {
+    url: "https://www.autoriteitpersoonsgegevens.nl/en/news.rss",
+    source: "Dutch AP",
+    domain: "autoriteitpersoonsgegevens.nl",
+    defaultCategory: "eu-uk",
+    regulator: "Autoriteit Persoonsgegevens",
+  },
+  {
+    url: "https://www.aepd.es/en/rss",
+    source: "AEPD",
+    domain: "aepd.es",
+    defaultCategory: "eu-uk",
+    regulator: "Agencia Española de Protección de Datos",
+  },
+  {
+    url: "https://datenschutz-hamburg.de/news.rss",
+    source: "Hamburg DPA",
+    domain: "datenschutz-hamburg.de",
+    defaultCategory: "eu-uk",
+    regulator: "Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit",
+  },
+  {
+    url: "https://www.bfdi.bund.de/SharedDocs/rss/RSS_Pressemitteilungen.xml",
+    source: "BfDI",
+    domain: "bfdi.bund.de",
+    defaultCategory: "eu-uk",
+    regulator: "Bundesbeauftragte für den Datenschutz und die Informationsfreiheit",
+  },
+  {
+    url: "https://www.garanteprivacy.it/web/guest/home/docweb/-/docweb-display/docweb/rss",
+    source: "Garante",
+    domain: "garanteprivacy.it",
+    defaultCategory: "eu-uk",
+    regulator: "Garante per la protezione dei dati personali",
+  },
+  // ── US State Regulators ───────────────────────────────────────────────────────
+  {
+    url: "https://cppa.ca.gov/rss/news.rss",
+    source: "CPPA",
+    domain: "cppa.ca.gov",
+    defaultCategory: "us-states",
+    regulator: "California Privacy Protection Agency",
+  },
+  {
+    url: "https://www.texasattorneygeneral.gov/consumer-protection/rss.xml",
+    source: "Texas AG",
+    domain: "texasattorneygeneral.gov",
+    defaultCategory: "us-states",
+    regulator: "Texas Attorney General",
+  },
+  {
+    url: "https://coag.gov/press-releases/feed/",
+    source: "Colorado AG",
+    domain: "coag.gov",
+    defaultCategory: "us-states",
+    regulator: "Colorado Attorney General",
+  },
+  {
+    url: "https://portal.ct.gov/AG/RSS/PressReleases",
+    source: "Connecticut AG",
+    domain: "portal.ct.gov",
+    defaultCategory: "us-states",
+    regulator: "Connecticut Attorney General",
+  },
+  {
+    url: "https://www.hhs.gov/rss/news.xml",
+    source: "HHS OCR",
+    domain: "hhs.gov",
+    defaultCategory: "us-federal",
+    regulator: "HHS Office for Civil Rights",
+  },
+  // ── Legal Analysis — Premium Sources ─────────────────────────────────────────
+  {
+    url: "https://www.dataprotectionreport.com/feed/",
+    source: "Fieldfisher Data Protection",
+    domain: "dataprotectionreport.com",
+    defaultCategory: "eu-uk",
+    regulator: "Fieldfisher LLP",
+  },
+  {
+    url: "https://www.linklaters.com/en/insights/blogs/data-protected/rss",
+    source: "Linklaters Data Protected",
+    domain: "linklaters.com",
+    defaultCategory: "eu-uk",
+    regulator: "Linklaters LLP",
+  },
+  {
+    url: "https://www.twobirds.com/en/insights/practice-areas/privacy-and-data-protection/rss",
+    source: "Bird & Bird Privacy",
+    domain: "twobirds.com",
+    defaultCategory: "global",
+    regulator: "Bird & Bird LLP",
+  },
+  {
+    url: "https://iapp.org/resources/topics/privacy-tracker/rss/",
+    source: "IAPP Privacy Tracker",
+    domain: "iapp.org",
+    defaultCategory: "global",
+    regulator: "International Association of Privacy Professionals",
+  },
+  {
+    url: "https://www.wilmerhale.com/en/insights/blogs/wilmerhale-privacy-and-cybersecurity-law/rss",
+    source: "WilmerHale Privacy",
+    domain: "wilmerhale.com",
+    defaultCategory: "us-federal",
+    regulator: "WilmerHale LLP",
+  },
+  // ── Legislative Tracking ──────────────────────────────────────────────────────
+  {
+    url: "https://eur-lex.europa.eu/RSSF/RSS014.xml",
+    source: "EUR-Lex",
+    domain: "eur-lex.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "European Commission / EUR-Lex",
+  },
+  {
+    url: "https://www.coe.int/en/web/data-protection/rss",
+    source: "Council of Europe",
+    domain: "coe.int",
+    defaultCategory: "global",
+    regulator: "Council of Europe",
+  },
 ];
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -227,6 +357,10 @@ function categorize(title: string, description: string, defaultCat: string): str
   if (/\b(class action|lawsuit filed|complaint filed|court filing|litigation|bipa|vppa|cipa|wiretap|suit alleges|plaintiffs allege|settlement reached|jury verdict|class certified)\b/.test(text)) return "enforcement";
   // AdTech-specific detection — check BEFORE general enforcement
   if (/\b(adtech|ad tech|real-time bidding|rtb|programmatic|tcf|consent management platform|cmp\b|iab europe|transparency consent framework|third.party cookie|third party cookie|cookie deprecation|cookieless|privacy sandbox|topics api|protected audience|fledge|cookie consent|consent banner|consent signal|behavioral advertising|targeted advertising|ad targeting|ad network|demand.side platform|dsp\b|supply.side platform|ssp\b|data management platform|dmp\b|ad exchange|ad server|pixel tracking|tracking pixel|retargeting|lookalike audience|contextual advertising|identity resolution|first.party data|zero.party data|data clean room|id bridging|unified id|prebid|header bidding|ad fraud|viewability|brand safety|garm\b|nai\b|daa\b|commercial surveillance|behavioral tracking|cross.site tracking|fingerprinting|device fingerprint|supercookie|evercookie)\b/.test(text)) return "adtech";
+  // US state regulator detection — catches state AG press releases
+  if (/\b(cppa|california privacy protection agency|texas attorney general privacy|colorado attorney general privacy|connecticut attorney general privacy|tdpsa|ctdpa|vcdpa enforcement|cpa enforcement)\b/.test(text)) return "us-states";
+  // HIPAA/health enforcement — catches HHS OCR actions
+  if (/\b(hhs ocr|office for civil rights|hipaa fine|hipaa penalty|hipaa enforcement|hipaa violation|hipaa settlement|covered entity|protected health information|phi breach)\b/.test(text)) return "us-federal";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";
@@ -321,6 +455,13 @@ const REQUIRED_KEYWORDS = [
   "lookalike audience", "iab europe", "network advertising initiative",
   "digital advertising alliance", "cookieless", "contextual advertising",
   "ad fraud", "cross-site tracking", "browser fingerprinting",
+  // New source coverage additions
+  "cppa", "california privacy protection", "autoriteit persoonsgegevens",
+  "dutch dpa", "aepd", "garante", "bfdi", "hmbbfdi", "hamburg dpa",
+  "hhs ocr", "office for civil rights", "hipaa enforcement",
+  "tdpsa", "texas data privacy", "colorado privacy", "connecticut privacy",
+  "ctdpa", "cpa enforcement", "convention 108", "eur-lex", "gdprhub",
+  "linklaters", "fieldfisher",
 ];
 
 const EXCLUSION_KEYWORDS = [
@@ -356,6 +497,12 @@ function isRelevant(title: string, description: string): boolean {
     "real-time bidding", "behavioral advertising", "commercial surveillance",
     "third-party cookie", "privacy sandbox", "consent management", "iab ",
     "ad targeting", "tracking pixel",
+    // New regulators
+    "cppa", "texas ag", "colorado ag", "hhs ocr", "garante", "aepd",
+    "dutch ap", "bfdi", "gdprhub", "convention 108",
+    // New law/framework terms
+    "tdpsa", "ctdpa", "hipaa enforcement", "data (use and access)",
+    "digital markets act", "dma ", "eur-lex",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;
@@ -584,6 +731,15 @@ Deno.serve(async (req) => {
       "behavioral advertising privacy law",
       "third party cookie privacy",
       "programmatic advertising regulation",
+      // New coverage areas from expanded sources
+      "California CPPA privacy enforcement",
+      "Texas TDPSA data privacy",
+      "HHS OCR HIPAA enforcement fine",
+      "AEPD Spain GDPR fine",
+      "Netherlands AP Autoriteit Persoonsgegevens",
+      "Italian Garante data protection",
+      "EU legislative privacy regulation",
+      "state attorney general privacy enforcement",
     ];
     for (const q of queries) {
       try {
