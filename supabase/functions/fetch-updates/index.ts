@@ -451,6 +451,13 @@ const REQUIRED_KEYWORDS = [
   "lookalike audience", "iab europe", "network advertising initiative",
   "digital advertising alliance", "cookieless", "contextual advertising",
   "ad fraud", "cross-site tracking", "browser fingerprinting",
+  // New source coverage additions
+  "cppa", "california privacy protection", "autoriteit persoonsgegevens",
+  "dutch dpa", "aepd", "garante", "bfdi", "hmbbfdi", "hamburg dpa",
+  "hhs ocr", "office for civil rights", "hipaa enforcement",
+  "tdpsa", "texas data privacy", "colorado privacy", "connecticut privacy",
+  "ctdpa", "cpa enforcement", "convention 108", "eur-lex", "gdprhub",
+  "linklaters", "fieldfisher",
 ];
 
 const EXCLUSION_KEYWORDS = [
