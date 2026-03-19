@@ -105,7 +105,7 @@ const EnforcementTrackerPage = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3" />
+      <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3 hidden" />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         {/* Stats cards */}

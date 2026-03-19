@@ -316,7 +316,7 @@ const Index = () => {
       <EmailSignup variant="strip" />
       <LatestUpdates />
       <div className="h-px bg-fog" />
-      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper" />
+      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <PremiumBanner />
