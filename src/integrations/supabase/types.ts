@@ -16,30 +16,39 @@ export type Database = {
     Tables: {
       custom_briefs: {
         Row: {
+          articles_used: number | null
           base_brief_id: string | null
           custom_sections: Json
           generated_at: string | null
+          generation_model: string | null
           id: string
           preferences_snapshot: Json | null
           user_id: string
+          verification_result: Json | null
           week_label: string
         }
         Insert: {
+          articles_used?: number | null
           base_brief_id?: string | null
           custom_sections?: Json
           generated_at?: string | null
+          generation_model?: string | null
           id?: string
           preferences_snapshot?: Json | null
           user_id: string
+          verification_result?: Json | null
           week_label: string
         }
         Update: {
+          articles_used?: number | null
           base_brief_id?: string | null
           custom_sections?: Json
           generated_at?: string | null
+          generation_model?: string | null
           id?: string
           preferences_snapshot?: Json | null
           user_id?: string
+          verification_result?: Json | null
           week_label?: string
         }
         Relationships: [
