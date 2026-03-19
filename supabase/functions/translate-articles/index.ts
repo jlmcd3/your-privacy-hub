@@ -123,6 +123,8 @@ serve(async (req) => {
       });
     }
   }
+
+  try {
     const { articles } = await req.json();
     if (!Array.isArray(articles)) {
       return new Response(JSON.stringify({ error: "articles must be an array" }), {
