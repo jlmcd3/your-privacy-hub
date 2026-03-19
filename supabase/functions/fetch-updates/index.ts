@@ -731,6 +731,15 @@ Deno.serve(async (req) => {
       "behavioral advertising privacy law",
       "third party cookie privacy",
       "programmatic advertising regulation",
+      // New coverage areas from expanded sources
+      "California CPPA privacy enforcement",
+      "Texas TDPSA data privacy",
+      "HHS OCR HIPAA enforcement fine",
+      "AEPD Spain GDPR fine",
+      "Netherlands AP Autoriteit Persoonsgegevens",
+      "Italian Garante data protection",
+      "EU legislative privacy regulation",
+      "state attorney general privacy enforcement",
     ];
     for (const q of queries) {
       try {
