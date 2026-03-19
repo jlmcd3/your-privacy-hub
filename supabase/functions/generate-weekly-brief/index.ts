@@ -224,6 +224,7 @@ STRICT ACCURACY RULES — violations invalidate this brief:
 4. The enforcement_trends section MUST use the quantitative data provided above (or acknowledge insufficient data)
 5. Every substantive claim in narrative sections should have an inline [ref:N] citation
 6. If a dedicated section (AI, biometric, litigation) has no source articles this week, write the exact phrase: "No monitored developments in this category this week." followed by what to watch for in the next 30 days
+7. CROSS-JURISDICTION PATTERNS: Actively look for cases where multiple regulators in different jurisdictions are taking similar action within the same reporting period. When you identify such a pattern, call it out explicitly — it is more significant than any individual action. Name the regulators, the shared focus, and what the coordination signals about the 30-90 day enforcement outlook.
 
 Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these fields:
 
