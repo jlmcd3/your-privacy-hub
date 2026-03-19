@@ -249,7 +249,9 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 
   "privacy_litigation": "2-3 paragraphs on privacy lawsuits (BIPA, CCPA, VPPA, CIPA class actions). If none: 'No monitored litigation developments this week.' ~200 words.",
 
-  "enforcement_table": [{"regulator":"Name","jurisdiction":"Country/State","action_type":"Fine|Investigation opened|Guidance issued|Lawsuit filed|Settlement|Rulemaking","subject":"Company","amount":"Exact figure or Not disclosed","legal_basis":"Specific regulation","significance":"Why it matters","source_ref":"[N]"}],
+  "enforcement_table": [{"regulator":"Name","jurisdiction":"Country/State","action_type":"Fine|Investigation opened|Guidance issued|Lawsuit filed|Settlement|Rulemaking","subject":"Company","amount":"Exact figure or Not disclosed","legal_basis":"Specific regulation","significance":"Why it matters","source_ref":"[N]","cross_jurisdiction_signal":"If this action is part of a coordinated multi-regulator pattern, describe it briefly. Otherwise null."}],
+
+  "cross_jurisdiction_patterns": "If any cross-jurisdiction enforcement or regulatory patterns are present this week, describe them here. Name the specific regulators, the shared issue they are targeting, and what this coordination signals. If no patterns this week, write null. ~100 words.",
 
   "enforcement_trends": "3 paragraphs: month-over-month using provided data, 3-6 month patterns, year-over-year context. ~300 words.",
 
