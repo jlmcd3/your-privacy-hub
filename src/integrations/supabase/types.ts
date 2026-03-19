@@ -365,6 +365,7 @@ export type Database = {
           article_count: number | null
           biometric_data: string | null
           created_at: string
+          cross_jurisdiction_patterns: string | null
           enforcement_table: Json | null
           enforcement_trends: string | null
           eu_uk: string | null
@@ -388,6 +389,7 @@ export type Database = {
           article_count?: number | null
           biometric_data?: string | null
           created_at?: string
+          cross_jurisdiction_patterns?: string | null
           enforcement_table?: Json | null
           enforcement_trends?: string | null
           eu_uk?: string | null
@@ -411,6 +413,7 @@ export type Database = {
           article_count?: number | null
           biometric_data?: string | null
           created_at?: string
+          cross_jurisdiction_patterns?: string | null
           enforcement_table?: Json | null
           enforcement_trends?: string | null
           eu_uk?: string | null
