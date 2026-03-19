@@ -531,11 +531,20 @@ async function generateAISummary(
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 800,
+        max_tokens: 1000,
         messages: [
           {
             role: "system",
-            content: "You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON.",
+            content: `You are a privacy regulatory analyst at a leading intelligence firm.
+Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers.
+
+Rules:
+(1) Always name the specific regulator AND jurisdiction AND regulation where present.
+(2) Never write generic advice — every sentence must be specific to this article.
+(3) Return ONLY valid JSON — no preamble, no markdown, no explanation.
+(4) Be precise about legal weight: distinguish binding regulatory decisions from
+    guidance, proposals, and commentary. This distinction matters enormously to
+    legal professionals.`,
           },
           {
             role: "user",
@@ -545,19 +554,60 @@ Title: ${title}
 Description: ${summary || "No description available."}
 Source: ${sourceName || "Unknown"}
 
-STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations (e.g. it is about general business pricing, non-privacy topics, or entertainment), return exactly: {"skip": true}
+STEP 1 — RELEVANCE CHECK:
+If this article is NOT genuinely about privacy regulation, data protection law,
+regulatory enforcement, or compliance obligations (e.g. it is about general
+business pricing, non-privacy topics, or entertainment), return exactly:
+{"skip": true}
 
 STEP 2 — If relevant, return this JSON:
 {
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction
+    AND explain the specific legal significance. No generic statements.",
+
   "takeaways": [
     "Specific factual point from this article — cite regulator or law name",
     "Specific implication, deadline, or scope if present in the article",
     "Specific type of organization affected and what they must review or do"
   ],
-  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
-  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
-  "urgency": "Immediate | This quarter | Monitor — choose based on whether article contains enforcement action, binding deadline, or new binding guidance"
+
+  "compliance_impact": "One sentence naming the specific organization type affected
+    and the specific action required under the specific law. If no clear action
+    exists, write: Monitor — no immediate compliance action required.",
+
+  "who_should_care": "The single most specific audience:
+    DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+
+  "urgency": "Immediate | This quarter | Monitor — choose based on whether article
+    contains enforcement action, binding deadline, or new binding guidance",
+
+  "legal_weight": "Classify this article's regulatory significance:
+    Binding — final regulatory decision, court ruling, or adopted regulation with
+      immediate legal force (EDPB final opinion, DPA enforcement decision, enacted
+      statute, court judgment)
+    Enforcement — active enforcement action: fine, investigation, consent order,
+      or lawsuit filed
+    Guidance — official guidance, recommendation, or opinion that is not yet binding
+      (draft EDPB guidelines, ICO blog, FTC workshop proceedings, agency FAQ)
+    Proposal — draft regulation, proposed rulemaking, public consultation, or
+      legislative bill not yet enacted
+    Commentary — analysis, reporting, or opinion from non-regulatory sources
+      (law firm blog, trade press, academic commentary)",
+
+  "source_strength": "Classify the article's source type:
+    Primary regulator — content directly from the regulatory authority itself
+      (EDPB publication, ICO press release, FTC enforcement notice, state AG filing)
+    Legal analysis — analysis by practicing privacy lawyers or legal publications
+      (Hunton, Fieldfisher, Linklaters, Bird & Bird, Law360, JD Supra)
+    Media coverage — news or trade press reporting on regulatory developments
+      (Reuters, IAPP news, AdExchanger, Digiday)",
+
+  "cross_jurisdiction_signal": "If this article reflects a pattern occurring across
+    multiple regulators or jurisdictions simultaneously, describe the pattern in
+    one sentence. Examples:
+    'Cookie consent enforcement coordinating across CNIL, ICO, and APD Belgium'
+    'Children's privacy enforcement wave: ICO, FTC, and Texas AG acting in parallel'
+    If no cross-jurisdiction pattern is evident, return null."
 }`,
           },
         ],

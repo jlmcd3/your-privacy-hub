@@ -343,6 +343,7 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
         privacy_litigation: brief.privacy_litigation,
         enforcement_table: brief.enforcement_table,
         enforcement_trends: brief.enforcement_trends,
+        cross_jurisdiction_patterns: brief.cross_jurisdiction_patterns ?? null,
         trend_signal: brief.trend_signal,
         why_this_matters: brief.why_this_matters,
         source_map: sourceMap,

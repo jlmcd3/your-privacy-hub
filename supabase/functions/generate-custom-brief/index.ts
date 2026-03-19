@@ -298,6 +298,8 @@ ${enforcementHistory.substring(0, 3000)}
 Generate a STANDALONE personalized brief as a JSON object with these exact keys:
 
 {
+  "your_critical_alert": "A single sentence — the most important thing this subscriber must know this week, specific to their industry and jurisdiction. Must follow this pattern: '[Specific role or organization type] must/should [specific action] by/before [timeframe or trigger] because [the specific development from this week that creates the obligation or risk].' Examples: 'Healthcare processors using the standard SCC Module 2 for EU-US patient data transfers must review Clause 8.2(b) against the EDPB's new pseudonymization standard before your next DPA audit, given this week's Opinion 05/2026.' If no immediate critical alert exists this week for this user's profile, write: 'Monitor week — no immediate compliance action required for ${industryList} operators in ${jurisdictionList} based on this week's developments.'",
+
   "opening_headline": "A punchy, specific headline naming the subscriber's industry and the #1 development this week. Max 15 words.",
 
   "your_week": "2-3 paragraphs opening with 'For [industry] professionals operating in [jurisdictions]...' Synthesize the most important developments. Name specific laws, regulators, deadlines. ~250 words.",

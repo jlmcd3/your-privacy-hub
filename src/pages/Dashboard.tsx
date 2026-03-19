@@ -284,6 +284,33 @@ const Dashboard = () => {
               </Link>
             </div>
 
+            {/* Critical alert — shown first, most prominent */}
+            {customBrief.custom_sections?.your_critical_alert && (
+              <div className={`rounded-xl px-5 py-4 mb-5 ${
+                customBrief.custom_sections.your_critical_alert.startsWith("Monitor week")
+                  ? "bg-blue-50 border border-blue-200"
+                  : "bg-red-50 border border-red-200"
+              }`}>
+                <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${
+                  customBrief.custom_sections.your_critical_alert.startsWith("Monitor week")
+                    ? "text-blue-600"
+                    : "text-red-700"
+                }`}>
+                  {customBrief.custom_sections.your_critical_alert.startsWith("Monitor week")
+                    ? "📊 This week: monitoring mode"
+                    : "⚡ Critical alert this week"
+                  }
+                </p>
+                <p className={`text-[14px] font-semibold leading-snug ${
+                  customBrief.custom_sections.your_critical_alert.startsWith("Monitor week")
+                    ? "text-blue-800"
+                    : "text-red-800"
+                }`}>
+                  {customBrief.custom_sections.your_critical_alert}
+                </p>
+              </div>
+            )}
+
             {/* Opening headline */}
             {customBrief.custom_sections?.opening_headline && (
               <h2 className="font-display font-bold text-foreground text-[20px] leading-snug mb-5">
