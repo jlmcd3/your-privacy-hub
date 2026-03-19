@@ -100,7 +100,7 @@ const EnforcementTrackerPage = () => {
           </div>
           <h1 className="font-display text-[36px] text-white mb-3">Enforcement Tracker</h1>
           <p className="text-base text-slate-light max-w-[700px]">
-            Comprehensive database of global privacy enforcement actions, fines, and sanctions.
+            Live enforcement tracking across 119+ regulatory authorities — updated as actions are confirmed.
           </p>
         </div>
       </div>
