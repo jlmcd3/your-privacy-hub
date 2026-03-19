@@ -186,7 +186,7 @@ const SampleBrief = () => {
                   to="/subscribe"
                   className="text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-all"
                 >
-                  Get your Pro brief — $25/month →
+                  Get your Pro brief — $20/month →
                 </Link>
               </div>
             </div>
