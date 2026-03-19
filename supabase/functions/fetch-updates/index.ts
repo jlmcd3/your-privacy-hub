@@ -493,6 +493,12 @@ function isRelevant(title: string, description: string): boolean {
     "real-time bidding", "behavioral advertising", "commercial surveillance",
     "third-party cookie", "privacy sandbox", "consent management", "iab ",
     "ad targeting", "tracking pixel",
+    // New regulators
+    "cppa", "texas ag", "colorado ag", "hhs ocr", "garante", "aepd",
+    "dutch ap", "bfdi", "gdprhub", "convention 108",
+    // New law/framework terms
+    "tdpsa", "ctdpa", "hipaa enforcement", "data (use and access)",
+    "digital markets act", "dma ", "eur-lex",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;
