@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
       .limit(40);
 
     if (fetchError || !articles || articles.length === 0) {
-      return new Response(JSON.stringify({ error: "No articles found", detail: fetchError }),
+      if (fetchError) console.error("Fetch articles error:", fetchError);
+      return new Response(JSON.stringify({ error: "No articles found for this period" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
