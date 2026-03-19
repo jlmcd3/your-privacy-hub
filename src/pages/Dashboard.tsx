@@ -143,7 +143,7 @@ const Dashboard = () => {
               </h3>
               <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
                 Same intelligence, re-analyzed from your perspective. Sector-specific
-                action items. Your jurisdiction focus. $25/month.
+                action items. Your jurisdiction focus. $20/month.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
