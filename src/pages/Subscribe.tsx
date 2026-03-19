@@ -403,7 +403,7 @@ const Subscribe = () => {
               ⭐ Premium Pro
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              $25<span className="text-lg font-normal text-blue-200">/month</span>
+              $20<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <p className="text-blue-200 text-sm mb-5">
               Your analyst. Written for your industry and jurisdiction. Every Monday.
