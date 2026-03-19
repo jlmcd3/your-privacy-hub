@@ -270,41 +270,142 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Custom brief for Pro users */}
+        {/* Custom brief for Pro users — 9-section display */}
         {customBrief && (
-          <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue bg-blue/10 border border-blue/20 px-2.5 py-1 rounded-full">
-                ⭐ Your Custom Focus — {customBrief.week_label}
+          <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">
+
+            {/* Pro brief header */}
+            <div className="flex items-center gap-2 mb-5">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                ⭐ Your Personalized Brief — {customBrief.week_label}
               </span>
+              <Link to="/brief-preferences" className="text-[11px] text-primary hover:text-foreground no-underline ml-auto">
+                Edit preferences →
+              </Link>
             </div>
-            {customBrief.custom_sections?.industry_focus && (
-              <div className="mb-4">
-                <h3 className="font-bold text-navy text-[14px] mb-2">Industry Focus</h3>
-                <p className="text-slate text-[13px] leading-relaxed">
-                  {customBrief.custom_sections.industry_focus}
-                </p>
-              </div>
+
+            {/* Opening headline */}
+            {customBrief.custom_sections?.opening_headline && (
+              <h2 className="font-display font-bold text-foreground text-[20px] leading-snug mb-5">
+                {customBrief.custom_sections.opening_headline}
+              </h2>
             )}
-            {customBrief.custom_sections?.jurisdiction_focus && (
-              <div className="mb-4">
-                <h3 className="font-bold text-navy text-[14px] mb-2">Jurisdiction Highlights</h3>
-                <p className="text-slate text-[13px] leading-relaxed">
-                  {customBrief.custom_sections.jurisdiction_focus}
-                </p>
-              </div>
+
+            {/* Your week */}
+            {customBrief.custom_sections?.your_week && (
+              <section className="mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Week</h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {customBrief.custom_sections.your_week.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                </div>
+              </section>
             )}
-            {customBrief.custom_sections?.topic_focus && (
-              <div>
-                <h3 className="font-bold text-navy text-[14px] mb-2">Topic Focus</h3>
-                <p className="text-slate text-[13px] leading-relaxed">
-                  {customBrief.custom_sections.topic_focus}
-                </p>
-              </div>
+
+            {/* Industry intelligence */}
+            {customBrief.custom_sections?.industry_intelligence && (
+              <section className="mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Industry Intelligence</h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {customBrief.custom_sections.industry_intelligence.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                </div>
+              </section>
             )}
-            <Link to="/brief-preferences" className="text-[12px] text-blue font-medium no-underline hover:text-navy mt-3 inline-block">
-              Edit your preferences →
-            </Link>
+
+            {/* Jurisdiction developments */}
+            {customBrief.custom_sections?.jurisdiction_developments && (
+              <section className="mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Jurisdictions This Week</h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {customBrief.custom_sections.jurisdiction_developments.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                </div>
+              </section>
+            )}
+
+            {/* Topic depth */}
+            {customBrief.custom_sections?.topic_depth && (
+              <section className="mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Subject-Matter Focus</h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {customBrief.custom_sections.topic_depth.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                </div>
+              </section>
+            )}
+
+            {/* What to ignore */}
+            {customBrief.custom_sections?.what_to_ignore && (
+              <section className="bg-muted rounded-xl p-4 mb-5">
+                <h3 className="font-semibold text-muted-foreground text-[12px] uppercase tracking-wider mb-2">📭 What to deprioritize this week</h3>
+                <p className="text-[13px] text-muted-foreground leading-relaxed">{customBrief.custom_sections.what_to_ignore}</p>
+              </section>
+            )}
+
+            {/* Action items */}
+            {customBrief.custom_sections?.your_action_items?.length > 0 && (
+              <section className="mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-3">🎯 Your Action Items</h3>
+                <div className="space-y-3">
+                  {customBrief.custom_sections.your_action_items.map((item: any, i: number) => (
+                    <div key={i} className="border border-border rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          item.priority === "Immediate"
+                            ? "bg-red-50 text-red-700 border border-red-200"
+                            : item.priority?.includes("quarter")
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-blue-50 text-blue-700 border border-blue-200"
+                        }`}>
+                          {item.priority}
+                        </span>
+                      </div>
+                      <p className="text-[14px] font-semibold text-foreground mb-1">{item.action}</p>
+                      <p className="text-[12px] text-muted-foreground">{item.why_now}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Enforcement pattern */}
+            {customBrief.custom_sections?.enforcement_pattern_for_you && (
+              <section className="mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">⚖️ Enforcement Pattern for Your Sector</h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  {customBrief.custom_sections.enforcement_pattern_for_you.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                </div>
+              </section>
+            )}
+
+            {/* Look ahead */}
+            {customBrief.custom_sections?.look_ahead && (
+              <section className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">
+                <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📡 Your 30-90 Day Horizon</h3>
+                <div className="text-[13px] text-amber-800 leading-relaxed space-y-2">
+                  {customBrief.custom_sections.look_ahead.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                </div>
+              </section>
+            )}
+
+            {/* Legacy fallback for old 3-section briefs */}
+            {!customBrief.custom_sections?.opening_headline && customBrief.custom_sections?.industry_focus && (
+              <>
+                <div className="mb-4">
+                  <h3 className="font-bold text-foreground text-[14px] mb-2">Industry Focus</h3>
+                  <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.industry_focus}</p>
+                </div>
+                {customBrief.custom_sections?.jurisdiction_focus && (
+                  <div className="mb-4">
+                    <h3 className="font-bold text-foreground text-[14px] mb-2">Jurisdiction Highlights</h3>
+                    <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.jurisdiction_focus}</p>
+                  </div>
+                )}
+                {customBrief.custom_sections?.topic_focus && (
+                  <div>
+                    <h3 className="font-bold text-foreground text-[14px] mb-2">Topic Focus</h3>
+                    <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.topic_focus}</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 

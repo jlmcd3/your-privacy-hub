@@ -7,6 +7,137 @@ const corsHeaders = {
 
 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
+/* ── Industry expertise map ── */
+const INDUSTRY_EXPERTISE: Record<string, string> = {
+  "online-web": "web services, cookie compliance, GDPR consent mechanisms, ePrivacy Directive, dark patterns regulations, Terms of Service enforcement",
+  "mobile-apps": "mobile SDK privacy, app store privacy policies, IDFA/GAID deprecation, ATT framework, Google Privacy Sandbox for Android",
+  "adtech": "real-time bidding data flows, IAB TCF, programmatic advertising consent, CNIL cookie enforcement, FTC commercial surveillance, behavioral targeting regulations",
+  "ai-companies": "EU AI Act compliance timelines, NIST AI RMF, algorithmic impact assessments, foundation model regulations, automated decision-making under GDPR Art.22",
+  "healthcare": "HIPAA enforcement trends, health data under state privacy laws, FTC Health Breach Notification Rule, HITECH Act, telehealth privacy, reproductive health data",
+  "financial": "GLBA modernization, CFPB data rights rulemaking, open banking privacy, PCI DSS, SOX data requirements, SEC cybersecurity disclosure rules",
+  "hr-employment": "employee monitoring regulations, BIPA workplace claims, EU employee data processing, workplace AI screening tools, background check compliance",
+  "children-edtech": "COPPA enforcement and modernization, Age-Appropriate Design Code, student privacy (FERPA), state children's privacy laws, age verification requirements",
+  "retail-ecom": "consumer loyalty program privacy, POS data collection, cross-device tracking, state consumer privacy rights, marketing consent requirements",
+  "data-brokers": "state data broker registration laws, Vermont/California/Texas data broker regulations, FTC data broker enforcement, people search opt-out requirements",
+};
+
+const JURISDICTION_EXPERTISE: Record<string, string> = {
+  "eu-uk": "GDPR enforcement patterns across all 27 EU DPAs, UK Data Protection Act 2018, UK-EU adequacy, EDPB guidelines, ePrivacy Regulation progress",
+  "us-federal": "FTC Section 5 enforcement, CFPB privacy actions, congressional privacy bill progress, executive orders on AI/data, federal preemption debates",
+  "us-states": "comprehensive state privacy laws (CA/CO/CT/VA/OR/TX/MT/DE/IA/IN/TN/NJ and new states), state AG enforcement patterns, CCPA/CPRA regulations",
+  "apac": "China PIPL enforcement, Japan APPI amendments, South Korea PIPA, India DPDP Act implementation, Australia Privacy Act reform, Singapore PDPA",
+  "latam": "Brazil LGPD enforcement by ANPD, Argentina data protection modernization, Colombia SIC enforcement, Mexico INAI, Chile privacy reform",
+  "mea": "Saudi Arabia PDPL implementation, UAE data protection, South Africa POPIA enforcement, Kenya DPA, Nigeria NDPR, Turkey KVKK",
+  "global": "cross-border transfer mechanisms, adequacy decisions, APEC CBPR, emerging privacy frameworks, international regulatory cooperation",
+};
+
+/* ── Relevance scoring with Haiku (fast + cheap) ── */
+async function scoreArticleRelevance(
+  articles: any[],
+  prefs: { industries: string[]; jurisdictions: string[]; topics: string[] },
+  apiKey: string,
+): Promise<any[]> {
+  const articleSummaries = articles.map((a, i) => `[${i}] ${a.title} | ${a.category} | ${a.summary?.substring(0, 120) || ""}`).join("\n");
+
+  const prompt = `Score each article's relevance (0-10) to this subscriber profile:
+Industries: ${prefs.industries.join(", ")}
+Jurisdictions: ${prefs.jurisdictions.join(", ")}
+Topics: ${prefs.topics.join(", ")}
+
+Articles:
+${articleSummaries}
+
+Return JSON array of objects: [{"index": 0, "score": 7}, ...]. Only the JSON array, nothing else.`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!resp.ok) return articles;
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || "";
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) return articles;
+    const scores: { index: number; score: number }[] = JSON.parse(match[0]);
+    // Sort by score descending, return top articles
+    scores.sort((a, b) => b.score - a.score);
+    return scores.map(s => articles[s.index]).filter(Boolean);
+  } catch {
+    return articles;
+  }
+}
+
+/* ── Fetch enforcement history relevant to user ── */
+async function fetchEnforcementHistory(prefs: { industries: string[]; jurisdictions: string[] }): Promise<string> {
+  const jurisdictionMap: Record<string, string[]> = {
+    "eu-uk": ["EU", "UK", "France", "Germany", "Ireland", "Italy", "Spain", "Netherlands", "Belgium", "Austria"],
+    "us-federal": ["United States", "US", "Federal"],
+    "us-states": ["California", "Texas", "New York", "Colorado", "Connecticut", "Virginia"],
+    "apac": ["China", "Japan", "South Korea", "India", "Australia", "Singapore"],
+    "latam": ["Brazil", "Argentina", "Colombia", "Mexico", "Chile"],
+    "mea": ["Saudi Arabia", "UAE", "South Africa", "Kenya", "Nigeria", "Turkey"],
+  };
+
+  const relevantJurisdictions = prefs.jurisdictions.flatMap(j => jurisdictionMap[j] || []);
+
+  let query = supabase
+    .from("enforcement_actions")
+    .select("regulator, jurisdiction, subject, fine_amount, violation, decision_date, sector")
+    .order("decision_date", { ascending: false })
+    .limit(30);
+
+  if (relevantJurisdictions.length > 0) {
+    // Use ilike for broader matching
+    const orConditions = relevantJurisdictions.map(j => `jurisdiction.ilike.%${j}%`).join(",");
+    query = query.or(orConditions);
+  }
+
+  const { data } = await query;
+  if (!data || data.length === 0) return "No recent enforcement actions found for your jurisdictions.";
+
+  return data.map(e =>
+    `${e.decision_date || "Recent"} | ${e.regulator} (${e.jurisdiction}) | ${e.subject || "Unnamed"} | ${e.fine_amount || "N/A"} | ${e.violation || "N/A"} | Sector: ${e.sector || "General"}`
+  ).join("\n");
+}
+
+/* ── Fetch prior custom briefs for continuity ── */
+async function fetchPriorBriefs(userId: string): Promise<string> {
+  const { data } = await supabase
+    .from("custom_briefs")
+    .select("week_label, custom_sections")
+    .eq("user_id", userId)
+    .order("generated_at", { ascending: false })
+    .limit(4);
+
+  if (!data || data.length === 0) return "";
+
+  return data.map(b => {
+    const sections = b.custom_sections as any;
+    const headline = sections?.opening_headline || sections?.industry_focus?.substring(0, 100) || "";
+    return `${b.week_label}: ${headline}`;
+  }).join("\n");
+}
+
+/* ── Fetch trend signals from recent standard briefs ── */
+async function fetchTrendSignals(): Promise<string> {
+  const { data } = await supabase
+    .from("weekly_briefs")
+    .select("week_label, trend_signal")
+    .order("published_at", { ascending: false })
+    .limit(4);
+
+  if (!data) return "";
+  return data.filter(b => b.trend_signal).map(b => `${b.week_label}: ${b.trend_signal?.substring(0, 200)}`).join("\n");
+}
+
+/* ── Main handler ── */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -15,6 +146,13 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "No API key" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+
+  // Optional: target a single user for testing
+  let targetUserId: string | null = null;
+  try {
+    const body = await req.json();
+    targetUserId = body?.user_id || null;
+  } catch { /* no body = run for all */ }
 
   // Get the most recent weekly brief
   const { data: latestBrief } = await supabase
@@ -29,16 +167,29 @@ Deno.serve(async (req) => {
       { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // Get all Pro subscribers with preferences
-  const { data: proUsers } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("is_pro", true);
+  // Get recent articles (60 instead of 40)
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentArticles } = await supabase
+    .from("updates")
+    .select("title, category, summary, source_name, published_at, topic_tags, regulator")
+    .gte("published_at", oneWeekAgo)
+    .order("published_at", { ascending: false })
+    .limit(60);
+
+  // Get Pro subscribers
+  let usersQuery = supabase.from("profiles").select("id").eq("is_pro", true);
+  if (targetUserId) {
+    usersQuery = usersQuery.eq("id", targetUserId);
+  }
+  const { data: proUsers } = await usersQuery;
 
   if (!proUsers || proUsers.length === 0) {
     return new Response(JSON.stringify({ success: true, processed: 0 }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+
+  // Fetch trend signals once for all users
+  const trendSignals = await fetchTrendSignals();
 
   let processed = 0;
 
@@ -51,63 +202,157 @@ Deno.serve(async (req) => {
 
     if (!prefs) continue;
 
-    const industryList = (prefs.industries || []).join(", ") || "General (no specific industry set)";
-    const jurisdictionList = (prefs.jurisdictions || []).join(", ") || "All jurisdictions";
-    const topicList = (prefs.topics || []).join(", ") || "All topics";
+    const industries = prefs.industries || [];
+    const jurisdictions = prefs.jurisdictions || [];
+    const topics = prefs.topics || [];
 
+    if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) continue;
+
+    const industryList = industries.join(", ") || "General";
+    const jurisdictionList = jurisdictions.join(", ") || "All jurisdictions";
+    const topicList = topics.join(", ") || "All topics";
+
+    // Parallel data fetches per user
+    const [scoredArticles, enforcementHistory, priorBriefs] = await Promise.all([
+      recentArticles ? scoreArticleRelevance(recentArticles, { industries, jurisdictions, topics }, ANTHROPIC_API_KEY) : Promise.resolve([]),
+      fetchEnforcementHistory({ industries, jurisdictions }),
+      fetchPriorBriefs(user.id),
+    ]);
+
+    const topArticles = scoredArticles.slice(0, 25);
+    const articleContext = topArticles.map((a: any, i: number) =>
+      `[${i + 1}] ${a.title} (${a.source_name || "Unknown"}, ${a.published_at?.substring(0, 10) || "recent"}) — ${a.summary?.substring(0, 200) || ""}`
+    ).join("\n\n");
+
+    // Build the full brief content from standard brief
     const briefContent = `
 Executive Summary: ${latestBrief.executive_summary || ""}
 US Federal: ${latestBrief.us_federal || ""}
 US States: ${latestBrief.us_states || ""}
 EU & UK: ${latestBrief.eu_uk || ""}
 Global: ${latestBrief.global_developments || ""}
-AI Governance: ${latestBrief.ai_governance || ""}
-Biometric: ${latestBrief.biometric_data || ""}
-Litigation: ${latestBrief.privacy_litigation || ""}
-Enforcement Trends: ${latestBrief.enforcement_trends || ""}
-Why This Matters: ${latestBrief.why_this_matters || ""}
+AI Governance: ${(latestBrief as any).ai_governance || ""}
+AdTech & Advertising: ${(latestBrief as any).adtech_advertising || ""}
+Biometric: ${(latestBrief as any).biometric_data || ""}
+Litigation: ${(latestBrief as any).privacy_litigation || ""}
+Enforcement Trends: ${(latestBrief as any).enforcement_trends || ""}
     `.trim();
 
-    const customPrompt = `You are a privacy regulatory analyst creating a personalized brief addendum for a specific subscriber.
+    // Build deep expertise context
+    const industryExpertise = industries.map(i => INDUSTRY_EXPERTISE[i] || i).join("; ");
+    const jurisdictionExpertise = jurisdictions.map(j => JURISDICTION_EXPERTISE[j] || j).join("; ");
+
+    const systemPrompt = `You are a senior privacy regulatory analyst producing a personalized weekly intelligence brief for a specific compliance professional.
+
+YOUR DEEP EXPERTISE INCLUDES:
+${industryExpertise}
+${jurisdictionExpertise}
+
+CRITICAL INSTRUCTION: You are not just filtering the standard brief. You must SYNTHESIZE information from:
+1. The standard weekly brief content
+2. The ${topArticles.length} highest-relevance articles scored for this subscriber
+3. The enforcement history data showing patterns in their jurisdictions
+4. Your own training knowledge of privacy law, regulatory patterns, and compliance frameworks
+
+Draw on your training knowledge to provide context that goes BEYOND what's in the articles. Name specific laws, cite regulatory precedents, identify patterns. Do not hedge — make specific predictions and recommendations.
 
 SUBSCRIBER PROFILE:
-- Industry focus: ${industryList}
-- Priority jurisdictions: ${jurisdictionList}  
-- Subject-matter focus: ${topicList}
+- Industry: ${industryList}
+- Jurisdictions: ${jurisdictionList}
+- Topics: ${topicList}
 
-FULL WEEKLY BRIEF CONTENT:
-${briefContent.substring(0, 6000)}
+${priorBriefs ? `PRIOR BRIEFS (for continuity — reference ongoing threads):\n${priorBriefs}\n` : ""}
+${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}`;
 
-Create a personalized "Your Custom Focus" addendum with EXACTLY these three sections as a JSON object:
+    const userPrompt = `STANDARD WEEKLY BRIEF:
+${briefContent.substring(0, 8000)}
+
+TOP RELEVANCE-SCORED ARTICLES FOR THIS SUBSCRIBER:
+${articleContext.substring(0, 6000)}
+
+ENFORCEMENT HISTORY FOR SUBSCRIBER'S JURISDICTIONS (last 12 months):
+${enforcementHistory.substring(0, 3000)}
+
+Generate a STANDALONE personalized brief as a JSON object with these exact keys:
 
 {
-  "industry_focus": "2-3 paragraphs specifically analyzing this week's developments through the lens of the subscriber's industry (${industryList}). Name specific compliance obligations, risks, or opportunities relevant to this sector from this week's brief. Be concrete — name specific laws, regulators, deadlines. If no industry-specific developments this week, say so and provide the most relevant adjacent development. ~200 words.",
-  
-  "jurisdiction_focus": "2 paragraphs highlighting developments in the subscriber's priority jurisdictions (${jurisdictionList}). Extract and amplify the most important items from those regions in this week's brief. Add any jurisdiction-specific context not covered in the main brief. ~150 words.",
-  
-  "topic_focus": "2 paragraphs on the subscriber's subject-matter priorities (${topicList}). What happened this week in these topic areas? What should they be watching in the next 30 days specifically in these areas? ~150 words."
+  "opening_headline": "A punchy, specific headline naming the subscriber's industry and the #1 development this week. Max 15 words.",
+
+  "your_week": "2-3 paragraphs opening with 'For [industry] professionals operating in [jurisdictions]...' Synthesize the most important developments. Name specific laws, regulators, deadlines. ~250 words.",
+
+  "industry_intelligence": "3-4 paragraphs of deep industry-specific analysis. What do these developments mean specifically for ${industryList}? Name specific compliance obligations, risks, or opportunities. Reference enforcement precedents from the history data. Draw on your training knowledge. ~300 words.",
+
+  "jurisdiction_developments": "2-3 paragraphs on developments in ${jurisdictionList}. Extract, amplify, and add context beyond what's in the standard brief. What's the regulatory trajectory? ~200 words.",
+
+  "topic_depth": "2-3 paragraphs on ${topicList}. What happened this week? What patterns are emerging? What should they prepare for? ~200 words.",
+
+  "what_to_ignore": "1 paragraph identifying 2-3 stories from this week that are getting attention but are NOT relevant to this subscriber's profile. Explain why they can safely deprioritize these. ~100 words.",
+
+  "your_action_items": [
+    {
+      "action": "Specific action to take",
+      "priority": "Immediate | This quarter | Monitor",
+      "why_now": "Why this is time-sensitive, citing specific law/deadline/enforcement pattern"
+    }
+  ],
+
+  "enforcement_pattern_for_you": "2 paragraphs analyzing enforcement patterns specifically relevant to ${industryList} in ${jurisdictionList}. Use the enforcement history data. What types of violations are being targeted? What fine ranges? Which regulators are most active? ~200 words.",
+
+  "look_ahead": "2 paragraphs with specific predictions for the next 30-90 days. Name specific dates, regulatory milestones, compliance deadlines. Do not hedge — make concrete predictions. ~150 words."
 }
 
-Return ONLY the JSON object. No preamble.`;
+Return ONLY the JSON object. 3-5 action items. No preamble.`;
 
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 2000,
-          messages: [{ role: "user", content: customPrompt }],
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 4000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
         }),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(60000),
       });
 
-      if (!response.ok) continue;
+      if (!response.ok) {
+        console.error(`Sonnet API error for user ${user.id}: ${response.status}`);
+        continue;
+      }
       const data = await response.json();
       const text = data.content?.[0]?.text || "";
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) continue;
       const customSections = JSON.parse(jsonMatch[0]);
+
+      // Verification pass with Haiku — check action items are specific
+      let verificationResult: any = null;
+      try {
+        const verifyResp = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 500,
+            messages: [{
+              role: "user",
+              content: `Review these action items for a ${industryList} compliance professional. Are they specific enough (naming laws, deadlines, consequences)? Rate each 1-5 for specificity. Return JSON: {"scores": [{"action": "...", "specificity": 4}], "overall": 4, "pass": true}
+
+Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
+            }],
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (verifyResp.ok) {
+          const vData = await verifyResp.json();
+          const vText = vData.content?.[0]?.text || "";
+          const vMatch = vText.match(/\{[\s\S]*\}/);
+          if (vMatch) verificationResult = JSON.parse(vMatch[0]);
+        }
+      } catch (e) {
+        console.error(`Verification failed for user ${user.id}:`, e);
+      }
 
       await supabase.from("custom_briefs").insert({
         user_id: user.id,
@@ -116,6 +361,9 @@ Return ONLY the JSON object. No preamble.`;
         custom_sections: customSections,
         preferences_snapshot: prefs,
         generated_at: new Date().toISOString(),
+        articles_used: topArticles.length,
+        generation_model: "claude-sonnet-4-20250514",
+        verification_result: verificationResult,
       });
       processed++;
     } catch (e) {
