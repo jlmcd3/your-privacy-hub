@@ -141,6 +141,28 @@ async function fetchTrendSignals(): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // ── Authentication: admin-only function ───────────────────────────────────
+  const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
+  if (!ADMIN_SECRET) {
+    return new Response(
+      JSON.stringify({ error: "Server misconfigured: ADMIN_SECRET_TOKEN not set" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  const authHeader = req.headers.get("Authorization") || "";
+  const providedToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+
+  if (providedToken !== ADMIN_SECRET) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+  // ── End authentication ────────────────────────────────────────────────────
+
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   if (!ANTHROPIC_API_KEY) {
     return new Response(JSON.stringify({ error: "No API key" }),

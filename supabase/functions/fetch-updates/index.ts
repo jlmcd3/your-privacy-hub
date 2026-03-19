@@ -650,6 +650,28 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
+  // ── Authentication: admin-only function ───────────────────────────────────
+  const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
+  if (!ADMIN_SECRET) {
+    return new Response(
+      JSON.stringify({ error: "Server misconfigured: ADMIN_SECRET_TOKEN not set" }),
+      { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+    );
+  }
+
+  const authHeader = req.headers.get("Authorization") || "";
+  const providedToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+
+  if (providedToken !== ADMIN_SECRET) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+    );
+  }
+  // ── End authentication ────────────────────────────────────────────────────
+
   const results = { inserted: 0, skipped: 0, summaries_generated: 0, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
