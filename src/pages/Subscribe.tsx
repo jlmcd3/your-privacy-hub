@@ -336,7 +336,7 @@ const Subscribe = () => {
 
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
-              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium Pro — $25/month</p>
+              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium Pro — $20/month</p>
               <p className="text-[12px] text-sky mb-4">Your analyst. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
