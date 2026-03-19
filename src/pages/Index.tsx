@@ -222,7 +222,7 @@ const Index = () => {
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
 
             {/* Ad — below editorial content */}
-            <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper" />
+            <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper hidden" />
 
             {/* Topic lanes */}
             {(laneData["ai-privacy"]?.length ?? 0) > 0 && (
