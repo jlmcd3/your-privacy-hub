@@ -358,7 +358,8 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
       .single();
 
     if (insertError) {
-      return new Response(JSON.stringify({ error: "Failed to store brief", detail: insertError }),
+      console.error("Insert brief error:", insertError);
+      return new Response(JSON.stringify({ error: "Failed to store brief" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
