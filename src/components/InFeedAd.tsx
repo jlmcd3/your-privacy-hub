@@ -7,7 +7,7 @@ interface InFeedAdProps {
 export default function InFeedAd({ adSlot, googleAdClient, googleAdSlot }: InFeedAdProps) {
   return (
     <div
-      className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-1"
+      className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-1 hidden"
       style={{ minHeight: 90 }}
       data-ad-slot={adSlot}
       aria-label="Advertisement"

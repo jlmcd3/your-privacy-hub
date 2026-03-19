@@ -186,7 +186,7 @@ const SampleBrief = () => {
                   to="/subscribe"
                   className="text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-all"
                 >
-                  Get your Pro brief — $25/month →
+                  Get your Pro brief — $20/month →
                 </Link>
               </div>
             </div>
@@ -264,14 +264,14 @@ const SampleBrief = () => {
               Receive this analysis every Monday morning.
             </h3>
             <p className="text-slate-light text-[14px] mb-5 max-w-[500px] mx-auto">
-              Everything above is free. Premium Pro re-writes this brief for your industry and jurisdiction — $25/month.
+              Everything above is free. Premium Pro re-writes this brief for your industry and jurisdiction — $20/month.
             </p>
             <div className="text-center">
               <Link
                 to="/subscribe"
                 className="inline-block bg-white text-navy font-bold text-[14px] py-3 px-10 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Get Premium Pro — $25/month →
+                Get Premium Pro — $20/month →
               </Link>
               <p className="text-blue-300 text-[12px] mt-3">
                 First 25 subscribers get the first year free · Cancel anytime

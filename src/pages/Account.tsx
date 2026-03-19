@@ -132,7 +132,7 @@ export default function Account() {
               Get Your Pro Intelligence Brief
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
-              The weekly brief re-written for your industry and jurisdictions — $25/month.
+              The weekly brief re-written for your industry and jurisdictions — $20/month.
               The standard brief is always free.
             </p>
             <Link

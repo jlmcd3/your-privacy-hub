@@ -433,7 +433,7 @@ const JurisdictionPage = () => {
             ✦ Premium Pro subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
-            Get Premium Pro — $25/month →
+            Get Premium Pro — $20/month →
           </Link>
           <p className="mt-3 text-slate-light text-[12px]">
             Not sure yet?{" "}

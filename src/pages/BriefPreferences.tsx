@@ -166,7 +166,7 @@ export default function BriefPreferences() {
           {/* Upgrade prompt */}
           <div className="mt-8 bg-fog rounded-2xl p-6 text-center">
             <p className="text-slate text-sm mb-3">
-              Your analyst requires Premium Pro ($25/month).
+              Your analyst requires Premium Pro ($20/month).
               Standard Premium subscribers receive the shared weekly brief.
             </p>
             <Link

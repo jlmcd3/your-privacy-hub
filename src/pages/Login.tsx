@@ -33,10 +33,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-paper flex flex-col">
       <Topbar />
       <Navbar />
-      <div className="flex items-center justify-center py-16 px-4">
+      <div className="flex-1 flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Sign In</h1>
           <p className="text-sm text-slate text-center mb-7">

@@ -66,13 +66,13 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Your analyst is $25/month.
+            The library is free.<br />Your analyst is $20/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
             Everything you can browse and read is always free — including the weekly
             Intelligence Brief. Your analyst is something different: a brief re-written
             every Monday specifically for your industry, your jurisdictions, and your
-            compliance obligations. That's $25/month.
+            compliance obligations. That's $20/month.
           </p>
         </div>
       </div>
@@ -198,7 +198,7 @@ const Subscribe = () => {
                 onClick={handleSubscribe}
                 className="bg-navy text-white font-semibold text-[12px] px-5 py-2 rounded-lg hover:opacity-90 cursor-pointer border-none"
               >
-                Get Premium Pro — $25/month →
+                Get Premium Pro — $20/month →
               </button>
             </div>
             <div className="filter blur-[3px] select-none">
@@ -336,7 +336,7 @@ const Subscribe = () => {
 
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
-              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium Pro — $25/month</p>
+              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium Pro — $20/month</p>
               <p className="text-[12px] text-sky mb-4">Your analyst. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
@@ -352,7 +352,7 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">$25/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$20/month →</p>
             </div>
           </div>
         </div>
@@ -371,7 +371,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$25/month", "$300–$3,500+/year"],
+                  ["Price", "$20/month", "$300–$3,500+/year"],
                   ["Format", "Weekly AI intelligence brief", "Large research databases"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
@@ -403,7 +403,7 @@ const Subscribe = () => {
               ⭐ Premium Pro
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              $25<span className="text-lg font-normal text-blue-200">/month</span>
+              $20<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <p className="text-blue-200 text-sm mb-5">
               Your analyst. Written for your industry and jurisdiction. Every Monday.
@@ -429,7 +429,7 @@ const Subscribe = () => {
             <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-4 mb-5">
               <p className="text-[13px] text-amber-200 leading-relaxed">
                 🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium Pro
-                free for one year, then $25/month.
+                free for one year, then $20/month.
               </p>
             </div>
 
