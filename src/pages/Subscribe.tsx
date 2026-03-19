@@ -352,7 +352,7 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">$25/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$20/month →</p>
             </div>
           </div>
         </div>
