@@ -301,6 +301,9 @@ const Index = () => {
             {/* Enforcement stats */}
             <EnforcementStatsBanner />
 
+            {/* Upcoming deadlines */}
+            <UpcomingDeadlines />
+
             {/* Search */}
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
