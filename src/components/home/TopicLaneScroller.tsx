@@ -25,6 +25,7 @@ interface TopicLaneScrollerProps {
   laneIcon: string;
   laneHref: string;
   cards: TopicCard[];
+  isEnforcement?: boolean;
 }
 
 export default function TopicLaneScroller({
