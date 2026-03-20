@@ -187,10 +187,10 @@ const EnforcementTrackerPage = () => {
         {/* Table */}
         <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+             <table className="w-full border-collapse">
               <thead className="bg-muted">
                 <tr>
-                  {["Regulator", "Company", "Jurisdiction", "Violation", "Fine", "Date"].map((h) => (
+                  {["Regulator", "Company", "Jurisdiction", "Violation", "Fine", "Date", "Source"].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
                   ))}
                 </tr>
@@ -199,7 +199,7 @@ const EnforcementTrackerPage = () => {
                 {loading ? (
                   [...Array(6)].map((_, i) => (
                     <tr key={i}>
-                      {[...Array(6)].map((_, j) => (
+                      {[...Array(7)].map((_, j) => (
                         <td key={j} className="px-4 py-3 border-b border-border"><div className="h-4 bg-muted rounded animate-pulse" /></td>
                       ))}
                     </tr>
@@ -214,6 +214,20 @@ const EnforcementTrackerPage = () => {
                       <td className="px-4 py-3 font-semibold text-destructive text-sm border-b border-border">{row.fine_amount}</td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">
                         {row.decision_date ? new Date(row.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-sm border-b border-border">
+                        {row.source_url ? (
+                          <a
+                            href={row.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline text-sm inline-flex items-center gap-1 no-underline"
+                          >
+                            View ↗
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
                       </td>
                     </tr>
                   ))

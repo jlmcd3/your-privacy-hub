@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { slugify } from "@/lib/utils";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,6 +18,35 @@ export default function JurisdictionsHub() {
     { flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
     { flag: "🇺🇸", name: "US Federal", update: "FTC AI commercial practices", days: "10 days ago" },
   ]);
+
+  const [statusCounts, setStatusCounts] = useState({
+    comprehensive: 0,
+    sector: 0,
+    partial: 0,
+    proposed: 0,
+  });
+
+  useEffect(() => {
+    // Fetch live stat counts from DB
+    supabase
+      .from("jurisdictions")
+      .select("law_status")
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const counts = data.reduce((acc: any, j: any) => {
+            const s = j.law_status || "none";
+            acc[s] = (acc[s] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          setStatusCounts({
+            comprehensive: counts["comprehensive"] || 0,
+            sector: counts["sector"] || 0,
+            partial: counts["partial"] || 0,
+            proposed: counts["proposed"] || 0,
+          });
+        }
+      });
+  }, []);
 
   useEffect(() => {
     supabase
@@ -45,6 +76,13 @@ export default function JurisdictionsHub() {
       });
   }, []);
 
+  const statCards = [
+    { color: "#1a8a52", num: String(statusCounts.comprehensive), label: "Comprehensive laws" },
+    { color: "#2563eb", num: String(statusCounts.sector),        label: "Sector-specific" },
+    { color: "#38bdf8", num: String(statusCounts.partial),       label: "Partial coverage" },
+    { color: "#d4a017", num: String(statusCounts.proposed),      label: "Proposed / In progress" },
+  ];
+
   return (
     <>
       <Helmet>
@@ -70,18 +108,13 @@ export default function JurisdictionsHub() {
                 Global Privacy Law Map
               </h1>
               <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
-                150+ jurisdictions tracked. Click any country on the map to explore its
+                160+ jurisdictions tracked. Click any country on the map to explore its
                 privacy law, regulator, consumer rights, and recent enforcement actions.
                 Switch to Grid view to browse or filter by region.
               </p>
 
               <div className="flex gap-6 mt-6 flex-wrap">
-                {[
-                  { color: "#1a8a52", num: "46",   label: "Comprehensive laws"      },
-                  { color: "#2563eb", num: "3",    label: "Sector-specific"         },
-                  { color: "#38bdf8", num: "14",   label: "Partial coverage"        },
-                  { color: "#d4a017", num: "7",    label: "Proposed / In progress"  },
-                ].map((stat) => (
+                {statCards.map((stat) => (
                   <div key={stat.label} className="flex items-center gap-2.5">
                     <div
                       className="w-4 h-4 rounded flex-shrink-0"
@@ -117,15 +150,16 @@ export default function JurisdictionsHub() {
               </h2>
               <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
                 {recentUpdates.map((item) => (
-                  <div
+                  <Link
                     key={item.name}
-                    className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs"
+                    to={`/jurisdiction/${slugify(item.name)}`}
+                    className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all"
                   >
                     <span className="text-base">{item.flag}</span>
                     <div className="font-bold text-navy mt-1">{item.name}</div>
                     <div className="text-slate leading-snug">{item.update}</div>
                     <div className="text-slate-light mt-0.5">{item.days}</div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

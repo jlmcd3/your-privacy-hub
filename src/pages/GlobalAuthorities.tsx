@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { slugify } from "@/lib/utils";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 
 const regionFlags: Record<string, string> = {
@@ -93,7 +95,14 @@ const GlobalAuthorities = () => {
                     <tbody>
                       {displayEntries.map((entry: any) => (
                         <tr key={entry.id} className="hover:bg-paper transition-colors">
-                          <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog whitespace-nowrap">{entry.country}</td>
+                          <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog whitespace-nowrap">
+                            <Link
+                              to={`/jurisdiction/${entry.slug || slugify(entry.country)}`}
+                              className="text-primary hover:underline font-medium no-underline"
+                            >
+                              {entry.country}
+                            </Link>
+                          </td>
                           <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">
                             <div className="font-medium">{entry.authority_name}</div>
                             <div className="text-[11px] text-slate mt-0.5">{entry.authority_abbreviation}</div>
