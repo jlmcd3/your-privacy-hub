@@ -114,6 +114,11 @@ export default function TopicLaneScroller({
                   {card.urgency === "Immediate" ? "⚡ Act now" : "📅 This quarter"}
                 </span>
               )}
+              {fineAmount && (
+                <span className="absolute -top-1 -right-1 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                  {fineAmount}
+                </span>
+              )}
             </div>
             <h4 className="font-bold text-navy text-[13px] leading-snug mb-1.5 group-hover:text-blue transition-colors">
               {card.title}
@@ -127,7 +132,8 @@ export default function TopicLaneScroller({
               <p className="text-slate-light text-[10px] mt-2">{card.date}</p>
             )}
           </a>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

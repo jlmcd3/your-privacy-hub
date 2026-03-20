@@ -9,11 +9,10 @@ export default function IdentityBand() {
           {/* Left: identity statement */}
           <div>
             <h1 className="font-display font-bold text-white text-[20px] md:text-[22px] leading-tight mb-1.5">
-              The intelligence platform for privacy professionals.
+              The privacy professional's operating system.
             </h1>
             <p className="text-blue-200 text-[13px] leading-relaxed">
-              Tracking every move in global privacy regulation —
-              <span className="text-white/70 font-medium"> GDPR · AI Act · CCPA · PIPL · Enforcement · 150+ jurisdictions</span>
+              Monitor 119 regulators. Track legislation. Compare laws. Plan compliance deadlines. All free.
             </p>
           </div>
 

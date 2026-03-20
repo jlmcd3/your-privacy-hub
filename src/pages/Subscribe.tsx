@@ -237,7 +237,7 @@ const Subscribe = () => {
                       Free
                     </th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[140px]">
-                      Pro ($25/mo)
+                      Pro ($20/mo)
                     </th>
                   </tr>
                 </thead>

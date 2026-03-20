@@ -8,10 +8,10 @@ interface StatItem {
 }
 
 const STATS: StatItem[] = [
-  { label: "Enforcement actions tracked", value: "Live", sub: "updated from 119 regulators", color: "text-accent-light" },
-  { label: "Regulators monitored", value: "119", sub: "global DPAs + US state AGs", color: "text-blue-400" },
-  { label: "Jurisdictions covered", value: "150+", sub: "with full profiles", color: "text-green-400" },
-  { label: "Intelligence brief", value: "Weekly", sub: "every Monday morning", color: "text-amber-400" },
+  { label: "Enforcement actions tracked", value: "Live", sub: "updated from 119 regulators", color: "text-accent" },
+  { label: "Regulators monitored", value: "119", sub: "global DPAs + US state AGs", color: "text-blue" },
+  { label: "Jurisdictions covered", value: "150+", sub: "with full profiles", color: "text-accent" },
+  { label: "Intelligence brief", value: "Weekly", sub: "every Monday morning", color: "text-gold" },
 ];
 
 export default function EnforcementStatsBanner() {

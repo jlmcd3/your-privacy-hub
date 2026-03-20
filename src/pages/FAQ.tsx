@@ -74,15 +74,21 @@ const FAQ = () => {
         {faqs.map((faq, i) => (
           <div key={i} className="bg-card border border-fog rounded-xl mb-3 overflow-hidden">
             <button
-              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              onClick={() => {
+                setOpenIndices(prev => {
+                  const next = new Set(prev);
+                  if (next.has(i)) next.delete(i); else next.add(i);
+                  return next;
+                });
+              }}
               className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-fog transition-colors text-left"
             >
               <span className="font-medium text-navy text-[15px] pr-4">{faq.q}</span>
               <ChevronDown
-                className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndex === i ? "rotate-180" : ""}`}
+                className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
               />
             </button>
-            {openIndex === i && (
+            {openIndices.has(i) && (
               <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed">{faq.a}</div>
             )}
           </div>
