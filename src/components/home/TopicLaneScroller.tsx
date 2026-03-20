@@ -28,11 +28,17 @@ interface TopicLaneScrollerProps {
   isEnforcement?: boolean;
 }
 
+function extractFineAmount(text: string): string | null {
+  const match = text.match(/[€£$][\d,.]+\s*[MBmk]?(?:illion)?/i);
+  return match ? match[0] : null;
+}
+
 export default function TopicLaneScroller({
   laneTitle,
   laneIcon,
   laneHref,
   cards,
+  isEnforcement = false,
 }: TopicLaneScrollerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
