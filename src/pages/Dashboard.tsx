@@ -298,6 +298,44 @@ const Dashboard = () => {
           )}
         </div>
 
+        {/* Generate Brief Now CTA for Pro users with no custom brief */}
+        {!customBrief && !generating && (
+          <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-8 mb-8 text-center">
+            <p className="text-4xl mb-3">🧠</p>
+            <h3 className="font-display font-bold text-foreground text-[20px] mb-2">
+              Your personalized brief is ready to generate
+            </h3>
+            <p className="text-muted-foreground text-[14px] mb-5 max-w-md mx-auto">
+              You've set your preferences. Your analyst is ready to write your first brief. This takes about 30 seconds.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={generateBriefNow}
+                className="bg-gradient-to-br from-navy to-blue text-white font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all cursor-pointer border-none"
+              >
+                Generate My Brief Now →
+              </button>
+              <Link
+                to="/brief-preferences"
+                className="text-primary font-medium text-[14px] py-3 px-6 rounded-xl border border-border no-underline hover:bg-muted transition-all"
+              >
+                Edit preferences first
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Generating spinner */}
+        {generating && (
+          <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-8 mb-8 text-center">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+            <p className="text-foreground font-semibold text-[15px] mb-1">
+              {GEN_PHASES[genPhase]}
+            </p>
+            <p className="text-muted-foreground text-[13px]">This usually takes 20-40 seconds.</p>
+          </div>
+        )}
+
         {/* Custom brief for Pro users — 9-section display */}
         {customBrief && (
           <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">
