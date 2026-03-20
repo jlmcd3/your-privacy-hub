@@ -181,6 +181,45 @@ export type Database = {
         }
         Relationships: []
       }
+      jurisdictions: {
+        Row: {
+          created_at: string | null
+          dla_piper_url: string | null
+          dpa_name: string | null
+          id: string
+          iso_code: string | null
+          law_name: string | null
+          law_status: string | null
+          name: string
+          region: string | null
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          dla_piper_url?: string | null
+          dpa_name?: string | null
+          id?: string
+          iso_code?: string | null
+          law_name?: string | null
+          law_status?: string | null
+          name: string
+          region?: string | null
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          dla_piper_url?: string | null
+          dpa_name?: string | null
+          id?: string
+          iso_code?: string | null
+          law_name?: string | null
+          law_status?: string | null
+          name?: string
+          region?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
