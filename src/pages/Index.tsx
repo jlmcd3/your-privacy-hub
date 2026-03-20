@@ -18,6 +18,8 @@ import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 import HeadlinesTicker from "@/components/home/HeadlinesTicker";
 import IdentityBand from "@/components/home/IdentityBand";
+import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
+import ToolkitSection from "@/components/home/ToolkitSection";
 
 interface Update {
   id: string;
