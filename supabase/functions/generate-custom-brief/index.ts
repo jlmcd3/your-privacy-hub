@@ -305,7 +305,10 @@ SUBSCRIBER PROFILE:
 - Topics: ${topicList}
 
 ${priorBriefs ? `PRIOR BRIEFS (for continuity — reference ongoing threads):\n${priorBriefs}\n` : ""}
-${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}`;
+${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}
+${topics.includes("litigation") ? `LITIGATION WATCH: Include a dedicated Litigation Watch subsection in topic_depth covering: new class action filings, MDL proceedings, significant court rulings (circuit splits on standing, BIPA, VPPA), settlement approvals with dollar amounts, and implications for corporate privacy programs. Name specific cases and courts.\n` : ""}
+${briefFormat === "exec-only" ? `Generate only: your_critical_alert, opening_headline, your_week, and your_action_items. Omit all other sections.\n` : ""}
+${briefFormat === "actions-only" ? `Generate only: your_critical_alert and your_action_items (7-10 items). Omit all narrative sections.\n` : ""}`;
 
     const userPrompt = `STANDARD WEEKLY BRIEF:
 ${briefContent.substring(0, 8000)}
