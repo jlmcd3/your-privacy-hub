@@ -48,7 +48,7 @@ export default function TopicLaneScroller({
   };
 
   return (
-    <div className="mb-10">
+    <div className={`mb-10 ${isEnforcement ? "bg-amber-50/60 rounded-2xl px-4 py-5 -mx-4" : ""}`}>
       {/* Lane header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
