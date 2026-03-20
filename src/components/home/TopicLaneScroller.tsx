@@ -93,7 +93,7 @@ export default function TopicLaneScroller({
             rel="noopener noreferrer"
             className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
           >
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="flex items-center gap-1.5 mb-2 relative">
               {card.flag && <span className="text-base flag-emoji">{card.flag}</span>}
               {card.jurisdiction && (
                 <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
