@@ -247,6 +247,7 @@ Deno.serve(async (req) => {
     const industries = prefs.industries || [];
     const jurisdictions = prefs.jurisdictions || [];
     const topics = prefs.topics || [];
+    const briefFormat = (prefs as any).format || "full";
 
     if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) continue;
 
