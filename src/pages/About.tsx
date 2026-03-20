@@ -41,6 +41,29 @@ const About = () => {
             <p>
               To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn't require expensive enterprise subscriptions or hours of manual research.
             </p>
+
+            {/* Free Tools section */}
+            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Free Tools</h2>
+            <p>
+              Every tool on the platform is free and requires no account to use:
+            </p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[14px]">
+              {[
+                "📅 Compliance Calendar",
+                "📜 Legislation Tracker",
+                "📊 US State Comparison (20 laws × 12 provisions)",
+                "🌐 Global Jurisdiction Map (160+ jurisdictions)",
+                "⚖️ Enforcement Tracker",
+                "⏱️ Regulatory Timelines",
+                "📖 Privacy Glossary",
+                "📋 Weekly Intelligence Brief",
+              ].map((t) => (
+                <li key={t} className="flex items-center gap-2 text-navy">
+                  <span className="text-accent">✓</span> {t}
+                </li>
+              ))}
+            </ul>
+
             <h2 className="font-display text-[20px] font-bold text-navy pt-4">Contact</h2>
             <p>
               Have questions or feedback? Reach us at{" "}
@@ -51,6 +74,9 @@ const About = () => {
           </div>
 
           <div className="mt-12">
+            <p className="text-[14px] text-navy font-semibold mb-4">
+              DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
+            </p>
             <h2 className="font-display text-[20px] text-navy mb-6">The alternative to expensive enterprise platforms</h2>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
@@ -58,23 +84,26 @@ const About = () => {
                   <tr className="bg-fog">
                     <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / OneTrust / Bloomberg</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP Membership — $550+/yr</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ["Price", "$20/month (Pro)", "$2,000–$5,000+/year"],
-                    ["Format", "Weekly AI intelligence brief", "Large research databases"],
-                    ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
-                    ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
-                    ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding"],
-                  ].map(([label, us, them], i) => (
+                    ["Price", "$20/month (Pro)", "$300–$3,500+/year", "$550+/year"],
+                    ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
+                    ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
+                    ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
+                    ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding", "Conference-based"],
+                    ["Free tools", "Calendar, Tracker, Map, Comparison", "None (trial requires payment)", "Limited articles"],
+                  ].map(([label, us, dg, iapp], i) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
                       <td className="px-5 py-3 text-navy font-medium border-t border-fog">{label}</td>
                       <td className="px-5 py-3 text-center text-navy font-medium border-t border-fog">
                         <span className="text-accent mr-1">✓</span>{us}
                       </td>
-                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{them}</td>
+                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{dg}</td>
+                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{iapp}</td>
                     </tr>
                   ))}
                 </tbody>
