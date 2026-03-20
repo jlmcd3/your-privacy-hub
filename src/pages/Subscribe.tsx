@@ -188,28 +188,101 @@ const Subscribe = () => {
             </div>
           </div>
 
-          {/* Pro teaser — blurred */}
-          <div className="relative bg-card border border-amber-200 rounded-xl p-5 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white z-10 flex flex-col items-center justify-end pb-4">
-              <p className="text-[12px] font-semibold text-navy mb-2">
-                🎯 Pro subscribers get this same story re-analyzed for their industry
-              </p>
-              <button
-                onClick={handleSubscribe}
-                className="bg-navy text-white font-semibold text-[12px] px-5 py-2 rounded-lg hover:opacity-90 cursor-pointer border-none"
-              >
-                Get Premium Pro — $20/month →
-              </button>
+          {/* Pro preview — full 9-section abbreviated preview */}
+          <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-6 border border-amber-400/20">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-2.5 py-0.5">
+                ⭐ Pro Brief Preview
+              </span>
+              <span className="text-[10px] text-blue-200 uppercase tracking-wider">
+                Your Personalized Brief — Healthcare in EU & UK
+              </span>
             </div>
-            <div className="filter blur-[3px] select-none">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-3 block w-fit">⭐ Pro</span>
-              <p className="text-[10px] text-slate-light uppercase tracking-wider mb-3">Your Industry Lens — Healthcare</p>
-              <p className="text-[13px] text-slate leading-relaxed">
-                The ICO's TikTok ruling extends beyond social media. The legitimate interests
-                prohibition for algorithmic personalization of minors directly applies to
-                pediatric health app recommendation engines and patient portal personalization…
-              </p>
+
+            <div className="space-y-4">
+              {/* Critical Alert */}
+              <div className="bg-red-500/10 border border-red-400/20 rounded-lg p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-red-300 mb-1">⚡ Critical Alert</p>
+                <p className="text-[13px] text-white leading-relaxed">
+                  Healthcare processors using SCC Module 2 must review Clause 8.2(b) against the EDPB pseudonymization standard before your next DPA audit.
+                </p>
+              </div>
+
+              {/* Your Week */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300 mb-1">Your Week</p>
+                <p className="text-[12px] text-blue-100/80 leading-relaxed">
+                  For healthcare professionals operating in EU & UK, this week's dominant theme is enforcement convergence across biometric data processing in clinical settings…
+                </p>
+              </div>
+
+              {/* Industry Intelligence */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300 mb-1">Industry Intelligence</p>
+                <p className="text-[12px] text-blue-100/80 leading-relaxed">
+                  The ICO's TikTok ruling extends beyond social media — the legitimate interests prohibition for algorithmic personalization of minors directly applies to pediatric health app recommendation engines…
+                </p>
+              </div>
+
+              {/* Your Jurisdictions */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300 mb-1">Your Jurisdictions</p>
+                <p className="text-[12px] text-blue-100/80 leading-relaxed">
+                  CNIL issued updated guidance on health data processing under the ePrivacy Directive, with implications for telehealth cookie consent flows…
+                </p>
+              </div>
+
+              {/* Topic Focus */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300 mb-1">Topic Focus</p>
+                <p className="text-[12px] text-blue-100/80 leading-relaxed">
+                  EDPB Opinion 05/2026 establishes new standards for pseudonymization in AI training datasets derived from patient records…
+                </p>
+              </div>
+
+              {/* What to Ignore */}
+              <div className="bg-white/5 rounded-lg p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-light mb-1">❌ What to Ignore This Week</p>
+                <p className="text-[12px] text-blue-200/60 leading-relaxed">
+                  The California AG's adtech enforcement action targets cookie consent — not relevant to healthcare HIPAA-covered entities.
+                </p>
+              </div>
+
+              {/* Action Items */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-2">🎯 Action Items</p>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[9px] font-bold uppercase bg-red-500/20 text-red-300 border border-red-400/20 px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">Immediate</span>
+                    <p className="text-[12px] text-white">Audit pediatric portal personalization against the ICO standard before Q2 engagement.</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[9px] font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-400/20 px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">This Quarter</span>
+                    <p className="text-[12px] text-white">Review SCC Clause 8.2(b) for EU-US patient data transfer mechanisms.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enforcement Patterns */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300 mb-1">Enforcement Patterns</p>
+                <p className="text-[12px] text-blue-100/80 leading-relaxed">
+                  Healthcare sector fines increased 340% YoY across EU DPAs, with CNIL and Garante leading enforcement…
+                </p>
+              </div>
+
+              {/* Look Ahead */}
+              <div className="bg-amber-400/10 border border-amber-400/15 rounded-lg p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-1">📆 30-90 Day Horizon</p>
+                <p className="text-[12px] text-amber-100 leading-relaxed">
+                  EDPB will finalize health data AI guidance by May 15. California ADMT rules take effect April 1 — prepare patient portal consent flows.
+                </p>
+              </div>
             </div>
+
+            <p className="text-[11px] text-blue-200/50 mt-4 text-center italic">
+              Each section is 200-300 words in the full brief, personalized for your industry and jurisdiction. Full brief: ~1,500 words delivered every Monday before 8am.
+            </p>
           </div>
         </div>
 
