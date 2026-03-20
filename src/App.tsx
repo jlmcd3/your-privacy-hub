@@ -46,6 +46,7 @@ import BriefPreferences from "./pages/BriefPreferences.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import CheckEmail from "./pages/CheckEmail.tsx";
+import Tools from "./pages/Tools.tsx";
 
 const queryClient = new QueryClient();
 
