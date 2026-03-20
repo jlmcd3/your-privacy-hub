@@ -368,7 +368,7 @@ export default function SpinTheGlobe() {
         className="relative rounded-full overflow-hidden shadow-eup-lg cursor-pointer"
         style={{
           width: 380, height: 380,
-          background: "radial-gradient(circle at 35% 35%, #0d1f3c 0%, #050b18 70%, #020609 100%)",
+          background: "radial-gradient(circle at 50% 50%, #0d1f3c 0%, #050b18 70%, #020609 100%)",
         }}
         onClick={phase === "idle" ? handleSpin : undefined}
       />

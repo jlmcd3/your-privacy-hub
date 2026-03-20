@@ -8,37 +8,70 @@ import Footer from "@/components/Footer";
 import Topbar from "@/components/Topbar";
 
 const INDUSTRIES = [
-  { id: "online-web",      label: "Online & Web Businesses",  icon: "🌐" },
-  { id: "mobile-apps",     label: "Mobile Applications",       icon: "📱" },
-  { id: "adtech",          label: "Mobile Advertising / AdTech",icon: "📊" },
-  { id: "ai-companies",    label: "AI & Technology",           icon: "🤖" },
-  { id: "healthcare",      label: "Healthcare / HIPAA",        icon: "🏥" },
-  { id: "financial",       label: "Financial Services",        icon: "🏦" },
-  { id: "hr-employment",   label: "HR & Employment",           icon: "👔" },
-  { id: "children-edtech", label: "Children's / EdTech",       icon: "👶" },
-  { id: "retail-ecom",     label: "Retail & E-Commerce",       icon: "🛒" },
-  { id: "data-brokers",    label: "Data Brokers",              icon: "📂" },
+  { id: "online-web",      label: "Online & Web Services",          icon: "🌐" },
+  { id: "mobile-apps",     label: "Mobile Applications",            icon: "📱" },
+  { id: "adtech",          label: "AdTech & Digital Media",          icon: "📊" },
+  { id: "ai-companies",    label: "AI & Machine Learning",          icon: "🤖" },
+  { id: "healthcare",      label: "Healthcare & Life Sciences",     icon: "🏥" },
+  { id: "financial",       label: "Financial Services & Fintech",   icon: "🏦" },
+  { id: "hr-employment",   label: "HR & Employment Data",           icon: "👔" },
+  { id: "children-edtech", label: "Children & EdTech",              icon: "👶" },
+  { id: "retail-ecom",     label: "Retail & E-Commerce",            icon: "🛒" },
+  { id: "data-brokers",    label: "Data Brokers",                   icon: "📂" },
+  { id: "legal-services",  label: "Law Firm / Legal Services",      icon: "⚖️" },
+  { id: "insurance",       label: "Insurance",                      icon: "🛡️" },
+  { id: "telecom",         label: "Telecommunications",             icon: "📞" },
+  { id: "gaming",          label: "Gaming & Entertainment",         icon: "🎮" },
+  { id: "automotive",      label: "Automotive & Connected Vehicles",icon: "🚗" },
+  { id: "smart-home",      label: "Smart Home & IoT",               icon: "🏠" },
+  { id: "nonprofit",       label: "Non-Profit & NGO",               icon: "🤝" },
+  { id: "media-publishing",label: "Media & Publishing",             icon: "📰" },
+  { id: "government",      label: "Government & Public Sector",     icon: "🏛️" },
+  { id: "cybersecurity",   label: "Cybersecurity",                  icon: "🔒" },
+  { id: "real-estate",     label: "Real Estate & PropTech",         icon: "🏘️" },
+  { id: "education",       label: "Education (Higher Ed)",          icon: "🎓" },
+  { id: "consulting",      label: "Consulting & Advisory",          icon: "💼" },
+  { id: "pharma",          label: "Pharma & Clinical Research",     icon: "💊" },
 ];
 
 const PREF_JURISDICTIONS = [
-  { id: "eu-uk",        label: "EU & UK (GDPR)",         icon: "🇪🇺" },
-  { id: "us-federal",   label: "U.S. Federal",           icon: "🇺🇸" },
-  { id: "us-states",    label: "U.S. States",            icon: "🗺️" },
-  { id: "apac",         label: "Asia-Pacific",           icon: "🌏" },
-  { id: "latam",        label: "Latin America",          icon: "🌎" },
-  { id: "mea",          label: "Middle East & Africa",   icon: "🌍" },
-  { id: "global",       label: "Global / Other",         icon: "🌐" },
+  { id: "eu-all",      label: "EU (All Member States)",  icon: "🇪🇺" },
+  { id: "uk",          label: "United Kingdom",           icon: "🇬🇧" },
+  { id: "us-federal",  label: "U.S. Federal",             icon: "🇺🇸" },
+  { id: "us-ca",       label: "U.S. — California (CPRA)", icon: "🍊" },
+  { id: "us-states",   label: "U.S. States (all)",        icon: "🗺️" },
+  { id: "apac",        label: "Asia-Pacific",             icon: "🌏" },
+  { id: "latam",       label: "Latin America",            icon: "🌎" },
+  { id: "mea",         label: "Middle East & Africa",     icon: "🌍" },
+  { id: "canada",      label: "Canada",                   icon: "🇨🇦" },
+  { id: "australia",   label: "Australia & NZ",           icon: "🇦🇺" },
+  { id: "india",       label: "India (DPDP Act)",         icon: "🇮🇳" },
+  { id: "global",      label: "Global / Multinational",   icon: "🌐" },
 ];
 
 const TOPICS = [
-  { id: "enforcement",      label: "Enforcement Actions",      icon: "⚖️" },
-  { id: "ai-governance",    label: "AI Governance",            icon: "🤖" },
-  { id: "data-transfers",   label: "Cross-Border Transfers",   icon: "🔀" },
-  { id: "biometric",        label: "Biometric Data",           icon: "👁️" },
-  { id: "children-privacy", label: "Children's Privacy",       icon: "👶" },
-  { id: "data-breaches",    label: "Data Breaches",            icon: "🔓" },
-  { id: "adtech-consent",   label: "AdTech & Consent",         icon: "🍪" },
-  { id: "litigation",       label: "Privacy Litigation",       icon: "🏛️" },
+  { id: "enforcement",      label: "Enforcement Actions",             icon: "⚖️" },
+  { id: "ai-governance",    label: "AI Act & Governance",             icon: "🤖" },
+  { id: "data-transfers",   label: "Cross-Border Transfers",          icon: "🔀" },
+  { id: "biometric",        label: "Biometric Data",                  icon: "👁️" },
+  { id: "children-privacy", label: "Children's Privacy (COPPA/KOSA)", icon: "👶" },
+  { id: "data-breaches",    label: "Data Breaches & Incidents",       icon: "🔓" },
+  { id: "adtech-consent",   label: "AdTech & Cookie Consent",         icon: "🍪" },
+  { id: "litigation",       label: "Privacy Litigation & Class Actions", icon: "🏛️" },
+  { id: "health-data",      label: "Health & Medical Data",           icon: "🩺" },
+  { id: "employee-data",    label: "Employee & HR Data",              icon: "👨‍💼" },
+  { id: "data-broker-reg",  label: "Data Broker Regulation",          icon: "📂" },
+  { id: "eu-ai-act",        label: "EU AI Act Compliance",            icon: "🇪🇺" },
+  { id: "us-state-law",     label: "US State Law Compliance",         icon: "🗺️" },
+  { id: "gdpr-enforcement", label: "GDPR Enforcement",                icon: "🇪🇺" },
+  { id: "open-banking",     label: "Open Banking & Financial Data",   icon: "🏦" },
+  { id: "surveillance",     label: "Surveillance & Government Access", icon: "🔍" },
+];
+
+const BRIEF_FORMATS = [
+  { id: "full",       label: "Full 9-section brief",    icon: "📄" },
+  { id: "exec-only",  label: "Executive summary only",  icon: "⚡" },
+  { id: "actions-only", label: "Action items only",      icon: "🎯" },
 ];
 
 const Toggle = ({
@@ -60,7 +93,7 @@ const Toggle = ({
 
 export default function BriefPreferences() {
   const { user } = useAuth();
-  const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[] });
+  const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[], format: "full" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -72,7 +105,12 @@ export default function BriefPreferences() {
       .eq("user_id", user.id)
       .single()
       .then(({ data }: any) => {
-        if (data) setPrefs({ industries: data.industries ?? [], jurisdictions: data.jurisdictions ?? [], topics: data.topics ?? [] });
+        if (data) setPrefs({
+          industries: data.industries ?? [],
+          jurisdictions: data.jurisdictions ?? [],
+          topics: data.topics ?? [],
+          format: data.format ?? "full",
+        });
       });
   }, [user]);
 
@@ -145,6 +183,29 @@ export default function BriefPreferences() {
             <div className="flex flex-wrap gap-2">
               {TOPICS.map(t => (
                 <Toggle key={t.id} {...t} selected={prefs.topics.includes(t.id)} onToggle={id => toggle("topics", id)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Brief format */}
+          <div className="mb-8">
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your brief format</h2>
+            <p className="text-slate text-xs mb-4">How would you like to receive your brief?</p>
+            <div className="flex flex-wrap gap-2">
+              {BRIEF_FORMATS.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => { setPrefs(prev => ({ ...prev, format: f.id })); setSaved(false); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                    prefs.format === f.id
+                      ? "bg-navy text-white border-navy shadow-eup-sm"
+                      : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
+                  }`}
+                >
+                  <span>{f.icon}</span>
+                  <span>{f.label}</span>
+                  {prefs.format === f.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+                </button>
               ))}
             </div>
           </div>
