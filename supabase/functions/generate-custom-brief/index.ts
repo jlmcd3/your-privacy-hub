@@ -19,15 +19,35 @@ const INDUSTRY_EXPERTISE: Record<string, string> = {
   "children-edtech": "COPPA enforcement and modernization, Age-Appropriate Design Code, student privacy (FERPA), state children's privacy laws, age verification requirements",
   "retail-ecom": "consumer loyalty program privacy, POS data collection, cross-device tracking, state consumer privacy rights, marketing consent requirements",
   "data-brokers": "state data broker registration laws, Vermont/California/Texas data broker regulations, FTC data broker enforcement, people search opt-out requirements",
+  "legal-services": "attorney-client privilege in data requests, law firm cybersecurity obligations, legal hold requirements, third-party vendor data processing for legal services",
+  "insurance": "insurance data privacy regulations, actuarial data use restrictions, claims data processing, InsurTech privacy compliance, state insurance commissioner rules",
+  "telecom": "CPNI regulations, wiretapping laws, lawful intercept compliance, FCC privacy rules, metadata retention, telecommunications surveillance",
+  "gaming": "gaming data privacy, loot box regulations, children's gaming protections, behavioral data in games, esports data processing",
+  "automotive": "connected vehicle data privacy, V2X communications, telematics data, NHTSA cybersecurity, autonomous vehicle data processing, location tracking",
+  "smart-home": "IoT device data collection, smart speaker privacy, home automation data, device fingerprinting, continuous monitoring consent",
+  "nonprofit": "donor data privacy, nonprofit compliance exemptions, charitable solicitation data rules, volunteer data processing",
+  "media-publishing": "press freedom vs privacy, right to be forgotten, media privilege, subscriber data, digital advertising in publishing",
+  "government": "government data collection frameworks, FOIA and transparency, surveillance regulation, public sector AI deployment, citizen data rights",
+  "cybersecurity": "breach notification laws, CISA requirements, incident response obligations, cybersecurity insurance data, vulnerability disclosure",
+  "real-estate": "tenant data privacy, property data brokers, real estate transaction data, smart building privacy, PropTech compliance",
+  "education": "FERPA compliance, student data governance, educational technology privacy, research data protection, campus surveillance",
+  "consulting": "third-party risk management, client data handling, cross-border consulting engagements, professional services data processing",
+  "pharma": "clinical trial data privacy, pharmacovigilance data, patient consent for research, real-world evidence data, drug safety reporting",
 };
 
 const JURISDICTION_EXPERTISE: Record<string, string> = {
+  "eu-all": "GDPR compliance across all 27 EU member states with DPA enforcement patterns, EDPB binding guidelines and opinions, ePrivacy Regulation progress, EU AI Act obligations",
   "eu-uk": "GDPR enforcement patterns across all 27 EU DPAs, UK Data Protection Act 2018, UK-EU adequacy, EDPB guidelines, ePrivacy Regulation progress",
+  "uk": "UK GDPR post-Brexit, UK Data (Use and Access) Act 2025, ICO enforcement and guidance, UK-EU adequacy status",
   "us-federal": "FTC Section 5 enforcement, CFPB privacy actions, congressional privacy bill progress, executive orders on AI/data, federal preemption debates",
+  "us-ca": "CPRA/CCPA regulations, CPPA enforcement, ADMT rules (effective April 2026), data broker registration, ADMT opt-out",
   "us-states": "comprehensive state privacy laws (CA/CO/CT/VA/OR/TX/MT/DE/IA/IN/TN/NJ and new states), state AG enforcement patterns, CCPA/CPRA regulations",
   "apac": "China PIPL enforcement, Japan APPI amendments, South Korea PIPA, India DPDP Act implementation, Australia Privacy Act reform, Singapore PDPA",
   "latam": "Brazil LGPD enforcement by ANPD, Argentina data protection modernization, Colombia SIC enforcement, Mexico INAI, Chile privacy reform",
   "mea": "Saudi Arabia PDPL implementation, UAE data protection, South Africa POPIA enforcement, Kenya DPA, Nigeria NDPR, Turkey KVKK",
+  "canada": "PIPEDA, Bill C-27 (CPPA/AIDA) progress, Quebec Law 25 implementation, OPC enforcement",
+  "australia": "Privacy Act reform (2025 amendments), OAIC enforcement, notifiable data breaches scheme, CDR and open banking",
+  "india": "DPDP Act 2023, Data Protection Board formation, rules expected Q2 2026, consent manager framework",
   "global": "cross-border transfer mechanisms, adequacy decisions, APEC CBPR, emerging privacy frameworks, international regulatory cooperation",
 };
 
@@ -227,6 +247,7 @@ Deno.serve(async (req) => {
     const industries = prefs.industries || [];
     const jurisdictions = prefs.jurisdictions || [];
     const topics = prefs.topics || [];
+    const briefFormat = (prefs as any).format || "full";
 
     if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) continue;
 
@@ -284,7 +305,10 @@ SUBSCRIBER PROFILE:
 - Topics: ${topicList}
 
 ${priorBriefs ? `PRIOR BRIEFS (for continuity — reference ongoing threads):\n${priorBriefs}\n` : ""}
-${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}`;
+${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}
+${topics.includes("litigation") ? `LITIGATION WATCH: Include a dedicated Litigation Watch subsection in topic_depth covering: new class action filings, MDL proceedings, significant court rulings (circuit splits on standing, BIPA, VPPA), settlement approvals with dollar amounts, and implications for corporate privacy programs. Name specific cases and courts.\n` : ""}
+${briefFormat === "exec-only" ? `Generate only: your_critical_alert, opening_headline, your_week, and your_action_items. Omit all other sections.\n` : ""}
+${briefFormat === "actions-only" ? `Generate only: your_critical_alert and your_action_items (7-10 items). Omit all narrative sections.\n` : ""}`;
 
     const userPrompt = `STANDARD WEEKLY BRIEF:
 ${briefContent.substring(0, 8000)}
