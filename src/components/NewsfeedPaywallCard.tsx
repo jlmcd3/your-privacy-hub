@@ -6,13 +6,11 @@ export default function NewsfeedPaywallCard() {
       {/* Blurred ghost articles behind */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white pointer-events-none" />
       <div className="relative z-10 flex flex-col items-center text-center px-8 py-10 bg-white/90 backdrop-blur-sm">
-        <span className="text-3xl mb-3">⭐</span>
         <h3 className="font-display font-bold text-navy text-xl mb-2">
-          You've reached the free preview limit
+          Continue reading with Premium Pro
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">
-          Premium Pro members get unlimited access to the full article archive,
-          advanced search, and a weekly analyst brief written for their industry — $20/month.
+          Full archive access, advanced search, and your weekly analyst brief written for your industry. $20/month.
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Link

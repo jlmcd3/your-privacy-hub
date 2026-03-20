@@ -115,6 +115,21 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    label: "Tools",
+    sections: [
+      {
+        items: [
+          { icon: "🧰", label: "All Tools", badge: "NEW", badgeGreen: true, href: "/tools" },
+          { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
+          { icon: "📜", label: "Legislation Tracker", href: "/legislation-tracker" },
+          { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
+          { icon: "⏱️", label: "Regulatory Timelines", href: "/timelines" },
+          { icon: "📖", label: "Privacy Glossary", href: "/glossary" },
+        ],
+      },
+    ],
+  },
+  {
     label: "Intelligence",
     sections: [
       {

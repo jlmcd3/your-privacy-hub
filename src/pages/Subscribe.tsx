@@ -237,7 +237,7 @@ const Subscribe = () => {
                       Free
                     </th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[140px]">
-                      Pro ($25/mo)
+                      Pro ($20/mo)
                     </th>
                   </tr>
                 </thead>
@@ -359,30 +359,35 @@ const Subscribe = () => {
 
         {/* How we compare */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-6">How we compare</h2>
+          <h2 className="font-display text-[22px] text-navy text-center mb-2">How we compare</h2>
+          <p className="text-[14px] text-navy text-center font-semibold mb-6">
+            DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
+          </p>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
               <thead>
                 <tr className="bg-fog">
                   <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP / DataGuidance / Bloomberg</th>
+                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
+                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP — $550+/yr</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Price", "$20/month", "$300–$3,500+/year"],
-                  ["Format", "Weekly AI intelligence brief", "Large research databases"],
-                  ["Focus", "Privacy & AI regulation only", "Broad legal coverage"],
-                  ["Update frequency", "Daily monitoring, Monday brief", "Weekly to monthly"],
-                  ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding"],
-                ].map(([label, us, them], i) => (
+                  ["Price", "$20/month", "$300–$3,500+/year", "$550+/year"],
+                  ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
+                  ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
+                  ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
+                  ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding", "Conference-based"],
+                ].map(([label, us, dg, iapp], i) => (
                   <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
                     <td className="px-5 py-3 text-navy font-medium border-t border-fog">{label}</td>
                     <td className="px-5 py-3 text-center text-navy font-medium border-t border-fog">
                       <span className="text-accent mr-1">✓</span>{us}
                     </td>
-                    <td className="px-5 py-3 text-center text-slate border-t border-fog">{them}</td>
+                    <td className="px-5 py-3 text-center text-slate border-t border-fog">{dg}</td>
+                    <td className="px-5 py-3 text-center text-slate border-t border-fog">{iapp}</td>
                   </tr>
                 ))}
               </tbody>

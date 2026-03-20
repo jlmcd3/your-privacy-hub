@@ -18,6 +18,8 @@ import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 import HeadlinesTicker from "@/components/home/HeadlinesTicker";
 import IdentityBand from "@/components/home/IdentityBand";
+import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
+import ToolkitSection from "@/components/home/ToolkitSection";
 
 interface Update {
   id: string;
@@ -225,32 +227,33 @@ const Index = () => {
             <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper hidden" />
 
             {/* Topic lanes */}
-            {(laneData["ai-privacy"]?.length ?? 0) > 0 && (
+            {(laneData["ai-privacy"]?.length ?? 0) >= 3 && (
               <TopicLaneScroller
                 laneTitle="AI & Privacy" laneIcon="🤖" laneHref="/category/ai-privacy"
                 cards={laneData["ai-privacy"]}
               />
             )}
-            {(laneData["adtech"]?.length ?? 0) > 0 && (
+            {(laneData["adtech"]?.length ?? 0) >= 3 && (
               <TopicLaneScroller
                 laneTitle="AdTech & Advertising Privacy" laneIcon="📡" laneHref="/category/adtech"
                 cards={laneData["adtech"]}
               />
             )}
             <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3 hidden" />
-            {(laneData["us-states"]?.length ?? 0) > 0 && (
+            {(laneData["us-states"]?.length ?? 0) >= 3 && (
               <TopicLaneScroller
                 laneTitle="U.S. State Developments" laneIcon="🗺️" laneHref="/category/us-states"
                 cards={laneData["us-states"]}
               />
             )}
-            {(laneData["enforcement"]?.length ?? 0) > 0 && (
+            {(laneData["enforcement"]?.length ?? 0) >= 3 && (
               <TopicLaneScroller
                 laneTitle="Enforcement Actions" laneIcon="⚖️" laneHref="/category/enforcement"
                 cards={laneData["enforcement"]}
+                isEnforcement
               />
             )}
-            {(laneData["eu-uk"]?.length ?? 0) > 0 && (
+            {(laneData["eu-uk"]?.length ?? 0) >= 3 && (
               <TopicLaneScroller
                 laneTitle="EU & UK Developments" laneIcon="🇪🇺" laneHref="/category/eu-uk"
                 cards={laneData["eu-uk"]}
@@ -298,6 +301,9 @@ const Index = () => {
             {/* Enforcement stats */}
             <EnforcementStatsBanner />
 
+            {/* Upcoming deadlines */}
+            <UpcomingDeadlines />
+
             {/* Search */}
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
@@ -319,6 +325,7 @@ const Index = () => {
       <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
+      <ToolkitSection />
       <PremiumBanner />
       <Footer />
     </div>

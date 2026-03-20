@@ -25,6 +25,12 @@ interface TopicLaneScrollerProps {
   laneIcon: string;
   laneHref: string;
   cards: TopicCard[];
+  isEnforcement?: boolean;
+}
+
+function extractFineAmount(text: string): string | null {
+  const match = text.match(/[€£$][\d,.]+\s*[MBmk]?(?:illion)?/i);
+  return match ? match[0] : null;
 }
 
 export default function TopicLaneScroller({
@@ -32,6 +38,7 @@ export default function TopicLaneScroller({
   laneIcon,
   laneHref,
   cards,
+  isEnforcement = false,
 }: TopicLaneScrollerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +48,7 @@ export default function TopicLaneScroller({
   };
 
   return (
-    <div className="mb-10">
+    <div className={`mb-10 ${isEnforcement ? "bg-amber-50/60 rounded-2xl px-4 py-5 -mx-4" : ""}`}>
       {/* Lane header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -76,15 +83,17 @@ export default function TopicLaneScroller({
         className="flex gap-4 overflow-x-auto pb-3"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {cards.filter((card, i, arr) => arr.findIndex(c => c.title === card.title) === i).map((card, i) => (
+        {cards.filter((card, i, arr) => arr.findIndex(c => c.title === card.title) === i).map((card, i) => {
+          const fineAmount = isEnforcement ? extractFineAmount(card.title + " " + card.excerpt) : null;
+          return (
           <a
             key={card.title + i}
             href={card.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
+            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
           >
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="flex items-center gap-1.5 mb-2 relative">
               {card.flag && <span className="text-base flag-emoji">{card.flag}</span>}
               {card.jurisdiction && (
                 <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
@@ -105,6 +114,11 @@ export default function TopicLaneScroller({
                   {card.urgency === "Immediate" ? "⚡ Act now" : "📅 This quarter"}
                 </span>
               )}
+              {fineAmount && (
+                <span className="absolute -top-1 -right-1 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                  {fineAmount}
+                </span>
+              )}
             </div>
             <h4 className="font-bold text-navy text-[13px] leading-snug mb-1.5 group-hover:text-blue transition-colors">
               {card.title}
@@ -118,7 +132,8 @@ export default function TopicLaneScroller({
               <p className="text-slate-light text-[10px] mt-2">{card.date}</p>
             )}
           </a>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
