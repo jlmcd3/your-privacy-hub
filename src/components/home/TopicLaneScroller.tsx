@@ -83,13 +83,15 @@ export default function TopicLaneScroller({
         className="flex gap-4 overflow-x-auto pb-3"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {cards.filter((card, i, arr) => arr.findIndex(c => c.title === card.title) === i).map((card, i) => (
+        {cards.filter((card, i, arr) => arr.findIndex(c => c.title === card.title) === i).map((card, i) => {
+          const fineAmount = isEnforcement ? extractFineAmount(card.title + " " + card.excerpt) : null;
+          return (
           <a
             key={card.title + i}
             href={card.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
+            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
           >
             <div className="flex items-center gap-1.5 mb-2">
               {card.flag && <span className="text-base flag-emoji">{card.flag}</span>}
