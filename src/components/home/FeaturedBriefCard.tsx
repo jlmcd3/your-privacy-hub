@@ -52,7 +52,7 @@ export default function FeaturedBriefCard({
 
         {/* Meta row */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
             📋 Top Story
           </span>
           <span className="text-blue-300 text-[11px]">·</span>
