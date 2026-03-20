@@ -47,7 +47,10 @@ export default function HeadlinesTicker() {
           </div>
 
           {/* Headlines — horizontal scroll on mobile, truncated on desktop */}
-          <div className="flex items-center gap-0 overflow-x-auto scrollbar-hide flex-1">
+          <div
+            className="flex items-center gap-0 overflow-x-auto scrollbar-hide flex-1 group/ticker"
+            style={{ scrollBehavior: "smooth" }}
+          >
             {items.map((item) => (
               <a
                 key={item.id}
@@ -59,7 +62,7 @@ export default function HeadlinesTicker() {
                 <span className="text-[9px] font-bold uppercase tracking-wider text-accent-light/70 flex-shrink-0">
                   {CATEGORY_LABELS[item.category] ?? item.category.toUpperCase()}
                 </span>
-                <span className="text-[12px] text-white/80 group-hover:text-white transition-colors max-w-[220px] truncate">
+                <span className="text-[12px] text-white/80 group-hover:text-white transition-colors max-w-[220px] truncate whitespace-nowrap">
                   {item.title}
                 </span>
               </a>
