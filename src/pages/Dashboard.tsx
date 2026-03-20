@@ -67,6 +67,34 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
+  const [generating, setGenerating] = useState(false);
+  const [genPhase, setGenPhase] = useState(0);
+
+  const GEN_PHASES = [
+    "Your analyst is reading this week's regulatory developments…",
+    "Analyzing implications for your industry…",
+    "Writing your personalized brief…",
+  ];
+
+  const generateBriefNow = useCallback(async () => {
+    setGenerating(true);
+    setGenPhase(0);
+    const phaseInterval = setInterval(() => {
+      setGenPhase(p => Math.min(p + 1, 2));
+    }, 8000);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-brief-on-demand");
+      if (!error && data?.brief) {
+        setCustomBrief(data.brief);
+      }
+    } catch (e) {
+      console.error("Brief generation failed:", e);
+    } finally {
+      clearInterval(phaseInterval);
+      setGenerating(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
