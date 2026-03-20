@@ -6,13 +6,6 @@ interface AdBannerProps {
   googleAdSlot?: string;
 }
 
-const dimensions = {
-  leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
-  sidebar: { desktop: { w: 300, h: 250 }, mobile: { w: 300, h: 250 } },
-  inline: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
-  infeed: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
-};
-
 const AdBanner = ({
   variant = "leaderboard",
   className = "",
@@ -20,6 +13,16 @@ const AdBanner = ({
   googleAdClient,
   googleAdSlot,
 }: AdBannerProps) => {
+  // Don't render placeholder when no real ad content is configured
+  if (!googleAdClient || !googleAdSlot) return null;
+
+  const dimensions = {
+    leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
+    sidebar: { desktop: { w: 300, h: 250 }, mobile: { w: 300, h: 250 } },
+    inline: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
+    infeed: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
+  };
+
   const dim = dimensions[variant];
   const label = variant === "infeed" ? "Sponsored Content" : "Advertisement";
 
@@ -34,20 +37,14 @@ const AdBanner = ({
         className="hidden md:flex items-center justify-center bg-fog/70 border border-silver rounded-lg"
         style={{ width: dim.desktop.w, height: dim.desktop.h, minHeight: dim.desktop.h }}
       >
-        {googleAdClient && googleAdSlot ? (
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block", width: dim.desktop.w, height: dim.desktop.h }}
-            data-ad-client={googleAdClient}
-            data-ad-slot={googleAdSlot}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
-        ) : (
-          <span className="text-slate-light text-[11px] tracking-wider uppercase font-medium opacity-60 select-none">
-            {label}
-          </span>
-        )}
+        <ins
+          className="adsbygoogle"
+          style={{ display: "block", width: dim.desktop.w, height: dim.desktop.h }}
+          data-ad-client={googleAdClient}
+          data-ad-slot={googleAdSlot}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
       </div>
 
       {/* Mobile */}
@@ -55,20 +52,14 @@ const AdBanner = ({
         className="flex md:hidden items-center justify-center bg-fog/70 border border-silver rounded-lg"
         style={{ width: dim.mobile.w, height: dim.mobile.h, minHeight: dim.mobile.h }}
       >
-        {googleAdClient && googleAdSlot ? (
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block", width: dim.mobile.w, height: dim.mobile.h }}
-            data-ad-client={googleAdClient}
-            data-ad-slot={googleAdSlot}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
-        ) : (
-          <span className="text-slate-light text-[11px] tracking-wider uppercase font-medium opacity-60 select-none">
-            {label}
-          </span>
-        )}
+        <ins
+          className="adsbygoogle"
+          style={{ display: "block", width: dim.mobile.w, height: dim.mobile.h }}
+          data-ad-client={googleAdClient}
+          data-ad-slot={googleAdSlot}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
       </div>
     </div>
   );

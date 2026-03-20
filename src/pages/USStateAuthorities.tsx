@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { slugify } from "@/lib/utils";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
 const statusClass = (s: string | null) => {
@@ -91,7 +93,14 @@ const USStateAuthorities = () => {
               <tbody>
                 {filtered.map((state: any) => (
                   <tr key={state.id} className="hover:bg-paper transition-colors">
-                    <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog whitespace-nowrap">{state.state}</td>
+                    <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog whitespace-nowrap">
+                      <Link
+                        to={`/jurisdiction/${slugify(state.state)}`}
+                        className="text-primary hover:underline font-medium no-underline"
+                      >
+                        {state.state}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">
                       <div className="font-medium">{state.authority_name}</div>
                       <div className="text-[11px] text-slate mt-0.5">{state.authority_type}</div>
