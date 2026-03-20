@@ -203,7 +203,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
 
           {/* === LEFT COLUMN === */}
-          <div>
+          <div className="min-w-0">
             {/* Featured story */}
             {topArticle && (
               <FeaturedBriefCard
