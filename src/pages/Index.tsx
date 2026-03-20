@@ -325,6 +325,7 @@ const Index = () => {
       <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
+      <ToolkitSection />
       <PremiumBanner />
       <Footer />
     </div>
