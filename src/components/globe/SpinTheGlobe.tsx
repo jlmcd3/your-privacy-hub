@@ -142,7 +142,7 @@ export default function SpinTheGlobe() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 200);
-    camera.position.set(0, 0.15, 3.0);
+    camera.position.set(0, 0, 3.0);
     camera.lookAt(0, 0, 0);
 
     // Stars
