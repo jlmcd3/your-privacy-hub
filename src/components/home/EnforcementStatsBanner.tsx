@@ -28,9 +28,9 @@ export default function EnforcementStatsBanner() {
           Full tracker →
         </Link>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {STATS.map((s) => (
-          <div key={s.label} className="bg-fog rounded-xl p-4">
+          <div key={s.label} className="bg-fog rounded-xl p-3">
             <div className={`font-display font-bold text-2xl mb-1 ${s.color ?? "text-navy"}`}>
               {s.value}
             </div>
