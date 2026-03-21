@@ -9,26 +9,20 @@ export default function IdentityBand() {
           {/* Left: identity statement */}
           <div>
             <h1 className="font-display font-bold text-white text-[20px] md:text-[22px] leading-tight mb-1.5">
-              The privacy professional's operating system.
+              Track every move in global privacy regulation — free.
             </h1>
             <p className="text-blue-200 text-[13px] leading-relaxed">
-              Monitor 119 regulators. Track legislation. Compare laws. Plan compliance deadlines. All free.
+              119 regulators · 150+ jurisdictions · Daily intelligence · Compliance tools · Weekly analyst brief
             </p>
           </div>
 
-          {/* Right: two CTAs */}
+          {/* Right: CTA */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <Link
               to="/updates"
               className="text-[13px] font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all px-5 py-2 rounded-lg no-underline"
             >
               Browse free →
-            </Link>
-            <Link
-              to="/subscribe"
-              className="text-[13px] font-bold text-navy bg-white hover:bg-blue-50 transition-all px-5 py-2 rounded-lg no-underline shadow-eup-sm"
-            >
-              Get the brief
             </Link>
           </div>
 

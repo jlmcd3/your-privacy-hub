@@ -8,10 +8,10 @@ interface StatItem {
 }
 
 const STATS: StatItem[] = [
-  { label: "Enforcement actions tracked", value: "Live", sub: "updated from 119 regulators", color: "text-accent" },
-  { label: "Regulators monitored", value: "119", sub: "global DPAs + US state AGs", color: "text-blue" },
-  { label: "Jurisdictions covered", value: "150+", sub: "with full profiles", color: "text-accent" },
-  { label: "Intelligence brief", value: "Weekly", sub: "every Monday morning", color: "text-gold" },
+  { label: "Actions tracked", value: "Live", sub: "119 regulators", color: "text-accent" },
+  { label: "Regulators", value: "119", sub: "DPAs + US AGs", color: "text-blue" },
+  { label: "Jurisdictions", value: "150+", sub: "full profiles", color: "text-accent" },
+  { label: "Weekly brief", value: "Free", sub: "every Monday", color: "text-gold" },
 ];
 
 export default function EnforcementStatsBanner() {
@@ -28,9 +28,9 @@ export default function EnforcementStatsBanner() {
           Full tracker →
         </Link>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {STATS.map((s) => (
-          <div key={s.label} className="bg-fog rounded-xl p-4">
+          <div key={s.label} className="bg-fog rounded-xl p-3">
             <div className={`font-display font-bold text-2xl mb-1 ${s.color ?? "text-navy"}`}>
               {s.value}
             </div>
