@@ -52,7 +52,7 @@ const AdBanner = ({
               </div>
             </div>
           </div>
-          <span className="text-[11px] font-semibold text-amber-800 bg-amber-200 px-3 py-1 rounded-full whitespace-nowrap">
+          <span className="text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-1.5 rounded-lg transition-colors whitespace-nowrap">
             See Plans →
           </span>
         </Link>
