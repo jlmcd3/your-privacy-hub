@@ -88,8 +88,9 @@ const EnforcementTrackerPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Privacy Enforcement Tracker | EndUserPrivacy</title>
-        <meta name="description" content="Track privacy fines and enforcement actions from the FTC, ICO, CNIL, EDPB and 119 global authorities. Updated daily." />
+        <title>Privacy Enforcement Tracker 2026 — Live GDPR Fines &amp; US Cases | EndUserPrivacy</title>
+        <meta name="description" content="Live database of GDPR fines, FTC enforcement actions, US state AG cases, and global privacy penalties. Updated daily from 119 regulators." />
+        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"Privacy Enforcement Tracker","description":"Live database of global privacy enforcement actions, GDPR fines, and US regulatory cases","url":"https://enduserprivacy.com/enforcement-tracker","publisher":{"@type":"Organization","name":"EndUserPrivacy"}}`}</script>
       </Helmet>
       <Topbar />
       <Navbar />

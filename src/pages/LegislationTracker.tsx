@@ -89,7 +89,10 @@ export default function LegislationTracker() {
 
   return (
     <>
-      <Helmet><title>Global Privacy Legislation Tracker | EndUserPrivacy</title></Helmet>
+      <Helmet>
+        <title>Global Privacy Legislation Tracker 2026 — Bills &amp; Laws Worldwide | EndUserPrivacy</title>
+        <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US state laws, EU regulations, AI Act, APAC privacy frameworks — updated in real time." />
+      </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Topbar />
         <Navbar />
