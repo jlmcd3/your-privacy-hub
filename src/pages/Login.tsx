@@ -35,6 +35,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">
+      <Helmet>
+        <title>Log In | EndUserPrivacy</title>
+        <meta name="description" content="Sign in to your EndUserPrivacy account to access your personalized privacy intelligence dashboard and weekly AI briefs." />
+      </Helmet>
       <Topbar />
       <Navbar />
       <div className="flex-1 flex items-center justify-center py-16 px-4">
