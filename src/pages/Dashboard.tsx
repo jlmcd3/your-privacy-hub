@@ -389,9 +389,9 @@ const Dashboard = () => {
               <section className="mb-5">
                 <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Week</h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={customBrief.custom_sections.your_week} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
+                  <CitedParagraphs content={customBrief.custom_sections.your_week} sourceMap={brief?.source_map ?? {}} />
                 </div>
-                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.your_week} />
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.your_week} />
               </section>
             )}
 
@@ -400,9 +400,9 @@ const Dashboard = () => {
               <section className="mb-5">
                 <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Industry Intelligence</h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={customBrief.custom_sections.industry_intelligence} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
+                  <CitedParagraphs content={customBrief.custom_sections.industry_intelligence} sourceMap={brief?.source_map ?? {}} />
                 </div>
-                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.industry_intelligence} />
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.industry_intelligence} />
               </section>
             )}
 
@@ -411,9 +411,9 @@ const Dashboard = () => {
               <section className="mb-5">
                 <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Jurisdictions This Week</h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={customBrief.custom_sections.jurisdiction_developments} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
+                  <CitedParagraphs content={customBrief.custom_sections.jurisdiction_developments} sourceMap={brief?.source_map ?? {}} />
                 </div>
-                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.jurisdiction_developments} />
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.jurisdiction_developments} />
               </section>
             )}
 
@@ -422,9 +422,9 @@ const Dashboard = () => {
               <section className="mb-5">
                 <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Subject-Matter Focus</h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={customBrief.custom_sections.topic_depth} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
+                  <CitedParagraphs content={customBrief.custom_sections.topic_depth} sourceMap={brief?.source_map ?? {}} />
                 </div>
-                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.topic_depth} />
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.topic_depth} />
               </section>
             )}
 
@@ -467,9 +467,9 @@ const Dashboard = () => {
               <section className="mb-5">
                 <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">⚖️ Enforcement Pattern for Your Sector</h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={customBrief.custom_sections.enforcement_pattern_for_you} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
+                  <CitedParagraphs content={customBrief.custom_sections.enforcement_pattern_for_you} sourceMap={brief?.source_map ?? {}} />
                 </div>
-                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.enforcement_pattern_for_you} />
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.enforcement_pattern_for_you} />
               </section>
             )}
 
@@ -478,9 +478,9 @@ const Dashboard = () => {
               <section className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">
                 <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📡 Your 30-90 Day Horizon</h3>
                 <div className="text-[13px] text-amber-800 leading-relaxed space-y-2">
-                  <CitedParagraphs content={customBrief.custom_sections.look_ahead} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
+                  <CitedParagraphs content={customBrief.custom_sections.look_ahead} sourceMap={brief?.source_map ?? {}} />
                 </div>
-                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.look_ahead} />
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.look_ahead} />
               </section>
             )}
 
