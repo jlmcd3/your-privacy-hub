@@ -478,8 +478,9 @@ const Dashboard = () => {
               <section className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">
                 <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📡 Your 30-90 Day Horizon</h3>
                 <div className="text-[13px] text-amber-800 leading-relaxed space-y-2">
-                  {customBrief.custom_sections.look_ahead.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                  <CitedParagraphs content={customBrief.custom_sections.look_ahead} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
                 </div>
+                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.look_ahead} />
               </section>
             )}
 
