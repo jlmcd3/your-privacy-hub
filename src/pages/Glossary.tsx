@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
@@ -27,6 +28,10 @@ const Glossary = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>Privacy Law Glossary — {glossaryData.length}+ Terms Defined | EndUserPrivacy</title>
+        <meta name="description" content="Plain-English definitions of GDPR, CCPA, PIPL, and global privacy law terms. Searchable A–Z glossary for DPOs, lawyers, and compliance professionals." />
+      </Helmet>
       <Topbar />
       <Navbar />
 

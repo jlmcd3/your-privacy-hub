@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
@@ -34,6 +35,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">
+      <Helmet>
+        <title>Log In | EndUserPrivacy</title>
+        <meta name="description" content="Sign in to your EndUserPrivacy account to access your personalized privacy intelligence dashboard and weekly AI briefs." />
+      </Helmet>
       <Topbar />
       <Navbar />
       <div className="flex-1 flex items-center justify-center py-16 px-4">

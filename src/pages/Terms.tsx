@@ -1,9 +1,14 @@
+import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Terms of Service | EndUserPrivacy</title>
+        <meta name="description" content="Terms of service for EndUserPrivacy.com including copyright, acceptable use, subscriptions, and limitation of liability." />
+      </Helmet>
       <Navbar />
       <main className="max-w-3xl mx-auto px-4 md:px-8 py-12 md:py-20">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">Terms of Service</h1>

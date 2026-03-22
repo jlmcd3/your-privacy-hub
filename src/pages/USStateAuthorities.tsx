@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -32,6 +33,10 @@ const USStateAuthorities = () => {
 
   return (
     <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>U.S. State Privacy Authorities Directory | EndUserPrivacy</title>
+        <meta name="description" content="Complete directory of privacy regulatory authorities across all 50 U.S. states. Statute names, enforcement status, websites, and complaint portals." />
+      </Helmet>
       <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">

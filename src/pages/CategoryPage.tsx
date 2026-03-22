@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import NewsfeedList from "@/components/NewsfeedList";
@@ -131,6 +132,10 @@ const CategoryPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>{meta.title} Privacy Updates | EndUserPrivacy</title>
+        <meta name="description" content={meta.description.substring(0, 155) + "…"} />
+      </Helmet>
       <Topbar />
       <Navbar />
 

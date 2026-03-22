@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import EmailSignup from "@/components/EmailSignup";
@@ -128,6 +129,10 @@ const TopicHub = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>{meta.name} — Privacy Topic Intelligence | EndUserPrivacy</title>
+        <meta name="description" content={meta.description.substring(0, 155) + "…"} />
+      </Helmet>
       <Topbar />
       <Navbar />
 

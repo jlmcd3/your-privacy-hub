@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -61,6 +62,10 @@ const TimelineDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>{meta.title} | EndUserPrivacy</title>
+        <meta name="description" content={meta.description} />
+      </Helmet>
       <Topbar />
       <Navbar />
 

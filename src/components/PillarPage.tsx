@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Lock, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
@@ -42,6 +43,10 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
 
   return (
     <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>{title} | EndUserPrivacy</title>
+        <meta name="description" content={subtitle} />
+      </Helmet>
       <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">

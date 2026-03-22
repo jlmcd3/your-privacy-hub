@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
@@ -142,6 +143,10 @@ const Dashboard = () => {
   if (authLoading || isPremium === null) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>Intelligence Dashboard | EndUserPrivacy</title>
+          <meta name="description" content="Your personalized privacy intelligence dashboard with AI-generated weekly briefs, enforcement alerts, and regulatory updates." />
+        </Helmet>
         <Topbar />
         <Navbar />
         <div className="flex items-center justify-center py-24">
@@ -158,6 +163,9 @@ const Dashboard = () => {
     // Free users still see the brief — but with Pro upsell
     return (
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>Intelligence Dashboard | EndUserPrivacy</title>
+        </Helmet>
         <Topbar />
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-12">
@@ -275,6 +283,10 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Intelligence Dashboard | EndUserPrivacy</title>
+        <meta name="description" content="Your personalized privacy intelligence dashboard with AI-generated weekly briefs, enforcement alerts, and regulatory updates." />
+      </Helmet>
       <Topbar />
       <Navbar />
 
