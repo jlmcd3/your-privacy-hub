@@ -49,23 +49,17 @@ const PREF_JURISDICTIONS = [
   { id: "global",      label: "Global / Multinational",   icon: "🌐" },
 ];
 
-const TOPICS = [
-  { id: "enforcement",      label: "Enforcement Actions",             icon: "⚖️" },
-  { id: "ai-governance",    label: "AI Act & Governance",             icon: "🤖" },
-  { id: "data-transfers",   label: "Cross-Border Transfers",          icon: "🔀" },
-  { id: "biometric",        label: "Biometric Data",                  icon: "👁️" },
-  { id: "children-privacy", label: "Children's Privacy (COPPA/KOSA)", icon: "👶" },
-  { id: "data-breaches",    label: "Data Breaches & Incidents",       icon: "🔓" },
-  { id: "adtech-consent",   label: "AdTech & Cookie Consent",         icon: "🍪" },
-  { id: "litigation",       label: "Privacy Litigation & Class Actions", icon: "🏛️" },
-  { id: "health-data",      label: "Health & Medical Data",           icon: "🩺" },
-  { id: "employee-data",    label: "Employee & HR Data",              icon: "👨‍💼" },
-  { id: "data-broker-reg",  label: "Data Broker Regulation",          icon: "📂" },
-  { id: "eu-ai-act",        label: "EU AI Act Compliance",            icon: "🇪🇺" },
-  { id: "us-state-law",     label: "US State Law Compliance",         icon: "🗺️" },
-  { id: "gdpr-enforcement", label: "GDPR Enforcement",                icon: "🇪🇺" },
-  { id: "open-banking",     label: "Open Banking & Financial Data",   icon: "🏦" },
-  { id: "surveillance",     label: "Surveillance & Government Access", icon: "🔍" },
+const TOPICS: { id: string; label: string; icon: string; description: string }[] = [
+  { id: "us-state-laws", label: "US State Privacy Laws", icon: "🗺️", description: "Weekly: new state laws, AG enforcement, CPPA activity, compliance deadlines" },
+  { id: "gdpr-enforcement", label: "GDPR Enforcement & DPA Activity", icon: "🇪🇺", description: "Weekly: DPA fines, EDPB decisions, cross-border cases, precedent analysis" },
+  { id: "ai-act-compliance", label: "EU AI Act Compliance", icon: "🤖", description: "Weekly: AI Act implementation, GPAI code, prohibited AI, GDPR intersection" },
+  { id: "children-privacy", label: "Children's Privacy", icon: "👶", description: "Weekly: COPPA, KOSA, UK AADC, state children's laws, platform enforcement" },
+  { id: "adtech-consent", label: "AdTech, Consent & Cookie Compliance", icon: "🍪", description: "Weekly: TCF updates, cookie enforcement, Privacy Sandbox, FTC surveillance rules" },
+  { id: "data-transfers", label: "Cross-Border Data Transfers", icon: "🔀", description: "Weekly: DPF, SCCs, LGPD transfers, APAC mechanisms, Schrems litigation" },
+  { id: "health-data", label: "Health & Medical Data Privacy", icon: "🏥", description: "Weekly: HIPAA enforcement, FTC health data, state health privacy laws, health AI" },
+  { id: "privacy-litigation", label: "Privacy Litigation & Class Actions", icon: "🏛️", description: "Weekly: BIPA, VPPA, CIPA filings, settlements, standing doctrine, MDL proceedings" },
+  { id: "biometric-data", label: "Biometric Data Privacy", icon: "👁️", description: "Weekly: BIPA litigation, state biometric laws, AI Act biometric provisions, enforcement" },
+  { id: "data-breach-response", label: "Data Breach & Incident Response", icon: "🔓", description: "Weekly: breach notification law changes, SEC disclosure rules, enforcement for late notice" },
 ];
 
 const BRIEF_FORMATS = [
