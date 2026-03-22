@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
