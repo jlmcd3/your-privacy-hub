@@ -177,7 +177,7 @@ const Subscribe = () => {
             disabled={!!loading}
             className="bg-navy text-white font-bold text-[14px] py-3 px-10 rounded-xl hover:opacity-90 transition-all"
           >
-            {loading ? "Redirecting…" : "Get Premium Pro — $20/month →"}
+            {loading ? "Redirecting…" : "Get Premium Pro — all 10 tracks included →"}
           </button>
         </div>
       </div>
