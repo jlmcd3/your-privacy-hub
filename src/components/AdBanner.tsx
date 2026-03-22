@@ -8,24 +8,6 @@ interface AdBannerProps {
   googleAdSlot?: string;
 }
 
-const houseAds = [
-  {
-    headline: "Get the Weekly Privacy Brief — Free",
-    cta: "Subscribe now →",
-    link: "/subscribe",
-  },
-  {
-    headline: "Track 119 regulators across 150+ jurisdictions",
-    cta: "Browse free →",
-    link: "/enforcement-tracker",
-  },
-  {
-    headline: "Compare US state privacy laws side by side",
-    cta: "View comparison →",
-    link: "/us-state-comparison",
-  },
-];
-
 const AdBanner = ({
   variant = "leaderboard",
   className = "",
@@ -43,34 +25,36 @@ const AdBanner = ({
   const dim = dimensions[variant];
   const label = variant === "infeed" ? "Sponsored Content" : "Advertisement";
 
-  // House ad fallback when no Google Ads configured
+  // House ad fallback — Premium Pro upsell
   if (!googleAdClient || !googleAdSlot) {
-    const ad = houseAds[Math.floor(Math.random() * houseAds.length)];
-    const isWide = variant === "leaderboard" || variant === "inline" || variant === "infeed";
+    const isLeaderboard = variant === "leaderboard" || variant === "inline";
 
     return (
-      <div className={`flex justify-center items-center ${className}`} aria-label={label}>
-        {/* Desktop */}
+      <div className={`flex justify-center items-center py-2 ${className}`}>
         <Link
-          to={ad.link}
-          className="hidden md:flex items-center justify-center gap-3 bg-gradient-to-r from-navy/5 to-sky/10 border border-sky/20 rounded-lg no-underline hover:border-sky/40 transition-colors"
-          style={{ width: dim.desktop.w, height: dim.desktop.h }}
+          to="/subscribe"
+          className={`flex items-center justify-between gap-4 px-5 py-3 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors no-underline ${
+            isLeaderboard ? "flex-row" : "flex-col text-center"
+          }`}
+          style={{
+            width: dim.desktop.w,
+            minHeight: dim.desktop.h,
+          }}
         >
-          <span className={`font-medium text-foreground ${isWide ? "text-sm" : "text-xs text-center px-4"}`}>
-            {ad.headline}
+          <div className={`flex items-center gap-3 ${isLeaderboard ? "" : "justify-center"}`}>
+            <span className="text-[18px]">⭐</span>
+            <div>
+              <div className="text-[12px] font-bold text-amber-900 leading-tight">
+                Premium Pro — $20/month
+              </div>
+              <div className="text-[11px] text-amber-700 leading-tight mt-0.5">
+                Personalized AI analyst brief every Monday
+              </div>
+            </div>
+          </div>
+          <span className="text-[11px] font-semibold text-amber-800 bg-amber-200 px-3 py-1 rounded-full whitespace-nowrap">
+            See Plans →
           </span>
-          <span className={`font-semibold text-sky ${isWide ? "text-sm" : "text-xs"}`}>
-            {ad.cta}
-          </span>
-        </Link>
-        {/* Mobile */}
-        <Link
-          to={ad.link}
-          className="flex md:hidden flex-col items-center justify-center gap-1.5 bg-gradient-to-r from-navy/5 to-sky/10 border border-sky/20 rounded-lg no-underline hover:border-sky/40 transition-colors px-4"
-          style={{ width: dim.mobile.w, height: dim.mobile.h }}
-        >
-          <span className="font-medium text-foreground text-xs text-center">{ad.headline}</span>
-          <span className="font-semibold text-sky text-xs">{ad.cta}</span>
         </Link>
       </div>
     );
