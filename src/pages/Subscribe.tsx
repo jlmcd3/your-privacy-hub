@@ -56,8 +56,8 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Subscribe to Privacy Intelligence | EndUserPrivacy</title>
-        <meta name="description" content="Get the weekly AI Intelligence Brief covering GDPR, US state privacy laws, enforcement actions, and global developments. Premium Pro: your AI analyst, briefed on your world." />
+        <title>Privacy Intelligence Reports — 10 Topic Tracks | EndUserPrivacy Premium Pro</title>
+        <meta name="description" content="Personalized weekly privacy intelligence. Choose from 10 topic tracks: US State Laws, GDPR Enforcement, AI Act, Children's Privacy, AdTech, Health Data, Litigation, Biometric, Cross-Border Transfers, Data Breach. $20/month." />
       </Helmet>
       <Topbar />
       <Navbar />
