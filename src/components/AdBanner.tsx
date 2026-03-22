@@ -48,7 +48,7 @@ const AdBanner = ({
                 Premium Pro — $20/month
               </div>
               <div className="text-[11px] text-amber-700 leading-tight mt-0.5">
-                Personalized AI analyst brief every Monday
+                Your weekly brief written for your industry and jurisdiction
               </div>
             </div>
           </div>
