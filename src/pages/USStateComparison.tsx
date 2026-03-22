@@ -14,8 +14,8 @@ const USStateComparison = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>US State Privacy Law Comparison — Side-by-Side | EndUserPrivacy</title>
-        <meta name="description" content="Compare 20+ enacted US state privacy laws across 12 key provisions. CCPA, VCDPA, CPA, CTDPA, and more — the most comprehensive free comparison tool." />
+        <title>US State Privacy Laws Comparison 2026 — CCPA, TDPSA, VCDPA vs 17 More | EndUserPrivacy</title>
+        <meta name="description" content="Compare all 20 enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free." />
       </Helmet>
       <Topbar />
       <Navbar />

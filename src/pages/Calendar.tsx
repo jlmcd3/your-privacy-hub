@@ -49,8 +49,8 @@ const Calendar = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Privacy Compliance Calendar 2026–2027 | EndUserPrivacy</title>
-        <meta name="description" content="Every privacy regulatory effective date, enforcement start, and compliance deadline for 2026–2027. GDPR, CCPA, AI Act, and global deadlines with countdown timers." />
+        <title>Privacy Law Compliance Deadlines Calendar 2026 | EndUserPrivacy</title>
+        <meta name="description" content="Key dates for GDPR, EU AI Act, CCPA/CPRA, and US state privacy law compliance deadlines. Countdown timers for every major regulatory effective date in 2026." />
       </Helmet>
       <Topbar />
       <Navbar />

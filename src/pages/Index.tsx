@@ -135,8 +135,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Global Privacy Regulation Intelligence | EndUserPrivacy</title>
-        <meta name="description" content="The intelligence platform for privacy professionals. Monitor 119 privacy authorities across 150+ jurisdictions — GDPR, AI Act, CCPA, PIPL, enforcement actions, and global developments." />
+        <title>US State Privacy Laws, GDPR Fines &amp; AI Act Tracker 2026 | EndUserPrivacy</title>
+        <meta name="description" content="Free daily privacy intelligence. Track GDPR enforcement, US state privacy laws, EU AI Act compliance, and enforcement actions from 119 regulators. For privacy professionals." />
       </Helmet>
 
       {/* Layer 1: Topbar */}
