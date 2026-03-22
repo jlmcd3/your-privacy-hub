@@ -432,7 +432,9 @@ const Dashboard = () => {
             {customBrief.custom_sections?.what_to_ignore && (
               <section className="bg-muted rounded-xl p-4 mb-5">
                 <h3 className="font-semibold text-muted-foreground text-[12px] uppercase tracking-wider mb-2">📭 What to deprioritize this week</h3>
-                <p className="text-[13px] text-muted-foreground leading-relaxed">{customBrief.custom_sections.what_to_ignore}</p>
+                <div className="text-[13px] text-muted-foreground leading-relaxed space-y-2">
+                  <CitedParagraphs content={customBrief.custom_sections.what_to_ignore} sourceMap={brief?.source_map ?? {}} />
+                </div>
               </section>
             )}
 
