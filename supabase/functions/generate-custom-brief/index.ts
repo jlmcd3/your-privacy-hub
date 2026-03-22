@@ -349,7 +349,7 @@ Generate a STANDALONE personalized brief as a JSON object with these exact keys:
   "look_ahead": "2 paragraphs with specific predictions for the next 30-90 days. Name specific dates, regulatory milestones, compliance deadlines. Do not hedge — make concrete predictions. ~150 words."
 }
 
-For each narrative section (your_week, industry_intelligence, jurisdiction_developments, topic_depth, enforcement_pattern_for_you, look_ahead), cite your sources inline using [ref:N] notation immediately after each factual claim. N must match the article index number from the TOP RELEVANCE-SCORED ARTICLES list above (e.g. [ref:1], [ref:2], [ref:7]). Example: 'The ICO fined TikTok £12.7M [ref:3] for children\'s data violations [ref:3]. The EDPB adopted binding AI training guidance [ref:7] the same week.' Every paragraph must contain at least one [ref:N] citation. Do not add citations to your_critical_alert or your_action_items.
+CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_intelligence, jurisdiction_developments, topic_depth, enforcement_pattern_for_you, look_ahead), you MUST cite sources inline using [ref:N] notation immediately after each specific factual claim, where N is the article index number from the TOP RELEVANCE-SCORED ARTICLES list above. Example: 'The ICO fined TikTok £12.7M [ref:3] for children\u2019s data violations.' Every paragraph must contain at least one [ref:N] citation.
 
 Return ONLY the JSON object. 3-5 action items. No preamble.`;
 
