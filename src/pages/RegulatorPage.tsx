@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Lock } from "lucide-react";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
