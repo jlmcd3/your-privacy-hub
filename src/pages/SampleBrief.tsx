@@ -222,9 +222,8 @@ const SampleBrief = () => {
                   {enforcementRows.map((r, i) => (
                     <tr key={i} className="border-b border-fog/50 last:border-0">
                       <td className="py-2.5 pr-3 font-medium text-navy whitespace-nowrap">
-                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-foreground no-underline hover:underline transition-colors">
-                          {r.reg}
-                        </a>
+                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline font-medium">{r.reg}</a>
+                        <div className="text-[11px] text-slate">{r.jur}</div>
                       </td>
                       <td className="py-2.5 pr-3 text-slate whitespace-nowrap">{r.jur}</td>
                       <td className="py-2.5 pr-3 text-slate whitespace-nowrap">{r.co}</td>
