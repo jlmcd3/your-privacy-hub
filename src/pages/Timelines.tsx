@@ -15,8 +15,8 @@ const Timelines = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Privacy Regulation Timelines — GDPR, AI Act, US States | EndUserPrivacy</title>
-        <meta name="description" content="Visual timelines of major privacy regulatory milestones. GDPR enforcement history, US state privacy law enactment dates, and EU AI Act implementation schedule." />
+        <title>Privacy Law Regulatory Timelines — GDPR, AI Act, US State Laws | EndUserPrivacy</title>
+        <meta name="description" content="Visual timelines of major privacy law milestones. GDPR enforcement history, EU AI Act implementation phases, US state privacy law enactment timeline." />
       </Helmet>
       <Topbar />
       <Navbar />

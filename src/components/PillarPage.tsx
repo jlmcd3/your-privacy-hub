@@ -44,8 +44,10 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{title} | EndUserPrivacy</title>
+        <title>{title} — Privacy Law Guide 2026 | EndUserPrivacy</title>
         <meta name="description" content={subtitle} />
+        <meta property="og:title" content={`${title} | EndUserPrivacy`} />
+        <meta property="og:description" content={subtitle} />
       </Helmet>
       <Topbar />
       <Navbar />

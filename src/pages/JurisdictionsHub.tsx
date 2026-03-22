@@ -86,11 +86,8 @@ export default function JurisdictionsHub() {
   return (
     <>
       <Helmet>
-        <title>Global Privacy Jurisdictions Map | EndUserPrivacy</title>
-        <meta
-          name="description"
-          content="Interactive map of global privacy and data protection laws. Click any country to explore its law, regulator, consumer rights, and recent enforcement actions."
-        />
+        <title>Global Privacy Law Map — 160+ Jurisdictions Tracked | EndUserPrivacy</title>
+        <meta name="description" content="Interactive map of global privacy and data protection laws. Click any country to explore its law, regulator, enforcement actions, and consumer rights. 160+ jurisdictions." />
       </Helmet>
 
       <div className="min-h-screen bg-background flex flex-col">
