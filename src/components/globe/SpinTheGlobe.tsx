@@ -134,7 +134,7 @@ export default function SpinTheGlobe() {
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.cssText = "display:block;border-radius:9999px;";
+    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;border-radius:9999px;";
     el.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
