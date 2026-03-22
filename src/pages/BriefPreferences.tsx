@@ -49,23 +49,17 @@ const PREF_JURISDICTIONS = [
   { id: "global",      label: "Global / Multinational",   icon: "🌐" },
 ];
 
-const TOPICS = [
-  { id: "enforcement",      label: "Enforcement Actions",             icon: "⚖️" },
-  { id: "ai-governance",    label: "AI Act & Governance",             icon: "🤖" },
-  { id: "data-transfers",   label: "Cross-Border Transfers",          icon: "🔀" },
-  { id: "biometric",        label: "Biometric Data",                  icon: "👁️" },
-  { id: "children-privacy", label: "Children's Privacy (COPPA/KOSA)", icon: "👶" },
-  { id: "data-breaches",    label: "Data Breaches & Incidents",       icon: "🔓" },
-  { id: "adtech-consent",   label: "AdTech & Cookie Consent",         icon: "🍪" },
-  { id: "litigation",       label: "Privacy Litigation & Class Actions", icon: "🏛️" },
-  { id: "health-data",      label: "Health & Medical Data",           icon: "🩺" },
-  { id: "employee-data",    label: "Employee & HR Data",              icon: "👨‍💼" },
-  { id: "data-broker-reg",  label: "Data Broker Regulation",          icon: "📂" },
-  { id: "eu-ai-act",        label: "EU AI Act Compliance",            icon: "🇪🇺" },
-  { id: "us-state-law",     label: "US State Law Compliance",         icon: "🗺️" },
-  { id: "gdpr-enforcement", label: "GDPR Enforcement",                icon: "🇪🇺" },
-  { id: "open-banking",     label: "Open Banking & Financial Data",   icon: "🏦" },
-  { id: "surveillance",     label: "Surveillance & Government Access", icon: "🔍" },
+const TOPICS: { id: string; label: string; icon: string; description: string }[] = [
+  { id: "us-state-laws", label: "US State Privacy Laws", icon: "🗺️", description: "Weekly: new state laws, AG enforcement, CPPA activity, compliance deadlines" },
+  { id: "gdpr-enforcement", label: "GDPR Enforcement & DPA Activity", icon: "🇪🇺", description: "Weekly: DPA fines, EDPB decisions, cross-border cases, precedent analysis" },
+  { id: "ai-act-compliance", label: "EU AI Act Compliance", icon: "🤖", description: "Weekly: AI Act implementation, GPAI code, prohibited AI, GDPR intersection" },
+  { id: "children-privacy", label: "Children's Privacy", icon: "👶", description: "Weekly: COPPA, KOSA, UK AADC, state children's laws, platform enforcement" },
+  { id: "adtech-consent", label: "AdTech, Consent & Cookie Compliance", icon: "🍪", description: "Weekly: TCF updates, cookie enforcement, Privacy Sandbox, FTC surveillance rules" },
+  { id: "data-transfers", label: "Cross-Border Data Transfers", icon: "🔀", description: "Weekly: DPF, SCCs, LGPD transfers, APAC mechanisms, Schrems litigation" },
+  { id: "health-data", label: "Health & Medical Data Privacy", icon: "🏥", description: "Weekly: HIPAA enforcement, FTC health data, state health privacy laws, health AI" },
+  { id: "privacy-litigation", label: "Privacy Litigation & Class Actions", icon: "🏛️", description: "Weekly: BIPA, VPPA, CIPA filings, settlements, standing doctrine, MDL proceedings" },
+  { id: "biometric-data", label: "Biometric Data Privacy", icon: "👁️", description: "Weekly: BIPA litigation, state biometric laws, AI Act biometric provisions, enforcement" },
+  { id: "data-breach-response", label: "Data Breach & Incident Response", icon: "🔓", description: "Weekly: breach notification law changes, SEC disclosure rules, enforcement for late notice" },
 ];
 
 const BRIEF_FORMATS = [
@@ -75,19 +69,25 @@ const BRIEF_FORMATS = [
 ];
 
 const Toggle = ({
-  id, label, icon, selected, onToggle,
-}: { id: string; label: string; icon: string; selected: boolean; onToggle: (id: string) => void }) => (
+  id, label, icon, description, selected, onToggle,
+}: { id: string; label: string; icon: string; description?: string; selected: boolean; onToggle: (id: string) => void }) => (
   <button
+    type="button"
     onClick={() => onToggle(id)}
-    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+    className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-left w-full transition-all cursor-pointer ${
       selected
         ? "bg-navy text-white border-navy shadow-eup-sm"
         : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
     }`}
   >
-    <span>{icon}</span>
-    <span>{label}</span>
-    {selected && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+    <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
+    <div className="flex-1 min-w-0">
+      <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
+      {description && (
+        <p className={`text-[11px] mt-0.5 leading-snug ${selected ? "text-blue-200" : "text-slate"}`}>{description}</p>
+      )}
+    </div>
+    {selected && <span className="text-xs ml-auto flex-shrink-0 mt-0.5 opacity-70">✓</span>}
   </button>
 );
 
