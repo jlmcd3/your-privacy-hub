@@ -145,15 +145,28 @@ const Subscribe = () => {
             { icon: "🏛️", label: "Privacy Litigation & Class Actions", desc: "BIPA, VPPA, CIPA filings, settlements, standing doctrine, MDL proceedings" },
             { icon: "👁️", label: "Biometric Data Privacy", desc: "BIPA litigation, state biometric laws, AI Act biometric provisions, enforcement" },
             { icon: "🔓", label: "Data Breach & Incident Response", desc: "Breach notification law changes, SEC disclosure rules, enforcement for late notice" },
-          ].map((track) => (
-            <div key={track.label} className="flex items-start gap-2.5 px-4 py-3 rounded-xl border border-fog bg-white">
-              <span className="text-lg flex-shrink-0 mt-0.5">{track.icon}</span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-navy leading-tight">{track.label}</p>
-                <p className="text-[11px] text-slate mt-0.5 leading-snug">{track.desc}</p>
-              </div>
-            </div>
-          ))}
+          ].map((track) => {
+            const sel = selectedTracks.includes(track.label);
+            return (
+              <button
+                key={track.label}
+                type="button"
+                onClick={() => toggleTrack(track.label)}
+                className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-left w-full transition-all cursor-pointer ${
+                  sel
+                    ? "bg-navy border-navy shadow-eup-sm"
+                    : "bg-white border-fog hover:border-navy/40"
+                }`}
+              >
+                <span className="text-lg flex-shrink-0 mt-0.5">{track.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm font-semibold leading-tight ${sel ? "text-white" : "text-navy"}`}>{track.label}</p>
+                  <p className={`text-[11px] mt-0.5 leading-snug ${sel ? "text-blue-200" : "text-slate"}`}>{track.desc}</p>
+                </div>
+                {sel && <span className="text-xs text-white/70 flex-shrink-0 mt-0.5">✓</span>}
+              </button>
+            );
+          })}
         </div>
         <div className="text-center mt-6">
           <button
