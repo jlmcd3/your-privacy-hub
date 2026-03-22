@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Minus } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import comparisonData from "@/data/us_state_comparison.json";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
