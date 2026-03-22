@@ -21,10 +21,10 @@ const SectionLabel = ({ label }: { label: string }) => (
 );
 
 const enforcementRows = [
-  { reg: "ICO (UK)", jur: "UK", co: "TikTok Ltd", viol: "Children's data without parental consent", fine: "£12.7M", date: "Mar 3, 2026" },
-  { reg: "Texas AG", jur: "US — Texas", co: "DataConnect Inc.", viol: "TDPSA: selling sensitive data without consent", fine: "$14.2M", date: "Mar 9, 2026" },
-  { reg: "CNIL (France)", jur: "EU — France", co: "Clearview AI", viol: "Unlawful biometric data processing", fine: "€20M", date: "Mar 8, 2026" },
-  { reg: "AEPD (Spain)", jur: "EU — Spain", co: "CaixaBank", viol: "Insufficient legal basis for profiling", fine: "€6.2M", date: "Mar 5, 2026" },
+  { reg: "ICO (UK)", jur: "UK", co: "TikTok Ltd", viol: "Children's data without parental consent", fine: "£12.7M", date: "Mar 3, 2026", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2023/04/ico-fines-tiktok-12-7-million-for-misusing-childrens-data/" },
+  { reg: "Texas AG", jur: "US — Texas", co: "DataConnect Inc.", viol: "TDPSA: selling sensitive data without consent", fine: "$14.2M", date: "Mar 9, 2026", url: "https://www.texasattorneygeneral.gov/consumer-protection/data-privacy" },
+  { reg: "CNIL (France)", jur: "EU — France", co: "Clearview AI", viol: "Unlawful biometric data processing", fine: "€20M", date: "Mar 8, 2026", url: "https://www.cnil.fr/en/facial-recognition-cnil-fines-clearview-ai-eur-20-million" },
+  { reg: "AEPD (Spain)", jur: "EU — Spain", co: "CaixaBank", viol: "Insufficient legal basis for profiling", fine: "€6.2M", date: "Mar 5, 2026", url: "https://www.aepd.es/en" },
 ];
 
 const actionItems = [
@@ -214,7 +214,8 @@ const SampleBrief = () => {
                     <th className="pb-2 pr-3 font-semibold">Company</th>
                     <th className="pb-2 pr-3 font-semibold">Violation</th>
                     <th className="pb-2 pr-3 font-semibold">Fine</th>
-                    <th className="pb-2 font-semibold">Date</th>
+                    <th className="pb-2 pr-3 font-semibold">Date</th>
+                    <th className="pb-2 font-semibold">Source</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,7 +226,12 @@ const SampleBrief = () => {
                       <td className="py-2.5 pr-3 text-slate whitespace-nowrap">{r.co}</td>
                       <td className="py-2.5 pr-3 text-slate">{r.viol}</td>
                       <td className="py-2.5 pr-3 font-semibold text-navy whitespace-nowrap">{r.fine}</td>
-                      <td className="py-2.5 text-slate whitespace-nowrap">{r.date}</td>
+                      <td className="py-2.5 pr-3 text-slate whitespace-nowrap">{r.date}</td>
+                      <td className="py-2.5 whitespace-nowrap">
+                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-foreground text-[11px] font-medium no-underline hover:underline transition-colors">
+                          View ↗
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
