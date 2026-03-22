@@ -411,8 +411,9 @@ const Dashboard = () => {
               <section className="mb-5">
                 <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">Your Jurisdictions This Week</h3>
                 <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  {customBrief.custom_sections.jurisdiction_developments.split("\n").filter(Boolean).map((p: string, i: number) => <p key={i}>{p}</p>)}
+                  <CitedParagraphs content={customBrief.custom_sections.jurisdiction_developments} sourceMap={customBrief.custom_sections?.source_map ?? {}} />
                 </div>
+                <SourcesList sourceMap={customBrief.custom_sections?.source_map ?? {}} usedIn={customBrief.custom_sections.jurisdiction_developments} />
               </section>
             )}
 
