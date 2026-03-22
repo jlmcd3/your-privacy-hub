@@ -168,6 +168,9 @@ const Subscribe = () => {
             );
           })}
         </div>
+        <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
+          Each track is included in your $20/month Premium Pro subscription. Select as many as you need — your analyst synthesizes all selected tracks into one weekly brief.
+        </p>
         <div className="text-center mt-6">
           <button
             onClick={handleSubscribe}
