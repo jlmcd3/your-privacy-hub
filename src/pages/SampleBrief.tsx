@@ -214,7 +214,8 @@ const SampleBrief = () => {
                     <th className="pb-2 pr-3 font-semibold">Company</th>
                     <th className="pb-2 pr-3 font-semibold">Violation</th>
                     <th className="pb-2 pr-3 font-semibold">Fine</th>
-                    <th className="pb-2 font-semibold">Date</th>
+                    <th className="pb-2 pr-3 font-semibold">Date</th>
+                    <th className="pb-2 font-semibold">Source</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,7 +226,12 @@ const SampleBrief = () => {
                       <td className="py-2.5 pr-3 text-slate whitespace-nowrap">{r.co}</td>
                       <td className="py-2.5 pr-3 text-slate">{r.viol}</td>
                       <td className="py-2.5 pr-3 font-semibold text-navy whitespace-nowrap">{r.fine}</td>
-                      <td className="py-2.5 text-slate whitespace-nowrap">{r.date}</td>
+                      <td className="py-2.5 pr-3 text-slate whitespace-nowrap">{r.date}</td>
+                      <td className="py-2.5 whitespace-nowrap">
+                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-foreground text-[11px] font-medium no-underline hover:underline transition-colors">
+                          View ↗
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
