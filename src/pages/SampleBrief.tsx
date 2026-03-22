@@ -29,8 +29,8 @@ const enforcementRows = [
 
 const actionItems = [
   { text: "Review your children's data practices immediately. The ICO's TikTok fine establishes that legitimate interests cannot justify algorithmic personalization for minors. If your platform serves or may serve users under 18, review consent mechanisms, age verification, and data minimization practices before Q2.", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2023/04/ico-fines-tiktok-12-7-million-for-misusing-childrens-data/" },
-  { text: "Deploy ADMT pre-use notices by March 31. California's ADMT regulations take effect April 1. Any automated system affecting employment, housing, credit, or education for California residents requires a pre-use opt-out notice. This is not a grace period — enforcement begins April 1.", url: "https://cppa.ca.gov/regulations/admt.html" },
-  { text: "Begin LGPD transfer mechanism review now. Brazil's new SCC requirement for international transfers has a 90-day window. Organizations transferring data from Brazil should complete gap assessments and execute SCCs or obtain consent before June 14, 2026.", url: "https://www.gov.br/anpd/en" },
+  { text: "Deploy ADMT pre-use notices by March 31. California's ADMT regulations take effect April 1. Any automated system affecting employment, housing, credit, or education for California residents requires a pre-use opt-out notice.", url: "https://cppa.ca.gov/regulations/consumer_privacy_act.html" },
+  { text: "Begin LGPD transfer mechanism review now. Brazil's new SCC requirement for international transfers has a 90-day window. Organizations transferring data from Brazil should complete gap assessments and execute SCCs or obtain consent before June 14, 2026.", url: "https://www.gov.br/anpd/pt-br" },
 ];
 
 const SampleBrief = () => {
