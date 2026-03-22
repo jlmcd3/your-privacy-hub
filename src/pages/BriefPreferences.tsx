@@ -69,19 +69,25 @@ const BRIEF_FORMATS = [
 ];
 
 const Toggle = ({
-  id, label, icon, selected, onToggle,
-}: { id: string; label: string; icon: string; selected: boolean; onToggle: (id: string) => void }) => (
+  id, label, icon, description, selected, onToggle,
+}: { id: string; label: string; icon: string; description?: string; selected: boolean; onToggle: (id: string) => void }) => (
   <button
+    type="button"
     onClick={() => onToggle(id)}
-    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+    className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-left w-full transition-all cursor-pointer ${
       selected
         ? "bg-navy text-white border-navy shadow-eup-sm"
         : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
     }`}
   >
-    <span>{icon}</span>
-    <span>{label}</span>
-    {selected && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+    <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
+    <div className="flex-1 min-w-0">
+      <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
+      {description && (
+        <p className={`text-[11px] mt-0.5 leading-snug ${selected ? "text-blue-200" : "text-slate"}`}>{description}</p>
+      )}
+    </div>
+    {selected && <span className="text-xs ml-auto flex-shrink-0 mt-0.5 opacity-70">✓</span>}
   </button>
 );
 
