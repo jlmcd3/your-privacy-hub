@@ -135,16 +135,16 @@ const Subscribe = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { icon: "🗺️", label: "US State Privacy Laws", desc: "New state laws, AG enforcement, CPPA activity, compliance deadlines" },
-            { icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity", desc: "DPA fines, EDPB decisions, cross-border cases, precedent analysis" },
-            { icon: "🤖", label: "EU AI Act Compliance", desc: "AI Act implementation, GPAI code, prohibited AI, GDPR intersection" },
-            { icon: "👶", label: "Children's Privacy", desc: "COPPA, KOSA, UK AADC, state children's laws, platform enforcement" },
-            { icon: "🍪", label: "AdTech, Consent & Cookie Compliance", desc: "TCF updates, cookie enforcement, Privacy Sandbox, FTC surveillance rules" },
-            { icon: "🔀", label: "Cross-Border Data Transfers", desc: "DPF, SCCs, LGPD transfers, APAC mechanisms, Schrems litigation" },
-            { icon: "🏥", label: "Health & Medical Data Privacy", desc: "HIPAA enforcement, FTC health data, state health privacy laws, health AI" },
-            { icon: "🏛️", label: "Privacy Litigation & Class Actions", desc: "BIPA, VPPA, CIPA filings, settlements, standing doctrine, MDL proceedings" },
-            { icon: "👁️", label: "Biometric Data Privacy", desc: "BIPA litigation, state biometric laws, AI Act biometric provisions, enforcement" },
-            { icon: "🔓", label: "Data Breach & Incident Response", desc: "Breach notification law changes, SEC disclosure rules, enforcement for late notice" },
+            { icon: "🗺️", label: "US State Privacy Laws", desc: "New state laws, AG enforcement, CPPA actions, and compliance deadlines across all 50 states" },
+            { icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity", desc: "DPA fines, EDPB binding decisions, cross-border enforcement, and legal precedent" },
+            { icon: "🤖", label: "EU AI Act Compliance", desc: "AI Act implementation phases, GPAI code updates, prohibited AI, and GDPR intersection" },
+            { icon: "👶", label: "Children's Privacy & Age Verification", desc: "COPPA enforcement, KOSA developments, UK AADC, and platform-specific obligations" },
+            { icon: "🍪", label: "AdTech, Consent & Cookie Compliance", desc: "TCF updates, cookie enforcement actions, Privacy Sandbox changes, FTC surveillance rules" },
+            { icon: "🔀", label: "Cross-Border Data Transfers", desc: "DPF status, SCC updates, LGPD transfers, APAC mechanisms, and Schrems litigation" },
+            { icon: "🏥", label: "Health & Medical Data Privacy", desc: "HIPAA enforcement, FTC health data actions, state health laws, and health AI obligations" },
+            { icon: "🏛️", label: "Privacy Litigation & Class Actions", desc: "BIPA filings, VPPA cases, CIPA wiretap suits, MDL proceedings, settlement watch" },
+            { icon: "👁️", label: "Biometric Data Privacy", desc: "BIPA class action tracker, state biometric laws, AI Act biometric provisions" },
+            { icon: "🔓", label: "Data Breach & Incident Response", desc: "Breach notification law changes, SEC disclosure rules, enforcement for late reporting" },
           ].map((track) => {
             const sel = selectedTracks.includes(track.label);
             return (
