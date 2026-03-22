@@ -90,6 +90,10 @@ const RegulatorPage = () => {
 
   return (
     <div className="min-h-screen bg-paper">
+      <Helmet>
+        <title>{regulator.name} ({regulator.abbreviation}) — Regulator Profile | EndUserPrivacy</title>
+        <meta name="description" content={`${regulator.name} (${regulator.abbreviation}) profile: ${regulator.country} data protection authority. Legislation, enforcement updates, complaint portal, and monitoring tier.`} />
+      </Helmet>
       <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
