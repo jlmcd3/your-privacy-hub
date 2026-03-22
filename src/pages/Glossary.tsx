@@ -28,6 +28,10 @@ const Glossary = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>Privacy Law Glossary — {glossaryData.length}+ Terms Defined | EndUserPrivacy</title>
+        <meta name="description" content="Plain-English definitions of GDPR, CCPA, PIPL, and global privacy law terms. Searchable A–Z glossary for DPOs, lawyers, and compliance professionals." />
+      </Helmet>
       <Topbar />
       <Navbar />
 
