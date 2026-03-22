@@ -31,6 +31,8 @@ const Subscribe = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
 
   const handleSubscribe = async () => {
     if (!user) {
