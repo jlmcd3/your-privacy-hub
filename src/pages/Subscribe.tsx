@@ -120,6 +120,50 @@ const Subscribe = () => {
         <ProBriefPreview />
       </div>
 
+      {/* Report Tracks */}
+      <div className="max-w-3xl mx-auto px-4 py-12 border-t border-fog">
+        <div className="text-center mb-8">
+          <h2 className="font-display font-bold text-navy text-[20px] mb-2">
+            Choose your report tracks
+          </h2>
+          <p className="text-slate text-[13px] max-w-lg mx-auto">
+            Premium Pro briefs are written for your specific topic area every Monday.
+            Pick one track or combine several.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            { icon: "🗺️", label: "US State Privacy Laws", desc: "New state laws, AG enforcement, CPPA activity, compliance deadlines" },
+            { icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity", desc: "DPA fines, EDPB decisions, cross-border cases, precedent analysis" },
+            { icon: "🤖", label: "EU AI Act Compliance", desc: "AI Act implementation, GPAI code, prohibited AI, GDPR intersection" },
+            { icon: "👶", label: "Children's Privacy", desc: "COPPA, KOSA, UK AADC, state children's laws, platform enforcement" },
+            { icon: "🍪", label: "AdTech, Consent & Cookie Compliance", desc: "TCF updates, cookie enforcement, Privacy Sandbox, FTC surveillance rules" },
+            { icon: "🔀", label: "Cross-Border Data Transfers", desc: "DPF, SCCs, LGPD transfers, APAC mechanisms, Schrems litigation" },
+            { icon: "🏥", label: "Health & Medical Data Privacy", desc: "HIPAA enforcement, FTC health data, state health privacy laws, health AI" },
+            { icon: "🏛️", label: "Privacy Litigation & Class Actions", desc: "BIPA, VPPA, CIPA filings, settlements, standing doctrine, MDL proceedings" },
+            { icon: "👁️", label: "Biometric Data Privacy", desc: "BIPA litigation, state biometric laws, AI Act biometric provisions, enforcement" },
+            { icon: "🔓", label: "Data Breach & Incident Response", desc: "Breach notification law changes, SEC disclosure rules, enforcement for late notice" },
+          ].map((track) => (
+            <div key={track.label} className="flex items-start gap-2.5 px-4 py-3 rounded-xl border border-fog bg-white">
+              <span className="text-lg flex-shrink-0 mt-0.5">{track.icon}</span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-navy leading-tight">{track.label}</p>
+                <p className="text-[11px] text-slate mt-0.5 leading-snug">{track.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-6">
+          <button
+            onClick={handleSubscribe}
+            disabled={!!loading}
+            className="bg-navy text-white font-bold text-[14px] py-3 px-10 rounded-xl hover:opacity-90 transition-all"
+          >
+            {loading ? "Redirecting…" : "Get Premium Pro — $20/month →"}
+          </button>
+        </div>
+      </div>
+
       {/* Sample Brief Preview */}
       <div className="max-w-[760px] mx-auto px-4 py-12">
         <div className="text-center mb-6">
