@@ -263,7 +263,7 @@ const SampleBrief = () => {
                   </span>
                   <div className="flex-1">
                     <p className="text-[14px] text-slate-light leading-relaxed">{item.text}</p>
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-sky hover:text-white no-underline hover:underline transition-colors mt-1 inline-block">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 mt-1.5 no-underline">
                       Source ↗
                     </a>
                   </div>
