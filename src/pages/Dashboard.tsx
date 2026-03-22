@@ -163,6 +163,9 @@ const Dashboard = () => {
     // Free users still see the brief — but with Pro upsell
     return (
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>Intelligence Dashboard | EndUserPrivacy</title>
+        </Helmet>
         <Topbar />
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-12">
