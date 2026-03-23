@@ -157,6 +157,7 @@ function normalizeAngle(currentAngle: number, targetAngle: number): number {
   return currentAngle + delta;
 }
 
+export default function SpinTheGlobe() {
   const mountRef      = useRef<HTMLDivElement>(null);
   const globeRef      = useRef<THREE.Mesh | null>(null);
   const sceneRef      = useRef<THREE.Scene | null>(null);
