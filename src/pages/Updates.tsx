@@ -356,7 +356,7 @@ const Updates = () => {
 
                                     {/* AI Summary Panel (inline, compact) */}
                                     {article.ai_summary && !article.ai_summary.skipped && (
-                                        <AISummaryPanel summary={article.ai_summary} compact />
+                                        <AISummaryPanel summary={article.ai_summary} compact isPremium={isPremium} />
                                     )}
                                 </div>
                             </a>

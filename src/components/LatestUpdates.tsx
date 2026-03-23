@@ -302,7 +302,7 @@ const LatestUpdates = () => {
                                 {u.summary}
                               </p>
                             )}
-                            <AISummaryPanel summary={u.ai_summary || null} />
+                            <AISummaryPanel summary={u.ai_summary || null} isPremium={isPremium} />
                           </div>
                           <div className="flex-shrink-0 pt-1">
                             <ExternalLink size={13} className="text-slate/40 group-hover:text-blue transition-colors" />
