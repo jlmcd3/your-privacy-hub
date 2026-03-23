@@ -148,8 +148,11 @@ const Index = () => {
       {/* Layer 2: Breaking news */}
       <BreakingNewsBanner />
 
-      {/* Layer 3: Identity band */}
-      <IdentityBand />
+      {/* Layer 3: Search-first hero */}
+      <SearchFirstHero />
+
+      {/* Choose your mode */}
+      <ChooseYourMode />
 
       {/* Free brief registration — the primary conversion to the email funnel */}
       <div className="bg-navy border-b border-white/10">
