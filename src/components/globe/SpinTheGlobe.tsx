@@ -369,9 +369,12 @@ export default function SpinTheGlobe() {
     // Three.js SphereGeometry has lon=-90° at the camera-facing +Z axis
     // when rotation.y = 0. To bring longitude L to the front:
     // rotation.y = -(L_rad + π/2)
-    globe.rotation.y = -(jur.lon * Math.PI / 180 + Math.PI / 2);
+    spinRef.current = 0; // stop free spin immediately
+    // Compute target angle and animate toward it smoothly
+    const targetAngle = -(jur.lon * Math.PI / 180 + Math.PI / 2);
+    targetRotRef.current = normalizeAngle(globe.rotation.y, targetAngle);
 
-    spinRef.current = 0;   // stop rotation so country stays centered
+    pulseRef.current = 0;
     pulseRef.current = 0;
   }, []);
 
