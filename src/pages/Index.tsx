@@ -58,7 +58,6 @@ function formatDate(iso: string): string {
 }
 
 const Index = () => {
-  const [topArticle, setTopArticle] = useState<Update | null>(null);
   const [regionItems, setRegionItems] = useState<any[]>([]);
   const [laneData, setLaneData] = useState<Record<string, any[]>>({});
 
