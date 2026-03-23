@@ -84,23 +84,13 @@ const navItems: NavItem[] = [
         { icon: "🌏", label: "Middle East", href: "/jurisdiction/uae" },
         { icon: "🗂️", label: "All 150+ Jurisdictions →", href: "/global-privacy-authorities" },
       ]},
-    ],
-  },
-  {
-    label: "Regulators",
-    sections: [
-      { header: "Authority Directories", items: [
-        { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
-        { icon: "🌐", label: "Global DPA Directory", href: "/global-privacy-authorities" },
-      ]},
       { header: "Key Regulators", divider: true, items: [
         { icon: "⚖️", label: "EDPB (EU)", href: "/regulator/edpb" },
         { icon: "⚖️", label: "ICO (UK)", href: "/regulator/ico" },
         { icon: "⚖️", label: "FTC (U.S.)", href: "/regulator/ftc" },
-        { icon: "⚖️", label: "CNIL (France)", href: "/regulator/cnil" },
-        { icon: "⚖️", label: "DPC (Ireland)", href: "/regulator/dpc" },
+        { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
+        { icon: "🌐", label: "All 119 Regulators →", href: "/global-privacy-authorities" },
       ]},
-      { items: [{ icon: "🗂️", label: "All 119 Regulators →", href: "/global-privacy-authorities" }], divider: true },
     ],
   },
   {
@@ -110,21 +100,6 @@ const navItems: NavItem[] = [
         items: [
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "⚖️", label: "Enforcement Actions Feed", href: "/category/enforcement" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Tools",
-    sections: [
-      {
-        items: [
-          { icon: "🧰", label: "All Tools", badge: "NEW", badgeGreen: true, href: "/tools" },
-          { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
-          { icon: "📜", label: "Legislation Tracker", href: "/legislation-tracker" },
-          { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
-          { icon: "⏱️", label: "Regulatory Timelines", href: "/timelines" },
-          { icon: "📖", label: "Privacy Glossary", href: "/glossary" },
         ],
       },
     ],
@@ -141,26 +116,35 @@ const navItems: NavItem[] = [
         ],
       },
       {
-        header: "Free Research",
+        header: "Analysis Tools",
         divider: true,
         items: [
-          { icon: "🗺️", label: "U.S. State Privacy Laws", href: "/us-state-privacy-laws" },
+          { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
+          { icon: "🌐", label: "Compare Jurisdictions", href: "/compare/jurisdictions" },
+          { icon: "📜", label: "Legislation Tracker", badge: "NEW", badgeGreen: true, href: "/legislation-tracker" },
+          { icon: "⏱️", label: "Regulatory Timelines", href: "/timelines" },
+          { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
+        ],
+      },
+      {
+        header: "Reference",
+        divider: true,
+        items: [
+          { icon: "📖", label: "Privacy Glossary", href: "/glossary" },
+          { icon: "🗺️", label: "US State Privacy Laws", href: "/us-state-privacy-laws" },
           { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
-          { icon: "📖", label: "Glossary", href: "/glossary" },
-          { icon: "📅", label: "Regulatory Calendar", href: "/calendar" },
-          { icon: "📜", label: "Regulatory Timelines", href: "/timelines" },
-          { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
-          { icon: "🌐", label: "Compare Jurisdictions", href: "/compare/jurisdictions" },
-          { icon: "📜", label: "Legislation Tracker", badge: "NEW", badgeGreen: true, href: "/legislation-tracker" },
         ],
       },
     ],
   },
+  {
+    label: "Pricing",
+    href: "/subscribe",
+  },
 ];
-
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
