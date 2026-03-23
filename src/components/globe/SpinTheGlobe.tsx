@@ -275,7 +275,20 @@ export default function SpinTheGlobe() {
       frame++;
       clockRef.current += 0.016;
 
-      if (globeRef.current) globeRef.current.rotation.y += spinRef.current;
+      if (globeRef.current) {
+        if (targetRotRef.current !== null) {
+          // Ease-out toward target angle
+          const diff = targetRotRef.current - globeRef.current.rotation.y;
+          if (Math.abs(diff) < 0.001) {
+            globeRef.current.rotation.y = targetRotRef.current;
+            targetRotRef.current = null; // done
+          } else {
+            globeRef.current.rotation.y += diff * 0.06; // ease-out
+          }
+        } else {
+          globeRef.current.rotation.y += spinRef.current; // normal spin
+        }
+      }
 
       if (frame % 2 === 0 && starsRef.current) {
         tickStars(starsRef.current.points, starsRef.current.phases, starsRef.current.speeds, clockRef.current);
