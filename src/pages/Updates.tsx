@@ -255,7 +255,6 @@ const Updates = () => {
                     </div>
                 )}
 
-                <AISummaryPanel />
                 <AdBanner />
 
                 {/* Newsfeed */}
