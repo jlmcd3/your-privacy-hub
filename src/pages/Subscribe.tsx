@@ -58,7 +58,7 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Privacy Intelligence Reports — 10 Topic Tracks | EndUserPrivacy Premium Pro</title>
+        <title>Privacy Intelligence Reports — 10 Topic Tracks | EndUserPrivacy Premium</title>
         <meta name="description" content="Personalized weekly privacy intelligence. Choose from 10 topic tracks: US State Laws, GDPR Enforcement, AI Act, Children's Privacy, AdTech, Health Data, Litigation, Biometric, Cross-Border Transfers, Data Breach. $20/month." />
       </Helmet>
       <Topbar />
@@ -129,7 +129,7 @@ const Subscribe = () => {
             Choose your report tracks
           </h2>
           <p className="text-slate text-[13px] max-w-lg mx-auto">
-            Premium Pro briefs are written for your specific topic area every Monday.
+            Premium briefs are written for your specific topic area every Monday.
             Pick one track or combine several.
           </p>
         </div>
@@ -169,7 +169,7 @@ const Subscribe = () => {
           })}
         </div>
         <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
-          Each track is included in your $20/month Premium Pro subscription. Select as many as you need — your analyst synthesizes all selected tracks into one weekly brief.
+          Each track is included in your $20/month Premium subscription. Select as many as you need — your analyst synthesizes all selected tracks into one weekly brief.
         </p>
         <div className="text-center mt-6">
           <button
@@ -177,7 +177,7 @@ const Subscribe = () => {
             disabled={!!loading}
             className="bg-navy text-white font-bold text-[14px] py-3 px-10 rounded-xl hover:opacity-90 transition-all"
           >
-            {loading ? "Redirecting…" : "Get Premium Pro — all 10 tracks included →"}
+            {loading ? "Redirecting…" : "Get Premium — all 10 tracks included →"}
           </button>
         </div>
       </div>
@@ -426,7 +426,7 @@ const Subscribe = () => {
               {/* Pro — Healthcare */}
               <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-3">
-                  ⭐ Premium Pro brief — Healthcare sector
+                  ⭐ Premium brief — Healthcare sector
                 </div>
                 <p className="text-[12px] font-semibold text-white mb-2 leading-snug">
                   ICO children's data ruling: direct implications for pediatric health platforms
@@ -471,7 +471,7 @@ const Subscribe = () => {
 
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
-              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium Pro — $20/month</p>
+              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium — $20/month</p>
               <p className="text-[12px] text-sky mb-4">Your analyst. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
@@ -540,7 +540,7 @@ const Subscribe = () => {
               The only paid tier
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-              ⭐ Premium Pro
+              ⭐ Premium
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
               $20<span className="text-lg font-normal text-blue-200">/month</span>
@@ -568,7 +568,7 @@ const Subscribe = () => {
             {/* Founding offer */}
             <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-4 mb-5">
               <p className="text-[13px] text-amber-200 leading-relaxed">
-                🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium Pro
+                🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium
                 free for one year, then $20/month.
               </p>
             </div>
@@ -578,7 +578,7 @@ const Subscribe = () => {
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-white text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "pro" ? "Redirecting…" : "Get Premium Pro →"}
+              {loading === "pro" ? "Redirecting…" : "Get Premium →"}
             </button>
             <p className="text-center text-blue-300 text-[11px] mt-3">
               Cancel anytime · Secure checkout via Stripe

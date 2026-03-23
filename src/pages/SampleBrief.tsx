@@ -55,7 +55,7 @@ const SampleBrief = () => {
             <p className="text-slate-light text-[15px] max-w-[600px] mx-auto mb-6">
               This is a representative sample of the full Intelligence Brief —
               every section written by AI from that week's actual regulatory developments.
-              Premium Pro subscribers receive this same brief re-analyzed specifically
+              Premium subscribers receive this same brief re-analyzed specifically
               for their industry and jurisdiction.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
@@ -63,7 +63,7 @@ const SampleBrief = () => {
                 to="/subscribe"
                 className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
               >
-                Get Premium Pro →
+                Get Premium →
               </Link>
               <Link
                 to="/"
@@ -278,14 +278,14 @@ const SampleBrief = () => {
               Receive this analysis every Monday morning.
             </h3>
             <p className="text-slate-light text-[14px] mb-5 max-w-[500px] mx-auto">
-              Everything above is free. Premium Pro re-writes this brief for your industry and jurisdiction — $20/month.
+              Everything above is free. Premium re-writes this brief for your industry and jurisdiction — $20/month.
             </p>
             <div className="text-center">
               <Link
                 to="/subscribe"
                 className="inline-block bg-white text-navy font-bold text-[14px] py-3 px-10 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Get Premium Pro — $20/month →
+                Get Premium — $20/month →
               </Link>
               <p className="text-blue-300 text-[12px] mt-3">
                 First 25 subscribers get the first year free · Cancel anytime
