@@ -57,7 +57,7 @@ export default function SubscribeSuccess() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Welcome to Premium Pro | EndUserPrivacy</title>
+        <title>Welcome to Premium | EndUserPrivacy</title>
       </Helmet>
       <Topbar />
       <Navbar />
@@ -73,7 +73,7 @@ export default function SubscribeSuccess() {
             ⭐ Payment Confirmed
           </div>
           <h1 className="font-display font-bold text-navy text-[28px] md:text-[34px] mb-3 leading-tight">
-            Welcome to Premium Pro.
+            Welcome to Premium.
           </h1>
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
             Your personal analyst is now active. Every Monday morning, you'll receive

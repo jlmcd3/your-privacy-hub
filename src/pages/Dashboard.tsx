@@ -172,7 +172,7 @@ const Dashboard = () => {
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
               <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
-                ⭐ Upgrade to Premium Pro
+                ⭐ Upgrade to Premium
               </div>
               <h3 className="font-display font-bold text-white text-[18px] mb-2">
                 Get this brief re-written for your industry
@@ -186,7 +186,7 @@ const Dashboard = () => {
                   to="/subscribe"
                   className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
-                  Get Premium Pro — $20/month →
+                  Get Premium — $20/month →
                 </Link>
               </div>
             </div>

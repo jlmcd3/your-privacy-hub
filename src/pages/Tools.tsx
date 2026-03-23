@@ -94,7 +94,7 @@ export default function Tools() {
             DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
           </p>
           <p className="text-slate-light text-[11px]">
-            All tools are free with no account required. Premium Pro ($20/month) adds a personalized weekly analyst brief.
+            All tools are free with no account required. Premium ($20/month) adds a personalized weekly analyst brief.
           </p>
         </div>
       </div>

@@ -136,13 +136,13 @@ export default function BriefPreferences() {
 
   return (
     <>
-      <Helmet><title>Configure Your Analyst | EndUserPrivacy Premium Pro</title></Helmet>
+      <Helmet><title>Configure Your Analyst | EndUserPrivacy Premium</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Topbar /><Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 md:px-8 py-10 w-full">
           <div className="mb-8">
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
-              <span>⭐</span> Premium Pro
+              <span>⭐</span> Premium
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">
               Configure your analyst
@@ -227,14 +227,14 @@ export default function BriefPreferences() {
           {/* Upgrade prompt */}
           <div className="mt-8 bg-fog rounded-2xl p-6 text-center">
             <p className="text-slate text-sm mb-3">
-              Your analyst requires Premium Pro ($20/month).
+              Your analyst requires Premium ($20/month).
               Standard Premium subscribers receive the shared weekly brief.
             </p>
             <Link
               to="/subscribe"
               className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
-              Upgrade to Premium Pro →
+              Upgrade to Premium →
             </Link>
           </div>
         </main>

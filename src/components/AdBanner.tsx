@@ -25,7 +25,7 @@ const AdBanner = ({
   const dim = dimensions[variant];
   const label = variant === "infeed" ? "Sponsored Content" : "Advertisement";
 
-  // House ad fallback — Premium Pro upsell
+  // House ad fallback — Premium upsell
   if (!googleAdClient || !googleAdSlot) {
     const isLeaderboard = variant === "leaderboard" || variant === "inline";
 
@@ -45,7 +45,7 @@ const AdBanner = ({
             <span className="text-[18px]">⭐</span>
             <div>
               <div className="text-[12px] font-bold text-amber-900 leading-tight">
-                Premium Pro — $20/month
+                Premium — $20/month
               </div>
               <div className="text-[11px] text-amber-700 leading-tight mt-0.5">
                 Your weekly brief written for your industry and jurisdiction

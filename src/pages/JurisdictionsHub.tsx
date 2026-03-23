@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
 import AdBanner from "@/components/AdBanner";
-import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
+
 
 export default function JurisdictionsHub() {
   const [recentUpdates, setRecentUpdates] = useState([

@@ -100,7 +100,7 @@ const WeeklyBriefTeaser = () => {
           <div className="px-6 md:px-8 py-5 bg-white/[0.03] flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <p className="text-[12px] font-bold text-amber-400 uppercase tracking-wider mb-1">
-                ⭐ Premium Pro — $20/month
+                ⭐ Premium — $20/month
               </p>
               <p className="text-[13px] text-slate-light leading-snug">
                 The same brief re-written specifically for your industry,
