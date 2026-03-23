@@ -212,19 +212,8 @@ const Index = () => {
 
           {/* === LEFT COLUMN === */}
           <div className="min-w-0">
-            {/* Featured story */}
-            {topArticle && (
-              <FeaturedBriefCard
-                headline={topArticle.title}
-                summary={decodeHtml(topArticle.summary)}
-                jurisdiction={CATEGORY_META[topArticle.category]?.jurisdiction || topArticle.category}
-                jurisdictionFlag={CATEGORY_META[topArticle.category]?.flag || "🌐"}
-                category={topArticle.category}
-                date={formatDate(topArticle.published_at)}
-                href={topArticle.url}
-                aiSummary={(topArticle as any).ai_summary ?? null}
-              />
-            )}
+            {/* This Week in Privacy */}
+            <ThisWeekInPrivacy />
 
             {/* Region strip */}
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
