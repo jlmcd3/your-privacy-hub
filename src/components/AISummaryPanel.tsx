@@ -1,17 +1,23 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye, Lock } from "lucide-react";
 
 interface AISummary {
   why_it_matters: string;
   takeaways: string[];
   compliance_impact: string;
   who_should_care: string;
-  urgency?: string;
+  urgency?: string; // Immediate | This quarter | Monitor
+  legal_weight?: string; // Binding | Enforcement | Guidance | Proposal | Commentary
+  source_strength?: string; // Primary regulator | Legal analysis | Media coverage
+  cross_jurisdiction_signal?: string | null;
+  risk_level?: string; // Low | Medium | High | Critical
 }
 
 interface AISummaryPanelProps {
   summary: AISummary | null;
   compact?: boolean;
+  isPremium?: boolean; // false = free user, full panel locked
 }
 
 const URGENCY_CONFIG: Record<string, { color: string; icon: typeof AlertCircle; label: string }> = {
@@ -20,7 +26,14 @@ const URGENCY_CONFIG: Record<string, { color: string; icon: typeof AlertCircle; 
   "Monitor":      { color: "bg-primary/10 text-primary border-primary/20", icon: Eye, label: "Monitor" },
 };
 
-const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
+const RISK_CONFIG: Record<string, string> = {
+  "Critical": "bg-red-50 text-red-700 border-red-200",
+  "High": "bg-orange-50 text-orange-700 border-orange-200",
+  "Medium": "bg-amber-50 text-amber-700 border-amber-200",
+  "Low": "bg-green-50 text-green-700 border-green-200",
+};
+
+const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISummaryPanelProps) => {
   const [open, setOpen] = useState(false);
 
   if (!summary) return null;
@@ -62,18 +75,28 @@ const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
         </p>
       )}
 
-      {/* Expand/collapse for full detail */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer px-0 mt-0.5"
-      >
-        <Sparkles className="w-3 h-3" />
-        {open ? "Hide" : "Full AI analysis"}
-        {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-      </button>
+      {/* Expand button: locked for free users */}
+      {isPremium ? (
+        <button
+          onClick={() => setOpen(!open)}
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer px-0 mt-0.5"
+        >
+          <Sparkles className="w-3 h-3" />
+          {open ? "Hide" : "Full AI analysis"}
+          {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+      ) : (
+        <Link
+          to="/subscribe"
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors mt-0.5"
+        >
+          <Lock className="w-3 h-3" />
+          Full AI analysis — Premium →
+        </Link>
+      )}
 
-      {/* Expanded full panel */}
-      {open && (
+      {/* Expanded full panel: only renders for premium users */}
+      {isPremium && open && (
         <div className="mt-2 p-4 bg-primary/[0.03] border border-primary/10 rounded-xl space-y-3 text-[12px]">
           <div>
             <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
@@ -114,12 +137,19 @@ const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
                 {summary.who_should_care}
               </p>
             )}
-            {urgencyConfig && (
-              <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${urgencyConfig.color}`}>
-                <UrgencyIcon className="w-2.5 h-2.5" />
-                {summary.urgency}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {summary.risk_level && RISK_CONFIG[summary.risk_level] && (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${RISK_CONFIG[summary.risk_level]}`}>
+                  ⚠️ {summary.risk_level} risk
+                </span>
+              )}
+              {urgencyConfig && (
+                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${urgencyConfig.color}`}>
+                  <UrgencyIcon className="w-2.5 h-2.5" />
+                  {summary.urgency}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
