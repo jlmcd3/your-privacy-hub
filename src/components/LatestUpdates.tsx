@@ -262,7 +262,7 @@ const LatestUpdates = () => {
                   <>
                     <NewsfeedList
                       articles={displayArticles}
-                      renderArticle={(u) => (
+                      renderArticle={(u, _i, isPremium) => (
                         <a
                           key={u.id}
                           href={u.url}
