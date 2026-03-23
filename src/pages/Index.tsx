@@ -12,12 +12,14 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
-import FeaturedBriefCard from "@/components/home/FeaturedBriefCard";
+
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
 import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 import HeadlinesTicker from "@/components/home/HeadlinesTicker";
-import IdentityBand from "@/components/home/IdentityBand";
+import SearchFirstHero from "@/components/home/SearchFirstHero";
+import ChooseYourMode from "@/components/home/ChooseYourMode";
+import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
@@ -56,7 +58,6 @@ function formatDate(iso: string): string {
 }
 
 const Index = () => {
-  const [topArticle, setTopArticle] = useState<Update | null>(null);
   const [regionItems, setRegionItems] = useState<any[]>([]);
   const [laneData, setLaneData] = useState<Record<string, any[]>>({});
 
@@ -70,14 +71,7 @@ const Index = () => {
 
       const articles = (data as Update[]) || [];
 
-      // Featured card priority: enforcement → immediate urgency → any ai_summary → most recent
-      const enforcementArticle = articles.find(a => a.category === "enforcement");
-      const immediateArticle = articles.find(
-        a => (a as any).ai_summary?.urgency === "Immediate"
-      );
-      const anyAiArticle = articles.find(a => (a as any).ai_summary != null);
-      const featured = enforcementArticle ?? immediateArticle ?? anyAiArticle ?? articles[0] ?? null;
-      if (featured) setTopArticle(featured);
+
 
       // Region feed
       const regionCats = ["eu-uk", "us-federal", "global"];
@@ -146,8 +140,11 @@ const Index = () => {
       {/* Layer 2: Breaking news */}
       <BreakingNewsBanner />
 
-      {/* Layer 3: Identity band */}
-      <IdentityBand />
+      {/* Layer 3: Search-first hero */}
+      <SearchFirstHero />
+
+      {/* Choose your mode */}
+      <ChooseYourMode />
 
       {/* Free brief registration — the primary conversion to the email funnel */}
       <div className="bg-navy border-b border-white/10">
@@ -207,19 +204,8 @@ const Index = () => {
 
           {/* === LEFT COLUMN === */}
           <div className="min-w-0">
-            {/* Featured story */}
-            {topArticle && (
-              <FeaturedBriefCard
-                headline={topArticle.title}
-                summary={decodeHtml(topArticle.summary)}
-                jurisdiction={CATEGORY_META[topArticle.category]?.jurisdiction || topArticle.category}
-                jurisdictionFlag={CATEGORY_META[topArticle.category]?.flag || "🌐"}
-                category={topArticle.category}
-                date={formatDate(topArticle.published_at)}
-                href={topArticle.url}
-                aiSummary={(topArticle as any).ai_summary ?? null}
-              />
-            )}
+            {/* This Week in Privacy */}
+            <ThisWeekInPrivacy />
 
             {/* Region strip */}
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
