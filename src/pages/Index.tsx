@@ -20,6 +20,7 @@ import HeadlinesTicker from "@/components/home/HeadlinesTicker";
 import IdentityBand from "@/components/home/IdentityBand";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
+import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 
 interface Update {
   id: string;
