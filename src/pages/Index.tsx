@@ -12,7 +12,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
-import FeaturedBriefCard from "@/components/home/FeaturedBriefCard";
+
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
 import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";

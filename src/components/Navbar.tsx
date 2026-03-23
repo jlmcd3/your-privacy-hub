@@ -232,22 +232,22 @@ const Navbar = () => {
           {user ? (
             <>
               <Link
-                to="/subscribe"
+                to="/dashboard"
                 className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
               >
-                ⭐ Upgrade
+                🧠 My Dashboard
               </Link>
               <Link
-                to="/brief-preferences"
+                to="/subscribe"
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
               >
-                My Brief
+                Upgrade
               </Link>
               <Link
                 to="/account"
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
               >
-                My Account
+                Account
               </Link>
             </>
           ) : (
