@@ -318,7 +318,7 @@ const Updates = () => {
                     isLoading={loading || loadingMore}
                     hasMore={hasMore}
                     onLoadMore={handleLoadMore}
-                    renderArticle={(article, i) => {
+                    renderArticle={(article, i, isPremium) => {
                         const t = tag(article.category || "global");
                         return (
                             <a
