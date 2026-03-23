@@ -186,7 +186,7 @@ const CategoryPage = () => {
           {!loading && updates.length > 0 && (
             <NewsfeedList
               articles={updates}
-              renderArticle={(u) => (
+              renderArticle={(u, _i, isPremium) => (
                 <a
                   key={u.id}
                   href={u.url}
