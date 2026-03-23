@@ -71,14 +71,7 @@ const Index = () => {
 
       const articles = (data as Update[]) || [];
 
-      // Featured card priority: enforcement → immediate urgency → any ai_summary → most recent
-      const enforcementArticle = articles.find(a => a.category === "enforcement");
-      const immediateArticle = articles.find(
-        a => (a as any).ai_summary?.urgency === "Immediate"
-      );
-      const anyAiArticle = articles.find(a => (a as any).ai_summary != null);
-      const featured = enforcementArticle ?? immediateArticle ?? anyAiArticle ?? articles[0] ?? null;
-      if (featured) setTopArticle(featured);
+
 
       // Region feed
       const regionCats = ["eu-uk", "us-federal", "global"];
