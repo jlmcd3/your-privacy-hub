@@ -283,6 +283,54 @@ export type Database = {
         }
         Relationships: []
       }
+      trend_reports: {
+        Row: {
+          affected_industries: Json
+          article_count: number
+          confidence_score: number
+          created_at: string | null
+          date: string
+          emerging_risks: Json
+          id: string
+          jurisdictions: Json
+          period: string
+          regulatory_patterns: Json
+          source_article_ids: Json
+          top_trends: Json
+          updated_at: string | null
+        }
+        Insert: {
+          affected_industries?: Json
+          article_count?: number
+          confidence_score?: number
+          created_at?: string | null
+          date: string
+          emerging_risks?: Json
+          id?: string
+          jurisdictions?: Json
+          period?: string
+          regulatory_patterns?: Json
+          source_article_ids?: Json
+          top_trends?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          affected_industries?: Json
+          article_count?: number
+          confidence_score?: number
+          created_at?: string | null
+          date?: string
+          emerging_risks?: Json
+          id?: string
+          jurisdictions?: Json
+          period?: string
+          regulatory_patterns?: Json
+          source_article_ids?: Json
+          top_trends?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       updates: {
         Row: {
           ai_summary: Json | null

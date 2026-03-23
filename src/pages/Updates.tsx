@@ -318,7 +318,7 @@ const Updates = () => {
                     isLoading={loading || loadingMore}
                     hasMore={hasMore}
                     onLoadMore={handleLoadMore}
-                    renderArticle={(article, i) => {
+                    renderArticle={(article, i, isPremium) => {
                         const t = tag(article.category || "global");
                         return (
                             <a
@@ -356,7 +356,7 @@ const Updates = () => {
 
                                     {/* AI Summary Panel (inline, compact) */}
                                     {article.ai_summary && !article.ai_summary.skipped && (
-                                        <AISummaryPanel summary={article.ai_summary} compact />
+                                        <AISummaryPanel summary={article.ai_summary} compact isPremium={isPremium} />
                                     )}
                                 </div>
                             </a>

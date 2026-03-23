@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import NewsfeedPaywallCard from "./NewsfeedPaywallCard";
 import InFeedAd from "./InFeedAd";
 
@@ -21,7 +22,7 @@ interface Article {
 
 interface NewsfeedListProps {
   articles: Article[];
-  renderArticle: (article: Article, index: number) => React.ReactNode;
+  renderArticle: (article: Article, index: number, isPremium: boolean) => React.ReactNode;
   isLoading?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
@@ -35,8 +36,20 @@ export default function NewsfeedList({
   onLoadMore,
 }: NewsfeedListProps) {
   const { user } = useAuth();
-  const isPremium = false; // TODO: wire to Stripe subscription status from profile
+  const [isPremium, setIsPremium] = useState(false);
   const [visibleCount, setVisibleCount] = useState(FREE_LIMIT);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("is_premium, is_pro")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setIsPremium(data?.is_premium === true || data?.is_pro === true);
+      });
+  }, [user]);
 
   const showPaywall = !isPremium && articles.length > FREE_LIMIT && visibleCount >= FREE_LIMIT;
   const visibleArticles = isPremium ? articles : articles.slice(0, visibleCount);
@@ -55,7 +68,7 @@ export default function NewsfeedList({
       <div className="space-y-0">
         {visibleArticles.map((article, i) => (
           <div key={article.id || i}>
-            {renderArticle(article, i)}
+            {renderArticle(article, i, isPremium)}
             {i === 3 && <InFeedAd adSlot="eup-infeed-1" />}
             {i === 8 && <InFeedAd adSlot="eup-infeed-2" />}
           </div>

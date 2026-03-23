@@ -607,7 +607,11 @@ STEP 2 — If relevant, return this JSON:
     one sentence. Examples:
     'Cookie consent enforcement coordinating across CNIL, ICO, and APD Belgium'
     'Children's privacy enforcement wave: ICO, FTC, and Texas AG acting in parallel'
-    If no cross-jurisdiction pattern is evident, return null."
+    If no cross-jurisdiction pattern is evident, return null.",
+
+  "risk_level": "Low | Medium | High | Critical — how urgently does this require
+    compliance action? Low = monitoring only, Medium = review within quarter,
+    High = review within weeks, Critical = immediate legal exposure"
 }`,
           },
         ],
