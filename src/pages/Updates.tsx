@@ -43,14 +43,14 @@ const DATE_RANGES = [
   { key: "all", label: "All" },
 ];
 
-const CATEGORY_TAG: Record<string, { label: string; classes: string }> = {
-    "eu-uk": { label: "🇪🇺 EU & UK", classes: "bg-blue/10 text-blue" },
-    "us-federal": { label: "🇺🇸 U.S. Federal", classes: "bg-navy/10 text-navy" },
-    "us-states": { label: "🗺️ U.S. States", classes: "bg-accent/10 text-accent" },
-    "enforcement": { label: "⚖️ Enforcement", classes: "bg-red-50 text-red-600" },
-    "ai-privacy": { label: "🤖 AI & Privacy", classes: "bg-purple-50 text-purple-600" },
-    "global": { label: "🌐 Global", classes: "bg-fog text-slate" },
-    "adtech": { label: "📡 AdTech", classes: "bg-orange-50 text-orange-600" },
+const CATEGORY_TAG: Record<string, { label: string; textColor: string }> = {
+    "eu-uk": { label: "🇪🇺 EU & UK", textColor: "text-blue" },
+    "us-federal": { label: "🇺🇸 U.S. Federal", textColor: "text-navy" },
+    "us-states": { label: "🗺️ U.S. States", textColor: "text-accent" },
+    "enforcement": { label: "⚖️ Enforcement", textColor: "text-red-600" },
+    "ai-privacy": { label: "🤖 AI & Privacy", textColor: "text-purple-600" },
+    "global": { label: "🌐 Global", textColor: "text-slate" },
+    "adtech": { label: "📡 AdTech", textColor: "text-orange-600" },
 };
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -83,13 +83,17 @@ const Updates = () => {
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+    // AI summary filter state
+    const [urgencyFilter, setUrgencyFilter] = useState("all");
+    const [legalWeightFilter, setLegalWeightFilter] = useState("all");
+    const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
+
     const buildQuery = useCallback((offset: number) => {
-        let q = supabase
+        return supabase
             .from("updates")
             .select("*")
             .order("published_at", { ascending: false })
             .range(offset, offset + PAGE_SIZE - 1);
-        return q;
     }, []);
 
     const loadPage = useCallback(async (offset: number, replace: boolean) => {
@@ -164,6 +168,12 @@ const Updates = () => {
             if (new Date(u.published_at).getTime() < cutoff) return false;
         }
         if (activeSource && u.source_domain !== activeSource) return false;
+
+        // AI summary filters
+        if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
+        if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
+        if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
+
         return true;
     });
 
@@ -232,7 +242,7 @@ const Updates = () => {
 
                 {/* Source pills */}
                 {sourcePills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-6">
+                    <div className="flex flex-wrap gap-2 mb-4">
                         <button
                             onClick={() => setActiveSource(null)}
                             className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
@@ -255,6 +265,51 @@ const Updates = () => {
                     </div>
                 )}
 
+                {/* AI Summary Filters — only show if any articles have ai_summary */}
+                {updates.some(u => u.ai_summary && !u.ai_summary.skipped) && (
+                    <div className="flex flex-wrap items-center gap-3 mb-6 px-3 py-2.5 bg-navy/5 rounded-xl border border-navy/10">
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">AI filters:</span>
+
+                        {/* Urgency dropdown */}
+                        <select
+                            value={urgencyFilter}
+                            onChange={e => setUrgencyFilter(e.target.value)}
+                            className="text-[11px] bg-background text-foreground border border-border rounded-lg px-2.5 py-1 outline-none focus:border-sky cursor-pointer"
+                        >
+                            <option value="all">All urgency</option>
+                            <option value="Immediate">🔴 Immediate</option>
+                            <option value="This quarter">🟡 This quarter</option>
+                            <option value="Monitor">🟢 Monitor</option>
+                        </select>
+
+                        {/* Legal weight dropdown */}
+                        <select
+                            value={legalWeightFilter}
+                            onChange={e => setLegalWeightFilter(e.target.value)}
+                            className="text-[11px] bg-background text-foreground border border-border rounded-lg px-2.5 py-1 outline-none focus:border-sky cursor-pointer"
+                        >
+                            <option value="all">All legal weight</option>
+                            <option value="Binding">Binding</option>
+                            <option value="Enforcement">Enforcement</option>
+                            <option value="Guidance">Guidance</option>
+                            <option value="Proposal">Proposal</option>
+                            <option value="Commentary">Commentary</option>
+                        </select>
+
+                        {/* Cross-jurisdiction toggle */}
+                        <button
+                            onClick={() => setCrossJurisdictionOnly(!crossJurisdictionOnly)}
+                            className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                crossJurisdictionOnly
+                                    ? "bg-accent/20 text-accent border-accent/30 font-semibold"
+                                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                            }`}
+                        >
+                            🌐 Cross-jurisdiction only
+                        </button>
+                    </div>
+                )}
+
                 <AdBanner />
 
                 {/* Newsfeed */}
@@ -270,38 +325,38 @@ const Updates = () => {
                                 href={article.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex gap-4 p-4 border-b border-border hover:bg-muted/40 transition-colors group"
+                                className="flex gap-4 p-4 border-b border-border hover:bg-fog/30 transition-all no-underline cursor-pointer group"
                             >
                                 {article.image_url && (
                                     <img
                                         src={article.image_url}
                                         alt=""
-                                        className="w-24 h-16 object-cover rounded-md flex-shrink-0 hidden sm:block"
+                                        className="w-[120px] h-[80px] object-cover rounded-md flex-shrink-0 hidden sm:block"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = FALLBACK_IMAGES[article.category || "global"] || "";
                                         }}
                                     />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${t.classes}`}>
-                                            {t.label}
-                                        </span>
-                                        <span className="text-[11px] text-muted-foreground">
-                                            {formatDate(article.published_at || "")}
-                                        </span>
+                                    {/* Unified metadata line */}
+                                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1">
+                                        <span>{article.source_domain || article.source_name}</span>
+                                        <span>•</span>
+                                        <span>{formatDate(article.published_at || "")}</span>
+                                        <span>•</span>
+                                        <span className={t.textColor}>{t.label}</span>
                                     </div>
-                                    <h3 className="text-sm font-semibold text-foreground group-hover:text-blue leading-snug line-clamp-2">
+                                    <h3 className="text-[14px] font-semibold text-foreground group-hover:text-blue transition-colors mb-1 line-clamp-2 leading-snug">
                                         {article.title}
                                         <ExternalLink className="inline w-3 h-3 ml-1 opacity-0 group-hover:opacity-50" />
                                     </h3>
                                     {article.summary && (
-                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{article.summary}</p>
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{article.summary}</p>
                                     )}
-                                    {article.source_name && (
-                                        <span className="text-[10px] text-muted-foreground mt-1 inline-block">
-                                            {article.source_name}
-                                        </span>
+
+                                    {/* AI Summary Panel (inline, compact) */}
+                                    {article.ai_summary && !article.ai_summary.skipped && (
+                                        <AISummaryPanel summary={article.ai_summary} compact />
                                     )}
                                 </div>
                             </a>
