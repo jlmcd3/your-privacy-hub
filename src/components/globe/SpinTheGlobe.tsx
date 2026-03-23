@@ -142,7 +142,21 @@ function tickStars(
   attr.needsUpdate = true;
 }
 
-export default function SpinTheGlobe() {
+// Returns the destination angle that requires the shortest rotation
+// from currentAngle to reach targetAngle, regardless of accumulated
+// full rotations on the globe (handles multi-spin wraparound).
+function normalizeAngle(currentAngle: number, targetAngle: number): number {
+  // Wrap current angle back into [0, 2π]
+  const current =
+    ((currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  // Find the delta and clamp to [−π, +π] (shortest arc)
+  let delta = targetAngle - current;
+  while (delta > Math.PI) delta -= 2 * Math.PI;
+  while (delta < -Math.PI) delta += 2 * Math.PI;
+  // Return target relative to the real (un-normalized) currentAngle
+  return currentAngle + delta;
+}
+
   const mountRef      = useRef<HTMLDivElement>(null);
   const globeRef      = useRef<THREE.Mesh | null>(null);
   const sceneRef      = useRef<THREE.Scene | null>(null);
