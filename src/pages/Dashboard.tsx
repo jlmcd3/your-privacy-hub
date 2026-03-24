@@ -168,7 +168,15 @@ const Dashboard = () => {
       .then(({ data }: any) => setCustomBrief(data));
   }, [user]);
 
-  if (authLoading || isPremium === null) {
+  // Handle credits_purchased redirect from Stripe
+  useEffect(() => {
+    const purchased = searchParams.get("credits_purchased");
+    if (purchased) {
+      setBonusCredits(prev => prev + parseInt(purchased, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
     return (
       <div className="min-h-screen bg-background">
         <Helmet>
