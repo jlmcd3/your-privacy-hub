@@ -62,6 +62,14 @@ function SectionBlock({ icon, title, content, sourceMap }: { icon: string; title
   );
 }
 
+/** Truncate to first N sentences for the free-user teaser */
+function truncateToSentences(text: string | null, count = 2): string {
+  if (!text) return "";
+  const sentences = text.match(/[^.!?]+[.!?]+/g);
+  if (!sentences) return text.slice(0, 150) + "…";
+  return sentences.slice(0, count).join("").trim();
+}
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
