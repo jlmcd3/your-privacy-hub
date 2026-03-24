@@ -169,6 +169,9 @@ export default function BriefPreferences() {
     ]);
     setSaving(false);
     setSaved(true);
+    if (!isPremium) {
+      toast("Preferences saved! They'll activate when you upgrade to Premium.");
+    }
   };
 
   return (
