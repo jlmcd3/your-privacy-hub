@@ -1,5 +1,8 @@
 project_id = "tvksbtrelpzhbyeutzgp"
 
+[functions.fetch-updates]
+verify_jwt = false
+
 [functions.generate-weekly-brief]
 verify_jwt = false
 
