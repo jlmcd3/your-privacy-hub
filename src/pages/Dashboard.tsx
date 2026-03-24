@@ -557,27 +557,6 @@ const Dashboard = () => {
               </section>
             )}
 
-            {/* Legacy fallback for old 3-section briefs */}
-            {!customBrief.custom_sections?.opening_headline && customBrief.custom_sections?.industry_focus && (
-              <>
-                <div className="mb-4">
-                  <h3 className="font-bold text-foreground text-[14px] mb-2">Industry Focus</h3>
-                  <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.industry_focus}</p>
-                </div>
-                {customBrief.custom_sections?.jurisdiction_focus && (
-                  <div className="mb-4">
-                    <h3 className="font-bold text-foreground text-[14px] mb-2">Jurisdiction Highlights</h3>
-                    <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.jurisdiction_focus}</p>
-                  </div>
-                )}
-                {customBrief.custom_sections?.topic_focus && (
-                  <div>
-                    <h3 className="font-bold text-foreground text-[14px] mb-2">Topic Focus</h3>
-                    <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.topic_focus}</p>
-                  </div>
-                )}
-              </>
-            )}
           </div>
         )}
 

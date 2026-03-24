@@ -151,7 +151,7 @@ export default function Account() {
           </h2>
           <div className="space-y-2">
             {[
-              { label: "My Intelligence Brief", href: "/dashboard", premium: true },
+              { label: "My Intelligence Brief", href: "/dashboard", premium: false },
               { label: "My Watchlist", href: "#watchlist", premium: false },
               { label: "Sample Brief", href: "/sample-brief", premium: false },
               { label: "FAQ", href: "/faq", premium: false },
