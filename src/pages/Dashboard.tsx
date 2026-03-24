@@ -505,6 +505,17 @@ const Dashboard = () => {
               </section>
             )}
 
+            {/* Continuity from Last Week */}
+            {customBrief.custom_sections?.continuity_from_last_week && (
+              <section className="bg-card rounded-xl border border-border p-4 mb-5">
+                <h3 className="font-semibold text-foreground text-[14px] uppercase tracking-wider mb-2">🔄 Continuity from Last Week</h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  <CitedParagraphs content={customBrief.custom_sections.continuity_from_last_week} sourceMap={brief?.source_map ?? {}} />
+                </div>
+                <SourcesList sourceMap={brief?.source_map ?? {}} usedIn={customBrief.custom_sections.continuity_from_last_week} />
+              </section>
+            )}
+
             {/* Look ahead */}
             {customBrief.custom_sections?.look_ahead && (
               <section className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">

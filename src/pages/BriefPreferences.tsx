@@ -7,6 +7,16 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Topbar from "@/components/Topbar";
 
+const ROLES = [
+  { id: "general_counsel", label: "General Counsel / CLO", icon: "⚖️" },
+  { id: "cpo_dpo", label: "CPO / DPO / Privacy Officer", icon: "🛡️" },
+  { id: "privacy_counsel", label: "Privacy / Product Counsel", icon: "📋" },
+  { id: "privacy_ops", label: "Privacy Operations / Compliance", icon: "⚙️" },
+  { id: "ciso_security", label: "CISO / Security Leader", icon: "🔒" },
+  { id: "outside_counsel", label: "Outside Counsel / Consultant", icon: "🏛️" },
+  { id: "policy_affairs", label: "Public Policy / Regulatory Affairs", icon: "📣" },
+];
+
 const INDUSTRIES = [
   { id: "online-web",      label: "Online & Web Services",          icon: "🌐" },
   { id: "mobile-apps",     label: "Mobile Applications",            icon: "📱" },
@@ -32,6 +42,13 @@ const INDUSTRIES = [
   { id: "education",       label: "Education (Higher Ed)",          icon: "🎓" },
   { id: "consulting",      label: "Consulting & Advisory",          icon: "💼" },
   { id: "pharma",          label: "Pharma & Clinical Research",     icon: "💊" },
+  { id: "social_media",    label: "Social Media & Platforms",       icon: "📱" },
+  { id: "travel_hospitality", label: "Travel & Hospitality",        icon: "✈️" },
+  { id: "biotech_genomics", label: "Biotech & Genomics",            icon: "🧬" },
+  { id: "energy_utilities", label: "Energy & Utilities",             icon: "⚡" },
+  { id: "identity_kyc",    label: "Identity Verification & KYC",    icon: "🪪" },
+  { id: "manufacturing_iot", label: "Manufacturing & Industrial IoT", icon: "🏭" },
+  { id: "cpg_loyalty",     label: "Consumer Goods & Loyalty Programs", icon: "🛍️" },
 ];
 
 const PREF_JURISDICTIONS = [
@@ -94,11 +111,13 @@ const Toggle = ({
 export default function BriefPreferences() {
   const { user } = useAuth();
   const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[], format: "full" });
+  const [role, setRole] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
+    // Fetch preferences
     (supabase as any)
       .from("user_brief_preferences")
       .select("*")
@@ -111,6 +130,15 @@ export default function BriefPreferences() {
           topics: data.topics ?? [],
           format: data.format ?? "full",
         });
+      });
+    // Fetch role from profile
+    supabase
+      .from("profiles")
+      .select("brief_role")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data && (data as any).brief_role) setRole((data as any).brief_role);
       });
   }, [user]);
 
@@ -127,9 +155,13 @@ export default function BriefPreferences() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    await (supabase as any)
-      .from("user_brief_preferences")
-      .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() });
+    await Promise.all([
+      (supabase as any)
+        .from("user_brief_preferences")
+        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() }),
+      // Save role to profile
+      role ? supabase.from("profiles").update({ brief_role: role } as any).eq("id", user.id) : Promise.resolve(),
+    ]);
     setSaving(false);
     setSaved(true);
   };
@@ -152,6 +184,29 @@ export default function BriefPreferences() {
               environment. The more context you provide, the more precisely it
               speaks to your actual compliance obligations.
             </p>
+          </div>
+
+          {/* Role */}
+          <div className="mb-8">
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your role</h2>
+            <p className="text-slate text-xs mb-4">Your brief is shaped by how you use regulatory intelligence.</p>
+            <div className="flex flex-wrap gap-2">
+              {ROLES.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => { setRole(r.id); setSaved(false); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                    role === r.id
+                      ? "bg-navy text-white border-navy shadow-eup-sm"
+                      : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
+                  }`}
+                >
+                  <span>{r.icon}</span>
+                  <span>{r.label}</span>
+                  {role === r.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Industries */}

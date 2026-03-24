@@ -127,22 +127,33 @@ async function fetchEnforcementHistory(prefs: { industries: string[]; jurisdicti
   ).join("\n");
 }
 
-/* ── Fetch prior custom briefs for continuity ── */
-async function fetchPriorBriefs(userId: string): Promise<string> {
+/* ── Fetch prior custom briefs for continuity (enhanced with issue_tags) ── */
+async function fetchPriorBriefs(userId: string): Promise<{ summary: string; priorContext: any[] }> {
   const { data } = await supabase
     .from("custom_briefs")
-    .select("week_label, custom_sections")
+    .select("week_label, custom_sections, issue_tags, generated_at")
     .eq("user_id", userId)
     .order("generated_at", { ascending: false })
     .limit(4);
 
-  if (!data || data.length === 0) return "";
+  if (!data || data.length === 0) return { summary: "", priorContext: [] };
 
-  return data.map(b => {
+  const priorContext = data.map(b => {
     const sections = b.custom_sections as any;
-    const headline = sections?.opening_headline || sections?.industry_focus?.substring(0, 100) || "";
-    return `${b.week_label}: ${headline}`;
-  }).join("\n");
+    return {
+      week: b.week_label,
+      headline: sections?.opening_headline || sections?.industry_focus?.substring(0, 100) || "",
+      critical_alert: sections?.your_critical_alert || "",
+      action_items: sections?.your_action_items?.map((i: any) => i.action) || [],
+      issue_tags: b.issue_tags || [],
+    };
+  });
+
+  const summary = priorContext.map(b =>
+    `${b.week}: ${b.headline}${b.issue_tags?.length ? ` [Tags: ${b.issue_tags.map((t: any) => t.tag).join(", ")}]` : ""}`
+  ).join("\n");
+
+  return { summary, priorContext };
 }
 
 /* ── Fetch trend signals from recent standard briefs ── */
@@ -256,11 +267,14 @@ Deno.serve(async (req) => {
     const topicList = topics.join(", ") || "All topics";
 
     // Parallel data fetches per user
-    const [scoredArticles, enforcementHistory, priorBriefs] = await Promise.all([
+    const [scoredArticles, enforcementHistory, priorBriefsData] = await Promise.all([
       recentArticles ? scoreArticleRelevance(recentArticles, { industries, jurisdictions, topics }, ANTHROPIC_API_KEY) : Promise.resolve([]),
       fetchEnforcementHistory({ industries, jurisdictions }),
       fetchPriorBriefs(user.id),
     ]);
+
+    const priorBriefs = priorBriefsData.summary;
+    const priorContext = priorBriefsData.priorContext;
 
     const topArticles = scoredArticles.slice(0, 25);
     const articleContext = topArticles.map((a: any, i: number) =>
@@ -285,17 +299,38 @@ Enforcement Trends: ${(latestBrief as any).enforcement_trends || ""}
     const industryExpertise = industries.map(i => INDUSTRY_EXPERTISE[i] || i).join("; ");
     const jurisdictionExpertise = jurisdictions.map(j => JURISDICTION_EXPERTISE[j] || j).join("; ");
 
-    const systemPrompt = `You are a senior privacy regulatory analyst producing a personalized weekly intelligence brief for a specific compliance professional.
+    // Fetch user's role for role-based personalization
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("brief_role")
+      .eq("id", user.id)
+      .single();
+    const userRole = (profileData as any)?.brief_role || "";
+
+    const ROLE_LENS: Record<string, string> = {
+      "general_counsel": "Emphasize liability exposure, board-level risk, vendor contract obligations, and regulatory penalties that create fiduciary duty concerns.",
+      "cpo_dpo": "Emphasize compliance obligations, DPIA requirements, DPA correspondence, and privacy program maturity metrics.",
+      "privacy_counsel": "Emphasize legal analysis, proposed rules, litigation precedent, regulatory interpretation, and legal risk assessment.",
+      "privacy_ops": "Emphasize process changes, DSR workflow implications, policy updates, consent mechanism changes, and operational compliance.",
+      "ciso_security": "Emphasize breach notification obligations, technical security standards, incident response requirements, and security-adjacent regulations.",
+      "outside_counsel": "Emphasize cross-client regulatory patterns, new precedents, advisory risk, multi-jurisdiction compliance strategies.",
+      "policy_affairs": "Emphasize rulemaking proceedings, comment periods, regulatory trajectory, lobbying implications, and policy advocacy.",
+    };
+    const roleLens = userRole && ROLE_LENS[userRole] ? `\nROLE LENS (${userRole}): ${ROLE_LENS[userRole]}\n` : "";
+
+    const systemPrompt = `You are a dedicated privacy regulatory analyst who has been tracking this specific subscriber's situation for ${priorContext.length} prior weeks.
 
 YOUR DEEP EXPERTISE INCLUDES:
 ${industryExpertise}
 ${jurisdictionExpertise}
+${roleLens}
 
 CRITICAL INSTRUCTION: You are not just filtering the standard brief. You must SYNTHESIZE information from:
 1. The standard weekly brief content
 2. The ${topArticles.length} highest-relevance articles scored for this subscriber
 3. The enforcement history data showing patterns in their jurisdictions
 4. Your own training knowledge of privacy law, regulatory patterns, and compliance frameworks
+5. The prior brief history — for EVERY major item, state whether it is: NEW this week | CONTINUATION from prior weeks | ESCALATION of a prior issue | RESOLUTION of a prior issue
 
 Draw on your training knowledge to provide context that goes BEYOND what's in the articles. Name specific laws, cite regulatory precedents, identify patterns. Do not hedge — make specific predictions and recommendations.
 
@@ -303,8 +338,9 @@ SUBSCRIBER PROFILE:
 - Industry: ${industryList}
 - Jurisdictions: ${jurisdictionList}
 - Topics: ${topicList}
+${userRole ? `- Role: ${userRole}` : ""}
 
-${priorBriefs ? `PRIOR BRIEFS (for continuity — reference ongoing threads):\n${priorBriefs}\n` : ""}
+${priorBriefs ? `PRIOR BRIEF HISTORY (last ${priorContext.length} weeks — reference these for continuity):\n${priorBriefs}\n\nPRIOR ISSUE TAGS:\n${JSON.stringify(priorContext.flatMap(b => b.issue_tags), null, 2)}\n` : ""}
 ${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}
 ${topics.includes("litigation") ? `LITIGATION WATCH: Include a dedicated Litigation Watch subsection in topic_depth covering: new class action filings, MDL proceedings, significant court rulings (circuit splits on standing, BIPA, VPPA), settlement approvals with dollar amounts, and implications for corporate privacy programs. Name specific cases and courts.\n` : ""}
 ${briefFormat === "exec-only" ? `Generate only: your_critical_alert, opening_headline, your_week, and your_action_items. Omit all other sections.\n` : ""}
@@ -346,12 +382,16 @@ Generate a STANDALONE personalized brief as a JSON object with these exact keys:
 
   "enforcement_pattern_for_you": "2 paragraphs analyzing enforcement patterns specifically relevant to ${industryList} in ${jurisdictionList}. Use the enforcement history data. What types of violations are being targeted? What fine ranges? Which regulators are most active? ~200 words.",
 
-  "look_ahead": "2 paragraphs with specific predictions for the next 30-90 days. Name specific dates, regulatory milestones, compliance deadlines. Do not hedge — make concrete predictions. ~150 words."
+  "continuity_from_last_week": "1-2 paragraphs explicitly listing items that carried over from prior weeks and their status change (new → continuing → escalating → resolved). If no prior briefs exist, write 'This is your first personalized brief — continuity tracking begins next week.' ~150 words.",
+
+  "look_ahead": "2 paragraphs with specific predictions for the next 30-90 days. Name specific dates, regulatory milestones, compliance deadlines. Do not hedge — make concrete predictions. ~150 words.",
+
+  "issue_tags": [{"tag": "issue name", "status": "new|continuing|escalating|resolved", "first_seen": "YYYY-MM-DD"}]
 }
 
-CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_intelligence, jurisdiction_developments, topic_depth, enforcement_pattern_for_you, look_ahead), you MUST cite sources inline using [ref:N] notation immediately after each specific factual claim, where N is the article index number from the TOP RELEVANCE-SCORED ARTICLES list above. Example: 'The ICO fined TikTok £12.7M [ref:3] for children\u2019s data violations.' Every paragraph must contain at least one [ref:N] citation.
+CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_intelligence, jurisdiction_developments, topic_depth, enforcement_pattern_for_you, continuity_from_last_week, look_ahead), you MUST cite sources inline using [ref:N] notation immediately after each specific factual claim, where N is the article index number from the TOP RELEVANCE-SCORED ARTICLES list above. Example: 'The ICO fined TikTok £12.7M [ref:3] for children\u2019s data violations.' Every paragraph must contain at least one [ref:N] citation.
 
-Return ONLY the JSON object. 3-5 action items. No preamble.`;
+Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
 
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -404,6 +444,9 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         console.error(`Verification failed for user ${user.id}:`, e);
       }
 
+      // Extract issue_tags from the generated brief
+      const issueTags = customSections.issue_tags || [];
+
       await supabase.from("custom_briefs").insert({
         user_id: user.id,
         base_brief_id: latestBrief.id,
@@ -414,6 +457,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         articles_used: topArticles.length,
         generation_model: "claude-sonnet-4-20250514",
         verification_result: verificationResult,
+        issue_tags: issueTags,
       });
       processed++;
     } catch (e) {

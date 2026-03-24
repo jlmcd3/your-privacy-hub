@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavItem {
   label: string;
@@ -150,6 +151,17 @@ const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => setIsPremium(data?.is_premium ?? false));
+  }, [user]);
 
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
@@ -237,12 +249,14 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              <Link
-                to="/subscribe"
-                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
-              >
-                Upgrade
-              </Link>
+              {!isPremium && (
+                <Link
+                  to="/subscribe"
+                  className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
+                >
+                  ⭐ Upgrade
+                </Link>
+              )}
               <Link
                 to="/account"
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"

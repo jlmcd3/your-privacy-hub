@@ -47,6 +47,8 @@ import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import CheckEmail from "./pages/CheckEmail.tsx";
 import Tools from "./pages/Tools.tsx";
+import CookieConsent from "./pages/CookieConsent.tsx";
+import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +84,8 @@ const App = () => (
           <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
           <Route path="/legislation-tracker" element={<LegislationTracker />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/cookie-consent" element={<CookieConsent />} />
+          <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
           <Route path="/brief-preferences" element={<ProtectedRoute><BriefPreferences /></ProtectedRoute>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />

@@ -25,10 +25,10 @@ const MODES = [
   },
   {
     icon: "🧠",
-    label: "Get personalised intelligence",
-    desc: "Weekly briefs + AI analysis tailored to your industry",
+    label: "Get your analyst",
+    desc: "Weekly brief written for your industry & jurisdictions — $20/month",
     href: "/subscribe",
-    cta: "See Premium",
+    cta: "See Plans →",
     premium: true,
   },
 ];
