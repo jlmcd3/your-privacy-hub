@@ -267,11 +267,14 @@ Deno.serve(async (req) => {
     const topicList = topics.join(", ") || "All topics";
 
     // Parallel data fetches per user
-    const [scoredArticles, enforcementHistory, priorBriefs] = await Promise.all([
+    const [scoredArticles, enforcementHistory, priorBriefsData] = await Promise.all([
       recentArticles ? scoreArticleRelevance(recentArticles, { industries, jurisdictions, topics }, ANTHROPIC_API_KEY) : Promise.resolve([]),
       fetchEnforcementHistory({ industries, jurisdictions }),
       fetchPriorBriefs(user.id),
     ]);
+
+    const priorBriefs = priorBriefsData.summary;
+    const priorContext = priorBriefsData.priorContext;
 
     const topArticles = scoredArticles.slice(0, 25);
     const articleContext = topArticles.map((a: any, i: number) =>
