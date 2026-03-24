@@ -78,9 +78,10 @@ export default function CookieConsentPage() {
           {SECTIONS.map((s, i) => (
             <section key={i}>
               <h2 className="font-display text-[20px] text-foreground mb-3">{s.title}</h2>
-              <div className="text-[14px] text-muted-foreground leading-relaxed whitespace-pre-line prose prose-sm max-w-none">
-                {s.content}
-              </div>
+              <div
+                className="text-[14px] text-muted-foreground leading-relaxed whitespace-pre-line prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: s.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>') }}
+              />
             </section>
           ))}
         </div>
