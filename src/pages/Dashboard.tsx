@@ -124,25 +124,22 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits")
+      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
         setBonusCredits((data as any)?.bonus_report_credits ?? 0);
-      });
 
-    // Count reports used this month
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    (supabase as any)
-      .from("custom_briefs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("generated_at", monthStart.toISOString())
-      .then(({ count }: any) => setReportsUsed(count ?? 0));
+        // Use profiles.monthly_reports_used (server-side source of truth)
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        const resetDate = (data as any)?.reports_reset_date ? new Date((data as any).reports_reset_date) : null;
+        const used = (resetDate && resetDate >= monthStart) ? ((data as any)?.monthly_reports_used ?? 0) : 0;
+        setReportsUsed(used);
+      });
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
