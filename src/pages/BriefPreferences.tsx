@@ -155,9 +155,13 @@ export default function BriefPreferences() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    await (supabase as any)
-      .from("user_brief_preferences")
-      .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() });
+    await Promise.all([
+      (supabase as any)
+        .from("user_brief_preferences")
+        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() }),
+      // Save role to profile
+      role ? supabase.from("profiles").update({ brief_role: role } as any).eq("id", user.id) : Promise.resolve(),
+    ]);
     setSaving(false);
     setSaved(true);
   };
