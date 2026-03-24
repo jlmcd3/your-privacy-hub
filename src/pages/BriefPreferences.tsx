@@ -135,11 +135,14 @@ export default function BriefPreferences() {
     // Fetch role from profile
     supabase
       .from("profiles")
-      .select("brief_role")
+      .select("brief_role, is_premium")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
-        if (data && (data as any).brief_role) setRole((data as any).brief_role);
+        if (data) {
+          if ((data as any).brief_role) setRole((data as any).brief_role);
+          setIsPremium(data.is_premium ?? false);
+        }
       });
   }, [user]);
 
