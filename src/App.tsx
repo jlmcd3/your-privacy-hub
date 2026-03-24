@@ -47,6 +47,8 @@ import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import CheckEmail from "./pages/CheckEmail.tsx";
 import Tools from "./pages/Tools.tsx";
+import CookieConsent from "./pages/CookieConsent.tsx";
+import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
 
 const queryClient = new QueryClient();
 
