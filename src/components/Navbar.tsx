@@ -151,6 +151,17 @@ const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => setIsPremium(data?.is_premium ?? false));
+  }, [user]);
 
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
