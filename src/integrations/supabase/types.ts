@@ -227,12 +227,15 @@ export type Database = {
         Row: {
           ask_privacy_count: number | null
           ask_privacy_reset_date: string | null
+          bonus_report_credits: number
           brief_role: string | null
           created_at: string
           id: string
           is_premium: boolean
           is_pro: boolean | null
+          monthly_reports_used: number
           payment_failed: boolean
+          reports_reset_date: string | null
           stripe_customer_id: string | null
           stripe_price_id: string | null
           subscription_end_date: string | null
@@ -241,12 +244,15 @@ export type Database = {
         Insert: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
+          bonus_report_credits?: number
           brief_role?: string | null
           created_at?: string
           id: string
           is_premium?: boolean
           is_pro?: boolean | null
+          monthly_reports_used?: number
           payment_failed?: boolean
+          reports_reset_date?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
           subscription_end_date?: string | null
@@ -255,12 +261,15 @@ export type Database = {
         Update: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
+          bonus_report_credits?: number
           brief_role?: string | null
           created_at?: string
           id?: string
           is_premium?: boolean
           is_pro?: boolean | null
+          monthly_reports_used?: number
           payment_failed?: boolean
+          reports_reset_date?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
           subscription_end_date?: string | null

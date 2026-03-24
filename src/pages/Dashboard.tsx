@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +7,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AskPrivacy from "@/components/ai/AskPrivacy";
+import ReportCredits from "@/components/dashboard/ReportCredits";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
@@ -73,11 +74,14 @@ function truncateToSentences(text: string | null, count = 2): string {
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
+  const [reportsUsed, setReportsUsed] = useState(0);
+  const [bonusCredits, setBonusCredits] = useState(0);
   const [genPhase, setGenPhase] = useState(0);
 
   const GEN_PHASES = [
@@ -97,6 +101,10 @@ const Dashboard = () => {
       const { data, error } = await supabase.functions.invoke("generate-brief-on-demand");
       if (!error && data?.brief) {
         setCustomBrief(data.brief);
+        setReportsUsed(prev => prev + 1);
+        if (data.bonus_credits_remaining !== undefined) {
+          setBonusCredits(data.bonus_credits_remaining);
+        }
       }
     } catch (e) {
       console.error("Brief generation failed:", e);
@@ -111,14 +119,25 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium")
+      .select("is_premium, bonus_report_credits")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
-        // Don't redirect — show a free-member view instead
+        setBonusCredits((data as any)?.bonus_report_credits ?? 0);
       });
+
+    // Count reports used this month
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    (supabase as any)
+      .from("custom_briefs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("generated_at", monthStart.toISOString())
+      .then(({ count }: any) => setReportsUsed(count ?? 0));
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
@@ -148,6 +167,15 @@ const Dashboard = () => {
       .single()
       .then(({ data }: any) => setCustomBrief(data));
   }, [user]);
+
+  // Handle credits_purchased redirect from Stripe
+  useEffect(() => {
+    const purchased = searchParams.get("credits_purchased");
+    if (purchased) {
+      setBonusCredits(prev => prev + parseInt(purchased, 10));
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (authLoading || isPremium === null) {
     return (
@@ -697,6 +725,12 @@ const Dashboard = () => {
                     ))}
                 </div>
               </section>
+            )}
+
+            {isPremium && (
+              <div className="mt-8">
+                <ReportCredits reportsUsed={reportsUsed} bonusCredits={bonusCredits} />
+              </div>
             )}
 
             <div className="mt-8">

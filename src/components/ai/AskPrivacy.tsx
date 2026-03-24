@@ -118,7 +118,7 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
           <h3 className="font-bold text-foreground text-[16px] mb-2">Ask a Privacy Question</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto">
             {FREE_QUESTION_LIMIT - questionCount} free question{FREE_QUESTION_LIMIT - questionCount !== 1 ? "s" : ""} remaining this month.
-            Premium members get unlimited questions.
+            Premium members get {PREMIUM_QUESTION_LIMIT} questions/month.
           </p>
         </div>
 
