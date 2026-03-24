@@ -145,6 +145,18 @@ Deno.serve(async (req) => {
     const data = await response.json();
     const answer = data.content?.[0]?.text ?? "Sorry, I couldn't process that question.";
 
+    // Increment question count for non-premium users
+    if (!profile.is_premium) {
+      const today = new Date().toISOString().split("T")[0];
+      await adminClient
+        .from("profiles")
+        .update({
+          ask_privacy_count: (profile.ask_privacy_count ?? 0) + 1,
+          ask_privacy_reset_date: today,
+        })
+        .eq("id", user.id);
+    }
+
     return new Response(
       JSON.stringify({ answer }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
