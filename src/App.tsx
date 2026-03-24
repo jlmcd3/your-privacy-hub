@@ -89,6 +89,9 @@ const App = () => (
           <Route path="/tools" element={<Tools />} />
           <Route path="/cookie-consent" element={<CookieConsent />} />
           <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
+          <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
+          <Route path="/breach-notification" element={<BreachNotification />} />
+          <Route path="/cross-border-transfers" element={<CrossBorderTransfers />} />
           <Route path="/brief-preferences" element={<ProtectedRoute><BriefPreferences /></ProtectedRoute>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
