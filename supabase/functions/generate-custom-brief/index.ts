@@ -127,22 +127,33 @@ async function fetchEnforcementHistory(prefs: { industries: string[]; jurisdicti
   ).join("\n");
 }
 
-/* ── Fetch prior custom briefs for continuity ── */
-async function fetchPriorBriefs(userId: string): Promise<string> {
+/* ── Fetch prior custom briefs for continuity (enhanced with issue_tags) ── */
+async function fetchPriorBriefs(userId: string): Promise<{ summary: string; priorContext: any[] }> {
   const { data } = await supabase
     .from("custom_briefs")
-    .select("week_label, custom_sections")
+    .select("week_label, custom_sections, issue_tags, generated_at")
     .eq("user_id", userId)
     .order("generated_at", { ascending: false })
     .limit(4);
 
-  if (!data || data.length === 0) return "";
+  if (!data || data.length === 0) return { summary: "", priorContext: [] };
 
-  return data.map(b => {
+  const priorContext = data.map(b => {
     const sections = b.custom_sections as any;
-    const headline = sections?.opening_headline || sections?.industry_focus?.substring(0, 100) || "";
-    return `${b.week_label}: ${headline}`;
-  }).join("\n");
+    return {
+      week: b.week_label,
+      headline: sections?.opening_headline || sections?.industry_focus?.substring(0, 100) || "",
+      critical_alert: sections?.your_critical_alert || "",
+      action_items: sections?.your_action_items?.map((i: any) => i.action) || [],
+      issue_tags: b.issue_tags || [],
+    };
+  });
+
+  const summary = priorContext.map(b =>
+    `${b.week}: ${b.headline}${b.issue_tags?.length ? ` [Tags: ${b.issue_tags.map((t: any) => t.tag).join(", ")}]` : ""}`
+  ).join("\n");
+
+  return { summary, priorContext };
 }
 
 /* ── Fetch trend signals from recent standard briefs ── */
