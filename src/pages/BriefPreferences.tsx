@@ -162,7 +162,7 @@ export default function BriefPreferences() {
     await Promise.all([
       (supabase as any)
         .from("user_brief_preferences")
-        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() }),
+        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() }, { onConflict: "user_id" }),
       // Save role to profile
       role ? supabase.from("profiles").update({ brief_role: role } as any).eq("id", user.id) : Promise.resolve(),
     ]);
