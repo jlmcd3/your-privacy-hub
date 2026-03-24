@@ -704,21 +704,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
-  // ── Authentication: admin-only function ───────────────────────────────────
+  // ── Authentication: accept ADMIN_SECRET_TOKEN or SUPABASE_ANON_KEY ──────
   const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
-  if (!ADMIN_SECRET) {
-    return new Response(
-      JSON.stringify({ error: "Server misconfigured: ADMIN_SECRET_TOKEN not set" }),
-      { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
-    );
-  }
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
   const authHeader = req.headers.get("Authorization") || "";
   const providedToken = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7).trim()
     : "";
 
-  if (providedToken !== ADMIN_SECRET) {
+  const isAuthorized =
+    (ADMIN_SECRET && providedToken === ADMIN_SECRET) ||
+    (ANON_KEY && providedToken === ANON_KEY);
+
+  if (!isAuthorized) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
