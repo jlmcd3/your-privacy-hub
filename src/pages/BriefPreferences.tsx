@@ -7,6 +7,16 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Topbar from "@/components/Topbar";
 
+const ROLES = [
+  { id: "general_counsel", label: "General Counsel / CLO", icon: "⚖️" },
+  { id: "cpo_dpo", label: "CPO / DPO / Privacy Officer", icon: "🛡️" },
+  { id: "privacy_counsel", label: "Privacy / Product Counsel", icon: "📋" },
+  { id: "privacy_ops", label: "Privacy Operations / Compliance", icon: "⚙️" },
+  { id: "ciso_security", label: "CISO / Security Leader", icon: "🔒" },
+  { id: "outside_counsel", label: "Outside Counsel / Consultant", icon: "🏛️" },
+  { id: "policy_affairs", label: "Public Policy / Regulatory Affairs", icon: "📣" },
+];
+
 const INDUSTRIES = [
   { id: "online-web",      label: "Online & Web Services",          icon: "🌐" },
   { id: "mobile-apps",     label: "Mobile Applications",            icon: "📱" },
@@ -32,6 +42,13 @@ const INDUSTRIES = [
   { id: "education",       label: "Education (Higher Ed)",          icon: "🎓" },
   { id: "consulting",      label: "Consulting & Advisory",          icon: "💼" },
   { id: "pharma",          label: "Pharma & Clinical Research",     icon: "💊" },
+  { id: "social_media",    label: "Social Media & Platforms",       icon: "📱" },
+  { id: "travel_hospitality", label: "Travel & Hospitality",        icon: "✈️" },
+  { id: "biotech_genomics", label: "Biotech & Genomics",            icon: "🧬" },
+  { id: "energy_utilities", label: "Energy & Utilities",             icon: "⚡" },
+  { id: "identity_kyc",    label: "Identity Verification & KYC",    icon: "🪪" },
+  { id: "manufacturing_iot", label: "Manufacturing & Industrial IoT", icon: "🏭" },
+  { id: "cpg_loyalty",     label: "Consumer Goods & Loyalty Programs", icon: "🛍️" },
 ];
 
 const PREF_JURISDICTIONS = [
