@@ -15,6 +15,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 const FREE_QUESTION_LIMIT = 3;
+const PREMIUM_QUESTION_LIMIT = 50;
 
 interface AskPrivacyProps { isPremium: boolean; }
 
