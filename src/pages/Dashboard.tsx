@@ -178,6 +178,7 @@ const Dashboard = () => {
         <Topbar />
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-12">
+          {/* Premium upsell banner */}
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
               <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
@@ -239,6 +240,7 @@ const Dashboard = () => {
           {!loading && brief && (
             <>
               <div className="space-y-8">
+                {/* 1. Executive Summary — show in full (the hook) */}
                 <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
                   <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
                   <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
@@ -247,40 +249,47 @@ const Dashboard = () => {
                   <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.executive_summary} />
                 </section>
 
-                <div className="grid gap-6">
-                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={(brief as any).adtech_advertising} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} sourceMap={brief.source_map ?? {}} />
-                </div>
+                {/* 2. First section preview — show in full */}
+                <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
 
-                <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                {/* 3. Remaining sections — title + 2 sentences + blur gate */}
+                {[
+                  { icon: "🏛️", title: "U.S. State Analysis", content: brief.us_states },
+                  { icon: "🇪🇺", title: "EU & UK Analysis", content: brief.eu_uk },
+                  { icon: "🌍", title: "Global Developments", content: brief.global_developments },
+                  { icon: "🤖", title: "AI Governance", content: (brief as any).ai_governance },
+                  { icon: "📡", title: "AdTech & Advertising Privacy", content: (brief as any).adtech_advertising },
+                  { icon: "👁️", title: "Biometric Data", content: (brief as any).biometric_data },
+                  { icon: "🏛️", title: "Privacy Litigation", content: (brief as any).privacy_litigation },
+                ].filter(s => s.content).map((s) => (
+                  <PremiumGate
+                    key={s.title}
+                    message="Your personalized analyst covers this section in full — tailored to your industry and jurisdictions."
+                  >
+                    <SectionBlock icon={s.icon} title={s.title} content={s.content} sourceMap={brief.source_map ?? {}} />
+                  </PremiumGate>
+                ))}
 
-                {brief.trend_signal && (
-                  <section className="bg-amber-50/50 rounded-xl border border-amber-200/50 p-6">
-                    <h3 className="font-display text-[17px] text-foreground mb-3">📡 Trend Signal</h3>
-                    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                      <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
-                    </div>
-                  </section>
+                {/* 4. Enforcement Trends — gated */}
+                {(brief as any).enforcement_trends && (
+                  <PremiumGate message="Premium subscribers see full enforcement trend analysis relevant to their sector.">
+                    <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                  </PremiumGate>
                 )}
 
+                {/* 5. Trend Signal — fully gated */}
+                {brief.trend_signal && (
+                  <PremiumGate message="Trend signals are included in Premium. See emerging patterns before they become headlines." />
+                )}
+
+                {/* 6. Why This Matters — fully gated */}
                 {brief.why_this_matters && (
-                  <section className="bg-primary/5 rounded-xl border border-primary/15 p-6">
-                    <h3 className="font-display text-[17px] text-foreground mb-3">🎯 Why This Matters</h3>
-                    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                      <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
-                    </div>
-                  </section>
+                  <PremiumGate message="Action items and 'Why This Matters' analysis is included in Premium." />
                 )}
               </div>
 
               <div className="mt-8">
-                <AskPrivacy isPremium={isPremium === true} />
+                <AskPrivacy isPremium={false} />
               </div>
             </>
           )}
