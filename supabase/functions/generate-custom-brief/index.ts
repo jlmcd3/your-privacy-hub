@@ -444,6 +444,9 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         console.error(`Verification failed for user ${user.id}:`, e);
       }
 
+      // Extract issue_tags from the generated brief
+      const issueTags = customSections.issue_tags || [];
+
       await supabase.from("custom_briefs").insert({
         user_id: user.id,
         base_brief_id: latestBrief.id,
@@ -454,6 +457,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         articles_used: topArticles.length,
         generation_model: "claude-sonnet-4-20250514",
         verification_result: verificationResult,
+        issue_tags: issueTags,
       });
       processed++;
     } catch (e) {
