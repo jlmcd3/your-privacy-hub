@@ -143,6 +143,7 @@ const Index = () => {
 
       {/* Layer 3: Search-first hero */}
       <SearchFirstHero />
+      <FreeVsPaidStrip />
 
       {/* Choose your mode */}
       <ChooseYourMode />
