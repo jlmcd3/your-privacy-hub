@@ -549,7 +549,7 @@ const Dashboard = () => {
             {/* Look ahead */}
             {customBrief.custom_sections?.look_ahead && (
               <section className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">
-                <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📡 Your 30-90 Day Horizon</h3>
+                <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📅 Compliance Calendar Preview</h3>
                 <div className="text-[13px] text-amber-800 leading-relaxed space-y-2">
                   <CitedParagraphs content={customBrief.custom_sections.look_ahead} sourceMap={brief?.source_map ?? {}} />
                 </div>
