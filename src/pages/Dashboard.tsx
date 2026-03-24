@@ -32,6 +32,11 @@ interface WeeklyBrief {
   us_states: string | null;
   eu_uk: string | null;
   global_developments: string | null;
+  ai_governance: string | null;
+  adtech_advertising: string | null;
+  biometric_data: string | null;
+  privacy_litigation: string | null;
+  enforcement_trends: string | null;
   enforcement_table: EnforcementRow[] | null;
   trend_signal: string | null;
   why_this_matters: string | null;
@@ -119,25 +124,22 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits")
+      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
         setBonusCredits((data as any)?.bonus_report_credits ?? 0);
-      });
 
-    // Count reports used this month
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    (supabase as any)
-      .from("custom_briefs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("generated_at", monthStart.toISOString())
-      .then(({ count }: any) => setReportsUsed(count ?? 0));
+        // Use profiles.monthly_reports_used (server-side source of truth)
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        const resetDate = (data as any)?.reports_reset_date ? new Date((data as any).reports_reset_date) : null;
+        const used = (resetDate && resetDate >= monthStart) ? ((data as any)?.monthly_reports_used ?? 0) : 0;
+        setReportsUsed(used);
+      });
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
@@ -285,10 +287,10 @@ const Dashboard = () => {
                   { icon: "🏛️", title: "U.S. State Analysis", content: brief.us_states },
                   { icon: "🇪🇺", title: "EU & UK Analysis", content: brief.eu_uk },
                   { icon: "🌍", title: "Global Developments", content: brief.global_developments },
-                  { icon: "🤖", title: "AI Governance", content: (brief as any).ai_governance },
-                  { icon: "📡", title: "AdTech & Advertising Privacy", content: (brief as any).adtech_advertising },
-                  { icon: "👁️", title: "Biometric Data", content: (brief as any).biometric_data },
-                  { icon: "🏛️", title: "Privacy Litigation", content: (brief as any).privacy_litigation },
+                  { icon: "🤖", title: "AI Governance", content: brief.ai_governance },
+                  { icon: "📡", title: "AdTech & Advertising Privacy", content: brief.adtech_advertising },
+                  { icon: "👁️", title: "Biometric Data", content: brief.biometric_data },
+                  { icon: "🏛️", title: "Privacy Litigation", content: brief.privacy_litigation },
                 ].filter(s => s.content).map((s) => (
                   <PremiumGate
                     key={s.title}
@@ -299,9 +301,9 @@ const Dashboard = () => {
                 ))}
 
                 {/* 4. Enforcement Trends — gated */}
-                {(brief as any).enforcement_trends && (
+                {brief.enforcement_trends && (
                   <PremiumGate message="Premium subscribers see full enforcement trend analysis relevant to their sector.">
-                    <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                    <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
                   </PremiumGate>
                 )}
 
@@ -547,7 +549,7 @@ const Dashboard = () => {
             {/* Look ahead */}
             {customBrief.custom_sections?.look_ahead && (
               <section className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">
-                <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📡 Your 30-90 Day Horizon</h3>
+                <h3 className="font-semibold text-amber-900 text-[12px] uppercase tracking-wider mb-2">📅 Compliance Calendar Preview</h3>
                 <div className="text-[13px] text-amber-800 leading-relaxed space-y-2">
                   <CitedParagraphs content={customBrief.custom_sections.look_ahead} sourceMap={brief?.source_map ?? {}} />
                 </div>
@@ -555,27 +557,6 @@ const Dashboard = () => {
               </section>
             )}
 
-            {/* Legacy fallback for old 3-section briefs */}
-            {!customBrief.custom_sections?.opening_headline && customBrief.custom_sections?.industry_focus && (
-              <>
-                <div className="mb-4">
-                  <h3 className="font-bold text-foreground text-[14px] mb-2">Industry Focus</h3>
-                  <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.industry_focus}</p>
-                </div>
-                {customBrief.custom_sections?.jurisdiction_focus && (
-                  <div className="mb-4">
-                    <h3 className="font-bold text-foreground text-[14px] mb-2">Jurisdiction Highlights</h3>
-                    <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.jurisdiction_focus}</p>
-                  </div>
-                )}
-                {customBrief.custom_sections?.topic_focus && (
-                  <div>
-                    <h3 className="font-bold text-foreground text-[14px] mb-2">Topic Focus</h3>
-                    <p className="text-muted-foreground text-[13px] leading-relaxed">{customBrief.custom_sections.topic_focus}</p>
-                  </div>
-                )}
-              </>
-            )}
           </div>
         )}
 
@@ -615,10 +596,10 @@ const Dashboard = () => {
               <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
               <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
               <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={(brief as any).adtech_advertising} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🤖" title="AI Governance" content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="👁️" title="Biometric Data" content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🏛️" title="Privacy Litigation" content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
             </div>
 
             {/* Enforcement table */}
@@ -662,7 +643,7 @@ const Dashboard = () => {
             )}
 
             {/* Enforcement trends */}
-            <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
+            <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
 
             {/* Trend signal */}
             {brief.trend_signal && (

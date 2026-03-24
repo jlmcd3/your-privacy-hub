@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Topbar from "@/components/Topbar";
@@ -168,6 +169,9 @@ export default function BriefPreferences() {
     ]);
     setSaving(false);
     setSaved(true);
+    if (!isPremium) {
+      toast("Preferences saved! They'll activate when you upgrade to Premium.");
+    }
   };
 
   return (
@@ -269,6 +273,21 @@ export default function BriefPreferences() {
             </div>
           </div>
 
+          {isPremium === false && (
+            <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
+              <p className="text-slate text-sm mb-3">
+                Your analyst requires Premium ($20/month).
+                Preferences are saved and will activate once you subscribe.
+              </p>
+              <Link
+                to="/subscribe"
+                className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+              >
+                Upgrade to Premium →
+              </Link>
+            </div>
+          )}
+
           {/* Save */}
           <div className="flex items-center gap-4 pt-4 border-t border-fog">
             <button
@@ -282,21 +301,6 @@ export default function BriefPreferences() {
               Your analyst's focus updates with the next Monday brief.
             </p>
           </div>
-
-          {isPremium === false && (
-            <div className="mt-8 bg-fog rounded-2xl p-6 text-center">
-              <p className="text-slate text-sm mb-3">
-                Your analyst requires Premium ($20/month).
-                Standard Premium subscribers receive the shared weekly brief.
-              </p>
-              <Link
-                to="/subscribe"
-                className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
-              >
-                Upgrade to Premium →
-              </Link>
-            </div>
-          )}
         </main>
         <Footer />
       </div>

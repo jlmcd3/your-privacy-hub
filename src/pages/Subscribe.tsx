@@ -20,13 +20,28 @@ const comparisonRows = [
   { feature: "Full 8-section weekly brief analysis",                free: false, pro: true  },
   { feature: "Enforcement table & trend signals",                   free: false, pro: true  },
   { feature: "Why This Matters — action items",                     free: false, pro: true  },
-  { feature: "AskPrivacy AI (unlimited questions)",                 free: false, pro: true  },
+  { feature: "AskPrivacy AI — 3 questions/month",                   free: true,  pro: true  },
+  { feature: "AskPrivacy AI — 50 questions/month",                  free: false, pro: true  },
+  { feature: "On-demand personalized reports (6/month)",            free: false, pro: true  },
+  { feature: "Additional report credit bundles ($5/$15/$20)",       free: false, pro: true  },
   { feature: "Brief written for your industry",                     free: false, pro: true  },
   { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, pro: true  },
   { feature: "Subject-matter depth (AI, biometric, litigation…)",  free: false, pro: true  },
   { feature: "Sector-specific compliance action items",            free: false, pro: true  },
   { feature: "Historical continuity (issue tracking across weeks)", free: false, pro: true  },
   { feature: "Priority Monday delivery",                           free: false, pro: true  },
+];
+
+const planFeatures = [
+  "Full 8-section weekly brief analysis",
+  "Brief re-written for your industry & jurisdictions",
+  "All 10 specialist report tracks included",
+  "6 on-demand personalized reports/month included",
+  "Extra reports: $5 for 1, $15 for 5, $20 for 10",
+  "AskPrivacy AI — 50 questions/month",
+  "Priority Monday delivery",
+  "Sector-specific compliance action items",
+  "Historical continuity (issue tracking across weeks)",
 ];
 
 const Subscribe = () => {
