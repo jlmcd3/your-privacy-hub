@@ -244,24 +244,39 @@ Deno.serve(async (req) => {
   // Fetch trend signals once for all users
   const trendSignals = await fetchTrendSignals();
 
-  const MONTHLY_REPORT_LIMIT = 20;
+  const INCLUDED_REPORTS = 6; // 4 weekly + 2 extra included in subscription
   let processed = 0;
 
   for (const user of proUsers) {
-    // Check monthly report cap
+    // Check monthly report cap (included + bonus credits)
     const monthStart = new Date();
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
-    const { count: monthlyCount } = await supabase
-      .from("custom_briefs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("generated_at", monthStart.toISOString());
 
-    if ((monthlyCount ?? 0) >= MONTHLY_REPORT_LIMIT) {
-      console.log(`User ${user.id} has reached ${MONTHLY_REPORT_LIMIT} reports this month, skipping`);
+    const [{ count: monthlyCount }, { data: userProfile }] = await Promise.all([
+      supabase
+        .from("custom_briefs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("generated_at", monthStart.toISOString()),
+      supabase
+        .from("profiles")
+        .select("bonus_report_credits, monthly_reports_used, reports_reset_date")
+        .eq("id", user.id)
+        .single(),
+    ]);
+
+    const used = monthlyCount ?? 0;
+    const bonusCredits = (userProfile as any)?.bonus_report_credits ?? 0;
+    const totalAllowed = INCLUDED_REPORTS + bonusCredits;
+
+    if (used >= totalAllowed) {
+      console.log(`User ${user.id} has used ${used}/${totalAllowed} reports this month (${bonusCredits} bonus), skipping`);
       continue;
     }
+
+    // After generating, increment monthly_reports_used
+    // (done after successful generation below)
 
     const { data: prefs } = await supabase
       .from("user_brief_preferences")
