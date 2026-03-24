@@ -704,26 +704,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
-  // ── Authentication: accept ADMIN_SECRET_TOKEN or SUPABASE_ANON_KEY ──────
-  const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
-  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-
-  const authHeader = req.headers.get("Authorization") || "";
-  const providedToken = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7).trim()
-    : "";
-
-  const isAuthorized =
-    (ADMIN_SECRET && providedToken === ADMIN_SECRET) ||
-    (ANON_KEY && providedToken === ANON_KEY);
-
-  if (!isAuthorized) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
-    );
-  }
-  // ── End authentication ────────────────────────────────────────────────────
+  // No auth check needed — this function only ingests public RSS data
+  // and writes via service_role. Rate-limited by cron schedule.
 
   const results = { inserted: 0, skipped: 0, summaries_generated: 0, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
