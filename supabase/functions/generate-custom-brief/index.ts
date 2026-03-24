@@ -299,17 +299,38 @@ Enforcement Trends: ${(latestBrief as any).enforcement_trends || ""}
     const industryExpertise = industries.map(i => INDUSTRY_EXPERTISE[i] || i).join("; ");
     const jurisdictionExpertise = jurisdictions.map(j => JURISDICTION_EXPERTISE[j] || j).join("; ");
 
-    const systemPrompt = `You are a senior privacy regulatory analyst producing a personalized weekly intelligence brief for a specific compliance professional.
+    // Fetch user's role for role-based personalization
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("brief_role")
+      .eq("id", user.id)
+      .single();
+    const userRole = (profileData as any)?.brief_role || "";
+
+    const ROLE_LENS: Record<string, string> = {
+      "general_counsel": "Emphasize liability exposure, board-level risk, vendor contract obligations, and regulatory penalties that create fiduciary duty concerns.",
+      "cpo_dpo": "Emphasize compliance obligations, DPIA requirements, DPA correspondence, and privacy program maturity metrics.",
+      "privacy_counsel": "Emphasize legal analysis, proposed rules, litigation precedent, regulatory interpretation, and legal risk assessment.",
+      "privacy_ops": "Emphasize process changes, DSR workflow implications, policy updates, consent mechanism changes, and operational compliance.",
+      "ciso_security": "Emphasize breach notification obligations, technical security standards, incident response requirements, and security-adjacent regulations.",
+      "outside_counsel": "Emphasize cross-client regulatory patterns, new precedents, advisory risk, multi-jurisdiction compliance strategies.",
+      "policy_affairs": "Emphasize rulemaking proceedings, comment periods, regulatory trajectory, lobbying implications, and policy advocacy.",
+    };
+    const roleLens = userRole && ROLE_LENS[userRole] ? `\nROLE LENS (${userRole}): ${ROLE_LENS[userRole]}\n` : "";
+
+    const systemPrompt = `You are a dedicated privacy regulatory analyst who has been tracking this specific subscriber's situation for ${priorContext.length} prior weeks.
 
 YOUR DEEP EXPERTISE INCLUDES:
 ${industryExpertise}
 ${jurisdictionExpertise}
+${roleLens}
 
 CRITICAL INSTRUCTION: You are not just filtering the standard brief. You must SYNTHESIZE information from:
 1. The standard weekly brief content
 2. The ${topArticles.length} highest-relevance articles scored for this subscriber
 3. The enforcement history data showing patterns in their jurisdictions
 4. Your own training knowledge of privacy law, regulatory patterns, and compliance frameworks
+5. The prior brief history — for EVERY major item, state whether it is: NEW this week | CONTINUATION from prior weeks | ESCALATION of a prior issue | RESOLUTION of a prior issue
 
 Draw on your training knowledge to provide context that goes BEYOND what's in the articles. Name specific laws, cite regulatory precedents, identify patterns. Do not hedge — make specific predictions and recommendations.
 
@@ -317,8 +338,9 @@ SUBSCRIBER PROFILE:
 - Industry: ${industryList}
 - Jurisdictions: ${jurisdictionList}
 - Topics: ${topicList}
+${userRole ? `- Role: ${userRole}` : ""}
 
-${priorBriefs ? `PRIOR BRIEFS (for continuity — reference ongoing threads):\n${priorBriefs}\n` : ""}
+${priorBriefs ? `PRIOR BRIEF HISTORY (last ${priorContext.length} weeks — reference these for continuity):\n${priorBriefs}\n\nPRIOR ISSUE TAGS:\n${JSON.stringify(priorContext.flatMap(b => b.issue_tags), null, 2)}\n` : ""}
 ${trendSignals ? `RECENT TREND SIGNALS:\n${trendSignals}\n` : ""}
 ${topics.includes("litigation") ? `LITIGATION WATCH: Include a dedicated Litigation Watch subsection in topic_depth covering: new class action filings, MDL proceedings, significant court rulings (circuit splits on standing, BIPA, VPPA), settlement approvals with dollar amounts, and implications for corporate privacy programs. Name specific cases and courts.\n` : ""}
 ${briefFormat === "exec-only" ? `Generate only: your_critical_alert, opening_headline, your_week, and your_action_items. Omit all other sections.\n` : ""}
