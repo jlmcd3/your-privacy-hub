@@ -81,10 +81,8 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
       const answer = response.data?.answer ?? "Sorry, I couldn't process that question.";
       setMessages(prev => [...prev, { role: "assistant", content: answer }]);
 
-      // Increment local count for free users
-      if (!isPremium) {
-        setQuestionCount(prev => prev + 1);
-      }
+      // Increment local count
+      setQuestionCount(prev => prev + 1);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
     } finally {
