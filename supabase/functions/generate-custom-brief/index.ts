@@ -382,12 +382,16 @@ Generate a STANDALONE personalized brief as a JSON object with these exact keys:
 
   "enforcement_pattern_for_you": "2 paragraphs analyzing enforcement patterns specifically relevant to ${industryList} in ${jurisdictionList}. Use the enforcement history data. What types of violations are being targeted? What fine ranges? Which regulators are most active? ~200 words.",
 
-  "look_ahead": "2 paragraphs with specific predictions for the next 30-90 days. Name specific dates, regulatory milestones, compliance deadlines. Do not hedge — make concrete predictions. ~150 words."
+  "continuity_from_last_week": "1-2 paragraphs explicitly listing items that carried over from prior weeks and their status change (new → continuing → escalating → resolved). If no prior briefs exist, write 'This is your first personalized brief — continuity tracking begins next week.' ~150 words.",
+
+  "look_ahead": "2 paragraphs with specific predictions for the next 30-90 days. Name specific dates, regulatory milestones, compliance deadlines. Do not hedge — make concrete predictions. ~150 words.",
+
+  "issue_tags": [{"tag": "issue name", "status": "new|continuing|escalating|resolved", "first_seen": "YYYY-MM-DD"}]
 }
 
-CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_intelligence, jurisdiction_developments, topic_depth, enforcement_pattern_for_you, look_ahead), you MUST cite sources inline using [ref:N] notation immediately after each specific factual claim, where N is the article index number from the TOP RELEVANCE-SCORED ARTICLES list above. Example: 'The ICO fined TikTok £12.7M [ref:3] for children\u2019s data violations.' Every paragraph must contain at least one [ref:N] citation.
+CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_intelligence, jurisdiction_developments, topic_depth, enforcement_pattern_for_you, continuity_from_last_week, look_ahead), you MUST cite sources inline using [ref:N] notation immediately after each specific factual claim, where N is the article index number from the TOP RELEVANCE-SCORED ARTICLES list above. Example: 'The ICO fined TikTok £12.7M [ref:3] for children\u2019s data violations.' Every paragraph must contain at least one [ref:N] citation.
 
-Return ONLY the JSON object. 3-5 action items. No preamble.`;
+Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
 
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
