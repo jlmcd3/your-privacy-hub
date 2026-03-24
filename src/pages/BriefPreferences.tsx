@@ -283,19 +283,20 @@ export default function BriefPreferences() {
             </p>
           </div>
 
-          {/* Upgrade prompt */}
-          <div className="mt-8 bg-fog rounded-2xl p-6 text-center">
-            <p className="text-slate text-sm mb-3">
-              Your analyst requires Premium ($20/month).
-              Standard Premium subscribers receive the shared weekly brief.
-            </p>
-            <Link
-              to="/subscribe"
-              className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
-            >
-              Upgrade to Premium →
-            </Link>
-          </div>
+          {isPremium === false && (
+            <div className="mt-8 bg-fog rounded-2xl p-6 text-center">
+              <p className="text-slate text-sm mb-3">
+                Your analyst requires Premium ($20/month).
+                Standard Premium subscribers receive the shared weekly brief.
+              </p>
+              <Link
+                to="/subscribe"
+                className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+              >
+                Upgrade to Premium →
+              </Link>
+            </div>
+          )}
         </main>
         <Footer />
       </div>
