@@ -186,6 +186,29 @@ export default function BriefPreferences() {
             </p>
           </div>
 
+          {/* Role */}
+          <div className="mb-8">
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your role</h2>
+            <p className="text-slate text-xs mb-4">Your brief is shaped by how you use regulatory intelligence.</p>
+            <div className="flex flex-wrap gap-2">
+              {ROLES.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => { setRole(r.id); setSaved(false); }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                    role === r.id
+                      ? "bg-navy text-white border-navy shadow-eup-sm"
+                      : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
+                  }`}
+                >
+                  <span>{r.icon}</span>
+                  <span>{r.label}</span>
+                  {role === r.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Industries */}
           <div className="mb-8">
             <h2 className="font-bold text-navy text-[15px] mb-1">Your sector</h2>
