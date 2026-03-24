@@ -76,32 +76,37 @@ Deno.serve(async (req) => {
   }
 
   const FREE_LIMIT = 3;
+  const PREMIUM_LIMIT = 50;
 
-  if (!profile.is_premium) {
-    // Monthly reset check
-    const today = new Date().toISOString().split("T")[0];
-    const resetDate = profile.ask_privacy_reset_date;
-    let currentCount = profile.ask_privacy_count ?? 0;
+  // Monthly reset check
+  const today = new Date().toISOString().split("T")[0];
+  const resetDate = profile.ask_privacy_reset_date;
+  let currentCount = profile.ask_privacy_count ?? 0;
 
-    if (resetDate && resetDate.slice(0, 7) < today.slice(0, 7)) {
-      // New month — reset count
-      await adminClient
-        .from("profiles")
-        .update({ ask_privacy_count: 0, ask_privacy_reset_date: today })
-        .eq("id", user.id);
-      currentCount = 0;
-    }
+  if (resetDate && resetDate.slice(0, 7) < today.slice(0, 7)) {
+    // New month — reset count
+    await adminClient
+      .from("profiles")
+      .update({ ask_privacy_count: 0, ask_privacy_reset_date: today })
+      .eq("id", user.id);
+    currentCount = 0;
+  }
 
-    if (currentCount >= FREE_LIMIT) {
-      return new Response(
-        JSON.stringify({
-          error: "Question limit reached",
-          message: `You've used your ${FREE_LIMIT} free questions this month. Upgrade to Premium for unlimited questions.`,
-          upgrade_url: "/subscribe",
-        }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  const limit = profile.is_premium ? PREMIUM_LIMIT : FREE_LIMIT;
+
+  if (currentCount >= limit) {
+    const message = profile.is_premium
+      ? `You've used your ${PREMIUM_LIMIT} questions this month. Your limit resets next month.`
+      : `You've used your ${FREE_LIMIT} free questions this month. Upgrade to Premium for 50 questions/month.`;
+    return new Response(
+      JSON.stringify({
+        error: "Question limit reached",
+        message,
+        upgrade_url: profile.is_premium ? undefined : "/subscribe",
+        remaining: 0,
+      }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   // Step 3: Process the question
