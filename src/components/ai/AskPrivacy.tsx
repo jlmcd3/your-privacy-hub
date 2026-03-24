@@ -15,6 +15,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 const FREE_QUESTION_LIMIT = 3;
+const PREMIUM_QUESTION_LIMIT = 50;
 
 interface AskPrivacyProps { isPremium: boolean; }
 
@@ -26,9 +27,9 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
   const [questionCount, setQuestionCount] = useState(0);
   const [limitReached, setLimitReached] = useState(false);
 
-  // Fetch current question count for free users
+  // Fetch current question count
   useEffect(() => {
-    if (isPremium || !user) return;
+    if (!user) return;
     supabase
       .from("profiles")
       .select("ask_privacy_count, ask_privacy_reset_date")
@@ -38,27 +39,28 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
         if (!data) return;
         const today = new Date().toISOString().split("T")[0];
         const resetDate = (data as any).ask_privacy_reset_date;
-        // Monthly reset: if reset_date is in a prior month, count is effectively 0
         if (resetDate && resetDate.slice(0, 7) < today.slice(0, 7)) {
           setQuestionCount(0);
         } else {
           setQuestionCount((data as any).ask_privacy_count ?? 0);
         }
       });
-  }, [isPremium, user]);
+  }, [user]);
+
+  const questionLimit = isPremium ? PREMIUM_QUESTION_LIMIT : FREE_QUESTION_LIMIT;
 
   useEffect(() => {
-    if (!isPremium && questionCount >= FREE_QUESTION_LIMIT) {
+    if (questionCount >= questionLimit) {
       setLimitReached(true);
     }
-  }, [questionCount, isPremium]);
+  }, [questionCount, questionLimit]);
 
   const sendMessage = async (text?: string) => {
     const question = text ?? input;
     if (!question.trim() || loading) return;
 
     // Check limit before sending
-    if (!isPremium && questionCount >= FREE_QUESTION_LIMIT) {
+    if (questionCount >= questionLimit) {
       setLimitReached(true);
       return;
     }
@@ -79,10 +81,8 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
       const answer = response.data?.answer ?? "Sorry, I couldn't process that question.";
       setMessages(prev => [...prev, { role: "assistant", content: answer }]);
 
-      // Increment local count for free users
-      if (!isPremium) {
-        setQuestionCount(prev => prev + 1);
-      }
+      // Increment local count
+      setQuestionCount(prev => prev + 1);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
     } finally {
@@ -90,19 +90,22 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
     }
   };
 
-  // Fully locked state for non-premium users (no questions available)
-  if (!isPremium && limitReached) {
+  // Fully locked state
+  if (limitReached) {
     return (
       <div className="bg-card rounded-2xl border border-border p-6 text-center">
         <Lock className="w-8 h-8 text-amber-500 mx-auto mb-3" />
         <h3 className="font-bold text-foreground text-[16px] mb-2">Question Limit Reached</h3>
         <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-          You've used your {FREE_QUESTION_LIMIT} free questions this month. Upgrade to ask unlimited
-          questions with full conversation memory.
+          {isPremium
+            ? `You've used your ${PREMIUM_QUESTION_LIMIT} questions this month. Your limit resets next month.`
+            : `You've used your ${FREE_QUESTION_LIMIT} free questions this month. Upgrade to Premium for ${PREMIUM_QUESTION_LIMIT} questions/month.`}
         </p>
-        <Link to="/subscribe" className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all">
-          Upgrade to Premium →
-        </Link>
+        {!isPremium && (
+          <Link to="/subscribe" className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all">
+            Upgrade to Premium →
+          </Link>
+        )}
       </div>
     );
   }
@@ -190,7 +193,7 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
         <Sparkles className="w-4 h-4 text-blue-300" />
         <h3 className="font-bold text-white text-[14px]">Ask a Privacy Question</h3>
         <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 px-2 py-0.5 rounded-full">
-          Premium
+          {PREMIUM_QUESTION_LIMIT - questionCount} left
         </span>
       </div>
 

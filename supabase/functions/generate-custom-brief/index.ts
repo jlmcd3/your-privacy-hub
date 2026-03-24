@@ -244,9 +244,25 @@ Deno.serve(async (req) => {
   // Fetch trend signals once for all users
   const trendSignals = await fetchTrendSignals();
 
+  const MONTHLY_REPORT_LIMIT = 20;
   let processed = 0;
 
   for (const user of proUsers) {
+    // Check monthly report cap
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const { count: monthlyCount } = await supabase
+      .from("custom_briefs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("generated_at", monthStart.toISOString());
+
+    if ((monthlyCount ?? 0) >= MONTHLY_REPORT_LIMIT) {
+      console.log(`User ${user.id} has reached ${MONTHLY_REPORT_LIMIT} reports this month, skipping`);
+      continue;
+    }
+
     const { data: prefs } = await supabase
       .from("user_brief_preferences")
       .select("*")
