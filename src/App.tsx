@@ -49,6 +49,9 @@ import CheckEmail from "./pages/CheckEmail.tsx";
 import Tools from "./pages/Tools.tsx";
 import CookieConsent from "./pages/CookieConsent.tsx";
 import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
+import BiometricPrivacy from "./pages/BiometricPrivacy.tsx";
+import BreachNotification from "./pages/BreachNotification.tsx";
+import CrossBorderTransfers from "./pages/CrossBorderTransfers.tsx";
 
 const queryClient = new QueryClient();
 
