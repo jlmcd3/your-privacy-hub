@@ -490,6 +490,16 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         verification_result: verificationResult,
         issue_tags: issueTags,
       });
+
+      // Decrement bonus credits if we're past the included limit
+      const newUsed = used + 1;
+      if (newUsed > INCLUDED_REPORTS && bonusCredits > 0) {
+        await supabase
+          .from("profiles")
+          .update({ bonus_report_credits: bonusCredits - 1 })
+          .eq("id", user.id);
+      }
+
       processed++;
     } catch (e) {
       console.error(`Custom brief failed for user ${user.id}:`, e);
