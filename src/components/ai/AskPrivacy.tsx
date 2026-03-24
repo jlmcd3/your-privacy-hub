@@ -27,9 +27,9 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
   const [questionCount, setQuestionCount] = useState(0);
   const [limitReached, setLimitReached] = useState(false);
 
-  // Fetch current question count for free users
+  // Fetch current question count
   useEffect(() => {
-    if (isPremium || !user) return;
+    if (!user) return;
     supabase
       .from("profiles")
       .select("ask_privacy_count, ask_privacy_reset_date")
@@ -39,14 +39,13 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
         if (!data) return;
         const today = new Date().toISOString().split("T")[0];
         const resetDate = (data as any).ask_privacy_reset_date;
-        // Monthly reset: if reset_date is in a prior month, count is effectively 0
         if (resetDate && resetDate.slice(0, 7) < today.slice(0, 7)) {
           setQuestionCount(0);
         } else {
           setQuestionCount((data as any).ask_privacy_count ?? 0);
         }
       });
-  }, [isPremium, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!isPremium && questionCount >= FREE_QUESTION_LIMIT) {
