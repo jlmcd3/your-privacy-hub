@@ -47,11 +47,13 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
       });
   }, [user]);
 
+  const questionLimit = isPremium ? PREMIUM_QUESTION_LIMIT : FREE_QUESTION_LIMIT;
+
   useEffect(() => {
-    if (!isPremium && questionCount >= FREE_QUESTION_LIMIT) {
+    if (questionCount >= questionLimit) {
       setLimitReached(true);
     }
-  }, [questionCount, isPremium]);
+  }, [questionCount, questionLimit]);
 
   const sendMessage = async (text?: string) => {
     const question = text ?? input;
