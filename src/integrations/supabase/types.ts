@@ -22,6 +22,7 @@ export type Database = {
           generated_at: string | null
           generation_model: string | null
           id: string
+          issue_tags: Json | null
           preferences_snapshot: Json | null
           user_id: string
           verification_result: Json | null
@@ -34,6 +35,7 @@ export type Database = {
           generated_at?: string | null
           generation_model?: string | null
           id?: string
+          issue_tags?: Json | null
           preferences_snapshot?: Json | null
           user_id: string
           verification_result?: Json | null
@@ -46,6 +48,7 @@ export type Database = {
           generated_at?: string | null
           generation_model?: string | null
           id?: string
+          issue_tags?: Json | null
           preferences_snapshot?: Json | null
           user_id?: string
           verification_result?: Json | null
@@ -224,6 +227,7 @@ export type Database = {
         Row: {
           ask_privacy_count: number | null
           ask_privacy_reset_date: string | null
+          brief_role: string | null
           created_at: string
           id: string
           is_premium: boolean
@@ -237,6 +241,7 @@ export type Database = {
         Insert: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
+          brief_role?: string | null
           created_at?: string
           id: string
           is_premium?: boolean
@@ -250,6 +255,7 @@ export type Database = {
         Update: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
+          brief_role?: string | null
           created_at?: string
           id?: string
           is_premium?: boolean
