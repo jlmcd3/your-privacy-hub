@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { data: profile, error: profileError } = await adminClient
     .from("profiles")
-    .select("is_premium")
+    .select("is_premium, ask_privacy_count, ask_privacy_reset_date")
     .eq("id", user.id)
     .single();
 
@@ -75,11 +75,33 @@ Deno.serve(async (req) => {
     );
   }
 
+  const FREE_LIMIT = 3;
+
   if (!profile.is_premium) {
-    return new Response(
-      JSON.stringify({ error: "Premium subscription required", upgrade_url: "/subscribe" }),
-      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    // Monthly reset check
+    const today = new Date().toISOString().split("T")[0];
+    const resetDate = profile.ask_privacy_reset_date;
+    let currentCount = profile.ask_privacy_count ?? 0;
+
+    if (resetDate && resetDate.slice(0, 7) < today.slice(0, 7)) {
+      // New month — reset count
+      await adminClient
+        .from("profiles")
+        .update({ ask_privacy_count: 0, ask_privacy_reset_date: today })
+        .eq("id", user.id);
+      currentCount = 0;
+    }
+
+    if (currentCount >= FREE_LIMIT) {
+      return new Response(
+        JSON.stringify({
+          error: "Question limit reached",
+          message: `You've used your ${FREE_LIMIT} free questions this month. Upgrade to Premium for unlimited questions.`,
+          upgrade_url: "/subscribe",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   }
 
   // Step 3: Process the question
@@ -122,6 +144,18 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
     const answer = data.content?.[0]?.text ?? "Sorry, I couldn't process that question.";
+
+    // Increment question count for non-premium users
+    if (!profile.is_premium) {
+      const today = new Date().toISOString().split("T")[0];
+      await adminClient
+        .from("profiles")
+        .update({
+          ask_privacy_count: (profile.ask_privacy_count ?? 0) + 1,
+          ask_privacy_reset_date: today,
+        })
+        .eq("id", user.id);
+    }
 
     return new Response(
       JSON.stringify({ answer }),

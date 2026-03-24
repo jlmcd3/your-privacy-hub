@@ -222,6 +222,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ask_privacy_count: number | null
+          ask_privacy_reset_date: string | null
           created_at: string
           id: string
           is_premium: boolean
@@ -233,6 +235,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ask_privacy_count?: number | null
+          ask_privacy_reset_date?: string | null
           created_at?: string
           id: string
           is_premium?: boolean
@@ -244,6 +248,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ask_privacy_count?: number | null
+          ask_privacy_reset_date?: string | null
           created_at?: string
           id?: string
           is_premium?: boolean
