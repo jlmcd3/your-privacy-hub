@@ -301,9 +301,9 @@ const Dashboard = () => {
                 ))}
 
                 {/* 4. Enforcement Trends — gated */}
-                {(brief as any).enforcement_trends && (
+                {brief.enforcement_trends && (
                   <PremiumGate message="Premium subscribers see full enforcement trend analysis relevant to their sector.">
-                    <SectionBlock icon="📊" title="Enforcement Trends" content={(brief as any).enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                    <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
                   </PremiumGate>
                 )}
 
