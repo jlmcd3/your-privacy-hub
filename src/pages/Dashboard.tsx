@@ -617,10 +617,10 @@ const Dashboard = () => {
               <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
               <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
               <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🤖" title="AI Governance" content={(brief as any).ai_governance} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={(brief as any).adtech_advertising} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="👁️" title="Biometric Data" content={(brief as any).biometric_data} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🏛️" title="Privacy Litigation" content={(brief as any).privacy_litigation} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🤖" title="AI Governance" content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="👁️" title="Biometric Data" content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
+              <SectionBlock icon="🏛️" title="Privacy Litigation" content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
             </div>
 
             {/* Enforcement table */}
