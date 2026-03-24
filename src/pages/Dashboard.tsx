@@ -287,10 +287,10 @@ const Dashboard = () => {
                   { icon: "🏛️", title: "U.S. State Analysis", content: brief.us_states },
                   { icon: "🇪🇺", title: "EU & UK Analysis", content: brief.eu_uk },
                   { icon: "🌍", title: "Global Developments", content: brief.global_developments },
-                  { icon: "🤖", title: "AI Governance", content: (brief as any).ai_governance },
-                  { icon: "📡", title: "AdTech & Advertising Privacy", content: (brief as any).adtech_advertising },
-                  { icon: "👁️", title: "Biometric Data", content: (brief as any).biometric_data },
-                  { icon: "🏛️", title: "Privacy Litigation", content: (brief as any).privacy_litigation },
+                  { icon: "🤖", title: "AI Governance", content: brief.ai_governance },
+                  { icon: "📡", title: "AdTech & Advertising Privacy", content: brief.adtech_advertising },
+                  { icon: "👁️", title: "Biometric Data", content: brief.biometric_data },
+                  { icon: "🏛️", title: "Privacy Litigation", content: brief.privacy_litigation },
                 ].filter(s => s.content).map((s) => (
                   <PremiumGate
                     key={s.title}
