@@ -94,7 +94,7 @@ const Dashboard = () => {
     }, 8000);
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-custom-brief");
+      const { data, error } = await supabase.functions.invoke("generate-brief-on-demand");
       if (!error && data?.brief) {
         setCustomBrief(data.brief);
       }
