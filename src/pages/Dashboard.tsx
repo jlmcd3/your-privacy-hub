@@ -79,6 +79,8 @@ const Dashboard = () => {
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
+  const [reportsUsed, setReportsUsed] = useState(0);
+  const [bonusCredits, setBonusCredits] = useState(0);
   const [genPhase, setGenPhase] = useState(0);
 
   const GEN_PHASES = [
