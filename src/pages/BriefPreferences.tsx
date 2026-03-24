@@ -111,11 +111,13 @@ const Toggle = ({
 export default function BriefPreferences() {
   const { user } = useAuth();
   const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[], format: "full" });
+  const [role, setRole] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
+    // Fetch preferences
     (supabase as any)
       .from("user_brief_preferences")
       .select("*")
@@ -128,6 +130,15 @@ export default function BriefPreferences() {
           topics: data.topics ?? [],
           format: data.format ?? "full",
         });
+      });
+    // Fetch role from profile
+    supabase
+      .from("profiles")
+      .select("brief_role")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data && (data as any).brief_role) setRole((data as any).brief_role);
       });
   }, [user]);
 
