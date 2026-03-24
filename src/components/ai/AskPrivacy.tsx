@@ -90,19 +90,22 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
     }
   };
 
-  // Fully locked state for non-premium users (no questions available)
-  if (!isPremium && limitReached) {
+  // Fully locked state
+  if (limitReached) {
     return (
       <div className="bg-card rounded-2xl border border-border p-6 text-center">
         <Lock className="w-8 h-8 text-amber-500 mx-auto mb-3" />
         <h3 className="font-bold text-foreground text-[16px] mb-2">Question Limit Reached</h3>
         <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-          You've used your {FREE_QUESTION_LIMIT} free questions this month. Upgrade to ask unlimited
-          questions with full conversation memory.
+          {isPremium
+            ? `You've used your ${PREMIUM_QUESTION_LIMIT} questions this month. Your limit resets next month.`
+            : `You've used your ${FREE_QUESTION_LIMIT} free questions this month. Upgrade to Premium for ${PREMIUM_QUESTION_LIMIT} questions/month.`}
         </p>
-        <Link to="/subscribe" className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all">
-          Upgrade to Premium →
-        </Link>
+        {!isPremium && (
+          <Link to="/subscribe" className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all">
+            Upgrade to Premium →
+          </Link>
+        )}
       </div>
     );
   }
