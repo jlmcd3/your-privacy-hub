@@ -177,6 +177,7 @@ const Dashboard = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  if (authLoading || isPremium === null) {
     return (
       <div className="min-h-screen bg-background">
         <Helmet>
