@@ -10,6 +10,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+const INCLUDED_REPORTS = 6;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -30,17 +32,42 @@ Deno.serve(async (req) => {
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // Check Pro subscription
+  // Check Pro subscription and report credits
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { data: profile } = await adminClient
     .from("profiles")
-    .select("is_premium")
+    .select("is_premium, bonus_report_credits")
     .eq("id", user.id)
     .single();
 
   if (!profile?.is_premium) {
     return new Response(JSON.stringify({ error: "Premium subscription required" }),
       { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  // Count reports used this month
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const { count: monthlyCount } = await adminClient
+    .from("custom_briefs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .gte("generated_at", monthStart.toISOString());
+
+  const used = monthlyCount ?? 0;
+  const bonusCredits = (profile as any).bonus_report_credits ?? 0;
+  const totalAllowed = INCLUDED_REPORTS + bonusCredits;
+
+  if (used >= totalAllowed) {
+    return new Response(JSON.stringify({
+      error: "Report limit reached",
+      message: `You've used all ${INCLUDED_REPORTS} included reports this month${bonusCredits > 0 ? ` plus ${bonusCredits} bonus credits` : ""}. Purchase additional report credits to generate more.`,
+      used,
+      included: INCLUDED_REPORTS,
+      bonus_credits: bonusCredits,
+      total_allowed: totalAllowed,
+    }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   // Call generate-custom-brief internally with admin token
@@ -79,8 +106,14 @@ Deno.serve(async (req) => {
       .limit(1)
       .single();
 
-    return new Response(JSON.stringify({ success: true, brief: newBrief, ...result }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({
+      success: true,
+      brief: newBrief,
+      reports_used: used + 1,
+      reports_included: INCLUDED_REPORTS,
+      bonus_credits_remaining: Math.max(0, bonusCredits - (used + 1 > INCLUDED_REPORTS ? 1 : 0)),
+      ...result,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("on-demand brief error:", e);
     return new Response(JSON.stringify({ error: "Brief generation timed out. Please try again." }),
