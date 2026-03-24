@@ -32,6 +32,11 @@ interface WeeklyBrief {
   us_states: string | null;
   eu_uk: string | null;
   global_developments: string | null;
+  ai_governance: string | null;
+  adtech_advertising: string | null;
+  biometric_data: string | null;
+  privacy_litigation: string | null;
+  enforcement_trends: string | null;
   enforcement_table: EnforcementRow[] | null;
   trend_signal: string | null;
   why_this_matters: string | null;
