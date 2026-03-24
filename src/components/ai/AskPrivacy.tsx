@@ -60,7 +60,7 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
     if (!question.trim() || loading) return;
 
     // Check limit before sending
-    if (!isPremium && questionCount >= FREE_QUESTION_LIMIT) {
+    if (questionCount >= questionLimit) {
       setLimitReached(true);
       return;
     }
