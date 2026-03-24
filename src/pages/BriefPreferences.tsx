@@ -114,6 +114,7 @@ export default function BriefPreferences() {
   const [role, setRole] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) return;
