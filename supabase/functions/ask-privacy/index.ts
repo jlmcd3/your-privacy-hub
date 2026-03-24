@@ -150,8 +150,8 @@ Deno.serve(async (req) => {
     const data = await response.json();
     const answer = data.content?.[0]?.text ?? "Sorry, I couldn't process that question.";
 
-    // Increment question count for non-premium users
-    if (!profile.is_premium) {
+    // Increment question count for all users
+    {
       const today = new Date().toISOString().split("T")[0];
       await adminClient
         .from("profiles")
