@@ -249,12 +249,14 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              <Link
-                to="/subscribe"
-                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
-              >
-                Upgrade
-              </Link>
+              {!isPremium && (
+                <Link
+                  to="/subscribe"
+                  className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
+                >
+                  ⭐ Upgrade
+                </Link>
+              )}
               <Link
                 to="/account"
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
