@@ -73,34 +73,56 @@ serve(async (req) => {
       case "checkout.session.completed": {
         const session = event.data.object;
         const userId = session.metadata?.user_id;
-        if (userId) {
-          // Fetch subscription to determine price_id for Pro detection
-          const subId = session.subscription;
-          let priceId: string | null = null;
-          let isPro = false;
-          if (subId) {
-            const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")!;
-            const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subId}`, {
-              headers: { Authorization: `Bearer ${stripeKey}` },
-            });
-            const subData = await subRes.json();
-            priceId = subData?.items?.data?.[0]?.price?.id ?? null;
-            const proPriceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
-            isPro = !!(proPriceId && priceId === proPriceId);
-          }
+        if (!userId) break;
 
-          await supabase
-            .from("profiles")
-            .update({
-              is_premium: true,
-              is_pro: isPro,
-              stripe_customer_id: session.customer,
-              stripe_price_id: priceId,
-              payment_failed: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", userId);
+        // Check if this is a report credit purchase
+        if (session.metadata?.type === "report_credits") {
+          const credits = parseInt(session.metadata.credits, 10);
+          if (credits > 0) {
+            // Fetch current credits and add
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("bonus_report_credits")
+              .eq("id", userId)
+              .single();
+            const current = (profile as any)?.bonus_report_credits ?? 0;
+            await supabase
+              .from("profiles")
+              .update({
+                bonus_report_credits: current + credits,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", userId);
+          }
+          break;
         }
+
+        // Subscription checkout
+        const subId = session.subscription;
+        let priceId: string | null = null;
+        let isPro = false;
+        if (subId) {
+          const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")!;
+          const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subId}`, {
+            headers: { Authorization: `Bearer ${stripeKey}` },
+          });
+          const subData = await subRes.json();
+          priceId = subData?.items?.data?.[0]?.price?.id ?? null;
+          const proPriceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
+          isPro = !!(proPriceId && priceId === proPriceId);
+        }
+
+        await supabase
+          .from("profiles")
+          .update({
+            is_premium: true,
+            is_pro: isPro,
+            stripe_customer_id: session.customer,
+            stripe_price_id: priceId,
+            payment_failed: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", userId);
         break;
       }
 
