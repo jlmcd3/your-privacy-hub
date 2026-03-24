@@ -532,10 +532,7 @@ async function generateAISummary(
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
-        messages: [
-          {
-            role: "system",
-            content: `You are a privacy regulatory analyst at a leading intelligence firm.
+        system: `You are a privacy regulatory analyst at a leading intelligence firm.
 Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers.
 
 Rules:
@@ -545,7 +542,7 @@ Rules:
 (4) Be precise about legal weight: distinguish binding regulatory decisions from
     guidance, proposals, and commentary. This distinction matters enormously to
     legal professionals.`,
-          },
+        messages: [
           {
             role: "user",
             content: `Analyze this privacy/data protection article.
