@@ -193,7 +193,7 @@ export default function AskPrivacy({ isPremium }: AskPrivacyProps) {
         <Sparkles className="w-4 h-4 text-blue-300" />
         <h3 className="font-bold text-white text-[14px]">Ask a Privacy Question</h3>
         <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 px-2 py-0.5 rounded-full">
-          Premium
+          {PREMIUM_QUESTION_LIMIT - questionCount} left
         </span>
       </div>
 
