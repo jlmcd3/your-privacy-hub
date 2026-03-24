@@ -100,6 +100,10 @@ const Dashboard = () => {
       const { data, error } = await supabase.functions.invoke("generate-brief-on-demand");
       if (!error && data?.brief) {
         setCustomBrief(data.brief);
+        setReportsUsed(prev => prev + 1);
+        if (data.bonus_credits_remaining !== undefined) {
+          setBonusCredits(data.bonus_credits_remaining);
+        }
       }
     } catch (e) {
       console.error("Brief generation failed:", e);
