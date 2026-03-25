@@ -49,6 +49,14 @@ export default function ToolkitSection() {
             </Link>
           ))}
         </div>
+        <div className="text-center mt-6">
+          <Link
+            to="/tools"
+            className="text-blue text-[13px] font-semibold hover:text-navy transition-colors no-underline"
+          >
+            See all tools →
+          </Link>
+        </div>
       </div>
     </section>
   );

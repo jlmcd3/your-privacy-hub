@@ -138,15 +138,15 @@ const Index = () => {
       {/* Layer 1: Topbar */}
       <Topbar />
 
-      {/* Layer 2: Breaking news */}
+      {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
+      <Navbar />
+
+      {/* Layer 3: Breaking news */}
       <BreakingNewsBanner />
 
-      {/* Layer 3: Search-first hero */}
+      {/* Layer 4: Search-first hero */}
       <SearchFirstHero />
       <FreeVsPaidStrip />
-
-      {/* Choose your mode */}
-      <ChooseYourMode />
 
       {/* Free brief registration — the primary conversion to the email funnel */}
       <div className="bg-navy border-b border-white/10">
@@ -192,11 +192,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Layer 4: Headlines ticker */}
+      {/* Layer 5: Headlines ticker */}
       <HeadlinesTicker />
-
-      {/* Layer 5: Navbar */}
-      <Navbar />
 
       {/* Layer 6: Main editorial content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-7 md:pt-9">
@@ -208,6 +205,9 @@ const Index = () => {
           <div className="min-w-0">
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
+
+            {/* Choose your mode — shown after first editorial content */}
+            <ChooseYourMode />
 
             {/* Region strip */}
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}

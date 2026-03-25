@@ -91,7 +91,7 @@ export default function Tools() {
 
         <div className="mt-12 text-center">
           <p className="text-slate text-[13px] mb-1">
-            DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
+            Enterprise data-guidance platforms charge quote-based annual rates for features you access here free.
           </p>
           <p className="text-slate-light text-[11px]">
             All tools are free with no account required. Premium ($20/month) adds a personalized weekly analyst brief.

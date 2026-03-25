@@ -37,11 +37,13 @@ const navItems: NavItem[] = [
         header: "By Topic",
         divider: true,
         items: [
+          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
           { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
           { icon: "📡", label: "AdTech", href: "/category/adtech" },
         ],
       },
+
       {
         header: "Topic Hubs",
         divider: true,
@@ -94,17 +96,8 @@ const navItems: NavItem[] = [
       ]},
     ],
   },
-  {
-    label: "Enforcement",
-    sections: [
-      {
-        items: [
-          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
-          { icon: "⚖️", label: "Enforcement Actions Feed", href: "/category/enforcement" },
-        ],
-      },
-    ],
-  },
+
+
   {
     label: "Intelligence",
     sections: [
@@ -120,8 +113,10 @@ const navItems: NavItem[] = [
         header: "Analysis Tools",
         divider: true,
         items: [
+          { icon: "🧰", label: "Professional Toolkit", href: "/tools" },
           { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
           { icon: "🌐", label: "Compare Jurisdictions", href: "/compare/jurisdictions" },
+
           { icon: "📜", label: "Legislation Tracker", badge: "NEW", badgeGreen: true, href: "/legislation-tracker" },
           { icon: "⏱️", label: "Regulatory Timelines", href: "/timelines" },
           { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
@@ -141,10 +136,8 @@ const navItems: NavItem[] = [
       },
     ],
   },
-  {
-    label: "Pricing",
-    href: "/subscribe",
-  },
+
+
 ];
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
