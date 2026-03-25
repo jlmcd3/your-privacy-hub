@@ -37,11 +37,13 @@ const navItems: NavItem[] = [
         header: "By Topic",
         divider: true,
         items: [
+          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
           { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
           { icon: "📡", label: "AdTech", href: "/category/adtech" },
         ],
       },
+
       {
         header: "Topic Hubs",
         divider: true,
