@@ -96,17 +96,8 @@ const navItems: NavItem[] = [
       ]},
     ],
   },
-  {
-    label: "Enforcement",
-    sections: [
-      {
-        items: [
-          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
-          { icon: "⚖️", label: "Enforcement Actions Feed", href: "/category/enforcement" },
-        ],
-      },
-    ],
-  },
+
+
   {
     label: "Intelligence",
     sections: [
