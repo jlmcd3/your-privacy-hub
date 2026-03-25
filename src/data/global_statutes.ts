@@ -34,12 +34,12 @@ export const GLOBAL_STATUTES: Record<string, StatuteEntry> = {
   "united-kingdom:childrenRules":    { cite: "DPA 2018 s.9 — Child's consent",                    url: "https://www.legislation.gov.uk/ukpga/2018/12/section/9" },
 
   // ── UNITED STATES (FTC / sector laws — federal + CCPA as reference) ─
-  "united-states:breachNotif":       { cite: "FTC Safeguards Rule, 16 C.F.R. Part 314",           url: "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-C/part-314" },
-  "united-states:rightAccess":       { cite: "Cal. Civ. Code § 1798.110 (CCPA/CPRA)",             url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.110.&lawCode=CIV" },
-  "united-states:rightErasure":      { cite: "Cal. Civ. Code § 1798.105 (CCPA/CPRA)",             url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.105.&lawCode=CIV" },
-  "united-states:rightPortability":  { cite: "Cal. Civ. Code § 1798.130(a)(2)(B) (CPRA)",         url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.130.&lawCode=CIV" },
+  "united-states:breachNotif":       { cite: "No federal law — varies by state",                  url: "https://enduserprivacy.com/compare/us-states" },
+  "united-states:rightAccess":       { cite: "No federal law — see US state laws",                url: "https://enduserprivacy.com/compare/us-states" },
+  "united-states:rightErasure":      { cite: "No federal law — see US state laws",                url: "https://enduserprivacy.com/compare/us-states" },
+  "united-states:rightPortability":  { cite: "No federal law — see US state laws",                url: "https://enduserprivacy.com/compare/us-states" },
   "united-states:gdprAdequacy":      { cite: "EU-US Data Privacy Framework (2023)",               url: "https://www.dataprivacyframework.gov/" },
-  "united-states:childrenRules":     { cite: "COPPA, 15 U.S.C. §§ 6501–6506",                    url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title15-chapter91&edition=prelim" },
+  "united-states:childrenRules":     { cite: "COPPA, 15 U.S.C. §§ 6501–6506",                    url: "https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa" },
 
   // ── BRAZIL (LGPD — Lei 13.709/2018) ───────────────────────────────
   "brazil:hasLaw":                   { cite: "Lei n.º 13.709/2018 (LGPD), Art. 1",               url: "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" },
