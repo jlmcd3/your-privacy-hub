@@ -192,11 +192,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Layer 4: Headlines ticker */}
+      {/* Layer 5: Headlines ticker */}
       <HeadlinesTicker />
-
-      {/* Layer 5: Navbar */}
-      <Navbar />
 
       {/* Layer 6: Main editorial content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-7 md:pt-9">
