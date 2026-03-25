@@ -1,3 +1,18 @@
+/**
+ * ADVERTISING POLICY — EndUserPrivacy.com FRD v2.1 §8.3
+ *
+ * 1. Ads MUST NOT appear in any authenticated Premium workflow.
+ *    Pass isPremium={true} to suppress this component entirely.
+ *
+ * 2. All ads served here MUST be contextual and non-behavioural.
+ *    No user browsing data from this platform may be used for
+ *    ad targeting or shared with ad networks.
+ *
+ * 3. This component is currently INACTIVE (returns null when no
+ *    Google Ad config is provided). Before activating, review
+ *    against FRD §8.3.
+ */
+
 import { Link } from "react-router-dom";
 
 interface AdBannerProps {
@@ -6,6 +21,7 @@ interface AdBannerProps {
   adSlot?: string;
   googleAdClient?: string;
   googleAdSlot?: string;
+  isPremium?: boolean;
 }
 
 const AdBanner = ({
@@ -14,7 +30,10 @@ const AdBanner = ({
   adSlot,
   googleAdClient,
   googleAdSlot,
+  isPremium = false,
 }: AdBannerProps) => {
+  if (isPremium) return null; // Policy: never show ads to Premium users
+
   const dimensions = {
     leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
     sidebar: { desktop: { w: 300, h: 250 }, mobile: { w: 300, h: 250 } },
