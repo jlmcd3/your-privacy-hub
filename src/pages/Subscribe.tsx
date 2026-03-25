@@ -522,8 +522,8 @@ const Subscribe = () => {
                 <tr className="bg-fog">
                   <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP — $550+/yr</th>
+                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust)</th>
+                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP</th>
                 </tr>
               </thead>
               <tbody>
