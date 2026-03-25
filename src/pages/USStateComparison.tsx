@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Check, Minus } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import comparisonData from "@/data/us_state_comparison.json";
+import { STATUTES } from "@/data/statutes";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,6 +29,10 @@ const USStateComparison = () => {
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">U.S. State Privacy Law Comparison</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
             Side-by-side comparison of all {states.length} enacted US comprehensive state privacy laws across 12 standard provisions.
+            <br />
+            <span className="text-sm text-muted-foreground/80">
+              Hover any ✓ to see the statute citation. Click to open the law.
+            </span>
           </p>
         </div>
       </div>
@@ -66,10 +72,31 @@ const USStateComparison = () => {
                     <td className="px-3 py-2.5 font-medium text-foreground sticky left-0 bg-card z-10">{provision}</td>
                     {states.map((s) => {
                       const val = s.provisions[pi];
+                      const statute = STATUTES[`${s.abbr}:${pi}`];
                       return (
                         <td key={s.abbr} className="px-2 py-2.5 text-center border-l border-border">
                           {val === true ? (
-                            <Check className="w-4 h-4 text-accent mx-auto" />
+                            statute ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={statute.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center hover:scale-110 transition-transform"
+                                    aria-label={`${statute.cite} — click to view statute`}
+                                  >
+                                    <Check className="w-4 h-4 text-accent mx-auto" />
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs text-xs font-mono">
+                                  <p>{statute.cite}</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Check className="w-4 h-4 text-accent mx-auto" />
+                            )
                           ) : val === false ? (
                             <Minus className="w-4 h-4 text-muted-foreground/30 mx-auto" />
                           ) : (
@@ -84,6 +111,10 @@ const USStateComparison = () => {
             </table>
           </div>
         </div>
+
+        <p className="text-xs text-muted-foreground mt-4">
+          Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
+        </p>
 
         <AdBanner variant="inline" adSlot="eup-comparison-bottom" className="py-3" />
       </div>
