@@ -113,8 +113,10 @@ const navItems: NavItem[] = [
         header: "Analysis Tools",
         divider: true,
         items: [
+          { icon: "🧰", label: "Professional Toolkit", href: "/tools" },
           { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
           { icon: "🌐", label: "Compare Jurisdictions", href: "/compare/jurisdictions" },
+
           { icon: "📜", label: "Legislation Tracker", badge: "NEW", badgeGreen: true, href: "/legislation-tracker" },
           { icon: "⏱️", label: "Regulatory Timelines", href: "/timelines" },
           { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
