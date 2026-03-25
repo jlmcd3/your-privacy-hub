@@ -73,6 +73,20 @@ const USStateComparison = () => {
           </label>
         </div>
 
+        {/* Premium upsell — slim contextual banner */}
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className="text-[13px] text-amber-900 leading-snug">
+            <span className="font-semibold">⭐ This tool is free.</span>
+            {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
+          </p>
+          <Link
+            to="/subscribe"
+            className="flex-shrink-0 text-[12px] font-bold text-amber-900 bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-colors whitespace-nowrap"
+          >
+            Get your analyst →
+          </Link>
+        </div>
+
         <AdBanner variant="leaderboard" adSlot="eup-comparison-top" className="py-3" />
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">

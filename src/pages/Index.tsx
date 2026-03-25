@@ -206,6 +206,9 @@ const Index = () => {
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
 
+            {/* Choose your mode — shown after first editorial content */}
+            <ChooseYourMode />
+
             {/* Region strip */}
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
 

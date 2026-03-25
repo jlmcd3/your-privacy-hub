@@ -708,11 +708,7 @@ const Dashboard = () => {
               </section>
             )}
 
-            {isPremium && (
-              <div className="mt-8">
-                <ReportCredits reportsUsed={reportsUsed} bonusCredits={bonusCredits} />
-              </div>
-            )}
+
 
             <div className="mt-8">
               <AskPrivacy isPremium={isPremium === true} />
