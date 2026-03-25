@@ -9,6 +9,29 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 
+const STATE_FLAGS: Record<string, string> = {
+  CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_California.svg?width=32",
+  CO: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Colorado.svg?width=32",
+  CT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Connecticut.svg?width=32",
+  DE: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Delaware.svg?width=32",
+  FL: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Florida.svg?width=32",
+  IA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Iowa.svg?width=32",
+  IN: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Indiana.svg?width=32",
+  KY: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Kentucky.svg?width=32",
+  MD: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Maryland.svg?width=32",
+  MN: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Minnesota.svg?width=32",
+  MT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Montana.svg?width=32",
+  NE: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Nebraska.svg?width=32",
+  NH: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_New_Hampshire.svg?width=32",
+  NJ: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_New_Jersey.svg?width=32",
+  OR: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Oregon.svg?width=32",
+  RI: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Rhode_Island.svg?width=32",
+  TN: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Tennessee.svg?width=32",
+  TX: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Texas.svg?width=32",
+  UT: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Utah.svg?width=32",
+  VA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Virginia.svg?width=32",
+};
+
 const USStateComparison = () => {
   const [showAll, setShowAll] = useState(false);
   const states = comparisonData.states.filter((s) => showAll || s.status === "enacted");
@@ -60,6 +83,14 @@ const USStateComparison = () => {
                   <th className="px-3 py-3 text-left font-semibold text-muted-foreground sticky left-0 bg-muted z-10 min-w-[140px]">Provision</th>
                   {states.map((s) => (
                     <th key={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[56px]">
+                      {STATE_FLAGS[s.abbr] && (
+                        <img
+                          src={STATE_FLAGS[s.abbr]}
+                          alt={`${s.name} state flag`}
+                          className="w-7 h-auto mx-auto mb-1 rounded-[2px] shadow-sm object-cover"
+                          loading="lazy"
+                        />
+                      )}
                       <div>{s.abbr}</div>
                       <div className="text-[9px] font-normal text-muted-foreground">{s.law}</div>
                     </th>
