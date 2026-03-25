@@ -514,7 +514,7 @@ const Subscribe = () => {
         <div className="mb-14">
           <h2 className="font-display text-[22px] text-navy text-center mb-2">How we compare</h2>
           <p className="text-[14px] text-navy text-center font-semibold mb-6">
-            DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
+            DataGuidance (OneTrust) charges enterprise rates for features you access here free.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
@@ -522,13 +522,13 @@ const Subscribe = () => {
                 <tr className="bg-fog">
                   <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP — $550+/yr</th>
+                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust)</th>
+                   <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Price", "$20/month", "$300–$3,500+/year", "$550+/year"],
+                  ["Price", "$20/month", "Enterprise / quote-based", "Annual membership"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
