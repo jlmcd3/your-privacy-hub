@@ -4,7 +4,9 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdBanner from "@/components/AdBanner";
+import { GLOBAL_STATUTES } from "@/data/global_statutes";
 
 const DIMENSIONS = [
   { key: "hasLaw",          label: "Comprehensive Privacy Law",      type: "bool"   },
@@ -118,13 +120,39 @@ const COMPARISON_DATA: Record<string, Record<string, any>> = {
 
 const ALL_SLUGS = Object.keys(COMPARISON_DATA);
 
-function Cell({ type, value }: { type: string; value: any }) {
+function Cell({ type, value, slug, dimKey }: { type: string; value: any; slug: string; dimKey: string }) {
   if (type === "bool") {
-    if (value === true)  return <span className="flex justify-center"><Check className="w-4 h-4 text-green-500" /></span>;
+    if (value === true) {
+      const statute = GLOBAL_STATUTES[`${slug}:${dimKey}`];
+      if (statute) {
+        return (
+          <span className="flex justify-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={statute.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center hover:scale-110 transition-transform"
+                  aria-label={`${statute.cite} — click to view statute`}
+                >
+                  <Check className="w-4 h-4 text-green-500" />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs font-mono">
+                <p>{statute.cite}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+              </TooltipContent>
+            </Tooltip>
+          </span>
+        );
+      }
+      return <span className="flex justify-center"><Check className="w-4 h-4 text-green-500" /></span>;
+    }
     if (value === false) return <span className="flex justify-center"><X className="w-4 h-4 text-red-400" /></span>;
-    return <span className="flex justify-center"><Minus className="w-4 h-4 text-slate-light" /></span>;
+    return <span className="flex justify-center"><Minus className="w-4 h-4 text-muted-foreground" /></span>;
   }
-  return <span className="text-[12px] text-navy">{value ?? "—"}</span>;
+  return <span className="text-[12px] text-foreground">{value ?? "—"}</span>;
 }
 
 export default function GlobalJurisdictionComparison() {
@@ -138,7 +166,7 @@ export default function GlobalJurisdictionComparison() {
     );
   };
 
-  const cols = selected.map(s => COMPARISON_DATA[s]).filter(Boolean);
+  const cols = selected.map(s => ({ slug: s, ...COMPARISON_DATA[s] })).filter(Boolean);
 
   return (
     <>
@@ -150,14 +178,17 @@ export default function GlobalJurisdictionComparison() {
         <Topbar />
         <Navbar />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 md:px-8 py-8 w-full">
-          <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
+          <h1 className="font-display font-bold text-foreground text-2xl md:text-3xl mb-2">
             Jurisdiction Comparison
           </h1>
-          <p className="text-slate text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-1">
             Compare up to 5 jurisdictions side by side. Select from the list below.
           </p>
+          <p className="text-muted-foreground/80 text-xs mb-6">
+            Hover any ✓ to see the statute citation. Click to open the law.
+          </p>
 
-          <div className="flex flex-wrap gap-2 mb-8 p-4 bg-fog rounded-2xl">
+          <div className="flex flex-wrap gap-2 mb-8 p-4 bg-muted rounded-2xl">
             {ALL_SLUGS.map(slug => {
               const j = COMPARISON_DATA[slug];
               const active = selected.includes(slug);
@@ -167,8 +198,8 @@ export default function GlobalJurisdictionComparison() {
                   onClick={() => toggle(slug)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                     active
-                      ? "bg-navy text-white border-navy"
-                      : "bg-white text-slate border-fog hover:border-navy/30"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:border-primary/30"
                   }`}
                 >
                   <span className="flag-emoji">{j.flag}</span> {j.name}
@@ -179,30 +210,30 @@ export default function GlobalJurisdictionComparison() {
           </div>
           <AdBanner variant="leaderboard" adSlot="eup-jurisdcomp-top" className="py-3" />
 
-          <div className="overflow-x-auto rounded-2xl border border-fog shadow-eup-sm">
+          <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-navy">
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-white/60 w-48">
+                <tr className="bg-primary">
+                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 w-48">
                     Dimension
                   </th>
                   {cols.map(j => (
                     <th key={j.name} className="px-4 py-3 text-center min-w-[140px]">
                       <div className="text-lg flag-emoji">{j.flag}</div>
-                      <div className="text-white font-bold text-[13px]">{j.name}</div>
+                      <div className="text-primary-foreground font-bold text-[13px]">{j.name}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {DIMENSIONS.map((dim, i) => (
-                  <tr key={dim.key} className={i % 2 === 0 ? "bg-white" : "bg-fog/40"}>
-                    <td className="px-5 py-3 text-[12px] font-semibold text-slate border-r border-fog">
+                  <tr key={dim.key} className={i % 2 === 0 ? "bg-background" : "bg-muted/40"}>
+                    <td className="px-5 py-3 text-[12px] font-semibold text-muted-foreground border-r border-border">
                       {dim.label}
                     </td>
                     {cols.map(j => (
                       <td key={j.name} className="px-4 py-3 text-center">
-                        <Cell type={dim.type} value={j[dim.key]} />
+                        <Cell type={dim.type} value={j[dim.key]} slug={j.slug} dimKey={dim.key} />
                       </td>
                     ))}
                   </tr>
@@ -211,8 +242,8 @@ export default function GlobalJurisdictionComparison() {
             </table>
           </div>
 
-          <p className="text-slate-light text-xs mt-4 text-center">
-            Data reflects best available information as of March 2026. Always verify against primary regulatory sources.
+          <p className="text-muted-foreground text-xs mt-4 text-center">
+            Hover any ✓ to see the applicable statute or article. Click to open the source law in a new tab. Data reflects best available information as of March 2026.
           </p>
         </main>
         <Footer />
