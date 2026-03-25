@@ -138,15 +138,15 @@ const Index = () => {
       {/* Layer 1: Topbar */}
       <Topbar />
 
-      {/* Layer 2: Breaking news */}
+      {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
+      <Navbar />
+
+      {/* Layer 3: Breaking news */}
       <BreakingNewsBanner />
 
-      {/* Layer 3: Search-first hero */}
+      {/* Layer 4: Search-first hero */}
       <SearchFirstHero />
       <FreeVsPaidStrip />
-
-      {/* Choose your mode */}
-      <ChooseYourMode />
 
       {/* Free brief registration — the primary conversion to the email funnel */}
       <div className="bg-navy border-b border-white/10">
