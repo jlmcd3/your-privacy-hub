@@ -396,6 +396,9 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Report credits — shown near top so usage state is visible on arrival */}
+        <ReportCredits reportsUsed={reportsUsed} bonusCredits={bonusCredits} />
+
         {/* Custom brief for Pro users — 9-section display */}
         {customBrief && (
           <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">

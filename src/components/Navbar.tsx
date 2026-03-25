@@ -136,10 +136,8 @@ const navItems: NavItem[] = [
       },
     ],
   },
-  {
-    label: "Pricing",
-    href: "/subscribe",
-  },
+
+
 ];
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
