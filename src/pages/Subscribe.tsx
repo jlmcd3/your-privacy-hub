@@ -514,7 +514,7 @@ const Subscribe = () => {
         <div className="mb-14">
           <h2 className="font-display text-[22px] text-navy text-center mb-2">How we compare</h2>
           <p className="text-[14px] text-navy text-center font-semibold mb-6">
-            DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
+            DataGuidance (OneTrust) charges enterprise rates for features you access here free.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
