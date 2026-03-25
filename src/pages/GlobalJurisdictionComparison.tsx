@@ -166,7 +166,10 @@ export default function GlobalJurisdictionComparison() {
     );
   };
 
-  const cols = selected.map(s => ({ slug: s, ...COMPARISON_DATA[s] })).filter(Boolean);
+  const cols = selected.map(s => {
+    const data = COMPARISON_DATA[s];
+    return data ? { slug: s, ...data } : null;
+  }).filter((c): c is Record<string, any> & { slug: string } => c !== null);
 
   return (
     <>
