@@ -107,7 +107,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   const spinRef       = useRef(0.002);
   const pulseRef      = useRef(0);
   const clockRef      = useRef(0);
-  const targetRotRef  = useRef<number | null>(null);
+  const targetRotYRef = useRef<number | null>(null);
+  const targetRotXRef = useRef<number | null>(null);
 
   const [phase,  setPhase]  = useState<Phase>("idle");
   const [picked, setPicked] = useState<Jurisdiction | null>(null);
@@ -218,17 +219,29 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       clockRef.current += 0.016;
 
       if (globeRef.current) {
-        if (targetRotRef.current !== null) {
-          // Ease-out toward target angle
-          const diff = targetRotRef.current - globeRef.current.rotation.y;
+        const animatingY = targetRotYRef.current !== null;
+        const animatingX = targetRotXRef.current !== null;
+
+        if (animatingY) {
+          const diff = targetRotYRef.current! - globeRef.current.rotation.y;
           if (Math.abs(diff) < 0.001) {
-            globeRef.current.rotation.y = targetRotRef.current;
-            targetRotRef.current = null; // done
+            globeRef.current.rotation.y = targetRotYRef.current!;
+            targetRotYRef.current = null;
           } else {
-            globeRef.current.rotation.y += diff * 0.06; // ease-out
+            globeRef.current.rotation.y += diff * 0.06;
           }
         } else {
           globeRef.current.rotation.y += spinRef.current; // normal spin
+        }
+
+        if (animatingX) {
+          const diff = targetRotXRef.current! - globeRef.current.rotation.x;
+          if (Math.abs(diff) < 0.001) {
+            globeRef.current.rotation.x = targetRotXRef.current!;
+            targetRotXRef.current = null;
+          } else {
+            globeRef.current.rotation.x += diff * 0.06;
+          }
         }
       }
 
@@ -312,9 +325,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     // when rotation.y = 0. To bring longitude L to the front:
     // rotation.y = -(L_rad + π/2)
     spinRef.current = 0; // stop free spin immediately
-    // Compute target angle and animate toward it smoothly
-    const targetAngle = -(jur.lon * Math.PI / 180 + Math.PI / 2);
-    targetRotRef.current = normalizeAngle(globe.rotation.y, targetAngle);
+    // Compute target angles and animate toward them smoothly
+    const targetY = -(jur.lon * Math.PI / 180 + Math.PI / 2);
+    targetRotYRef.current = normalizeAngle(globe.rotation.y, targetY);
+    // Tilt globe on X axis so latitude faces camera (negative because rotation is inverted)
+    const targetX = jur.lat * Math.PI / 180;
+    targetRotXRef.current = normalizeAngle(globe.rotation.x, targetX);
 
     pulseRef.current = 0;
     pulseRef.current = 0;
@@ -360,6 +376,9 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     setPhase("idle");
     setPicked(null);
     spinRef.current = 0.002;
+    // Ease X rotation back to 0 (level)
+    targetRotXRef.current = 0;
+    targetRotYRef.current = null;
   }, [removeHighlight]);
 
   const globeSize = compact ? 220 : 380;
