@@ -447,7 +447,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       {/* Globe */}
       <div
         ref={mountRef}
-        className="relative rounded-full overflow-hidden shadow-eup-lg cursor-pointer"
+        className={`relative rounded-full overflow-hidden cursor-pointer ${compact ? "shadow-[0_0_40px_8px_rgba(59,130,196,0.35),0_0_80px_20px_rgba(59,130,196,0.15)]" : "shadow-eup-lg"}`}
         style={{
           width: globeSize, height: globeSize,
           background: "radial-gradient(circle at 50% 50%, #0d1f3c 0%, #050b18 70%, #020609 100%)",
