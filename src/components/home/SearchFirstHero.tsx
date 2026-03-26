@@ -68,8 +68,8 @@ export default function SearchFirstHero() {
         </div>
 
         {/* Right: Spin the Globe — hidden on mobile */}
-        <div className="hidden md:flex flex-col items-center flex-shrink-0">
-          <SpinTheGlobe />
+        <div className="hidden md:flex flex-col items-center flex-shrink-0 w-[280px] lg:w-[300px]">
+          <SpinTheGlobe compact />
         </div>
       </div>
     </div>
