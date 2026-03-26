@@ -148,52 +148,6 @@ const Index = () => {
       <SearchFirstHero />
       <FreeVsPaidStrip />
 
-      {/* Free brief registration — the primary conversion to the email funnel */}
-      <div className="bg-navy border-b border-white/10">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <p className="text-[12px] text-white/70 flex-shrink-0">
-              📬 <strong className="text-white">Get the full weekly Intelligence Brief free</strong>
-              {" "}— delivered every Monday morning.
-            </p>
-            <div className="flex gap-2 flex-1 max-w-sm">
-              <input
-                type="email"
-                placeholder="you@company.com"
-                className="flex-1 px-3 py-1.5 text-[12px] rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 outline-none focus:border-sky transition-colors"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const val = (e.target as HTMLInputElement).value;
-                    if (val.includes("@")) {
-                      window.location.href = `/signup?email=${encodeURIComponent(val)}&redirect=/dashboard`;
-                    }
-                  }
-                }}
-              />
-              <button
-                className="px-4 py-1.5 text-[12px] font-bold text-navy bg-white rounded-lg hover:bg-white/90 transition-colors flex-shrink-0"
-                onClick={(e) => {
-                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                  const val = input?.value || "";
-                  if (val.includes("@")) {
-                    window.location.href = `/signup?email=${encodeURIComponent(val)}&redirect=/dashboard`;
-                  } else {
-                    window.location.href = "/signup?redirect=/dashboard";
-                  }
-                }}
-              >
-                Get free brief
-              </button>
-            </div>
-            <p className="text-[10px] text-white/40 hidden lg:block flex-shrink-0">
-              No credit card · Cancel anytime
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Layer 5: Headlines ticker */}
-      <HeadlinesTicker />
 
       {/* Layer 6: Main editorial content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-7 md:pt-9">
