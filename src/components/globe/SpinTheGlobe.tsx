@@ -219,17 +219,29 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       clockRef.current += 0.016;
 
       if (globeRef.current) {
-        if (targetRotRef.current !== null) {
-          // Ease-out toward target angle
-          const diff = targetRotRef.current - globeRef.current.rotation.y;
+        const animatingY = targetRotYRef.current !== null;
+        const animatingX = targetRotXRef.current !== null;
+
+        if (animatingY) {
+          const diff = targetRotYRef.current! - globeRef.current.rotation.y;
           if (Math.abs(diff) < 0.001) {
-            globeRef.current.rotation.y = targetRotRef.current;
-            targetRotRef.current = null; // done
+            globeRef.current.rotation.y = targetRotYRef.current!;
+            targetRotYRef.current = null;
           } else {
-            globeRef.current.rotation.y += diff * 0.06; // ease-out
+            globeRef.current.rotation.y += diff * 0.06;
           }
         } else {
           globeRef.current.rotation.y += spinRef.current; // normal spin
+        }
+
+        if (animatingX) {
+          const diff = targetRotXRef.current! - globeRef.current.rotation.x;
+          if (Math.abs(diff) < 0.001) {
+            globeRef.current.rotation.x = targetRotXRef.current!;
+            targetRotXRef.current = null;
+          } else {
+            globeRef.current.rotation.x += diff * 0.06;
+          }
         }
       }
 
