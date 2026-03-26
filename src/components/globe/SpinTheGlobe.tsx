@@ -211,10 +211,15 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // Atmosphere backglow
+    // Atmosphere backglow — inner ring
     scene.add(new THREE.Mesh(
       new THREE.SphereGeometry(1.06, 64, 64),
       new THREE.MeshBasicMaterial({ color: 0x2a6bbf, side: THREE.BackSide, transparent: true, opacity: 0.10 }),
+    ));
+    // Atmosphere backglow — outer halo (stronger glow)
+    scene.add(new THREE.Mesh(
+      new THREE.SphereGeometry(1.15, 64, 64),
+      new THREE.MeshBasicMaterial({ color: 0x3b82c4, side: THREE.BackSide, transparent: true, opacity: 0.08 }),
     ));
 
     // Latitude/longitude grid lines
