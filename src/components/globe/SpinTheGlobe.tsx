@@ -107,7 +107,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   const spinRef       = useRef(0.002);
   const pulseRef      = useRef(0);
   const clockRef      = useRef(0);
-  const targetRotRef  = useRef<number | null>(null);
+  const targetRotYRef = useRef<number | null>(null);
+  const targetRotXRef = useRef<number | null>(null);
 
   const [phase,  setPhase]  = useState<Phase>("idle");
   const [picked, setPicked] = useState<Jurisdiction | null>(null);
