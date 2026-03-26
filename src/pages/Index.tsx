@@ -22,7 +22,7 @@ import ChooseYourMode from "@/components/home/ChooseYourMode";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
-import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
+
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 
 interface Update {
