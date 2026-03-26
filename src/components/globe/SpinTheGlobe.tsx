@@ -325,9 +325,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     // when rotation.y = 0. To bring longitude L to the front:
     // rotation.y = -(L_rad + π/2)
     spinRef.current = 0; // stop free spin immediately
-    // Compute target angle and animate toward it smoothly
-    const targetAngle = -(jur.lon * Math.PI / 180 + Math.PI / 2);
-    targetRotRef.current = normalizeAngle(globe.rotation.y, targetAngle);
+    // Compute target angles and animate toward them smoothly
+    const targetY = -(jur.lon * Math.PI / 180 + Math.PI / 2);
+    targetRotYRef.current = normalizeAngle(globe.rotation.y, targetY);
+    // Tilt globe on X axis so latitude faces camera (negative because rotation is inverted)
+    const targetX = jur.lat * Math.PI / 180;
+    targetRotXRef.current = normalizeAngle(globe.rotation.x, targetX);
 
     pulseRef.current = 0;
     pulseRef.current = 0;
