@@ -335,7 +335,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     setPicked(null);
     removeHighlight();
 
-    const pick = RICH_JURISDICTIONS[Math.floor(Math.random() * RICH_JURISDICTIONS.length)];
+    const pick = GLOBE_JURISDICTIONS[Math.floor(Math.random() * GLOBE_JURISDICTIONS.length)];
 
     const rampUp = setInterval(() => {
       spinRef.current = Math.min(spinRef.current + 0.005, 0.12);
