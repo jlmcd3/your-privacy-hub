@@ -222,7 +222,7 @@ const JurisdictionPage = () => {
         </div>
       </div>
 
-      
+      <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-top" className="py-5" />
 
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
         {/* Overview */}
@@ -306,7 +306,7 @@ const JurisdictionPage = () => {
           ))}
         </div>
 
-        
+        <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
         {/* Recent Developments from category */}
         {devLoading ? (
@@ -420,7 +420,7 @@ const JurisdictionPage = () => {
           </div>
         </div>
 
-        
+        <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-bottom" className="py-4" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
