@@ -457,15 +457,9 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
               ? "bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm p-4 text-center w-full"
               : "bg-white border border-fog rounded-2xl shadow-eup-md p-6 text-center w-full"
             }>
-              {/* Country flag */}
+              {/* Category icon */}
               <div className="flex justify-center mb-2">
-                <img
-                  src={`https://flagcdn.com/96x72/${picked.cc}.png`}
-                  srcSet={`https://flagcdn.com/192x144/${picked.cc}.png 2x`}
-                  alt={`${picked.name} flag`}
-                  width={compact ? "64" : "96"} height={compact ? "48" : "72"}
-                  className="rounded-md shadow-eup-sm"
-                />
+                <span className={compact ? "text-3xl" : "text-5xl"}>{picked.icon}</span>
               </div>
 
               <div className={compact ? "text-[9px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[10px] font-bold uppercase tracking-widest text-slate-light mb-1"}>
@@ -477,25 +471,18 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
               }>{picked.name}</h3>
 
               {!compact && (
-                <div className="flex items-center justify-center gap-2 mb-3 flex-wrap">
-                  <span className="text-[11px] bg-fog text-slate px-2.5 py-0.5 rounded-full font-medium">{picked.law}</span>
-                  <span className="text-[11px] bg-fog text-slate px-2.5 py-0.5 rounded-full font-medium">{picked.regulator}</span>
-                </div>
-              )}
-
-              {!compact && (
                 <p className="text-slate text-[13px] leading-relaxed mb-5 italic">"{picked.tagline}"</p>
               )}
 
               <div className="flex flex-col gap-1.5">
                 <Link
-                  to={`/jurisdiction/${picked.slug}`}
+                  to={picked.href}
                   className={compact
                     ? "block bg-white text-navy font-bold text-[11px] py-2 px-4 rounded-lg no-underline hover:bg-white/90 transition-all"
                     : "block bg-gradient-to-br from-navy to-blue text-white font-bold text-sm py-3 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
                   }
                 >
-                  {compact ? `Explore ${picked.name} →` : `See what's happening in ${picked.name} →`}
+                  {compact ? `Explore ${picked.name} →` : `See ${picked.name} coverage →`}
                 </Link>
                 <button
                   onClick={handleReset}
