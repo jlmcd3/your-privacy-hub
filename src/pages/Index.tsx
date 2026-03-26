@@ -264,31 +264,6 @@ const Index = () => {
       <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper hidden" />
       <EmailSignup variant="strip" />
 
-      {/* ── Feeling Curious globe section ─────────────────────── */}
-      <section className="border-t border-fog bg-gradient-to-b from-paper to-white">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-14 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            {/* Left — copy */}
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate mb-2">
-                Feeling Curious?
-              </p>
-              <h2 className="font-display font-bold text-navy text-[22px] md:text-[26px] leading-snug mb-3">
-                Spin the globe — discover a jurisdiction you may not have been tracking
-              </h2>
-              <p className="text-slate text-[14px] leading-relaxed">
-                Privacy law is happening everywhere. Spin to land on a country and get
-                instant regulatory context — the law, the regulator, and what's happening
-                right now. 60+ jurisdictions covered.
-              </p>
-            </div>
-            {/* Right — globe */}
-            <div className="flex justify-center">
-              <SpinTheGlobe />
-            </div>
-          </div>
-        </div>
-      </section>
 
       <LatestUpdates />
       <div className="h-px bg-fog" />
