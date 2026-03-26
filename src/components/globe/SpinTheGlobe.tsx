@@ -397,7 +397,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       )}
 
       {compact && (
-        <p className="text-white/70 text-[11px] font-medium mb-2 tracking-wide uppercase">Spin the Globe</p>
+        <p className="text-white/70 text-[11px] font-medium mb-2 tracking-wide uppercase">DISCOVER A JURISDICTION, SPIN THE GLOBE</p>
       )}
 
       {/* Globe */}
