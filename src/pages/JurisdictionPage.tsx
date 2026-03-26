@@ -420,7 +420,7 @@ const JurisdictionPage = () => {
           </div>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-bottom" className="py-4" />
+        
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
