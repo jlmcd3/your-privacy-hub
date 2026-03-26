@@ -274,7 +274,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   }, []);
 
   // ── Highlight selected country on globe ────────────────────────────────
-  const addHighlight = useCallback((jur: Jurisdiction) => {
+  const addHighlight = useCallback((jur: RegionalCategory) => {
     const globe = globeRef.current;
     if (!globe) return;
 
