@@ -229,16 +229,25 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       if (globeRef.current) {
         if (targetRotRef.current !== null) {
-          // Ease-out toward target angle
           const diff = targetRotRef.current - globeRef.current.rotation.y;
           if (Math.abs(diff) < 0.001) {
             globeRef.current.rotation.y = targetRotRef.current;
-            targetRotRef.current = null; // done
+            targetRotRef.current = null;
           } else {
-            globeRef.current.rotation.y += diff * 0.06; // ease-out
+            globeRef.current.rotation.y += diff * 0.06;
           }
         } else {
-          globeRef.current.rotation.y += spinRef.current; // normal spin
+          globeRef.current.rotation.y += spinRef.current;
+        }
+        // X-axis easing for latitude centering
+        if (targetRotXRef.current !== null) {
+          const diffX = targetRotXRef.current - globeRef.current.rotation.x;
+          if (Math.abs(diffX) < 0.001) {
+            globeRef.current.rotation.x = targetRotXRef.current;
+            targetRotXRef.current = null;
+          } else {
+            globeRef.current.rotation.x += diffX * 0.06;
+          }
         }
       }
 
