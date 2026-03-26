@@ -16,7 +16,7 @@ import EmailSignup from "@/components/EmailSignup";
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
 import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
-import HeadlinesTicker from "@/components/home/HeadlinesTicker";
+
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ChooseYourMode from "@/components/home/ChooseYourMode";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
