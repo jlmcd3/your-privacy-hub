@@ -549,6 +549,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           </div>
         )}
       </div>
+    </div>
   );
 }
 
