@@ -117,9 +117,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   const pulseRef      = useRef(0);
   const clockRef      = useRef(0);
   const targetRotRef  = useRef<number | null>(null);
+  const targetRotXRef = useRef<number | null>(null);
 
   const [phase,  setPhase]  = useState<Phase>("idle");
-  const [picked, setPicked] = useState<Jurisdiction | null>(null);
+  const [picked, setPicked] = useState<RegionalCategory | null>(null);
   const [ready,  setReady]  = useState(false);
 
   // ── Build Three.js scene ───────────────────────────────────────────────
