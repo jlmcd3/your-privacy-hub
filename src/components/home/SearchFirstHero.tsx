@@ -1,8 +1,7 @@
-import { useState, Suspense, lazy } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Search } from "lucide-react";
-
-const GlobeScene = lazy(() => import("@/components/GlobeScene"));
+import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 
 export default function SearchFirstHero() {
   const [query, setQuery] = useState("");
@@ -68,11 +67,9 @@ export default function SearchFirstHero() {
           </div>
         </div>
 
-        {/* Right: Globe — hidden on mobile */}
-        <div className="hidden md:block w-[320px] lg:w-[400px] h-[280px] lg:h-[320px] flex-shrink-0 relative">
-          <Suspense fallback={null}>
-            <GlobeScene />
-          </Suspense>
+        {/* Right: Spin the Globe — hidden on mobile */}
+        <div className="hidden md:flex flex-col items-center flex-shrink-0 w-[280px] lg:w-[300px]">
+          <SpinTheGlobe compact />
         </div>
       </div>
     </div>
