@@ -380,6 +380,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     setPhase("idle");
     setPicked(null);
     spinRef.current = 0.002;
+    targetRotXRef.current = 0; // ease X back to neutral
   }, [removeHighlight]);
 
   const globeSize = compact ? 220 : 380;
