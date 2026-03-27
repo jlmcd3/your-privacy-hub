@@ -651,6 +651,17 @@ const REQUIRED_KEYWORDS = [
   "tdpsa", "texas data privacy", "colorado privacy", "connecticut privacy",
   "ctdpa", "cpa enforcement", "convention 108", "eur-lex", "gdprhub",
   "linklaters", "fieldfisher",
+  // APAC & global regulators
+  "dpdp act", "digital personal data protection", "pdpc", "oaic",
+  "pipc", "pdpa", "anpd", "lgpd enforcement", "datatilsynet", "noyb",
+  // US additions
+  "admt", "automated decision making technology",
+  "drop system", "data broker registry",
+  "8-k cybersecurity", "material cybersecurity incident",
+  "cpni", "customer proprietary network",
+  // UK & AI
+  "duaa", "data use and access act",
+  "ai act enforcement", "high-risk ai", "gpai",
 ];
 
 const EXCLUSION_KEYWORDS = [
