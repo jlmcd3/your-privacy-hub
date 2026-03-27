@@ -551,6 +551,13 @@ function categorize(title: string, description: string, defaultCat: string): str
   // HIPAA/health enforcement — catches HHS OCR actions
   if (/\b(hhs ocr|office for civil rights|hipaa fine|hipaa penalty|hipaa enforcement|hipaa violation|hipaa settlement|covered entity|protected health information|phi breach)\b/.test(text)) return "us-federal";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
+  if (/\b(dpdp act|digital personal data protection|india privacy|pdpc singapore|oaic australia|pipc korea|pdpa thailand|anpd brazil|lgpd enforcement)\b/.test(text)) return "global";
+  if (/\b(admt|automated decision.making technology|california delete act|drop system|data broker registry)\b/.test(text)) return "us-states";
+  if (/\b(8-k cybersecurity|material cybersecurity incident|sec cyber disclosure)\b/.test(text)) return "enforcement";
+  if (/\b(eu ai act|ai act enforcement|high.risk ai|gpai|general purpose ai|ai office)\b/.test(text)) return "ai-privacy";
+  if (/\b(duaa|data use and access act|uk data reform)\b/.test(text)) return "eu-uk";
+  if (/\b(noyb|max schrems|schrems iii)\b/.test(text)) return "eu-uk";
+  if (/\b(cpni|customer proprietary network|fcc privacy|telecom privacy)\b/.test(text)) return "us-federal";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";
   if (/\b(ftc|congress|federal privacy|hipaa|coppa|senate|house bill|federal trade)\b/.test(text)) return "us-federal";
