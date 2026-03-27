@@ -34,6 +34,41 @@ const FILTER_PILLS = [
   { key: "global", label: "🌐 Global" },
 ];
 
+const JURISDICTION_OPTIONS = [
+  { key: "all", label: "All Jurisdictions" },
+  { key: "eu", label: "🇪🇺 EU" },
+  { key: "uk", label: "🇬🇧 UK" },
+  { key: "us", label: "🇺🇸 United States" },
+  { key: "brazil", label: "🇧🇷 Brazil" },
+  { key: "south-korea", label: "🇰🇷 South Korea" },
+  { key: "china", label: "🇨🇳 China" },
+  { key: "japan", label: "🇯🇵 Japan" },
+  { key: "india", label: "🇮🇳 India" },
+  { key: "canada", label: "🇨🇦 Canada" },
+  { key: "australia", label: "🇦🇺 Australia" },
+  { key: "other", label: "🌐 Other" },
+];
+
+function matchJurisdiction(action: EnforcementAction, key: string): boolean {
+  if (key === "all") return true;
+  const j = (action.jurisdiction || "").toLowerCase();
+  if (key === "eu") return j.includes("eu") && !j.includes("uk");
+  if (key === "uk") return j.includes("uk");
+  if (key === "us") return j.includes("u.s.") || j.includes("federal");
+  if (key === "brazil") return j.includes("brazil");
+  if (key === "south-korea") return j.includes("korea");
+  if (key === "china") return j.includes("china");
+  if (key === "japan") return j.includes("japan");
+  if (key === "india") return j.includes("india");
+  if (key === "canada") return j.includes("canada");
+  if (key === "australia") return j.includes("australia");
+  if (key === "other") {
+    return !["eu", "uk", "u.s.", "federal", "brazil", "korea", "china", "japan", "india", "canada", "australia"]
+      .some((k) => j.includes(k));
+  }
+  return true;
+}
+
 function matchFilter(action: EnforcementAction, key: string): boolean {
   if (key === "all") return true;
   const j = (action.jurisdiction || "").toLowerCase();
@@ -52,6 +87,7 @@ const EnforcementTrackerPage = () => {
   const [liveArticles, setLiveArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [jurisdictionFilter, setJurisdictionFilter] = useState("all");
 
   useEffect(() => {
     async function load() {
@@ -68,6 +104,7 @@ const EnforcementTrackerPage = () => {
 
   const filtered = actions
     .filter((a) => matchFilter(a, activeFilter))
+    .filter((a) => matchJurisdiction(a, jurisdictionFilter))
     .filter((a) =>
       !searchTerm || [a.regulator, a.subject, a.jurisdiction, a.violation, a.law, a.fine_amount]
         .some((v) => v?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -109,46 +146,6 @@ const EnforcementTrackerPage = () => {
       <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3 hidden" />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
-        {/* Stats cards */}
-        {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-card border border-border rounded-xl p-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Actions</p>
-              <p className="text-3xl font-bold text-foreground">{totalActions}</p>
-            </div>
-            <div className="bg-card border border-border rounded-xl p-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Fines (EUR)</p>
-              <p className="text-3xl font-bold text-foreground">€{(totalFinesEur / 1_000_000).toFixed(1)}M</p>
-            </div>
-            <div className="bg-card border border-border rounded-xl p-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Most Active Regulator</p>
-              <p className="text-xl font-bold text-foreground">{topRegulator?.[0] || "—"}</p>
-              <p className="text-xs text-muted-foreground">{topRegulator?.[1] === 1 ? "1 action" : `${topRegulator?.[1] || 0} actions`}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Top regulators bar chart */}
-        {!loading && topRegulators.length > 0 && (
-          <div className="bg-card border border-border rounded-xl p-5 mb-8">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Top Regulators by Number of Actions</p>
-            <div className="space-y-2">
-              {topRegulators.map(([name, count]) => (
-                <div key={name} className="flex items-center gap-3">
-                  <span className="text-xs text-foreground w-[160px] truncate font-medium">{name}</span>
-                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${(count / maxCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-semibold text-muted-foreground w-8 text-right">{count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Search & filters */}
         <div className="flex flex-col md:flex-row gap-3 items-start md:items-center mb-6">
           <div className="relative flex-1 max-w-[400px]">
@@ -175,6 +172,15 @@ const EnforcementTrackerPage = () => {
               </button>
             ))}
           </div>
+          <select
+            value={jurisdictionFilter}
+            onChange={(e) => setJurisdictionFilter(e.target.value)}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-foreground outline-none focus:border-primary transition-colors cursor-pointer"
+          >
+            {JURISDICTION_OPTIONS.map((j) => (
+              <option key={j.key} value={j.key}>{j.label}</option>
+            ))}
+          </select>
           <button
             onClick={() => setShowSubmitModal(true)}
             className="ml-auto text-xs font-medium text-primary hover:text-primary/80 bg-transparent border border-primary/20 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
@@ -237,6 +243,46 @@ const EnforcementTrackerPage = () => {
             </table>
           </div>
         </div>
+
+        {/* Stats cards */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 mt-8">
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Actions</p>
+              <p className="text-3xl font-bold text-foreground">{totalActions}</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Fines (EUR)</p>
+              <p className="text-3xl font-bold text-foreground">€{(totalFinesEur / 1_000_000).toFixed(1)}M</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Most Active Regulator</p>
+              <p className="text-xl font-bold text-foreground">{topRegulator?.[0] || "—"}</p>
+              <p className="text-xs text-muted-foreground">{topRegulator?.[1] === 1 ? "1 action" : `${topRegulator?.[1] || 0} actions`}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Top regulators bar chart */}
+        {!loading && topRegulators.length > 0 && (
+          <div className="bg-card border border-border rounded-xl p-5 mb-8">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Top Regulators by Number of Actions</p>
+            <div className="space-y-2">
+              {topRegulators.map(([name, count]) => (
+                <div key={name} className="flex items-center gap-3">
+                  <span className="text-xs text-foreground w-[160px] truncate font-medium">{name}</span>
+                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${(count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-muted-foreground w-8 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Premium CTA */}
         <div className="p-7 mt-6 bg-card border border-border rounded-xl text-center">

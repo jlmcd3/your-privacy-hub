@@ -19,7 +19,7 @@ const buildJurisdictionData = () => {
     region: string;
     flag: string;
     overview: string;
-    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string }[];
+    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_status?: string; effective_date?: string; notes?: string; stateName?: string }[];
   }> = {};
 
   const regionFlags: Record<string, string> = {
@@ -57,6 +57,7 @@ const buildJurisdictionData = () => {
     authorities: usStates.map((s: any) => ({
       name: s.authority_name,
       stateName: s.state,
+      stateSlug: s.slug,
       website: s.website,
       complaint_portal: s.complaint_portal,
       legislation: s.statute_name,
@@ -65,6 +66,30 @@ const buildJurisdictionData = () => {
       notes: s.notes,
     })),
   };
+
+  // Build individual /jurisdiction/[state-slug] entries for every US state.
+  // This enables the globe result links to resolve correctly.
+  // All 51 entries are created (50 states + DC) so no slug ever returns "Not Found".
+  (usStates as any[]).forEach((s: any) => {
+    jurisdictions[s.slug] = {
+      name: s.state,
+      region: "United States",
+      flag: "🇺🇸",
+      overview: s.notes ||
+        `${s.state} privacy regulation is enforced by the ${s.authority_name}.` +
+        (s.statute_name ? ` The primary statute is the ${s.statute_name}.` : " No comprehensive privacy law has been enacted as of 2026."),
+      authorities: [{
+        name: s.authority_name,
+        abbreviation: s.authority_type,
+        website: s.website,
+        complaint_portal: s.complaint_portal,
+        legislation: s.statute_name,
+        statute_status: s.statute_status,
+        effective_date: s.effective_date,
+        notes: s.notes,
+      }],
+    };
+  });
 
   return jurisdictions;
 };
@@ -256,7 +281,9 @@ const JurisdictionPage = () => {
                 <>
                   <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                     <h3 className="font-display text-[22px] leading-tight text-navy">
-                      {(auth as any).stateName}
+                      <Link to={`/jurisdiction/${(auth as any).stateSlug}`} className="hover:underline">
+                        {(auth as any).stateName}
+                      </Link>
                     </h3>
                     {(auth as any).statute_status && (
                       <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border ${

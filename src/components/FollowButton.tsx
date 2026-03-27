@@ -46,7 +46,7 @@ const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary/10 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer text-slate-50"
       >
         <Bell className="w-4 h-4" />
         Follow {label}

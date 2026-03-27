@@ -118,7 +118,7 @@ const GlobalAuthorities = () => {
                               <span className="text-[11px] text-slate ml-1">({entry.legislation_abbreviation})</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 border-b border-fog">
+                          <td className="px-4 py-3 border-b border-fog whitespace-nowrap">
                             <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${
                               entry.monitoring_tier === 1 ? "bg-[#EBF3FB] text-[#1A5F9E]" :
                               entry.monitoring_tier === 2 ? "status-pending" : "status-none"
