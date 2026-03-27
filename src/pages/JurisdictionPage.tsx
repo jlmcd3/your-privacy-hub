@@ -57,6 +57,7 @@ const buildJurisdictionData = () => {
     authorities: usStates.map((s: any) => ({
       name: s.authority_name,
       stateName: s.state,
+      stateSlug: s.slug,
       website: s.website,
       complaint_portal: s.complaint_portal,
       legislation: s.statute_name,
