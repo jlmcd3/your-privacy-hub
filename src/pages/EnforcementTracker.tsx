@@ -34,6 +34,41 @@ const FILTER_PILLS = [
   { key: "global", label: "🌐 Global" },
 ];
 
+const JURISDICTION_OPTIONS = [
+  { key: "all", label: "All Jurisdictions" },
+  { key: "eu", label: "🇪🇺 EU" },
+  { key: "uk", label: "🇬🇧 UK" },
+  { key: "us", label: "🇺🇸 United States" },
+  { key: "brazil", label: "🇧🇷 Brazil" },
+  { key: "south-korea", label: "🇰🇷 South Korea" },
+  { key: "china", label: "🇨🇳 China" },
+  { key: "japan", label: "🇯🇵 Japan" },
+  { key: "india", label: "🇮🇳 India" },
+  { key: "canada", label: "🇨🇦 Canada" },
+  { key: "australia", label: "🇦🇺 Australia" },
+  { key: "other", label: "🌐 Other" },
+];
+
+function matchJurisdiction(action: EnforcementAction, key: string): boolean {
+  if (key === "all") return true;
+  const j = (action.jurisdiction || "").toLowerCase();
+  if (key === "eu") return j.includes("eu") && !j.includes("uk");
+  if (key === "uk") return j.includes("uk");
+  if (key === "us") return j.includes("u.s.") || j.includes("federal");
+  if (key === "brazil") return j.includes("brazil");
+  if (key === "south-korea") return j.includes("korea");
+  if (key === "china") return j.includes("china");
+  if (key === "japan") return j.includes("japan");
+  if (key === "india") return j.includes("india");
+  if (key === "canada") return j.includes("canada");
+  if (key === "australia") return j.includes("australia");
+  if (key === "other") {
+    return !["eu", "uk", "u.s.", "federal", "brazil", "korea", "china", "japan", "india", "canada", "australia"]
+      .some((k) => j.includes(k));
+  }
+  return true;
+}
+
 function matchFilter(action: EnforcementAction, key: string): boolean {
   if (key === "all") return true;
   const j = (action.jurisdiction || "").toLowerCase();
@@ -52,6 +87,7 @@ const EnforcementTrackerPage = () => {
   const [liveArticles, setLiveArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [jurisdictionFilter, setJurisdictionFilter] = useState("all");
 
   useEffect(() => {
     async function load() {
@@ -68,6 +104,7 @@ const EnforcementTrackerPage = () => {
 
   const filtered = actions
     .filter((a) => matchFilter(a, activeFilter))
+    .filter((a) => matchJurisdiction(a, jurisdictionFilter))
     .filter((a) =>
       !searchTerm || [a.regulator, a.subject, a.jurisdiction, a.violation, a.law, a.fine_amount]
         .some((v) => v?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -135,6 +172,15 @@ const EnforcementTrackerPage = () => {
               </button>
             ))}
           </div>
+          <select
+            value={jurisdictionFilter}
+            onChange={(e) => setJurisdictionFilter(e.target.value)}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-foreground outline-none focus:border-primary transition-colors cursor-pointer"
+          >
+            {JURISDICTION_OPTIONS.map((j) => (
+              <option key={j.key} value={j.key}>{j.label}</option>
+            ))}
+          </select>
           <button
             onClick={() => setShowSubmitModal(true)}
             className="ml-auto text-xs font-medium text-primary hover:text-primary/80 bg-transparent border border-primary/20 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
