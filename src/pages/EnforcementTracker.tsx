@@ -86,7 +86,7 @@ const EnforcementTrackerPage = () => {
   const [actions, setActions] = useState<EnforcementAction[]>([]);
   const [liveArticles, setLiveArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [jurisdictionFilter, setJurisdictionFilter] = useState("all");
 
   useEffect(() => {
     async function load() {
