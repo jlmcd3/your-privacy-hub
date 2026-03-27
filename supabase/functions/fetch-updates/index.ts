@@ -310,6 +310,202 @@ const RSS_SOURCES = [
     defaultCategory: "global",
     regulator: "Council of Europe",
   },
+
+  // ── Law Firm Blogs ───────────────────────────────────────────────
+  {
+    url: "https://www.insideprivacy.com/feed",
+    source: "Covington Inside Privacy",
+    domain: "insideprivacy.com",
+    defaultCategory: "global",
+    regulator: "Covington & Burling LLP",
+  },
+  {
+    url: "https://datamatters.sidley.com/feed",
+    source: "Sidley Data Matters",
+    domain: "datamatters.sidley.com",
+    defaultCategory: "global",
+    regulator: "Sidley Austin LLP",
+  },
+  {
+    url: "https://www.dlapiper.com/en/rss",
+    source: "DLA Piper Privacy Matters",
+    domain: "dlapiper.com",
+    defaultCategory: "global",
+    regulator: "DLA Piper LLP",
+  },
+  {
+    url: "https://gtlaw-dataprivacydish.com/feed",
+    source: "Greenberg Traurig Privacy Dish",
+    domain: "gtlaw-dataprivacydish.com",
+    defaultCategory: "us-states",
+    regulator: "Greenberg Traurig LLP",
+  },
+  {
+    url: "https://alstonprivacy.com/feed",
+    source: "Alston Privacy",
+    domain: "alstonprivacy.com",
+    defaultCategory: "us-federal",
+    regulator: "Alston & Bird LLP",
+  },
+  {
+    url: "https://www.privacyandcybersecuritylaw.com/feed",
+    source: "Dentons Privacy & Cyber",
+    domain: "privacyandcybersecuritylaw.com",
+    defaultCategory: "global",
+    regulator: "Dentons LLP",
+  },
+  {
+    url: "https://www.hoganlovells.com/en/news-and-insights/rss",
+    source: "Hogan Lovells",
+    domain: "hoganlovells.com",
+    defaultCategory: "global",
+    regulator: "Hogan Lovells LLP",
+  },
+  {
+    url: "https://www.bakermckenzie.com/en/rss",
+    source: "Baker McKenzie",
+    domain: "bakermckenzie.com",
+    defaultCategory: "global",
+    regulator: "Baker McKenzie LLP",
+  },
+
+  // ── APAC Regulators ─────────────────────────────────────────────
+  {
+    url: "https://www.oaic.gov.au/news/rss.xml",
+    source: "OAIC",
+    domain: "oaic.gov.au",
+    defaultCategory: "global",
+    regulator: "Office of the Australian Information Commissioner",
+  },
+  {
+    url: "https://www.pdpc.gov.sg/rss",
+    source: "PDPC Singapore",
+    domain: "pdpc.gov.sg",
+    defaultCategory: "global",
+    regulator: "Personal Data Protection Commission Singapore",
+  },
+  {
+    url: "https://www.priv.gc.ca/en/news/rss/",
+    source: "OPC Canada",
+    domain: "priv.gc.ca",
+    defaultCategory: "global",
+    regulator: "Office of the Privacy Commissioner of Canada",
+  },
+  {
+    url: "https://www.pcpd.org.hk/english/news_events/rss.xml",
+    source: "PCPD Hong Kong",
+    domain: "pcpd.org.hk",
+    defaultCategory: "global",
+    regulator: "Privacy Commissioner for Personal Data Hong Kong",
+  },
+
+  // ── Civil Society & Advocacy ─────────────────────────────────────
+  {
+    url: "https://epic.org/feed/",
+    source: "EPIC",
+    domain: "epic.org",
+    defaultCategory: "us-federal",
+    regulator: "Electronic Privacy Information Center",
+  },
+  {
+    url: "https://www.eff.org/rss/updates.xml",
+    source: "EFF",
+    domain: "eff.org",
+    defaultCategory: "global",
+    regulator: "Electronic Frontier Foundation",
+  },
+  {
+    url: "https://privacyinternational.org/rss",
+    source: "Privacy International",
+    domain: "privacyinternational.org",
+    defaultCategory: "global",
+    regulator: "Privacy International",
+  },
+  {
+    url: "https://www.accessnow.org/feed/",
+    source: "Access Now",
+    domain: "accessnow.org",
+    defaultCategory: "global",
+    regulator: "Access Now",
+  },
+
+  // ── AI Governance ────────────────────────────────────────────────
+  {
+    url: "https://www.adalovelaceinstitute.org/feed/",
+    source: "Ada Lovelace Institute",
+    domain: "adalovelaceinstitute.org",
+    defaultCategory: "ai-privacy",
+    regulator: "Ada Lovelace Institute",
+  },
+  {
+    url: "https://algorithmwatch.org/en/feed/",
+    source: "AlgorithmWatch",
+    domain: "algorithmwatch.org",
+    defaultCategory: "ai-privacy",
+    regulator: "AlgorithmWatch",
+  },
+
+  // ── Healthcare & Financial ───────────────────────────────────────
+  {
+    url: "https://www.hipaajournal.com/feed/",
+    source: "HIPAA Journal",
+    domain: "hipaajournal.com",
+    defaultCategory: "us-federal",
+    regulator: "HIPAA Journal",
+  },
+  {
+    url: "https://www.consumerfinance.gov/activity/blog/feed/",
+    source: "CFPB",
+    domain: "consumerfinance.gov",
+    defaultCategory: "us-federal",
+    regulator: "Consumer Financial Protection Bureau",
+  },
+
+  // ── EU Supplemental ──────────────────────────────────────────────
+  {
+    url: "https://www.enisa.europa.eu/news/rss-news",
+    source: "ENISA",
+    domain: "enisa.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "EU Agency for Cybersecurity",
+  },
+  {
+    url: "https://www.datatilsynet.no/en/news/rss/",
+    source: "Datatilsynet Norway",
+    domain: "datatilsynet.no",
+    defaultCategory: "eu-uk",
+    regulator: "Datatilsynet (Norwegian DPA)",
+  },
+
+  // ── Policy & Legislative ─────────────────────────────────────────
+  {
+    url: "https://www.lawfareblog.com/rss.xml",
+    source: "Lawfare",
+    domain: "lawfareblog.com",
+    defaultCategory: "global",
+    regulator: "Lawfare Institute",
+  },
+  {
+    url: "https://techpolicy.press/feed/",
+    source: "Tech Policy Press",
+    domain: "techpolicy.press",
+    defaultCategory: "global",
+    regulator: "Tech Policy Press",
+  },
+  {
+    url: "https://www.europarl.europa.eu/rss/en/news.xml",
+    source: "EU Parliament",
+    domain: "europarl.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "European Parliament",
+  },
+  {
+    url: "https://www.fcc.gov/news-events/rss",
+    source: "FCC",
+    domain: "fcc.gov",
+    defaultCategory: "us-federal",
+    regulator: "Federal Communications Commission",
+  },
 ];
 
 const FALLBACK_IMAGES: Record<string, string> = {
