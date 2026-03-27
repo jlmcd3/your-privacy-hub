@@ -146,13 +146,6 @@ const RSS_SOURCES = [
     regulator: "Clearcode",
   },
   {
-    url: "https://www.ftc.gov/feeds/press-release.xml",
-    source: "FTC Advertising",
-    domain: "ftc.gov",
-    defaultCategory: "adtech",
-    regulator: "Federal Trade Commission",
-  },
-  {
     url: "https://www.thedrums.com/rss/",
     source: "The Drum",
     domain: "thedrum.com",
