@@ -172,6 +172,15 @@ const EnforcementTrackerPage = () => {
               </button>
             ))}
           </div>
+          <select
+            value={jurisdictionFilter}
+            onChange={(e) => setJurisdictionFilter(e.target.value)}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-foreground outline-none focus:border-primary transition-colors cursor-pointer"
+          >
+            {JURISDICTION_OPTIONS.map((j) => (
+              <option key={j.key} value={j.key}>{j.label}</option>
+            ))}
+          </select>
           <button
             onClick={() => setShowSubmitModal(true)}
             className="ml-auto text-xs font-medium text-primary hover:text-primary/80 bg-transparent border border-primary/20 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
