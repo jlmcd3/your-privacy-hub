@@ -19,7 +19,7 @@ const buildJurisdictionData = () => {
     region: string;
     flag: string;
     overview: string;
-    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string }[];
+    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_status?: string; effective_date?: string; notes?: string; stateName?: string }[];
   }> = {};
 
   const regionFlags: Record<string, string> = {
