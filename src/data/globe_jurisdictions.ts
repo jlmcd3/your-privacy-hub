@@ -81,7 +81,7 @@ const GLOBE_JURISDICTIONS: GlobeJurisdiction[] = [
 
   // ── Middle East & Africa (9 entries) ──
   { name: "Saudi Arabia", cc: "sa", slug: "saudi-arabia", lat: 23.9, lon: 45.1, law: "PDPL", regulator: "SDAIA", tagline: "Saudi Arabia's PDPL takes full effect in September 2024." },
-  { name: "UAE", cc: "ae", slug: "uae", lat: 23.4, lon: 53.8, law: "UAE PDPL", regulator: "UAE Data Office", tagline: "UAE's federal data protection law came into force in 2022." },
+  { name: "UAE", cc: "ae", slug: "united-arab-emirates", lat: 23.4, lon: 53.8, law: "UAE PDPL", regulator: "UAE Data Office", tagline: "UAE's federal data protection law came into force in 2022." },
   { name: "UAE — Dubai (DIFC)", cc: "ae", slug: "uae-difc", lat: 25.2, lon: 55.3, law: "DIFC DPL 2020", regulator: "DIFC CDP", tagline: "DIFC operates its own data protection regime and holds EU adequacy." },
   { name: "Israel", cc: "il", slug: "israel", lat: 31.0, lon: 34.9, law: "PPL", regulator: "PPA", tagline: "Israel holds EU adequacy and is modernizing its 1981 privacy law." },
   { name: "South Africa", cc: "za", slug: "south-africa", lat: -30.6, lon: 22.9, law: "POPIA", regulator: "Info Regulator", tagline: "POPIA has been fully in force since 2021." },
