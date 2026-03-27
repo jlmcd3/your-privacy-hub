@@ -11,3 +11,18 @@ verify_jwt = false
 
 [functions.translate-articles]
 verify_jwt = false
+
+[functions.fetch-newsapi]
+verify_jwt = false
+
+[functions.fetch-court-filings]
+verify_jwt = false
+
+[functions.fetch-federal-register]
+verify_jwt = false
+
+[functions.fetch-congress-bills]
+verify_jwt = false
+
+[functions.fetch-sec-breaches]
+verify_jwt = false
