@@ -574,6 +574,11 @@ function assignTopicTags(title: string, description: string): string[] {
   if (/\b(cross-border|data transfer|international transfer|adequacy decision|standard contractual|binding corporate rules|sccs|bcrs|data localization)\b/.test(text)) tags.push("data-transfers");
   if (/\b(children|child|coppa|age verification|age assurance|minors|under 13|under 16|kids|teen|parental consent)\b/.test(text)) tags.push("children-privacy");
   if (/\b(adtech|ad tech|advertising technology|cookie\b|consent banner|tracking pixel|targeted advertising|behavioral advertising|real-time bidding|rtb\b|programmatic|third.party cookie|third party cookie|consent management|cmp\b|tcf\b|iab europe|iab\b|transparency consent|privacy sandbox|topics api|protected audience|fledge|cookieless|identity resolution|first.party data|zero.party data|data clean room|id bridging|unified id|prebid|header bidding|ad fraud|viewability|brand safety|garm\b|nai\b|daa\b|commercial surveillance|behavioral tracking|cross.site tracking|fingerprinting|device fingerprint|supercookie|demand.side|supply.side|dsp\b|ssp\b|dmp\b|ad exchange|ad server|retargeting|lookalike|contextual advertising)\b/.test(text)) tags.push("adtech");
+  if (/\b(bipa|vppa|cipa|wiretap act|class action privacy|privacy litigation|class certified|class settlement)\b/.test(text)) tags.push("privacy-litigation");
+  if (/\b(dpdp act|pdpl vietnam|appi japan|pipc|pdpc|oaic|lgpd|pdpa|anpd)\b/.test(text)) tags.push("apac-latam");
+  if (/\b(eu ai act|ai act|high-risk ai|gpai|general purpose ai|ai office|foundation model)\b/.test(text)) tags.push("ai-governance");
+  if (/\b(data broker|data broker registry|people search|broker opt.out|drop system)\b/.test(text)) tags.push("data-brokers");
+  if (/\b(workplace privacy|employee monitoring|employment ai|hr data|workers data)\b/.test(text)) tags.push("workplace-privacy");
   return tags;
 }
 
