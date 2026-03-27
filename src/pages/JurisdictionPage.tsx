@@ -57,6 +57,7 @@ const buildJurisdictionData = () => {
     authorities: usStates.map((s: any) => ({
       name: s.authority_name,
       stateName: s.state,
+      stateSlug: s.slug,
       website: s.website,
       complaint_portal: s.complaint_portal,
       legislation: s.statute_name,
@@ -280,7 +281,9 @@ const JurisdictionPage = () => {
                 <>
                   <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                     <h3 className="font-display text-[22px] leading-tight text-navy">
-                      {(auth as any).stateName}
+                      <Link to={`/jurisdiction/${(auth as any).stateSlug}`} className="hover:underline">
+                        {(auth as any).stateName}
+                      </Link>
                     </h3>
                     {(auth as any).statute_status && (
                       <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border ${
