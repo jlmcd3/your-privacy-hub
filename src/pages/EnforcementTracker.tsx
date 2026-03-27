@@ -198,6 +198,46 @@ const EnforcementTrackerPage = () => {
           </div>
         </div>
 
+        {/* Stats cards */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 mt-8">
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Actions</p>
+              <p className="text-3xl font-bold text-foreground">{totalActions}</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Fines (EUR)</p>
+              <p className="text-3xl font-bold text-foreground">€{(totalFinesEur / 1_000_000).toFixed(1)}M</p>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Most Active Regulator</p>
+              <p className="text-xl font-bold text-foreground">{topRegulator?.[0] || "—"}</p>
+              <p className="text-xs text-muted-foreground">{topRegulator?.[1] === 1 ? "1 action" : `${topRegulator?.[1] || 0} actions`}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Top regulators bar chart */}
+        {!loading && topRegulators.length > 0 && (
+          <div className="bg-card border border-border rounded-xl p-5 mb-8">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Top Regulators by Number of Actions</p>
+            <div className="space-y-2">
+              {topRegulators.map(([name, count]) => (
+                <div key={name} className="flex items-center gap-3">
+                  <span className="text-xs text-foreground w-[160px] truncate font-medium">{name}</span>
+                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${(count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-muted-foreground w-8 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Premium CTA */}
         <div className="p-7 mt-6 bg-card border border-border rounded-xl text-center">
           <div className="text-[10px] font-bold tracking-widest uppercase text-primary mb-2">⭐ Premium Intelligence</div>
