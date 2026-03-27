@@ -146,13 +146,6 @@ const RSS_SOURCES = [
     regulator: "Clearcode",
   },
   {
-    url: "https://www.ftc.gov/feeds/press-release.xml",
-    source: "FTC Advertising",
-    domain: "ftc.gov",
-    defaultCategory: "adtech",
-    regulator: "Federal Trade Commission",
-  },
-  {
     url: "https://www.thedrums.com/rss/",
     source: "The Drum",
     domain: "thedrum.com",
@@ -317,6 +310,202 @@ const RSS_SOURCES = [
     defaultCategory: "global",
     regulator: "Council of Europe",
   },
+
+  // ── Law Firm Blogs ───────────────────────────────────────────────
+  {
+    url: "https://www.insideprivacy.com/feed",
+    source: "Covington Inside Privacy",
+    domain: "insideprivacy.com",
+    defaultCategory: "global",
+    regulator: "Covington & Burling LLP",
+  },
+  {
+    url: "https://datamatters.sidley.com/feed",
+    source: "Sidley Data Matters",
+    domain: "datamatters.sidley.com",
+    defaultCategory: "global",
+    regulator: "Sidley Austin LLP",
+  },
+  {
+    url: "https://www.dlapiper.com/en/rss",
+    source: "DLA Piper Privacy Matters",
+    domain: "dlapiper.com",
+    defaultCategory: "global",
+    regulator: "DLA Piper LLP",
+  },
+  {
+    url: "https://gtlaw-dataprivacydish.com/feed",
+    source: "Greenberg Traurig Privacy Dish",
+    domain: "gtlaw-dataprivacydish.com",
+    defaultCategory: "us-states",
+    regulator: "Greenberg Traurig LLP",
+  },
+  {
+    url: "https://alstonprivacy.com/feed",
+    source: "Alston Privacy",
+    domain: "alstonprivacy.com",
+    defaultCategory: "us-federal",
+    regulator: "Alston & Bird LLP",
+  },
+  {
+    url: "https://www.privacyandcybersecuritylaw.com/feed",
+    source: "Dentons Privacy & Cyber",
+    domain: "privacyandcybersecuritylaw.com",
+    defaultCategory: "global",
+    regulator: "Dentons LLP",
+  },
+  {
+    url: "https://www.hoganlovells.com/en/news-and-insights/rss",
+    source: "Hogan Lovells",
+    domain: "hoganlovells.com",
+    defaultCategory: "global",
+    regulator: "Hogan Lovells LLP",
+  },
+  {
+    url: "https://www.bakermckenzie.com/en/rss",
+    source: "Baker McKenzie",
+    domain: "bakermckenzie.com",
+    defaultCategory: "global",
+    regulator: "Baker McKenzie LLP",
+  },
+
+  // ── APAC Regulators ─────────────────────────────────────────────
+  {
+    url: "https://www.oaic.gov.au/news/rss.xml",
+    source: "OAIC",
+    domain: "oaic.gov.au",
+    defaultCategory: "global",
+    regulator: "Office of the Australian Information Commissioner",
+  },
+  {
+    url: "https://www.pdpc.gov.sg/rss",
+    source: "PDPC Singapore",
+    domain: "pdpc.gov.sg",
+    defaultCategory: "global",
+    regulator: "Personal Data Protection Commission Singapore",
+  },
+  {
+    url: "https://www.priv.gc.ca/en/news/rss/",
+    source: "OPC Canada",
+    domain: "priv.gc.ca",
+    defaultCategory: "global",
+    regulator: "Office of the Privacy Commissioner of Canada",
+  },
+  {
+    url: "https://www.pcpd.org.hk/english/news_events/rss.xml",
+    source: "PCPD Hong Kong",
+    domain: "pcpd.org.hk",
+    defaultCategory: "global",
+    regulator: "Privacy Commissioner for Personal Data Hong Kong",
+  },
+
+  // ── Civil Society & Advocacy ─────────────────────────────────────
+  {
+    url: "https://epic.org/feed/",
+    source: "EPIC",
+    domain: "epic.org",
+    defaultCategory: "us-federal",
+    regulator: "Electronic Privacy Information Center",
+  },
+  {
+    url: "https://www.eff.org/rss/updates.xml",
+    source: "EFF",
+    domain: "eff.org",
+    defaultCategory: "global",
+    regulator: "Electronic Frontier Foundation",
+  },
+  {
+    url: "https://privacyinternational.org/rss",
+    source: "Privacy International",
+    domain: "privacyinternational.org",
+    defaultCategory: "global",
+    regulator: "Privacy International",
+  },
+  {
+    url: "https://www.accessnow.org/feed/",
+    source: "Access Now",
+    domain: "accessnow.org",
+    defaultCategory: "global",
+    regulator: "Access Now",
+  },
+
+  // ── AI Governance ────────────────────────────────────────────────
+  {
+    url: "https://www.adalovelaceinstitute.org/feed/",
+    source: "Ada Lovelace Institute",
+    domain: "adalovelaceinstitute.org",
+    defaultCategory: "ai-privacy",
+    regulator: "Ada Lovelace Institute",
+  },
+  {
+    url: "https://algorithmwatch.org/en/feed/",
+    source: "AlgorithmWatch",
+    domain: "algorithmwatch.org",
+    defaultCategory: "ai-privacy",
+    regulator: "AlgorithmWatch",
+  },
+
+  // ── Healthcare & Financial ───────────────────────────────────────
+  {
+    url: "https://www.hipaajournal.com/feed/",
+    source: "HIPAA Journal",
+    domain: "hipaajournal.com",
+    defaultCategory: "us-federal",
+    regulator: "HIPAA Journal",
+  },
+  {
+    url: "https://www.consumerfinance.gov/activity/blog/feed/",
+    source: "CFPB",
+    domain: "consumerfinance.gov",
+    defaultCategory: "us-federal",
+    regulator: "Consumer Financial Protection Bureau",
+  },
+
+  // ── EU Supplemental ──────────────────────────────────────────────
+  {
+    url: "https://www.enisa.europa.eu/news/rss-news",
+    source: "ENISA",
+    domain: "enisa.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "EU Agency for Cybersecurity",
+  },
+  {
+    url: "https://www.datatilsynet.no/en/news/rss/",
+    source: "Datatilsynet Norway",
+    domain: "datatilsynet.no",
+    defaultCategory: "eu-uk",
+    regulator: "Datatilsynet (Norwegian DPA)",
+  },
+
+  // ── Policy & Legislative ─────────────────────────────────────────
+  {
+    url: "https://www.lawfareblog.com/rss.xml",
+    source: "Lawfare",
+    domain: "lawfareblog.com",
+    defaultCategory: "global",
+    regulator: "Lawfare Institute",
+  },
+  {
+    url: "https://techpolicy.press/feed/",
+    source: "Tech Policy Press",
+    domain: "techpolicy.press",
+    defaultCategory: "global",
+    regulator: "Tech Policy Press",
+  },
+  {
+    url: "https://www.europarl.europa.eu/rss/en/news.xml",
+    source: "EU Parliament",
+    domain: "europarl.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "European Parliament",
+  },
+  {
+    url: "https://www.fcc.gov/news-events/rss",
+    source: "FCC",
+    domain: "fcc.gov",
+    defaultCategory: "us-federal",
+    regulator: "Federal Communications Commission",
+  },
 ];
 
 const FALLBACK_IMAGES: Record<string, string> = {
@@ -362,6 +551,13 @@ function categorize(title: string, description: string, defaultCat: string): str
   // HIPAA/health enforcement — catches HHS OCR actions
   if (/\b(hhs ocr|office for civil rights|hipaa fine|hipaa penalty|hipaa enforcement|hipaa violation|hipaa settlement|covered entity|protected health information|phi breach)\b/.test(text)) return "us-federal";
   if (/\b(fine|penalty|enforcement action|sued|lawsuit|violation|sanction|prosecut)\b/.test(text)) return "enforcement";
+  if (/\b(dpdp act|digital personal data protection|india privacy|pdpc singapore|oaic australia|pipc korea|pdpa thailand|anpd brazil|lgpd enforcement)\b/.test(text)) return "global";
+  if (/\b(admt|automated decision.making technology|california delete act|drop system|data broker registry)\b/.test(text)) return "us-states";
+  if (/\b(8-k cybersecurity|material cybersecurity incident|sec cyber disclosure)\b/.test(text)) return "enforcement";
+  if (/\b(eu ai act|ai act enforcement|high.risk ai|gpai|general purpose ai|ai office)\b/.test(text)) return "ai-privacy";
+  if (/\b(duaa|data use and access act|uk data reform)\b/.test(text)) return "eu-uk";
+  if (/\b(noyb|max schrems|schrems iii)\b/.test(text)) return "eu-uk";
+  if (/\b(cpni|customer proprietary network|fcc privacy|telecom privacy)\b/.test(text)) return "us-federal";
   if (/\b(ai\b|artificial intelligence|machine learning|biometric|facial recognition|deepfake|llm|generative)\b/.test(text)) return "ai-privacy";
   if (/\b(california|texas|virginia|colorado|connecticut|utah|state privacy|cppa|ccpa|cpra|tdpsa|vcdpa)\b/.test(text)) return "us-states";
   if (/\b(ftc|congress|federal privacy|hipaa|coppa|senate|house bill|federal trade)\b/.test(text)) return "us-federal";
@@ -378,6 +574,11 @@ function assignTopicTags(title: string, description: string): string[] {
   if (/\b(cross-border|data transfer|international transfer|adequacy decision|standard contractual|binding corporate rules|sccs|bcrs|data localization)\b/.test(text)) tags.push("data-transfers");
   if (/\b(children|child|coppa|age verification|age assurance|minors|under 13|under 16|kids|teen|parental consent)\b/.test(text)) tags.push("children-privacy");
   if (/\b(adtech|ad tech|advertising technology|cookie\b|consent banner|tracking pixel|targeted advertising|behavioral advertising|real-time bidding|rtb\b|programmatic|third.party cookie|third party cookie|consent management|cmp\b|tcf\b|iab europe|iab\b|transparency consent|privacy sandbox|topics api|protected audience|fledge|cookieless|identity resolution|first.party data|zero.party data|data clean room|id bridging|unified id|prebid|header bidding|ad fraud|viewability|brand safety|garm\b|nai\b|daa\b|commercial surveillance|behavioral tracking|cross.site tracking|fingerprinting|device fingerprint|supercookie|demand.side|supply.side|dsp\b|ssp\b|dmp\b|ad exchange|ad server|retargeting|lookalike|contextual advertising)\b/.test(text)) tags.push("adtech");
+  if (/\b(bipa|vppa|cipa|wiretap act|class action privacy|privacy litigation|class certified|class settlement)\b/.test(text)) tags.push("privacy-litigation");
+  if (/\b(dpdp act|pdpl vietnam|appi japan|pipc|pdpc|oaic|lgpd|pdpa|anpd)\b/.test(text)) tags.push("apac-latam");
+  if (/\b(eu ai act|ai act|high-risk ai|gpai|general purpose ai|ai office|foundation model)\b/.test(text)) tags.push("ai-governance");
+  if (/\b(data broker|data broker registry|people search|broker opt.out|drop system)\b/.test(text)) tags.push("data-brokers");
+  if (/\b(workplace privacy|employee monitoring|employment ai|hr data|workers data)\b/.test(text)) tags.push("workplace-privacy");
   return tags;
 }
 
@@ -462,6 +663,17 @@ const REQUIRED_KEYWORDS = [
   "tdpsa", "texas data privacy", "colorado privacy", "connecticut privacy",
   "ctdpa", "cpa enforcement", "convention 108", "eur-lex", "gdprhub",
   "linklaters", "fieldfisher",
+  // APAC & global regulators
+  "dpdp act", "digital personal data protection", "pdpc", "oaic",
+  "pipc", "pdpa", "anpd", "lgpd enforcement", "datatilsynet", "noyb",
+  // US additions
+  "admt", "automated decision making technology",
+  "drop system", "data broker registry",
+  "8-k cybersecurity", "material cybersecurity incident",
+  "cpni", "customer proprietary network",
+  // UK & AI
+  "duaa", "data use and access act",
+  "ai act enforcement", "high-risk ai", "gpai",
 ];
 
 const EXCLUSION_KEYWORDS = [
@@ -772,75 +984,6 @@ Deno.serve(async (req) => {
     }
   }
 
-  const newsApiKey = Deno.env.get("NEWSAPI_KEY");
-  if (newsApiKey) {
-    const queries = [
-      "data privacy regulation enforcement",
-      "GDPR privacy fine",
-      "privacy law compliance",
-      "AdTech advertising privacy regulation",
-      "cookie consent enforcement GDPR",
-      "FTC commercial surveillance advertising",
-      "IAB TCF transparency consent framework",
-      "behavioral advertising privacy law",
-      "third party cookie privacy",
-      "programmatic advertising regulation",
-      // New coverage areas from expanded sources
-      "California CPPA privacy enforcement",
-      "Texas TDPSA data privacy",
-      "HHS OCR HIPAA enforcement fine",
-      "AEPD Spain GDPR fine",
-      "Netherlands AP Autoriteit Persoonsgegevens",
-      "Italian Garante data protection",
-      "EU legislative privacy regulation",
-      "state attorney general privacy enforcement",
-    ];
-    for (const q of queries) {
-      try {
-        const res = await fetch(
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${newsApiKey}`,
-          { signal: AbortSignal.timeout(10000) }
-        );
-        const json = await res.json();
-        for (const article of json.articles || []) {
-          if (!article.title || !article.url || article.title === "[Removed]") continue;
-          if (!isRelevant(article.title, article.description || "")) { results.skipped++; continue; }
-          const domain = new URL(article.url).hostname.replace("www.", "");
-          const category = categorize(article.title, article.description || "", "global");
-          const row: Record<string, unknown> = {
-            title: article.title.slice(0, 400),
-            summary: (article.description || "").slice(0, 500) || null,
-            url: article.url,
-            source_name: article.source?.name || domain,
-            source_domain: domain,
-            image_url: article.urlToImage || FALLBACK_IMAGES[category],
-            category,
-            topic_tags: assignTopicTags(article.title, article.description || ""),
-            regulator: article.source?.name || "",
-            published_at: article.publishedAt || new Date().toISOString(),
-            is_premium: false,
-          };
-
-          // Generate AI summary if API key is available
-          if (anthropicKey) {
-            const aiSummary = await generateAISummary(article.title, article.description || "", article.source?.name || "", anthropicKey);
-            if (aiSummary) {
-              row.ai_summary = aiSummary;
-              results.summaries_generated++;
-            }
-          }
-
-          const { error } = await supabase
-            .from("updates")
-            .upsert(row, { onConflict: "url", ignoreDuplicates: true });
-          if (!error) results.inserted++;
-          else results.skipped++;
-        }
-      } catch (e: any) {
-        results.errors.push(`NewsAPI [${q}]: ${e.message}`);
-      }
-    }
-  }
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
