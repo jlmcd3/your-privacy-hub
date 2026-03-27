@@ -34,6 +34,41 @@ const FILTER_PILLS = [
   { key: "global", label: "🌐 Global" },
 ];
 
+const JURISDICTION_OPTIONS = [
+  { key: "all", label: "All Jurisdictions" },
+  { key: "eu", label: "🇪🇺 EU" },
+  { key: "uk", label: "🇬🇧 UK" },
+  { key: "us", label: "🇺🇸 United States" },
+  { key: "brazil", label: "🇧🇷 Brazil" },
+  { key: "south-korea", label: "🇰🇷 South Korea" },
+  { key: "china", label: "🇨🇳 China" },
+  { key: "japan", label: "🇯🇵 Japan" },
+  { key: "india", label: "🇮🇳 India" },
+  { key: "canada", label: "🇨🇦 Canada" },
+  { key: "australia", label: "🇦🇺 Australia" },
+  { key: "other", label: "🌐 Other" },
+];
+
+function matchJurisdiction(action: EnforcementAction, key: string): boolean {
+  if (key === "all") return true;
+  const j = (action.jurisdiction || "").toLowerCase();
+  if (key === "eu") return j.includes("eu") && !j.includes("uk");
+  if (key === "uk") return j.includes("uk");
+  if (key === "us") return j.includes("u.s.") || j.includes("federal");
+  if (key === "brazil") return j.includes("brazil");
+  if (key === "south-korea") return j.includes("korea");
+  if (key === "china") return j.includes("china");
+  if (key === "japan") return j.includes("japan");
+  if (key === "india") return j.includes("india");
+  if (key === "canada") return j.includes("canada");
+  if (key === "australia") return j.includes("australia");
+  if (key === "other") {
+    return !["eu", "uk", "u.s.", "federal", "brazil", "korea", "china", "japan", "india", "canada", "australia"]
+      .some((k) => j.includes(k));
+  }
+  return true;
+}
+
 function matchFilter(action: EnforcementAction, key: string): boolean {
   if (key === "all") return true;
   const j = (action.jurisdiction || "").toLowerCase();
