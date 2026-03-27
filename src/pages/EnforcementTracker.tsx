@@ -104,6 +104,7 @@ const EnforcementTrackerPage = () => {
 
   const filtered = actions
     .filter((a) => matchFilter(a, activeFilter))
+    .filter((a) => matchJurisdiction(a, jurisdictionFilter))
     .filter((a) =>
       !searchTerm || [a.regulator, a.subject, a.jurisdiction, a.violation, a.law, a.fine_amount]
         .some((v) => v?.toLowerCase().includes(searchTerm.toLowerCase()))
