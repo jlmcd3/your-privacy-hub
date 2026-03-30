@@ -907,7 +907,7 @@ async function translateToEnglish(
   apiKey: string
 ): Promise<{ title: string; description: string }> {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
