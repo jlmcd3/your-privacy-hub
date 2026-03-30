@@ -216,9 +216,9 @@ Deno.serve(async (req) => {
           is_premium: false,
         };
 
-        if (anthropicKey) {
+        if (anthropicKey && !existingUrlsWithSummary.has(article.url)) {
           try {
-            const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+            const aiRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
               method: "POST",
               headers: {
                 "x-api-key": anthropicKey,
