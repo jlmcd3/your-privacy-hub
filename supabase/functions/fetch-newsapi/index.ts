@@ -100,12 +100,45 @@ const FALLBACK_IMAGES: Record<string, string> = {
   "adtech": "https://picsum.photos/seed/advertising-technology/400/200",
 };
 
+// ── Throttle & Retry helpers ───────────────────────────────────────
+const AI_CALL_DELAY_MS = 500;
+let lastAiCallTime = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const elapsed = now - lastAiCallTime;
+  if (elapsed < AI_CALL_DELAY_MS) {
+    await new Promise(r => setTimeout(r, AI_CALL_DELAY_MS - elapsed));
+  }
+  lastAiCallTime = Date.now();
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    await throttle();
+    const res = await fetch(url, init);
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
+      const backoff = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
+      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    return res;
+  }
+  throw new Error("Max retries exceeded");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
-  const results = { inserted: 0, skipped: 0, summaries_generated: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, errors: [] as string[] };
   const newsApiKey = Deno.env.get("NEWSAPI_KEY");
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
