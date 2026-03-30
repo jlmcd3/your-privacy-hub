@@ -100,12 +100,45 @@ const FALLBACK_IMAGES: Record<string, string> = {
   "adtech": "https://picsum.photos/seed/advertising-technology/400/200",
 };
 
+// ── Throttle & Retry helpers ───────────────────────────────────────
+const AI_CALL_DELAY_MS = 500;
+let lastAiCallTime = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const elapsed = now - lastAiCallTime;
+  if (elapsed < AI_CALL_DELAY_MS) {
+    await new Promise(r => setTimeout(r, AI_CALL_DELAY_MS - elapsed));
+  }
+  lastAiCallTime = Date.now();
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    await throttle();
+    const res = await fetch(url, init);
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
+      const backoff = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
+      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    return res;
+  }
+  throw new Error("Max retries exceeded");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
-  const results = { inserted: 0, skipped: 0, summaries_generated: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, errors: [] as string[] };
   const newsApiKey = Deno.env.get("NEWSAPI_KEY");
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
@@ -114,6 +147,13 @@ Deno.serve(async (req) => {
       status: 500, headers: { "Content-Type": "application/json" },
     });
   }
+
+  // Pre-fetch URLs that already have AI summaries to skip redundant calls
+  const { data: existingRows } = await supabase
+    .from("updates")
+    .select("url")
+    .not("ai_summary", "is", null);
+  const existingUrlsWithSummary = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
   // 25 queries x 2 runs/day = 50 requests/day (free tier limit: 100/day)
   // Original 18 queries are preserved; 7 new queries added below.
@@ -176,9 +216,9 @@ Deno.serve(async (req) => {
           is_premium: false,
         };
 
-        if (anthropicKey) {
+        if (anthropicKey && !existingUrlsWithSummary.has(article.url)) {
           try {
-            const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+            const aiRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
               method: "POST",
               headers: {
                 "x-api-key": anthropicKey,

@@ -5,6 +5,39 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// ── Throttle & Retry helpers ───────────────────────────────────────
+const AI_CALL_DELAY_MS = 500;
+let lastAiCallTime = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const elapsed = now - lastAiCallTime;
+  if (elapsed < AI_CALL_DELAY_MS) {
+    await new Promise(r => setTimeout(r, AI_CALL_DELAY_MS - elapsed));
+  }
+  lastAiCallTime = Date.now();
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    await throttle();
+    const res = await fetch(url, init);
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
+      const backoff = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
+      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    return res;
+  }
+  throw new Error("Max retries exceeded");
+}
+
 async function generateAISummary(
   title: string,
   summary: string | null,
@@ -12,7 +45,7 @@ async function generateAISummary(
   apiKey: string
 ) {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -123,7 +156,7 @@ Deno.serve(async (req) => {
         .eq("id", article.id);
       skipped++;
     }
-    await new Promise((r) => setTimeout(r, 250)); // rate limit
+    await new Promise((r) => setTimeout(r, 500)); // rate limit between articles
   }
 
   return new Response(
