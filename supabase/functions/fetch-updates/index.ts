@@ -1003,8 +1003,8 @@ Deno.serve(async (req) => {
           is_premium: false,
         };
 
-        // Generate AI summary if API key is available
-        if (anthropicKey) {
+        // Generate AI summary only if key available AND article doesn't already have one
+        if (anthropicKey && !existingUrlsWithSummary.has(link)) {
           const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
           if (aiSummary) {
             row.ai_summary = aiSummary;
