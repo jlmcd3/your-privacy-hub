@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
         .eq("id", article.id);
       skipped++;
     }
-    await new Promise((r) => setTimeout(r, 250)); // rate limit
+    await new Promise((r) => setTimeout(r, 500)); // rate limit between articles
   }
 
   return new Response(
