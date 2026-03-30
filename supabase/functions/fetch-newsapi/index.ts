@@ -148,6 +148,13 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Pre-fetch URLs that already have AI summaries to skip redundant calls
+  const { data: existingRows } = await supabase
+    .from("updates")
+    .select("url")
+    .not("ai_summary", "is", null);
+  const existingUrlsWithSummary = new Set((existingRows || []).map((r: { url: string }) => r.url));
+
   // 25 queries x 2 runs/day = 50 requests/day (free tier limit: 100/day)
   // Original 18 queries are preserved; 7 new queries added below.
   const queries = [
