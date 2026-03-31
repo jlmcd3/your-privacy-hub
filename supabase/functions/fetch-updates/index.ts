@@ -1018,6 +1018,11 @@ Deno.serve(async (req) => {
 
         if (error) results.skipped++;
         else results.inserted++;
+
+        // Prevent Anthropic API rate limiting — small delay between AI calls
+        if (anthropicKey) {
+          await new Promise((r) => setTimeout(r, 300));
+        }
       }
     } catch (e: any) {
       results.errors.push(`${source.source}: ${e.message}`);
