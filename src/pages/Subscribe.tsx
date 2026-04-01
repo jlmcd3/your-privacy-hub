@@ -20,8 +20,6 @@ const comparisonRows = [
   { feature: "Full 8-section weekly brief analysis",                free: false, pro: true  },
   { feature: "Enforcement table & trend signals",                   free: false, pro: true  },
   { feature: "Why This Matters — action items",                     free: false, pro: true  },
-  { feature: "AskPrivacy AI — 3 questions/month",                   free: true,  pro: true  },
-  { feature: "AskPrivacy AI — 50 questions/month",                  free: false, pro: true  },
   { feature: "On-demand personalized reports (6/month)",            free: false, pro: true  },
   { feature: "Additional report credit bundles ($5/$15/$20)",       free: false, pro: true  },
   { feature: "Brief written for your industry",                     free: false, pro: true  },
