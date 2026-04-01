@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AskPrivacy from "@/components/ai/AskPrivacy";
+
 import ReportCredits from "@/components/dashboard/ReportCredits";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
@@ -318,9 +318,6 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="mt-8">
-                <AskPrivacy isPremium={false} />
-              </div>
             </>
           )}
         </div>
@@ -713,9 +710,6 @@ const Dashboard = () => {
 
 
 
-            <div className="mt-8">
-              <AskPrivacy isPremium={isPremium === true} />
-            </div>
           </>
         )}
       </div>
