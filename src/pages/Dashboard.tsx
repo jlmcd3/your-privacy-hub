@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AskPrivacy from "@/components/ai/AskPrivacy";
+
 import ReportCredits from "@/components/dashboard/ReportCredits";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
