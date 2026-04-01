@@ -318,9 +318,6 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="mt-8">
-                <AskPrivacy isPremium={false} />
-              </div>
             </>
           )}
         </div>
