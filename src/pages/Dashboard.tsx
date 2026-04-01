@@ -710,9 +710,6 @@ const Dashboard = () => {
 
 
 
-            <div className="mt-8">
-              <AskPrivacy isPremium={isPremium === true} />
-            </div>
           </>
         )}
       </div>

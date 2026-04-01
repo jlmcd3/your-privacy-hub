@@ -36,7 +36,7 @@ const planFeatures = [
   "All 10 specialist report tracks included",
   "6 on-demand personalized reports/month included",
   "Extra reports: $5 for 1, $15 for 5, $20 for 10",
-  "AskPrivacy AI — 50 questions/month",
+  
   "Priority Monday delivery",
   "Sector-specific compliance action items",
   "Historical continuity (issue tracking across weeks)",
