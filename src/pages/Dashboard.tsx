@@ -89,6 +89,7 @@ const Dashboard = () => {
   const [reportsUsed, setReportsUsed] = useState(0);
   const [bonusCredits, setBonusCredits] = useState(0);
   const [genPhase, setGenPhase] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const GEN_PHASES = [
     "Your Intelligence brief is reading this week's regulatory developments…",
