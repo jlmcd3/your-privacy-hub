@@ -184,6 +184,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ingestion_runs: {
+        Row: {
+          enrichment_failed_429: number | null
+          enrichment_failed_other: number | null
+          id: string
+          inserted: number | null
+          run_at: string
+          skipped: number | null
+          summaries_generated: number | null
+        }
+        Insert: {
+          enrichment_failed_429?: number | null
+          enrichment_failed_other?: number | null
+          id?: string
+          inserted?: number | null
+          run_at: string
+          skipped?: number | null
+          summaries_generated?: number | null
+        }
+        Update: {
+          enrichment_failed_429?: number | null
+          enrichment_failed_other?: number | null
+          id?: string
+          inserted?: number | null
+          run_at?: string
+          skipped?: number | null
+          summaries_generated?: number | null
+        }
+        Relationships: []
+      }
       jurisdictions: {
         Row: {
           created_at: string | null
