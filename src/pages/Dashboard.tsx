@@ -327,6 +327,33 @@ const Dashboard = () => {
                 )}
               </div>
 
+              {/* Intelligence Preview — blurred industry example */}
+              <section className="mt-10 bg-card rounded-2xl border border-border overflow-hidden">
+                <div className="px-6 pt-5 pb-3">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">Intelligence Preview</p>
+                  <h3 className="font-display font-bold text-foreground text-[17px] mb-1">What your personalized brief would add</h3>
+                  <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                    Financial Services example
+                  </span>
+                </div>
+                <div className="px-6 pb-2">
+                  <div className="filter blur-sm pointer-events-none select-none">
+                    <p className="text-[14px] text-muted-foreground leading-relaxed">
+                      For financial services firms operating in the EU and US, this week's EDPB guidance on legitimate interest carries direct implications for behavioral targeting in banking apps. The simultaneous FTC enforcement action against data brokers creates a convergent compliance obligation: your existing Article 6(1)(f) assessment likely needs updating before Q3, and your US data broker contracts should be reviewed against the FTC's newly articulated unreasonable data practice standard. Suggested action: instruct counsel to cross-map your current LIA documentation against both the EDPB guidance and FTC criteria before your next DPO review.
+                    </p>
+                  </div>
+                </div>
+                <div className="px-6 pb-6 pt-3 text-center">
+                  <p className="text-[12px] text-muted-foreground mb-3 italic">This analysis is written for your industry and jurisdictions</p>
+                  <Link
+                    to="/subscribe"
+                    className="inline-block bg-amber-400 text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:bg-amber-300 transition-colors"
+                  >
+                    Get Intelligence — $20/month →
+                  </Link>
+                </div>
+              </section>
+
             </>
           )}
         </div>
