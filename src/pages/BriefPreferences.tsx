@@ -194,7 +194,7 @@ export default function BriefPreferences() {
               <span>⭐</span> Premium
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">
-              Configure your analyst
+              Configure your Intelligence Brief
             </h1>
             <p className="text-slate text-[14px] mb-8 max-w-lg">
               Your Pro brief is written by AI specifically for your regulatory
