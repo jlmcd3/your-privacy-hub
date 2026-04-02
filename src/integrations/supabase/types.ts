@@ -343,6 +343,39 @@ export type Database = {
         }
         Relationships: []
       }
+      report_configs: {
+        Row: {
+          converted: boolean | null
+          created_at: string | null
+          email: string | null
+          id: string
+          industry: string | null
+          jurisdiction: string
+          topics: string[]
+          user_id: string | null
+        }
+        Insert: {
+          converted?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          jurisdiction: string
+          topics: string[]
+          user_id?: string | null
+        }
+        Update: {
+          converted?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          jurisdiction?: string
+          topics?: string[]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       trend_reports: {
         Row: {
           affected_industries: Json
