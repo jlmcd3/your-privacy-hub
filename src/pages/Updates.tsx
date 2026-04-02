@@ -320,11 +320,9 @@ const Updates = () => {
                     onLoadMore={handleLoadMore}
                     renderArticle={(article, i, isPremium) => {
                         const t = tag(article.category || "global");
-                        return (
-                            <a
-                                href={article.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                         return (
+                            <Link
+                                to={`/updates/${article.id}`}
                                 className="flex gap-4 p-4 border-b border-border hover:bg-fog/30 transition-all no-underline cursor-pointer group"
                             >
                                 {article.image_url && (
