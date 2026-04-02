@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -111,6 +111,8 @@ const Toggle = ({
 
 export default function BriefPreferences() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const fromSubscribe = searchParams.get("from") === "subscribe";
   const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[], format: "full" });
   const [role, setRole] = useState("");
   const [saving, setSaving] = useState(false);
@@ -180,6 +182,13 @@ export default function BriefPreferences() {
       <div className="min-h-screen bg-background flex flex-col">
         <Topbar /><Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 md:px-8 py-10 w-full">
+          {fromSubscribe && (
+            <div className="mb-8 bg-gradient-to-r from-navy to-steel rounded-2xl p-5 text-white">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-1">⭐ Welcome to Intelligence</p>
+              <p className="font-display font-bold text-[18px] mb-1">Set your preferences to get your first personalized brief</p>
+              <p className="text-blue-200 text-[13px]">Your brief is written specifically for your industry and jurisdictions. The form below takes 60 seconds — your first personalized brief arrives Monday.</p>
+            </div>
+          )}
           <div className="mb-8">
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
               <span>⭐</span> Premium

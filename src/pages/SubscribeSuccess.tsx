@@ -120,10 +120,10 @@ export default function SubscribeSuccess() {
         {/* Primary CTAs */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
-            to="/brief-preferences"
-            className="flex-1 text-center bg-amber-500 text-white font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
+            to="/brief-preferences?from=subscribe"
+            className="flex-1 text-center bg-amber-400 text-navy font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
-            Configure your analyst →
+            Personalize your Intelligence Brief →
           </Link>
           <Link
             to="/dashboard"
