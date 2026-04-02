@@ -208,6 +208,9 @@ const Dashboard = () => {
     // Free users still see the brief — but with Pro upsell
     return (
       <div className="min-h-screen bg-background">
+        {showOnboarding && user && (
+          <OnboardingModal userId={user.id} onComplete={() => setShowOnboarding(false)} />
+        )}
         <Helmet>
           <title>Intelligence Dashboard | EndUserPrivacy</title>
         </Helmet>
