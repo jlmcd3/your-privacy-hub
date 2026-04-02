@@ -33,6 +33,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
+import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import About from "./pages/About.tsx";
@@ -102,7 +103,8 @@ const App = () => (
           <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/updates" element={<Updates />} />
+           <Route path="/updates" element={<Updates />} />
+           <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

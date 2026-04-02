@@ -22,7 +22,7 @@ const PremiumBanner = () => {
               ⭐ Premium Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The library is free.<br />Your analyst is $20/month.
+              The library is free.<br />Intelligence is $20/month.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
               Browse every regulator and jurisdiction for free, always. Premium adds the analyst layer — weekly synthesis re-written for your industry and jurisdictions, telling you what it means for your organization before your competitors figure it out.

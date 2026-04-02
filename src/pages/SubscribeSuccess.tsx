@@ -34,7 +34,7 @@ export default function SubscribeSuccess() {
   const NEXT_STEPS = [
     {
       icon: "🎯",
-      title: "Configure your analyst",
+      title: "Configure your Intelligence Brief",
       body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
     },
     {

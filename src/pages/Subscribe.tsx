@@ -84,11 +84,11 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Your analyst is $20/month.
+            The library is free.<br />Intelligence is $20/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
             Everything you can browse and read is always free — including the weekly
-            Intelligence Brief. Your analyst is something different: a brief re-written
+            Intelligence Brief. Intelligence is something different: a brief re-written
             every Monday specifically for your industry, your jurisdictions, and your
             compliance obligations. That's $20/month.
           </p>
@@ -185,7 +185,7 @@ const Subscribe = () => {
           })}
         </div>
         <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
-          Each track is included in your $20/month Premium subscription. Select as many as you need — your analyst synthesizes all selected tracks into one weekly brief.
+          Each track is included in your $20/month Premium subscription. Select as many as you need — your Intelligence brief synthesizes all selected tracks into one weekly brief.
         </p>
         <div className="text-center mt-6">
           <button
@@ -488,7 +488,7 @@ const Subscribe = () => {
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
               <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium — $20/month</p>
-              <p className="text-[12px] text-sky mb-4">Your analyst. Written for your world.</p>
+              <p className="text-[12px] text-sky mb-4">Intelligence. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
                   "Everything in Free",
@@ -562,7 +562,7 @@ const Subscribe = () => {
               $20<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <p className="text-blue-200 text-sm mb-5">
-              Your analyst. Written for your industry and jurisdiction. Every Monday.
+              Intelligence. Written for your industry and jurisdiction. Every Monday.
             </p>
             <ul className="space-y-2.5 mb-6">
               {[

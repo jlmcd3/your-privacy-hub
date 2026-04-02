@@ -25,7 +25,7 @@ const MODES = [
   },
   {
     icon: "🧠",
-    label: "Get your analyst",
+    label: "Get Intelligence",
     desc: "Weekly brief written for your industry & jurisdictions — $20/month",
     href: "/subscribe",
     cta: "See Plans →",

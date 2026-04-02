@@ -178,7 +178,7 @@ export default function BriefPreferences() {
 
   return (
     <>
-      <Helmet><title>Configure Your Analyst | EndUserPrivacy Premium</title></Helmet>
+      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Premium</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Topbar /><Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 md:px-8 py-10 w-full">
@@ -194,7 +194,7 @@ export default function BriefPreferences() {
               <span>⭐</span> Premium
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">
-              Configure your analyst
+              Configure your Intelligence Brief
             </h1>
             <p className="text-slate text-[14px] mb-8 max-w-lg">
               Your Pro brief is written by AI specifically for your regulatory
@@ -251,7 +251,7 @@ export default function BriefPreferences() {
           {/* Topics */}
           <div className="mb-8">
             <h2 className="font-bold text-navy text-[15px] mb-1">Your report tracks</h2>
-            <p className="text-slate text-xs mb-4">Choose the topic tracks your analyst will cover every week. Select multiple for a combined brief.</p>
+            <p className="text-slate text-xs mb-4">Choose the topic tracks your Intelligence brief will cover every week. Select multiple for a combined brief.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {TOPICS.map(t => (
                 <Toggle key={t.id} {...t} selected={prefs.topics.includes(t.id)} onToggle={id => toggle("topics", id)} />
@@ -285,7 +285,7 @@ export default function BriefPreferences() {
           {isPremium === false && (
             <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
-                Your analyst requires Premium ($20/month).
+                Intelligence requires Premium ($20/month).
                 Preferences are saved and will activate once you subscribe.
               </p>
               <Link
@@ -307,7 +307,7 @@ export default function BriefPreferences() {
               {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
             </button>
             <p className="text-slate text-xs">
-              Your analyst's focus updates with the next Monday brief.
+              Your Intelligence Brief's focus updates with the next Monday brief.
             </p>
           </div>
         </main>
