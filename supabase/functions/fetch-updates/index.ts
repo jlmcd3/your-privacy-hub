@@ -863,53 +863,10 @@ STEP 2 — If relevant, return this JSON:
 
     if (!res.ok) {
       if (res.status === 429) {
-        // Rate limited — wait 5 seconds and retry once
-        console.warn("Anthropic 429 in generateAISummary — retrying in 5s");
-        await new Promise((r) => setTimeout(r, 5000));
-        const retry = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
-            max_tokens: 1000,
-            system: `You are a privacy regulatory analyst at a leading intelligence firm.
-Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers.
-
-Rules:
-(1) Always name the specific regulator AND jurisdiction AND regulation where present.
-(2) Never write generic advice — every sentence must be specific to this article.
-(3) Return ONLY valid JSON — no preamble, no markdown, no explanation.
-(4) Be precise about legal weight: distinguish binding regulatory decisions from
-    guidance, proposals, and commentary. This distinction matters enormously to
-    legal professionals.`,
-            messages: [
-              {
-                role: "user",
-                content: `Analyze this privacy/data protection article.\n\nTitle: ${title}\nDescription: ${summary || "No description available."}\nSource: ${sourceName || "Unknown"}\n\nSTEP 1 — RELEVANCE CHECK:\nIf this article is NOT genuinely about privacy regulation, data protection law,\nregulatory enforcement, or compliance obligations (e.g. it is about general\nbusiness pricing, non-privacy topics, or entertainment), return exactly:\n{"skip": true}\n\nSTEP 2 — If relevant, return this JSON:\n{\n  "why_it_matters": "2 sentences.",\n  "takeaways": ["point 1", "point 2", "point 3"],\n  "compliance_impact": "One sentence.",\n  "who_should_care": "DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",\n  "urgency": "Immediate | This quarter | Monitor",\n  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",\n  "source_strength": "Primary regulator | Legal analysis | Media coverage",\n  "cross_jurisdiction_signal": "string or null",\n  "risk_level": "Low | Medium | High | Critical"\n}`,
-              },
-            ],
-          }),
-          signal: AbortSignal.timeout(15000),
-        });
-        if (!retry.ok) {
-          console.error(`Anthropic API error after retry: ${retry.status}`);
-          return null;
-        }
-        const retryData = await retry.json();
-        const retryText = retryData.content?.[0]?.text;
-        if (!retryText) return null;
-        const retryMatch = retryText.match(/\{[\s\S]*\}/);
-        if (!retryMatch) return null;
-        const retryParsed = JSON.parse(retryMatch[0]);
-        if (retryParsed.skip === true) return null;
-        return retryParsed;
+        throw new Error("ANTHROPIC_429");
       }
       console.error(`Anthropic API error: ${res.status}`);
-      return null;
+      throw new Error(`ANTHROPIC_${res.status}`);
     }
 
     const data = await res.json();
@@ -995,7 +952,7 @@ Deno.serve(async (req) => {
   // No auth check needed — this function only ingests public RSS data
   // and writes via service_role. Rate-limited by cron schedule.
 
-  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   // Pre-fetch URLs that already have AI summaries to avoid redundant API calls
@@ -1051,10 +1008,18 @@ Deno.serve(async (req) => {
 
         // Generate AI summary only if key available AND article doesn't already have one
         if (anthropicKey && !existingUrlsWithSummary.has(link)) {
-          const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
-          if (aiSummary) {
-            row.ai_summary = aiSummary;
-            results.summaries_generated++;
+          try {
+            const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
+            if (aiSummary) {
+              row.ai_summary = aiSummary;
+              results.summaries_generated++;
+            }
+          } catch (enrichErr: any) {
+            if (enrichErr.message?.includes("ANTHROPIC_429")) {
+              results.enrichment_failed_429++;
+            } else {
+              results.enrichment_failed_other++;
+            }
           }
         }
 
@@ -1075,6 +1040,16 @@ Deno.serve(async (req) => {
     }
   }
 
+
+  // Log ingestion run — non-blocking
+  await supabase.from("ingestion_runs").insert({
+    run_at: new Date().toISOString(),
+    inserted: results.inserted,
+    skipped: results.skipped,
+    summaries_generated: results.summaries_generated,
+    enrichment_failed_429: results.enrichment_failed_429,
+    enrichment_failed_other: results.enrichment_failed_other,
+  }).catch(() => {});
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
