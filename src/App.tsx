@@ -33,6 +33,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
+import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import About from "./pages/About.tsx";
