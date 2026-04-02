@@ -53,6 +53,7 @@ import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
 import BiometricPrivacy from "./pages/BiometricPrivacy.tsx";
 import BreachNotification from "./pages/BreachNotification.tsx";
 import CrossBorderTransfers from "./pages/CrossBorderTransfers.tsx";
+import GetIntelligence from "./pages/GetIntelligence.tsx";
 
 const queryClient = new QueryClient();
 
