@@ -111,6 +111,8 @@ const Toggle = ({
 
 export default function BriefPreferences() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const fromSubscribe = searchParams.get("from") === "subscribe";
   const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[], format: "full" });
   const [role, setRole] = useState("");
   const [saving, setSaving] = useState(false);
