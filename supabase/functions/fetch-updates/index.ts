@@ -952,7 +952,7 @@ Deno.serve(async (req) => {
   // No auth check needed — this function only ingests public RSS data
   // and writes via service_role. Rate-limited by cron schedule.
 
-  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   // Pre-fetch URLs that already have AI summaries to avoid redundant API calls
