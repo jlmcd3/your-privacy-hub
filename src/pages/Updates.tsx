@@ -201,6 +201,16 @@ const Updates = () => {
             </section>
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 mb-4
+                  flex items-center justify-between flex-wrap gap-3">
+                  <p className="text-[13px] text-navy font-medium">
+                    Turn this week's updates into a report for your jurisdiction
+                  </p>
+                  <Link to="/get-intelligence"
+                    className="text-[13px] font-bold text-blue hover:text-navy no-underline">
+                    Get Your Privacy Intelligence →
+                  </Link>
+                </div>
                 {/* Filters bar */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                     {FILTERS.map((f) => (

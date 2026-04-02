@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +46,11 @@ const Subscribe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const bJurisdiction = searchParams.get("j");
+  const bIndustry = searchParams.get("i");
+  const bTopics = searchParams.get("t") ? searchParams.get("t")!.split(",").filter(Boolean) : [];
+  const fromBuilder = !!bJurisdiction;
   const [error, setError] = useState<string | null>(null);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
@@ -94,6 +99,25 @@ const Subscribe = () => {
           </p>
         </div>
       </div>
+
+      {fromBuilder && (
+        <div className="max-w-3xl mx-auto px-4 pt-6 pb-2">
+          <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4
+            flex items-start gap-3">
+            <span className="text-green-600 text-[18px] flex-shrink-0 mt-0.5">✓</span>
+            <div>
+              <p className="font-bold text-navy text-[14px] mb-0.5">
+                Your Intelligence Report is configured and ready.
+              </p>
+              <p className="text-[13px] text-slate">
+                {[bJurisdiction, bIndustry, ...bTopics.slice(0, 2)]
+                  .filter(Boolean).join(" · ")}.
+                {" "}Subscribe to receive it.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Pro Brief Preview */}
       <div className="max-w-3xl mx-auto px-4 pt-12 pb-8">

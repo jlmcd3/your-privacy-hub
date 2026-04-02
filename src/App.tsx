@@ -53,6 +53,7 @@ import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
 import BiometricPrivacy from "./pages/BiometricPrivacy.tsx";
 import BreachNotification from "./pages/BreachNotification.tsx";
 import CrossBorderTransfers from "./pages/CrossBorderTransfers.tsx";
+import GetIntelligence from "./pages/GetIntelligence.tsx";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
           <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+           <Route path="/get-intelligence" element={<GetIntelligence />} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />

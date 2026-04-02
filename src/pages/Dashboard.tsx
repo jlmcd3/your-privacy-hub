@@ -327,6 +327,24 @@ const Dashboard = () => {
                 )}
               </div>
 
+              {/* Intelligence Builder CTA */}
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5
+                flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="font-bold text-navy text-[15px] mb-1">
+                    Want this analysis written for your practice?
+                  </p>
+                  <p className="text-[13px] text-slate">
+                    Build a personalized Intelligence Report in 60 seconds — free to configure.
+                  </p>
+                </div>
+                <Link to="/get-intelligence"
+                  className="flex-shrink-0 bg-navy text-white font-bold text-[13px] px-5 py-2.5
+                    rounded-xl hover:opacity-90 no-underline transition-all">
+                  Get Your Intelligence →
+                </Link>
+              </div>
+
               {/* Intelligence Preview — blurred industry example */}
               <section className="mt-10 bg-card rounded-2xl border border-border overflow-hidden">
                 <div className="px-6 pt-5 pb-3">
