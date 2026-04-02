@@ -261,9 +261,12 @@ export type Database = {
           brief_role: string | null
           created_at: string
           id: string
+          industry: string | null
           is_premium: boolean
           is_pro: boolean | null
+          jurisdictions: string[] | null
           monthly_reports_used: number
+          onboarding_complete: boolean | null
           payment_failed: boolean
           reports_reset_date: string | null
           stripe_customer_id: string | null
@@ -278,9 +281,12 @@ export type Database = {
           brief_role?: string | null
           created_at?: string
           id: string
+          industry?: string | null
           is_premium?: boolean
           is_pro?: boolean | null
+          jurisdictions?: string[] | null
           monthly_reports_used?: number
+          onboarding_complete?: boolean | null
           payment_failed?: boolean
           reports_reset_date?: string | null
           stripe_customer_id?: string | null
@@ -295,9 +301,12 @@ export type Database = {
           brief_role?: string | null
           created_at?: string
           id?: string
+          industry?: string | null
           is_premium?: boolean
           is_pro?: boolean | null
+          jurisdictions?: string[] | null
           monthly_reports_used?: number
+          onboarding_complete?: boolean | null
           payment_failed?: boolean
           reports_reset_date?: string | null
           stripe_customer_id?: string | null

@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EmailSignup from "@/components/EmailSignup";
 import { ArrowLeft, ExternalLink, Tag } from "lucide-react";
 
 interface AISummary {
@@ -31,6 +33,13 @@ interface Update {
   ai_summary: AISummary | null;
 }
 
+interface RelatedUpdate {
+  id: string;
+  title: string;
+  source_name: string | null;
+  published_at: string;
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   enforcement: "bg-red-50 text-red-700 border-red-200",
   legislation: "bg-blue-50 text-blue-700 border-blue-200",
@@ -51,6 +60,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   global: "Global",
 };
 
+const PREMIUM_FIELDS: { key: keyof AISummary; label: string }[] = [
+  { key: "compliance_impact", label: "Compliance Impact" },
+  { key: "who_should_care", label: "Who Should Care" },
+  { key: "urgency", label: "Urgency" },
+  { key: "legal_weight", label: "Legal Weight" },
+  { key: "risk_level", label: "Risk Level" },
+];
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
     year: "numeric",
@@ -61,10 +78,14 @@ function formatDate(dateStr: string): string {
 
 const UpdateDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [article, setArticle] = useState<Update | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [related, setRelated] = useState<RelatedUpdate[]>([]);
 
+  // Fetch article
   useEffect(() => {
     if (!id) return;
     (supabase as any)
@@ -81,6 +102,34 @@ const UpdateDetail = () => {
         setLoading(false);
       });
   }, [id]);
+
+  // Fetch premium status
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setIsPremium(data?.is_premium ?? false);
+      });
+  }, [user]);
+
+  // Fetch related articles
+  useEffect(() => {
+    if (!article?.topic_tags || article.topic_tags.length === 0) return;
+    (supabase as any)
+      .from("updates")
+      .select("id, title, source_name, published_at")
+      .overlaps("topic_tags", article.topic_tags)
+      .neq("id", article.id)
+      .order("published_at", { ascending: false })
+      .limit(5)
+      .then(({ data }: any) => {
+        if (data) setRelated(data as RelatedUpdate[]);
+      });
+  }, [article]);
 
   const ai = article?.ai_summary as AISummary | null;
   const catColor = CATEGORY_COLORS[article?.category || "global"] || CATEGORY_COLORS.global;
@@ -212,6 +261,40 @@ const UpdateDetail = () => {
               </>
             )}
 
+            {/* Premium-gated fields */}
+            {PREMIUM_FIELDS.some(f => ai?.[f.key]) && (
+              <div className="mb-6 space-y-4">
+                {PREMIUM_FIELDS.map(({ key, label }) => {
+                  const value = ai?.[key];
+                  if (!value || typeof value !== "string") return null;
+                  return (
+                    <div key={key}>
+                      <h3 className="text-foreground font-bold text-[14px] mb-1">{label}</h3>
+                      {isPremium ? (
+                        <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
+                      ) : (
+                        <div className="filter blur-sm pointer-events-none select-none">
+                          <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {!isPremium && (
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                    <p className="text-[13px] font-semibold text-amber-900 mb-2">Unlock full analysis for every article</p>
+                    <Link
+                      to="/subscribe"
+                      className="inline-block bg-amber-400 text-navy font-bold text-[13px] px-5 py-2 rounded-lg no-underline hover:bg-amber-300 transition-colors"
+                    >
+                      Get Intelligence — $20/month →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Topic tags */}
             {article.topic_tags && article.topic_tags.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 mb-6">
@@ -238,6 +321,37 @@ const UpdateDetail = () => {
             >
               Read original source <ExternalLink className="w-3.5 h-3.5" />
             </a>
+
+            {/* Related Updates */}
+            {related.length > 0 && (
+              <div className="mt-10">
+                <h2 className="font-bold text-foreground text-[15px] mb-3">Related Updates</h2>
+                <div className="space-y-3">
+                  {related.map((r) => (
+                    <Link
+                      key={r.id}
+                      to={`/updates/${r.id}`}
+                      className="block no-underline hover:bg-muted rounded-lg p-3 -mx-3 transition-colors"
+                    >
+                      <p className="text-[14px] text-foreground font-medium leading-snug">
+                        {r.title}
+                      </p>
+                      <p className="text-[12px] text-muted-foreground mt-0.5">
+                        {r.source_name && <span>{r.source_name} · </span>}
+                        {formatDate(r.published_at)}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Email capture for unauthenticated users */}
+            {!user && (
+              <div className="mt-10">
+                <EmailSignup variant="strip" />
+              </div>
+            )}
           </>
         )}
       </main>
