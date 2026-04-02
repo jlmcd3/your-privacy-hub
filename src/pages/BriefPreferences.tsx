@@ -178,7 +178,7 @@ export default function BriefPreferences() {
 
   return (
     <>
-      <Helmet><title>Configure Your Analyst | EndUserPrivacy Premium</title></Helmet>
+      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Premium</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Topbar /><Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 md:px-8 py-10 w-full">
