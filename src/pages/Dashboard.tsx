@@ -90,7 +90,7 @@ const Dashboard = () => {
   const [genPhase, setGenPhase] = useState(0);
 
   const GEN_PHASES = [
-    "Your analyst is reading this week's regulatory developments…",
+    "Your Intelligence brief is reading this week's regulatory developments…",
     "Analyzing implications for your industry…",
     "Writing your personalized brief…",
   ];
