@@ -232,7 +232,7 @@ export default function GlobalJurisdictionComparison() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-primary">
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 w-48">
+                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 w-48 sticky left-0 z-10 bg-primary">
                     Dimension
                   </th>
                   {cols.map(j => (
