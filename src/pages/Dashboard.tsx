@@ -7,6 +7,7 @@ import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+import OnboardingModal from "@/components/OnboardingModal";
 import ReportCredits from "@/components/dashboard/ReportCredits";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
