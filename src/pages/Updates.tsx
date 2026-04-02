@@ -357,7 +357,7 @@ const Updates = () => {
                                         <AISummaryPanel summary={article.ai_summary} compact isPremium={isPremium} />
                                     )}
                                 </div>
-                            </a>
+                            </Link>
                         );
                     }}
                 />
