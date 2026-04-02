@@ -88,7 +88,7 @@ const Subscribe = () => {
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
             Everything you can browse and read is always free — including the weekly
-            Intelligence Brief. Your analyst is something different: a brief re-written
+            Intelligence Brief. Intelligence is something different: a brief re-written
             every Monday specifically for your industry, your jurisdictions, and your
             compliance obligations. That's $20/month.
           </p>
