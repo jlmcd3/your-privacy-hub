@@ -1041,6 +1041,16 @@ Deno.serve(async (req) => {
   }
 
 
+  // Log ingestion run — non-blocking
+  await supabase.from("ingestion_runs").insert({
+    run_at: new Date().toISOString(),
+    inserted: results.inserted,
+    skipped: results.skipped,
+    summaries_generated: results.summaries_generated,
+    enrichment_failed_429: results.enrichment_failed_429,
+    enrichment_failed_other: results.enrichment_failed_other,
+  }).catch(() => {});
+
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
   });
