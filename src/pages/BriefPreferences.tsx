@@ -285,7 +285,7 @@ export default function BriefPreferences() {
           {isPremium === false && (
             <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
-                Your analyst requires Premium ($20/month).
+                Intelligence requires Premium ($20/month).
                 Preferences are saved and will activate once you subscribe.
               </p>
               <Link
