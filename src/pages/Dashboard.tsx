@@ -363,7 +363,7 @@ const Dashboard = () => {
               Your personalized brief is ready to generate
             </h3>
             <p className="text-muted-foreground text-[14px] mb-5 max-w-md mx-auto">
-              You've set your preferences. Your analyst is ready to write your first brief. This takes about 30 seconds.
+              You've set your preferences. Your Intelligence brief is ready to generate. This takes about 30 seconds.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button

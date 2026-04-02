@@ -307,7 +307,7 @@ export default function BriefPreferences() {
               {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
             </button>
             <p className="text-slate text-xs">
-              Your analyst's focus updates with the next Monday brief.
+              Your Intelligence Brief's focus updates with the next Monday brief.
             </p>
           </div>
         </main>

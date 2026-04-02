@@ -562,7 +562,7 @@ const Subscribe = () => {
               $20<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <p className="text-blue-200 text-sm mb-5">
-              Your analyst. Written for your industry and jurisdiction. Every Monday.
+              Intelligence. Written for your industry and jurisdiction. Every Monday.
             </p>
             <ul className="space-y-2.5 mb-6">
               {[
