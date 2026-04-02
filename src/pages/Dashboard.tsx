@@ -132,6 +132,10 @@ const Dashboard = () => {
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
+        // Show onboarding for free users who haven't completed it
+        if (!premium && !(data as any)?.onboarding_complete) {
+          setShowOnboarding(true);
+        }
         setBonusCredits((data as any)?.bonus_report_credits ?? 0);
 
         // Use profiles.monthly_reports_used (server-side source of truth)
