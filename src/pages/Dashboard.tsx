@@ -126,7 +126,7 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date")
+      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
