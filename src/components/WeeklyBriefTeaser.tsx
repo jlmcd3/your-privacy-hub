@@ -112,7 +112,7 @@ const WeeklyBriefTeaser = () => {
               to="/subscribe"
               className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl no-underline transition-all text-center"
             >
-              Get your analyst →
+              Get Intelligence →
             </Link>
           </div>
 

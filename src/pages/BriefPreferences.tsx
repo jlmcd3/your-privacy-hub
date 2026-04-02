@@ -251,7 +251,7 @@ export default function BriefPreferences() {
           {/* Topics */}
           <div className="mb-8">
             <h2 className="font-bold text-navy text-[15px] mb-1">Your report tracks</h2>
-            <p className="text-slate text-xs mb-4">Choose the topic tracks your analyst will cover every week. Select multiple for a combined brief.</p>
+            <p className="text-slate text-xs mb-4">Choose the topic tracks your Intelligence brief will cover every week. Select multiple for a combined brief.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {TOPICS.map(t => (
                 <Toggle key={t.id} {...t} selected={prefs.topics.includes(t.id)} onToggle={id => toggle("topics", id)} />

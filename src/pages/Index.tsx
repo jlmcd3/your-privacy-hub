@@ -236,7 +236,7 @@ const Index = () => {
                   to="/subscribe"
                   className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
                 >
-                  Get your analyst →
+                  Get Intelligence →
                 </Link>
               </div>
             </div>

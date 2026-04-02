@@ -222,7 +222,7 @@ export default function GlobalJurisdictionComparison() {
               to="/subscribe"
               className="flex-shrink-0 text-[12px] font-bold text-amber-900 bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-colors whitespace-nowrap"
             >
-              Get your analyst →
+              Get Intelligence →
             </Link>
           </div>
 
