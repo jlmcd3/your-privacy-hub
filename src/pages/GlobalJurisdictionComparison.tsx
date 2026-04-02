@@ -246,7 +246,7 @@ export default function GlobalJurisdictionComparison() {
               <tbody>
                 {DIMENSIONS.map((dim, i) => (
                   <tr key={dim.key} className={i % 2 === 0 ? "bg-background" : "bg-muted/40"}>
-                    <td className="px-5 py-3 text-[12px] font-semibold text-muted-foreground border-r border-border">
+                    <td className={`px-5 py-3 text-[12px] font-semibold text-muted-foreground border-r border-border sticky left-0 z-10 ${i % 2 === 0 ? "bg-background" : "bg-muted/40"}`}>
                       {dim.label}
                     </td>
                     {cols.map(j => (
