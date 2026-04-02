@@ -1008,10 +1008,18 @@ Deno.serve(async (req) => {
 
         // Generate AI summary only if key available AND article doesn't already have one
         if (anthropicKey && !existingUrlsWithSummary.has(link)) {
-          const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
-          if (aiSummary) {
-            row.ai_summary = aiSummary;
-            results.summaries_generated++;
+          try {
+            const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
+            if (aiSummary) {
+              row.ai_summary = aiSummary;
+              results.summaries_generated++;
+            }
+          } catch (enrichErr: any) {
+            if (enrichErr.message?.includes("ANTHROPIC_429")) {
+              results.enrichment_failed_429++;
+            } else {
+              results.enrichment_failed_other++;
+            }
           }
         }
 
