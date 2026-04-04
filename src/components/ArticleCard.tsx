@@ -23,6 +23,13 @@ export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement'
 
 // Badge colors keyed by category string
 const CATEGORY_COLORS: Record<string, string> = {
+  'enforcement': 'bg-red-50 text-red-700 border border-red-200',
+  'eu-uk': 'bg-blue-50 text-blue-700 border border-blue-200',
+  'us-federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  'us-states': 'bg-violet-50 text-violet-700 border border-violet-200',
+  'global': 'bg-teal-50 text-teal-700 border border-teal-200',
+  'ai-privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
+  'adtech': 'bg-orange-50 text-orange-700 border border-orange-200',
   'Enforcement': 'bg-red-50 text-red-700 border border-red-200',
   'EU & UK': 'bg-blue-50 text-blue-700 border border-blue-200',
   'U.S. Federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
@@ -30,8 +37,22 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Global': 'bg-teal-50 text-teal-700 border border-teal-200',
   'AI & Privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
 };
+
+const CATEGORY_LABELS: Record<string, string> = {
+  'enforcement': 'Enforcement',
+  'eu-uk': 'EU & UK',
+  'us-federal': 'U.S. Federal',
+  'us-states': 'U.S. States',
+  'global': 'Global',
+  'ai-privacy': 'AI & Privacy',
+  'adtech': 'AdTech',
+};
+
 const categoryClass = (cat?: string | null) =>
   CATEGORY_COLORS[cat || ''] || 'bg-gray-50 text-gray-600 border border-gray-200';
+
+const categoryLabel = (cat?: string | null) =>
+  CATEGORY_LABELS[cat || ''] || cat || '';
 
 // Urgency badge colors
 const URGENCY_COLORS: Record<string, string> = {

@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Search, ExternalLink } from "lucide-react";
+import { Search } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import AISummaryPanel from "@/components/AISummaryPanel";
 import NewsfeedList from "@/components/NewsfeedList";
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 
 interface Update {
     id: string;
