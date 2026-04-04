@@ -426,8 +426,9 @@ Generate a STANDALONE personalized brief as a JSON object with these exact keys:
 
   "your_action_items": [
     {
-      "action": "Specific action to take",
+      "action": "Specific action to take — must name the specific law, regulation, or standard",
       "priority": "Immediate | This quarter | Monitor",
+      "role": "DPO | Legal Counsel | Board Escalation | Compliance Manager",
       "why_now": "Why this is time-sensitive, citing specific law/deadline/enforcement pattern"
     }
   ],
