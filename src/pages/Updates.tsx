@@ -44,24 +44,6 @@ const DATE_RANGES = [
   { key: "all", label: "All" },
 ];
 
-const CATEGORY_TAG: Record<string, { label: string; textColor: string }> = {
-    "eu-uk": { label: "🇪🇺 EU & UK", textColor: "text-blue" },
-    "us-federal": { label: "🇺🇸 U.S. Federal", textColor: "text-navy" },
-    "us-states": { label: "🗺️ U.S. States", textColor: "text-accent" },
-    "enforcement": { label: "⚖️ Enforcement", textColor: "text-red-600" },
-    "ai-privacy": { label: "🤖 AI & Privacy", textColor: "text-purple-600" },
-    "global": { label: "🌐 Global", textColor: "text-slate" },
-    "adtech": { label: "📡 AdTech", textColor: "text-orange-600" },
-};
-
-const FALLBACK_IMAGES: Record<string, string> = {
-    "us-federal": "https://picsum.photos/seed/federal-law/400/200",
-    "us-states": "https://picsum.photos/seed/state-capitol/400/200",
-    "eu-uk": "https://picsum.photos/seed/european-union/400/200",
-    "global": "https://picsum.photos/seed/global-privacy/400/200",
-    "enforcement": "https://picsum.photos/seed/legal-court/400/200",
-    "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
-};
 
 function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString("en-US", {
