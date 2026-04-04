@@ -1107,6 +1107,10 @@ Deno.serve(async (req) => {
             const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
             if (aiSummary) {
               row.ai_summary = aiSummary;
+              // Extract affected_jurisdictions from AI response into dedicated column
+              if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
+                row.affected_jurisdictions = aiSummary.affected_jurisdictions;
+              }
               results.summaries_generated++;
             }
           } catch (enrichErr: any) {
