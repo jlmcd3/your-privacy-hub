@@ -243,25 +243,25 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 {
   "headline": "25-35 word headline capturing the single most significant development this week. Must name specific regulators or regulations. Not generic.",
 
-  "executive_summary": "4-5 paragraphs of authoritative executive synthesis. ~400 words. Use [ref:N] citations throughout.",
+  "executive_summary": "4-5 paragraphs of authoritative executive synthesis. ~400 words. Use [ref:N] citations throughout. End with a WHAT TO IGNORE THIS WEEK section: 1-2 sentences identifying a high-profile item that is less significant than it appears and why — this demonstrates editorial judgment.",
 
-  "us_federal": "3-4 paragraphs on FTC, Congressional bills, NIST/HHS/FCC actions, 30-day outlook. ~250 words. Use [ref:N] citations.",
+  "us_federal": "3-4 paragraphs on FTC, Congressional bills, NIST/HHS/FCC actions, 30-day outlook. ~250 words. Use [ref:N] citations. End with ACTION ITEMS in three tiers:\\n- IMMEDIATE (7 days): [specific action] ([Role: DPO/Legal Counsel/Board Escalation/Compliance Manager])\\n- THIS QUARTER: [specific action] ([Role])\\n- MONITOR: [development to watch] ([Role])",
 
-  "us_states": "3-4 paragraphs on state law enactments, highest-risk states, compliance items, advancing bills. ~300 words. Use [ref:N] citations.",
+  "us_states": "3-4 paragraphs on state law enactments, highest-risk states, compliance items, advancing bills. ~300 words. Use [ref:N] citations. End with tiered ACTION ITEMS as above.",
 
-  "eu_uk": "3-4 paragraphs on EDPB, individual DPA actions with fines, UK-specific, cross-border patterns. ~350 words. Use [ref:N] citations.",
+  "eu_uk": "3-4 paragraphs on EDPB, individual DPA actions with fines, UK-specific, cross-border patterns. ~350 words. Use [ref:N] citations. End with tiered ACTION ITEMS as above.",
 
-  "global_developments": "3 paragraphs: APAC, LATAM, Middle East/Africa. ~250 words. Use [ref:N] citations.",
+  "global_developments": "3 paragraphs: APAC, LATAM, Middle East/Africa. ~250 words. Use [ref:N] citations. End with tiered ACTION ITEMS as above.",
 
-  "ai_governance": "2-3 paragraphs on AI and privacy regulatory developments (EU AI Act, EDPB AI guidance, automated decision enforcement, LLM scraping). If none: 'No monitored developments in this category this week.' ~200 words.",
+  "ai_governance": "2-3 paragraphs on AI and privacy regulatory developments (EU AI Act, EDPB AI guidance, automated decision enforcement, LLM scraping). If none: 'No monitored developments in this category this week.' ~200 words. End with tiered ACTION ITEMS.",
 
-  "adtech_advertising": "2-3 paragraphs on advertising technology privacy regulation. Cover IAB TCF, cookie consent enforcement, FTC commercial surveillance, Privacy Sandbox, EDPB cookie guidance, programmatic RTB compliance, DSA advertising obligations, COPPA in ad-supported environments. If none: 'No monitored AdTech regulatory developments this week.' then name 2-3 developments to watch. Use [ref:N]. ~200 words.",
+  "adtech_advertising": "2-3 paragraphs on advertising technology privacy regulation. Cover IAB TCF, cookie consent enforcement, FTC commercial surveillance, Privacy Sandbox, EDPB cookie guidance, programmatic RTB compliance, DSA advertising obligations, COPPA in ad-supported environments. If none: 'No monitored AdTech regulatory developments this week.' then name 2-3 developments to watch. Use [ref:N]. ~200 words. End with tiered ACTION ITEMS.",
 
-  "biometric_data": "2 paragraphs on biometric privacy (facial recognition, BIPA, voiceprint, age verification). If none: 'No monitored developments in this category this week.' ~150 words.",
+  "biometric_data": "2 paragraphs on biometric privacy (facial recognition, BIPA, voiceprint, age verification). If none: 'No monitored developments in this category this week.' ~150 words. End with tiered ACTION ITEMS.",
 
-  "privacy_litigation": "2-3 paragraphs on privacy lawsuits (BIPA, CCPA, VPPA, CIPA class actions). If none: 'No monitored litigation developments this week.' ~200 words.",
+  "privacy_litigation": "2-3 paragraphs on privacy lawsuits (BIPA, CCPA, VPPA, CIPA class actions). If none: 'No monitored litigation developments this week.' ~200 words. End with tiered ACTION ITEMS.",
 
-  "enforcement_table": [{"regulator":"Name","jurisdiction":"Country/State","action_type":"Fine|Investigation opened|Guidance issued|Lawsuit filed|Settlement|Rulemaking","subject":"Company","amount":"Exact figure or Not disclosed","legal_basis":"Specific regulation","significance":"Why it matters","source_ref":"[N]","cross_jurisdiction_signal":"If this action is part of a coordinated multi-regulator pattern, describe it briefly. Otherwise null."}],
+  "enforcement_table": [{"regulator":"Name","jurisdiction":"Country/State","action_type":"Fine|Investigation opened|Guidance issued|Lawsuit filed|Settlement|Rulemaking","subject":"Company","amount":"Exact figure or Not disclosed","legal_basis":"Specific regulation","significance":"Why it matters — flag if this introduces a new legal theory or reverses prior position","source_ref":"[N]","cross_jurisdiction_signal":"If this action is part of a coordinated multi-regulator pattern, describe it briefly. Otherwise null."}],
 
   "cross_jurisdiction_patterns": "If any cross-jurisdiction enforcement or regulatory patterns are present this week, describe them here. Name the specific regulators, the shared issue they are targeting, and what this coordination signals. If no patterns this week, write null. ~100 words.",
 
@@ -269,7 +269,7 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 
   "trend_signal": "2 paragraphs: most important forward-looking signal, specific 30-90 day prediction. ~200 words.",
 
-  "why_this_matters": "3 paragraphs for GC/CPO: urgent action this week, 30-day action, 30-90 day horizon. ~300 words."
+  "why_this_matters": "3 paragraphs for GC/CPO: urgent action this week, 30-day action, 30-90 day horizon. ~300 words. Use tiered ACTION ITEMS format."
 }
 
 Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
