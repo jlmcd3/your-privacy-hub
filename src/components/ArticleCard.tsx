@@ -121,7 +121,7 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
           )}
           {item.category && (
             <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
-              {item.category}
+              {categoryLabel(item.category)}
             </span>
           )}
           {urgency && URGENCY_COLORS[urgency] && (
