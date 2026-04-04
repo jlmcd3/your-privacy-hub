@@ -83,7 +83,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => (
     <div className="flex items-start gap-2">
       {item.category && (
         <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-shrink-0 mt-0.5 ${categoryClass(item.category)}`}>
-          {item.category}
+          {categoryLabel(item.category)}
         </span>
       )}
       <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2">
