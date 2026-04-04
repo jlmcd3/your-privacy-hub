@@ -113,14 +113,13 @@ const Index = () => {
         lanes[lane.key] = dedupeById(articles.filter((a) => a.category === lane.key))
           .slice(0, lane.take)
           .map((a) => ({
+            id: a.id,
             title: a.title,
-            excerpt: a.summary || "",
-            jurisdiction: CATEGORY_META[a.category]?.jurisdiction,
-            flag: CATEGORY_META[a.category]?.flag,
-            href: a.url,
-            date: formatDate(a.published_at),
-            urgency: (a as any).ai_summary?.urgency ?? null,
-            whyItMatters: (a as any).ai_summary?.why_it_matters ?? null,
+            summary: a.summary,
+            category: a.category,
+            published_at: a.published_at,
+            source_name: a.source_name,
+            source_url: a.url,
           }));
       }
       setLaneData(lanes);
