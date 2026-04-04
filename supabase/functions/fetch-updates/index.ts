@@ -911,7 +911,33 @@ STEP 2 — If relevant, return this JSON:
 
   "risk_level": "Low | Medium | High | Critical — how urgently does this require
     compliance action? Low = monitoring only, Medium = review within quarter,
-    High = review within weeks, Critical = immediate legal exposure"
+    High = review within weeks, Critical = immediate legal exposure",
+
+  "affected_jurisdictions": [
+    "Array of jurisdiction slugs whose compliance obligations are materially",
+    "affected by this development, even if not the direct subject.",
+    "Use these exact slug values:",
+    "'eu', 'united-kingdom', 'us-federal', 'california', 'texas',",
+    "'new-york', 'france', 'germany', 'italy', 'spain', 'ireland',",
+    "'netherlands', 'poland', 'belgium', 'denmark', 'sweden', 'norway',",
+    "'australia', 'canada', 'brazil', 'singapore', 'japan', 'south-korea'",
+    "Return empty array [] if impact is narrowly jurisdictional.",
+    "Think beyond the direct parties. An EDPB decision binds all EU member states.",
+    "A new FTC enforcement theory affects every US-facing company.",
+    "A California AG action directly affects only California but often signals",
+    "what other state AGs will pursue. Be specific and conservative — only include",
+    "jurisdictions with real compliance implications, not tangential mentions."
+  ],
+
+  "precedent_novelty": "Classify: new_theory | confirms_existing | reverses_prior | routine.
+    new_theory: introduces a legal theory or interpretation not previously established
+      (e.g., first time legitimate interest denied for behavioral ads).
+    confirms_existing: consistent with prior decisions and established practice.
+    reverses_prior: contradicts or narrows a prior position.
+    routine: standard enforcement action, no novel legal reasoning.
+    Focus on whether the legal reasoning is new. A record-breaking fine is not
+    novel if the theory is established. A small fine for a new type of violation
+    is novel. Default to 'routine' when uncertain."
 }`,
           },
         ],
