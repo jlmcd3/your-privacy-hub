@@ -1050,6 +1050,16 @@ Deno.serve(async (req) => {
         const category = categorize(title, description, source.defaultCategory);
         const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
 
+        // Compute direct_jurisdictions from DPA source mapping
+        const sourceDomain = extractDomain(link);
+        const directJurisdictions: string[] = [];
+        for (const [domain, jurisdictions] of Object.entries(DPA_SOURCE_JURISDICTIONS)) {
+          if (sourceDomain.includes(domain) && jurisdictions.length > 0) {
+            directJurisdictions.push(...jurisdictions);
+            break;
+          }
+        }
+
         const row: Record<string, unknown> = {
           title: title.slice(0, 400),
           summary: description.slice(0, 500) || null,
@@ -1062,6 +1072,7 @@ Deno.serve(async (req) => {
           regulator: source.regulator,
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
+          direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
         };
 
         // Generate AI summary only if key available AND article doesn't already have one
