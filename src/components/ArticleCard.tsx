@@ -167,7 +167,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
   <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
     <div className="flex flex-wrap items-center gap-2 mb-3">
       {item.category && (
-        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{item.category}</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
       )}
       {item.ai_summary?.urgency === 'Immediate' && (
         <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
