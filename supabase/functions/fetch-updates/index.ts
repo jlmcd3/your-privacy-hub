@@ -5,6 +5,64 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// ── DPA Source-to-Jurisdiction Mapping ──────────────────────────────
+const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
+  // EU Member State DPAs
+  'garante.it':             ['italy'],
+  'gpdp.it':                ['italy'],
+  'garanteprivacy.it':      ['italy'],
+  'cnil.fr':                ['france'],
+  'bfdi.bund.de':           ['germany'],
+  'datenschutz.de':         ['germany'],
+  'datenschutz-hamburg.de': ['germany'],
+  'aepd.es':                ['spain'],
+  'apd-gba.be':             ['belgium'],
+  'gegevensbeschermingsautoriteit.be': ['belgium'],
+  'autoriteitpersoonsgegevens.nl':     ['netherlands'],
+  'datatilsynet.dk':        ['denmark'],
+  'datatilsynet.no':        ['norway'],
+  'imy.se':                 ['sweden'],
+  'tietosuoja.fi':          ['finland'],
+  'andmekaitse.ee':         ['estonia'],
+  'dvi.gov.lv':             ['latvia'],
+  'ada.lt':                 ['lithuania'],
+  'uodo.gov.pl':            ['poland'],
+  'dataprotection.ie':      ['ireland'],
+  'dpc.ie':                 ['ireland'],
+  'edps.europa.eu':         ['eu'],
+  'edpb.europa.eu':         ['eu'],
+  // UK
+  'ico.org.uk':             ['united-kingdom'],
+  // US Federal
+  'ftc.gov':                ['us-federal'],
+  'hhs.gov':                ['us-federal'],
+  'consumerfinance.gov':    ['us-federal'],
+  'congress.gov':           ['us-federal'],
+  'federalregister.gov':    ['us-federal'],
+  // US State AGs and specific regulators
+  'oag.ca.gov':             ['california'],
+  'cppa.ca.gov':            ['california'],
+  'texasattorneygeneral.gov': ['texas'],
+  'ag.ny.gov':              ['new-york'],
+  'oag.dc.gov':             ['district-of-columbia'],
+  // Other global authorities
+  'gdprhub.eu':             [],
+  'pdpc.gov.sg':            ['singapore'],
+  'oaic.gov.au':            ['australia'],
+  'priv.gc.ca':             ['canada'],
+  'anpd.gov.br':            ['brazil'],
+  'pipc.go.kr':             ['south-korea'],
+  'ppc.go.jp':              ['japan'],
+};
+
+const extractDomain = (url: string): string => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+
 const RSS_SOURCES = [
   // ── EU & UK ────────────────────────────────────────────────────────
   {
@@ -992,6 +1050,16 @@ Deno.serve(async (req) => {
         const category = categorize(title, description, source.defaultCategory);
         const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
 
+        // Compute direct_jurisdictions from DPA source mapping
+        const sourceDomain = extractDomain(link);
+        const directJurisdictions: string[] = [];
+        for (const [domain, jurisdictions] of Object.entries(DPA_SOURCE_JURISDICTIONS)) {
+          if (sourceDomain.includes(domain) && jurisdictions.length > 0) {
+            directJurisdictions.push(...jurisdictions);
+            break;
+          }
+        }
+
         const row: Record<string, unknown> = {
           title: title.slice(0, 400),
           summary: description.slice(0, 500) || null,
@@ -1004,6 +1072,7 @@ Deno.serve(async (req) => {
           regulator: source.regulator,
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
+          direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
         };
 
         // Generate AI summary only if key available AND article doesn't already have one
