@@ -23,6 +23,13 @@ export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement'
 
 // Badge colors keyed by category string
 const CATEGORY_COLORS: Record<string, string> = {
+  'enforcement': 'bg-red-50 text-red-700 border border-red-200',
+  'eu-uk': 'bg-blue-50 text-blue-700 border border-blue-200',
+  'us-federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  'us-states': 'bg-violet-50 text-violet-700 border border-violet-200',
+  'global': 'bg-teal-50 text-teal-700 border border-teal-200',
+  'ai-privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
+  'adtech': 'bg-orange-50 text-orange-700 border border-orange-200',
   'Enforcement': 'bg-red-50 text-red-700 border border-red-200',
   'EU & UK': 'bg-blue-50 text-blue-700 border border-blue-200',
   'U.S. Federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
@@ -30,8 +37,22 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Global': 'bg-teal-50 text-teal-700 border border-teal-200',
   'AI & Privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
 };
+
+const CATEGORY_LABELS: Record<string, string> = {
+  'enforcement': 'Enforcement',
+  'eu-uk': 'EU & UK',
+  'us-federal': 'U.S. Federal',
+  'us-states': 'U.S. States',
+  'global': 'Global',
+  'ai-privacy': 'AI & Privacy',
+  'adtech': 'AdTech',
+};
+
 const categoryClass = (cat?: string | null) =>
   CATEGORY_COLORS[cat || ''] || 'bg-gray-50 text-gray-600 border border-gray-200';
+
+const categoryLabel = (cat?: string | null) =>
+  CATEGORY_LABELS[cat || ''] || cat || '';
 
 // Urgency badge colors
 const URGENCY_COLORS: Record<string, string> = {
@@ -62,7 +83,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => (
     <div className="flex items-start gap-2">
       {item.category && (
         <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-shrink-0 mt-0.5 ${categoryClass(item.category)}`}>
-          {item.category}
+          {categoryLabel(item.category)}
         </span>
       )}
       <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2">
@@ -100,7 +121,7 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
           )}
           {item.category && (
             <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
-              {item.category}
+              {categoryLabel(item.category)}
             </span>
           )}
           {urgency && URGENCY_COLORS[urgency] && (
@@ -146,7 +167,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
   <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
     <div className="flex flex-wrap items-center gap-2 mb-3">
       {item.category && (
-        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{item.category}</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
       )}
       {item.ai_summary?.urgency === 'Immediate' && (
         <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>

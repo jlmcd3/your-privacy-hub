@@ -1,36 +1,14 @@
 import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-function decodeHtml(html: string): string {
-  const txt = document.createElement("textarea");
-  txt.innerHTML = html;
-  return txt.value;
-}
-
-interface TopicCard {
-  title: string;
-  badge?: string;
-  excerpt: string;
-  jurisdiction?: string;
-  flag?: string;
-  href: string;
-  date?: string;
-  urgency?: string | null;
-  whyItMatters?: string | null;
-}
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 
 interface TopicLaneScrollerProps {
   laneTitle: string;
   laneIcon: string;
   laneHref: string;
-  cards: TopicCard[];
+  cards: ArticleItem[];
   isEnforcement?: boolean;
-}
-
-function extractFineAmount(text: string): string | null {
-  const match = text.match(/[€£$][\d,.]+\s*[MBmk]?(?:illion)?/i);
-  return match ? match[0] : null;
 }
 
 export default function TopicLaneScroller({
@@ -83,57 +61,14 @@ export default function TopicLaneScroller({
         className="flex gap-4 overflow-x-auto pb-3"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {cards.filter((card, i, arr) => arr.findIndex(c => c.title === card.title) === i).map((card, i) => {
-          const fineAmount = isEnforcement ? extractFineAmount(card.title + " " + card.excerpt) : null;
-          return (
-          <a
-            key={card.title + i}
-            href={card.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-fog p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
+        {cards.filter((card, i, arr) => arr.findIndex(c => c.id === card.id) === i).map((card, i) => (
+          <div
+            key={card.id + '-' + i}
+            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-fog p-3 hover:shadow-eup-sm hover:-translate-y-0.5 transition-all ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
           >
-            <div className="flex items-center gap-1.5 mb-2 relative">
-              {card.flag && <span className="text-base flag-emoji">{card.flag}</span>}
-              {card.jurisdiction && (
-                <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
-                  {card.jurisdiction}
-                </span>
-              )}
-            {card.badge && (
-                <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 px-1.5 py-0.5 rounded-full">
-                  {card.badge}
-                </span>
-              )}
-              {!card.badge && card.urgency && card.urgency !== "Monitor" && (
-                <span className={`ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${
-                  card.urgency === "Immediate"
-                    ? "bg-red-50 text-red-700 border-red-200"
-                    : "bg-amber-50 text-amber-700 border-amber-200"
-                }`}>
-                  {card.urgency === "Immediate" ? "⚡ Act now" : "📅 This quarter"}
-                </span>
-              )}
-              {fineAmount && (
-                <span className="absolute -top-1 -right-1 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                  {fineAmount}
-                </span>
-              )}
-            </div>
-            <h4 className="font-bold text-navy text-[13px] leading-snug mb-1.5 group-hover:text-blue transition-colors">
-              {card.title}
-            </h4>
-            <p className="text-slate text-[11px] leading-relaxed line-clamp-2">
-              {card.whyItMatters
-                ? card.whyItMatters.split(/\.\s+/)[0] + "."
-                : decodeHtml(card.excerpt)}
-            </p>
-            {card.date && (
-              <p className="text-slate-light text-[10px] mt-2">{card.date}</p>
-            )}
-          </a>
-          );
-        })}
+            <ArticleCard item={card} variant="compact" />
+          </div>
+        ))}
       </div>
     </div>
   );

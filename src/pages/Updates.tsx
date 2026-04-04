@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Search, ExternalLink } from "lucide-react";
+import { Search } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import AISummaryPanel from "@/components/AISummaryPanel";
 import NewsfeedList from "@/components/NewsfeedList";
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 
 interface Update {
     id: string;
@@ -44,24 +44,6 @@ const DATE_RANGES = [
   { key: "all", label: "All" },
 ];
 
-const CATEGORY_TAG: Record<string, { label: string; textColor: string }> = {
-    "eu-uk": { label: "🇪🇺 EU & UK", textColor: "text-blue" },
-    "us-federal": { label: "🇺🇸 U.S. Federal", textColor: "text-navy" },
-    "us-states": { label: "🗺️ U.S. States", textColor: "text-accent" },
-    "enforcement": { label: "⚖️ Enforcement", textColor: "text-red-600" },
-    "ai-privacy": { label: "🤖 AI & Privacy", textColor: "text-purple-600" },
-    "global": { label: "🌐 Global", textColor: "text-slate" },
-    "adtech": { label: "📡 AdTech", textColor: "text-orange-600" },
-};
-
-const FALLBACK_IMAGES: Record<string, string> = {
-    "us-federal": "https://picsum.photos/seed/federal-law/400/200",
-    "us-states": "https://picsum.photos/seed/state-capitol/400/200",
-    "eu-uk": "https://picsum.photos/seed/european-union/400/200",
-    "global": "https://picsum.photos/seed/global-privacy/400/200",
-    "enforcement": "https://picsum.photos/seed/legal-court/400/200",
-    "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
-};
 
 function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString("en-US", {
@@ -178,7 +160,7 @@ const Updates = () => {
         return true;
     });
 
-    const tag = (cat: string) => CATEGORY_TAG[cat] || CATEGORY_TAG["global"];
+    
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -329,48 +311,13 @@ const Updates = () => {
                     isLoading={loading || loadingMore}
                     hasMore={hasMore}
                     onLoadMore={handleLoadMore}
-                    renderArticle={(article, i, isPremium) => {
-                        const t = tag(article.category || "global");
-                         return (
-                            <Link
-                                to={`/updates/${article.id}`}
-                                className="flex gap-4 p-4 border-b border-border hover:bg-fog/30 transition-all no-underline cursor-pointer group"
-                            >
-                                {article.image_url && (
-                                    <img
-                                        src={article.image_url}
-                                        alt=""
-                                        className="w-[120px] h-[80px] object-cover rounded-md flex-shrink-0 hidden sm:block"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = FALLBACK_IMAGES[article.category || "global"] || "";
-                                        }}
-                                    />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                    {/* Unified metadata line */}
-                                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1">
-                                        <span>{article.source_domain || article.source_name}</span>
-                                        <span>•</span>
-                                        <span>{formatDate(article.published_at || "")}</span>
-                                        <span>•</span>
-                                        <span className={t.textColor}>{t.label}</span>
-                                    </div>
-                                    <h3 className="text-[14px] font-semibold text-foreground group-hover:text-blue transition-colors mb-1 line-clamp-2 leading-snug">
-                                        {article.title}
-                                        <ExternalLink className="inline w-3 h-3 ml-1 opacity-0 group-hover:opacity-50" />
-                                    </h3>
-                                    {article.summary && (
-                                        <p className="text-xs text-muted-foreground line-clamp-2">{article.summary}</p>
-                                    )}
-
-                                    {/* AI Summary Panel (inline, compact) */}
-                                    {article.ai_summary && !article.ai_summary.skipped && (
-                                        <AISummaryPanel summary={article.ai_summary} compact isPremium={isPremium} />
-                                    )}
-                                </div>
-                            </Link>
-                        );
-                    }}
+                    renderArticle={(article) => (
+                        <ArticleCard
+                            key={article.id}
+                            item={{...article, source_url: article.url} as unknown as ArticleItem}
+                            variant='full'
+                        />
+                    )}
                 />
             </div>
 
