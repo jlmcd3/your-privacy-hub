@@ -426,9 +426,11 @@ export type Database = {
       }
       updates: {
         Row: {
+          affected_jurisdictions: string[] | null
           ai_summary: Json | null
           category: string
           created_at: string
+          direct_jurisdictions: string[] | null
           id: string
           image_url: string | null
           is_premium: boolean
@@ -442,9 +444,11 @@ export type Database = {
           url: string
         }
         Insert: {
+          affected_jurisdictions?: string[] | null
           ai_summary?: Json | null
           category?: string
           created_at?: string
+          direct_jurisdictions?: string[] | null
           id?: string
           image_url?: string | null
           is_premium?: boolean
@@ -458,9 +462,11 @@ export type Database = {
           url: string
         }
         Update: {
+          affected_jurisdictions?: string[] | null
           ai_summary?: Json | null
           category?: string
           created_at?: string
+          direct_jurisdictions?: string[] | null
           id?: string
           image_url?: string | null
           is_premium?: boolean
