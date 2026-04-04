@@ -160,7 +160,7 @@ const Updates = () => {
         return true;
     });
 
-    const tag = (cat: string) => CATEGORY_TAG[cat] || CATEGORY_TAG["global"];
+    
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
