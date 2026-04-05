@@ -88,7 +88,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => (
         </span>
       )}
       <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2">
-        {item.title}
+        {normalizeTitle(item.title)}
       </p>
     </div>
     <p className="text-[11px] text-slate-light mt-1">
