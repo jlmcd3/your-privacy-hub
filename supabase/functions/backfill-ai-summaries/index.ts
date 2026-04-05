@@ -103,8 +103,9 @@ Deno.serve(async (req) => {
 
   const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
   const token = (req.headers.get("Authorization") || "").replace("Bearer ", "");
+  console.log("AUTH DEBUG: secret set?", !!ADMIN_SECRET, "token length:", token.length, "match:", token === ADMIN_SECRET);
   if (!ADMIN_SECRET || token !== ADMIN_SECRET)
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", debug: { secretSet: !!ADMIN_SECRET, tokenLength: token.length } }), {
       status: 401,
     });
 
