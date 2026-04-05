@@ -176,11 +176,11 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
     </div>
     <Link to={`/updates/${item.id}`}
       className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
-      {item.title}
+      {normalizeTitle(item.title)}
     </Link>
     {(item.summary || item.ai_summary?.why_it_matters) && (
       <p className="text-[13px] text-blue-200 leading-relaxed line-clamp-3">
-        {item.summary || item.ai_summary?.why_it_matters}
+        {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
       </p>
     )}
     <p className="text-[11px] text-blue-300/70 mt-3">
