@@ -15,10 +15,10 @@ const Footer = () => {
               Global privacy regulatory intelligence for professionals. Monitoring 119 authorities across 150+ jurisdictions, automatically.
             </p>
             <div className="flex gap-2">
-              <a href="#" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="https://www.linkedin.com/company/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 in
               </a>
-              <a href="#" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="https://x.com/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 𝕏
               </a>
               <a href="mailto:contact@enduserprivacy.com" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light hover:bg-white/[0.12] hover:text-white transition-all no-underline">
