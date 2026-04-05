@@ -84,7 +84,7 @@ const navItems: NavItem[] = [
       ]},
       { header: "Other", divider: true, items: [
         { icon: "🌍", label: "Africa", href: "/jurisdiction/south-africa" },
-        { icon: "🌏", label: "Middle East", href: "/jurisdiction/uae" },
+        { icon: "🌏", label: "Middle East", href: "/jurisdiction/united-arab-emirates" },
         { icon: "🗂️", label: "All 150+ Jurisdictions →", href: "/global-privacy-authorities" },
       ]},
       { header: "Key Regulators", divider: true, items: [
