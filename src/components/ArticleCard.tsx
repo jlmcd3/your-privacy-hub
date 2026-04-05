@@ -196,7 +196,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => (
     <div className="flex-1 min-w-0">
       <Link to={`/updates/${item.id}`}
         className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
-        {item.title}
+        {normalizeTitle(item.title)}
       </Link>
       <p className="text-[11px] text-slate-light mt-0.5">
         {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
