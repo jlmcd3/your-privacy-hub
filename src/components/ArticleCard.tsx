@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { stripHtml, normalizeTitle } from "@/lib/utils";
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
@@ -87,7 +88,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => (
         </span>
       )}
       <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2">
-        {item.title}
+        {normalizeTitle(item.title)}
       </p>
     </div>
     <p className="text-[11px] text-slate-light mt-1">
@@ -138,11 +139,11 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
         {/* Title */}
         <Link to={`/updates/${item.id}`}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
-          {item.title}
+          {normalizeTitle(item.title)}
         </Link>
         {/* Summary */}
         {item.summary && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">{item.summary}</p>
+          <p className="text-[13px] text-slate leading-relaxed line-clamp-3">{stripHtml(item.summary)}</p>
         )}
         {/* Why it matters — first sentence only */}
         {!item.summary && item.ai_summary?.why_it_matters && (
@@ -175,11 +176,11 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
     </div>
     <Link to={`/updates/${item.id}`}
       className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
-      {item.title}
+      {normalizeTitle(item.title)}
     </Link>
     {(item.summary || item.ai_summary?.why_it_matters) && (
       <p className="text-[13px] text-blue-200 leading-relaxed line-clamp-3">
-        {item.summary || item.ai_summary?.why_it_matters}
+        {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
       </p>
     )}
     <p className="text-[11px] text-blue-300/70 mt-3">
@@ -195,7 +196,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => (
     <div className="flex-1 min-w-0">
       <Link to={`/updates/${item.id}`}
         className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
-        {item.title}
+        {normalizeTitle(item.title)}
       </Link>
       <p className="text-[11px] text-slate-light mt-0.5">
         {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}

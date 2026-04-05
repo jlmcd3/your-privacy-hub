@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import EmailSignup from "@/components/EmailSignup";
@@ -180,10 +181,10 @@ const TopicHub = () => {
                   <span>{formatDate(u.published_at)}</span>
                 </div>
                 <h3 className="text-sm md:text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                  {u.title}
+                  {normalizeTitle(u.title)}
                 </h3>
                 {u.summary && (
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{u.summary}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-3 leading-relaxed">{stripHtml(u.summary)}</p>
                 )}
                 <AISummaryPanel summary={u.ai_summary || null} />
               </div>

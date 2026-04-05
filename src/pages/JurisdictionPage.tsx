@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
@@ -399,11 +400,11 @@ const JurisdictionPage = () => {
                       </span>
                     </div>
                     <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
-                      {a.title}
+                      {normalizeTitle(a.title)}
                     </p>
                     {a.summary && (
-                      <p className="text-[12px] text-slate line-clamp-2 mt-0.5 mb-0">
-                        {a.summary}
+                      <p className="text-[12px] text-slate line-clamp-3 mt-0.5 mb-0">
+                        {stripHtml(a.summary)}
                       </p>
                     )}
                   </div>
