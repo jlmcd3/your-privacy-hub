@@ -15,16 +15,29 @@ export function slugify(name: string): string {
 
 export function stripHtml(html: string | null | undefined): string {
   if (!html) return '';
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
+  // First pass: remove HTML tags
+  let text = html.replace(/<[^>]*>/g, ' ');
+  // Decode named entities
+  text = text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
     .replace(/&#039;/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/&hellip;/gi, '…')
+    .replace(/&mdash;/gi, '—')
+    .replace(/&ndash;/gi, '–')
+    .replace(/&rsquo;/gi, "'")
+    .replace(/&lsquo;/gi, "'")
+    .replace(/&rdquo;/gi, '"')
+    .replace(/&ldquo;/gi, '"');
+  // Decode numeric entities (&#8230; etc.)
+  text = text.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+  // Second pass: remove any tags that were revealed by entity decoding
+  text = text.replace(/<[^>]*>/g, ' ');
+  // Collapse whitespace
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 export function normalizeTitle(title: string | null | undefined): string {

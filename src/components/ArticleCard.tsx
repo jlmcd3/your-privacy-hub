@@ -147,8 +147,8 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
         )}
         {/* Why it matters — first sentence only */}
         {!item.summary && item.ai_summary?.why_it_matters && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">
-            {item.ai_summary.why_it_matters}
+          <p className="text-[13px] text-slate leading-relaxed line-clamp-3">
+            {stripHtml(item.ai_summary.why_it_matters)}
           </p>
         )}
       </div>
