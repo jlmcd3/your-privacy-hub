@@ -139,11 +139,11 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
         {/* Title */}
         <Link to={`/updates/${item.id}`}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
-          {item.title}
+          {normalizeTitle(item.title)}
         </Link>
         {/* Summary */}
         {item.summary && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">{item.summary}</p>
+          <p className="text-[13px] text-slate leading-relaxed line-clamp-3">{stripHtml(item.summary)}</p>
         )}
         {/* Why it matters — first sentence only */}
         {!item.summary && item.ai_summary?.why_it_matters && (
