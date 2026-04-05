@@ -101,11 +101,28 @@ Deno.serve(async (req) => {
       headers: { "Access-Control-Allow-Origin": "*" },
     });
 
+  // Accept either ADMIN_SECRET_TOKEN or a valid Supabase JWT
   const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
-  const token = (req.headers.get("Authorization") || "").replace("Bearer ", "");
-  console.log("AUTH DEBUG: secret set?", !!ADMIN_SECRET, "token length:", token.length, "match:", token === ADMIN_SECRET);
-  if (!ADMIN_SECRET || token !== ADMIN_SECRET)
-    return new Response(JSON.stringify({ error: "Unauthorized", debug: { secretSet: !!ADMIN_SECRET, tokenLength: token.length } }), {
+  const authHeader = req.headers.get("Authorization") || "";
+  const token = authHeader.replace("Bearer ", "");
+  
+  let authorized = false;
+  if (ADMIN_SECRET && token === ADMIN_SECRET) {
+    authorized = true;
+  } else {
+    // Check if it's a valid authenticated user JWT
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data } = await authClient.auth.getUser();
+    if (data?.user) authorized = true;
+  }
+  
+  if (!authorized)
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
     });
 
