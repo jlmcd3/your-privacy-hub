@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { stripHtml, normalizeTitle } from "@/lib/utils";
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
