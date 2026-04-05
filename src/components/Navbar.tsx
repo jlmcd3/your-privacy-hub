@@ -49,11 +49,11 @@ const navItems: NavItem[] = [
         divider: true,
         items: [
           { icon: "🤖", label: "AI Governance", href: "/topics/ai-governance" },
-          { icon: "🔓", label: "Data Breaches", href: "/topics/data-breaches" },
-          { icon: "👁️", label: "Biometric Data", href: "/topics/biometric-data" },
-          { icon: "🌐", label: "Data Transfers", href: "/topics/data-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/topics/children-privacy" },
-          { icon: "🍪", label: "AdTech & Consent", href: "/topics/adtech" },
+          { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
+          { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
+          { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
+          { icon: "👶", label: "Children's Privacy", href: "/us-state-privacy-laws" },
+          { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
     ],
@@ -84,7 +84,7 @@ const navItems: NavItem[] = [
       ]},
       { header: "Other", divider: true, items: [
         { icon: "🌍", label: "Africa", href: "/jurisdiction/south-africa" },
-        { icon: "🌏", label: "Middle East", href: "/jurisdiction/uae" },
+        { icon: "🌏", label: "Middle East", href: "/jurisdiction/united-arab-emirates" },
         { icon: "🗂️", label: "All 150+ Jurisdictions →", href: "/global-privacy-authorities" },
       ]},
       { header: "Key Regulators", divider: true, items: [
