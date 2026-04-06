@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 
 const SECTIONS = [
   {
