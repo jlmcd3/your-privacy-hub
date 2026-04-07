@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Newspaper, Scale, Brain, Globe } from "lucide-react";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
+import StarFieldBackground from "@/components/globe/StarFieldBackground";
 
 const panels = [
   {
@@ -86,9 +87,10 @@ export default function SearchFirstHero() {
             </Link>
           </div>
 
-          {/* Right: Globe panel — ~1/3 width */}
-          <div className="rounded-lg border border-white/15 bg-transparent relative flex-col items-center justify-center overflow-hidden hidden sm:flex min-h-[200px]">
-            <div className="absolute inset-0 flex items-center justify-center">
+          {/* Right: Globe panel — ~1/3 width, star background */}
+          <div className="rounded-lg border border-white/15 bg-[#050b18] relative flex-col items-center justify-center overflow-hidden hidden sm:flex min-h-[200px]">
+            <StarFieldBackground />
+            <div className="relative z-10 flex items-center justify-center w-full h-full">
               <SpinTheGlobe compact />
             </div>
           </div>
