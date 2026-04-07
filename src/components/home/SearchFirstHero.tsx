@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Newspaper, Scale, Brain, Globe } from "lucide-react";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
+import StarFieldBackground from "@/components/globe/StarFieldBackground";
 
 const panels = [
   {
