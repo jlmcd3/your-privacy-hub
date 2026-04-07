@@ -80,7 +80,7 @@ export default function SearchFirstHero() {
             ))}
             <Link
               to="/get-intelligence"
-              className="inline-flex items-center justify-center gap-2 bg-amber-400 text-navy font-bold text-[12px] md:text-[13px] px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors no-underline"
+              className="inline-flex items-center justify-center gap-2 bg-amber-400 text-navy font-bold text-[12px] md:text-[13px] px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors no-underline mt-2"
             >
               Get Your Privacy Intelligence →
             </Link>
