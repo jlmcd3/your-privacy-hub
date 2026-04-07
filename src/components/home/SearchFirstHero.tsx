@@ -1,91 +1,99 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Newspaper, Scale, Brain, Globe } from "lucide-react";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 
+const panels = [
+  {
+    icon: Newspaper,
+    title: "Latest News",
+    color: "from-sky/20 to-blue/10",
+    borderColor: "border-sky/30",
+    iconColor: "text-sky",
+    stats: "7 categories · Updated daily",
+    copy: "Real-time coverage from 119 regulators across every major jurisdiction. GDPR fines, AI Act updates, US state laws — all in one feed.",
+    cta: { label: "Browse News →", href: "/category/enforcement" },
+  },
+  {
+    icon: Scale,
+    title: "Laws & Frameworks",
+    color: "from-accent/15 to-accent/5",
+    borderColor: "border-accent/30",
+    iconColor: "text-accent",
+    stats: "150+ jurisdictions mapped",
+    copy: "Navigate every privacy statute worldwide. Compare US state laws side-by-side, track legislation in progress, and monitor global DPA directories.",
+    cta: { label: "Explore Laws →", href: "/global-privacy-laws" },
+  },
+  {
+    icon: Brain,
+    title: "Intelligence",
+    color: "from-amber-400/15 to-amber-400/5",
+    borderColor: "border-amber-400/30",
+    iconColor: "text-amber-400",
+    stats: "AI-powered · Weekly briefs",
+    copy: "Go beyond headlines. Get enforcement analytics, AI-generated weekly briefs, trend reports, and custom alerts tailored to your jurisdictions.",
+    cta: { label: "Get Intelligence →", href: "/get-intelligence" },
+  },
+];
+
 export default function SearchFirstHero() {
-  const [query, setQuery] = useState("");
-  const navigate = useNavigate();
-
-  const handleSearch = () => {
-    if (query.trim()) {
-      navigate(`/updates?q=${encodeURIComponent(query.trim())}`);
-    }
-  };
-
   return (
-    <div className="bg-gradient-to-r from-navy via-steel to-navy border-b border-white/10 overflow-hidden">
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-8 md:py-10 flex items-center gap-6">
-        {/* Left: text + search */}
-        <div className="flex-1 min-w-0">
-          <h1 className="font-display font-bold text-white text-[22px] md:text-[28px] leading-tight mb-2">
-            Make sense of global privacy law in minutes, not hours
-          </h1>
-          <p className="text-blue-200 text-[13px] leading-relaxed mb-5">
-            119 regulators · 150+ jurisdictions · AI-powered analysis · Free weekly brief
-          </p>
-
-          {/* Search bar */}
-          <div className="flex gap-2 max-w-xl mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="Search: GDPR fines… AI Act… California law…"
-                className="w-full pl-9 pr-4 py-2.5 text-[13px] rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 outline-none focus:border-sky transition-colors"
-              />
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-5 py-2.5 text-[13px] font-bold text-navy bg-white rounded-xl hover:bg-white/90 transition-colors flex-shrink-0 cursor-pointer border-none"
-            >
-              Search
-            </button>
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <Link
-              to="/get-intelligence"
-              className="inline-flex items-center gap-2 bg-amber-400 text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl hover:bg-amber-300 transition-colors no-underline"
-            >
-              Get Your Privacy Intelligence →
-            </Link>
-            <Link
-              to="/sample-brief"
-              className="text-[13px] font-semibold text-blue-200 hover:text-white transition-colors no-underline"
-            >
-              See a sample brief →
-            </Link>
-          </div>
-
-          {/* Quick-explore topic chips */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] text-white/50 font-medium">Explore:</span>
-            {[
-              { label: "Enforcement", href: "/category/enforcement" },
-              { label: "AI Privacy", href: "/category/ai-privacy" },
-              { label: "US State Laws", href: "/category/us-states" },
-              { label: "AdTech", href: "/category/adtech" },
-              { label: "EU & UK", href: "/category/eu-uk" },
-            ].map((chip) => (
-              <Link
-                key={chip.label}
-                to={chip.href}
-                className="text-[11px] font-medium text-white/80 bg-white/10 border border-white/20 rounded-full px-3 py-1 hover:bg-white/20 transition-colors no-underline"
-              >
-                {chip.label}
-              </Link>
-            ))}
-          </div>
+    <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-6 md:py-8">
+        {/* Stats strip */}
+        <div className="flex items-center justify-center gap-3 mb-6 text-[11px] tracking-wider text-white/60">
+          <span className="font-bold text-white/90">119 Regulators</span>
+          <span className="text-white/25">·</span>
+          <span className="font-bold text-white/90">150+ Jurisdictions</span>
+          <span className="text-white/25">·</span>
+          <span className="font-bold text-white/90">Updated Daily</span>
+          <span className="text-white/25">·</span>
+          <span className="font-bold text-white/90">$0 to Browse</span>
         </div>
 
-        {/* Right: Spin the Globe — hidden on mobile */}
-        <div className="hidden md:flex flex-col items-center flex-shrink-0 w-[280px] lg:w-[300px]">
-          <SpinTheGlobe compact />
+        {/* 4 panels */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {panels.map((p) => (
+            <div
+              key={p.title}
+              className={`relative rounded-xl border ${p.borderColor} bg-gradient-to-br ${p.color} backdrop-blur-sm p-5 flex flex-col`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <p.icon className={`w-5 h-5 ${p.iconColor}`} />
+                <h2 className="font-display text-[16px] text-white font-bold leading-tight">
+                  {p.title}
+                </h2>
+              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50 mb-2">
+                {p.stats}
+              </p>
+              <p className="text-[12px] text-blue-200/90 leading-relaxed flex-1 mb-3">
+                {p.copy}
+              </p>
+              <Link
+                to={p.cta.href}
+                className="text-[12px] font-bold text-white hover:text-sky transition-colors no-underline"
+              >
+                {p.cta.label}
+              </Link>
+            </div>
+          ))}
+
+          {/* Globe panel */}
+          <div className="relative rounded-xl border border-white/15 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-sm p-4 flex flex-col items-center justify-center min-h-[200px] md:min-h-0">
+            <div className="flex items-center gap-2 mb-1 self-start">
+              <Globe className="w-5 h-5 text-sky" />
+              <h2 className="font-display text-[16px] text-white font-bold leading-tight">
+                Global Coverage
+              </h2>
+            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50 mb-2 self-start">
+              Spin to explore
+            </p>
+            <div className="flex-1 w-full flex items-center justify-center">
+              <SpinTheGlobe compact />
+            </div>
+          </div>
         </div>
       </div>
     </div>
