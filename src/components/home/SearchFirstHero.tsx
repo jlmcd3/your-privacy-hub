@@ -62,10 +62,13 @@ export default function SearchFirstHero() {
                     {p.title}
                   </h2>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] md:text-[13px] text-blue-200/80 leading-snug line-clamp-1 flex-1 min-w-0">
-                    {p.copy}
-                  </p>
+                <p className="text-[11px] md:text-[13px] text-white/90 font-semibold leading-snug">
+                  {p.subtitle}
+                </p>
+                <p className="text-[10px] md:text-[12px] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
+                  {p.copy}
+                </p>
+                <div className="flex items-center justify-end">
                   <Link
                     to={p.cta.href}
                     className="text-[9px] md:text-[11px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
