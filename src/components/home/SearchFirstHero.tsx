@@ -51,7 +51,7 @@ export default function SearchFirstHero() {
             {panels.map((p) => (
               <div
                 key={p.title}
-                className={`rounded-lg border ${p.borderColor} bg-white/[0.06] px-2 py-1.5 flex items-center gap-2`}
+                className={`rounded-lg border ${p.borderColor} bg-white/[0.06] px-3 py-2 flex items-center gap-2`}
               >
                 <p.icon className={`w-3.5 h-3.5 flex-shrink-0 ${p.iconColor}`} />
                 <h2 className="font-display text-[12px] md:text-[14px] text-white font-bold leading-tight whitespace-nowrap">
