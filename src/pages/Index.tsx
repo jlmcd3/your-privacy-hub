@@ -24,6 +24,7 @@ import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
+import SearchStrip from "@/components/home/SearchStrip";
 
 interface Update {
   id: string;
