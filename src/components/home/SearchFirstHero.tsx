@@ -4,28 +4,31 @@ import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 
 const panels = [
   {
-    icon: Newspaper,
-    title: "Latest News",
-    borderColor: "border-sky/30",
-    iconColor: "text-sky",
-    copy: "119 regulators. 7 categories. Updated daily.",
-    cta: { label: "Browse →", href: "/category/enforcement" },
-  },
-  {
-    icon: Scale,
-    title: "Laws",
-    borderColor: "border-accent/30",
-    iconColor: "text-accent",
-    copy: "150+ jurisdictions. Compare & track legislation.",
-    cta: { label: "Explore →", href: "/global-privacy-laws" },
-  },
-  {
     icon: Brain,
     title: "Intelligence",
     borderColor: "border-amber-400/30",
     iconColor: "text-amber-400",
-    copy: "AI briefs, trend reports & custom alerts.",
+    subtitle: "Get the Intelligence Brief",
+    copy: "Receive weekly privacy intelligence tailored to your industry and jurisdictions. Our customized reports synthesize global regulatory developments, enforcement trends, and key compliance signals so you can understand what matters for your organization.",
     cta: { label: "Get Intel →", href: "/get-intelligence" },
+  },
+  {
+    icon: Newspaper,
+    title: "Latest News",
+    borderColor: "border-sky/30",
+    iconColor: "text-sky",
+    subtitle: "Latest Privacy Developments",
+    copy: "Stay current with real-time updates from privacy regulators around the world. Enforcement actions, new legislation, regulatory guidance, and major data breaches are tracked daily across more than 150 jurisdictions.",
+    cta: { label: "Browse →", href: "/category/enforcement" },
+  },
+  {
+    icon: Scale,
+    title: "Laws & Frameworks",
+    borderColor: "border-accent/30",
+    iconColor: "text-accent",
+    subtitle: "Research Privacy Laws",
+    copy: "Explore the world's leading privacy laws and regulatory frameworks in one place. Compare U.S. state statutes, review major international regimes, and understand how different jurisdictions regulate data protection.",
+    cta: { label: "Explore →", href: "/global-privacy-laws" },
   },
 ];
 
@@ -59,10 +62,13 @@ export default function SearchFirstHero() {
                     {p.title}
                   </h2>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] md:text-[13px] text-blue-200/80 leading-snug line-clamp-1 flex-1 min-w-0">
-                    {p.copy}
-                  </p>
+                <p className="text-[11px] md:text-[13px] text-white/90 font-semibold leading-snug">
+                  {p.subtitle}
+                </p>
+                <p className="text-[10px] md:text-[12px] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
+                  {p.copy}
+                </p>
+                <div className="flex items-center justify-end">
                   <Link
                     to={p.cta.href}
                     className="text-[9px] md:text-[11px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
