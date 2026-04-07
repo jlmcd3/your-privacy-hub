@@ -46,6 +46,22 @@ export default function SearchFirstHero() {
             </button>
           </div>
 
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <Link
+              to="/get-intelligence"
+              className="inline-flex items-center gap-2 bg-amber-400 text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl hover:bg-amber-300 transition-colors no-underline"
+            >
+              Get Your Privacy Intelligence →
+            </Link>
+            <Link
+              to="/sample-brief"
+              className="text-[13px] font-semibold text-blue-200 hover:text-white transition-colors no-underline"
+            >
+              See a sample brief →
+            </Link>
+          </div>
+
           {/* Quick-explore topic chips */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-white/50 font-medium">Explore:</span>
