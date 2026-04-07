@@ -145,7 +145,7 @@ const Index = () => {
       <BreakingNewsBanner />
 
       {/* Layer 4: Search-first hero */}
-      <SearchFirstHero />
+      <SearchStrip />
       <FreeVsPaidStrip />
 
       {/* Layer 6: Main editorial content */}
