@@ -71,7 +71,7 @@ export default function SearchFirstHero() {
                 <div className="flex items-center justify-end">
                   <Link
                     to={p.cta.href}
-                    className="text-[9px] md:text-[11px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
+                    className="text-[12px] md:text-[14px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
                   >
                     {p.cta.label}
                   </Link>
