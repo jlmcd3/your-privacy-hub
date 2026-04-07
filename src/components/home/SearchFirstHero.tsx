@@ -77,7 +77,7 @@ export default function SearchFirstHero() {
                 Global
               </h2>
             </div>
-            <div className="flex-1 w-full flex items-center justify-center overflow-hidden max-h-[100px]">
+            <div className="flex-1 w-full flex items-center justify-center overflow-hidden max-h-[160px]">
               <SpinTheGlobe compact />
             </div>
           </div>
