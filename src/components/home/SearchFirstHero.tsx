@@ -65,7 +65,7 @@ export default function SearchFirstHero() {
                 <p className="text-[11px] md:text-[13px] text-white/90 font-semibold leading-snug">
                   {p.subtitle}
                 </p>
-                <p className="text-[10px] md:text-[12px] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
+                <p className="text-[12px] md:text-[14px] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
                   {p.copy}
                 </p>
                 <div className="flex items-center justify-end">
