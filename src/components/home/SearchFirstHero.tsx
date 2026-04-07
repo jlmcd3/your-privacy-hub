@@ -87,9 +87,8 @@ export default function SearchFirstHero() {
           </div>
 
           {/* Right: Globe panel — ~1/3 width */}
-          <div className="rounded-lg border border-white/15 bg-white/[0.04] px-2 py-1.5 flex-col items-center justify-center overflow-hidden hidden sm:flex">
-            
-            <div className="w-full flex-1 flex items-center justify-center overflow-hidden">
+          <div className="rounded-lg border border-white/15 bg-transparent relative flex-col items-center justify-center overflow-hidden hidden sm:flex min-h-[200px]">
+            <div className="absolute inset-0 flex items-center justify-center">
               <SpinTheGlobe compact />
             </div>
           </div>
