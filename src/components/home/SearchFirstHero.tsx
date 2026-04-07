@@ -72,6 +72,12 @@ export default function SearchFirstHero() {
                 </div>
               </div>
             ))}
+            <Link
+              to="/get-intelligence"
+              className="inline-flex items-center justify-center gap-2 bg-amber-400 text-navy font-bold text-[12px] md:text-[13px] px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors no-underline"
+            >
+              Get Your Privacy Intelligence →
+            </Link>
           </div>
 
           {/* Right: Globe panel — ~1/3 width */}

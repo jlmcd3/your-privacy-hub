@@ -47,12 +47,6 @@ export default function SearchStrip() {
           {/* CTAs */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-3">
             <Link
-              to="/get-intelligence"
-              className="inline-flex items-center gap-2 bg-amber-400 text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl hover:bg-amber-300 transition-colors no-underline"
-            >
-              Get Your Privacy Intelligence →
-            </Link>
-            <Link
               to="/sample-brief"
               className="text-[13px] font-semibold text-steel hover:text-navy transition-colors no-underline"
             >
