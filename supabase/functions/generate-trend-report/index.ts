@@ -106,6 +106,14 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
     }),
   });
 
+  if (!aiRes.ok) {
+    const errBody = await aiRes.text();
+    console.error("Anthropic API error:", aiRes.status, errBody);
+    return new Response(JSON.stringify({ error: "Anthropic API error", status: aiRes.status, body: errBody }), {
+      status: 500, headers: { "Content-Type": "application/json" }
+    });
+  }
+
   const aiData = await aiRes.json();
   const rawText = aiData.content?.[0]?.text ?? "";
 
@@ -113,7 +121,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
   try {
     synthesis = JSON.parse(rawText.replace(/^```json\n?|\n?```$/g, "").trim());
   } catch {
-    return new Response(JSON.stringify({ error: "Claude parse error", raw: rawText }), {
+    return new Response(JSON.stringify({ error: "Claude parse error", raw: rawText.slice(0, 500) }), {
       status: 500, headers: { "Content-Type": "application/json" }
     });
   }
