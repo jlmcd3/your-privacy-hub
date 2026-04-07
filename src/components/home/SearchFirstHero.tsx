@@ -58,7 +58,7 @@ export default function SearchFirstHero() {
               >
                 <div className="flex items-center gap-1.5">
                   <p.icon className={`w-3.5 h-3.5 flex-shrink-0 ${p.iconColor}`} />
-                  <h2 className="font-display text-[12px] md:text-[14px] text-white font-bold leading-tight">
+                  <h2 className="font-display text-[14px] md:text-[17px] text-white font-bold leading-tight">
                     {p.title}
                   </h2>
                 </div>
