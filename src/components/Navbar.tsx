@@ -176,14 +176,14 @@ const Navbar = () => {
               {item.href ? (
                 <Link
                   to={item.href}
-                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors text-slate hover:text-navy no-underline"
+                  className="flex items-center gap-1 px-3 py-2 transition-colors text-slate hover:text-navy no-underline font-semibold text-base"
                 >
                   {item.label}
                   {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                 </Link>
               ) : (
                 <button
-                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy"
+                  className="flex items-center gap-1 px-3 py-2 transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy text-base font-semibold"
                 >
                   {item.label}
                   {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
