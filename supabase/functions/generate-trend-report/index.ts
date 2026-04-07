@@ -3,12 +3,25 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
 
 Deno.serve(async (req) => {
-  // Auth
+  // Dual-mode auth: admin token OR valid Supabase JWT
   const auth = req.headers.get("Authorization") ?? "";
-  if (!auth.includes(ADMIN_TOKEN)) {
+  let authorized = ADMIN_TOKEN && auth.includes(ADMIN_TOKEN);
+  if (!authorized) {
+    // Check for valid Supabase user JWT
+    const token = auth.replace("Bearer ", "");
+    if (token === SUPABASE_ANON_KEY || token === SUPABASE_SERVICE_KEY) {
+      authorized = true;
+    } else {
+      const tmpClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { data: { user } } = await tmpClient.auth.getUser(token);
+      authorized = !!user;
+    }
+  }
+  if (!authorized) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -93,6 +106,14 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
     }),
   });
 
+  if (!aiRes.ok) {
+    const errBody = await aiRes.text();
+    console.error("Anthropic API error:", aiRes.status, errBody);
+    return new Response(JSON.stringify({ error: "Anthropic API error", status: aiRes.status, body: errBody }), {
+      status: 500, headers: { "Content-Type": "application/json" }
+    });
+  }
+
   const aiData = await aiRes.json();
   const rawText = aiData.content?.[0]?.text ?? "";
 
@@ -100,7 +121,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
   try {
     synthesis = JSON.parse(rawText.replace(/^```json\n?|\n?```$/g, "").trim());
   } catch {
-    return new Response(JSON.stringify({ error: "Claude parse error", raw: rawText }), {
+    return new Response(JSON.stringify({ error: "Claude parse error", raw: rawText.slice(0, 500) }), {
       status: 500, headers: { "Content-Type": "application/json" }
     });
   }
