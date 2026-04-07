@@ -58,7 +58,7 @@ export default function SearchFirstHero() {
               >
                 <div className="flex items-center gap-1.5">
                   <p.icon className={`w-3.5 h-3.5 flex-shrink-0 ${p.iconColor}`} />
-                  <h2 className="font-display text-[14px] md:text-[17px] text-white font-bold leading-tight">
+                  <h2 className="font-display text-[16px] md:text-[20px] text-white font-bold leading-tight">
                     {p.title}
                   </h2>
                 </div>
@@ -71,7 +71,7 @@ export default function SearchFirstHero() {
                 <div className="flex items-center justify-end">
                   <Link
                     to={p.cta.href}
-                    className="text-[9px] md:text-[11px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
+                    className="text-[12px] md:text-[14px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
                   >
                     {p.cta.label}
                   </Link>
