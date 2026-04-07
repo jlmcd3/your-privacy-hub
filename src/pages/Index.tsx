@@ -24,6 +24,7 @@ import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
+import SearchStrip from "@/components/home/SearchStrip";
 
 interface Update {
   id: string;
@@ -143,8 +144,11 @@ const Index = () => {
       {/* Layer 3: Breaking news */}
       <BreakingNewsBanner />
 
-      {/* Layer 4: Search-first hero */}
+      {/* Layer 4: Hero panels */}
       <SearchFirstHero />
+
+      {/* Layer 5: Search strip */}
+      <SearchStrip />
       <FreeVsPaidStrip />
 
       {/* Layer 6: Main editorial content */}
