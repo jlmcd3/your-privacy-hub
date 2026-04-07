@@ -32,9 +32,9 @@ const panels = [
 export default function SearchFirstHero() {
   return (
     <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
-      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-4 md:py-5">
+      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-3 md:py-4">
         {/* Stats strip */}
-        <div className="flex items-center justify-center gap-2 mb-4 text-[10px] tracking-wider text-white/60 flex-wrap">
+        <div className="flex items-center justify-center gap-2 mb-3 text-[10px] tracking-wider text-white/60 flex-wrap">
           <span className="font-bold text-white/90">119 Regulators</span>
           <span className="text-white/25">·</span>
           <span className="font-bold text-white/90">150+ Jurisdictions</span>
@@ -44,40 +44,33 @@ export default function SearchFirstHero() {
           <span className="font-bold text-white/90">$0 to Browse</span>
         </div>
 
-        {/* 4 compact panels — always in a row */}
-        <div className="grid grid-cols-4 gap-2 md:gap-3">
+        {/* 4 wide, short panels */}
+        <div className="grid grid-cols-4 gap-2">
           {panels.map((p) => (
-            <div
+            <Link
               key={p.title}
-              className={`rounded-lg border ${p.borderColor} bg-white/[0.06] p-3 md:p-4 flex flex-col`}
+              to={p.cta.href}
+              className={`rounded-lg border ${p.borderColor} bg-white/[0.06] hover:bg-white/[0.10] transition-colors no-underline p-2.5 md:p-3 flex items-center gap-2.5`}
+              style={{ height: "clamp(56px, 10vw, 72px)" }}
             >
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <p.icon className={`w-4 h-4 flex-shrink-0 ${p.iconColor}`} />
-                <h2 className="font-display text-[13px] md:text-[15px] text-white font-bold leading-tight truncate">
+              <p.icon className={`w-5 h-5 flex-shrink-0 ${p.iconColor}`} />
+              <div className="min-w-0">
+                <div className="font-display text-[12px] md:text-[14px] text-white font-bold leading-tight truncate">
                   {p.title}
-                </h2>
+                </div>
+                <div className="text-[9px] md:text-[10px] text-blue-200/70 leading-snug truncate mt-0.5">
+                  {p.copy}
+                </div>
               </div>
-              <p className="text-[10px] md:text-[11px] text-blue-200/80 leading-snug flex-1 mb-2 line-clamp-2">
-                {p.copy}
-              </p>
-              <Link
-                to={p.cta.href}
-                className="text-[10px] md:text-[11px] font-bold text-white hover:text-sky transition-colors no-underline"
-              >
-                {p.cta.label}
-              </Link>
-            </div>
+            </Link>
           ))}
 
           {/* Globe panel */}
-          <div className="rounded-lg border border-white/15 bg-white/[0.04] p-3 md:p-4 flex flex-col items-center justify-center min-h-[120px]">
-            <div className="flex items-center gap-1.5 mb-1 self-start">
-              <Globe className="w-4 h-4 text-sky flex-shrink-0" />
-              <h2 className="font-display text-[13px] md:text-[15px] text-white font-bold leading-tight truncate">
-                Global
-              </h2>
-            </div>
-            <div className="flex-1 w-full flex items-center justify-center">
+          <div
+            className="rounded-lg border border-white/15 bg-white/[0.04] p-2 flex items-center justify-center"
+            style={{ height: "clamp(56px, 10vw, 72px)" }}
+          >
+            <div className="w-full h-full flex items-center justify-center">
               <SpinTheGlobe compact />
             </div>
           </div>
