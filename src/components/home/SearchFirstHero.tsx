@@ -45,7 +45,7 @@ export default function SearchFirstHero() {
         </div>
 
         {/* 4 compact panels — always in a row */}
-        <div className="grid grid-cols-4 gap-2 md:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
           {panels.map((p) => (
             <div
               key={p.title}
