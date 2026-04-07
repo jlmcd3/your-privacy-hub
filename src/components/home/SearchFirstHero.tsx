@@ -32,9 +32,9 @@ const panels = [
 export default function SearchFirstHero() {
   return (
     <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
-      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-4 md:py-5">
+      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-2 md:py-2.5">
         {/* Stats strip */}
-        <div className="flex items-center justify-center gap-2 mb-4 text-[10px] tracking-wider text-white/60 flex-wrap">
+        <div className="flex items-center justify-center gap-2 mb-2 text-[9px] tracking-wider text-white/60 flex-wrap">
           <span className="font-bold text-white/90">119 Regulators</span>
           <span className="text-white/25">·</span>
           <span className="font-bold text-white/90">150+ Jurisdictions</span>
