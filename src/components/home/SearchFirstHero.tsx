@@ -50,8 +50,8 @@ export default function SearchFirstHero() {
             <Link
               key={p.title}
               to={p.cta.href}
-              className={`rounded-lg border ${p.borderColor} bg-white/[0.06] hover:bg-white/[0.10] transition-colors no-underline p-2.5 md:p-3 flex items-center gap-2.5`}
-              style={{ height: "clamp(56px, 10vw, 72px)" }}
+              className={`rounded-lg border ${p.borderColor} bg-white/[0.06] hover:bg-white/[0.10] transition-colors no-underline flex items-center gap-2.5`}
+              style={{ height: "clamp(56px, 10vw, 72px)", padding: "16px 20px" }}
             >
               <p.icon className={`w-5 h-5 flex-shrink-0 ${p.iconColor}`} />
               <div className="min-w-0">
