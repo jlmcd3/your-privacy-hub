@@ -57,7 +57,7 @@ export default function SearchFirstHero() {
                   {p.title}
                 </h2>
               </div>
-              <p className="text-[10px] md:text-[11px] text-blue-200/80 leading-snug flex-1 mb-2 line-clamp-2">
+              <p className="text-[11px] md:text-[13px] text-blue-200/80 leading-snug flex-1 mb-2 line-clamp-2">
                 {p.copy}
               </p>
               <Link
