@@ -147,19 +147,6 @@ const Index = () => {
       <SearchFirstHero />
       <FreeVsPaidStrip />
 
-      <div className="mt-5 flex flex-col items-start gap-1">
-        <Link to="/get-intelligence"
-          className="inline-flex items-center gap-2 bg-amber-400 text-navy font-bold
-            text-[14px] px-6 py-3 rounded-xl hover:bg-amber-300 transition-colors
-            no-underline">
-          Get Your Privacy Intelligence →
-        </Link>
-        <p className="text-[12px] text-slate-light">
-          Personalized to your jurisdiction in 60 seconds
-        </p>
-      </div>
-
-
       {/* Layer 6: Main editorial content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-7 md:pt-9">
 

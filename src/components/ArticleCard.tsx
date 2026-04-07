@@ -145,9 +145,10 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
         {item.summary && (
           <p className="text-[13px] text-slate leading-relaxed line-clamp-3">{stripHtml(item.summary)}</p>
         )}
-        {/* Why it matters — first sentence only */}
-        {!item.summary && item.ai_summary?.why_it_matters && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-3">
+        {/* Why it matters */}
+        {item.ai_summary?.why_it_matters && (
+          <p className="text-[13px] text-emerald-700 leading-relaxed line-clamp-2 mt-1 italic">
+            <span className="font-semibold not-italic">Why it matters:</span>{' '}
             {stripHtml(item.ai_summary.why_it_matters)}
           </p>
         )}
