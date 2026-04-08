@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
           { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/us-state-privacy-laws" },
+          { icon: "👶", label: "Children's Privacy", href: "/us-privacy-laws" },
           { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
