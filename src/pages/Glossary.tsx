@@ -86,7 +86,7 @@ const Glossary = () => {
                     <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.definition}</p>
                     <div className="flex gap-1.5 mt-2 flex-wrap">
                       {t.regulations.map((r) => (
-                        <span key={r} className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
+                        <span key={r} className="font-mono-code text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
                       ))}
                     </div>
                   </Link>
