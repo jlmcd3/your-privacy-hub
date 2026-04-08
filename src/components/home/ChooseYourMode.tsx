@@ -25,7 +25,7 @@ const MODES = [
   },
   {
     icon: "🧠",
-    label: "Get your analyst",
+    label: "Get Intelligence",
     desc: "Weekly brief written for your industry & jurisdictions — $20/month",
     href: "/subscribe",
     cta: "See Plans →",
@@ -42,7 +42,7 @@ export default function ChooseYourMode() {
   }));
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-6">
+    <div className="py-6">
       <p className="text-[11px] font-bold uppercase tracking-widest text-slate mb-3">
         How do you want to use this?
       </p>

@@ -33,6 +33,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
+import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import About from "./pages/About.tsx";
@@ -52,6 +53,7 @@ import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
 import BiometricPrivacy from "./pages/BiometricPrivacy.tsx";
 import BreachNotification from "./pages/BreachNotification.tsx";
 import CrossBorderTransfers from "./pages/CrossBorderTransfers.tsx";
+import GetIntelligence from "./pages/GetIntelligence.tsx";
 
 const queryClient = new QueryClient();
 
@@ -102,7 +104,9 @@ const App = () => (
           <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/updates" element={<Updates />} />
+           <Route path="/get-intelligence" element={<GetIntelligence />} />
+           <Route path="/updates" element={<Updates />} />
+           <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

@@ -1,3 +1,5 @@
+import { normalizeTitle } from "@/lib/utils";
+
 interface RegionItem {
   flag: string;
   jurisdiction: string;
@@ -40,8 +42,8 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
                 {item.category}
               </span>
             </div>
-            <h4 className="font-bold text-navy text-[14px] leading-snug group-hover:text-blue transition-colors">
-              {item.headline}
+            <h4 className="font-bold text-navy text-[14px] leading-snug group-hover:text-blue transition-colors line-clamp-2">
+              {normalizeTitle(item.headline)}
             </h4>
             {item.whyItMatters && (
               <p className="text-[11px] text-muted-foreground leading-snug mt-1 line-clamp-2">

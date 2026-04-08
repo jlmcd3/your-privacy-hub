@@ -184,6 +184,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ingestion_runs: {
+        Row: {
+          enrichment_failed_429: number | null
+          enrichment_failed_other: number | null
+          id: string
+          inserted: number | null
+          run_at: string
+          skipped: number | null
+          summaries_generated: number | null
+        }
+        Insert: {
+          enrichment_failed_429?: number | null
+          enrichment_failed_other?: number | null
+          id?: string
+          inserted?: number | null
+          run_at: string
+          skipped?: number | null
+          summaries_generated?: number | null
+        }
+        Update: {
+          enrichment_failed_429?: number | null
+          enrichment_failed_other?: number | null
+          id?: string
+          inserted?: number | null
+          run_at?: string
+          skipped?: number | null
+          summaries_generated?: number | null
+        }
+        Relationships: []
+      }
       jurisdictions: {
         Row: {
           created_at: string | null
@@ -231,9 +261,12 @@ export type Database = {
           brief_role: string | null
           created_at: string
           id: string
+          industry: string | null
           is_premium: boolean
           is_pro: boolean | null
+          jurisdictions: string[] | null
           monthly_reports_used: number
+          onboarding_complete: boolean | null
           payment_failed: boolean
           reports_reset_date: string | null
           stripe_customer_id: string | null
@@ -248,9 +281,12 @@ export type Database = {
           brief_role?: string | null
           created_at?: string
           id: string
+          industry?: string | null
           is_premium?: boolean
           is_pro?: boolean | null
+          jurisdictions?: string[] | null
           monthly_reports_used?: number
+          onboarding_complete?: boolean | null
           payment_failed?: boolean
           reports_reset_date?: string | null
           stripe_customer_id?: string | null
@@ -265,9 +301,12 @@ export type Database = {
           brief_role?: string | null
           created_at?: string
           id?: string
+          industry?: string | null
           is_premium?: boolean
           is_pro?: boolean | null
+          jurisdictions?: string[] | null
           monthly_reports_used?: number
+          onboarding_complete?: boolean | null
           payment_failed?: boolean
           reports_reset_date?: string | null
           stripe_customer_id?: string | null
@@ -301,6 +340,39 @@ export type Database = {
           follow_type?: string
           id?: string
           is_premium?: boolean | null
+        }
+        Relationships: []
+      }
+      report_configs: {
+        Row: {
+          converted: boolean | null
+          created_at: string | null
+          email: string | null
+          id: string
+          industry: string | null
+          jurisdiction: string
+          topics: string[]
+          user_id: string | null
+        }
+        Insert: {
+          converted?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          jurisdiction: string
+          topics: string[]
+          user_id?: string | null
+        }
+        Update: {
+          converted?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          jurisdiction?: string
+          topics?: string[]
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -354,9 +426,11 @@ export type Database = {
       }
       updates: {
         Row: {
+          affected_jurisdictions: string[] | null
           ai_summary: Json | null
           category: string
           created_at: string
+          direct_jurisdictions: string[] | null
           id: string
           image_url: string | null
           is_premium: boolean
@@ -370,9 +444,11 @@ export type Database = {
           url: string
         }
         Insert: {
+          affected_jurisdictions?: string[] | null
           ai_summary?: Json | null
           category?: string
           created_at?: string
+          direct_jurisdictions?: string[] | null
           id?: string
           image_url?: string | null
           is_premium?: boolean
@@ -386,9 +462,11 @@ export type Database = {
           url: string
         }
         Update: {
+          affected_jurisdictions?: string[] | null
           ai_summary?: Json | null
           category?: string
           created_at?: string
+          direct_jurisdictions?: string[] | null
           id?: string
           image_url?: string | null
           is_premium?: boolean

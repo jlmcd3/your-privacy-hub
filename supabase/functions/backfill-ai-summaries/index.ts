@@ -5,6 +5,39 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// ── Throttle & Retry helpers ───────────────────────────────────────
+const AI_CALL_DELAY_MS = 500;
+let lastAiCallTime = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const elapsed = now - lastAiCallTime;
+  if (elapsed < AI_CALL_DELAY_MS) {
+    await new Promise(r => setTimeout(r, AI_CALL_DELAY_MS - elapsed));
+  }
+  lastAiCallTime = Date.now();
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    await throttle();
+    const res = await fetch(url, init);
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
+      const backoff = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
+      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    return res;
+  }
+  throw new Error("Max retries exceeded");
+}
+
 async function generateAISummary(
   title: string,
   summary: string | null,
@@ -12,7 +45,7 @@ async function generateAISummary(
   apiKey: string
 ) {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -68,9 +101,27 @@ Deno.serve(async (req) => {
       headers: { "Access-Control-Allow-Origin": "*" },
     });
 
+  // Accept either ADMIN_SECRET_TOKEN or a valid Supabase JWT
   const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
-  const token = (req.headers.get("Authorization") || "").replace("Bearer ", "");
-  if (!ADMIN_SECRET || token !== ADMIN_SECRET)
+  const authHeader = req.headers.get("Authorization") || "";
+  const token = authHeader.replace("Bearer ", "");
+  
+  let authorized = false;
+  if (ADMIN_SECRET && token === ADMIN_SECRET) {
+    authorized = true;
+  } else {
+    // Check if it's a valid authenticated user JWT
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data } = await authClient.auth.getUser();
+    if (data?.user) authorized = true;
+  }
+  
+  if (!authorized)
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
     });
@@ -123,7 +174,7 @@ Deno.serve(async (req) => {
         .eq("id", article.id);
       skipped++;
     }
-    await new Promise((r) => setTimeout(r, 250)); // rate limit
+    await new Promise((r) => setTimeout(r, 500)); // rate limit between articles
   }
 
   return new Response(

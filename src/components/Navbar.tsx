@@ -23,7 +23,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    label: "Updates",
+    label: "Latest News",
     sections: [
       {
         items: [
@@ -31,113 +31,74 @@ const navItems: NavItem[] = [
           { icon: "🗺️", label: "U.S. States", href: "/category/us-states" },
           { icon: "🇪🇺", label: "EU & UK", href: "/category/eu-uk" },
           { icon: "🌏", label: "Global", href: "/category/global" },
-        ],
-      },
-      {
-        header: "By Topic",
-        divider: true,
-        items: [
-          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
           { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
           { icon: "📡", label: "AdTech", href: "/category/adtech" },
         ],
       },
-
       {
         header: "Topic Hubs",
         divider: true,
         items: [
           { icon: "🤖", label: "AI Governance", href: "/topics/ai-governance" },
-          { icon: "🔓", label: "Data Breaches", href: "/topics/data-breaches" },
-          { icon: "👁️", label: "Biometric Data", href: "/topics/biometric-data" },
-          { icon: "🌐", label: "Data Transfers", href: "/topics/data-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/topics/children-privacy" },
-          { icon: "🍪", label: "AdTech & Consent", href: "/topics/adtech" },
+          { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
+          { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
+          { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
+          { icon: "👶", label: "Children's Privacy", href: "/us-state-privacy-laws" },
+          { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
     ],
   },
   {
-    label: "Jurisdictions",
-    href: "/jurisdictions",
+    label: "Laws & Frameworks",
     wide: true,
     sections: [
-      { header: "Americas", items: [
-        { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions", badge: "NEW", badgeGreen: true },
-        { icon: "🇺🇸", label: "United States", href: "/jurisdiction/united-states" },
-        { icon: "🇨🇦", label: "Canada", href: "/jurisdiction/canada" },
-        { icon: "🇧🇷", label: "Brazil", href: "/jurisdiction/brazil" },
-        { icon: "🇲🇽", label: "Mexico", href: "/jurisdiction/mexico" },
-      ]},
-      { header: "Asia-Pacific", divider: true, items: [
-        { icon: "🇦🇺", label: "Australia", href: "/jurisdiction/australia" },
-        { icon: "🇯🇵", label: "Japan", href: "/jurisdiction/japan" },
-        { icon: "🇸🇬", label: "Singapore", href: "/jurisdiction/singapore" },
-        { icon: "🇰🇷", label: "South Korea", href: "/jurisdiction/south-korea" },
-      ]},
-      { header: "Europe", items: [
-        { icon: "🇪🇺", label: "European Union", href: "/jurisdiction/european-union" },
-        { icon: "🇬🇧", label: "United Kingdom", href: "/jurisdiction/united-kingdom" },
-        { icon: "🇩🇪", label: "Germany", href: "/jurisdiction/germany" },
-        { icon: "🇫🇷", label: "France", href: "/jurisdiction/france" },
-      ]},
-      { header: "Other", divider: true, items: [
-        { icon: "🌍", label: "Africa", href: "/jurisdiction/south-africa" },
-        { icon: "🌏", label: "Middle East", href: "/jurisdiction/uae" },
-        { icon: "🗂️", label: "All 150+ Jurisdictions →", href: "/global-privacy-authorities" },
-      ]},
-      { header: "Key Regulators", divider: true, items: [
-        { icon: "⚖️", label: "EDPB (EU)", href: "/regulator/edpb" },
-        { icon: "⚖️", label: "ICO (UK)", href: "/regulator/ico" },
-        { icon: "⚖️", label: "FTC (U.S.)", href: "/regulator/ftc" },
-        { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
-        { icon: "🌐", label: "All 119 Regulators →", href: "/global-privacy-authorities" },
-      ]},
+      {
+        items: [
+          { icon: "🗺️", label: "US State Privacy Laws", href: "/us-state-privacy-laws" },
+          { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
+          { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
+          { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+          { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
+          { icon: "🏢", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
+          { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
+          { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
+          { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
+        ],
+      },
+      {
+        header: "Free Tools",
+        divider: true,
+        items: [
+          { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
+          { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
+          { icon: "📜", label: "Legislation Tracker", badge: "FREE", badgeGreen: true, href: "/legislation-tracker" },
+        ],
+      },
     ],
   },
-
-
   {
     label: "Intelligence",
     sections: [
       {
-        header: "Premium",
+        header: "Free Tools",
+        items: [
+          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
+        ],
+      },
+      {
+        header: "Premium — $20/month",
+        divider: true,
         items: [
           { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/sample-brief" },
-          { icon: "📈", label: "Trend Signals", badge: "SOON", href: "/subscribe" },
-          { icon: "🔔", label: "Custom Alerts", badge: "SOON", href: "/subscribe" },
-        ],
-      },
-      {
-        header: "Analysis Tools",
-        divider: true,
-        items: [
-          { icon: "🧰", label: "Professional Toolkit", href: "/tools" },
-          { icon: "📊", label: "US State Comparison", href: "/compare/us-states" },
-          { icon: "🌐", label: "Compare Jurisdictions", href: "/compare/jurisdictions" },
-
-          { icon: "📜", label: "Legislation Tracker", badge: "NEW", badgeGreen: true, href: "/legislation-tracker" },
-          { icon: "⏱️", label: "Regulatory Timelines", href: "/timelines" },
-          { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
-        ],
-      },
-      {
-        header: "Reference",
-        divider: true,
-        items: [
-          { icon: "📖", label: "Privacy Glossary", href: "/glossary" },
-          { icon: "🗺️", label: "US State Privacy Laws", href: "/us-state-privacy-laws" },
-          { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
-          { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
-          { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
+          { icon: "📰", label: "Briefings", badge: "PRO", href: "/subscribe" },
+          { icon: "🔔", label: "Alerts", badge: "PRO", href: "/subscribe" },
+          { icon: "📈", label: "Analysis", badge: "PRO", href: "/subscribe" },
         ],
       },
     ],
   },
-
-
 ];
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -176,14 +137,14 @@ const Navbar = () => {
               {item.href ? (
                 <Link
                   to={item.href}
-                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors text-slate hover:text-navy no-underline"
+                  className="flex items-center gap-1 px-3 py-2 transition-colors text-slate hover:text-navy no-underline font-semibold text-base"
                 >
                   {item.label}
                   {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                 </Link>
               ) : (
                 <button
-                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy"
+                  className="flex items-center gap-1 px-3 py-2 transition-colors cursor-pointer bg-transparent border-none text-slate hover:text-navy text-base font-semibold"
                 >
                   {item.label}
                   {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}

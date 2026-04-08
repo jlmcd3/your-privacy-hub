@@ -24,6 +24,7 @@ import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
+import SearchStrip from "@/components/home/SearchStrip";
 
 interface Update {
   id: string;
@@ -113,14 +114,13 @@ const Index = () => {
         lanes[lane.key] = dedupeById(articles.filter((a) => a.category === lane.key))
           .slice(0, lane.take)
           .map((a) => ({
+            id: a.id,
             title: a.title,
-            excerpt: a.summary || "",
-            jurisdiction: CATEGORY_META[a.category]?.jurisdiction,
-            flag: CATEGORY_META[a.category]?.flag,
-            href: a.url,
-            date: formatDate(a.published_at),
-            urgency: (a as any).ai_summary?.urgency ?? null,
-            whyItMatters: (a as any).ai_summary?.why_it_matters ?? null,
+            summary: a.summary,
+            category: a.category,
+            published_at: a.published_at,
+            source_name: a.source_name,
+            source_url: a.url,
           }));
       }
       setLaneData(lanes);
@@ -144,10 +144,12 @@ const Index = () => {
       {/* Layer 3: Breaking news */}
       <BreakingNewsBanner />
 
-      {/* Layer 4: Search-first hero */}
+      {/* Layer 4: Hero panels */}
       <SearchFirstHero />
-      <FreeVsPaidStrip />
 
+      {/* Layer 5: Search strip */}
+      <SearchStrip />
+      <FreeVsPaidStrip />
 
       {/* Layer 6: Main editorial content */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-7 md:pt-9">
@@ -236,7 +238,7 @@ const Index = () => {
                   to="/subscribe"
                   className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
                 >
-                  Get your analyst →
+                  Get Intelligence →
                 </Link>
               </div>
             </div>

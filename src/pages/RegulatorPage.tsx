@@ -91,7 +91,7 @@ const RegulatorPage = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{regulator.name} ({regulator.abbreviation}) — Regulator Profile | EndUserPrivacy</title>
+        <title>{regulator.name}{regulator.abbreviation && !regulator.name.includes(`(${regulator.abbreviation})`) ? ` (${regulator.abbreviation})` : ''} — Regulator Profile | EndUserPrivacy</title>
         <meta name="description" content={`${regulator.name} (${regulator.abbreviation}) profile: ${regulator.country} data protection authority. Legislation, enforcement updates, complaint portal, and monitoring tier.`} />
       </Helmet>
       <Topbar />

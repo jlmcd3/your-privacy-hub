@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,8 +20,6 @@ const comparisonRows = [
   { feature: "Full 8-section weekly brief analysis",                free: false, pro: true  },
   { feature: "Enforcement table & trend signals",                   free: false, pro: true  },
   { feature: "Why This Matters — action items",                     free: false, pro: true  },
-  { feature: "AskPrivacy AI — 3 questions/month",                   free: true,  pro: true  },
-  { feature: "AskPrivacy AI — 50 questions/month",                  free: false, pro: true  },
   { feature: "On-demand personalized reports (6/month)",            free: false, pro: true  },
   { feature: "Additional report credit bundles ($5/$15/$20)",       free: false, pro: true  },
   { feature: "Brief written for your industry",                     free: false, pro: true  },
@@ -38,7 +36,7 @@ const planFeatures = [
   "All 10 specialist report tracks included",
   "6 on-demand personalized reports/month included",
   "Extra reports: $5 for 1, $15 for 5, $20 for 10",
-  "AskPrivacy AI — 50 questions/month",
+  
   "Priority Monday delivery",
   "Sector-specific compliance action items",
   "Historical continuity (issue tracking across weeks)",
@@ -48,6 +46,11 @@ const Subscribe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const bJurisdiction = searchParams.get("j");
+  const bIndustry = searchParams.get("i");
+  const bTopics = searchParams.get("t") ? searchParams.get("t")!.split(",").filter(Boolean) : [];
+  const fromBuilder = !!bJurisdiction;
   const [error, setError] = useState<string | null>(null);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
@@ -86,16 +89,35 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Your analyst is $20/month.
+            The library is free.<br />Intelligence is $20/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
             Everything you can browse and read is always free — including the weekly
-            Intelligence Brief. Your analyst is something different: a brief re-written
+            Intelligence Brief. Intelligence is something different: a brief re-written
             every Monday specifically for your industry, your jurisdictions, and your
             compliance obligations. That's $20/month.
           </p>
         </div>
       </div>
+
+      {fromBuilder && (
+        <div className="max-w-3xl mx-auto px-4 pt-6 pb-2">
+          <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4
+            flex items-start gap-3">
+            <span className="text-green-600 text-[18px] flex-shrink-0 mt-0.5">✓</span>
+            <div>
+              <p className="font-bold text-navy text-[14px] mb-0.5">
+                Your Intelligence Report is configured and ready.
+              </p>
+              <p className="text-[13px] text-slate">
+                {[bJurisdiction, bIndustry, ...bTopics.slice(0, 2)]
+                  .filter(Boolean).join(" · ")}.
+                {" "}Subscribe to receive it.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Pro Brief Preview */}
       <div className="max-w-3xl mx-auto px-4 pt-12 pb-8">
@@ -187,7 +209,7 @@ const Subscribe = () => {
           })}
         </div>
         <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
-          Each track is included in your $20/month Premium subscription. Select as many as you need — your analyst synthesizes all selected tracks into one weekly brief.
+          Each track is included in your $20/month Premium subscription. Select as many as you need — your Intelligence brief synthesizes all selected tracks into one weekly brief.
         </p>
         <div className="text-center mt-6">
           <button
@@ -490,7 +512,7 @@ const Subscribe = () => {
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
               <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium — $20/month</p>
-              <p className="text-[12px] text-sky mb-4">Your analyst. Written for your world.</p>
+              <p className="text-[12px] text-sky mb-4">Intelligence. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
                   "Everything in Free",
@@ -564,7 +586,7 @@ const Subscribe = () => {
               $20<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <p className="text-blue-200 text-sm mb-5">
-              Your analyst. Written for your industry and jurisdiction. Every Monday.
+              Intelligence. Written for your industry and jurisdiction. Every Monday.
             </p>
             <ul className="space-y-2.5 mb-6">
               {[

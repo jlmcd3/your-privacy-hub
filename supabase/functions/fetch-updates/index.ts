@@ -5,6 +5,64 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// ── DPA Source-to-Jurisdiction Mapping ──────────────────────────────
+const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
+  // EU Member State DPAs
+  'garante.it':             ['italy'],
+  'gpdp.it':                ['italy'],
+  'garanteprivacy.it':      ['italy'],
+  'cnil.fr':                ['france'],
+  'bfdi.bund.de':           ['germany'],
+  'datenschutz.de':         ['germany'],
+  'datenschutz-hamburg.de': ['germany'],
+  'aepd.es':                ['spain'],
+  'apd-gba.be':             ['belgium'],
+  'gegevensbeschermingsautoriteit.be': ['belgium'],
+  'autoriteitpersoonsgegevens.nl':     ['netherlands'],
+  'datatilsynet.dk':        ['denmark'],
+  'datatilsynet.no':        ['norway'],
+  'imy.se':                 ['sweden'],
+  'tietosuoja.fi':          ['finland'],
+  'andmekaitse.ee':         ['estonia'],
+  'dvi.gov.lv':             ['latvia'],
+  'ada.lt':                 ['lithuania'],
+  'uodo.gov.pl':            ['poland'],
+  'dataprotection.ie':      ['ireland'],
+  'dpc.ie':                 ['ireland'],
+  'edps.europa.eu':         ['eu'],
+  'edpb.europa.eu':         ['eu'],
+  // UK
+  'ico.org.uk':             ['united-kingdom'],
+  // US Federal
+  'ftc.gov':                ['us-federal'],
+  'hhs.gov':                ['us-federal'],
+  'consumerfinance.gov':    ['us-federal'],
+  'congress.gov':           ['us-federal'],
+  'federalregister.gov':    ['us-federal'],
+  // US State AGs and specific regulators
+  'oag.ca.gov':             ['california'],
+  'cppa.ca.gov':            ['california'],
+  'texasattorneygeneral.gov': ['texas'],
+  'ag.ny.gov':              ['new-york'],
+  'oag.dc.gov':             ['district-of-columbia'],
+  // Other global authorities
+  'gdprhub.eu':             [],
+  'pdpc.gov.sg':            ['singapore'],
+  'oaic.gov.au':            ['australia'],
+  'priv.gc.ca':             ['canada'],
+  'anpd.gov.br':            ['brazil'],
+  'pipc.go.kr':             ['south-korea'],
+  'ppc.go.jp':              ['japan'],
+};
+
+const extractDomain = (url: string): string => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+
 const RSS_SOURCES = [
   // ── EU & UK ────────────────────────────────────────────────────────
   {
@@ -726,6 +784,39 @@ function isRelevant(title: string, description: string): boolean {
   return matchCount >= 2;
 }
 
+// ── Throttle & Retry helpers ───────────────────────────────────────
+const AI_CALL_DELAY_MS = 500; // minimum ms between Anthropic calls
+let lastAiCallTime = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const elapsed = now - lastAiCallTime;
+  if (elapsed < AI_CALL_DELAY_MS) {
+    await new Promise(r => setTimeout(r, AI_CALL_DELAY_MS - elapsed));
+  }
+  lastAiCallTime = Date.now();
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    await throttle();
+    const res = await fetch(url, init);
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
+      const backoff = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
+      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    return res;
+  }
+  throw new Error("Max retries exceeded");
+}
+
 // ── AI Summary Generation ──────────────────────────────────────────
 async function generateAISummary(
   title: string,
@@ -734,7 +825,7 @@ async function generateAISummary(
   apiKey: string
 ): Promise<Record<string, unknown> | null> {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -820,7 +911,33 @@ STEP 2 — If relevant, return this JSON:
 
   "risk_level": "Low | Medium | High | Critical — how urgently does this require
     compliance action? Low = monitoring only, Medium = review within quarter,
-    High = review within weeks, Critical = immediate legal exposure"
+    High = review within weeks, Critical = immediate legal exposure",
+
+  "affected_jurisdictions": [
+    "Array of jurisdiction slugs whose compliance obligations are materially",
+    "affected by this development, even if not the direct subject.",
+    "Use these exact slug values:",
+    "'eu', 'united-kingdom', 'us-federal', 'california', 'texas',",
+    "'new-york', 'france', 'germany', 'italy', 'spain', 'ireland',",
+    "'netherlands', 'poland', 'belgium', 'denmark', 'sweden', 'norway',",
+    "'australia', 'canada', 'brazil', 'singapore', 'japan', 'south-korea'",
+    "Return empty array [] if impact is narrowly jurisdictional.",
+    "Think beyond the direct parties. An EDPB decision binds all EU member states.",
+    "A new FTC enforcement theory affects every US-facing company.",
+    "A California AG action directly affects only California but often signals",
+    "what other state AGs will pursue. Be specific and conservative — only include",
+    "jurisdictions with real compliance implications, not tangential mentions."
+  ],
+
+  "precedent_novelty": "Classify: new_theory | confirms_existing | reverses_prior | routine.
+    new_theory: introduces a legal theory or interpretation not previously established
+      (e.g., first time legitimate interest denied for behavioral ads).
+    confirms_existing: consistent with prior decisions and established practice.
+    reverses_prior: contradicts or narrows a prior position.
+    routine: standard enforcement action, no novel legal reasoning.
+    Focus on whether the legal reasoning is new. A record-breaking fine is not
+    novel if the theory is established. A small fine for a new type of violation
+    is novel. Default to 'routine' when uncertain."
 }`,
           },
         ],
@@ -829,8 +946,11 @@ STEP 2 — If relevant, return this JSON:
     });
 
     if (!res.ok) {
+      if (res.status === 429) {
+        throw new Error("ANTHROPIC_429");
+      }
       console.error(`Anthropic API error: ${res.status}`);
-      return null;
+      throw new Error(`ANTHROPIC_${res.status}`);
     }
 
     const data = await res.json();
@@ -874,7 +994,7 @@ async function translateToEnglish(
   apiKey: string
 ): Promise<{ title: string; description: string }> {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -916,8 +1036,15 @@ Deno.serve(async (req) => {
   // No auth check needed — this function only ingests public RSS data
   // and writes via service_role. Rate-limited by cron schedule.
 
-  const results = { inserted: 0, skipped: 0, summaries_generated: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+
+  // Pre-fetch URLs that already have AI summaries to avoid redundant API calls
+  const { data: existingRows } = await supabase
+    .from("updates")
+    .select("url")
+    .not("ai_summary", "is", null);
+  const existingUrlsWithSummary = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
   for (const source of RSS_SOURCES) {
     try {
@@ -949,6 +1076,16 @@ Deno.serve(async (req) => {
         const category = categorize(title, description, source.defaultCategory);
         const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
 
+        // Compute direct_jurisdictions from DPA source mapping
+        const sourceDomain = extractDomain(link);
+        const directJurisdictions: string[] = [];
+        for (const [domain, jurisdictions] of Object.entries(DPA_SOURCE_JURISDICTIONS)) {
+          if (sourceDomain.includes(domain) && jurisdictions.length > 0) {
+            directJurisdictions.push(...jurisdictions);
+            break;
+          }
+        }
+
         const row: Record<string, unknown> = {
           title: title.slice(0, 400),
           summary: description.slice(0, 500) || null,
@@ -961,14 +1098,27 @@ Deno.serve(async (req) => {
           regulator: source.regulator,
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
+          direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
         };
 
-        // Generate AI summary if API key is available
-        if (anthropicKey) {
-          const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
-          if (aiSummary) {
-            row.ai_summary = aiSummary;
-            results.summaries_generated++;
+        // Generate AI summary only if key available AND article doesn't already have one
+        if (anthropicKey && !existingUrlsWithSummary.has(link)) {
+          try {
+            const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
+            if (aiSummary) {
+              row.ai_summary = aiSummary;
+              // Extract affected_jurisdictions from AI response into dedicated column
+              if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
+                row.affected_jurisdictions = aiSummary.affected_jurisdictions;
+              }
+              results.summaries_generated++;
+            }
+          } catch (enrichErr: any) {
+            if (enrichErr.message?.includes("ANTHROPIC_429")) {
+              results.enrichment_failed_429++;
+            } else {
+              results.enrichment_failed_other++;
+            }
           }
         }
 
@@ -978,12 +1128,27 @@ Deno.serve(async (req) => {
 
         if (error) results.skipped++;
         else results.inserted++;
+
+        // Prevent Anthropic API rate limiting — small delay between AI calls
+        if (anthropicKey) {
+          await new Promise((r) => setTimeout(r, 300));
+        }
       }
     } catch (e: any) {
       results.errors.push(`${source.source}: ${e.message}`);
     }
   }
 
+
+  // Log ingestion run — non-blocking
+  await supabase.from("ingestion_runs").insert({
+    run_at: new Date().toISOString(),
+    inserted: results.inserted,
+    skipped: results.skipped,
+    summaries_generated: results.summaries_generated,
+    enrichment_failed_429: results.enrichment_failed_429,
+    enrichment_failed_other: results.enrichment_failed_other,
+  }).catch(() => {});
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },

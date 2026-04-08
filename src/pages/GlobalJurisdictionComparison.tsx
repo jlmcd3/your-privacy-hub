@@ -222,7 +222,7 @@ export default function GlobalJurisdictionComparison() {
               to="/subscribe"
               className="flex-shrink-0 text-[12px] font-bold text-amber-900 bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline transition-colors whitespace-nowrap"
             >
-              Get your analyst →
+              Get Intelligence →
             </Link>
           </div>
 
@@ -232,7 +232,7 @@ export default function GlobalJurisdictionComparison() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-primary">
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 w-48">
+                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 w-48 sticky left-0 z-10 bg-primary">
                     Dimension
                   </th>
                   {cols.map(j => (
@@ -246,7 +246,7 @@ export default function GlobalJurisdictionComparison() {
               <tbody>
                 {DIMENSIONS.map((dim, i) => (
                   <tr key={dim.key} className={i % 2 === 0 ? "bg-background" : "bg-muted/40"}>
-                    <td className="px-5 py-3 text-[12px] font-semibold text-muted-foreground border-r border-border">
+                    <td className={`px-5 py-3 text-[12px] font-semibold text-muted-foreground border-r border-border sticky left-0 z-10 ${i % 2 === 0 ? "bg-background" : "bg-muted/40"}`}>
                       {dim.label}
                     </td>
                     {cols.map(j => (

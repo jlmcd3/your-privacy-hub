@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AskPrivacy from "@/components/ai/AskPrivacy";
+
+import OnboardingModal from "@/components/OnboardingModal";
 import ReportCredits from "@/components/dashboard/ReportCredits";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
@@ -88,9 +89,10 @@ const Dashboard = () => {
   const [reportsUsed, setReportsUsed] = useState(0);
   const [bonusCredits, setBonusCredits] = useState(0);
   const [genPhase, setGenPhase] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const GEN_PHASES = [
-    "Your analyst is reading this week's regulatory developments…",
+    "Your Intelligence brief is reading this week's regulatory developments…",
     "Analyzing implications for your industry…",
     "Writing your personalized brief…",
   ];
@@ -124,12 +126,16 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date")
+      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
+        // Show onboarding for free users who haven't completed it
+        if (!premium && !(data as any)?.onboarding_complete) {
+          setShowOnboarding(true);
+        }
         setBonusCredits((data as any)?.bonus_report_credits ?? 0);
 
         // Use profiles.monthly_reports_used (server-side source of truth)
@@ -202,6 +208,9 @@ const Dashboard = () => {
     // Free users still see the brief — but with Pro upsell
     return (
       <div className="min-h-screen bg-background">
+        {showOnboarding && user && (
+          <OnboardingModal userId={user.id} onComplete={() => setShowOnboarding(false)} />
+        )}
         <Helmet>
           <title>Intelligence Dashboard | EndUserPrivacy</title>
         </Helmet>
@@ -318,9 +327,51 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="mt-8">
-                <AskPrivacy isPremium={false} />
+              {/* Intelligence Builder CTA */}
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5
+                flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="font-bold text-navy text-[15px] mb-1">
+                    Want this analysis written for your practice?
+                  </p>
+                  <p className="text-[13px] text-slate">
+                    Build a personalized Intelligence Report in 60 seconds — free to configure.
+                  </p>
+                </div>
+                <Link to="/get-intelligence"
+                  className="flex-shrink-0 bg-navy text-white font-bold text-[13px] px-5 py-2.5
+                    rounded-xl hover:opacity-90 no-underline transition-all">
+                  Get Your Intelligence →
+                </Link>
               </div>
+
+              {/* Intelligence Preview — blurred industry example */}
+              <section className="mt-10 bg-card rounded-2xl border border-border overflow-hidden">
+                <div className="px-6 pt-5 pb-3">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">Intelligence Preview</p>
+                  <h3 className="font-display font-bold text-foreground text-[17px] mb-1">What your personalized brief would add</h3>
+                  <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                    Financial Services example
+                  </span>
+                </div>
+                <div className="px-6 pb-2">
+                  <div className="filter blur-sm pointer-events-none select-none">
+                    <p className="text-[14px] text-muted-foreground leading-relaxed">
+                      For financial services firms operating in the EU and US, this week's EDPB guidance on legitimate interest carries direct implications for behavioral targeting in banking apps. The simultaneous FTC enforcement action against data brokers creates a convergent compliance obligation: your existing Article 6(1)(f) assessment likely needs updating before Q3, and your US data broker contracts should be reviewed against the FTC's newly articulated unreasonable data practice standard. Suggested action: instruct counsel to cross-map your current LIA documentation against both the EDPB guidance and FTC criteria before your next DPO review.
+                    </p>
+                  </div>
+                </div>
+                <div className="px-6 pb-6 pt-3 text-center">
+                  <p className="text-[12px] text-muted-foreground mb-3 italic">This analysis is written for your industry and jurisdictions</p>
+                  <Link
+                    to="/subscribe"
+                    className="inline-block bg-amber-400 text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:bg-amber-300 transition-colors"
+                  >
+                    Get Intelligence — $20/month →
+                  </Link>
+                </div>
+              </section>
+
             </>
           )}
         </div>
@@ -366,7 +417,7 @@ const Dashboard = () => {
               Your personalized brief is ready to generate
             </h3>
             <p className="text-muted-foreground text-[14px] mb-5 max-w-md mx-auto">
-              You've set your preferences. Your analyst is ready to write your first brief. This takes about 30 seconds.
+              You've set your preferences. Your Intelligence brief is ready to generate. This takes about 30 seconds.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
@@ -713,9 +764,6 @@ const Dashboard = () => {
 
 
 
-            <div className="mt-8">
-              <AskPrivacy isPremium={isPremium === true} />
-            </div>
           </>
         )}
       </div>

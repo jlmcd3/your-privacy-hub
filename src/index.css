@@ -82,18 +82,18 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: 'Montserrat', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
 
 /* Custom utility classes */
 .font-display {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: 'Montserrat', system-ui, sans-serif;
 }
 
 .font-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Montserrat', system-ui, sans-serif;
 }
 
 /* Animations */

@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 
 const SECTIONS = [
   {
@@ -90,20 +91,13 @@ export default function CookieConsentPage() {
         {recentUpdates.length > 0 && (
           <section className="mt-12 border-t border-border pt-8">
             <h2 className="font-display text-[18px] text-foreground mb-4">Recent Cookie & Consent Updates</h2>
-            <div className="space-y-3">
+            <div className="divide-y divide-border">
               {recentUpdates.map(u => (
-                <a
+                <ArticleCard
                   key={u.id}
-                  href={u.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-muted/40 no-underline transition-all"
-                >
-                  <div>
-                    <p className="text-[13px] font-medium text-foreground">{u.title}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{u.source_name} · {new Date(u.published_at).toLocaleDateString()}</p>
-                  </div>
-                </a>
+                  item={{ id: u.id, title: u.title, source_name: u.source_name, published_at: u.published_at, source_url: u.url } as ArticleItem}
+                  variant="compact"
+                />
               ))}
             </div>
           </section>

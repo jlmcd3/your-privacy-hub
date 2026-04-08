@@ -50,7 +50,7 @@ const SampleBrief = () => {
               📋 SAMPLE INTELLIGENCE BRIEF
             </span>
             <h1 className="font-display text-[28px] md:text-[36px] font-extrabold text-white leading-tight mb-4">
-              See what your analyst sends you every Monday
+              See what your Intelligence brief sends you every Monday
             </h1>
             <p className="text-slate-light text-[15px] max-w-[600px] mx-auto mb-6">
               This is a representative sample of the full Intelligence Brief —
@@ -64,6 +64,12 @@ const SampleBrief = () => {
                 className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
               >
                 Get Premium →
+              </Link>
+              <Link to="/get-intelligence"
+                className="inline-flex items-center gap-2 border-2 border-white text-white
+                  font-bold text-[14px] px-6 py-3 rounded-xl hover:bg-white/10 transition-colors
+                  no-underline mt-3">
+                Build a brief like this for your practice →
               </Link>
               <Link
                 to="/"

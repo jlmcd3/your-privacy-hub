@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Lock, ExternalLink } from "lucide-react";
+import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -128,33 +129,20 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
                 Live
               </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recentArticles.map((a) => (
-                <a
+            <div className="divide-y divide-fog">
+              {recentArticles.map((a: any) => (
+                <ArticleCard
                   key={a.id}
-                  href={a.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-4 p-4 bg-card border border-fog rounded-xl hover:border-silver hover:shadow-eup-sm transition-all no-underline"
-                >
-                  {a.image_url && (
-                    <img
-                      src={a.image_url}
-                      alt=""
-                      className="w-20 h-14 object-cover rounded-lg flex-shrink-0"
-                      onError={(e) => { (e.target as HTMLImageElement).src = "https://picsum.photos/seed/privacy/400/200"; }}
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate mb-1">
-                      {a.source_name} · {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </div>
-                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2">
-                      {a.title}
-                    </p>
-                  </div>
-                  <ExternalLink size={12} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
-                </a>
+                  item={{
+                    id: a.id,
+                    title: a.title,
+                    summary: a.summary,
+                    source_name: a.source_name,
+                    published_at: a.published_at,
+                    source_url: a.url,
+                  } as ArticleItem}
+                  variant="full"
+                />
               ))}
             </div>
           </div>

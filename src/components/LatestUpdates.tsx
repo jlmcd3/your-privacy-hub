@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import AISummaryPanel from "@/components/AISummaryPanel";
 import NewsfeedList from "@/components/NewsfeedList";
+import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import { Link } from "react-router-dom";
 
 interface Update {
@@ -29,7 +28,7 @@ const FALLBACK_UPDATES: Update[] = [
     url: "https://edpb.europa.eu",
     source_name: "EDPB",
     source_domain: "edpb.europa.eu",
-    image_url: "https://picsum.photos/seed/european-union/400/200",
+    image_url: null,
     category: "eu-uk",
     regulator: "European Data Protection Board",
     published_at: new Date("2026-03-10").toISOString(),
@@ -42,7 +41,7 @@ const FALLBACK_UPDATES: Update[] = [
     url: "https://texasattorneygeneral.gov",
     source_name: "Texas AG",
     source_domain: "texasattorneygeneral.gov",
-    image_url: "https://picsum.photos/seed/legal-court/400/200",
+    image_url: null,
     category: "enforcement",
     regulator: "Texas Attorney General",
     published_at: new Date("2026-03-09").toISOString(),
@@ -55,7 +54,7 @@ const FALLBACK_UPDATES: Update[] = [
     url: "https://ico.org.uk",
     source_name: "ICO",
     source_domain: "ico.org.uk",
-    image_url: "https://picsum.photos/seed/artificial-intelligence/400/200",
+    image_url: null,
     category: "ai-privacy",
     regulator: "UK Information Commissioner's Office",
     published_at: new Date("2026-03-08").toISOString(),
@@ -68,7 +67,7 @@ const FALLBACK_UPDATES: Update[] = [
     url: "https://cppa.ca.gov",
     source_name: "CPPA",
     source_domain: "cppa.ca.gov",
-    image_url: "https://picsum.photos/seed/state-capitol/400/200",
+    image_url: null,
     category: "us-states",
     regulator: "California Privacy Protection Agency",
     published_at: new Date("2026-03-07").toISOString(),
@@ -81,7 +80,7 @@ const FALLBACK_UPDATES: Update[] = [
     url: "https://ftc.gov",
     source_name: "FTC",
     source_domain: "ftc.gov",
-    image_url: "https://picsum.photos/seed/federal-law/400/200",
+    image_url: null,
     category: "us-federal",
     regulator: "Federal Trade Commission",
     published_at: new Date("2026-03-06").toISOString(),
@@ -94,7 +93,7 @@ const FALLBACK_UPDATES: Update[] = [
     url: "https://gov.br/anpd",
     source_name: "ANPD",
     source_domain: "gov.br",
-    image_url: "https://picsum.photos/seed/global-privacy/400/200",
+    image_url: null,
     category: "global",
     regulator: "Brazil ANPD",
     published_at: new Date("2026-03-05").toISOString(),
@@ -112,40 +111,12 @@ const FILTERS = [
   { key: "ai-privacy", label: "🤖 AI & Privacy" },
 ];
 
-const CATEGORY_TAG: Record<string, { label: string; classes: string }> = {
-  "eu-uk":       { label: "🇪🇺 EU & UK",      classes: "bg-blue/10 text-blue" },
-  "us-federal":  { label: "🇺🇸 U.S. Federal", classes: "bg-navy/10 text-navy" },
-  "us-states":   { label: "🗺️ U.S. States",   classes: "bg-accent/10 text-accent" },
-  "enforcement": { label: "⚖️ Enforcement",   classes: "bg-red-50 text-red-600" },
-  "ai-privacy":  { label: "🤖 AI & Privacy",  classes: "bg-purple-50 text-purple-600" },
-  "global":      { label: "🌐 Global",         classes: "bg-fog text-slate" },
-};
-
-const FALLBACK_IMAGES: Record<string, string> = {
-  "us-federal":  "https://picsum.photos/seed/federal-law/400/200",
-  "us-states":   "https://picsum.photos/seed/state-capitol/400/200",
-  "eu-uk":       "https://picsum.photos/seed/european-union/400/200",
-  "global":      "https://picsum.photos/seed/global-privacy/400/200",
-  "enforcement": "https://picsum.photos/seed/legal-court/400/200",
-  "ai-privacy":  "https://picsum.photos/seed/artificial-intelligence/400/200",
-};
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 const SkeletonCard = () => (
   <div className="flex gap-4 p-4 bg-card border border-fog rounded-2xl animate-pulse">
-    <div className="w-[100px] h-[68px] rounded-lg bg-muted flex-shrink-0" />
     <div className="flex-1 space-y-2">
       <div className="h-3 w-1/3 bg-muted rounded" />
       <div className="h-4 w-full bg-muted rounded" />
       <div className="h-3 w-2/3 bg-muted rounded" />
-      <div className="h-3 w-1/2 bg-muted rounded" />
     </div>
   </div>
 );
@@ -174,7 +145,7 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("*")
+          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary")
           .order("published_at", { ascending: false })
           .limit(50);
 
@@ -198,7 +169,6 @@ const LatestUpdates = () => {
 
   let visibleUpdates = updates;
   if (!isPro && user) {
-    // Free registered: last 21 days, no count limit
     visibleUpdates = updates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
   }
 
@@ -211,8 +181,6 @@ const LatestUpdates = () => {
   const FREE_LIMIT = 15;
   const showPaywall = !user && filtered.length > FREE_LIMIT;
   const displayArticles = !user ? filtered.slice(0, FREE_LIMIT) : filtered;
-
-  const tag = (cat: string) => CATEGORY_TAG[cat] || CATEGORY_TAG["global"];
 
   return (
     <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
@@ -262,52 +230,12 @@ const LatestUpdates = () => {
                   <>
                     <NewsfeedList
                       articles={displayArticles}
-                      renderArticle={(u, _i, isPremium) => (
-                        <a
+                      renderArticle={(u) => (
+                        <ArticleCard
                           key={u.id}
-                          href={u.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group flex gap-4 p-4 bg-card border border-fog rounded-2xl hover:border-silver hover:shadow-eup-sm hover:-translate-y-px transition-all no-underline cursor-pointer"
-                        >
-                          <div className="w-[100px] h-[68px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                            <img
-                              src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src =
-                                  FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
-                                {u.source_domain || u.source_name}
-                              </span>
-                              <span className="text-silver text-[10px]">·</span>
-                              <span className="text-[11px] text-slate/70">
-                                {formatDate(u.published_at)}
-                              </span>
-                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${tag(u.category).classes}`}>
-                                {tag(u.category).label}
-                              </span>
-                            </div>
-                            <h3 className="font-display text-[14px] leading-snug text-navy group-hover:text-blue transition-colors mb-1.5 line-clamp-2">
-                              {u.title}
-                            </h3>
-                            {u.summary && (
-                              <p className="text-[12px] text-slate leading-relaxed line-clamp-2">
-                                {u.summary}
-                              </p>
-                            )}
-                            <AISummaryPanel summary={u.ai_summary || null} isPremium={isPremium} />
-                          </div>
-                          <div className="flex-shrink-0 pt-1">
-                            <ExternalLink size={13} className="text-slate/40 group-hover:text-blue transition-colors" />
-                          </div>
-                        </a>
+                          item={{...u, source_url: u.url} as unknown as ArticleItem}
+                          variant='full'
+                        />
                       )}
                     />
 
