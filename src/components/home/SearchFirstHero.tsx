@@ -38,7 +38,7 @@ export default function SearchFirstHero() {
     <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-3 md:py-4">
         {/* Stats strip */}
-        <div className="flex items-center justify-center gap-2 mb-2 text-[9px] tracking-wider text-white/60 flex-wrap">
+        <div className="flex items-center justify-center gap-2 mb-2 text-[13px] md:text-[15px] tracking-wide text-white/60 flex-wrap">
           <span className="font-bold text-white/90">Global privacy law, tracked daily and customized for you.</span>
         </div>
 
