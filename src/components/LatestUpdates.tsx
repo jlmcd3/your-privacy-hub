@@ -178,9 +178,10 @@ const LatestUpdates = () => {
   const now = new Date();
   const twentyOneDaysAgo = new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000);
 
-  let visibleUpdates = updates;
+  // Filter out articles marked as skipped/irrelevant by AI
+  let visibleUpdates = updates.filter(u => !u.ai_summary?.skipped);
   if (!isPro && user) {
-    visibleUpdates = updates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
+    visibleUpdates = visibleUpdates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
   }
 
   const filtered =
