@@ -216,7 +216,22 @@ const LatestUpdates = () => {
               <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap sm:ml-4">View all →</a>
             </div>
             <div className="flex gap-2 flex-wrap items-center">
-              {FILTERS.map((f) => (
+              {LOCATION_FILTERS.map((f) => (
+                <span
+                  key={f.key}
+                  onClick={() => setActiveFilter(f.key)}
+                  className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
+                    activeFilter === f.key
+                      ? "bg-white/15 text-white border-white/20 font-semibold"
+                      : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {f.label}
+                </span>
+              ))}
+              {/* Divider between location and topic filters */}
+              <span className="w-px h-5 bg-white/20 mx-1" />
+              {TOPIC_FILTERS.map((f) => (
                 <span
                   key={f.key}
                   onClick={() => setActiveFilter(f.key)}
