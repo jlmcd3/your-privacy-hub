@@ -467,11 +467,11 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 />
               </div>
 
-              <div className={compact ? "text-[9px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[10px] font-bold uppercase tracking-widest text-slate-light mb-1"}>
+              <div className={compact ? "text-[8px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[10px] font-bold uppercase tracking-widest text-slate-light mb-1"}>
                 The globe chose
               </div>
               <h3 className={compact
-                ? "font-display font-bold text-white text-lg mb-1"
+                ? "font-display font-bold text-white text-sm mb-1"
                 : "font-display font-bold text-navy text-2xl mb-2"
               }>{picked.name}</h3>
 
