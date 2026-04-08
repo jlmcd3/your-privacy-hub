@@ -203,8 +203,8 @@ const LatestUpdates = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
-          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="flex items-center gap-4 justify-between w-full sm:w-auto">
+          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
                   Latest Privacy Updates
@@ -213,7 +213,7 @@ const LatestUpdates = () => {
                   Updated daily
                 </p>
               </div>
-              <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap sm:ml-4">View all →</a>
+              <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap">View all →</a>
             </div>
             <div className="flex gap-2 flex-wrap items-center">
               {LOCATION_FILTERS.map((f) => (
@@ -229,7 +229,6 @@ const LatestUpdates = () => {
                   {f.label}
                 </span>
               ))}
-              {/* Divider between location and topic filters */}
               <span className="w-px h-5 bg-white/20 mx-1" />
               {TOPIC_FILTERS.map((f) => (
                 <span
