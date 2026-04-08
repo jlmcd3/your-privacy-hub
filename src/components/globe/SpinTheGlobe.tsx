@@ -453,17 +453,17 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         {phase === "result" && picked && (
           <div className="w-full animate-fade-up">
             <div className={compact
-              ? "bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm p-4 text-center w-full"
+              ? "bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm p-3 text-center w-full"
               : "bg-white border border-fog rounded-2xl shadow-eup-md p-6 text-center w-full"
             }>
-              {/* Country flag */}
-              <div className="flex justify-center mb-2">
+              {/* Country flag — smaller in compact */}
+              <div className="flex justify-center mb-1">
                 <img
                   src={`https://flagcdn.com/96x72/${picked.cc}.png`}
                   srcSet={`https://flagcdn.com/192x144/${picked.cc}.png 2x`}
                   alt={`${picked.name} flag`}
-                  width={compact ? "64" : "96"} height={compact ? "48" : "72"}
-                  className="rounded-md shadow-eup-sm"
+                  width={compact ? "36" : "96"} height={compact ? "27" : "72"}
+                  className="rounded-sm shadow-eup-sm"
                 />
               </div>
 
