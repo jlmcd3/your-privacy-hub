@@ -56,6 +56,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         items: [
+          { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
           { icon: "🗺️", label: "US State Privacy Laws", href: "/us-state-privacy-laws" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
@@ -63,7 +64,6 @@ const navItems: NavItem[] = [
           { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
           { icon: "🏢", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
-          { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
           { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
         ],
       },
