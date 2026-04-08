@@ -14,7 +14,6 @@ import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
-import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
