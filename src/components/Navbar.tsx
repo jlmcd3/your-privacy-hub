@@ -13,6 +13,7 @@ interface NavItem {
     divider?: boolean;
     items: {
       icon: string;
+      iconImage?: string;
       label: string;
       badge?: string;
       badgeGreen?: boolean;
