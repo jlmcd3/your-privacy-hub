@@ -77,7 +77,7 @@ export default function ThisWeekInPrivacy() {
           <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
             ✨TOP PRIVACY NEWS THIS WEEK
           </span>
-          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {report.date}
           </span>
         </div>
