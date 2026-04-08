@@ -14,7 +14,6 @@ import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
-import TopicLaneScroller from "@/components/home/TopicLaneScroller";
 import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
@@ -61,7 +60,7 @@ function formatDate(iso: string): string {
 
 const Index = () => {
   const [regionItems, setRegionItems] = useState<any[]>([]);
-  const [laneData, setLaneData] = useState<Record<string, any[]>>({});
+  
 
   useEffect(() => {
     async function load() {
@@ -92,38 +91,6 @@ const Index = () => {
         }));
       setRegionItems(regions);
 
-      // Topic lanes
-      function dedupeById<T extends { id: string }>(arr: T[]): T[] {
-        const seen = new Set<string>();
-        return arr.filter(item => {
-          if (seen.has(item.id)) return false;
-          seen.add(item.id);
-          return true;
-        });
-      }
-
-      const lanes: Record<string, any[]> = {};
-      const laneConfigs = [
-        { key: "ai-privacy", take: 8 },
-        { key: "adtech", take: 8 },
-        { key: "us-states", take: 8 },
-        { key: "enforcement", take: 8 },
-        { key: "eu-uk", take: 8 },
-      ];
-      for (const lane of laneConfigs) {
-        lanes[lane.key] = dedupeById(articles.filter((a) => a.category === lane.key))
-          .slice(0, lane.take)
-          .map((a) => ({
-            id: a.id,
-            title: a.title,
-            summary: a.summary,
-            category: a.category,
-            published_at: a.published_at,
-            source_name: a.source_name,
-            source_url: a.url,
-          }));
-      }
-      setLaneData(lanes);
     }
     load();
   }, []);
@@ -168,42 +135,8 @@ const Index = () => {
             {/* Region strip */}
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
 
-            {/* Ad — below editorial content */}
-            <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper hidden" />
-
-            {/* Topic lanes */}
-            {(laneData["ai-privacy"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="AI & Privacy" laneIcon="🤖" laneHref="/category/ai-privacy"
-                cards={laneData["ai-privacy"]}
-              />
-            )}
-            {(laneData["adtech"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="AdTech & Advertising Privacy" laneIcon="📡" laneHref="/category/adtech"
-                cards={laneData["adtech"]}
-              />
-            )}
-            <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3 hidden" />
-            {(laneData["us-states"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="U.S. State Developments" laneIcon="🗺️" laneHref="/category/us-states"
-                cards={laneData["us-states"]}
-              />
-            )}
-            {(laneData["enforcement"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="Enforcement Actions" laneIcon="⚖️" laneHref="/category/enforcement"
-                cards={laneData["enforcement"]}
-                isEnforcement
-              />
-            )}
-            {(laneData["eu-uk"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="EU & UK Developments" laneIcon="🇪🇺" laneHref="/category/eu-uk"
-                cards={laneData["eu-uk"]}
-              />
-            )}
+            {/* Latest Updates — replaces topic lane strips */}
+            <LatestUpdates />
           </div>
 
           {/* === RIGHT SIDEBAR === */}
@@ -266,8 +199,6 @@ const Index = () => {
       <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper hidden" />
       <EmailSignup variant="strip" />
 
-
-      <LatestUpdates />
       <div className="h-px bg-fog" />
       <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
       <div className="h-px bg-fog" />
