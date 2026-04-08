@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1235 650">
+  <rect width="1235" height="650" fill="#B22234"/>
+  <g fill="#fff">
+    <rect y="50" width="1235" height="50"/>
+    <rect y="150" width="1235" height="50"/>
+    <rect y="250" width="1235" height="50"/>
+    <rect y="350" width="1235" height="50"/>
+    <rect y="450" width="1235" height="50"/>
+    <rect y="550" width="1235" height="50"/>
+  </g>
+  <rect width="494" height="350" fill="#3C3B6E"/>
+  <g fill="#fff" font-size="20">
+    <!-- Row 1: 6 stars -->
+    <circle cx="42" cy="33" r="13"/><circle cx="122" cy="33" r="13"/><circle cx="202" cy="33" r="13"/>
+    <circle cx="282" cy="33" r="13"/><circle cx="362" cy="33" r="13"/><circle cx="442" cy="33" r="13"/>
+    <!-- Row 2: 5 stars -->
+    <circle cx="82" cy="68" r="13"/><circle cx="162" cy="68" r="13"/><circle cx="242" cy="68" r="13"/>
+    <circle cx="322" cy="68" r="13"/><circle cx="402" cy="68" r="13"/>
+    <!-- Row 3: 6 stars -->
+    <circle cx="42" cy="103" r="13"/><circle cx="122" cy="103" r="13"/><circle cx="202" cy="103" r="13"/>
+    <circle cx="282" cy="103" r="13"/><circle cx="362" cy="103" r="13"/><circle cx="442" cy="103" r="13"/>
+    <!-- Row 4: 5 stars -->
+    <circle cx="82" cy="138" r="13"/><circle cx="162" cy="138" r="13"/><circle cx="242" cy="138" r="13"/>
+    <circle cx="322" cy="138" r="13"/><circle cx="402" cy="138" r="13"/>
+    <!-- Row 5: 6 stars -->
+    <circle cx="42" cy="173" r="13"/><circle cx="122" cy="173" r="13"/><circle cx="202" cy="173" r="13"/>
+    <circle cx="282" cy="173" r="13"/><circle cx="362" cy="173" r="13"/><circle cx="442" cy="173" r="13"/>
+    <!-- Row 6: 5 stars -->
+    <circle cx="82" cy="208" r="13"/><circle cx="162" cy="208" r="13"/><circle cx="242" cy="208" r="13"/>
+    <circle cx="322" cy="208" r="13"/><circle cx="402" cy="208" r="13"/>
+    <!-- Row 7: 6 stars -->
+    <circle cx="42" cy="243" r="13"/><circle cx="122" cy="243" r="13"/><circle cx="202" cy="243" r="13"/>
+    <circle cx="282" cy="243" r="13"/><circle cx="362" cy="243" r="13"/><circle cx="442" cy="243" r="13"/>
+    <!-- Row 8: 5 stars -->
+    <circle cx="82" cy="278" r="13"/><circle cx="162" cy="278" r="13"/><circle cx="242" cy="278" r="13"/>
+    <circle cx="322" cy="278" r="13"/><circle cx="402" cy="278" r="13"/>
+    <!-- Row 9: 6 stars -->
+    <circle cx="42" cy="313" r="13"/><circle cx="122" cy="313" r="13"/><circle cx="202" cy="313" r="13"/>
+    <circle cx="282" cy="313" r="13"/><circle cx="362" cy="313" r="13"/><circle cx="442" cy="313" r="13"/>
+  </g>
+</svg>
