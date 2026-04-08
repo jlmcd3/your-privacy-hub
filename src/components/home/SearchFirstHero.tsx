@@ -36,10 +36,10 @@ const panels = [
 export default function SearchFirstHero() {
   return (
     <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
-      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-3 md:py-4">
+      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-3 md:py-4 shadow-none opacity-100 rounded-none">
         {/* Stats strip */}
         <div className="flex items-center justify-center gap-2 mb-5 text-[0.85em] md:text-[0.95em] tracking-wide text-white/60 flex-wrap">
-          <span className="font-bold text-white/90">Global privacy law, tracked daily and customized for you.</span>
+          <span className="font-bold text-white/90 text-2xl shadow-lg opacity-75">Global privacy law. Daily tracking. Personalized reports.</span>
         </div>
 
         {/* Panels + Globe side by side */}
