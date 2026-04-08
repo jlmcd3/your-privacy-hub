@@ -60,7 +60,7 @@ function formatDate(iso: string): string {
 
 const Index = () => {
   const [regionItems, setRegionItems] = useState<any[]>([]);
-  const [laneData, setLaneData] = useState<Record<string, any[]>>({});
+  
 
   useEffect(() => {
     async function load() {
