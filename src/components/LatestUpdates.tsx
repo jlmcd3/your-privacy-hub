@@ -186,7 +186,12 @@ const LatestUpdates = () => {
   const filtered =
     activeFilter === "all"
       ? visibleUpdates
-      : visibleUpdates.filter((u) => u.category === activeFilter);
+      : visibleUpdates.filter((u) => {
+          // Match against category or topic_tags
+          if (u.category === activeFilter) return true;
+          if ((u as any).topic_tags?.includes(activeFilter)) return true;
+          return false;
+        });
 
   // Anonymous limit
   const FREE_LIMIT = 15;
