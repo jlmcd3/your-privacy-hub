@@ -199,7 +199,7 @@ const LatestUpdates = () => {
   const displayArticles = !user ? filtered.slice(0, FREE_LIMIT) : filtered;
 
   return (
-    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
+    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 bg-paper md:px-0 py-0">
       <div className="max-w-[1280px] mx-auto">
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
