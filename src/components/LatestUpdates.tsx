@@ -101,14 +101,25 @@ const FALLBACK_UPDATES: Update[] = [
   },
 ];
 
-const FILTERS = [
+const LOCATION_FILTERS = [
   { key: "all", label: "All" },
   { key: "us-federal", label: "🇺🇸 U.S. Federal" },
   { key: "us-states", label: "🗺️ U.S. States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
   { key: "global", label: "🌐 Global" },
+];
+
+const TOPIC_FILTERS = [
   { key: "enforcement", label: "⚖️ Enforcement" },
   { key: "ai-privacy", label: "🤖 AI & Privacy" },
+  { key: "adtech", label: "📡 AdTech & Advertising" },
+  { key: "health", label: "🏥 Health & HIPAA" },
+  { key: "children", label: "👶 Children's Privacy" },
+  { key: "data-breaches", label: "🔒 Data Breaches" },
+  { key: "cross-border", label: "🌐 Cross-Border Transfers" },
+  { key: "biometric", label: "🧬 Biometric Data" },
+  { key: "employee-privacy", label: "💼 Employee Privacy" },
+  { key: "cookie-consent", label: "🍪 Cookie Consent" },
 ];
 
 const SkeletonCard = () => (
