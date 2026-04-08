@@ -80,8 +80,8 @@ export default {
         },
       },
       fontFamily: {
-        display: ["'DM Serif Display'", "Georgia", "serif"],
-        body: ["'DM Sans'", "system-ui", "sans-serif"],
+        display: ["'Montserrat'", "system-ui", "sans-serif"],
+        body: ["'Montserrat'", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
