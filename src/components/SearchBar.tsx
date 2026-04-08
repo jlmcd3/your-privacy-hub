@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 
 const QUICK_LINKS = [
   { label: "🇪🇺 GDPR",         href: "/jurisdiction/european-union" },
-  { label: "🇺🇸 US State Laws", href: "/us-state-privacy-laws"       },
+  { label: "🇺🇸 US Privacy Laws", href: "/us-privacy-laws"       },
   { label: "🤖 AI Act",         href: "/topics/ai-governance"         },
   { label: "⚖️ Enforcement",    href: "/enforcement-tracker"          },
   { label: "🌐 Global Laws",    href: "/global-privacy-laws"          },

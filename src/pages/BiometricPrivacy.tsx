@@ -112,8 +112,8 @@ export default function BiometricPrivacyPage() {
               <p className="text-[13px] font-semibold text-foreground">📊 Enforcement Tracker</p>
               <p className="text-[11px] text-muted-foreground">Search biometric enforcement actions</p>
             </Link>
-            <Link to="/us-state-privacy-laws" className="p-4 rounded-xl border border-border hover:bg-muted/40 no-underline transition-all">
-              <p className="text-[13px] font-semibold text-foreground">🏛️ U.S. State Privacy Laws</p>
+            <Link to="/us-privacy-laws" className="p-4 rounded-xl border border-border hover:bg-muted/40 no-underline transition-all">
+              <p className="text-[13px] font-semibold text-foreground">🇺🇸 U.S. Privacy Laws</p>
               <p className="text-[11px] text-muted-foreground">Compare biometric provisions across states</p>
             </Link>
             <Link to="/ai-privacy-regulations" className="p-4 rounded-xl border border-border hover:bg-muted/40 no-underline transition-all">

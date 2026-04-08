@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
           { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/us-state-privacy-laws" },
+          { icon: "👶", label: "Children's Privacy", href: "/us-privacy-laws" },
           { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
@@ -57,11 +57,10 @@ const navItems: NavItem[] = [
       {
         items: [
           { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
-          { icon: "🗺️", label: "US State Privacy Laws", href: "/us-state-privacy-laws" },
+          { icon: "🇺🇸", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
           { icon: "🏢", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
           { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },

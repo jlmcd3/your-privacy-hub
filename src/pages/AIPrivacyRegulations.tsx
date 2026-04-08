@@ -32,7 +32,7 @@ const AIPrivacyRegulations = () => (
     ]}
     relatedLinks={[
       { label: "GDPR Enforcement", href: "/gdpr-enforcement" },
-      { label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
+      { label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
       { label: "Global Privacy Laws", href: "/global-privacy-laws" },
       { label: "Enforcement Tracker", href: "/enforcement-tracker" },
     ]}
