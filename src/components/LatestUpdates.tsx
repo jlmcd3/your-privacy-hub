@@ -206,11 +206,11 @@ const LatestUpdates = () => {
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="flex items-center gap-4 justify-between w-full sm:w-auto">
               <div>
-                <h2 className="font-display text-[16px] text-white tracking-tight">
+                <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
                   Latest Privacy Updates
                 </h2>
                 <p className="text-[12px] text-slate-light">
-                  Updated daily · AI-summarized
+                  Updated daily
                 </p>
               </div>
               <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap sm:ml-4">View all →</a>
