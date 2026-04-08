@@ -69,10 +69,11 @@ const App = () => (
           <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
           <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
           <Route path="/enforcement-tracker" element={<EnforcementTrackerPage />} />
-          <Route path="/us-state-privacy-laws" element={<USStatePrivacyLaws />} />
+          <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
+          <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
+          <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
           <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
           <Route path="/ai-privacy-regulations" element={<AIPrivacyRegulations />} />
-          <Route path="/us-federal-privacy-law" element={<USFederalPrivacyLaw />} />
           <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
           <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
           <Route path="/jurisdictions" element={<JurisdictionsHub />} />
