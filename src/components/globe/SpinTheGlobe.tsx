@@ -486,11 +486,11 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 <p className="text-slate text-[13px] leading-relaxed mb-5 italic">"{picked.tagline}"</p>
               )}
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <Link
                   to={`/jurisdiction/${picked.slug}`}
                   className={compact
-                    ? "block bg-white text-navy font-bold text-[11px] py-2 px-4 rounded-lg no-underline hover:bg-white/90 transition-all"
+                    ? "block bg-white text-navy font-bold text-[10px] py-1.5 px-3 rounded-lg no-underline hover:bg-white/90 transition-all"
                     : "block bg-gradient-to-br from-navy to-blue text-white font-bold text-sm py-3 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
                   }
                 >
@@ -499,7 +499,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 <button
                   onClick={handleReset}
                   className={compact
-                    ? "text-white/60 text-[11px] font-medium hover:text-white transition-colors cursor-pointer bg-transparent border-none py-0.5"
+                    ? "text-white/60 text-[10px] font-medium hover:text-white transition-colors cursor-pointer bg-transparent border-none py-0.5"
                     : "text-slate text-[13px] font-medium hover:text-navy transition-colors cursor-pointer bg-transparent border-none py-1"
                   }
                 >
