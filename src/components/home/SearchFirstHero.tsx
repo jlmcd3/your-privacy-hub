@@ -38,7 +38,7 @@ export default function SearchFirstHero() {
     <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-3 md:py-4">
         {/* Stats strip */}
-        <div className="flex items-center justify-center gap-2 mb-5 text-[13px] md:text-[15px] tracking-wide text-white/60 flex-wrap">
+        <div className="flex items-center justify-center gap-2 mb-5 text-[0.85em] md:text-[0.95em] tracking-wide text-white/60 flex-wrap">
           <span className="font-bold text-white/90">Global privacy law, tracked daily and customized for you.</span>
         </div>
 
@@ -53,20 +53,20 @@ export default function SearchFirstHero() {
               >
                 <div className="flex items-center gap-1.5">
                   <p.icon className={`w-3.5 h-3.5 flex-shrink-0 ${p.iconColor}`} />
-                  <h2 className="font-display text-[16px] md:text-[20px] text-white font-bold leading-tight">
+                  <h2 className="font-display text-[1em] md:text-[1.25em] text-white font-bold leading-tight">
                     {p.title}
                   </h2>
                 </div>
-                <p className="text-[11px] md:text-[13px] text-white/90 font-semibold leading-snug">
+                <p className="text-[0.7em] md:text-[0.8em] text-white/90 font-semibold leading-snug">
                   {p.subtitle}
                 </p>
-                <p className="text-[12px] md:text-[14px] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
+                <p className="text-[0.75em] md:text-[0.875em] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
                   {p.copy}
                 </p>
                 <div className="flex items-center justify-end">
                   <Link
                     to={p.cta.href}
-                    className="text-[12px] md:text-[14px] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
+                    className="text-[0.75em] md:text-[0.875em] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
                   >
                     {p.cta.label}
                   </Link>
@@ -75,7 +75,7 @@ export default function SearchFirstHero() {
             ))}
             <Link
               to="/get-intelligence"
-              className="inline-flex items-center justify-center gap-2 bg-amber-400 text-navy font-bold text-[12px] md:text-[13px] px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors no-underline mt-2"
+              className="inline-flex items-center justify-center gap-2 bg-amber-400 text-navy font-bold text-[0.75em] md:text-[0.8em] px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors no-underline mt-2"
             >
               Get Your Privacy Intelligence →
             </Link>
