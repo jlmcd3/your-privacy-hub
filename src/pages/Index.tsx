@@ -132,8 +132,6 @@ const Index = () => {
             {/* Choose your mode — shown after first editorial content */}
             <ChooseYourMode />
 
-            {/* Region strip */}
-            {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
 
             {/* Latest Updates — replaces topic lane strips */}
             <LatestUpdates />
