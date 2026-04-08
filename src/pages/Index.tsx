@@ -129,6 +129,8 @@ const Index = () => {
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
 
+            {/* Choose your mode — shown after first editorial content */}
+            <ChooseYourMode />
 
 
             {/* Latest Updates — replaces topic lane strips */}
