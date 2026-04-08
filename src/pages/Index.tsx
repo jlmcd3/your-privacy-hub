@@ -91,38 +91,6 @@ const Index = () => {
         }));
       setRegionItems(regions);
 
-      // Topic lanes
-      function dedupeById<T extends { id: string }>(arr: T[]): T[] {
-        const seen = new Set<string>();
-        return arr.filter(item => {
-          if (seen.has(item.id)) return false;
-          seen.add(item.id);
-          return true;
-        });
-      }
-
-      const lanes: Record<string, any[]> = {};
-      const laneConfigs = [
-        { key: "ai-privacy", take: 8 },
-        { key: "adtech", take: 8 },
-        { key: "us-states", take: 8 },
-        { key: "enforcement", take: 8 },
-        { key: "eu-uk", take: 8 },
-      ];
-      for (const lane of laneConfigs) {
-        lanes[lane.key] = dedupeById(articles.filter((a) => a.category === lane.key))
-          .slice(0, lane.take)
-          .map((a) => ({
-            id: a.id,
-            title: a.title,
-            summary: a.summary,
-            category: a.category,
-            published_at: a.published_at,
-            source_name: a.source_name,
-            source_url: a.url,
-          }));
-      }
-      setLaneData(lanes);
     }
     load();
   }, []);
