@@ -38,6 +38,40 @@ async function fetchWithRetry(
   throw new Error("Max retries exceeded");
 }
 
+// Patterns that indicate a breach announcement rather than regulatory/legal content
+const BREACH_ANNOUNCEMENT_PATTERNS = [
+  /\bannounce[sd]?\s+data\s+breach/i,
+  /\bdata\s+breach\s+(affects?|impacts?|exposes?|compromises?)\b/i,
+  /\bdata\s+breach\s+more\s+than\s+\d/i,
+  /\b\d[\d,]+\s+(individuals?|patients?|customers?|records?|accounts?)\s+(affected|exposed|compromised|impacted)/i,
+  /\bnotif(y|ies|ied|ying)\s+(patients?|customers?|individuals?|consumers?)\s+(of|about)\s+(a\s+)?data\s+breach/i,
+  /\bdata\s+breach\s+(notification|notice|disclosure|report)\b/i,
+  /\bsecurity\s+incident\s+(notification|notice|disclosure)\b/i,
+  /\b(ransomware|phishing|malware)\s+attack\b/i,
+  /\bunauthorized\s+access\s+to\s+(patient|customer|employee|personal)\b/i,
+  /\bbreach\s+(litigation|settlement|class\s+action)\b/i,
+  /\bsettlement\s+(reached|approved|agreement)\b/i,
+  /\bpays?\s+\$[\d.]+[MBK]?\s+to\s+settle\b/i,
+  /\bdata\s+breach\s+settlement\b/i,
+];
+
+const REGULATORY_OVERRIDE_PATTERNS = [
+  /\b(new|proposed|enacted|signed|passed|amended)\s+(law|bill|regulation|statute|act|rule|ordinance)\b/i,
+  /\b(rulemaking|notice of proposed|final rule|enforcement action by)\b/i,
+  /\b(guidance|guidelines?|opinion|recommendation)\s+(issued|published|released|adopted)\s+by\b/i,
+  /\b(dpa|regulator|authority|commission|commissioner)\s+(issues?|publishes?|announces?|releases?|adopts?)\b/i,
+  /\b(fine[sd]?|penalt(y|ies)|sanction[sed]?)\s+(by|from|imposed)\b/i,
+  /\b(gdpr|ccpa|cpra|tdpsa|vcdpa|ctdpa|coppa|hipaa|lgpd|pipl|pdpa|dpdp|ai act|duaa)\s+(enforcement|compliance|violation|fine|amendment|update)\b/i,
+];
+
+function isBreachAnnouncement(title: string, summary: string | null): boolean {
+  const text = title + " " + (summary || "");
+  const isBreach = BREACH_ANNOUNCEMENT_PATTERNS.some(p => p.test(text));
+  if (!isBreach) return false;
+  const isRegulatory = REGULATORY_OVERRIDE_PATTERNS.some(p => p.test(text));
+  return !isRegulatory;
+}
+
 async function generateAISummary(
   title: string,
   summary: string | null,
@@ -66,7 +100,10 @@ Title: ${title}
 Description: ${summary || "No description."}
 Source: ${sourceName || "Unknown"}
 
-If not about privacy regulation, return: {"skip": true}
+IMPORTANT: Only articles about privacy LAWS, STATUTES, REGULATIONS, ENFORCEMENT ACTIONS by regulators, and COMPLIANCE OBLIGATIONS are relevant.
+Articles that merely announce a data breach, security incident, or lawsuit settlement WITHOUT discussing the underlying law or regulatory response are NOT relevant.
+
+If not about privacy regulation/law, return: {"skip": true}
 
 Otherwise return JSON with fields:
 - why_it_matters (string)
