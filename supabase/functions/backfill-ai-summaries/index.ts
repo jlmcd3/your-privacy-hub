@@ -192,6 +192,16 @@ Deno.serve(async (req) => {
     skipped = 0;
 
   for (const article of articles ?? []) {
+    // Pre-filter: skip breach announcements that aren't about regulation
+    if (isBreachAnnouncement(article.title, article.summary)) {
+      await supabase
+        .from("updates")
+        .update({ ai_summary: { skipped: true, reason: "breach_announcement" } })
+        .eq("id", article.id);
+      skipped++;
+      continue;
+    }
+
     const aiSummary = await generateAISummary(
       article.title,
       article.summary,
@@ -211,7 +221,7 @@ Deno.serve(async (req) => {
         .eq("id", article.id);
       skipped++;
     }
-    await new Promise((r) => setTimeout(r, 500)); // rate limit between articles
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   return new Response(
