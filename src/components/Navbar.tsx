@@ -13,6 +13,7 @@ interface NavItem {
     divider?: boolean;
     items: {
       icon: string;
+      iconImage?: string;
       label: string;
       badge?: string;
       badgeGreen?: boolean;
@@ -57,7 +58,7 @@ const navItems: NavItem[] = [
       {
         items: [
           { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
-          { icon: "🇺🇸", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
+          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
@@ -168,7 +169,11 @@ const Navbar = () => {
                             className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                             onClick={() => setOpenDropdown(null)}
                           >
-                            <span className="text-base">{sub.icon}</span>
+                            {sub.iconImage ? (
+                              <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
+                            ) : (
+                              <span className="text-base">{sub.icon}</span>
+                            )}
                             <span className="flex-1 font-medium">{sub.label}</span>
                             {sub.badge && (
                               <span
@@ -278,7 +283,11 @@ const Navbar = () => {
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                           onClick={() => setMobileOpen(false)}
                         >
-                          <span>{sub.icon}</span>
+                          {sub.iconImage ? (
+                            <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
+                          ) : (
+                            <span>{sub.icon}</span>
+                          )}
                           <span className="flex-1">{sub.label}</span>
                           {sub.badge && (
                             <span
