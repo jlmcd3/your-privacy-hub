@@ -168,42 +168,8 @@ const Index = () => {
             {/* Region strip */}
             {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
 
-            {/* Ad — below editorial content */}
-            <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper hidden" />
-
-            {/* Topic lanes */}
-            {(laneData["ai-privacy"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="AI & Privacy" laneIcon="🤖" laneHref="/category/ai-privacy"
-                cards={laneData["ai-privacy"]}
-              />
-            )}
-            {(laneData["adtech"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="AdTech & Advertising Privacy" laneIcon="📡" laneHref="/category/adtech"
-                cards={laneData["adtech"]}
-              />
-            )}
-            <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3 hidden" />
-            {(laneData["us-states"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="U.S. State Developments" laneIcon="🗺️" laneHref="/category/us-states"
-                cards={laneData["us-states"]}
-              />
-            )}
-            {(laneData["enforcement"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="Enforcement Actions" laneIcon="⚖️" laneHref="/category/enforcement"
-                cards={laneData["enforcement"]}
-                isEnforcement
-              />
-            )}
-            {(laneData["eu-uk"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="EU & UK Developments" laneIcon="🇪🇺" laneHref="/category/eu-uk"
-                cards={laneData["eu-uk"]}
-              />
-            )}
+            {/* Latest Updates — replaces topic lane strips */}
+            <LatestUpdates />
           </div>
 
           {/* === RIGHT SIDEBAR === */}
