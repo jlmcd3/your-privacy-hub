@@ -784,8 +784,16 @@ function isRelevant(title: string, description: string): boolean {
   const text = (title + " " + (description || "")).toLowerCase();
   const titleLower = title.toLowerCase();
 
+  // Check for breach announcements first — these are NOT regulatory content
+  const isBreach = BREACH_ANNOUNCEMENT_PATTERNS.some(p => p.test(title + " " + (description || "")));
+  if (isBreach) {
+    // Only keep if it's actually about a regulation/enforcement response to breaches
+    const isRegulatory = REGULATORY_OVERRIDE_PATTERNS.some(p => p.test(title + " " + (description || "")));
+    if (!isRegulatory) return false;
+  }
+
   const TITLE_KEYWORDS = [
-    "privacy", "data protection", "gdpr", "ccpa", "cpra", "data breach",
+    "privacy", "data protection", "gdpr", "ccpa", "cpra",
     "enforcement", "fine", "penalty", "regulator", "dpa", "ico ", "edpb",
     "cnil", "ftc ", "cppa", "lgpd", "pipl", "ai act", "biometric",
     "personal data", "surveillance law", "data security", "privacy law",
@@ -794,12 +802,13 @@ function isRelevant(title: string, description: string): boolean {
     "real-time bidding", "behavioral advertising", "commercial surveillance",
     "third-party cookie", "privacy sandbox", "consent management", "iab ",
     "ad targeting", "tracking pixel",
-    // New regulators
     "cppa", "texas ag", "colorado ag", "hhs ocr", "garante", "aepd",
     "dutch ap", "bfdi", "gdprhub", "convention 108",
-    // New law/framework terms
     "tdpsa", "ctdpa", "hipaa enforcement", "data (use and access)",
     "digital markets act", "dma ", "eur-lex",
+    // Regulatory-specific terms (exclude generic breach terms)
+    "new law", "new regulation", "proposed rule", "final rule",
+    "rulemaking", "legislative", "statute", "enacted", "compliance",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;
