@@ -397,7 +397,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       )}
 
       {compact && (
-        <p className="text-white/70 text-[11px] font-medium mb-2 tracking-wide uppercase">DISCOVER A JURISDICTION, SPIN THE GLOBE</p>
+        <p className="text-white/70 text-[10px] font-medium mb-1.5 tracking-wide uppercase text-center">Discover A Jurisdiction, Spin The Globe</p>
       )}
 
       {/* Globe */}
@@ -417,7 +417,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {/* Controls */}
       <div className={compact
-        ? "mt-3 flex flex-col items-center justify-start w-full max-w-[240px]"
+        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[240px] min-h-[100px]"
         : "mt-6 min-h-[200px] flex flex-col items-center justify-start w-full max-w-sm px-4"
       }>
 
@@ -453,25 +453,25 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         {phase === "result" && picked && (
           <div className="w-full animate-fade-up">
             <div className={compact
-              ? "bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm p-4 text-center w-full"
+              ? "bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm p-3 text-center w-full"
               : "bg-white border border-fog rounded-2xl shadow-eup-md p-6 text-center w-full"
             }>
-              {/* Country flag */}
-              <div className="flex justify-center mb-2">
+              {/* Country flag — smaller in compact */}
+              <div className="flex justify-center mb-1">
                 <img
                   src={`https://flagcdn.com/96x72/${picked.cc}.png`}
                   srcSet={`https://flagcdn.com/192x144/${picked.cc}.png 2x`}
                   alt={`${picked.name} flag`}
-                  width={compact ? "64" : "96"} height={compact ? "48" : "72"}
-                  className="rounded-md shadow-eup-sm"
+                  width={compact ? "36" : "96"} height={compact ? "27" : "72"}
+                  className="rounded-sm shadow-eup-sm"
                 />
               </div>
 
-              <div className={compact ? "text-[9px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[10px] font-bold uppercase tracking-widest text-slate-light mb-1"}>
+              <div className={compact ? "text-[8px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[10px] font-bold uppercase tracking-widest text-slate-light mb-1"}>
                 The globe chose
               </div>
               <h3 className={compact
-                ? "font-display font-bold text-white text-lg mb-1"
+                ? "font-display font-bold text-white text-sm mb-1"
                 : "font-display font-bold text-navy text-2xl mb-2"
               }>{picked.name}</h3>
 
@@ -486,11 +486,11 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 <p className="text-slate text-[13px] leading-relaxed mb-5 italic">"{picked.tagline}"</p>
               )}
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <Link
                   to={`/jurisdiction/${picked.slug}`}
                   className={compact
-                    ? "block bg-white text-navy font-bold text-[11px] py-2 px-4 rounded-lg no-underline hover:bg-white/90 transition-all"
+                    ? "block bg-white text-navy font-bold text-[10px] py-1.5 px-3 rounded-lg no-underline hover:bg-white/90 transition-all"
                     : "block bg-gradient-to-br from-navy to-blue text-white font-bold text-sm py-3 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
                   }
                 >
@@ -499,7 +499,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 <button
                   onClick={handleReset}
                   className={compact
-                    ? "text-white/60 text-[11px] font-medium hover:text-white transition-colors cursor-pointer bg-transparent border-none py-0.5"
+                    ? "text-white/60 text-[10px] font-medium hover:text-white transition-colors cursor-pointer bg-transparent border-none py-0.5"
                     : "text-slate text-[13px] font-medium hover:text-navy transition-colors cursor-pointer bg-transparent border-none py-1"
                   }
                 >
