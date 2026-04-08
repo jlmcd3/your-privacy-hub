@@ -58,7 +58,7 @@ const navItems: NavItem[] = [
       {
         items: [
           { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
-          { icon: "🇺🇸", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
+          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
