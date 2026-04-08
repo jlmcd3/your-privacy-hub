@@ -80,9 +80,6 @@ export default function ThisWeekInPrivacy() {
           <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full">
             {report.date}
           </span>
-          <span className="text-[9px] font-bold uppercase tracking-wider text-blue-300 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
-            AI Synthesis
-          </span>
         </div>
 
         <h2 className="font-display font-bold text-[18px] md:text-[20px] leading-snug mb-3">
