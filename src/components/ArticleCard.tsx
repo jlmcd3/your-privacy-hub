@@ -131,7 +131,7 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
             </span>
           )}
           {weight && WEIGHT_COLORS[weight] && (
-            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
+            <span className={`font-mono-code text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
               {weight}
             </span>
           )}

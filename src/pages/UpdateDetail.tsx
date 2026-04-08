@@ -302,7 +302,7 @@ const UpdateDetail = () => {
                 {article.topic_tags.map((t) => (
                   <span
                     key={t}
-                    className="text-[11px] bg-muted text-muted-foreground px-2.5 py-1 rounded-full"
+                    className="font-mono-code text-[11px] bg-muted text-muted-foreground px-2.5 py-1 rounded-full"
                   >
                     {t}
                   </span>

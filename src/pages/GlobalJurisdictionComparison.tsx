@@ -140,7 +140,7 @@ function Cell({ type, value, slug, dimKey }: { type: string; value: any; slug: s
                   <Check className="w-4 h-4 text-green-500" />
                 </a>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs font-mono">
+              <TooltipContent side="top" className="max-w-xs text-xs font-mono-code">
                 <p>{statute.cite}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
               </TooltipContent>
