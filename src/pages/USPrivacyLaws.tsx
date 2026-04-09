@@ -218,6 +218,93 @@ const USPrivacyLaws = () => {
           ))}
         </div>
 
+        {/* ── Section: State Authorities Directory ── */}
+        <div id="state-authorities" className="mt-12 mb-10 scroll-mt-24">
+          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-4">U.S. State Privacy Authority Directory</h2>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 items-center mb-6 p-4 bg-card rounded-xl border border-border shadow-sm">
+            <div className="relative flex-1 min-w-[200px] max-w-[400px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <input
+                className="w-full py-2 pl-10 pr-4 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
+                placeholder="Search states, authorities, or statutes…"
+                value={authSearch}
+                onChange={(e) => setAuthSearch(e.target.value)}
+              />
+            </div>
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">Status:</span>
+            {["All", "Enacted", "Pending", "None"].map((f) => (
+              <span
+                key={f}
+                onClick={() => setAuthStatusFilter(f)}
+                className={`px-3.5 py-1.5 text-[12.5px] font-medium border rounded-full cursor-pointer transition-all ${
+                  authStatusFilter === f
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-muted-foreground border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                }`}
+              >
+                {f}
+              </span>
+            ))}
+            <span className="ml-auto text-[12px] text-muted-foreground">{filteredAuthorities.length} results</span>
+          </div>
+
+          {/* Table */}
+          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead className="bg-muted">
+                  <tr>
+                    {["State", "Authority", "Statute", "Status", "Effective Date", "Links"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAuthorities.map((state: any) => (
+                    <tr key={state.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-3 text-[13px] text-foreground font-medium border-b border-border whitespace-nowrap">
+                        <Link
+                          to={`/jurisdiction/${slugify(state.state)}`}
+                          className="text-primary hover:underline font-medium no-underline"
+                        >
+                          {state.state}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
+                        <div className="font-medium">{state.authority_name}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{state.authority_type}</div>
+                      </td>
+                      <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
+                        {state.statute_name || <span className="text-muted-foreground italic">None</span>}
+                      </td>
+                      <td className="px-4 py-3 border-b border-border">
+                        <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${authorityStatusClass(state.statute_status)}`}>
+                          {state.statute_status || "None"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[13px] text-foreground border-b border-border whitespace-nowrap">
+                        {state.effective_date || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-[13px] border-b border-border">
+                        <div className="flex gap-2">
+                          <a href={state.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Website ↗</a>
+                          {state.complaint_portal && (
+                            <a href={state.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Complaints ↗</a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         {/* ── Section 3: Recent Developments ── */}
         {recentArticles.length > 0 && (
           <div className="mt-12 mb-8">
