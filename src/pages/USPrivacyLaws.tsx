@@ -342,9 +342,9 @@ const USPrivacyLaws = () => {
             ))}
           </div>
           <div className="mt-6">
-            <Link to="/us-state-privacy-authorities" className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline">
-              Browse All U.S. State Authorities →
-            </Link>
+            <a href="#state-authorities" className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline">
+              Browse All U.S. State Authorities ↑
+            </a>
           </div>
         </div>
 

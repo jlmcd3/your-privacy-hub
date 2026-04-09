@@ -44,7 +44,7 @@ const Footer = () => {
 
           <div>
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Directories</h4>
-            <Link to="/us-state-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">U.S. State Authorities</Link>
+            <Link to="/us-privacy-laws#state-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">U.S. State Authorities</Link>
             <Link to="/global-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Global DPA Directory</Link>
           </div>
 
