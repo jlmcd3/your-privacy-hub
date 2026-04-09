@@ -74,6 +74,17 @@ const authorityStatusClass = (s: string | null) => {
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [federalExpanded, setFederalExpanded] = useState(false);
+  const [authSearch, setAuthSearch] = useState("");
+  const [authStatusFilter, setAuthStatusFilter] = useState("All");
+
+  const filteredAuthorities = usStates.filter((state: any) => {
+    const matchesSearch = !authSearch ||
+      state.state.toLowerCase().includes(authSearch.toLowerCase()) ||
+      state.authority_name.toLowerCase().includes(authSearch.toLowerCase()) ||
+      (state.statute_name && state.statute_name.toLowerCase().includes(authSearch.toLowerCase()));
+    const matchesStatus = authStatusFilter === "All" || state.statute_status === authStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   useEffect(() => {
     async function load() {
