@@ -259,12 +259,11 @@ const LatestUpdates = () => {
                   <>
                     <NewsfeedList
                       articles={displayArticles}
-                      renderArticle={(u, _i, feedIsPremium) => (
+                      renderArticle={(u) => (
                         <ArticleCard
                           key={u.id}
                           item={{...u, source_url: u.url} as unknown as ArticleItem}
                           variant='full'
-                          isPremium={isPro || feedIsPremium}
                         />
                       )}
                     />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ExternalLink, Sparkles, Lock } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,31 +187,14 @@ const CategoryPage = () => {
           {!loading && updates.length > 0 && (
             <NewsfeedList
               articles={updates}
-              renderArticle={(u, _i, isPremium) => {
-                const enriched = !!(u as any).ai_summary?.why_it_matters;
-                return (
+              renderArticle={(u, _i, isPremium) => (
                 <a
                   key={u.id}
                   href={u.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group flex gap-4 p-4 md:p-5 rounded-xl hover:shadow-md hover:-translate-y-px transition-all no-underline cursor-pointer relative ${
-                    enriched
-                      ? 'border-l-[3px]'
-                      : 'bg-card border border-border hover:border-primary/30'
-                  }`}
-                  style={enriched ? { borderLeftColor: '#4A6FA5', backgroundColor: '#F0F4FF' } : undefined}
+                  className="group flex gap-4 p-4 md:p-5 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:-translate-y-px transition-all no-underline cursor-pointer"
                 >
-                  {/* Intelligence badge */}
-                  {enriched && (
-                    <div className="absolute top-2 right-2">
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold font-sans"
-                        style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
-                        <Sparkles className="w-3 h-3" />
-                        Intelligence
-                      </span>
-                    </div>
-                  )}
                   <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
                     <img
                       src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
@@ -223,7 +206,7 @@ const CategoryPage = () => {
                       }}
                     />
                   </div>
-                  <div className="flex-1 min-w-0 pr-24">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1 flex-wrap">
                       <span className="font-medium text-foreground/70">
                         {u.source_domain || u.source_name}
@@ -245,43 +228,13 @@ const CategoryPage = () => {
                         {stripHtml(u.summary)}
                       </p>
                     )}
-                    {/* Enriched "Why it matters" with free/premium differentiation */}
-                    {enriched && (
-                      isPremium ? (
-                        <p className="text-[13px] text-emerald-700 leading-relaxed line-clamp-2 mt-1 italic">
-                          <span className="font-semibold not-italic">Why it matters:</span>{' '}
-                          {stripHtml((u as any).ai_summary.why_it_matters)}
-                        </p>
-                      ) : (
-                        <div className="mt-1 relative" onClick={(e) => e.preventDefault()}>
-                          <p className="text-[13px] text-emerald-700 leading-relaxed line-clamp-2 italic">
-                            <span className="font-semibold not-italic">Why it matters:</span>{' '}
-                            {stripHtml((u as any).ai_summary.why_it_matters)}
-                          </p>
-                          <div
-                            className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none"
-                            style={{ background: 'linear-gradient(to bottom, transparent, #F0F4FF)' }}
-                          />
-                          <Link
-                            to="/subscribe"
-                            className="flex items-center gap-1.5 mt-1 text-[12px] font-semibold no-underline transition-colors"
-                            style={{ color: '#4A6FA5' }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Lock className="w-3.5 h-3.5" />
-                            Upgrade to Intelligence to read the full analysis
-                          </Link>
-                        </div>
-                      )
-                    )}
-                    {!enriched && <AISummaryPanel summary={(u as any).ai_summary || null} isPremium={isPremium} />}
+                    <AISummaryPanel summary={u.ai_summary || null} isPremium={isPremium} />
                   </div>
                   <div className="hidden md:flex items-center text-muted-foreground group-hover:text-primary transition-colors">
                     <ExternalLink className="w-4 h-4" />
                   </div>
                 </a>
-                );
-              }}
+              )}
             />
           )}
         </div>
