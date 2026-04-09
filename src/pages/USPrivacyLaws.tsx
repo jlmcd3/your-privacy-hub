@@ -58,11 +58,18 @@ const STATE_SECTIONS = [
 ];
 
 const RELATED_LINKS = [
-  { label: "U.S. State Privacy Authority Directory", href: "/us-state-privacy-authorities" },
+  { label: "U.S. State Privacy Authority Directory", href: "#state-authorities" },
   { label: "U.S. State Law Comparison", href: "/compare/us-states" },
   { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
   { label: "Enforcement Tracker", href: "/enforcement-tracker" },
 ];
+
+const authorityStatusClass = (s: string | null) => {
+  if (!s) return "bg-muted text-muted-foreground";
+  if (s === "Enacted") return "bg-green-100 text-green-800";
+  if (s === "Pending") return "bg-yellow-100 text-yellow-800";
+  return "bg-muted text-muted-foreground";
+};
 
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
