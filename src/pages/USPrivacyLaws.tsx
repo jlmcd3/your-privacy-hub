@@ -190,7 +190,7 @@ const USPrivacyLaws = () => {
         </div>
 
         {/* ── Divider ── */}
-        <div className="relative flex items-center my-10">
+        <div id="state-laws" className="relative flex items-center my-10 scroll-mt-24">
           <div className="flex-1 border-t border-fog" />
           <span className="px-4 text-[13px] font-semibold text-slate bg-paper">🗺️ State Privacy Laws</span>
           <div className="flex-1 border-t border-fog" />
