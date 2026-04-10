@@ -329,7 +329,7 @@ const USPrivacyLaws = () => {
 
         {/* ── Section 3: Recent Developments ── */}
         {recentArticles.length > 0 && (
-          <div className="mt-12 mb-8">
+          <div id="recent-developments" className="mt-12 mb-8 scroll-mt-24">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="font-display text-xl text-navy">Recent U.S. Privacy Developments</h2>
               <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
