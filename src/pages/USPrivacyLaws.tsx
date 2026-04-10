@@ -151,7 +151,7 @@ const USPrivacyLaws = () => {
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10 md:py-14">
 
         {/* ── Section 1: Federal Framework ── */}
-        <div className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10">
+        <div id="federal-framework" className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10 scroll-mt-24">
           <h2 className="font-display text-[20px] md:text-[24px] text-white mb-2 flex items-center gap-2">
             🏛️ The Federal Privacy Framework
           </h2>
