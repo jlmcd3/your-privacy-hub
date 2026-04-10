@@ -121,6 +121,28 @@ const USPrivacyLaws = () => {
             A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states.
           </p>
           <div className="text-[11px] text-slate-light mt-4">Last updated: March 10, 2026</div>
+
+          {/* Anchor jump links */}
+          <div className="flex flex-wrap gap-2 mt-5">
+            {[
+              { label: "Federal Framework", anchor: "#federal-framework" },
+              { label: "State Laws", anchor: "#state-laws" },
+              { label: "Authority Directory", anchor: "#state-authorities" },
+              { label: "Recent Developments", anchor: "#recent-developments" },
+            ].map((link) => (
+              <a
+                key={link.anchor}
+                href={link.anchor}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector(link.anchor)?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="px-3.5 py-1.5 text-[12px] font-semibold rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all no-underline"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -129,7 +151,7 @@ const USPrivacyLaws = () => {
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10 md:py-14">
 
         {/* ── Section 1: Federal Framework ── */}
-        <div className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10">
+        <div id="federal-framework" className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10 scroll-mt-24">
           <h2 className="font-display text-[20px] md:text-[24px] text-white mb-2 flex items-center gap-2">
             🏛️ The Federal Privacy Framework
           </h2>
@@ -168,7 +190,7 @@ const USPrivacyLaws = () => {
         </div>
 
         {/* ── Divider ── */}
-        <div className="relative flex items-center my-10">
+        <div id="state-laws" className="relative flex items-center my-10 scroll-mt-24">
           <div className="flex-1 border-t border-fog" />
           <span className="px-4 text-[13px] font-semibold text-slate bg-paper">🗺️ State Privacy Laws</span>
           <div className="flex-1 border-t border-fog" />
@@ -307,7 +329,7 @@ const USPrivacyLaws = () => {
 
         {/* ── Section 3: Recent Developments ── */}
         {recentArticles.length > 0 && (
-          <div className="mt-12 mb-8">
+          <div id="recent-developments" className="mt-12 mb-8 scroll-mt-24">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="font-display text-xl text-navy">Recent U.S. Privacy Developments</h2>
               <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
