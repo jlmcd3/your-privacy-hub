@@ -121,6 +121,28 @@ const USPrivacyLaws = () => {
             A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states.
           </p>
           <div className="text-[11px] text-slate-light mt-4">Last updated: March 10, 2026</div>
+
+          {/* Anchor jump links */}
+          <div className="flex flex-wrap gap-2 mt-5">
+            {[
+              { label: "Federal Framework", anchor: "#federal-framework" },
+              { label: "State Laws", anchor: "#state-laws" },
+              { label: "Authority Directory", anchor: "#state-authorities" },
+              { label: "Recent Developments", anchor: "#recent-developments" },
+            ].map((link) => (
+              <a
+                key={link.anchor}
+                href={link.anchor}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector(link.anchor)?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="px-3.5 py-1.5 text-[12px] font-semibold rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all no-underline"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
