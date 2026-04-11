@@ -183,14 +183,14 @@ Deno.serve(async (req) => {
   const { data: articles } = await supabase
     .from("updates")
     .select("id, title, summary, source_name")
-    .is("ai_summary", null)
+    .or('ai_summary.is.null,enrichment_version.lt.2')
     .order("published_at", { ascending: false })
     .limit(batchSize);
 
   const { count } = await supabase
     .from("updates")
     .select("id", { count: "exact", head: true })
-    .is("ai_summary", null);
+    .or('ai_summary.is.null,enrichment_version.lt.2');
 
   let updated = 0,
     skipped = 0;
