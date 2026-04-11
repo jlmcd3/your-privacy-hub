@@ -245,6 +245,7 @@ const Updates = () => {
                             )}
                         </button>
                         );
+                    })}
                 </div>
 
                 {/* Search + date range */}
