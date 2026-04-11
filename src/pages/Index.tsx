@@ -24,74 +24,7 @@ import ToolkitSection from "@/components/home/ToolkitSection";
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import SearchStrip from "@/components/home/SearchStrip";
 
-interface Update {
-  id: string;
-  title: string;
-  summary: string | null;
-  url: string;
-  category: string;
-  regulator: string | null;
-  published_at: string;
-  source_name: string | null;
-  ai_summary?: any;
-}
-
-const CATEGORY_META: Record<string, { flag: string; jurisdiction: string }> = {
-  "eu-uk": { flag: "🇪🇺", jurisdiction: "EU & UK" },
-  "us-federal": { flag: "🇺🇸", jurisdiction: "U.S. Federal" },
-  "us-states": { flag: "🗺️", jurisdiction: "U.S. States" },
-  "global": { flag: "🌐", jurisdiction: "Global" },
-  "enforcement": { flag: "⚖️", jurisdiction: "Enforcement" },
-  "ai-privacy": { flag: "🤖", jurisdiction: "AI & Privacy" },
-  "adtech":      { flag: "📡", jurisdiction: "AdTech" },
-};
-
-function decodeHtml(str: string | null | undefined): string {
-  if (!str) return "";
-  const txt = document.createElement("textarea");
-  txt.innerHTML = str;
-  return txt.value;
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 const Index = () => {
-  const [regionItems, setRegionItems] = useState<any[]>([]);
-
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from("updates")
-        .select("id,title,summary,url,category,regulator,published_at,source_name,ai_summary")
-        .order("published_at", { ascending: false })
-        .limit(100);
-
-      const articles = (data as Update[]) || [];
-
-
-
-      // Region feed
-      const regionCats = ["eu-uk", "us-federal", "global"];
-      const regions = regionCats
-        .map((cat) => articles.find((a) => a.category === cat))
-        .filter(Boolean)
-        .map((a) => ({
-          flag: CATEGORY_META[a!.category]?.flag || "🌐",
-          jurisdiction: CATEGORY_META[a!.category]?.jurisdiction || a!.category,
-          headline: a!.title,
-          category: a!.category,
-          href: `/category/${a!.category}`,
-          date: formatDate(a!.published_at),
-          whyItMatters: (a as any).ai_summary?.why_it_matters ?? null,
-          urgency: (a as any).ai_summary?.urgency ?? null,
-        }));
-      setRegionItems(regions);
-
-    }
-    load();
-  }, []);
 
   return (
     <div className="min-h-screen bg-paper">
