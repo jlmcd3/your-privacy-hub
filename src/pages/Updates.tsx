@@ -245,10 +245,6 @@ const Updates = () => {
                             )}
                         </button>
                         );
-                    })}
-                            {f.label}
-                        </button>
-                    ))}
                 </div>
 
                 {/* Search + date range */}
