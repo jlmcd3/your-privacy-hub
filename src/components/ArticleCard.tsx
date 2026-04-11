@@ -233,7 +233,25 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
               {weight}
             </span>
           )}
+          {item.attention_level && ATTENTION_COLORS[item.attention_level] && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${ATTENTION_COLORS[item.attention_level]}`}>
+              {item.attention_level === 'High' ? '🔴' : item.attention_level === 'Medium' ? '🟡' : '🟢'} {item.attention_level}
+            </span>
+          )}
         </div>
+        {/* Sector tags */}
+        {item.affected_sectors && item.affected_sectors.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-1">
+            {item.affected_sectors.slice(0, 4).map((sector) => (
+              <span key={sector} className="text-[10px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded">
+                {sector}
+              </span>
+            ))}
+            {item.affected_sectors.length > 4 && (
+              <span className="text-[10px] text-slate-light">+{item.affected_sectors.length - 4}</span>
+            )}
+          </div>
+        )}
         {/* Title */}
         <Link to={`/updates/${item.id}`}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
