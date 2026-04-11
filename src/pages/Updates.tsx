@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Search, X } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Topbar from "@/components/Topbar";
@@ -61,17 +61,20 @@ function formatDate(iso: string): string {
 }
 
 const Updates = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [updates, setUpdates] = useState<Update[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [page, setPage] = useState(0);
     const [activeFilter, setActiveFilter] = useState("all");
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
     const [dateRange, setDateRange] = useState("all");
     const [sourcePills, setSourcePills] = useState<string[]>([]);
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+    const [activeSectors, setActiveSectors] = useState<string[]>([]);
+    const [activeAttention, setActiveAttention] = useState<string | null>(null);
 
     // AI summary filter state
     const [urgencyFilter, setUrgencyFilter] = useState("all");
@@ -146,13 +149,45 @@ const Updates = () => {
         loadPage(page + PAGE_SIZE, false);
     }, [loadPage, page]);
 
+    // Sync search term to URL
+    useEffect(() => {
+        if (searchTerm) {
+            setSearchParams({ q: searchTerm }, { replace: true });
+        } else {
+            setSearchParams({}, { replace: true });
+        }
+    }, [searchTerm, setSearchParams]);
+
+    // Compute available sectors for faceted filtering
+    const availableSectors = useMemo(() => {
+        const counts: Record<string, number> = {};
+        updates.forEach((u) => {
+            (u.affected_sectors || []).forEach((s) => {
+                counts[s] = (counts[s] || 0) + 1;
+            });
+        });
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 12);
+    }, [updates]);
+
     const filtered = updates.filter((u) => {
         if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
         if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
         if (activeFilter !== "all" && activeFilter !== "enriched" && activeFilter !== "pending" && u.category !== activeFilter) return false;
         if (searchTerm) {
             const q = searchTerm.toLowerCase();
-            if (!u.title.toLowerCase().includes(q) && !(u.summary || "").toLowerCase().includes(q)) return false;
+            const fields = [
+                u.title,
+                u.summary || "",
+                u.regulatory_theory || "",
+                u.related_development || "",
+                u.attention_level || "",
+                ...(u.affected_sectors || []),
+                u.regulator || "",
+                u.ai_summary?.why_it_matters || "",
+            ];
+            if (!fields.some(f => f.toLowerCase().includes(q))) return false;
         }
         if (dateRange !== "all") {
             const days = parseInt(dateRange);
@@ -160,6 +195,13 @@ const Updates = () => {
             if (new Date(u.published_at).getTime() < cutoff) return false;
         }
         if (activeSource && u.source_domain !== activeSource) return false;
+
+        // Faceted filters
+        if (activeSectors.length > 0) {
+            const sectors = u.affected_sectors || [];
+            if (!activeSectors.some(s => sectors.includes(s))) return false;
+        }
+        if (activeAttention && u.attention_level !== activeAttention) return false;
 
         // AI summary filters
         if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
@@ -169,7 +211,25 @@ const Updates = () => {
         return true;
     });
 
-    
+    const toggleSector = (sector: string) => {
+        setActiveSectors(prev =>
+            prev.includes(sector) ? prev.filter(s => s !== sector) : [...prev, sector]
+        );
+    };
+
+    const hasActiveFilters = activeSectors.length > 0 || activeAttention || urgencyFilter !== "all" || legalWeightFilter !== "all" || crossJurisdictionOnly;
+
+    const clearAllFilters = () => {
+        setActiveSectors([]);
+        setActiveAttention(null);
+        setUrgencyFilter("all");
+        setLegalWeightFilter("all");
+        setCrossJurisdictionOnly(false);
+        setActiveSource(null);
+        setActiveFilter("all");
+        setSearchTerm("");
+        setDateRange("all");
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -296,12 +356,52 @@ const Updates = () => {
                     </div>
                 )}
 
+                {/* Faceted Filters: Sectors + Attention Level */}
+                {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
+                    <div className="flex flex-wrap items-center gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
+                        {/* Attention level */}
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Attention:</span>
+                        {["High", "Medium", "Low"].map((level) => (
+                            <button
+                                key={level}
+                                onClick={() => setActiveAttention(activeAttention === level ? null : level)}
+                                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
+                                    activeAttention === level
+                                        ? level === "High" ? "bg-destructive text-destructive-foreground" : level === "Medium" ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+                                        : "bg-muted text-foreground hover:bg-muted/80"
+                                }`}
+                            >
+                                {level === "High" ? "🔴" : level === "Medium" ? "🟡" : "🟢"} {level}
+                            </button>
+                        ))}
+
+                        {availableSectors.length > 0 && (
+                            <>
+                                <span className="text-border mx-1">|</span>
+                                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
+                                {availableSectors.slice(0, 8).map(([sector, count]) => (
+                                    <button
+                                        key={sector}
+                                        onClick={() => toggleSector(sector)}
+                                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
+                                            activeSectors.includes(sector)
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-muted text-foreground hover:bg-muted/80"
+                                        }`}
+                                    >
+                                        {sector} <span className="opacity-60">({count})</span>
+                                    </button>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {/* AI Summary Filters — only show if any articles have ai_summary */}
                 {updates.some(u => u.ai_summary && !u.ai_summary.skipped) && (
                     <div className="flex flex-wrap items-center gap-3 mb-6 px-3 py-2.5 bg-navy/5 rounded-xl border border-navy/10">
                         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">AI filters:</span>
 
-                        {/* Urgency dropdown */}
                         <select
                             value={urgencyFilter}
                             onChange={e => setUrgencyFilter(e.target.value)}
@@ -313,7 +413,6 @@ const Updates = () => {
                             <option value="Monitor">🟢 Monitor</option>
                         </select>
 
-                        {/* Legal weight dropdown */}
                         <select
                             value={legalWeightFilter}
                             onChange={e => setLegalWeightFilter(e.target.value)}
@@ -327,7 +426,6 @@ const Updates = () => {
                             <option value="Commentary">Commentary</option>
                         </select>
 
-                        {/* Cross-jurisdiction toggle */}
                         <button
                             onClick={() => setCrossJurisdictionOnly(!crossJurisdictionOnly)}
                             className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
@@ -337,6 +435,19 @@ const Updates = () => {
                             }`}
                         >
                             🌐 Cross-jurisdiction only
+                        </button>
+                    </div>
+                )}
+
+                {/* Active filter summary + clear */}
+                {hasActiveFilters && (
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-[12px] text-muted-foreground">{filtered.length} results</span>
+                        <button
+                            onClick={clearAllFilters}
+                            className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive hover:underline"
+                        >
+                            <X className="w-3 h-3" /> Clear all filters
                         </button>
                     </div>
                 )}
