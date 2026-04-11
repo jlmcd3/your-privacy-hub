@@ -61,17 +61,20 @@ function formatDate(iso: string): string {
 }
 
 const Updates = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [updates, setUpdates] = useState<Update[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [page, setPage] = useState(0);
     const [activeFilter, setActiveFilter] = useState("all");
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
     const [dateRange, setDateRange] = useState("all");
     const [sourcePills, setSourcePills] = useState<string[]>([]);
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+    const [activeSectors, setActiveSectors] = useState<string[]>([]);
+    const [activeAttention, setActiveAttention] = useState<string | null>(null);
 
     // AI summary filter state
     const [urgencyFilter, setUrgencyFilter] = useState("all");
