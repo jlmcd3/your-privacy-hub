@@ -40,7 +40,7 @@ const WeeklyBriefTeaser = () => {
               This Week's Intelligence Brief
             </h2>
             <p className="text-[13px] text-slate mt-1">
-              AI-synthesized from {brief?.article_count ?? "—"} regulatory updates ·
+              Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
               8 sections · Published every Monday · <strong>Free</strong>
             </p>
           </div>

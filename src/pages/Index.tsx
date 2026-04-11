@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import LatestUpdates from "@/components/LatestUpdates";
@@ -14,7 +13,6 @@ import EmailSignup from "@/components/EmailSignup";
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
-import ChooseYourMode from "@/components/home/ChooseYourMode";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
@@ -22,19 +20,15 @@ import PatternSignalCards from "@/components/home/PatternSignalCards";
 import LongitudinalContext from "@/components/home/LongitudinalContext";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
-import SearchStrip from "@/components/home/SearchStrip";
 
 const Index = () => {
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>US State Privacy Laws, GDPR Fines &amp; AI Act Tracker 2026 | EndUserPrivacy</title>
-        <meta name="description" content="Free daily privacy intelligence. Track GDPR enforcement, US state privacy laws, EU AI Act compliance, and enforcement actions from 119 regulators. For privacy professionals." />
+        <title>Global Privacy Law, Tracked Daily | EndUserPrivacy</title>
+        <meta name="description" content="Privacy regulatory intelligence for professionals. Tracking 119 authorities across 150+ jurisdictions — enforcement actions, new legislation, and regulatory guidance, updated daily." />
       </Helmet>
-
-      {/* Layer 1: Topbar */}
-      <Topbar />
 
       {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
       <Navbar />
@@ -45,8 +39,7 @@ const Index = () => {
       {/* Layer 4: Hero panels */}
       <SearchFirstHero />
 
-      {/* Layer 5: Search strip */}
-      <SearchStrip />
+      {/* Layer 5: Free vs paid */}
       <FreeVsPaidStrip />
 
       {/* Layer 6: Main editorial content */}
