@@ -439,6 +439,8 @@ ${briefContent.substring(0, 8000)}
 TOP RELEVANCE-SCORED ARTICLES FOR THIS SUBSCRIBER:
 ${articleContext.substring(0, 6000)}
 
+${enrichmentSummary}
+
 ENFORCEMENT HISTORY FOR SUBSCRIBER'S JURISDICTIONS (last 12 months):
 ${enforcementHistory.substring(0, 3000)}
 
