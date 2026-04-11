@@ -57,8 +57,6 @@ const SampleBrief = () => {
               Premium subscribers receive this same brief re-analyzed specifically
               for their industry and jurisdiction.
             </p>
-              for their industry and jurisdiction.
-            </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
                 to="/subscribe"
