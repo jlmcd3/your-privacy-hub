@@ -65,6 +65,9 @@ const Index = () => {
               <UpcomingDeadlines />
             </div>
 
+            {/* Enforcement pattern signals */}
+            <PatternSignalCards />
+
             {/* Article feed with filters */}
             <LatestUpdates />
           </div>
