@@ -105,6 +105,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
+  const [briefLabel, setBriefLabel] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -115,6 +116,19 @@ const Navbar = () => {
       .single()
       .then(({ data }) => setIsPremium(data?.is_premium ?? false));
   }, [user]);
+
+  useEffect(() => {
+    supabase
+      .from("weekly_briefs")
+      .select("week_label")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setBriefLabel(`${data[0].week_label} Brief`);
+        }
+      });
+  }, []);
 
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
