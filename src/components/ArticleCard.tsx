@@ -78,6 +78,13 @@ const URGENCY_COLORS: Record<string, string> = {
   'Monitor': 'bg-slate-400 text-white',
 };
 
+// Attention level badge colors
+const ATTENTION_COLORS: Record<string, string> = {
+  'High': 'bg-red-100 text-red-800 border border-red-200',
+  'Medium': 'bg-amber-100 text-amber-800 border border-amber-200',
+  'Low': 'bg-green-100 text-green-800 border border-green-200',
+};
+
 // Legal weight badge colors
 const WEIGHT_COLORS: Record<string, string> = {
   'Binding Decision': 'bg-navy text-white',
@@ -85,6 +92,10 @@ const WEIGHT_COLORS: Record<string, string> = {
   'Soft Guidance': 'bg-blue-200 text-blue-800',
   'Enforcement Signal': 'bg-amber-100 text-amber-800',
   'Commentary': 'bg-gray-100 text-gray-600',
+  'In effect': 'bg-navy text-white',
+  'Enforcement action': 'bg-red-100 text-red-800',
+  'Guidance issued': 'bg-blue-200 text-blue-800',
+  'Proposed': 'bg-amber-100 text-amber-800',
 };
 
 const fmtDate = (d?: string | null) => d
