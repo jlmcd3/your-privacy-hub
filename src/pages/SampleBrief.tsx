@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -40,7 +39,6 @@ const SampleBrief = () => {
         <title>Sample Intelligence Brief | EndUserPrivacy</title>
         <meta name="description" content="See a full sample of the weekly Privacy Intelligence Brief — 8 sections covering US Federal, US States, EU & UK, global developments, enforcement table, and trend signals." />
       </Helmet>
-      <Topbar />
       <Navbar />
       <main className="flex-1">
         {/* Hero */}
@@ -54,8 +52,11 @@ const SampleBrief = () => {
             </h1>
             <p className="text-slate-light text-[15px] max-w-[600px] mx-auto mb-6">
               This is a representative sample of the full Intelligence Brief —
-              every section written by AI from that week's actual regulatory developments.
+              every section drawn from that week's actual regulatory developments,
+              synthesized into a structured briefing.
               Premium subscribers receive this same brief re-analyzed specifically
+              for their industry and jurisdiction.
+            </p>
               for their industry and jurisdiction.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
