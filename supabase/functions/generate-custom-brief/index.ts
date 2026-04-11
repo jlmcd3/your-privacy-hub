@@ -312,9 +312,19 @@ Deno.serve(async (req) => {
     const priorContext = priorBriefsData.priorContext;
 
     const topArticles = scoredArticles.slice(0, 25);
-    const articleContext = topArticles.map((a: any, i: number) =>
-      `[${i + 1}] ${a.title} (${a.source_name || "Unknown"}, ${a.published_at?.substring(0, 10) || "recent"}) — ${a.summary?.substring(0, 200) || ""}`
-    ).join("\n\n");
+    const articleContext = topArticles.map((a: any, i: number) => {
+      const sectors = (a.affected_sectors as string[] || []).join(", ");
+      const jurisdictions = (a.direct_jurisdictions as string[] || []).join(", ");
+      let entry = `[${i + 1}] ${a.title} (${a.source_name || "Unknown"}, ${a.published_at?.substring(0, 10) || "recent"})`;
+      if (a.attention_level) entry += ` [ATTENTION: ${a.attention_level}]`;
+      if (sectors) entry += ` [SECTORS: ${sectors}]`;
+      if (jurisdictions) entry += ` [JURISDICTIONS: ${jurisdictions}]`;
+      entry += ` — ${a.summary?.substring(0, 200) || ""}`;
+      if (a.regulatory_theory) entry += `\n    Regulatory Theory: ${a.regulatory_theory}`;
+      if (a.related_development) entry += `\n    Related: ${a.related_development}`;
+      if (a.key_date) entry += `\n    Key Date: ${a.key_date}`;
+      return entry;
+    }).join("\n\n");
 
     // Build the full brief content from standard brief
     const briefContent = `
