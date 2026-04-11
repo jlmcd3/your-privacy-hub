@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true, reason: "breach_announcement" } })
+        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 2 })
         .eq("id", article.id);
       skipped++;
       continue;
@@ -215,13 +215,21 @@ Deno.serve(async (req) => {
     if (aiSummary) {
       await supabase
         .from("updates")
-        .update({ ai_summary: aiSummary })
+        .update({
+          ai_summary: aiSummary,
+          enrichment_version: 2,
+          regulatory_theory: aiSummary.regulatory_theory ?? null,
+          affected_sectors: aiSummary.affected_sectors ?? null,
+          related_development: aiSummary.related_development ?? null,
+          attention_level: aiSummary.attention_level ?? null,
+          key_date: aiSummary.key_date ? new Date(aiSummary.key_date) : null,
+        })
         .eq("id", article.id);
       updated++;
     } else {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true } })
+        .update({ ai_summary: { skipped: true }, enrichment_version: 2 })
         .eq("id", article.id);
       skipped++;
     }
