@@ -39,6 +39,7 @@ interface WeeklyBrief {
   privacy_litigation: string | null;
   enforcement_trends: string | null;
   enforcement_table: EnforcementRow[] | null;
+  cross_jurisdiction_patterns: string | null;
   trend_signal: string | null;
   why_this_matters: string | null;
   article_count: number;
@@ -308,6 +309,18 @@ const Dashboard = () => {
                     <SectionBlock icon={s.icon} title={s.title} content={s.content} sourceMap={brief.source_map ?? {}} />
                   </PremiumGate>
                 ))}
+
+                {/* Cross-jurisdiction patterns — show as teaser */}
+                {brief.cross_jurisdiction_patterns && (
+                  <section className="bg-violet-50/50 rounded-xl border border-violet-200/50 p-6">
+                    <h3 className="font-display text-[17px] text-foreground mb-3">
+                      🌐 Cross-Jurisdiction Patterns
+                    </h3>
+                    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                      <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
+                    </div>
+                  </section>
+                )}
 
                 {/* 4. Enforcement Trends — gated */}
                 {brief.enforcement_trends && (
@@ -692,6 +705,18 @@ const Dashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </section>
+            )}
+
+            {/* Cross-jurisdiction patterns */}
+            {brief.cross_jurisdiction_patterns && (
+              <section className="bg-violet-50/50 rounded-xl border border-violet-200/50 p-6">
+                <h3 className="font-display text-[17px] text-foreground mb-3">
+                  🌐 Cross-Jurisdiction Patterns
+                </h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
                 </div>
               </section>
             )}
