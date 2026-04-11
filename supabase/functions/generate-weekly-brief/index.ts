@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
 
     const { data: articles, error: fetchError } = await supabase
       .from("updates")
-      .select("title, summary, source_name, category, topic_tags, published_at, url")
+      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
       .gte("published_at", sevenDaysAgo.toISOString())
       .order("published_at", { ascending: false })
       .limit(40);
@@ -131,10 +131,23 @@ Deno.serve(async (req) => {
       ? `PREVIOUS WEEK (${prevBrief.week_label}):\nHeadline: ${prevBrief.headline}\nTrend Signal: ${prevBrief.trend_signal || "N/A"}`
       : "No previous week data available.";
 
+    // Build enriched article digest
     const articleList = articles
       .map((a, i) => {
         const tags = (a.topic_tags as string[] || []).join(", ");
-        return `[${i + 1}] [${a.category?.toUpperCase()}]${tags ? ` [TAGS: ${tags}]` : ""} ${a.source_name} — ${a.title}${a.summary ? `\n    Summary: ${a.summary}` : ""}`;
+        const sectors = (a.affected_sectors as string[] || []).join(", ");
+        const jurisdictions = (a.direct_jurisdictions as string[] || []).join(", ");
+        let entry = `[${i + 1}] [${a.category?.toUpperCase()}]`;
+        if (a.attention_level) entry += ` [ATTENTION: ${a.attention_level}]`;
+        if (tags) entry += ` [TAGS: ${tags}]`;
+        if (sectors) entry += ` [SECTORS: ${sectors}]`;
+        if (jurisdictions) entry += ` [JURISDICTIONS: ${jurisdictions}]`;
+        entry += ` ${a.source_name} — ${a.title}`;
+        if (a.summary) entry += `\n    Summary: ${a.summary}`;
+        if (a.regulatory_theory) entry += `\n    Regulatory Theory: ${a.regulatory_theory}`;
+        if (a.related_development) entry += `\n    Related Development: ${a.related_development}`;
+        if (a.key_date) entry += `\n    Key Date: ${a.key_date}`;
+        return entry;
       })
       .join("\n\n");
 
