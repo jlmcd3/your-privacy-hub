@@ -13,6 +13,11 @@ export interface ArticleItem {
   source_name?: string | null;
   source_url?: string | null;
   jurisdiction?: string | null;
+  attention_level?: string | null;
+  affected_sectors?: string[] | null;
+  regulatory_theory?: string | null;
+  related_development?: string | null;
+  enrichment_version?: number | null;
   ai_summary?: {
     urgency?: string | null;
     legal_weight?: string | null;
@@ -73,6 +78,13 @@ const URGENCY_COLORS: Record<string, string> = {
   'Monitor': 'bg-slate-400 text-white',
 };
 
+// Attention level badge colors
+const ATTENTION_COLORS: Record<string, string> = {
+  'High': 'bg-red-100 text-red-800 border border-red-200',
+  'Medium': 'bg-amber-100 text-amber-800 border border-amber-200',
+  'Low': 'bg-green-100 text-green-800 border border-green-200',
+};
+
 // Legal weight badge colors
 const WEIGHT_COLORS: Record<string, string> = {
   'Binding Decision': 'bg-navy text-white',
@@ -80,6 +92,10 @@ const WEIGHT_COLORS: Record<string, string> = {
   'Soft Guidance': 'bg-blue-200 text-blue-800',
   'Enforcement Signal': 'bg-amber-100 text-amber-800',
   'Commentary': 'bg-gray-100 text-gray-600',
+  'In effect': 'bg-navy text-white',
+  'Enforcement action': 'bg-red-100 text-red-800',
+  'Guidance issued': 'bg-blue-200 text-blue-800',
+  'Proposed': 'bg-amber-100 text-amber-800',
 };
 
 const fmtDate = (d?: string | null) => d
@@ -108,6 +124,8 @@ const EnrichmentAccordion = ({ item }: { item: ArticleItem }) => {
     s.risk_level && { label: 'Risk Level', value: s.risk_level },
     s.urgency && { label: 'Urgency', value: s.urgency },
     s.legal_weight && { label: 'Legal Weight', value: s.legal_weight },
+    item.regulatory_theory && { label: 'Regulatory Theory', value: item.regulatory_theory },
+    item.related_development && { label: 'Related Development', value: item.related_development },
   ].filter(Boolean) as { label: string; value: string }[];
 
   // Only show accordion if there's detail beyond what's already visible
@@ -215,7 +233,25 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
               {weight}
             </span>
           )}
+          {item.attention_level && ATTENTION_COLORS[item.attention_level] && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${ATTENTION_COLORS[item.attention_level]}`}>
+              {item.attention_level === 'High' ? '🔴' : item.attention_level === 'Medium' ? '🟡' : '🟢'} {item.attention_level}
+            </span>
+          )}
         </div>
+        {/* Sector tags */}
+        {item.affected_sectors && item.affected_sectors.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-1">
+            {item.affected_sectors.slice(0, 4).map((sector) => (
+              <span key={sector} className="text-[10px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded">
+                {sector}
+              </span>
+            ))}
+            {item.affected_sectors.length > 4 && (
+              <span className="text-[10px] text-slate-light">+{item.affected_sectors.length - 4}</span>
+            )}
+          </div>
+        )}
         {/* Title */}
         <Link to={`/updates/${item.id}`}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
