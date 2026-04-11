@@ -90,11 +90,11 @@ const GetIntelligence = () => {
     const topicLabels = topics.map(id => TOPICS.find(t => t.id === id)?.label).filter(Boolean) as string[];
 
     let enQ = supabase.from("updates")
-      .select("id,title,source_name,published_at")
+      .select("id,title,source_name,published_at,attention_level,affected_sectors,regulatory_theory")
       .eq("category", "Enforcement")
       .order("published_at", { ascending: false }).limit(3);
     let upQ = supabase.from("updates")
-      .select("id,title,source_name,published_at")
+      .select("id,title,source_name,published_at,attention_level,affected_sectors,regulatory_theory")
       .neq("category", "Enforcement")
       .order("published_at", { ascending: false }).limit(2);
     if (topicLabels.length > 0) {
@@ -127,14 +127,39 @@ const GetIntelligence = () => {
     `&i=${encodeURIComponent(industry || "")}` +
     `&t=${encodeURIComponent(topics.join(","))}`;
 
-  const ArticleCard = ({ item }: { item: any }) => (
-    <div className="bg-white border border-fog rounded-xl px-4 py-3">
-      <p className="text-[13px] font-semibold text-navy leading-snug">{item.title}</p>
-      <p className="text-[11px] text-slate mt-1">
-        {item.source_name}{item.published_at && ` · ${fmtDate(item.published_at)}`}
-      </p>
-    </div>
-  );
+  const ArticleCard = ({ item }: { item: any }) => {
+    const sectors = (item.affected_sectors as string[] || []).slice(0, 3);
+    return (
+      <div className="bg-white border border-fog rounded-xl px-4 py-3">
+        <div className="flex items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-semibold text-foreground leading-snug">{item.title}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {item.source_name}{item.published_at && ` · ${fmtDate(item.published_at)}`}
+            </p>
+          </div>
+          {item.attention_level === "High" && (
+            <span className="flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 bg-red-100 text-red-700 rounded-md">🔴 High</span>
+          )}
+          {item.attention_level === "Medium" && (
+            <span className="flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-md">🟡 Medium</span>
+          )}
+        </div>
+        {sectors.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {sectors.map(s => (
+              <span key={s} className="text-[9px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded-full">{s}</span>
+            ))}
+          </div>
+        )}
+        {item.regulatory_theory && (
+          <p className="text-[11px] text-primary/80 mt-1.5 italic line-clamp-1">
+            Theory: {item.regulatory_theory}
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-paper">
