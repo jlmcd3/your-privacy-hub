@@ -13,6 +13,11 @@ export interface ArticleItem {
   source_name?: string | null;
   source_url?: string | null;
   jurisdiction?: string | null;
+  attention_level?: string | null;
+  affected_sectors?: string[] | null;
+  regulatory_theory?: string | null;
+  related_development?: string | null;
+  enrichment_version?: number | null;
   ai_summary?: {
     urgency?: string | null;
     legal_weight?: string | null;
