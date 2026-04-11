@@ -19,6 +19,7 @@ import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
 import PatternSignalCards from "@/components/home/PatternSignalCards";
+import LongitudinalContext from "@/components/home/LongitudinalContext";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import SearchStrip from "@/components/home/SearchStrip";
@@ -67,6 +68,9 @@ const Index = () => {
 
             {/* Enforcement pattern signals */}
             <PatternSignalCards />
+
+            {/* Longitudinal context — shows most recent synthesis */}
+            <LongitudinalContext />
 
             {/* Article feed with filters */}
             <LatestUpdates />
