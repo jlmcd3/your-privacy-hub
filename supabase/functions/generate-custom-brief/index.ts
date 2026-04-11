@@ -51,15 +51,20 @@ const JURISDICTION_EXPERTISE: Record<string, string> = {
   "global": "cross-border transfer mechanisms, adequacy decisions, APEC CBPR, emerging privacy frameworks, international regulatory cooperation",
 };
 
-/* ── Relevance scoring with Haiku (fast + cheap) ── */
+/* ── Relevance scoring with Haiku (fast + cheap) — now uses enrichment fields ── */
 async function scoreArticleRelevance(
   articles: any[],
   prefs: { industries: string[]; jurisdictions: string[]; topics: string[] },
   apiKey: string,
 ): Promise<any[]> {
-  const articleSummaries = articles.map((a, i) => `[${i}] ${a.title} | ${a.category} | ${a.summary?.substring(0, 120) || ""}`).join("\n");
+  const articleSummaries = articles.map((a, i) => {
+    const sectors = (a.affected_sectors as string[] || []).join(", ");
+    const attention = a.attention_level || "Unknown";
+    return `[${i}] [${attention}] ${a.title} | ${a.category} | Sectors: ${sectors || "N/A"} | ${a.summary?.substring(0, 120) || ""}`;
+  }).join("\n");
 
-  const prompt = `Score each article's relevance (0-10) to this subscriber profile:
+  const prompt = `Score each article's relevance (0-10) to this subscriber profile. Give +2 bonus for High attention_level articles. Give +1 for articles whose affected_sectors overlap with the subscriber's industries.
+
 Industries: ${prefs.industries.join(", ")}
 Jurisdictions: ${prefs.jurisdictions.join(", ")}
 Topics: ${prefs.topics.join(", ")}
@@ -86,7 +91,6 @@ Return JSON array of objects: [{"index": 0, "score": 7}, ...]. Only the JSON arr
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return articles;
     const scores: { index: number; score: number }[] = JSON.parse(match[0]);
-    // Sort by score descending, return top articles
     scores.sort((a, b) => b.score - a.score);
     return scores.map(s => articles[s.index]).filter(Boolean);
   } catch {
@@ -224,7 +228,7 @@ Deno.serve(async (req) => {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentArticles } = await supabase
     .from("updates")
-    .select("title, category, summary, source_name, published_at, topic_tags, regulator")
+    .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
     .gte("published_at", oneWeekAgo)
     .order("published_at", { ascending: false })
     .limit(60);
