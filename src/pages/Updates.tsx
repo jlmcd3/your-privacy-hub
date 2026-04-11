@@ -356,12 +356,52 @@ const Updates = () => {
                     </div>
                 )}
 
+                {/* Faceted Filters: Sectors + Attention Level */}
+                {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
+                    <div className="flex flex-wrap items-center gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
+                        {/* Attention level */}
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Attention:</span>
+                        {["High", "Medium", "Low"].map((level) => (
+                            <button
+                                key={level}
+                                onClick={() => setActiveAttention(activeAttention === level ? null : level)}
+                                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
+                                    activeAttention === level
+                                        ? level === "High" ? "bg-destructive text-destructive-foreground" : level === "Medium" ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+                                        : "bg-muted text-foreground hover:bg-muted/80"
+                                }`}
+                            >
+                                {level === "High" ? "🔴" : level === "Medium" ? "🟡" : "🟢"} {level}
+                            </button>
+                        ))}
+
+                        {availableSectors.length > 0 && (
+                            <>
+                                <span className="text-border mx-1">|</span>
+                                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
+                                {availableSectors.slice(0, 8).map(([sector, count]) => (
+                                    <button
+                                        key={sector}
+                                        onClick={() => toggleSector(sector)}
+                                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
+                                            activeSectors.includes(sector)
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-muted text-foreground hover:bg-muted/80"
+                                        }`}
+                                    >
+                                        {sector} <span className="opacity-60">({count})</span>
+                                    </button>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {/* AI Summary Filters — only show if any articles have ai_summary */}
                 {updates.some(u => u.ai_summary && !u.ai_summary.skipped) && (
                     <div className="flex flex-wrap items-center gap-3 mb-6 px-3 py-2.5 bg-navy/5 rounded-xl border border-navy/10">
                         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">AI filters:</span>
 
-                        {/* Urgency dropdown */}
                         <select
                             value={urgencyFilter}
                             onChange={e => setUrgencyFilter(e.target.value)}
@@ -373,7 +413,6 @@ const Updates = () => {
                             <option value="Monitor">🟢 Monitor</option>
                         </select>
 
-                        {/* Legal weight dropdown */}
                         <select
                             value={legalWeightFilter}
                             onChange={e => setLegalWeightFilter(e.target.value)}
@@ -387,7 +426,6 @@ const Updates = () => {
                             <option value="Commentary">Commentary</option>
                         </select>
 
-                        {/* Cross-jurisdiction toggle */}
                         <button
                             onClick={() => setCrossJurisdictionOnly(!crossJurisdictionOnly)}
                             className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
@@ -397,6 +435,19 @@ const Updates = () => {
                             }`}
                         >
                             🌐 Cross-jurisdiction only
+                        </button>
+                    </div>
+                )}
+
+                {/* Active filter summary + clear */}
+                {hasActiveFilters && (
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-[12px] text-muted-foreground">{filtered.length} results</span>
+                        <button
+                            onClick={clearAllFilters}
+                            className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive hover:underline"
+                        >
+                            <X className="w-3 h-3" /> Clear all filters
                         </button>
                     </div>
                 )}
