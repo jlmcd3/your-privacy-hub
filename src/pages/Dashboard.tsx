@@ -39,6 +39,7 @@ interface WeeklyBrief {
   privacy_litigation: string | null;
   enforcement_trends: string | null;
   enforcement_table: EnforcementRow[] | null;
+  cross_jurisdiction_patterns: string | null;
   trend_signal: string | null;
   why_this_matters: string | null;
   article_count: number;
