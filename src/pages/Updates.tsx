@@ -23,6 +23,11 @@ interface Update {
     published_at: string;
     is_premium: boolean;
     ai_summary?: any;
+    attention_level?: string | null;
+    affected_sectors?: string[] | null;
+    regulatory_theory?: string | null;
+    related_development?: string | null;
+    enrichment_version?: number | null;
 }
 
 const PAGE_SIZE = 50;
@@ -35,6 +40,8 @@ const FILTERS = [
   { key: "global", label: "🌐 Global" },
   { key: "enforcement", label: "⚖️ Enforcement" },
   { key: "ai-privacy", label: "🤖 AI & Privacy" },
+  { key: "enriched", label: "✨ Enriched" },
+  { key: "pending", label: "⏳ Pending Enrichment" },
 ];
 
 const DATE_RANGES = [
