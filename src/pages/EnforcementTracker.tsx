@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Search, ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -129,7 +128,6 @@ const EnforcementTrackerPage = () => {
         <meta name="description" content="Live database of GDPR fines, FTC enforcement actions, US state AG cases, and global privacy penalties. Updated daily from 119 regulators." />
         <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"Privacy Enforcement Tracker","description":"Live database of global privacy enforcement actions, GDPR fines, and US regulatory cases","url":"https://enduserprivacy.com/enforcement-tracker","publisher":{"@type":"Organization","name":"EndUserPrivacy"}}`}</script>
       </Helmet>
-      <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">
         <div className="max-w-[1280px] mx-auto">
@@ -146,6 +144,33 @@ const EnforcementTrackerPage = () => {
       <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3 hidden" />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+        {/* Stats summary header */}
+        {actions.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-card border border-fog rounded-xl p-4 text-center">
+              <div className="font-display text-[32px] font-bold text-navy">{actions.length}</div>
+              <div className="text-[12px] text-slate mt-1">Actions tracked</div>
+            </div>
+            <div className="bg-card border border-fog rounded-xl p-4 text-center">
+              <div className="font-display text-[32px] font-bold text-navy">
+                {Object.entries(
+                  actions.reduce((acc, a) => {
+                    const key = a.jurisdiction || 'Other';
+                    acc[key] = (acc[key] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>)
+                ).sort(([,a],[,b]) => b - a)[0]?.[0]?.split(' — ')[0] || '—'}
+              </div>
+              <div className="text-[12px] text-slate mt-1">Most active jurisdiction</div>
+            </div>
+            <div className="bg-card border border-fog rounded-xl p-4 text-center">
+              <div className="font-display text-[32px] font-bold text-navy">
+                {actions.filter(a => a.fine_eur).sort((a, b) => (b.fine_eur || 0) - (a.fine_eur || 0))[0]?.fine_amount || '—'}
+              </div>
+              <div className="text-[12px] text-slate mt-1">Largest tracked fine</div>
+            </div>
+          </div>
+        )}
         {/* Search & filters */}
         <div className="flex flex-col md:flex-row gap-3 items-start md:items-center mb-6">
           <div className="relative flex-1 max-w-[400px]">

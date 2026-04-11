@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -94,7 +93,6 @@ export default function LegislationTracker() {
         <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US state laws, EU regulations, AI Act, APAC privacy frameworks — updated in real time." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
-        <Topbar />
         <Navbar />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 md:px-8 py-8 w-full">
           <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">

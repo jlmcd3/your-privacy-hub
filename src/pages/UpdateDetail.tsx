@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
@@ -149,7 +148,6 @@ const UpdateDetail = () => {
           <title>Article Not Found | EndUserPrivacy</title>
         </Helmet>
       )}
-      <Topbar />
       <Navbar />
 
       <main className="max-w-3xl mx-auto px-4 py-10">

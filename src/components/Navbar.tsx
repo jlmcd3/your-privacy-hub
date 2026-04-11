@@ -41,11 +41,12 @@ const navItems: NavItem[] = [
         header: "Topic Hubs",
         divider: true,
         items: [
-          { icon: "🤖", label: "AI Governance", href: "/topics/ai-governance" },
-          { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
+          { icon: "🤖", label: "AI Governance", href: "/category/ai-privacy" },
+          { icon: "🔓", label: "Breaches & Enforcement", href: "/category/enforcement" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/us-privacy-laws" },
+          // TODO: replace with dedicated children's privacy page
+          { icon: "👶", label: "Children's Privacy", href: "/category/us-states" },
           { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
@@ -84,6 +85,7 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
+          { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
         ],
       },
@@ -91,10 +93,7 @@ const navItems: NavItem[] = [
         header: "Premium — $20/month",
         divider: true,
         items: [
-          { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/sample-brief" },
-          { icon: "📰", label: "Briefings", badge: "PRO", href: "/subscribe" },
-          { icon: "🔔", label: "Alerts", badge: "PRO", href: "/subscribe" },
-          { icon: "📈", label: "Analysis", badge: "PRO", href: "/subscribe" },
+          { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
         ],
       },
     ],
@@ -106,6 +105,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
+  const [briefLabel, setBriefLabel] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -117,6 +117,19 @@ const Navbar = () => {
       .then(({ data }) => setIsPremium(data?.is_premium ?? false));
   }, [user]);
 
+  useEffect(() => {
+    supabase
+      .from("weekly_briefs")
+      .select("week_label")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setBriefLabel(`${data[0].week_label} Brief`);
+        }
+      });
+  }, []);
+
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex items-center justify-between h-14 md:h-16">
@@ -124,6 +137,11 @@ const Navbar = () => {
         <Link to="/" className="no-underline flex items-center">
           <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
         </Link>
+        {briefLabel && (
+          <span className="hidden xl:inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 ml-3">
+            ⭐ {briefLabel}
+          </span>
+        )}
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">

@@ -6,7 +6,6 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import EmailSignup from "@/components/EmailSignup";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -113,7 +112,6 @@ const TopicHub = () => {
   if (!meta) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Topbar />
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Topic Not Found</h1>
@@ -134,7 +132,6 @@ const TopicHub = () => {
         <title>{meta.name} — Privacy Topic Intelligence | EndUserPrivacy</title>
         <meta name="description" content={meta.description.substring(0, 155) + "…"} />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       {/* Header */}

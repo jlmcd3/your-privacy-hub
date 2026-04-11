@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -167,7 +166,6 @@ const GetIntelligence = () => {
         <title>Get Your Privacy Intelligence | EndUserPrivacy</title>
         <meta name="description" content="Personalized privacy intelligence for your jurisdiction and practice. Built from 67 regulatory sources. Takes 60 seconds." />
       </Helmet>
-      <Topbar /><Navbar />
       <div className="max-w-2xl mx-auto px-4 py-12">
 
         {/* —— STEP 1 —— */}

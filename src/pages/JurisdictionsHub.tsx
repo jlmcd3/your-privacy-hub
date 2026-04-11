@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/utils";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
@@ -91,7 +90,6 @@ export default function JurisdictionsHub() {
       </Helmet>
 
       <div className="min-h-screen bg-background flex flex-col">
-        <Topbar />
         <Navbar />
 
         <main className="flex-1">

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -29,7 +28,6 @@ const GlobalAuthorities = () => {
         <title>Global Privacy Authority Directory — 119+ DPAs | EndUserPrivacy</title>
         <meta name="description" content="Directory of 119+ data protection authorities worldwide. Find DPA names, legislation, websites, and complaint portals organized by region." />
       </Helmet>
-      <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">
         <div className="max-w-[1280px] mx-auto">

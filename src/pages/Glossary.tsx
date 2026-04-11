@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -32,7 +31,6 @@ const Glossary = () => {
         <title>Privacy Law Glossary 2026 — GDPR, CCPA &amp; Data Protection Terms | EndUserPrivacy</title>
         <meta name="description" content="Plain-English definitions of key privacy and data protection terms. GDPR, CCPA, AI Act, biometric data, data subject rights, and 80+ more terms with legal citations." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="border-b border-border bg-card">

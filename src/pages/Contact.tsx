@@ -1,5 +1,4 @@
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -10,7 +9,6 @@ const Contact = () => {
         <title>Contact | EndUserPrivacy</title>
         <meta name="description" content="Contact EndUserPrivacy for general inquiries, subscription questions, or data and privacy questions." />
       </Helmet>
-      <Topbar />
       <Navbar />
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">

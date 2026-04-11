@@ -3,7 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -237,7 +236,6 @@ const Updates = () => {
                 <title>Privacy Regulatory Updates | EndUserPrivacy</title>
                 <meta name="description" content="Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
-            <Topbar />
             <Navbar />
 
             <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-14 px-4 md:px-8">

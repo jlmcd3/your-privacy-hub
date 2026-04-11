@@ -3,7 +3,6 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
@@ -82,7 +81,6 @@ const Subscribe = () => {
         <title>Privacy Intelligence Reports — 10 Topic Tracks | EndUserPrivacy Premium</title>
         <meta name="description" content="Personalized weekly privacy intelligence. Choose from 10 topic tracks: US State Laws, GDPR Enforcement, AI Act, Children's Privacy, AdTech, Health Data, Litigation, Biometric, Cross-Border Transfers, Data Breach. $20/month." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       {/* Navy gradient hero */}

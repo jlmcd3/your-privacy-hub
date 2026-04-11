@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import calendarData from "@/data/regulatory_calendar.json";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
@@ -110,7 +109,6 @@ const Calendar = () => {
         <title>Privacy Law Compliance Deadlines Calendar 2026 | EndUserPrivacy</title>
         <meta name="description" content="Key dates for GDPR, EU AI Act, CCPA/CPRA, and US state privacy law compliance deadlines. Countdown timers for every major regulatory effective date in 2026." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="border-b border-border bg-card">
