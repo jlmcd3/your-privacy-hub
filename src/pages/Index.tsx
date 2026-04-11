@@ -14,7 +14,6 @@ import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
-import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ChooseYourMode from "@/components/home/ChooseYourMode";
@@ -60,7 +59,6 @@ function formatDate(iso: string): string {
 
 const Index = () => {
   const [regionItems, setRegionItems] = useState<any[]>([]);
-  
 
   useEffect(() => {
     async function load() {
