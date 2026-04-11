@@ -41,11 +41,12 @@ const navItems: NavItem[] = [
         header: "Topic Hubs",
         divider: true,
         items: [
-          { icon: "🤖", label: "AI Governance", href: "/topics/ai-governance" },
-          { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
+          { icon: "🤖", label: "AI Governance", href: "/category/ai-privacy" },
+          { icon: "🔓", label: "Breaches & Enforcement", href: "/category/enforcement" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/us-privacy-laws" },
+          // TODO: replace with dedicated children's privacy page
+          { icon: "👶", label: "Children's Privacy", href: "/category/us-states" },
           { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
@@ -84,6 +85,7 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
+          { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
         ],
       },
@@ -91,10 +93,7 @@ const navItems: NavItem[] = [
         header: "Premium — $20/month",
         divider: true,
         items: [
-          { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/sample-brief" },
-          { icon: "📰", label: "Briefings", badge: "PRO", href: "/subscribe" },
-          { icon: "🔔", label: "Alerts", badge: "PRO", href: "/subscribe" },
-          { icon: "📈", label: "Analysis", badge: "PRO", href: "/subscribe" },
+          { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
         ],
       },
     ],
