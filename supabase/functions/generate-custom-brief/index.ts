@@ -340,6 +340,27 @@ Litigation: ${(latestBrief as any).privacy_litigation || ""}
 Enforcement Trends: ${(latestBrief as any).enforcement_trends || ""}
     `.trim();
 
+    // Build enrichment summary for subscriber context
+    const highAttention = topArticles.filter((a: any) => a.attention_level === 'High');
+    const sectorCounts: Record<string, number> = {};
+    topArticles.forEach((a: any) => {
+      ((a.affected_sectors as string[]) || []).forEach(s => { sectorCounts[s] = (sectorCounts[s] || 0) + 1; });
+    });
+    const topSectors = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const keyDates = topArticles.filter((a: any) => a.key_date);
+
+    const enrichmentSummary = `ENRICHMENT ANALYSIS (pre-computed for each article):
+HIGH-ATTENTION articles relevant to this subscriber: ${highAttention.length} of ${topArticles.length}
+${highAttention.slice(0, 5).map((a: any, i: number) => `  ${i + 1}. "${a.title}" — Theory: ${a.regulatory_theory || 'N/A'}`).join('\n')}
+
+SECTORS most affected in subscriber-relevant articles:
+${topSectors.map(([s, c]) => `  • ${s}: ${c} articles`).join('\n')}
+
+KEY COMPLIANCE DATES from articles:
+${keyDates.slice(0, 5).map((a: any) => `  • ${a.key_date}: ${a.title}`).join('\n') || '  None this week.'}
+
+USE THIS DATA to prioritize high-attention articles, reference regulatory theories for novel enforcement, and cite key dates in action items and look_ahead.`;
+
     // Build deep expertise context
     const industryExpertise = industries.map(i => INDUSTRY_EXPERTISE[i] || i).join("; ");
     const jurisdictionExpertise = jurisdictions.map(j => JURISDICTION_EXPERTISE[j] || j).join("; ");
