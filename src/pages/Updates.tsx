@@ -149,13 +149,45 @@ const Updates = () => {
         loadPage(page + PAGE_SIZE, false);
     }, [loadPage, page]);
 
+    // Sync search term to URL
+    useEffect(() => {
+        if (searchTerm) {
+            setSearchParams({ q: searchTerm }, { replace: true });
+        } else {
+            setSearchParams({}, { replace: true });
+        }
+    }, [searchTerm, setSearchParams]);
+
+    // Compute available sectors for faceted filtering
+    const availableSectors = useMemo(() => {
+        const counts: Record<string, number> = {};
+        updates.forEach((u) => {
+            (u.affected_sectors || []).forEach((s) => {
+                counts[s] = (counts[s] || 0) + 1;
+            });
+        });
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 12);
+    }, [updates]);
+
     const filtered = updates.filter((u) => {
         if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
         if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
         if (activeFilter !== "all" && activeFilter !== "enriched" && activeFilter !== "pending" && u.category !== activeFilter) return false;
         if (searchTerm) {
             const q = searchTerm.toLowerCase();
-            if (!u.title.toLowerCase().includes(q) && !(u.summary || "").toLowerCase().includes(q)) return false;
+            const fields = [
+                u.title,
+                u.summary || "",
+                u.regulatory_theory || "",
+                u.related_development || "",
+                u.attention_level || "",
+                ...(u.affected_sectors || []),
+                u.regulator || "",
+                u.ai_summary?.why_it_matters || "",
+            ];
+            if (!fields.some(f => f.toLowerCase().includes(q))) return false;
         }
         if (dateRange !== "all") {
             const days = parseInt(dateRange);
@@ -163,6 +195,13 @@ const Updates = () => {
             if (new Date(u.published_at).getTime() < cutoff) return false;
         }
         if (activeSource && u.source_domain !== activeSource) return false;
+
+        // Faceted filters
+        if (activeSectors.length > 0) {
+            const sectors = u.affected_sectors || [];
+            if (!activeSectors.some(s => sectors.includes(s))) return false;
+        }
+        if (activeAttention && u.attention_level !== activeAttention) return false;
 
         // AI summary filters
         if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
@@ -172,7 +211,25 @@ const Updates = () => {
         return true;
     });
 
-    
+    const toggleSector = (sector: string) => {
+        setActiveSectors(prev =>
+            prev.includes(sector) ? prev.filter(s => s !== sector) : [...prev, sector]
+        );
+    };
+
+    const hasActiveFilters = activeSectors.length > 0 || activeAttention || urgencyFilter !== "all" || legalWeightFilter !== "all" || crossJurisdictionOnly;
+
+    const clearAllFilters = () => {
+        setActiveSectors([]);
+        setActiveAttention(null);
+        setUrgencyFilter("all");
+        setLegalWeightFilter("all");
+        setCrossJurisdictionOnly(false);
+        setActiveSource(null);
+        setActiveFilter("all");
+        setSearchTerm("");
+        setDateRange("all");
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
