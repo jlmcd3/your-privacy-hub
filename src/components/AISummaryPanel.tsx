@@ -133,6 +133,30 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
             </div>
           )}
 
+          {summary.regulatory_theory && (
+            <div>
+              <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
+                Regulatory theory
+              </p>
+              <p className="text-muted-foreground leading-relaxed">{summary.regulatory_theory}</p>
+            </div>
+          )}
+
+          {summary.affected_sectors && summary.affected_sectors.length > 0 && (
+            <div>
+              <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
+                Sectors affected
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {summary.affected_sectors.map((s, i) => (
+                  <span key={i} className="text-[10px] font-medium bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-border/40">
             {summary.who_should_care && (
               <p className="text-[11px] text-muted-foreground">
