@@ -3,7 +3,6 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -193,7 +192,6 @@ const Dashboard = () => {
           <title>Intelligence Dashboard | EndUserPrivacy</title>
           <meta name="description" content="Your personalized privacy intelligence dashboard with AI-generated weekly briefs, enforcement alerts, and regulatory updates." />
         </Helmet>
-        <Topbar />
         <Navbar />
         <div className="flex items-center justify-center py-24">
           <span className="text-muted-foreground text-sm">Loading…</span>
@@ -215,7 +213,6 @@ const Dashboard = () => {
         <Helmet>
           <title>Intelligence Dashboard | EndUserPrivacy</title>
         </Helmet>
-        <Topbar />
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-12">
           {/* Premium upsell banner */}
@@ -399,7 +396,6 @@ const Dashboard = () => {
         <title>Intelligence Dashboard | EndUserPrivacy</title>
         <meta name="description" content="Your personalized privacy intelligence dashboard with AI-generated weekly briefs, enforcement alerts, and regulatory updates." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-12">

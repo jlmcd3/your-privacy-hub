@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Helmet } from "react-helmet-async";
 import { Check, ChevronRight } from "lucide-react";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
@@ -47,7 +46,6 @@ export default function Account() {
       <Helmet>
         <title>My Account | EndUserPrivacy</title>
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="max-w-[640px] mx-auto px-4 py-12">

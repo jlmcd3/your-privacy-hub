@@ -4,7 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { Lock, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -107,7 +106,6 @@ const USPrivacyLaws = () => {
         <meta property="og:title" content="U.S. Privacy Laws | EndUserPrivacy" />
         <meta property="og:description" content="Federal & state privacy law guide covering FTC authority, HIPAA, COPPA, and all 50 state privacy statutes." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       {/* Page Header */}

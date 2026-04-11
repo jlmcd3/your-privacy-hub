@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
@@ -179,7 +178,6 @@ export default function GlobalJurisdictionComparison() {
         <meta name="description" content="Side-by-side comparison of global privacy laws across 10+ jurisdictions. Compare GDPR, LGPD, PIPL, CCPA and more." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
-        <Topbar />
         <Navbar />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 md:px-8 py-8 w-full">
           <h1 className="font-display font-bold text-foreground text-2xl md:text-3xl mb-2">

@@ -3,7 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
@@ -59,7 +58,6 @@ export default function SubscribeSuccess() {
       <Helmet>
         <title>Welcome to Premium | EndUserPrivacy</title>
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="max-w-[640px] mx-auto px-4 py-16 md:py-20">
