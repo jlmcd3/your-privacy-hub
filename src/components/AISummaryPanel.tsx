@@ -7,11 +7,14 @@ interface AISummary {
   takeaways: string[];
   compliance_impact: string;
   who_should_care: string;
-  urgency?: string; // Immediate | This quarter | Monitor
-  legal_weight?: string; // Binding | Enforcement | Guidance | Proposal | Commentary
-  source_strength?: string; // Primary regulator | Legal analysis | Media coverage
+  urgency?: string;
+  legal_weight?: string;
+  source_strength?: string;
   cross_jurisdiction_signal?: string | null;
-  risk_level?: string; // Low | Medium | High | Critical
+  risk_level?: string;
+  regulatory_theory?: string | null;
+  affected_sectors?: string[] | null;
+  attention_level?: string | null;
 }
 
 interface AISummaryPanelProps {

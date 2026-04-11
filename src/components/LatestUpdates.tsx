@@ -156,7 +156,7 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary,topic_tags")
+          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
           .order("published_at", { ascending: false })
           .limit(50);
 
