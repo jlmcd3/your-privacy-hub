@@ -697,6 +697,18 @@ const Dashboard = () => {
               </section>
             )}
 
+            {/* Cross-jurisdiction patterns */}
+            {brief.cross_jurisdiction_patterns && (
+              <section className="bg-violet-50/50 rounded-xl border border-violet-200/50 p-6">
+                <h3 className="font-display text-[17px] text-foreground mb-3">
+                  🌐 Cross-Jurisdiction Patterns
+                </h3>
+                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+                  <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
+                </div>
+              </section>
+            )}
+
             {/* Enforcement trends */}
             <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
 
