@@ -202,9 +202,34 @@ const Updates = () => {
                     Get Your Privacy Intelligence →
                   </Link>
                 </div>
+                {/* Enrichment stats strip */}
+                {(() => {
+                    const enrichedCount = updates.filter(u => u.enrichment_version && u.enrichment_version > 0).length;
+                    const pendingCount = updates.length - enrichedCount;
+                    const pct = updates.length > 0 ? Math.round((enrichedCount / updates.length) * 100) : 0;
+                    return (
+                        <div className="flex items-center gap-4 mb-4 px-4 py-2.5 bg-muted/50 rounded-xl border border-border">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-semibold text-muted-foreground">Enrichment:</span>
+                                <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className="text-[11px] font-bold text-primary">{pct}%</span>
+                            </div>
+                            <span className="text-[11px] text-muted-foreground">
+                                ✨ {enrichedCount} enriched · ⏳ {pendingCount} pending
+                            </span>
+                        </div>
+                    );
+                })()}
+
                 {/* Filters bar */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {FILTERS.map((f) => (
+                    {FILTERS.map((f) => {
+                        let count: number | null = null;
+                        if (f.key === "enriched") count = updates.filter(u => u.enrichment_version && u.enrichment_version > 0).length;
+                        if (f.key === "pending") count = updates.filter(u => !u.enrichment_version || u.enrichment_version === 0).length;
+                        return (
                         <button
                             key={f.key}
                             onClick={() => setActiveFilter(f.key)}
@@ -214,6 +239,13 @@ const Updates = () => {
                                     : "bg-muted text-foreground hover:bg-muted/80"
                             }`}
                         >
+                            {f.label}
+                            {count !== null && (
+                                <span className="ml-1 text-[10px] opacity-70">({count})</span>
+                            )}
+                        </button>
+                        );
+                    })}
                             {f.label}
                         </button>
                     ))}
