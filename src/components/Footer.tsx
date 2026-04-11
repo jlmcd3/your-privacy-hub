@@ -78,7 +78,7 @@ const Footer = () => {
             <span className="hidden md:inline text-navy-light">·</span>
             <Link to="/privacy-policy" className="text-slate-light hover:text-silver no-underline">Privacy Policy</Link>
             <span className="hidden md:inline text-navy-light">·</span>
-            <span className="text-center">Summaries are AI-generated. Verify against primary sources.</span>
+            <span className="text-center">We track the developments. Your counsel applies them.</span>
           </div>
         </div>
       </div>

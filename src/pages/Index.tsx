@@ -129,9 +129,13 @@ const Index = () => {
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
 
+            {/* Key signals — visible on all screen sizes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <EnforcementStatsBanner />
+              <UpcomingDeadlines />
+            </div>
 
-
-            {/* Latest Updates — replaces topic lane strips */}
+            {/* Article feed with filters */}
             <LatestUpdates />
           </div>
 
