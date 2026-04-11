@@ -147,7 +147,9 @@ const Updates = () => {
     }, [loadPage, page]);
 
     const filtered = updates.filter((u) => {
-        if (activeFilter !== "all" && u.category !== activeFilter) return false;
+        if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
+        if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
+        if (activeFilter !== "all" && activeFilter !== "enriched" && activeFilter !== "pending" && u.category !== activeFilter) return false;
         if (searchTerm) {
             const q = searchTerm.toLowerCase();
             if (!u.title.toLowerCase().includes(q) && !(u.summary || "").toLowerCase().includes(q)) return false;
