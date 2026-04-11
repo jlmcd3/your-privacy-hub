@@ -18,6 +18,7 @@ import ChooseYourMode from "@/components/home/ChooseYourMode";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
+import PatternSignalCards from "@/components/home/PatternSignalCards";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import SearchStrip from "@/components/home/SearchStrip";
