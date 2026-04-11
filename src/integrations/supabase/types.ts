@@ -184,6 +184,55 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_relationships: {
+        Row: {
+          created_at: string | null
+          from_entity_id: string | null
+          id: string
+          relationship: string
+          source_article: string | null
+          to_entity_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_entity_id?: string | null
+          id?: string
+          relationship: string
+          source_article?: string | null
+          to_entity_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_entity_id?: string | null
+          id?: string
+          relationship?: string
+          source_article?: string | null
+          to_entity_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_relationships_from_entity_id_fkey"
+            columns: ["from_entity_id"]
+            isOneToOne: false
+            referencedRelation: "regulatory_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relationships_source_article_fkey"
+            columns: ["source_article"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relationships_to_entity_id_fkey"
+            columns: ["to_entity_id"]
+            isOneToOne: false
+            referencedRelation: "regulatory_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingestion_runs: {
         Row: {
           enrichment_failed_429: number | null
@@ -250,6 +299,51 @@ export type Database = {
           name?: string
           region?: string | null
           slug?: string
+        }
+        Relationships: []
+      }
+      longitudinal_signals: {
+        Row: {
+          article_count: number | null
+          generated_at: string
+          id: string
+          jurisdictions_active: string[] | null
+          key_observations: Json | null
+          period_days: number
+          period_end: string
+          period_start: string
+          sectors_affected: string[] | null
+          source_article_ids: string[] | null
+          summary: string | null
+          topic_area: string
+        }
+        Insert: {
+          article_count?: number | null
+          generated_at?: string
+          id?: string
+          jurisdictions_active?: string[] | null
+          key_observations?: Json | null
+          period_days: number
+          period_end: string
+          period_start: string
+          sectors_affected?: string[] | null
+          source_article_ids?: string[] | null
+          summary?: string | null
+          topic_area: string
+        }
+        Update: {
+          article_count?: number | null
+          generated_at?: string
+          id?: string
+          jurisdictions_active?: string[] | null
+          key_observations?: Json | null
+          period_days?: number
+          period_end?: string
+          period_start?: string
+          sectors_affected?: string[] | null
+          source_article_ids?: string[] | null
+          summary?: string | null
+          topic_area?: string
         }
         Relationships: []
       }
@@ -343,6 +437,33 @@ export type Database = {
         }
         Relationships: []
       }
+      regulatory_entities: {
+        Row: {
+          created_at: string | null
+          entity_type: string
+          id: string
+          jurisdiction: string | null
+          metadata: Json | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_type: string
+          id?: string
+          jurisdiction?: string | null
+          metadata?: Json | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_type?: string
+          id?: string
+          jurisdiction?: string | null
+          metadata?: Json | null
+          name?: string
+        }
+        Relationships: []
+      }
       report_configs: {
         Row: {
           converted: boolean | null
@@ -384,6 +505,7 @@ export type Database = {
           created_at: string | null
           date: string
           emerging_risks: Json
+          enforcement_patterns: Json | null
           id: string
           jurisdictions: Json
           period: string
@@ -399,6 +521,7 @@ export type Database = {
           created_at?: string | null
           date: string
           emerging_risks?: Json
+          enforcement_patterns?: Json | null
           id?: string
           jurisdictions?: Json
           period?: string
@@ -414,6 +537,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           emerging_risks?: Json
+          enforcement_patterns?: Json | null
           id?: string
           jurisdictions?: Json
           period?: string
@@ -427,15 +551,21 @@ export type Database = {
       updates: {
         Row: {
           affected_jurisdictions: string[] | null
+          affected_sectors: string[] | null
           ai_summary: Json | null
+          attention_level: string | null
           category: string
           created_at: string
           direct_jurisdictions: string[] | null
+          enrichment_version: number | null
           id: string
           image_url: string | null
           is_premium: boolean
+          key_date: string | null
           published_at: string
           regulator: string | null
+          regulatory_theory: string | null
+          related_development: string | null
           source_domain: string | null
           source_name: string | null
           summary: string | null
@@ -445,15 +575,21 @@ export type Database = {
         }
         Insert: {
           affected_jurisdictions?: string[] | null
+          affected_sectors?: string[] | null
           ai_summary?: Json | null
+          attention_level?: string | null
           category?: string
           created_at?: string
           direct_jurisdictions?: string[] | null
+          enrichment_version?: number | null
           id?: string
           image_url?: string | null
           is_premium?: boolean
+          key_date?: string | null
           published_at?: string
           regulator?: string | null
+          regulatory_theory?: string | null
+          related_development?: string | null
           source_domain?: string | null
           source_name?: string | null
           summary?: string | null
@@ -463,15 +599,21 @@ export type Database = {
         }
         Update: {
           affected_jurisdictions?: string[] | null
+          affected_sectors?: string[] | null
           ai_summary?: Json | null
+          attention_level?: string | null
           category?: string
           created_at?: string
           direct_jurisdictions?: string[] | null
+          enrichment_version?: number | null
           id?: string
           image_url?: string | null
           is_premium?: boolean
+          key_date?: string | null
           published_at?: string
           regulator?: string | null
+          regulatory_theory?: string | null
+          related_development?: string | null
           source_domain?: string | null
           source_name?: string | null
           summary?: string | null
