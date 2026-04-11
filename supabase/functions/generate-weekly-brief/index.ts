@@ -234,10 +234,36 @@ TikTok [ref:1] for children's data violations."
 Format: Return ONLY a valid JSON object matching the schema exactly.
 No markdown, no preamble.`;
 
+    // Build enrichment summary for high-attention articles
+    const highAttention = articles.filter((a: any) => a.attention_level === 'High');
+    const sectorCounts: Record<string, number> = {};
+    articles.forEach((a: any) => {
+      ((a.affected_sectors as string[]) || []).forEach(s => { sectorCounts[s] = (sectorCounts[s] || 0) + 1; });
+    });
+    const topSectors = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const enrichmentContext = `ENRICHMENT ANALYSIS (pre-computed by AI for each article):
+HIGH-ATTENTION articles this week: ${highAttention.length} of ${articles.length}
+${highAttention.slice(0, 5).map((a: any, i: number) => `  ${i + 1}. "${a.title}" — Theory: ${a.regulatory_theory || 'N/A'}`).join('\n')}
+
+MOST-AFFECTED SECTORS across all articles:
+${topSectors.map(([s, c]) => `  • ${s}: ${c} articles`).join('\n')}
+
+KEY DATES extracted from articles:
+${articles.filter((a: any) => a.key_date).slice(0, 5).map((a: any) => `  • ${a.key_date}: ${a.title}`).join('\n') || '  None this week.'}
+
+USE THIS ENRICHMENT DATA to:
+- Prioritize high-attention articles in each section
+- Reference regulatory theories when they represent novel enforcement approaches
+- Include sector impact analysis in the executive summary
+- Cite key dates in the why_this_matters section`;
+
     const userPrompt = `PREVIOUS WEEK CONTEXT:
 ${previousContext}
 
 ${trendContext}
+
+${enrichmentContext}
 
 ARTICLES THIS WEEK (${weekLabel}):
 ${articleList}
@@ -250,13 +276,14 @@ STRICT ACCURACY RULES — violations invalidate this brief:
 5. Every substantive claim in narrative sections should have an inline [ref:N] citation
 6. If a dedicated section (AI, biometric, litigation) has no source articles this week, write the exact phrase: "No monitored developments in this category this week." followed by what to watch for in the next 30 days
 7. CROSS-JURISDICTION PATTERNS: Actively look for cases where multiple regulators in different jurisdictions are taking similar action within the same reporting period. When you identify such a pattern, call it out explicitly — it is more significant than any individual action. Name the regulators, the shared focus, and what the coordination signals about the 30-90 day enforcement outlook.
+8. USE THE ENRICHMENT DATA: Leverage the pre-computed attention levels, regulatory theories, and sector analysis to write more precise, actionable intelligence. Reference specific regulatory theories when they represent novel enforcement approaches.
 
 Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these fields:
 
 {
   "headline": "25-35 word headline capturing the single most significant development this week. Must name specific regulators or regulations. Not generic.",
 
-  "executive_summary": "4-5 paragraphs of authoritative executive synthesis. ~400 words. Use [ref:N] citations throughout. End with a WHAT TO IGNORE THIS WEEK section: 1-2 sentences identifying a high-profile item that is less significant than it appears and why — this demonstrates editorial judgment.",
+  "executive_summary": "4-5 paragraphs of authoritative executive synthesis. ~400 words. Use [ref:N] citations throughout. Include a SECTOR IMPACT paragraph naming the most-affected industries this week with specific compliance implications. End with a WHAT TO IGNORE THIS WEEK section: 1-2 sentences identifying a high-profile item that is less significant than it appears and why.",
 
   "us_federal": "3-4 paragraphs on FTC, Congressional bills, NIST/HHS/FCC actions, 30-day outlook. ~250 words. Use [ref:N] citations. End with ACTION ITEMS in three tiers:\\n- IMMEDIATE (7 days): [specific action] ([Role: DPO/Legal Counsel/Board Escalation/Compliance Manager])\\n- THIS QUARTER: [specific action] ([Role])\\n- MONITOR: [development to watch] ([Role])",
 
@@ -282,7 +309,7 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 
   "trend_signal": "2 paragraphs: most important forward-looking signal, specific 30-90 day prediction. ~200 words.",
 
-  "why_this_matters": "3 paragraphs for GC/CPO: urgent action this week, 30-day action, 30-90 day horizon. ~300 words. Use tiered ACTION ITEMS format."
+  "why_this_matters": "3 paragraphs for GC/CPO: urgent action this week, 30-day action, 30-90 day horizon. ~300 words. Use tiered ACTION ITEMS format. Reference upcoming key dates from the enrichment data."
 }
 
 Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
