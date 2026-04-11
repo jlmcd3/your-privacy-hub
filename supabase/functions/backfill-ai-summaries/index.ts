@@ -92,8 +92,7 @@ async function generateAISummary(
         messages: [
           {
             role: "user",
-            content: `You are a privacy regulatory analyst.
-Return ONLY valid JSON. No preamble, no markdown.
+            content: `You are a privacy regulatory analyst. Return ONLY valid JSON. No preamble, no markdown.
 
 Analyze this article.
 Title: ${title}
@@ -105,15 +104,20 @@ Articles that merely announce a data breach, security incident, or lawsuit settl
 
 If not about privacy regulation/law, return: {"skip": true}
 
-Otherwise return JSON with fields:
-- why_it_matters (string)
-- takeaways (array of strings)
-- compliance_impact (string)
-- who_should_care (one of: "DPO", "Privacy Counsel", "Compliance Manager", "CISO", "All privacy professionals")
-- urgency (one of: "Immediate", "This quarter", "Monitor")
-- legal_weight (one of: "Binding", "Enforcement", "Guidance", "Proposal", "Commentary")
+Otherwise return JSON with these exact fields:
+- why_it_matters (string: one to two sentences explaining what this development means for privacy professionals)
+- takeaways (array of 2-4 strings: specific, plain-English observations)
+- compliance_impact (string: one sentence describing what this may mean in practice)
+- who_should_care (one of: "Privacy leads", "Compliance teams", "Legal teams", "Security teams", "All privacy professionals")
+- urgency (one of: "High", "Medium", "Low")
+- legal_weight (one of: "In effect", "Enforcement action", "Guidance issued", "Proposed", "Commentary")
 - source_strength (one of: "Official", "Credible", "Secondary")
-- cross_jurisdiction_signal (string or null)`,
+- cross_jurisdiction_signal (string or null: if multiple jurisdictions are involved, note it briefly)
+- regulatory_theory (string or null: the core regulatory principle at issue, in plain English)
+- affected_sectors (array of strings or null: industry sectors most relevant to this development)
+- related_development (string or null: a prior case, decision, or development this connects to, if clearly applicable)
+- attention_level (one of: "High", "Medium", "Low": overall priority signal for professionals)
+- key_date (string in YYYY-MM-DD format or null: a specific regulatory implementation or deadline date if mentioned)`,
           },
         ],
       }),
