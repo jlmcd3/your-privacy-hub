@@ -124,6 +124,8 @@ const EnrichmentAccordion = ({ item }: { item: ArticleItem }) => {
     s.risk_level && { label: 'Risk Level', value: s.risk_level },
     s.urgency && { label: 'Urgency', value: s.urgency },
     s.legal_weight && { label: 'Legal Weight', value: s.legal_weight },
+    item.regulatory_theory && { label: 'Regulatory Theory', value: item.regulatory_theory },
+    item.related_development && { label: 'Related Development', value: item.related_development },
   ].filter(Boolean) as { label: string; value: string }[];
 
   // Only show accordion if there's detail beyond what's already visible
