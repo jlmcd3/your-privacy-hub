@@ -116,7 +116,19 @@ const RegulatorPage = () => {
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-sky font-display">{regulator.abbreviation}</p>}
+          {regulator.legislation && (
+            <p className="text-blue-200 text-[13px] mt-1">
+              Primary legislation: {regulator.legislation}
+              {regulator.legislation_abbreviation ? ` (${regulator.legislation_abbreviation})` : ''}
+            </p>
+          )}
           <p className="text-sm text-slate-light mt-2">{regulator.country}{regulator.region && regulator.region !== regulator.country ? ` · ${regulator.region}` : ''}</p>
+          {regulator.website && (
+            <a href={regulator.website} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sky text-[13px] no-underline hover:text-white transition-colors mt-2">
+              Official website →
+            </a>
+          )}
           <div className="mt-4">
             <FollowButton followType="regulator" followKey={slug!} label={regulator.abbreviation || regulator.name} />
           </div>
