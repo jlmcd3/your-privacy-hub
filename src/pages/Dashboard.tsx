@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 
 import OnboardingModal from "@/components/OnboardingModal";
 import ReportCredits from "@/components/dashboard/ReportCredits";
+import DigestPreferences from "@/components/DigestPreferences";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
