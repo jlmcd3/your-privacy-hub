@@ -70,6 +70,20 @@ const allRegulators = buildRegulatorData();
 const RegulatorPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const regulator = slug ? allRegulators[slug] : null;
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!regulator) return;
+    const terms = [regulator.name, regulator.abbreviation].filter(Boolean);
+    const orQuery = terms.map(t => `title.ilike.%${t}%`).join(",");
+    supabase
+      .from("updates")
+      .select("id, title, summary, url, source_name, published_at, category, ai_summary")
+      .or(orQuery)
+      .order("published_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => { if (data) setRecentArticles(data); });
+  }, [regulator]);
 
   if (!regulator) {
     return (
