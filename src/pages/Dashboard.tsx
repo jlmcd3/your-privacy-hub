@@ -130,7 +130,7 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete")
+      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete, digest_jurisdictions, digest_topics")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -141,6 +141,10 @@ const Dashboard = () => {
           setShowOnboarding(true);
         }
         setBonusCredits((data as any)?.bonus_report_credits ?? 0);
+        setDigestPrefsSet(
+          Array.isArray((data as any)?.digest_jurisdictions) &&
+          (data as any).digest_jurisdictions.length > 0
+        );
 
         // Use profiles.monthly_reports_used (server-side source of truth)
         const monthStart = new Date();
