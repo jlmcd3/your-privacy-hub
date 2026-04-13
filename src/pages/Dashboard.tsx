@@ -588,9 +588,9 @@ const Dashboard = () => {
                   </section>
                 )}
 
-              </div>{/* end section content */}
-            </div>{/* end white document card */}
-          </div>{/* end bg-slate-100 wrapper */}
+              </div>
+            </div>
+          </div>
         )}
 
         {loading && (
