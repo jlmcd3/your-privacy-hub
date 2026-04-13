@@ -341,6 +341,86 @@ export type Database = {
         }
         Relationships: []
       }
+      li_tracker_entries: {
+        Row: {
+          case_reference: string | null
+          confidence: string
+          created_at: string | null
+          dpa_source: string
+          id: string
+          jurisdiction: string
+          last_confirmed: string | null
+          outcome: string
+          processing_activity: string
+          signal_type: string
+          source_article_id: string | null
+          summary: string
+          updated_at: string | null
+        }
+        Insert: {
+          case_reference?: string | null
+          confidence?: string
+          created_at?: string | null
+          dpa_source: string
+          id?: string
+          jurisdiction: string
+          last_confirmed?: string | null
+          outcome: string
+          processing_activity: string
+          signal_type: string
+          source_article_id?: string | null
+          summary: string
+          updated_at?: string | null
+        }
+        Update: {
+          case_reference?: string | null
+          confidence?: string
+          created_at?: string | null
+          dpa_source?: string
+          id?: string
+          jurisdiction?: string
+          last_confirmed?: string | null
+          outcome?: string
+          processing_activity?: string
+          signal_type?: string
+          source_article_id?: string | null
+          summary?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "li_tracker_entries_source_article_id_fkey"
+            columns: ["source_article_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      li_trend_summaries: {
+        Row: {
+          created_at: string | null
+          id: string
+          period_end: string
+          period_start: string
+          summary: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          period_end: string
+          period_start: string
+          summary: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          summary?: string
+        }
+        Relationships: []
+      }
       longitudinal_signals: {
         Row: {
           article_count: number | null
@@ -607,6 +687,8 @@ export type Database = {
           image_url: string | null
           is_premium: boolean
           key_date: string | null
+          li_processed: boolean | null
+          li_relevant: boolean | null
           published_at: string
           regulator: string | null
           regulatory_theory: string | null
@@ -631,6 +713,8 @@ export type Database = {
           image_url?: string | null
           is_premium?: boolean
           key_date?: string | null
+          li_processed?: boolean | null
+          li_relevant?: boolean | null
           published_at?: string
           regulator?: string | null
           regulatory_theory?: string | null
@@ -655,6 +739,8 @@ export type Database = {
           image_url?: string | null
           is_premium?: boolean
           key_date?: string | null
+          li_processed?: boolean | null
+          li_relevant?: boolean | null
           published_at?: string
           regulator?: string | null
           regulatory_theory?: string | null
