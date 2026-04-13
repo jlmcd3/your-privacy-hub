@@ -27,9 +27,9 @@ export default function FreeVsPaidStrip() {
   return (
     <div className="bg-muted/50 border-b border-border text-center py-1.5 px-4">
       <p className="text-[11px] text-muted-foreground">
-        📚 Free library{" "}
+        📚 Free to browse{" "}
         <span className="text-border mx-1.5">·</span>
-        <span className="text-amber-600 font-semibold">⭐ Intelligence is $20/month</span>
+        <span className="text-amber-600 font-semibold">⭐ Personalized Intelligence is $20/month</span>
         <span className="text-border mx-1.5">·</span>
         <Link to="/subscribe" className="text-primary font-semibold no-underline hover:underline">
           See what's included →

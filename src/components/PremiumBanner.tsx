@@ -6,7 +6,6 @@ const features = [
   "Brief re-written specifically for your industry every week",
   "Sector-specific action items — not generic advice",
   "Ad-free, always",
-  "First 25 subscribers get the first year free — then $20/month.",
 ];
 
 const PremiumBanner = () => {

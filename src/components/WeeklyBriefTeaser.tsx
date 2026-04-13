@@ -37,7 +37,7 @@ const WeeklyBriefTeaser = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">
-              This Week's Intelligence Brief
+              This Week's Brief
             </h2>
             <p className="text-[13px] text-slate mt-1">
               Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
