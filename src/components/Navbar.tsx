@@ -65,7 +65,7 @@ const navItems: NavItem[] = [
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { icon: "🏢", label: "U.S. State Authorities", href: "/us-privacy-laws#state-authorities" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
-          { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
+          
         ],
       },
       {
@@ -90,7 +90,7 @@ const navItems: NavItem[] = [
         ],
       },
       {
-        header: "Premium — $20/month",
+        header: "Premium",
         divider: true,
         items: [
           { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
@@ -326,14 +326,51 @@ const Navbar = () => {
               )}
             </div>
           ))}
-          <div className="pt-3 border-t border-fog">
-            <Link
-              to="/subscribe"
-              className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
-              onClick={() => setMobileOpen(false)}
-            >
-              See Plans →
-            </Link>
+          <div className="pt-3 border-t border-fog space-y-2">
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  🧠 My Dashboard
+                </Link>
+                {!isPremium && (
+                  <Link
+                    to="/subscribe"
+                    className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    ⭐ Upgrade to Premium
+                  </Link>
+                )}
+                <Link
+                  to="/account"
+                  className="block text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Account
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="block text-center text-[13px] font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/subscribe"
+                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  See Plans →
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
