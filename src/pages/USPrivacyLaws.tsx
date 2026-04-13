@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Lock, ChevronDown, ChevronUp, Search } from "lucide-react";
@@ -57,10 +57,10 @@ const STATE_SECTIONS = [
 ];
 
 const RELATED_LINKS = [
-  { label: "U.S. State Privacy Authority Directory", href: "#state-authorities" },
-  { label: "U.S. State Law Comparison", href: "/compare/us-states" },
-  { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-  { label: "Enforcement Tracker", href: "/enforcement-tracker" },
+  { icon: "🏢", label: "U.S. State Privacy Authority Directory", href: "/us-state-privacy-authorities" },
+  { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
+  { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+  { icon: "⚖️", label: "Enforcement Tracker", href: "/enforcement-tracker" },
 ];
 
 const authorityStatusClass = (s: string | null) => {
@@ -70,11 +70,44 @@ const authorityStatusClass = (s: string | null) => {
   return "bg-muted text-muted-foreground";
 };
 
+const TAB_ITEMS = [
+  { label: "Federal Framework", anchor: "federal-framework" },
+  { label: "State Laws", anchor: "state-laws" },
+  { label: "Authority Directory", anchor: "state-authorities" },
+  { label: "Recent Developments", anchor: "recent-developments" },
+];
+
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [federalExpanded, setFederalExpanded] = useState(false);
   const [authSearch, setAuthSearch] = useState("");
   const [authStatusFilter, setAuthStatusFilter] = useState("All");
+  const [authorityExpanded, setAuthorityExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState("federal-framework");
+
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const setRef = useCallback((anchor: string) => (el: HTMLDivElement | null) => {
+    sectionRefs.current[anchor] = el;
+  }, []);
+
+  // IntersectionObserver for active tab highlighting
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    TAB_ITEMS.forEach(({ anchor }) => {
+      const el = sectionRefs.current[anchor];
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveTab(anchor);
+        },
+        { rootMargin: "-120px 0px -60% 0px", threshold: 0 }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [recentArticles]);
 
   const filteredAuthorities = usStates.filter((state: any) => {
     const matchesSearch = !authSearch ||
@@ -98,6 +131,10 @@ const USPrivacyLaws = () => {
     load();
   }, []);
 
+  const scrollTo = (anchor: string) => {
+    document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
@@ -120,25 +157,20 @@ const USPrivacyLaws = () => {
           </p>
           <div className="text-[11px] text-slate-light mt-4">Last updated: March 10, 2026</div>
 
-          {/* Anchor jump links */}
-          <div className="flex flex-wrap gap-2 mt-5">
-            {[
-              { label: "Federal Framework", anchor: "#federal-framework" },
-              { label: "State Laws", anchor: "#state-laws" },
-              { label: "Authority Directory", anchor: "#state-authorities" },
-              { label: "Recent Developments", anchor: "#recent-developments" },
-            ].map((link) => (
-              <a
-                key={link.anchor}
-                href={link.anchor}
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector(link.anchor)?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="px-3.5 py-1.5 text-[12px] font-semibold rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all no-underline"
+          {/* Functional tab navigation */}
+          <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
+            {TAB_ITEMS.map((tab) => (
+              <button
+                key={tab.anchor}
+                onClick={() => scrollTo(tab.anchor)}
+                className={`px-3 py-1.5 text-[11px] md:text-[12px] font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer bg-transparent ${
+                  activeTab === tab.anchor
+                    ? "border-white text-white bg-white/15"
+                    : "border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
               >
-                {link.label}
-              </a>
+                {tab.label}
+              </button>
             ))}
           </div>
         </div>
@@ -146,10 +178,10 @@ const USPrivacyLaws = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10 md:py-14">
+      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
 
         {/* ── Section 1: Federal Framework ── */}
-        <div id="federal-framework" className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10 scroll-mt-24">
+        <div ref={setRef("federal-framework")} id="federal-framework" className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10 scroll-mt-24">
           <h2 className="font-display text-[20px] md:text-[24px] text-white mb-2 flex items-center gap-2">
             🏛️ The Federal Privacy Framework
           </h2>
@@ -157,13 +189,11 @@ const USPrivacyLaws = () => {
             The U.S. has no single comprehensive federal privacy law. Instead, a patchwork of sector-specific statutes and FTC enforcement authority governs data privacy at the federal level.
           </p>
 
-          {/* Always-visible: FTC Authority */}
           <div className="mb-4">
             <h3 className="font-display text-[17px] md:text-[19px] text-white/90 mb-2">{FEDERAL_SECTIONS[0].heading}</h3>
             <p className="text-[13px] text-slate-light leading-relaxed">{FEDERAL_SECTIONS[0].content}</p>
           </div>
 
-          {/* Collapsible: remaining federal sections */}
           {federalExpanded && (
             <div className="space-y-5 mt-5 pt-5 border-t border-white/10">
               {FEDERAL_SECTIONS.slice(1).map((sec, i) => (
@@ -188,62 +218,28 @@ const USPrivacyLaws = () => {
         </div>
 
         {/* ── Divider ── */}
-        <div id="state-laws" className="relative flex items-center my-10 scroll-mt-24">
+        <div ref={setRef("state-laws")} id="state-laws" className="relative flex items-center my-10 scroll-mt-24">
           <div className="flex-1 border-t border-fog" />
           <span className="px-4 text-[13px] font-semibold text-slate bg-paper">🗺️ State Privacy Laws</span>
           <div className="flex-1 border-t border-fog" />
         </div>
 
-        {/* ── Section 2: State Laws ── */}
+        {/* ── Section 2: State Laws (no mid-section premium upsell) ── */}
         <div className="space-y-8">
           {STATE_SECTIONS.map((sec, i) => (
-            <React.Fragment key={i}>
-              <div>
-                <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
-                <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
-              </div>
-              {i === 1 && (
-                <>
-                  <AdBanner variant="inline" adSlot="eup-pillar-mid" className="py-4" />
-                  <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm my-2">
-                    <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
-                      <div>
-                        <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">⭐ Weekly Intelligence</div>
-                        <h3 className="font-display text-[14px] text-white">What changed in U.S. privacy law this week</h3>
-                      </div>
-                      <Lock className="w-4 h-4 text-sky/50 shrink-0" />
-                    </div>
-                    <div className="relative bg-card px-5 py-4">
-                      <div className="space-y-2 blur-[3px] select-none pointer-events-none">
-                        <div className="h-2.5 bg-navy/10 rounded w-full" />
-                        <div className="h-2.5 bg-navy/10 rounded w-4/5" />
-                        <div className="h-2.5 bg-navy/10 rounded w-3/4" />
-                        <div className="h-2.5 bg-navy/10 rounded w-full mt-2" />
-                        <div className="h-2.5 bg-navy/10 rounded w-2/3" />
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-                        <div className="flex items-center gap-3">
-                          <Lock className="w-4 h-4 text-navy/40 shrink-0" />
-                          <span className="text-[12px] text-navy font-medium">Premium subscribers get weekly updates on every development in this area.</span>
-                          <Link to="/subscribe" className="text-[11px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap">
-                            Unlock →
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </React.Fragment>
+            <div key={i}>
+              <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+              <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
+            </div>
           ))}
         </div>
 
-        {/* ── Section: State Authorities Directory ── */}
-        <div id="state-authorities" className="mt-12 mb-10 scroll-mt-24">
+        {/* ── Section: State Authorities Directory (collapsed by default) ── */}
+        <div ref={setRef("state-authorities")} id="state-authorities" className="mt-12 mb-10 scroll-mt-24">
           <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-4">U.S. State Privacy Authority Directory</h2>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center mb-6 p-4 bg-card rounded-xl border border-border shadow-sm">
+          <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
             <div className="relative flex-1 min-w-[200px] max-w-[400px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <input
@@ -270,64 +266,84 @@ const USPrivacyLaws = () => {
             <span className="ml-auto text-[12px] text-muted-foreground">{filteredAuthorities.length} results</span>
           </div>
 
-          {/* Table */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead className="bg-muted">
-                  <tr>
-                    {["State", "Authority", "Statute", "Status", "Effective Date", "Links"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAuthorities.map((state: any) => (
-                    <tr key={state.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-4 py-3 text-[13px] text-foreground font-medium border-b border-border whitespace-nowrap">
-                        <Link
-                          to={`/jurisdiction/${slugify(state.state)}`}
-                          className="text-primary hover:underline font-medium no-underline"
-                        >
-                          {state.state}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
-                        <div className="font-medium">{state.authority_name}</div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">{state.authority_type}</div>
-                      </td>
-                      <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
-                        {state.statute_name || <span className="text-muted-foreground italic">None</span>}
-                      </td>
-                      <td className="px-4 py-3 border-b border-border">
-                        <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${authorityStatusClass(state.statute_status)}`}>
-                          {state.statute_status || "None"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-[13px] text-foreground border-b border-border whitespace-nowrap">
-                        {state.effective_date || "—"}
-                      </td>
-                      <td className="px-4 py-3 text-[13px] border-b border-border">
-                        <div className="flex gap-2">
-                          <a href={state.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Website ↗</a>
-                          {state.complaint_portal && (
-                            <a href={state.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Complaints ↗</a>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* Collapse toggle */}
+          {!authorityExpanded && (
+            <button
+              onClick={() => setAuthorityExpanded(true)}
+              className="w-full py-3 text-[13px] font-semibold text-primary bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
+            >
+              View all {filteredAuthorities.length} states ↓
+            </button>
+          )}
+
+          {/* Table (shown only when expanded) */}
+          {authorityExpanded && (
+            <>
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-sm">
+                    <thead className="bg-muted">
+                      <tr>
+                        {["State", "Authority", "Statute", "Status", "Effective Date", "Links"].map((h) => (
+                          <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredAuthorities.map((state: any) => (
+                        <tr key={state.id} className="hover:bg-muted/50 transition-colors">
+                          <td className="px-4 py-3 text-[13px] text-foreground font-medium border-b border-border whitespace-nowrap">
+                            <Link
+                              to={`/jurisdiction/${slugify(state.state)}`}
+                              className="text-primary hover:underline font-medium no-underline"
+                            >
+                              {state.state}
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
+                            <div className="font-medium">{state.authority_name}</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">{state.authority_type}</div>
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
+                            {state.statute_name || <span className="text-muted-foreground italic">None</span>}
+                          </td>
+                          <td className="px-4 py-3 border-b border-border">
+                            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${authorityStatusClass(state.statute_status)}`}>
+                              {state.statute_status || "None"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-foreground border-b border-border whitespace-nowrap">
+                            {state.effective_date || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-[13px] border-b border-border">
+                            <div className="flex gap-2">
+                              <a href={state.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Website ↗</a>
+                              {state.complaint_portal && (
+                                <a href={state.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Complaints ↗</a>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <button
+                onClick={() => setAuthorityExpanded(false)}
+                className="w-full mt-3 py-3 text-[13px] font-semibold text-primary bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
+              >
+                Collapse table ↑
+              </button>
+            </>
+          )}
         </div>
 
         {/* ── Section 3: Recent Developments ── */}
         {recentArticles.length > 0 && (
-          <div id="recent-developments" className="mt-12 mb-8 scroll-mt-24">
+          <div ref={setRef("recent-developments")} id="recent-developments" className="mt-12 mb-8 scroll-mt-24">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="font-display text-xl text-navy">Recent U.S. Privacy Developments</h2>
               <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
@@ -351,26 +367,27 @@ const USPrivacyLaws = () => {
           </div>
         )}
 
-        {/* Related Resources */}
+        {/* Related Resources — styled cards */}
         <div className="mt-12 pt-8 border-t border-fog">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {RELATED_LINKS.map((link, i) => (
-              <Link key={i} to={link.href} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-                <span className="text-blue">→</span> {link.label}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {RELATED_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className="group bg-card border border-fog rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all"
+              >
+                <span className="text-2xl block mb-2">{link.icon}</span>
+                <p className="font-display font-bold text-navy text-[14px] mb-1 group-hover:text-blue transition-colors">{link.label}</p>
+                <span className="text-blue text-[12px] font-semibold">Explore →</span>
               </Link>
             ))}
-          </div>
-          <div className="mt-6">
-            <a href="#state-authorities" className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline">
-              Browse All U.S. State Authorities ↑
-            </a>
           </div>
         </div>
 
         <AdBanner variant="leaderboard" adSlot="eup-pillar-bottom" className="py-6" />
 
-        {/* Premium CTA */}
+        {/* Premium CTA (bottom — kept) */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Premium Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on U.S. Privacy Laws</h3>
