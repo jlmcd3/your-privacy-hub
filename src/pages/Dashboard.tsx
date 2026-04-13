@@ -613,148 +613,169 @@ const Dashboard = () => {
 
         {!loading && brief && (
           <>
-            <div className="space-y-8">
-              {/* Executive Summary */}
-              <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
-                <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
-                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
+            {/* Public weekly brief — document layout */}
+            <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8">
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+
+                {/* Document header */}
+                <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
+                      ⭐ EndUserPrivacy Intelligence Brief
+                    </span>
+                    <div className="flex items-center gap-2 text-[11px] text-blue-300">
+                      <span>{brief.week_label}</span>
+                      <span>·</span>
+                      <span>{brief.article_count} updates reviewed</span>
+                    </div>
+                  </div>
+                  <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
+                    {brief.headline}
+                  </h2>
                 </div>
-                <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.executive_summary} />
-              </section>
 
-            {/* Analysis sections */}
-            <div className="grid gap-6">
-              <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🤖" title="AI Governance" content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="👁️" title="Biometric Data" content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
-              <SectionBlock icon="🏛️" title="Privacy Litigation" content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
-            </div>
+                {/* Section content */}
+                <div className="px-6 py-2">
 
-            {/* Enforcement table */}
-            {brief.enforcement_table && brief.enforcement_table.length > 0 && (
-              <section className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display text-[17px] text-foreground mb-4">
-                  ⚖️ Enforcement Actions This Week
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-[13px]">
-                    <thead>
-                      <tr className="border-b border-border text-left">
-                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Regulator</th>
-                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Subject</th>
-                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Type</th>
-                        <th className="py-2 pr-4 font-semibold text-muted-foreground">Amount</th>
-                        <th className="py-2 font-semibold text-muted-foreground">Significance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {brief.enforcement_table.map((row, i) => (
-                        <tr key={i} className="border-b border-border/50">
-                          <td className="py-3 pr-4 text-foreground font-medium">
-                            {row.regulator}
-                            <div className="text-[11px] text-muted-foreground">{row.jurisdiction}</div>
-                          </td>
-                          <td className="py-3 pr-4 text-foreground">{row.subject}</td>
-                          <td className="py-3 pr-4">
-                            <span className={`text-[11px] px-2 py-0.5 rounded-full border ${ACTION_COLOR[row.action_type] || "bg-muted text-muted-foreground border-border"}`}>
-                              {row.action_type}
-                            </span>
-                          </td>
-                          <td className="py-3 pr-4 text-foreground font-semibold">{row.amount}</td>
-                          <td className="py-3 text-muted-foreground text-[12px]">{row.significance}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {/* Executive Summary */}
+                  <section className="py-7 border-b border-slate-100">
+                    <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
+                    <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
+                      <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
+                    </div>
+                    <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.executive_summary} />
+                  </section>
+
+                  {/* All other sections */}
+                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🤖" title="AI Governance" content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="👁️" title="Biometric Data" content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="Privacy Litigation" content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
+
+                  {/* Enforcement table */}
+                  {brief.enforcement_table && brief.enforcement_table.length > 0 && (
+                    <section className="py-7 border-b border-slate-100">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                        ⚖️ Enforcement Actions This Week
+                      </h3>
+                      <div className="overflow-x-auto rounded-xl border border-slate-100">
+                        <table className="w-full text-[13px]">
+                          <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                              {["Regulator", "Subject", "Type", "Amount", "Significance"].map(h => (
+                                <th key={h} className="py-2.5 px-4 text-left text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                                  {h}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {brief.enforcement_table.map((row, i) => (
+                              <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} border-b border-slate-100`}>
+                                <td className="py-3 px-4 font-medium text-navy text-[13px]">
+                                  {row.regulator}
+                                  <div className="text-[11px] text-slate-400">{row.jurisdiction}</div>
+                                </td>
+                                <td className="py-3 px-4 text-slate-600 text-[13px]">{row.subject}</td>
+                                <td className="py-3 px-4">
+                                  <span className={`text-[11px] px-2 py-0.5 rounded-full border ${ACTION_COLOR[row.action_type] || "bg-muted text-muted-foreground border-border"}`}>
+                                    {row.action_type}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 font-semibold text-navy">{row.amount}</td>
+                                <td className="py-3 px-4 text-slate-500 text-[12px]">{row.significance}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Cross-jurisdiction patterns */}
+                  {brief.cross_jurisdiction_patterns && (
+                    <section className="py-7 border-b border-slate-100">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                        🌐 Cross-Jurisdiction Patterns
+                      </h3>
+                      <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
+                        <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Trend signal */}
+                  {brief.trend_signal && (
+                    <section className="py-7 border-b border-slate-100">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
+                      <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
+                        <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
+                      </div>
+                      <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.trend_signal ?? ""} />
+                    </section>
+                  )}
+
+                  {/* Why this matters / Action items — dark section */}
+                  {brief.why_this_matters && (
+                    <section className="py-7">
+                      <div className="bg-navy rounded-xl p-6">
+                        <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-amber-400 mb-5">
+                          🎯 Action Items for This Week
+                        </h3>
+                        <div className="text-[14px] text-blue-100 leading-relaxed space-y-3">
+                          <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
+                        </div>
+                        <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.why_this_matters ?? ""} />
+                      </div>
+                    </section>
+                  )}
+
                 </div>
-              </section>
-            )}
-
-            {/* Cross-jurisdiction patterns */}
-            {brief.cross_jurisdiction_patterns && (
-              <section className="bg-violet-50/50 rounded-xl border border-violet-200/50 p-6">
-                <h3 className="font-display text-[17px] text-foreground mb-3">
-                  🌐 Cross-Jurisdiction Patterns
-                </h3>
-                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
-                </div>
-              </section>
-            )}
-
-            {/* Enforcement trends */}
-            <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
-
-            {/* Trend signal */}
-            {brief.trend_signal && (
-              <section className="bg-amber-50/50 rounded-xl border border-amber-200/50 p-6">
-                <h3 className="font-display text-[17px] text-foreground mb-3">
-                  📡 Trend Signal
-                </h3>
-                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
-                </div>
-                <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.trend_signal ?? ""} />
-              </section>
-            )}
-
-            {/* Why this matters */}
-            {brief.why_this_matters && (
-              <section className="bg-primary/5 rounded-xl border border-primary/15 p-6">
-                <h3 className="font-display text-[17px] text-foreground mb-3">
-                  🎯 Why This Matters — Action Items for This Week
-                </h3>
-                <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                  <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
-                </div>
-                <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.why_this_matters ?? ""} />
-              </section>
-            )}
+              </div>
             </div>
 
             {/* Full sources reference */}
             {brief.source_map && Object.keys(brief.source_map).length > 0 && (
-              <section className="bg-card rounded-xl border border-border p-6 mt-2">
-                <h3 className="font-display text-[17px] text-foreground mb-3 flex items-center gap-2">
-                  <span>📚</span> All Source Articles This Week
-                </h3>
-                <p className="text-[12px] text-muted-foreground mb-4">
-                  {Object.keys(brief.source_map).length} articles monitored and synthesized to produce this brief. Click any title to read the original.
-                </p>
-                <div className="grid gap-2">
-                  {Object.entries(brief.source_map)
-                    .sort(([a], [b]) => Number(a) - Number(b))
-                    .map(([num, src]) => (
-                      <a
-                        key={num}
-                        href={src.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-muted-foreground hover:bg-muted/40 transition-all no-underline group"
-                      >
-                        <span className="text-[11px] font-bold text-muted-foreground flex-shrink-0 w-6 text-right mt-0.5">
-                          [{num}]
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                            {src.title}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">{src.source}</p>
-                        </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                      </a>
-                    ))}
+              <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
+                  <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
+                    <span>📚</span> All Source Articles This Week
+                  </h3>
+                  <p className="text-[12px] text-slate-400 mb-4">
+                    {Object.keys(brief.source_map).length} articles monitored and synthesized to produce this brief. Click any title to read the original.
+                  </p>
+                  <div className="grid gap-2">
+                    {Object.entries(brief.source_map)
+                      .sort(([a], [b]) => Number(a) - Number(b))
+                      .map(([num, src]) => (
+                        <a
+                          key={num}
+                          href={src.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-all no-underline group"
+                        >
+                          <span className="text-[11px] font-bold text-slate-400 flex-shrink-0 w-6 text-right mt-0.5">
+                            [{num}]
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-medium text-navy group-hover:text-steel transition-colors line-clamp-2">
+                              {src.title}
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">{src.source}</p>
+                          </div>
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-steel transition-colors flex-shrink-0 mt-0.5" />
+                        </a>
+                      ))}
+                  </div>
                 </div>
-              </section>
+              </div>
             )}
-
-
-
           </>
         )}
       </div>
