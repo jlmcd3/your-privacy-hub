@@ -58,11 +58,11 @@ const ACTION_COLOR: Record<string, string> = {
 function SectionBlock({ icon, title, content, sourceMap }: { icon: string; title: string; content: string | null; sourceMap: SourceMap }) {
   if (!content) return null;
   return (
-    <section className="bg-card rounded-xl border border-border p-6">
-      <h3 className="font-display text-[17px] text-foreground mb-3 flex items-center gap-2">
-        <span>{icon}</span> {title}
+    <section className="py-7 border-b border-slate-100 last:border-0">
+      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+        <span className="mr-2">{icon}</span>{title}
       </h3>
-      <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
+      <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
         <CitedParagraphs content={content} sourceMap={sourceMap} />
       </div>
       <SourcesList sourceMap={sourceMap} usedIn={content} />
