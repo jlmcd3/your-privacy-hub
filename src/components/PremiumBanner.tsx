@@ -24,7 +24,7 @@ const PremiumBanner = () => {
               The library is free.<br />Intelligence is $20/month.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
-              Browse every regulator and jurisdiction for free, always. Premium adds the analyst layer — weekly synthesis re-written for your industry and jurisdictions, telling you what it means for your organization before your competitors figure it out.
+              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Premium adds the Intelligence Brief – re-analyzed every Monday for your industry, your jurisdictions, and your compliance priorities.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (
