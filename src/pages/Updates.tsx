@@ -194,7 +194,22 @@ const Updates = () => {
     const filtered = updates.filter((u) => {
         if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
         if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
-        if (activeFilter !== "all" && activeFilter !== "enriched" && activeFilter !== "pending" && u.category !== activeFilter) return false;
+
+        // Location filter
+        const locationFilter = LOCATION_FILTERS.find(f => f.key === activeFilter);
+        if (locationFilter && activeFilter !== "all" && u.category !== activeFilter) return false;
+
+        // Topic filter
+        const topicFilter = TOPIC_FILTERS.find(f => f.key === activeFilter);
+        if (topicFilter) {
+            if (topicFilter.match === 'category' && u.category !== topicFilter.key) return false;
+            if (topicFilter.match === 'keyword' && topicFilter.terms) {
+                const terms = topicFilter.terms.map(t => t.toLowerCase());
+                const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
+                if (!terms.some(term => text.includes(term))) return false;
+            }
+        }
+
         if (searchTerm) {
             const q = searchTerm.toLowerCase();
             const fields = [
@@ -215,19 +230,14 @@ const Updates = () => {
             if (new Date(u.published_at).getTime() < cutoff) return false;
         }
         if (activeSource && u.source_domain !== activeSource) return false;
-
-        // Faceted filters
         if (activeSectors.length > 0) {
             const sectors = u.affected_sectors || [];
             if (!activeSectors.some(s => sectors.includes(s))) return false;
         }
         if (activeAttention && u.attention_level !== activeAttention) return false;
-
-        // AI summary filters
         if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
         if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
         if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
-
         return true;
     });
 
