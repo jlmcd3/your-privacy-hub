@@ -240,8 +240,52 @@ const RegulatorPage = () => {
 
         <AdBanner variant="inline" adSlot="eup-regulator-mid" className="py-4" />
 
+        {/* Recent Developments */}
+        {recentArticles.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-fog">
+            <h2 className="font-display font-bold text-navy text-[18px] mb-4">
+              Recent Developments
+            </h2>
+            <div className="space-y-4">
+              {recentArticles.map(article => (
+                <a
+                  key={article.id}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-card border border-fog rounded-xl p-4 no-underline hover:shadow-eup-sm transition-all group"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-medium text-slate">
+                      {article.source_name}
+                    </span>
+                    <span className="text-[11px] text-slate-light">·</span>
+                    <span className="text-[11px] text-slate-light">
+                      {new Date(article.published_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                    </span>
+                  </div>
+                  <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors">
+                    {article.title}
+                  </p>
+                  {article.ai_summary?.why_it_matters && (
+                    <p className="text-[12px] text-slate mt-1.5 leading-relaxed line-clamp-2">
+                      {article.ai_summary.why_it_matters}
+                    </p>
+                  )}
+                </a>
+              ))}
+            </div>
+            <a
+              href={'/updates?q=' + encodeURIComponent(regulator?.abbreviation || regulator?.name || '')}
+              className="block mt-4 text-[13px] font-semibold text-blue no-underline hover:text-navy transition-colors"
+            >
+              See all developments →
+            </a>
+          </div>
+        )}
+
         {/* Related */}
-        <div className="border-t border-fog pt-8">
+        <div className="border-t border-fog pt-8 mt-8">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
