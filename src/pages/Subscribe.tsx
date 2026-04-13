@@ -14,8 +14,8 @@ const comparisonRows = [
   { feature: "Regulator directory (119 authorities)",               free: true,  pro: true  },
   { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  pro: true  },
   { feature: "Enforcement tracker (all actions)",                   free: true,  pro: true  },
-  { feature: "Executive summary of weekly brief",                   free: true,  pro: true  },
-  { feature: "One section preview of weekly brief",                 free: true,  pro: true  },
+  { feature: "Personalized weekly digest (your regions and topics)", free: true,  pro: true  },
+  { feature: "Cross-jurisdiction pattern observation",              free: true,  pro: true  },
   { feature: "Full 8-section weekly brief analysis",                free: false, pro: true  },
   { feature: "Enforcement table & trend signals",                   free: false, pro: true  },
   { feature: "Why This Matters — action items",                     free: false, pro: true  },
@@ -90,9 +90,9 @@ const Subscribe = () => {
             The library is free.<br />Intelligence is $20/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse and read is always free — including the weekly
-            Intelligence Brief. Premium adds the analyst layer: the same brief re-analyzed
-            every Monday specifically for your industry, your jurisdictions, and your
+            Everything you can browse is always free. Free accounts also include a personalized
+            weekly digest — filtered to your regions and topics. Premium adds the Intelligence Brief:
+            re-analyzed every Monday specifically for your industry, your jurisdictions, and your
             compliance priorities. $20/month.
           </p>
         </div>
@@ -235,8 +235,8 @@ const Subscribe = () => {
             What does the Intelligence Brief look like?
           </h2>
           <p className="text-slate text-sm">
-            Every Monday morning, all members receive this 8-section analysis.
-            Here's a real excerpt from Week 11, 2026.
+            Premium subscribers receive this 8-section analysis every Monday.
+            Here is a representative sample from Week 11, 2026.
           </p>
         </div>
 
@@ -244,8 +244,8 @@ const Subscribe = () => {
           {/* Executive Summary preview */}
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
-                ✓ FREE
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                ⭐ PREMIUM
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Executive Summary</span>
             </div>
@@ -260,8 +260,8 @@ const Subscribe = () => {
           {/* Enforcement Table preview */}
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
-                ✓ FREE
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                ⭐ PREMIUM
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Enforcement Table</span>
             </div>
@@ -501,7 +501,7 @@ const Subscribe = () => {
               <ul className="space-y-2.5">
                 {[
                   "Daily privacy news from 119 regulators",
-                  "Full weekly Intelligence Brief every Monday",
+                  "Personalized weekly digest — your regions and topics",
                   "150+ jurisdiction profiles",
                   "Enforcement tracker",
                   "Research guides (GDPR, AI Act, US laws)",
