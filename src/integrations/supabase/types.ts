@@ -233,6 +233,45 @@ export type Database = {
           },
         ]
       }
+      free_digests: {
+        Row: {
+          digest_items: Json
+          generated_at: string
+          id: string
+          jurisdictions_used: string[] | null
+          pattern_observation: string | null
+          period_end: string
+          period_start: string
+          topics_used: string[] | null
+          user_id: string
+          week_label: string
+        }
+        Insert: {
+          digest_items?: Json
+          generated_at?: string
+          id?: string
+          jurisdictions_used?: string[] | null
+          pattern_observation?: string | null
+          period_end: string
+          period_start: string
+          topics_used?: string[] | null
+          user_id: string
+          week_label: string
+        }
+        Update: {
+          digest_items?: Json
+          generated_at?: string
+          id?: string
+          jurisdictions_used?: string[] | null
+          pattern_observation?: string | null
+          period_end?: string
+          period_start?: string
+          topics_used?: string[] | null
+          user_id?: string
+          week_label?: string
+        }
+        Relationships: []
+      }
       ingestion_runs: {
         Row: {
           enrichment_failed_429: number | null
@@ -354,6 +393,8 @@ export type Database = {
           bonus_report_credits: number
           brief_role: string | null
           created_at: string
+          digest_jurisdictions: string[] | null
+          digest_topics: string[] | null
           id: string
           industry: string | null
           is_premium: boolean
@@ -374,6 +415,8 @@ export type Database = {
           bonus_report_credits?: number
           brief_role?: string | null
           created_at?: string
+          digest_jurisdictions?: string[] | null
+          digest_topics?: string[] | null
           id: string
           industry?: string | null
           is_premium?: boolean
@@ -394,6 +437,8 @@ export type Database = {
           bonus_report_credits?: number
           brief_role?: string | null
           created_at?: string
+          digest_jurisdictions?: string[] | null
+          digest_topics?: string[] | null
           id?: string
           industry?: string | null
           is_premium?: boolean
