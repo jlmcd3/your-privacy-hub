@@ -225,11 +225,24 @@ const Dashboard = () => {
   if (!user) return null;
 
   if (!isPremium) {
-    // Free users still see the brief — but with Pro upsell
     return (
       <div className="min-h-screen bg-background">
         {showOnboarding && user && (
           <OnboardingModal userId={user.id} onComplete={() => setShowOnboarding(false)} />
+        )}
+        {showDigestPrefs && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
+              <h2 className="font-display font-bold text-navy text-[20px] mb-6">
+                Your weekly digest
+              </h2>
+              <DigestPreferences
+                userId={user.id}
+                onSave={() => { setShowDigestPrefs(false); setDigestPrefsSet(true); }}
+                onSkip={() => setShowDigestPrefs(false)}
+              />
+            </div>
+          </div>
         )}
         <Helmet>
           <title>Intelligence Dashboard | EndUserPrivacy</title>
@@ -243,11 +256,11 @@ const Dashboard = () => {
                 ⭐ Upgrade to Premium
               </div>
               <h3 className="font-display font-bold text-white text-[18px] mb-2">
-                Get this brief re-written for your industry
+                This brief, re-analyzed for your practice
               </h3>
               <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
-                Same intelligence, re-analyzed from your perspective. Sector-specific
-                action items. Your jurisdiction focus. $20/month.
+                Your weekly digest tells you what happened. Premium tells you what it means
+                for your industry, what your priorities are, and what to do about it. $20/month.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
@@ -260,150 +273,68 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Brief header */}
-          <div className="mb-10">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
-              📋 Weekly Intelligence Brief
-            </p>
-            <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
-              {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
-            </h1>
-            {brief && (
-              <div className="flex flex-wrap items-center gap-2 mt-3 text-[13px] text-muted-foreground">
-                <span>{brief.week_label}</span>
-                <span>·</span>
-                <span>{brief.article_count} regulatory updates synthesized</span>
+          {/* Digest preferences prompt */}
+          {!digestPrefsSet && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p className="font-semibold text-navy text-[14px] mb-1">Set up your weekly digest</p>
+                <p className="text-slate text-[13px]">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
               </div>
-            )}
-          </div>
-
-          {loading && (
-            <div className="space-y-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
-              ))}
+              <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-navy text-white font-semibold text-[13px] px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
+                Set up digest →
+              </button>
             </div>
           )}
 
-          {!loading && !brief && (
-            <div className="text-center py-20">
-              <p className="text-4xl mb-4">📅</p>
-              <p className="font-display text-[20px] text-foreground mb-2">First brief coming Monday</p>
-              <p className="text-[14px] text-muted-foreground max-w-md mx-auto">
-                Your weekly intelligence brief is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
-              </p>
-            </div>
-          )}
-
-          {!loading && brief && (
-            <>
-              <div className="space-y-8">
-                {/* 1. Executive Summary — show in full (the hook) */}
-                <section className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
-                  <h2 className="font-display text-[20px] text-foreground mb-4">Executive Summary</h2>
-                  <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                    <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
-                  </div>
-                  <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.executive_summary} />
-                </section>
-
-                {/* 2. First section preview — show in full */}
-                <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
-
-                {/* 3. Remaining sections — title + 2 sentences + blur gate */}
-                {[
-                  { icon: "🏛️", title: "U.S. State Analysis", content: brief.us_states },
-                  { icon: "🇪🇺", title: "EU & UK Analysis", content: brief.eu_uk },
-                  { icon: "🌍", title: "Global Developments", content: brief.global_developments },
-                  { icon: "🤖", title: "AI Governance", content: brief.ai_governance },
-                  { icon: "📡", title: "AdTech & Advertising Privacy", content: brief.adtech_advertising },
-                  { icon: "👁️", title: "Biometric Data", content: brief.biometric_data },
-                  { icon: "🏛️", title: "Privacy Litigation", content: brief.privacy_litigation },
-                ].filter(s => s.content).map((s) => (
-                  <PremiumGate
-                    key={s.title}
-                    message="Your personalized analyst covers this section in full — tailored to your industry and jurisdictions."
-                  >
-                    <SectionBlock icon={s.icon} title={s.title} content={s.content} sourceMap={brief.source_map ?? {}} />
-                  </PremiumGate>
-                ))}
-
-                {/* Cross-jurisdiction patterns — show as teaser */}
-                {brief.cross_jurisdiction_patterns && (
-                  <section className="bg-violet-50/50 rounded-xl border border-violet-200/50 p-6">
-                    <h3 className="font-display text-[17px] text-foreground mb-3">
-                      🌐 Cross-Jurisdiction Patterns
-                    </h3>
-                    <div className="text-[14px] text-muted-foreground leading-relaxed space-y-3">
-                      <CitedParagraphs content={brief.cross_jurisdiction_patterns} sourceMap={brief.source_map ?? {}} />
-                    </div>
-                  </section>
-                )}
-
-                {/* 4. Enforcement Trends — gated */}
-                {brief.enforcement_trends && (
-                  <PremiumGate message="Premium subscribers see full enforcement trend analysis relevant to their sector.">
-                    <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
-                  </PremiumGate>
-                )}
-
-                {/* 5. Trend Signal — fully gated */}
-                {brief.trend_signal && (
-                  <PremiumGate message="Trend signals are included in Premium. See emerging patterns before they become headlines." />
-                )}
-
-                {/* 6. Why This Matters — fully gated */}
-                {brief.why_this_matters && (
-                  <PremiumGate message="Action items and 'Why This Matters' analysis is included in Premium." />
-                )}
-              </div>
-
-              {/* Intelligence Builder CTA */}
-              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5
-                flex items-center justify-between flex-wrap gap-4">
+          {/* Digest card */}
+          {digestPrefsSet && (
+            <div className="bg-card border border-fog rounded-2xl overflow-hidden">
+              <div className="bg-navy px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="font-bold text-navy text-[15px] mb-1">
-                    Want this analysis written for your practice?
-                  </p>
-                  <p className="text-[13px] text-slate">
-                    Build a personalized Intelligence Report in 60 seconds — free to configure.
-                  </p>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Your Weekly Digest</p>
+                  <p className="text-white text-[13px]">{freeDigest ? freeDigest.week_label : "Your first digest arrives Monday"}</p>
                 </div>
-                <Link to="/get-intelligence"
-                  className="flex-shrink-0 bg-navy text-white font-bold text-[13px] px-5 py-2.5
-                    rounded-xl hover:opacity-90 no-underline transition-all">
-                  Get Your Intelligence →
-                </Link>
+                <button onClick={() => setShowDigestPrefs(true)} className="text-[11px] text-blue-200/60 hover:text-blue-200 bg-transparent border-none cursor-pointer transition-colors">Edit preferences</button>
               </div>
 
-              {/* Intelligence Preview — blurred industry example */}
-              <section className="mt-10 bg-card rounded-2xl border border-border overflow-hidden">
-                <div className="px-6 pt-5 pb-3">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">Intelligence Preview</p>
-                  <h3 className="font-display font-bold text-foreground text-[17px] mb-1">What your personalized brief would add</h3>
-                  <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                    Financial Services example
-                  </span>
+              {!freeDigest && (
+                <div className="px-6 py-12 text-center">
+                  <p className="text-[32px] mb-3">📅</p>
+                  <p className="font-display font-bold text-navy text-[18px] mb-2">First digest arrives Monday</p>
+                  <p className="text-slate text-[14px] max-w-sm mx-auto">Your personalized digest is generated every Monday morning from the previous week's regulatory activity in your selected regions and topics.</p>
                 </div>
-                <div className="px-6 pb-2">
-                  <div className="filter blur-sm pointer-events-none select-none">
-                    <p className="text-[14px] text-muted-foreground leading-relaxed">
-                      For financial services firms operating in the EU and US, this week's EDPB guidance on legitimate interest carries direct implications for behavioral targeting in banking apps. The simultaneous FTC enforcement action against data brokers creates a convergent compliance obligation: your existing Article 6(1)(f) assessment likely needs updating before Q3, and your US data broker contracts should be reviewed against the FTC's newly articulated unreasonable data practice standard. Suggested action: instruct counsel to cross-map your current LIA documentation against both the EDPB guidance and FTC criteria before your next DPO review.
-                    </p>
-                  </div>
-                </div>
-                <div className="px-6 pb-6 pt-3 text-center">
-                  <p className="text-[12px] text-muted-foreground mb-3 italic">This analysis is written for your industry and jurisdictions</p>
-                  <Link
-                    to="/subscribe"
-                    className="inline-block bg-amber-400 text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:bg-amber-300 transition-colors"
-                  >
-                    Get Intelligence — $20/month →
-                  </Link>
-                </div>
-              </section>
+              )}
 
-            </>
+              {freeDigest && freeDigest.digest_items?.length > 0 && (
+                <div className="divide-y divide-fog">
+                  {freeDigest.digest_items.map((item: any, i: number) => (
+                    <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 px-6 py-4 no-underline hover:bg-fog/50 transition-colors group">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[11px] font-medium text-steel">{item.region_label}</span>
+                          <span className="text-[11px] text-slate-light">·</span>
+                          <span className="text-[11px] text-slate-light">{item.source_name}</span>
+                        </div>
+                        <p className="text-[14px] font-semibold text-navy leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
+                        {item.summary && <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{item.summary}</p>}
+                      </div>
+                      <span className="text-slate-light text-[18px] flex-shrink-0 mt-0.5">→</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {freeDigest?.pattern_observation && (
+                <div className="px-6 py-4 bg-blue-50/50 border-t border-fog">
+                  <p className="text-[13px] text-steel leading-relaxed"><span className="font-semibold">This week: </span>{freeDigest.pattern_observation}</p>
+                </div>
+              )}
+
+              <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
+                <p className="text-[13px] text-slate">Get Premium for analysis, priorities, and action items.</p>
+                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get Premium →</Link>
+              </div>
+            </div>
           )}
         </div>
         <Footer />
