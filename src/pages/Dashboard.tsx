@@ -184,6 +184,19 @@ const Dashboard = () => {
       .then(({ data }: any) => setCustomBrief(data));
   }, [user]);
 
+  // Fetch free digest for non-premium users
+  useEffect(() => {
+    if (!user || isPremium) return;
+    (supabase as any)
+      .from("free_digests")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => { if (data) setFreeDigest(data); });
+  }, [user, isPremium]);
+
   // Handle credits_purchased redirect from Stripe
   useEffect(() => {
     const purchased = searchParams.get("credits_purchased");
