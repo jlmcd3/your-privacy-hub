@@ -453,7 +453,7 @@ const Subscribe = () => {
               {/* Standard */}
               <div className="bg-card border border-fog rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-slate mb-3">
-                  ✓ Free brief
+                  ✓ Free digest
                 </div>
                 <p className="text-[12px] font-semibold text-navy mb-2 leading-snug">
                   ICO fines TikTok £12.7M for children's data violations
