@@ -190,7 +190,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-background">
         <Helmet>
           <title>Intelligence Dashboard | EndUserPrivacy</title>
-          <meta name="description" content="Your personalized privacy intelligence dashboard with AI-generated weekly briefs, enforcement alerts, and regulatory updates." />
+          <meta name="description" content="Your personalized privacy intelligence dashboard." />
         </Helmet>
         <Navbar />
         <div className="flex items-center justify-center py-24">
@@ -394,7 +394,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Intelligence Dashboard | EndUserPrivacy</title>
-        <meta name="description" content="Your personalized privacy intelligence dashboard with AI-generated weekly briefs, enforcement alerts, and regulatory updates." />
+        <meta name="description" content="Your personalized privacy intelligence dashboard. Access your weekly digest, enforcement tracker, and regulatory updates." />
       </Helmet>
       <Navbar />
 

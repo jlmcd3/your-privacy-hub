@@ -43,7 +43,7 @@ const Signup = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Create Account | EndUserPrivacy</title>
-        <meta name="description" content="Create a free EndUserPrivacy account. Get weekly privacy intelligence briefs covering GDPR, CCPA, AI Act, and 150+ jurisdictions." />
+        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Premium Intelligence Briefs from $20/month." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
@@ -58,7 +58,7 @@ const Signup = () => {
             {[
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
-              'Weekly intelligence brief — free',
+              'Weekly digest — free',
               'Personalized analysis for $20/month',
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
