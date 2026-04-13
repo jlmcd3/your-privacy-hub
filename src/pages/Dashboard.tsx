@@ -90,6 +90,9 @@ const Dashboard = () => {
   const [bonusCredits, setBonusCredits] = useState(0);
   const [genPhase, setGenPhase] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showDigestPrefs, setShowDigestPrefs] = useState(false);
+  const [digestPrefsSet, setDigestPrefsSet] = useState(false);
+  const [freeDigest, setFreeDigest] = useState<any>(null);
 
   const GEN_PHASES = [
     "Your Intelligence brief is reading this week's regulatory developments…",
