@@ -52,8 +52,8 @@ const TOPIC_META: Record<string, { name: string; icon: string; description: stri
   "children-privacy": {
     name: "Children's Privacy & Age Verification",
     icon: "👶",
-    description: "Regulations protecting children's data including COPPA enforcement, age verification requirements, age-appropriate design codes, and restrictions on targeted advertising to minors.",
-    related: ["ai-governance", "biometric-data", "adtech"],
+    description: "Regulatory developments protecting children's data, including COPPA enforcement and modernization, age verification requirements, age-appropriate design codes (UK AADC), state children's privacy laws, and restrictions on targeted advertising and data collection from minors.",
+    related: ["ai-governance", "adtech", "biometric-data"],
   },
   "adtech": {
     name: "AdTech, Cookies & Consent",
@@ -97,13 +97,42 @@ const TopicHub = () => {
     if (!slug) return;
     setLoading(true);
     async function load() {
-      const { data } = await supabase
+      // First try topic_tags match
+      const { data: tagData } = await supabase
         .from("updates")
         .select("*")
         .contains("topic_tags", [slug!])
         .order("published_at", { ascending: false })
         .limit(30);
-      setUpdates((data as Update[]) || []);
+
+      if (tagData && tagData.length > 0) {
+        setUpdates(tagData as Update[]);
+        setLoading(false);
+        return;
+      }
+
+      // Fallback: keyword search for specific topics
+      const TOPIC_KEYWORDS: Record<string, string[]> = {
+        "children-privacy": ["children", "COPPA", "age verification", "minor", "KOSA", "AADC"],
+        "data-breaches": ["breach", "data breach", "incident", "ransomware"],
+        "biometric-data": ["biometric", "facial", "BIPA", "fingerprint"],
+        "data-transfers": ["transfer", "SCC", "adequacy", "DPF", "BCR"],
+        "adtech": ["adtech", "cookie", "consent", "TCF", "advertising"],
+      };
+
+      const keywords = TOPIC_KEYWORDS[slug!];
+      if (keywords) {
+        const orQuery = keywords.map(k => `title.ilike.%${k}%`).join(",");
+        const { data: kwData } = await supabase
+          .from("updates")
+          .select("*")
+          .or(orQuery)
+          .order("published_at", { ascending: false })
+          .limit(30);
+        setUpdates((kwData as Update[]) || []);
+      } else {
+        setUpdates([]);
+      }
       setLoading(false);
     }
     load();
