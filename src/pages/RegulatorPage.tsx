@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import FollowButton from "@/components/FollowButton";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
-import globalAuthorities from "@/data/global_privacy_authorities.json";
 
 // Build regulator lookup from JSON
 const buildRegulatorData = () => {
