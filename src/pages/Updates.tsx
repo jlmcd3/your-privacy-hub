@@ -31,16 +31,37 @@ interface Update {
 
 const PAGE_SIZE = 50;
 
-const FILTERS = [
+const LOCATION_FILTERS = [
   { key: "all", label: "All" },
   { key: "us-federal", label: "🇺🇸 U.S. Federal" },
   { key: "us-states", label: "🗺️ U.S. States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
   { key: "global", label: "🌐 Global" },
-  { key: "enforcement", label: "⚖️ Enforcement" },
-  { key: "ai-privacy", label: "🤖 AI & Privacy" },
+];
+
+interface TopicFilter {
+  key: string;
+  label: string;
+  match: 'category' | 'keyword';
+  terms?: string[];
+}
+
+const TOPIC_FILTERS: TopicFilter[] = [
+  { key: "enforcement", label: "⚖️ Enforcement", match: 'category' },
+  { key: "ai-privacy", label: "🤖 AI & Privacy", match: 'category' },
+  { key: "adtech", label: "📡 AdTech & Advertising", match: 'category' },
+  { key: "health-hipaa", label: "🏥 Health & HIPAA", match: 'keyword', terms: ['HIPAA', 'health', 'medical'] },
+  { key: "children-privacy", label: "👶 Children's Privacy", match: 'keyword', terms: ['children', 'COPPA', 'minor', 'age verification'] },
+  { key: "data-breaches", label: "🔒 Data Breaches", match: 'keyword', terms: ['breach', 'data breach', 'incident'] },
+  { key: "cross-border", label: "🌐 Cross-Border Transfers", match: 'keyword', terms: ['transfer', 'SCC', 'adequacy', 'DPF'] },
+  { key: "biometric-data", label: "🧬 Biometric Data", match: 'keyword', terms: ['biometric', 'facial', 'BIPA', 'fingerprint'] },
+  { key: "employee-privacy", label: "💼 Employee Privacy", match: 'keyword', terms: ['employee', 'workplace', 'worker', 'HR'] },
+  { key: "cookie-consent", label: "🍪 Cookie Consent", match: 'keyword', terms: ['cookie', 'consent', 'TCF', 'ePrivacy'] },
+];
+
+const ENRICHMENT_FILTERS = [
   { key: "enriched", label: "✨ Enriched" },
-  { key: "pending", label: "⏳ Pending Enrichment" },
+  { key: "pending", label: "⏳ Pending" },
 ];
 
 const DATE_RANGES = [
