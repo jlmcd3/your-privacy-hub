@@ -31,16 +31,37 @@ interface Update {
 
 const PAGE_SIZE = 50;
 
-const FILTERS = [
+const LOCATION_FILTERS = [
   { key: "all", label: "All" },
   { key: "us-federal", label: "🇺🇸 U.S. Federal" },
   { key: "us-states", label: "🗺️ U.S. States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
   { key: "global", label: "🌐 Global" },
-  { key: "enforcement", label: "⚖️ Enforcement" },
-  { key: "ai-privacy", label: "🤖 AI & Privacy" },
+];
+
+interface TopicFilter {
+  key: string;
+  label: string;
+  match: 'category' | 'keyword';
+  terms?: string[];
+}
+
+const TOPIC_FILTERS: TopicFilter[] = [
+  { key: "enforcement", label: "⚖️ Enforcement", match: 'category' },
+  { key: "ai-privacy", label: "🤖 AI & Privacy", match: 'category' },
+  { key: "adtech", label: "📡 AdTech & Advertising", match: 'category' },
+  { key: "health-hipaa", label: "🏥 Health & HIPAA", match: 'keyword', terms: ['HIPAA', 'health', 'medical'] },
+  { key: "children-privacy", label: "👶 Children's Privacy", match: 'keyword', terms: ['children', 'COPPA', 'minor', 'age verification'] },
+  { key: "data-breaches", label: "🔒 Data Breaches", match: 'keyword', terms: ['breach', 'data breach', 'incident'] },
+  { key: "cross-border", label: "🌐 Cross-Border Transfers", match: 'keyword', terms: ['transfer', 'SCC', 'adequacy', 'DPF'] },
+  { key: "biometric-data", label: "🧬 Biometric Data", match: 'keyword', terms: ['biometric', 'facial', 'BIPA', 'fingerprint'] },
+  { key: "employee-privacy", label: "💼 Employee Privacy", match: 'keyword', terms: ['employee', 'workplace', 'worker', 'HR'] },
+  { key: "cookie-consent", label: "🍪 Cookie Consent", match: 'keyword', terms: ['cookie', 'consent', 'TCF', 'ePrivacy'] },
+];
+
+const ENRICHMENT_FILTERS = [
   { key: "enriched", label: "✨ Enriched" },
-  { key: "pending", label: "⏳ Pending Enrichment" },
+  { key: "pending", label: "⏳ Pending" },
 ];
 
 const DATE_RANGES = [
@@ -173,7 +194,22 @@ const Updates = () => {
     const filtered = updates.filter((u) => {
         if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
         if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
-        if (activeFilter !== "all" && activeFilter !== "enriched" && activeFilter !== "pending" && u.category !== activeFilter) return false;
+
+        // Location filter
+        const locationFilter = LOCATION_FILTERS.find(f => f.key === activeFilter);
+        if (locationFilter && activeFilter !== "all" && u.category !== activeFilter) return false;
+
+        // Topic filter
+        const topicFilter = TOPIC_FILTERS.find(f => f.key === activeFilter);
+        if (topicFilter) {
+            if (topicFilter.match === 'category' && u.category !== topicFilter.key) return false;
+            if (topicFilter.match === 'keyword' && topicFilter.terms) {
+                const terms = topicFilter.terms.map(t => t.toLowerCase());
+                const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
+                if (!terms.some(term => text.includes(term))) return false;
+            }
+        }
+
         if (searchTerm) {
             const q = searchTerm.toLowerCase();
             const fields = [
@@ -194,19 +230,14 @@ const Updates = () => {
             if (new Date(u.published_at).getTime() < cutoff) return false;
         }
         if (activeSource && u.source_domain !== activeSource) return false;
-
-        // Faceted filters
         if (activeSectors.length > 0) {
             const sectors = u.affected_sectors || [];
             if (!activeSectors.some(s => sectors.includes(s))) return false;
         }
         if (activeAttention && u.attention_level !== activeAttention) return false;
-
-        // AI summary filters
         if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
         if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
         if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
-
         return true;
     });
 
@@ -281,13 +312,10 @@ const Updates = () => {
                     );
                 })()}
 
-                {/* Filters bar */}
+                {/* Filters bar — two-group layout */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {FILTERS.map((f) => {
-                        let count: number | null = null;
-                        if (f.key === "enriched") count = updates.filter(u => u.enrichment_version && u.enrichment_version > 0).length;
-                        if (f.key === "pending") count = updates.filter(u => !u.enrichment_version || u.enrichment_version === 0).length;
-                        return (
+                    {/* Location filters */}
+                    {LOCATION_FILTERS.map((f) => (
                         <button
                             key={f.key}
                             onClick={() => setActiveFilter(f.key)}
@@ -298,10 +326,48 @@ const Updates = () => {
                             }`}
                         >
                             {f.label}
-                            {count !== null && (
-                                <span className="ml-1 text-[10px] opacity-70">({count})</span>
-                            )}
                         </button>
+                    ))}
+
+                    {/* Separator */}
+                    <span className="w-px h-5 bg-border mx-1" />
+
+                    {/* Topic filters */}
+                    {TOPIC_FILTERS.map((f) => (
+                        <button
+                            key={f.key}
+                            onClick={() => setActiveFilter(f.key)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                activeFilter === f.key
+                                    ? "bg-navy text-white"
+                                    : "bg-muted text-foreground hover:bg-muted/80"
+                            }`}
+                        >
+                            {f.label}
+                        </button>
+                    ))}
+
+                    {/* Separator */}
+                    <span className="w-px h-5 bg-border mx-1" />
+
+                    {/* Enrichment filters */}
+                    {ENRICHMENT_FILTERS.map((f) => {
+                        const count = f.key === "enriched"
+                            ? updates.filter(u => u.enrichment_version && u.enrichment_version > 0).length
+                            : updates.filter(u => !u.enrichment_version || u.enrichment_version === 0).length;
+                        return (
+                            <button
+                                key={f.key}
+                                onClick={() => setActiveFilter(f.key)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                    activeFilter === f.key
+                                        ? "bg-navy text-white"
+                                        : "bg-muted text-foreground hover:bg-muted/80"
+                                }`}
+                            >
+                                {f.label}
+                                <span className="ml-1 text-[10px] opacity-70">({count})</span>
+                            </button>
                         );
                     })}
                 </div>
