@@ -1,10 +1,13 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Lock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import FollowButton from "@/components/FollowButton";
+import globalAuthorities from "@/data/global_privacy_authorities.json";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 
 // Build regulator lookup from JSON
