@@ -7,11 +7,14 @@ interface AISummary {
   takeaways: string[];
   compliance_impact: string;
   who_should_care: string;
-  urgency?: string; // Immediate | This quarter | Monitor
-  legal_weight?: string; // Binding | Enforcement | Guidance | Proposal | Commentary
-  source_strength?: string; // Primary regulator | Legal analysis | Media coverage
+  urgency?: string;
+  legal_weight?: string;
+  source_strength?: string;
   cross_jurisdiction_signal?: string | null;
-  risk_level?: string; // Low | Medium | High | Critical
+  risk_level?: string;
+  regulatory_theory?: string | null;
+  affected_sectors?: string[] | null;
+  attention_level?: string | null;
 }
 
 interface AISummaryPanelProps {
@@ -127,6 +130,30 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
                 Compliance impact
               </p>
               <p className="text-muted-foreground leading-relaxed">{summary.compliance_impact}</p>
+            </div>
+          )}
+
+          {summary.regulatory_theory && (
+            <div>
+              <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
+                Regulatory theory
+              </p>
+              <p className="text-muted-foreground leading-relaxed">{summary.regulatory_theory}</p>
+            </div>
+          )}
+
+          {summary.affected_sectors && summary.affected_sectors.length > 0 && (
+            <div>
+              <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
+                Sectors affected
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {summary.affected_sectors.map((s, i) => (
+                  <span key={i} className="text-[10px] font-medium bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 

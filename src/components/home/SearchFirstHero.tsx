@@ -1,92 +1,58 @@
 import { Link } from "react-router-dom";
-import { Newspaper, Scale, Brain, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 import StarFieldBackground from "@/components/globe/StarFieldBackground";
-
-const panels = [
-  {
-    icon: Brain,
-    title: "Intelligence",
-    borderColor: "border-amber-400/30",
-    iconColor: "text-amber-400",
-    subtitle: "Get the Intelligence Brief",
-    copy: "Receive weekly privacy intelligence tailored to your industry and jurisdictions. Our customized reports synthesize global regulatory developments, enforcement trends, and key compliance signals so you can understand what matters for your organization.",
-    cta: { label: "Get Intel →", href: "/get-intelligence" },
-  },
-  {
-    icon: Newspaper,
-    title: "Latest News",
-    borderColor: "border-sky/30",
-    iconColor: "text-sky",
-    subtitle: "Latest Privacy Developments",
-    copy: "Stay current with real-time updates from privacy regulators around the world. Enforcement actions, new legislation, regulatory guidance, and major data breaches are tracked daily across more than 150 jurisdictions.",
-    cta: { label: "Browse →", href: "/category/enforcement" },
-  },
-  {
-    icon: Scale,
-    title: "Laws & Frameworks",
-    borderColor: "border-accent/30",
-    iconColor: "text-accent",
-    subtitle: "Research Privacy Laws",
-    copy: "Explore the world's leading privacy laws and regulatory frameworks in one place. Compare U.S. state statutes, review major international regimes, and understand how different jurisdictions regulate data protection.",
-    cta: { label: "Explore →", href: "/global-privacy-laws" },
-  },
-];
 
 export default function SearchFirstHero() {
   return (
     <div className="bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
-      <div className="max-w-[1280px] mx-auto px-3 md:px-6 py-3 md:py-4 shadow-none opacity-100 rounded-none">
-        {/* Stats strip */}
-        <div className="flex items-center justify-center gap-2 mb-5 text-[0.85em] md:text-[0.95em] tracking-wide text-white/60 flex-wrap">
-          <span className="font-bold text-white/90 text-2xl bg-transparent opacity-100 shadow-none">Global privacy law. Daily tracking. Personalized reports.</span>
+      <div className="max-w-[760px] mx-auto px-4 md:px-8 py-10 md:py-14">
+        {/* Tagline */}
+        <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] text-center mb-3">
+          Global privacy law, tracked daily.
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-blue-200/80 text-[14px] md:text-[16px] text-center mb-8">
+          Tracking 119 regulatory authorities across 150+ jurisdictions — updated daily.
+        </p>
+
+        {/* Two primary CTAs */}
+        <div className="flex gap-3 justify-center flex-wrap mb-8">
+          <Link
+            to="/updates"
+            className="bg-white text-navy font-bold px-6 py-3 rounded-lg hover:opacity-90 no-underline text-[14px] transition-all"
+          >
+            Browse today's developments →
+          </Link>
+          <Link
+            to="/sample-brief"
+            className="border border-white/40 text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 no-underline text-[14px] transition-all"
+          >
+            See the Intelligence Brief →
+          </Link>
         </div>
 
-        {/* Panels + Globe side by side */}
-        <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-2 md:gap-3">
-          {/* Left: 3 stacked panels */}
-          <div className="flex flex-col gap-1.5">
-            {panels.map((p) => (
-              <div
-                key={p.title}
-                className={`rounded-lg border ${p.borderColor} bg-white/[0.06] px-3 py-2 flex flex-col gap-1`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <p.icon className={`w-3.5 h-3.5 flex-shrink-0 ${p.iconColor}`} />
-                  <h2 className="font-display text-[1em] md:text-[1.25em] text-white font-bold leading-tight">
-                    {p.title}
-                  </h2>
-                </div>
-                <p className="text-[0.7em] md:text-[0.8em] text-white/90 font-semibold leading-snug">
-                  {p.subtitle}
-                </p>
-                <p className="text-[0.75em] md:text-[0.875em] text-blue-200/70 leading-snug line-clamp-2 flex-1 min-w-0">
-                  {p.copy}
-                </p>
-                <div className="flex items-center justify-end">
-                  <Link
-                    to={p.cta.href}
-                    className="text-[0.75em] md:text-[0.875em] font-bold text-white hover:text-sky transition-colors no-underline whitespace-nowrap"
-                  >
-                    {p.cta.label}
-                  </Link>
-                </div>
-              </div>
-            ))}
-            <Link
-              to="/get-intelligence"
-              className="inline-flex items-center justify-center gap-2 bg-amber-400 text-navy font-bold text-[0.75em] md:text-[0.8em] px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors no-underline mt-2"
-            >
-              Get Your Privacy Intelligence →
-            </Link>
-          </div>
+        {/* Three quick links */}
+        <div className="flex gap-6 justify-center flex-wrap mb-6">
+          <Link to="/get-intelligence" className="text-blue-200/70 hover:text-white text-[13px] font-medium no-underline transition-colors">
+            🧠 Intelligence Brief
+          </Link>
+          <Link to="/jurisdictions" className="text-blue-200/70 hover:text-white text-[13px] font-medium no-underline transition-colors">
+            🌍 Global Law Map
+          </Link>
+          <Link to="/enforcement-tracker" className="text-blue-200/70 hover:text-white text-[13px] font-medium no-underline transition-colors">
+            ⚖️ Enforcement Tracker
+          </Link>
+        </div>
+      </div>
 
-          {/* Right: Globe panel — ~1/3 width, star background */}
-          <div className="rounded-lg border border-white/15 bg-[#050b18] relative flex-col items-center justify-center overflow-hidden hidden sm:flex min-h-[200px]">
-            <StarFieldBackground />
-            <div className="relative z-10 flex items-center justify-center w-full h-full">
-              <SpinTheGlobe compact />
-            </div>
+      {/* Globe */}
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 pb-6">
+        <div className="rounded-xl overflow-hidden relative hidden sm:block" style={{ height: "300px" }}>
+          <StarFieldBackground />
+          <div className="relative z-10 flex items-center justify-center w-full h-full">
+            <SpinTheGlobe compact />
           </div>
         </div>
       </div>

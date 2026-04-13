@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -50,7 +49,6 @@ export default function Tools() {
         <title>Privacy Professional's Toolkit | EndUserPrivacy</title>
         <meta name="description" content="Free structured tools for privacy professionals: Compliance Calendar, Legislation Tracker, US State Comparison, Global Map, Enforcement Tracker, and Timelines." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-14 px-4">

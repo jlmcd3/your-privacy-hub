@@ -3,7 +3,6 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
@@ -15,8 +14,8 @@ const comparisonRows = [
   { feature: "Regulator directory (119 authorities)",               free: true,  pro: true  },
   { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  pro: true  },
   { feature: "Enforcement tracker (all actions)",                   free: true,  pro: true  },
-  { feature: "Executive summary of weekly brief",                   free: true,  pro: true  },
-  { feature: "One section preview of weekly brief",                 free: true,  pro: true  },
+  { feature: "Personalized weekly digest (your regions and topics)", free: true,  pro: true  },
+  { feature: "Cross-jurisdiction pattern observation",              free: true,  pro: true  },
   { feature: "Full 8-section weekly brief analysis",                free: false, pro: true  },
   { feature: "Enforcement table & trend signals",                   free: false, pro: true  },
   { feature: "Why This Matters — action items",                     free: false, pro: true  },
@@ -79,10 +78,9 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Privacy Intelligence Reports — 10 Topic Tracks | EndUserPrivacy Premium</title>
-        <meta name="description" content="Personalized weekly privacy intelligence. Choose from 10 topic tracks: US State Laws, GDPR Enforcement, AI Act, Children's Privacy, AdTech, Health Data, Litigation, Biometric, Cross-Border Transfers, Data Breach. $20/month." />
+        <title>Intelligence Brief — $20/month | EndUserPrivacy</title>
+        <meta name="description" content="The weekly privacy Intelligence Brief, re-written for your industry and jurisdictions every Monday. $20/month. Browse everything free." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       {/* Navy gradient hero */}
@@ -92,10 +90,19 @@ const Subscribe = () => {
             The library is free.<br />Intelligence is $20/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse and read is always free — including the weekly
-            Intelligence Brief. Intelligence is something different: a brief re-written
-            every Monday specifically for your industry, your jurisdictions, and your
-            compliance obligations. That's $20/month.
+            Everything you can browse is always free. Free accounts also include a personalized
+            weekly digest — filtered to your regions and topics. Premium adds the Intelligence Brief:
+            re-analyzed every Monday specifically for your industry, your jurisdictions, and your
+            compliance priorities. $20/month.
+          </p>
+        </div>
+      </div>
+
+      {/* Founding offer banner */}
+      <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
+        <div className="max-w-[720px] mx-auto text-center">
+          <p className="text-amber-800 font-semibold text-[14px]">
+            🎁 Founding offer: First 25 subscribers get Premium free for one year, then $20/month.
           </p>
         </div>
       </div>
@@ -152,7 +159,7 @@ const Subscribe = () => {
       <div className="max-w-3xl mx-auto px-4 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            See what your Pro brief would look like this week
+            See what your brief would look like this week
           </h2>
           <p className="text-slate text-[13px]">
             Pick your sector and region. We'll show you what your Monday brief
@@ -166,11 +173,10 @@ const Subscribe = () => {
       <div className="max-w-3xl mx-auto px-4 py-12 border-t border-fog">
         <div className="text-center mb-8">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            Choose your report tracks
+            What do you want covered?
           </h2>
           <p className="text-slate text-[13px] max-w-lg mx-auto">
-            Premium briefs are written for your specific topic area every Monday.
-            Pick one track or combine several.
+            Select the areas most relevant to your work. Your brief covers all selected tracks every Monday.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -229,8 +235,8 @@ const Subscribe = () => {
             What does the Intelligence Brief look like?
           </h2>
           <p className="text-slate text-sm">
-            Every Monday morning, all members receive this 8-section analysis.
-            Here's a real excerpt from Week 11, 2026.
+            Premium subscribers receive this 8-section analysis every Monday.
+            Here is a representative sample from Week 11, 2026.
           </p>
         </div>
 
@@ -238,8 +244,8 @@ const Subscribe = () => {
           {/* Executive Summary preview */}
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
-                ✓ FREE
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                ⭐ PREMIUM
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Executive Summary</span>
             </div>
@@ -254,8 +260,8 @@ const Subscribe = () => {
           {/* Enforcement Table preview */}
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
-                ✓ FREE
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                ⭐ PREMIUM
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Enforcement Table</span>
             </div>
@@ -447,7 +453,7 @@ const Subscribe = () => {
               {/* Standard */}
               <div className="bg-card border border-fog rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-slate mb-3">
-                  ✓ Free brief
+                  ✓ Free digest
                 </div>
                 <p className="text-[12px] font-semibold text-navy mb-2 leading-snug">
                   ICO fines TikTok £12.7M for children's data violations
@@ -495,7 +501,7 @@ const Subscribe = () => {
               <ul className="space-y-2.5">
                 {[
                   "Daily privacy news from 119 regulators",
-                  "Full weekly Intelligence Brief every Monday",
+                  "Personalized weekly digest — your regions and topics",
                   "150+ jurisdiction profiles",
                   "Enforcement tracker",
                   "Research guides (GDPR, AI Act, US laws)",
@@ -550,7 +556,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$20/month", "Enterprise / quote-based", "Annual membership"],
+                  ["Price", "$20/month", "$300–$3,500+/year", "$550+/year"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],

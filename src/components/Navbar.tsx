@@ -13,6 +13,7 @@ interface NavItem {
     divider?: boolean;
     items: {
       icon: string;
+      iconImage?: string;
       label: string;
       badge?: string;
       badgeGreen?: boolean;
@@ -40,11 +41,12 @@ const navItems: NavItem[] = [
         header: "Topic Hubs",
         divider: true,
         items: [
-          { icon: "🤖", label: "AI Governance", href: "/topics/ai-governance" },
-          { icon: "🔓", label: "Data Breaches", href: "/category/enforcement" },
+          { icon: "🤖", label: "AI Governance", href: "/category/ai-privacy" },
+          { icon: "🔓", label: "Breaches & Enforcement", href: "/category/enforcement" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
-          { icon: "👶", label: "Children's Privacy", href: "/us-state-privacy-laws" },
+          // TODO: replace with dedicated children's privacy page
+          { icon: "👶", label: "Children's Privacy", href: "/topics/children-privacy" },
           { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
@@ -56,15 +58,14 @@ const navItems: NavItem[] = [
     sections: [
       {
         items: [
-          { icon: "🗺️", label: "US State Privacy Laws", href: "/us-state-privacy-laws" },
+          { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
+          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR Enforcement", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { icon: "🏛️", label: "U.S. Federal Privacy Law", href: "/us-federal-privacy-law" },
-          { icon: "🏢", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
+          { icon: "🏢", label: "U.S. State Authorities", href: "/us-privacy-laws#state-authorities" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
-          { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
-          { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
+          
         ],
       },
       {
@@ -84,17 +85,15 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
+          { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
         ],
       },
       {
-        header: "Premium — $20/month",
+        header: "Premium",
         divider: true,
         items: [
-          { icon: "📋", label: "Weekly Brief", badge: "PRO", href: "/sample-brief" },
-          { icon: "📰", label: "Briefings", badge: "PRO", href: "/subscribe" },
-          { icon: "🔔", label: "Alerts", badge: "PRO", href: "/subscribe" },
-          { icon: "📈", label: "Analysis", badge: "PRO", href: "/subscribe" },
+          { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
         ],
       },
     ],
@@ -106,6 +105,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
+  const [briefLabel, setBriefLabel] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -117,6 +117,19 @@ const Navbar = () => {
       .then(({ data }) => setIsPremium(data?.is_premium ?? false));
   }, [user]);
 
+  useEffect(() => {
+    supabase
+      .from("weekly_briefs")
+      .select("week_label")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setBriefLabel(`${data[0].week_label} Brief`);
+        }
+      });
+  }, []);
+
   return (
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex items-center justify-between h-14 md:h-16">
@@ -124,6 +137,11 @@ const Navbar = () => {
         <Link to="/" className="no-underline flex items-center">
           <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
         </Link>
+        {briefLabel && (
+          <span className="hidden xl:inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 ml-3">
+            ⭐ {briefLabel}
+          </span>
+        )}
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
@@ -169,7 +187,11 @@ const Navbar = () => {
                             className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                             onClick={() => setOpenDropdown(null)}
                           >
-                            <span className="text-base">{sub.icon}</span>
+                            {sub.iconImage ? (
+                              <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
+                            ) : (
+                              <span className="text-base">{sub.icon}</span>
+                            )}
                             <span className="flex-1 font-medium">{sub.label}</span>
                             {sub.badge && (
                               <span
@@ -279,7 +301,11 @@ const Navbar = () => {
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                           onClick={() => setMobileOpen(false)}
                         >
-                          <span>{sub.icon}</span>
+                          {sub.iconImage ? (
+                            <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
+                          ) : (
+                            <span>{sub.icon}</span>
+                          )}
                           <span className="flex-1">{sub.label}</span>
                           {sub.badge && (
                             <span
@@ -300,14 +326,51 @@ const Navbar = () => {
               )}
             </div>
           ))}
-          <div className="pt-3 border-t border-fog">
-            <Link
-              to="/subscribe"
-              className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
-              onClick={() => setMobileOpen(false)}
-            >
-              See Plans →
-            </Link>
+          <div className="pt-3 border-t border-fog space-y-2">
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  🧠 My Dashboard
+                </Link>
+                {!isPremium && (
+                  <Link
+                    to="/subscribe"
+                    className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    ⭐ Upgrade to Premium
+                  </Link>
+                )}
+                <Link
+                  to="/account"
+                  className="block text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Account
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="block text-center text-[13px] font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/subscribe"
+                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  See Plans →
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

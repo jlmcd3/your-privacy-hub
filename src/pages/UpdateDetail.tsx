@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
@@ -149,7 +148,6 @@ const UpdateDetail = () => {
           <title>Article Not Found | EndUserPrivacy</title>
         </Helmet>
       )}
-      <Topbar />
       <Navbar />
 
       <main className="max-w-3xl mx-auto px-4 py-10">
@@ -302,7 +300,7 @@ const UpdateDetail = () => {
                 {article.topic_tags.map((t) => (
                   <span
                     key={t}
-                    className="text-[11px] bg-muted text-muted-foreground px-2.5 py-1 rounded-full"
+                    className="font-mono-code text-[11px] bg-muted text-muted-foreground px-2.5 py-1 rounded-full"
                   >
                     {t}
                   </span>

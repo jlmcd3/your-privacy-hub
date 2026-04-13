@@ -1,7 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -13,7 +12,6 @@ const GlossaryTerm = () => {
   if (!term) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Topbar />
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Term Not Found</h1>
@@ -34,7 +32,6 @@ const GlossaryTerm = () => {
         <title>{term.term} — Privacy Law Definition | EndUserPrivacy</title>
         <meta name="description" content={`What does "${term.term}" mean in privacy law? Plain-English definition, related regulations (${term.regulations.join(", ")}), and linked terms.`} />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="border-b border-border bg-card">
@@ -45,7 +42,7 @@ const GlossaryTerm = () => {
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">{term.term}</h1>
           <div className="flex gap-1.5 flex-wrap">
             {term.regulations.map((r) => (
-              <span key={r} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">{r}</span>
+              <span key={r} className="font-mono-code text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">{r}</span>
             ))}
           </div>
         </div>

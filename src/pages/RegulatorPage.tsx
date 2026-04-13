@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Lock } from "lucide-react";
-import Topbar from "@/components/Topbar";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -69,11 +70,24 @@ const allRegulators = buildRegulatorData();
 const RegulatorPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const regulator = slug ? allRegulators[slug] : null;
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!regulator) return;
+    const terms = [regulator.name, regulator.abbreviation].filter(Boolean);
+    const orQuery = terms.map(t => `title.ilike.%${t}%`).join(",");
+    supabase
+      .from("updates")
+      .select("id, title, summary, url, source_name, published_at, category, ai_summary")
+      .or(orQuery)
+      .order("published_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => { if (data) setRecentArticles(data); });
+  }, [regulator]);
 
   if (!regulator) {
     return (
       <div className="min-h-screen bg-paper">
-        <Topbar />
         <Navbar />
         <div className="max-w-[860px] mx-auto px-4 md:px-8 py-20 text-center">
           <h1 className="font-display text-3xl text-navy mb-4">Regulator Not Found</h1>
@@ -94,7 +108,6 @@ const RegulatorPage = () => {
         <title>{regulator.name}{regulator.abbreviation && !regulator.name.includes(`(${regulator.abbreviation})`) ? ` (${regulator.abbreviation})` : ''} — Regulator Profile | EndUserPrivacy</title>
         <meta name="description" content={`${regulator.name} (${regulator.abbreviation}) profile: ${regulator.country} data protection authority. Legislation, enforcement updates, complaint portal, and monitoring tier.`} />
       </Helmet>
-      <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
@@ -103,7 +116,19 @@ const RegulatorPage = () => {
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-sky font-display">{regulator.abbreviation}</p>}
+          {regulator.legislation && (
+            <p className="text-blue-200 text-[13px] mt-1">
+              Primary legislation: {regulator.legislation}
+              {regulator.legislation_abbreviation ? ` (${regulator.legislation_abbreviation})` : ''}
+            </p>
+          )}
           <p className="text-sm text-slate-light mt-2">{regulator.country}{regulator.region && regulator.region !== regulator.country ? ` · ${regulator.region}` : ''}</p>
+          {regulator.website && (
+            <a href={regulator.website} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sky text-[13px] no-underline hover:text-white transition-colors mt-2">
+              Official website →
+            </a>
+          )}
           <div className="mt-4">
             <FollowButton followType="regulator" followKey={slug!} label={regulator.abbreviation || regulator.name} />
           </div>
@@ -215,8 +240,52 @@ const RegulatorPage = () => {
 
         <AdBanner variant="inline" adSlot="eup-regulator-mid" className="py-4" />
 
+        {/* Recent Developments */}
+        {recentArticles.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-fog">
+            <h2 className="font-display font-bold text-navy text-[18px] mb-4">
+              Recent Developments
+            </h2>
+            <div className="space-y-4">
+              {recentArticles.map(article => (
+                <a
+                  key={article.id}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-card border border-fog rounded-xl p-4 no-underline hover:shadow-eup-sm transition-all group"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-medium text-slate">
+                      {article.source_name}
+                    </span>
+                    <span className="text-[11px] text-slate-light">·</span>
+                    <span className="text-[11px] text-slate-light">
+                      {new Date(article.published_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                    </span>
+                  </div>
+                  <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors">
+                    {article.title}
+                  </p>
+                  {article.ai_summary?.why_it_matters && (
+                    <p className="text-[12px] text-slate mt-1.5 leading-relaxed line-clamp-2">
+                      {article.ai_summary.why_it_matters}
+                    </p>
+                  )}
+                </a>
+              ))}
+            </div>
+            <a
+              href={'/updates?q=' + encodeURIComponent(regulator?.abbreviation || regulator?.name || '')}
+              className="block mt-4 text-[13px] font-semibold text-blue no-underline hover:text-navy transition-colors"
+            >
+              See all developments →
+            </a>
+          </div>
+        )}
+
         {/* Related */}
-        <div className="border-t border-fog pt-8">
+        <div className="border-t border-fog pt-8 mt-8">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">

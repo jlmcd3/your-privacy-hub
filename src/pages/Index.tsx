@@ -1,8 +1,5 @@
-import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import LatestUpdates from "@/components/LatestUpdates";
@@ -14,129 +11,24 @@ import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
 import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
-import TopicLaneScroller from "@/components/home/TopicLaneScroller";
-import RegionFeedStrip from "@/components/home/RegionFeedStrip";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
-import ChooseYourMode from "@/components/home/ChooseYourMode";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
+import PatternSignalCards from "@/components/home/PatternSignalCards";
+import LongitudinalContext from "@/components/home/LongitudinalContext";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
-import SearchStrip from "@/components/home/SearchStrip";
-
-interface Update {
-  id: string;
-  title: string;
-  summary: string | null;
-  url: string;
-  category: string;
-  regulator: string | null;
-  published_at: string;
-  source_name: string | null;
-  ai_summary?: any;
-}
-
-const CATEGORY_META: Record<string, { flag: string; jurisdiction: string }> = {
-  "eu-uk": { flag: "🇪🇺", jurisdiction: "EU & UK" },
-  "us-federal": { flag: "🇺🇸", jurisdiction: "U.S. Federal" },
-  "us-states": { flag: "🗺️", jurisdiction: "U.S. States" },
-  "global": { flag: "🌐", jurisdiction: "Global" },
-  "enforcement": { flag: "⚖️", jurisdiction: "Enforcement" },
-  "ai-privacy": { flag: "🤖", jurisdiction: "AI & Privacy" },
-  "adtech":      { flag: "📡", jurisdiction: "AdTech" },
-};
-
-function decodeHtml(str: string | null | undefined): string {
-  if (!str) return "";
-  const txt = document.createElement("textarea");
-  txt.innerHTML = str;
-  return txt.value;
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
 
 const Index = () => {
-  const [regionItems, setRegionItems] = useState<any[]>([]);
-  const [laneData, setLaneData] = useState<Record<string, any[]>>({});
-
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from("updates")
-        .select("id,title,summary,url,category,regulator,published_at,source_name,ai_summary")
-        .order("published_at", { ascending: false })
-        .limit(100);
-
-      const articles = (data as Update[]) || [];
-
-
-
-      // Region feed
-      const regionCats = ["eu-uk", "us-federal", "global"];
-      const regions = regionCats
-        .map((cat) => articles.find((a) => a.category === cat))
-        .filter(Boolean)
-        .map((a) => ({
-          flag: CATEGORY_META[a!.category]?.flag || "🌐",
-          jurisdiction: CATEGORY_META[a!.category]?.jurisdiction || a!.category,
-          headline: a!.title,
-          category: a!.category,
-          href: `/category/${a!.category}`,
-          date: formatDate(a!.published_at),
-          whyItMatters: (a as any).ai_summary?.why_it_matters ?? null,
-          urgency: (a as any).ai_summary?.urgency ?? null,
-        }));
-      setRegionItems(regions);
-
-      // Topic lanes
-      function dedupeById<T extends { id: string }>(arr: T[]): T[] {
-        const seen = new Set<string>();
-        return arr.filter(item => {
-          if (seen.has(item.id)) return false;
-          seen.add(item.id);
-          return true;
-        });
-      }
-
-      const lanes: Record<string, any[]> = {};
-      const laneConfigs = [
-        { key: "ai-privacy", take: 8 },
-        { key: "adtech", take: 8 },
-        { key: "us-states", take: 8 },
-        { key: "enforcement", take: 8 },
-        { key: "eu-uk", take: 8 },
-      ];
-      for (const lane of laneConfigs) {
-        lanes[lane.key] = dedupeById(articles.filter((a) => a.category === lane.key))
-          .slice(0, lane.take)
-          .map((a) => ({
-            id: a.id,
-            title: a.title,
-            summary: a.summary,
-            category: a.category,
-            published_at: a.published_at,
-            source_name: a.source_name,
-            source_url: a.url,
-          }));
-      }
-      setLaneData(lanes);
-    }
-    load();
-  }, []);
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>US State Privacy Laws, GDPR Fines &amp; AI Act Tracker 2026 | EndUserPrivacy</title>
-        <meta name="description" content="Free daily privacy intelligence. Track GDPR enforcement, US state privacy laws, EU AI Act compliance, and enforcement actions from 119 regulators. For privacy professionals." />
+        <title>Global Privacy Law, Tracked Daily | EndUserPrivacy</title>
+        <meta name="description" content="Privacy regulatory intelligence for professionals. Tracking 119 authorities across 150+ jurisdictions — enforcement actions, new legislation, and regulatory guidance, updated daily." />
       </Helmet>
-
-      {/* Layer 1: Topbar */}
-      <Topbar />
 
       {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
       <Navbar />
@@ -147,8 +39,7 @@ const Index = () => {
       {/* Layer 4: Hero panels */}
       <SearchFirstHero />
 
-      {/* Layer 5: Search strip */}
-      <SearchStrip />
+      {/* Layer 5: Free vs paid */}
       <FreeVsPaidStrip />
 
       {/* Layer 6: Main editorial content */}
@@ -162,48 +53,20 @@ const Index = () => {
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
 
-            {/* Choose your mode — shown after first editorial content */}
-            <ChooseYourMode />
+            {/* Key signals — visible on all screen sizes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <EnforcementStatsBanner />
+              <UpcomingDeadlines />
+            </div>
 
-            {/* Region strip */}
-            {regionItems.length > 0 && <RegionFeedStrip items={regionItems} />}
+            {/* Enforcement pattern signals */}
+            <PatternSignalCards />
 
-            {/* Ad — below editorial content */}
-            <AdBanner variant="leaderboard" adSlot="eup-home-top" className="py-3 bg-paper hidden" />
+            {/* Longitudinal context — shows most recent synthesis */}
+            <LongitudinalContext />
 
-            {/* Topic lanes */}
-            {(laneData["ai-privacy"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="AI & Privacy" laneIcon="🤖" laneHref="/category/ai-privacy"
-                cards={laneData["ai-privacy"]}
-              />
-            )}
-            {(laneData["adtech"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="AdTech & Advertising Privacy" laneIcon="📡" laneHref="/category/adtech"
-                cards={laneData["adtech"]}
-              />
-            )}
-            <AdBanner variant="inline" adSlot="eup-home-mid" className="py-3 hidden" />
-            {(laneData["us-states"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="U.S. State Developments" laneIcon="🗺️" laneHref="/category/us-states"
-                cards={laneData["us-states"]}
-              />
-            )}
-            {(laneData["enforcement"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="Enforcement Actions" laneIcon="⚖️" laneHref="/category/enforcement"
-                cards={laneData["enforcement"]}
-                isEnforcement
-              />
-            )}
-            {(laneData["eu-uk"]?.length ?? 0) >= 3 && (
-              <TopicLaneScroller
-                laneTitle="EU & UK Developments" laneIcon="🇪🇺" laneHref="/category/eu-uk"
-                cards={laneData["eu-uk"]}
-              />
-            )}
+            {/* Article feed with filters */}
+            <LatestUpdates />
           </div>
 
           {/* === RIGHT SIDEBAR === */}
@@ -215,11 +78,11 @@ const Index = () => {
                 ⭐ Weekly Intelligence Brief
               </div>
               <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                Every Monday. Free. 8-section AI analysis.
+                Every Monday. Premium. 8-section analysis.
               </p>
               <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
-                Enforcement table · trend signals · GC/CPO action items ·
-                regional analysis. Always free with registration.
+                Enforcement table · trend signals · action items ·
+                regional analysis. Re-analyzed for your industry.
               </p>
               <Link
                 to="/sample-brief"
@@ -266,13 +129,11 @@ const Index = () => {
       <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper hidden" />
       <EmailSignup variant="strip" />
 
-
-      <LatestUpdates />
       <div className="h-px bg-fog" />
       <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
-      <ToolkitSection />
+      <div className="py-12"><ToolkitSection /></div>
       <PremiumBanner />
       <Footer />
     </div>

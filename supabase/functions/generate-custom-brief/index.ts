@@ -51,15 +51,20 @@ const JURISDICTION_EXPERTISE: Record<string, string> = {
   "global": "cross-border transfer mechanisms, adequacy decisions, APEC CBPR, emerging privacy frameworks, international regulatory cooperation",
 };
 
-/* ── Relevance scoring with Haiku (fast + cheap) ── */
+/* ── Relevance scoring with Haiku (fast + cheap) — now uses enrichment fields ── */
 async function scoreArticleRelevance(
   articles: any[],
   prefs: { industries: string[]; jurisdictions: string[]; topics: string[] },
   apiKey: string,
 ): Promise<any[]> {
-  const articleSummaries = articles.map((a, i) => `[${i}] ${a.title} | ${a.category} | ${a.summary?.substring(0, 120) || ""}`).join("\n");
+  const articleSummaries = articles.map((a, i) => {
+    const sectors = (a.affected_sectors as string[] || []).join(", ");
+    const attention = a.attention_level || "Unknown";
+    return `[${i}] [${attention}] ${a.title} | ${a.category} | Sectors: ${sectors || "N/A"} | ${a.summary?.substring(0, 120) || ""}`;
+  }).join("\n");
 
-  const prompt = `Score each article's relevance (0-10) to this subscriber profile:
+  const prompt = `Score each article's relevance (0-10) to this subscriber profile. Give +2 bonus for High attention_level articles. Give +1 for articles whose affected_sectors overlap with the subscriber's industries.
+
 Industries: ${prefs.industries.join(", ")}
 Jurisdictions: ${prefs.jurisdictions.join(", ")}
 Topics: ${prefs.topics.join(", ")}
@@ -86,7 +91,6 @@ Return JSON array of objects: [{"index": 0, "score": 7}, ...]. Only the JSON arr
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return articles;
     const scores: { index: number; score: number }[] = JSON.parse(match[0]);
-    // Sort by score descending, return top articles
     scores.sort((a, b) => b.score - a.score);
     return scores.map(s => articles[s.index]).filter(Boolean);
   } catch {
@@ -224,7 +228,7 @@ Deno.serve(async (req) => {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentArticles } = await supabase
     .from("updates")
-    .select("title, category, summary, source_name, published_at, topic_tags, regulator")
+    .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
     .gte("published_at", oneWeekAgo)
     .order("published_at", { ascending: false })
     .limit(60);
@@ -308,9 +312,19 @@ Deno.serve(async (req) => {
     const priorContext = priorBriefsData.priorContext;
 
     const topArticles = scoredArticles.slice(0, 25);
-    const articleContext = topArticles.map((a: any, i: number) =>
-      `[${i + 1}] ${a.title} (${a.source_name || "Unknown"}, ${a.published_at?.substring(0, 10) || "recent"}) — ${a.summary?.substring(0, 200) || ""}`
-    ).join("\n\n");
+    const articleContext = topArticles.map((a: any, i: number) => {
+      const sectors = (a.affected_sectors as string[] || []).join(", ");
+      const jurisdictions = (a.direct_jurisdictions as string[] || []).join(", ");
+      let entry = `[${i + 1}] ${a.title} (${a.source_name || "Unknown"}, ${a.published_at?.substring(0, 10) || "recent"})`;
+      if (a.attention_level) entry += ` [ATTENTION: ${a.attention_level}]`;
+      if (sectors) entry += ` [SECTORS: ${sectors}]`;
+      if (jurisdictions) entry += ` [JURISDICTIONS: ${jurisdictions}]`;
+      entry += ` — ${a.summary?.substring(0, 200) || ""}`;
+      if (a.regulatory_theory) entry += `\n    Regulatory Theory: ${a.regulatory_theory}`;
+      if (a.related_development) entry += `\n    Related: ${a.related_development}`;
+      if (a.key_date) entry += `\n    Key Date: ${a.key_date}`;
+      return entry;
+    }).join("\n\n");
 
     // Build the full brief content from standard brief
     const briefContent = `
@@ -325,6 +339,27 @@ Biometric: ${(latestBrief as any).biometric_data || ""}
 Litigation: ${(latestBrief as any).privacy_litigation || ""}
 Enforcement Trends: ${(latestBrief as any).enforcement_trends || ""}
     `.trim();
+
+    // Build enrichment summary for subscriber context
+    const highAttention = topArticles.filter((a: any) => a.attention_level === 'High');
+    const sectorCounts: Record<string, number> = {};
+    topArticles.forEach((a: any) => {
+      ((a.affected_sectors as string[]) || []).forEach(s => { sectorCounts[s] = (sectorCounts[s] || 0) + 1; });
+    });
+    const topSectors = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const keyDates = topArticles.filter((a: any) => a.key_date);
+
+    const enrichmentSummary = `ENRICHMENT ANALYSIS (pre-computed for each article):
+HIGH-ATTENTION articles relevant to this subscriber: ${highAttention.length} of ${topArticles.length}
+${highAttention.slice(0, 5).map((a: any, i: number) => `  ${i + 1}. "${a.title}" — Theory: ${a.regulatory_theory || 'N/A'}`).join('\n')}
+
+SECTORS most affected in subscriber-relevant articles:
+${topSectors.map(([s, c]) => `  • ${s}: ${c} articles`).join('\n')}
+
+KEY COMPLIANCE DATES from articles:
+${keyDates.slice(0, 5).map((a: any) => `  • ${a.key_date}: ${a.title}`).join('\n') || '  None this week.'}
+
+USE THIS DATA to prioritize high-attention articles, reference regulatory theories for novel enforcement, and cite key dates in action items and look_ahead.`;
 
     // Build deep expertise context
     const industryExpertise = industries.map(i => INDUSTRY_EXPERTISE[i] || i).join("; ");
@@ -403,6 +438,8 @@ ${briefContent.substring(0, 8000)}
 
 TOP RELEVANCE-SCORED ARTICLES FOR THIS SUBSCRIBER:
 ${articleContext.substring(0, 6000)}
+
+${enrichmentSummary}
 
 ENFORCEMENT HISTORY FOR SUBSCRIBER'S JURISDICTIONS (last 12 months):
 ${enforcementHistory.substring(0, 3000)}

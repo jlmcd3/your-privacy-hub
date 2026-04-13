@@ -38,17 +38,52 @@ const EXCLUSION_KEYWORDS = [
   "trade secret", "whistleblower",
 ];
 
+const BREACH_ANNOUNCEMENT_PATTERNS = [
+  /\bannounce[sd]?\s+data\s+breach/i,
+  /\bdata\s+breach\s+(affects?|impacts?|exposes?|compromises?)\b/i,
+  /\bdata\s+breach\s+more\s+than\s+\d/i,
+  /\b\d[\d,]+\s+(individuals?|patients?|customers?|records?|accounts?)\s+(affected|exposed|compromised|impacted)/i,
+  /\bnotif(y|ies|ied|ying)\s+(patients?|customers?|individuals?|consumers?)\s+(of|about)\s+(a\s+)?data\s+breach/i,
+  /\bdata\s+breach\s+(notification|notice|disclosure|report)\b/i,
+  /\bsecurity\s+incident\s+(notification|notice|disclosure)\b/i,
+  /\b(ransomware|phishing|malware)\s+attack\b/i,
+  /\bunauthorized\s+access\s+to\s+(patient|customer|employee|personal)\b/i,
+  /\bbreach\s+(litigation|settlement|class\s+action)\b/i,
+  /\bsettlement\s+(reached|approved|agreement)\b/i,
+  /\bpays?\s+\$[\d.]+[MBK]?\s+to\s+settle\b/i,
+  /\bdata\s+breach\s+settlement\b/i,
+];
+
+const REGULATORY_OVERRIDE_PATTERNS = [
+  /\b(new|proposed|enacted|signed|passed|amended)\s+(law|bill|regulation|statute|act|rule|ordinance)\b/i,
+  /\b(rulemaking|notice of proposed|final rule|enforcement action by)\b/i,
+  /\b(guidance|guidelines?|opinion|recommendation)\s+(issued|published|released|adopted)\s+by\b/i,
+  /\b(dpa|regulator|authority|commission|commissioner)\s+(issues?|publishes?|announces?|releases?|adopts?)\b/i,
+  /\b(fine[sd]?|penalt(y|ies)|sanction[sed]?)\s+(by|from|imposed)\b/i,
+  /\b(gdpr|ccpa|cpra|tdpsa|vcdpa|ctdpa|coppa|hipaa|lgpd|pipl|pdpa|dpdp|ai act|duaa)\s+(enforcement|compliance|violation|fine|amendment|update)\b/i,
+];
+
 function isRelevant(title: string, description: string): boolean {
   const text = (title + " " + (description || "")).toLowerCase();
   const titleLower = title.toLowerCase();
+
+  // Filter out breach announcements unless they're about regulatory action
+  const isBreach = BREACH_ANNOUNCEMENT_PATTERNS.some(p => p.test(title + " " + (description || "")));
+  if (isBreach) {
+    const isRegulatory = REGULATORY_OVERRIDE_PATTERNS.some(p => p.test(title + " " + (description || "")));
+    if (!isRegulatory) return false;
+  }
+
   const TITLE_KEYWORDS = [
-    "privacy", "data protection", "gdpr", "ccpa", "cpra", "data breach",
+    "privacy", "data protection", "gdpr", "ccpa", "cpra",
     "enforcement", "fine", "penalty", "regulator", "dpa", "edpb",
     "cnil", "ftc ", "cppa", "lgpd", "pipl", "ai act", "biometric",
     "personal data", "data security", "privacy law", "consent",
     "adtech", "cookie consent", "behavioral advertising",
     "dpdp act", "india privacy", "australia privacy", "brazil lgpd",
     "eu ai act", "automated decision", "data broker",
+    "new law", "new regulation", "proposed rule", "final rule",
+    "rulemaking", "legislative", "statute", "enacted", "compliance",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;

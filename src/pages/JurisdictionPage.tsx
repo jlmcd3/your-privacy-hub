@@ -4,7 +4,6 @@ import { ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -210,7 +209,6 @@ const JurisdictionPage = () => {
   if (!jurisdiction) {
     return (
       <div className="min-h-screen bg-paper">
-        <Topbar />
         <Navbar />
         <div className="max-w-[860px] mx-auto px-4 md:px-8 py-20 text-center">
           <h1 className="font-display text-3xl text-navy mb-4">Jurisdiction Not Found</h1>
@@ -231,7 +229,6 @@ const JurisdictionPage = () => {
         <title>{jurisdiction.name} Privacy Law & Regulatory Updates | EndUserPrivacy</title>
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
-      <Topbar />
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">

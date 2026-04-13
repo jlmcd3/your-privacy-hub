@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import calendarData from "@/data/regulatory_calendar.json";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 import AdBanner from "@/components/AdBanner";
+import { supabase } from "@/integrations/supabase/client";
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -16,6 +15,7 @@ const FILTERS = [
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
   { key: "global", label: "🌐 Global" },
   { key: "ai", label: "🤖 AI & Tech" },
+  { key: "from-feed", label: "📰 From Feed" },
 ];
 
 const TYPE_BADGE: Record<string, { label: string; classes: string }> = {
@@ -24,12 +24,26 @@ const TYPE_BADGE: Record<string, { label: string; classes: string }> = {
   comment_deadline: { label: "Comment Deadline", classes: "bg-yellow-100 text-yellow-700" },
   review_date: { label: "Review Date", classes: "bg-muted text-muted-foreground" },
   deadline: { label: "Deadline", classes: "bg-orange-100 text-orange-700" },
+  key_date: { label: "Key Date", classes: "bg-violet-100 text-violet-700" },
 };
 
-function matchFilter(jurisdiction: string, law: string, key: string): boolean {
+interface CalendarEvent {
+  date: string;
+  title: string;
+  description: string;
+  jurisdiction: string;
+  law: string;
+  type: string;
+  url: string;
+  source: "static" | "db";
+  attention_level?: string;
+}
+
+function matchFilter(event: CalendarEvent, key: string): boolean {
   if (key === "all") return true;
-  const j = jurisdiction.toLowerCase();
-  const l = law.toLowerCase();
+  if (key === "from-feed") return event.source === "db";
+  const j = event.jurisdiction.toLowerCase();
+  const l = event.law.toLowerCase();
   if (key === "us-federal") return j.includes("u.s.") && !j.includes("—");
   if (key === "us-states") return j.includes("u.s. —") || j.includes("u.s. —");
   if (key === "eu-uk") return j.includes("european") || j.includes("uk") || j.includes("eu");
@@ -40,11 +54,54 @@ function matchFilter(jurisdiction: string, law: string, key: string): boolean {
 
 const Calendar = () => {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [dbEvents, setDbEvents] = useState<CalendarEvent[]>([]);
 
-  const sorted = [...calendarData]
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  useEffect(() => {
+    supabase
+      .from("updates")
+      .select("title, key_date, category, summary, url, attention_level, direct_jurisdictions")
+      .not("key_date", "is", null)
+      .order("key_date", { ascending: true })
+      .limit(100)
+      .then(({ data }) => {
+        if (!data) return;
+        setDbEvents(
+          data.map((u) => ({
+            date: u.key_date!,
+            title: u.title,
+            description: u.summary || "",
+            jurisdiction: (u.direct_jurisdictions as string[] | null)?.[0] || u.category || "Global",
+            law: u.category || "",
+            type: "key_date",
+            url: u.url,
+            source: "db" as const,
+            attention_level: u.attention_level || undefined,
+          }))
+        );
+      });
+  }, []);
 
-  const filtered = sorted.filter((e) => matchFilter(e.jurisdiction, e.law, activeFilter));
+  const staticEvents: CalendarEvent[] = useMemo(
+    () =>
+      (calendarData as any[]).map((e) => ({
+        ...e,
+        source: "static" as const,
+      })),
+    []
+  );
+
+  const allEvents = useMemo(() => {
+    // Deduplicate by title similarity
+    const staticTitles = new Set(staticEvents.map((e) => e.title.toLowerCase().slice(0, 40)));
+    const unique = dbEvents.filter(
+      (d) => !staticTitles.has(d.title.toLowerCase().slice(0, 40))
+    );
+    return [...staticEvents, ...unique].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }, [staticEvents, dbEvents]);
+
+  const filtered = allEvents.filter((e) => matchFilter(e, activeFilter));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -52,7 +109,6 @@ const Calendar = () => {
         <title>Privacy Law Compliance Deadlines Calendar 2026 | EndUserPrivacy</title>
         <meta name="description" content="Key dates for GDPR, EU AI Act, CCPA/CPRA, and US state privacy law compliance deadlines. Countdown timers for every major regulatory effective date in 2026." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="border-b border-border bg-card">
@@ -60,7 +116,7 @@ const Calendar = () => {
           <p className="text-sm font-medium text-muted-foreground mb-2">📅 Reference</p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Regulatory Key Dates Calendar</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
-            Every significant regulatory effective date, enforcement start date, and compliance deadline for 2026–2027. The most-bookmarked tool for compliance teams.
+            Every significant regulatory effective date, enforcement start date, and compliance deadline for 2026–2027. Now enhanced with key dates extracted from our news feed.
           </p>
         </div>
       </div>
@@ -68,7 +124,6 @@ const Calendar = () => {
       <div className="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
         <DeadlineCountdown />
 
-        {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-[13px] text-amber-900 leading-snug">
             <span className="font-semibold">⭐ This tool is free.</span>
@@ -97,6 +152,9 @@ const Calendar = () => {
               }`}
             >
               {f.label}
+              {f.key === "from-feed" && dbEvents.length > 0 && (
+                <span className="ml-1 text-[10px] bg-primary/20 px-1.5 rounded-full">{dbEvents.length}</span>
+              )}
             </button>
           ))}
         </div>
@@ -106,7 +164,7 @@ const Calendar = () => {
             <table className="w-full border-collapse">
               <thead className="bg-muted">
                 <tr>
-                  {["Date", "Event", "Jurisdiction", "Law", "Type"].map((h) => (
+                  {["Date", "Event", "Jurisdiction", "Law / Source", "Type"].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
                   ))}
                 </tr>
@@ -121,9 +179,17 @@ const Calendar = () => {
                         {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </td>
                       <td className="px-4 py-3 border-b border-border">
-                        <Link to={event.url} className="text-sm font-medium text-foreground hover:text-primary transition-colors no-underline">
-                          {event.title}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link to={event.url} className="text-sm font-medium text-foreground hover:text-primary transition-colors no-underline">
+                            {event.title}
+                          </Link>
+                          {event.source === "db" && (
+                            <span className="flex-shrink-0 text-[9px] px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded-full font-medium">Feed</span>
+                          )}
+                          {event.attention_level === "High" && (
+                            <span className="flex-shrink-0 text-[9px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full font-bold">🔴 High</span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">{event.jurisdiction}</td>

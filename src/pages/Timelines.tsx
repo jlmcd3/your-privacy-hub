@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -18,7 +17,6 @@ const Timelines = () => {
         <title>Privacy Law Regulatory Timelines — GDPR, AI Act, US State Laws | EndUserPrivacy</title>
         <meta name="description" content="Visual timelines of major privacy law milestones. GDPR enforcement history, EU AI Act implementation phases, US state privacy law enactment timeline." />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="border-b border-border bg-card">

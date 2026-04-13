@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   const auth = req.headers.get("Authorization") ?? "";
   let authorized = ADMIN_TOKEN && auth.includes(ADMIN_TOKEN);
   if (!authorized) {
-    // Check for valid Supabase user JWT
     const token = auth.replace("Bearer ", "");
     if (token === SUPABASE_ANON_KEY || token === SUPABASE_SERVICE_KEY) {
       authorized = true;
@@ -27,10 +26,10 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  // Fetch last 50 articles with their ai_summary
+  // Fetch last 50 articles with ai_summary and new enrichment fields
   const { data: articles, error } = await supabase
     .from("updates")
-    .select("id, title, summary, category, published_at, ai_summary")
+    .select("id, title, summary, category, published_at, ai_summary, regulatory_theory, affected_sectors, attention_level, related_development")
     .order("published_at", { ascending: false })
     .limit(50);
 
@@ -40,7 +39,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Build article digest for Claude
+  // Build article digest for Claude — include new enrichment fields
   const digest = articles.map((a: any) => ({
     title: a.title,
     category: a.category,
@@ -49,6 +48,9 @@ Deno.serve(async (req) => {
     urgency: a.ai_summary?.urgency ?? null,
     risk_level: a.ai_summary?.risk_level ?? null,
     jurisdictions: a.ai_summary?.cross_jurisdiction_signal ?? null,
+    regulatory_theory: a.regulatory_theory ?? null,
+    affected_sectors: a.affected_sectors ?? null,
+    attention_level: a.attention_level ?? null,
   }));
 
   const prompt = `You are a senior privacy regulatory analyst.
@@ -83,10 +85,25 @@ Return ONLY a JSON object (no markdown, no preamble) with this exact schema:
       "evidence": "1 sentence citing specific example"
     }
   ],
+  "enforcement_patterns": [
+    {
+      "pattern": "Short pattern title",
+      "description": "What enforcement trend is emerging across regulators",
+      "regulators": ["regulator names involved"],
+      "sectors_targeted": ["industry sectors being targeted"],
+      "signal_strength": "Strong|Moderate|Emerging",
+      "example": "One concrete example from the articles"
+    }
+  ],
   "confidence_score": <0.0-1.0, how confident you are in this synthesis>
 }
 
-Generate 3 top_trends, 2-3 emerging_risks, 2-3 regulatory_patterns.
+Generate 3 top_trends, 2-3 emerging_risks, 2-3 regulatory_patterns, and 2-3 enforcement_patterns.
+For enforcement_patterns, look specifically for:
+- Multiple regulators targeting the same type of violation
+- Escalating fine amounts in a sector
+- New enforcement theories being tested
+- Coordinated cross-border enforcement actions
 Be specific, actionable, and focused on compliance implications.
 
 Articles:\n${JSON.stringify(digest, null, 2)}`;
@@ -101,7 +118,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
+      max_tokens: 3000,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -126,7 +143,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
     });
   }
 
-  // Upsert into trend_reports
+  // Upsert into trend_reports — now includes enforcement_patterns
   const today = new Date().toISOString().split("T")[0];
   const { error: upsertError } = await supabase
     .from("trend_reports")
@@ -138,6 +155,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
       affected_industries: synthesis.affected_industries ?? [],
       jurisdictions: synthesis.jurisdictions ?? [],
       regulatory_patterns: synthesis.regulatory_patterns ?? [],
+      enforcement_patterns: synthesis.enforcement_patterns ?? [],
       confidence_score: synthesis.confidence_score ?? 0,
       article_count: articles.length,
       source_article_ids: articles.map((a: any) => a.id),
@@ -150,7 +168,12 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
   }
 
   return new Response(
-    JSON.stringify({ ok: true, date: today, article_count: articles.length }),
+    JSON.stringify({
+      ok: true,
+      date: today,
+      article_count: articles.length,
+      enforcement_patterns_count: (synthesis.enforcement_patterns ?? []).length,
+    }),
     { headers: { "Content-Type": "application/json" } }
   );
 });

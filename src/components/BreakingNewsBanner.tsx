@@ -9,13 +9,19 @@ const BreakingNewsBanner = () => {
   useEffect(() => {
     supabase
       .from("updates")
-      .select("title, url")
+      .select("title, url, published_at")
       .eq("category", "enforcement")
       .order("published_at", { ascending: false })
       .limit(1)
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setNews({ headline: data[0].title, url: data[0].url });
+          const article = data[0];
+          const publishedAt = new Date(article.published_at);
+          const hoursAgo = (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60);
+          if (hoursAgo <= 24) {
+            setNews({ headline: article.title, url: article.url });
+          }
+          // If older than 24 hours, news stays null and banner does not render
         }
         setLoaded(true);
       });

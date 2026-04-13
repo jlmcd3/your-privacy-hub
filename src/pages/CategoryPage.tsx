@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import NewsfeedList from "@/components/NewsfeedList";
 import EmailSignup from "@/components/EmailSignup";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -118,7 +117,6 @@ const CategoryPage = () => {
   if (!meta) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Topbar />
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Category Not Found</h1>
@@ -137,7 +135,6 @@ const CategoryPage = () => {
         <title>{meta.title} Updates | EndUserPrivacy</title>
         <meta name="description" content={meta.description.substring(0, 155) + "…"} />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       {/* Header */}
@@ -246,11 +243,10 @@ const CategoryPage = () => {
               ⭐ Premium Intelligence
             </p>
             <p className="text-sm font-bold text-foreground mb-2">
-              Get all {meta.title} updates in your weekly brief
+              Get {meta.title} analysis in your Intelligence Brief
             </p>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-              Premium subscribers receive a structured weekly intelligence brief with AI analysis
-              across all categories.
+              Premium subscribers receive a full weekly Intelligence Brief with sector-specific context and action items.
             </p>
             <Link
               to="/subscribe"

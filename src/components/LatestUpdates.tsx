@@ -101,14 +101,25 @@ const FALLBACK_UPDATES: Update[] = [
   },
 ];
 
-const FILTERS = [
+const LOCATION_FILTERS = [
   { key: "all", label: "All" },
   { key: "us-federal", label: "🇺🇸 U.S. Federal" },
   { key: "us-states", label: "🗺️ U.S. States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
   { key: "global", label: "🌐 Global" },
+];
+
+const TOPIC_FILTERS = [
   { key: "enforcement", label: "⚖️ Enforcement" },
   { key: "ai-privacy", label: "🤖 AI & Privacy" },
+  { key: "adtech", label: "📡 AdTech & Advertising" },
+  { key: "health-hipaa", label: "🏥 Health & HIPAA" },
+  { key: "children-privacy", label: "👶 Children's Privacy" },
+  { key: "data-breaches", label: "🔒 Data Breaches" },
+  { key: "cross-border", label: "🌐 Cross-Border Transfers" },
+  { key: "biometric-data", label: "🧬 Biometric Data" },
+  { key: "employee-privacy", label: "💼 Employee Privacy" },
+  { key: "cookie-consent", label: "🍪 Cookie Consent" },
 ];
 
 const SkeletonCard = () => (
@@ -145,7 +156,7 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary")
+          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
           .order("published_at", { ascending: false })
           .limit(50);
 
@@ -167,15 +178,21 @@ const LatestUpdates = () => {
   const now = new Date();
   const twentyOneDaysAgo = new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000);
 
-  let visibleUpdates = updates;
+  // Filter out articles marked as skipped/irrelevant by AI
+  let visibleUpdates = updates.filter(u => !u.ai_summary?.skipped);
   if (!isPro && user) {
-    visibleUpdates = updates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
+    visibleUpdates = visibleUpdates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
   }
 
   const filtered =
     activeFilter === "all"
       ? visibleUpdates
-      : visibleUpdates.filter((u) => u.category === activeFilter);
+      : visibleUpdates.filter((u) => {
+          // Match against category or topic_tags
+          if (u.category === activeFilter) return true;
+          if ((u as any).topic_tags?.includes(activeFilter)) return true;
+          return false;
+        });
 
   // Anonymous limit
   const FREE_LIMIT = 15;
@@ -183,24 +200,21 @@ const LatestUpdates = () => {
   const displayArticles = !user ? filtered.slice(0, FREE_LIMIT) : filtered;
 
   return (
-    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
+    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 bg-paper md:px-0 py-0">
       <div className="max-w-[1280px] mx-auto">
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
-          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="flex items-center gap-4 justify-between w-full sm:w-auto">
-              <div>
-                <h2 className="font-display text-[16px] text-white tracking-tight">
-                  Latest Privacy Updates
-                </h2>
-                <p className="text-[12px] text-slate-light">
-                  Updated daily · AI-summarized
-                </p>
-              </div>
-              <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap sm:ml-4">View all →</a>
+          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
+            <div>
+              <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
+                Latest Privacy Updates
+              </h2>
+              <p className="text-[12px] text-slate-light">
+                Updated daily
+              </p>
             </div>
             <div className="flex gap-2 flex-wrap items-center">
-              {FILTERS.map((f) => (
+              {LOCATION_FILTERS.map((f) => (
                 <span
                   key={f.key}
                   onClick={() => setActiveFilter(f.key)}
@@ -213,6 +227,21 @@ const LatestUpdates = () => {
                   {f.label}
                 </span>
               ))}
+              <span className="w-px h-5 bg-white/20 mx-1" />
+              {TOPIC_FILTERS.map((f) => (
+                <span
+                  key={f.key}
+                  onClick={() => setActiveFilter(f.key)}
+                  className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
+                    activeFilter === f.key
+                      ? "bg-white/15 text-white border-white/20 font-semibold"
+                      : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {f.label}
+                </span>
+              ))}
+              <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap ml-2">View all →</a>
             </div>
           </div>
 

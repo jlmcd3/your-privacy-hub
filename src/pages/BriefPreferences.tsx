@@ -6,7 +6,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Topbar from "@/components/Topbar";
 
 const ROLES = [
   { id: "general_counsel", label: "General Counsel / CLO", icon: "⚖️" },
@@ -180,7 +179,6 @@ export default function BriefPreferences() {
     <>
       <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Premium</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
-        <Topbar /><Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 md:px-8 py-10 w-full">
           {fromSubscribe && (
             <div className="mb-8 bg-gradient-to-r from-navy to-steel rounded-2xl p-5 text-white">

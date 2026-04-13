@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -46,7 +45,6 @@ const TimelineDetail = () => {
   if (!meta) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Topbar />
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Timeline Not Found</h1>
@@ -66,7 +64,6 @@ const TimelineDetail = () => {
         <title>{meta.title} | EndUserPrivacy</title>
         <meta name="description" content={meta.description} />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       <div className="border-b border-border bg-card">

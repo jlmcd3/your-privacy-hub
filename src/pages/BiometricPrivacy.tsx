@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -65,7 +64,6 @@ export default function BiometricPrivacyPage() {
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>
-      <Topbar />
       <Navbar />
       <AdBanner />
 
@@ -112,8 +110,8 @@ export default function BiometricPrivacyPage() {
               <p className="text-[13px] font-semibold text-foreground">📊 Enforcement Tracker</p>
               <p className="text-[11px] text-muted-foreground">Search biometric enforcement actions</p>
             </Link>
-            <Link to="/us-state-privacy-laws" className="p-4 rounded-xl border border-border hover:bg-muted/40 no-underline transition-all">
-              <p className="text-[13px] font-semibold text-foreground">🏛️ U.S. State Privacy Laws</p>
+            <Link to="/us-privacy-laws" className="p-4 rounded-xl border border-border hover:bg-muted/40 no-underline transition-all">
+              <p className="text-[13px] font-semibold text-foreground">🇺🇸 U.S. Privacy Laws</p>
               <p className="text-[11px] text-muted-foreground">Compare biometric provisions across states</p>
             </Link>
             <Link to="/ai-privacy-regulations" className="p-4 rounded-xl border border-border hover:bg-muted/40 no-underline transition-all">

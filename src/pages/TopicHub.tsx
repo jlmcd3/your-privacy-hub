@@ -6,7 +6,6 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import EmailSignup from "@/components/EmailSignup";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -53,8 +52,8 @@ const TOPIC_META: Record<string, { name: string; icon: string; description: stri
   "children-privacy": {
     name: "Children's Privacy & Age Verification",
     icon: "👶",
-    description: "Regulations protecting children's data including COPPA enforcement, age verification requirements, age-appropriate design codes, and restrictions on targeted advertising to minors.",
-    related: ["ai-governance", "biometric-data", "adtech"],
+    description: "Regulatory developments protecting children's data, including COPPA enforcement and modernization, age verification requirements, age-appropriate design codes (UK AADC), state children's privacy laws, and restrictions on targeted advertising and data collection from minors.",
+    related: ["ai-governance", "adtech", "biometric-data"],
   },
   "adtech": {
     name: "AdTech, Cookies & Consent",
@@ -98,13 +97,42 @@ const TopicHub = () => {
     if (!slug) return;
     setLoading(true);
     async function load() {
-      const { data } = await supabase
+      // First try topic_tags match
+      const { data: tagData } = await supabase
         .from("updates")
         .select("*")
         .contains("topic_tags", [slug!])
         .order("published_at", { ascending: false })
         .limit(30);
-      setUpdates((data as Update[]) || []);
+
+      if (tagData && tagData.length > 0) {
+        setUpdates(tagData as Update[]);
+        setLoading(false);
+        return;
+      }
+
+      // Fallback: keyword search for specific topics
+      const TOPIC_KEYWORDS: Record<string, string[]> = {
+        "children-privacy": ["children", "COPPA", "age verification", "minor", "KOSA", "AADC"],
+        "data-breaches": ["breach", "data breach", "incident", "ransomware"],
+        "biometric-data": ["biometric", "facial", "BIPA", "fingerprint"],
+        "data-transfers": ["transfer", "SCC", "adequacy", "DPF", "BCR"],
+        "adtech": ["adtech", "cookie", "consent", "TCF", "advertising"],
+      };
+
+      const keywords = TOPIC_KEYWORDS[slug!];
+      if (keywords) {
+        const orQuery = keywords.map(k => `title.ilike.%${k}%`).join(",");
+        const { data: kwData } = await supabase
+          .from("updates")
+          .select("*")
+          .or(orQuery)
+          .order("published_at", { ascending: false })
+          .limit(30);
+        setUpdates((kwData as Update[]) || []);
+      } else {
+        setUpdates([]);
+      }
       setLoading(false);
     }
     load();
@@ -113,7 +141,6 @@ const TopicHub = () => {
   if (!meta) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Topbar />
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Topic Not Found</h1>
@@ -134,7 +161,6 @@ const TopicHub = () => {
         <title>{meta.name} — Privacy Topic Intelligence | EndUserPrivacy</title>
         <meta name="description" content={meta.description.substring(0, 155) + "…"} />
       </Helmet>
-      <Topbar />
       <Navbar />
 
       {/* Header */}

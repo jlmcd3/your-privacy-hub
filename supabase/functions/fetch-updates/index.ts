@@ -753,12 +753,47 @@ const EXCLUSION_KEYWORDS = [
   "whistleblower",
 ];
 
+// Patterns that indicate a breach announcement rather than regulatory/legal content
+const BREACH_ANNOUNCEMENT_PATTERNS = [
+  /\bannounce[sd]?\s+data\s+breach/i,
+  /\bdata\s+breach\s+(affects?|impacts?|exposes?|compromises?)\b/i,
+  /\bdata\s+breach\s+more\s+than\s+\d/i,
+  /\b\d[\d,]+\s+(individuals?|patients?|customers?|records?|accounts?)\s+(affected|exposed|compromised|impacted)/i,
+  /\bnotif(y|ies|ied|ying)\s+(patients?|customers?|individuals?|consumers?)\s+(of|about)\s+(a\s+)?data\s+breach/i,
+  /\bdata\s+breach\s+(notification|notice|disclosure|report)\b/i,
+  /\bsecurity\s+incident\s+(notification|notice|disclosure)\b/i,
+  /\b(ransomware|phishing|malware)\s+attack\b/i,
+  /\bunauthorized\s+access\s+to\s+(patient|customer|employee|personal)\b/i,
+  /\bbreach\s+(litigation|settlement|class\s+action)\b/i,
+  /\bsettlement\s+(reached|approved|agreement)\b/i,
+  /\bpays?\s+\$[\d.]+[MBK]?\s+to\s+settle\b/i,
+  /\bdata\s+breach\s+settlement\b/i,
+];
+
+// Patterns indicating the article IS about regulation/law (override breach exclusion)
+const REGULATORY_OVERRIDE_PATTERNS = [
+  /\b(new|proposed|enacted|signed|passed|amended)\s+(law|bill|regulation|statute|act|rule|ordinance)\b/i,
+  /\b(rulemaking|notice of proposed|final rule|enforcement action by)\b/i,
+  /\b(guidance|guidelines?|opinion|recommendation)\s+(issued|published|released|adopted)\s+by\b/i,
+  /\b(dpa|regulator|authority|commission|commissioner)\s+(issues?|publishes?|announces?|releases?|adopts?)\b/i,
+  /\b(fine[sd]?|penalt(y|ies)|sanction[sed]?)\s+(by|from|imposed)\b/i,
+  /\b(gdpr|ccpa|cpra|tdpsa|vcdpa|ctdpa|coppa|hipaa|lgpd|pipl|pdpa|dpdp|ai act|duaa)\s+(enforcement|compliance|violation|fine|amendment|update)\b/i,
+];
+
 function isRelevant(title: string, description: string): boolean {
   const text = (title + " " + (description || "")).toLowerCase();
   const titleLower = title.toLowerCase();
 
+  // Check for breach announcements first — these are NOT regulatory content
+  const isBreach = BREACH_ANNOUNCEMENT_PATTERNS.some(p => p.test(title + " " + (description || "")));
+  if (isBreach) {
+    // Only keep if it's actually about a regulation/enforcement response to breaches
+    const isRegulatory = REGULATORY_OVERRIDE_PATTERNS.some(p => p.test(title + " " + (description || "")));
+    if (!isRegulatory) return false;
+  }
+
   const TITLE_KEYWORDS = [
-    "privacy", "data protection", "gdpr", "ccpa", "cpra", "data breach",
+    "privacy", "data protection", "gdpr", "ccpa", "cpra",
     "enforcement", "fine", "penalty", "regulator", "dpa", "ico ", "edpb",
     "cnil", "ftc ", "cppa", "lgpd", "pipl", "ai act", "biometric",
     "personal data", "surveillance law", "data security", "privacy law",
@@ -767,12 +802,13 @@ function isRelevant(title: string, description: string): boolean {
     "real-time bidding", "behavioral advertising", "commercial surveillance",
     "third-party cookie", "privacy sandbox", "consent management", "iab ",
     "ad targeting", "tracking pixel",
-    // New regulators
     "cppa", "texas ag", "colorado ag", "hhs ocr", "garante", "aepd",
     "dutch ap", "bfdi", "gdprhub", "convention 108",
-    // New law/framework terms
     "tdpsa", "ctdpa", "hipaa enforcement", "data (use and access)",
     "digital markets act", "dma ", "eur-lex",
+    // Regulatory-specific terms (exclude generic breach terms)
+    "new law", "new regulation", "proposed rule", "final rule",
+    "rulemaking", "legislative", "statute", "enacted", "compliance",
   ];
   const titleHasKeyword = TITLE_KEYWORDS.some(k => titleLower.includes(k));
   if (!titleHasKeyword) return false;

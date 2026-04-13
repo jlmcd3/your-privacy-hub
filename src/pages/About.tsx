@@ -1,5 +1,4 @@
 import { Helmet } from "react-helmet-async";
-import Topbar from "@/components/Topbar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -8,31 +7,50 @@ const About = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>About EndUserPrivacy | Privacy Regulatory Intelligence Platform</title>
-        <meta name="description" content="EndUserPrivacy monitors 119 regulatory authorities daily and delivers AI-synthesized weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
+        <meta name="description" content="EndUserPrivacy monitors 119 regulatory authorities daily and delivers weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
       </Helmet>
-      <Topbar />
       <Navbar />
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
             <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
-              🏢 ABOUT US
+              ABOUT ENDUSERPRIVACY
             </span>
             <h1 className="font-display text-[32px] md:text-[40px] font-extrabold text-white leading-tight mb-4">
               About End User Privacy
             </h1>
             <p className="text-slate-light text-[15px] max-w-[520px] mx-auto">
-              The most comprehensive privacy regulatory intelligence platform — built for privacy professionals who need to stay ahead.
+              Monitoring 119 regulatory authorities across 150+ jurisdictions, updated daily.
             </p>
           </div>
         </section>
+
+        {/* Stats row */}
+        <div className="bg-card border-b border-fog py-8 px-4">
+          <div className="max-w-[760px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { value: '119', label: 'Regulatory Authorities' },
+              { value: '150+', label: 'Jurisdictions Tracked' },
+              { value: 'Daily', label: 'Update Frequency' },
+              { value: 'Free', label: 'To Browse' },
+            ].map(stat => (
+              <div key={stat.label}>
+                <div className="font-display text-[36px] md:text-[44px] font-bold text-navy leading-none mb-1">
+                  {stat.value}
+                </div>
+                <div className="text-[13px] text-slate font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <section className="max-w-[760px] mx-auto px-4 py-12">
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
               End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
             </p>
             <p>
-              Our platform uses AI to ingest, filter, and summarize primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.
+              Our platform ingests, filters, and summarizes primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.
             </p>
             <p>
               Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, End User Privacy gives you the intelligence you need in one place.
@@ -45,7 +63,7 @@ const About = () => {
             {/* Free Tools section */}
             <h2 className="font-display text-[20px] font-bold text-navy pt-4">Free Tools</h2>
             <p>
-              Every tool on the platform is free and requires no account to use:
+              These tools are free. The digest and some features require a free account:
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[14px]">
               {[
@@ -56,7 +74,7 @@ const About = () => {
                 "⚖️ Enforcement Tracker",
                 "⏱️ Regulatory Timelines",
                 "📖 Privacy Glossary",
-                "📋 Weekly Intelligence Brief",
+                "📋 Personalized weekly digest (your regions and topics)",
               ].map((t) => (
                 <li key={t} className="flex items-center gap-2 text-navy">
                   <span className="text-accent">✓</span> {t}
@@ -91,7 +109,7 @@ const About = () => {
                 <tbody>
                   {[
                     ["Price", "$20/month (Pro)", "$300–$3,500+/year", "$550+/year"],
-                    ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
+                    ["Format", "Weekly intelligence brief", "Research database", "Membership + events"],
                     ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                     ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
                     ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding", "Conference-based"],
