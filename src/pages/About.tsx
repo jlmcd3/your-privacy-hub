@@ -63,7 +63,7 @@ const About = () => {
             {/* Free Tools section */}
             <h2 className="font-display text-[20px] font-bold text-navy pt-4">Free Tools</h2>
             <p>
-              Every tool on the platform is free and requires no account to use:
+              These tools are free. The digest and some features require a free account:
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[14px]">
               {[
@@ -74,7 +74,7 @@ const About = () => {
                 "⚖️ Enforcement Tracker",
                 "⏱️ Regulatory Timelines",
                 "📖 Privacy Glossary",
-                "📋 Weekly Intelligence Brief",
+                "📋 Personalized weekly digest (your regions and topics)",
               ].map((t) => (
                 <li key={t} className="flex items-center gap-2 text-navy">
                   <span className="text-accent">✓</span> {t}

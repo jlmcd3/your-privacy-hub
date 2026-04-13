@@ -3,15 +3,9 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const SectionBadge = ({ free }: { free?: boolean }) => (
-  <span
-    className={`inline-block text-[10px] font-bold tracking-wider uppercase rounded-full px-2.5 py-0.5 mb-3 ${
-      free
-        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-        : "bg-amber-50 text-amber-700 border border-amber-200"
-    }`}
-  >
-    {free ? "✓ FREE" : "⭐ PRO"}
+const SectionBadge = () => (
+  <span className="inline-block text-[10px] font-bold tracking-wider uppercase rounded-full px-2.5 py-0.5 mb-3 bg-amber-50 text-amber-700 border border-amber-200">
+    ⭐ PREMIUM BRIEF
   </span>
 );
 
@@ -51,11 +45,9 @@ const SampleBrief = () => {
               See what your Intelligence brief sends you every Monday
             </h1>
             <p className="text-slate-light text-[15px] max-w-[600px] mx-auto mb-6">
-              This is a representative sample of the full Intelligence Brief —
-              every section drawn from that week's actual regulatory developments,
-              synthesized into a structured briefing.
-              Premium subscribers receive this same brief re-analyzed specifically
-              for their industry and jurisdiction.
+              This is what Premium subscribers receive every Monday — a full 8-section
+              Intelligence Brief covering every significant privacy regulatory development
+              from the prior week, re-analyzed specifically for their industry and jurisdiction.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
@@ -93,7 +85,7 @@ const SampleBrief = () => {
 
           {/* Section 1 — Executive Summary */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="EXECUTIVE SUMMARY" />
             <p className="text-[14px] text-slate leading-relaxed">
               This week's dominant regulatory theme is enforcement convergence: three separate authorities — the UK ICO, Texas AG, and EU EDPB — each took significant action within the same seven-day window, signaling accelerating enforcement activity across all major jurisdictions simultaneously. The ICO's £12.7 million fine against TikTok for processing children's data without adequate parental consent establishes a new benchmark for children's privacy enforcement under UK GDPR, and is expected to trigger follow-on investigations by EU DPAs under the GDPR's one-stop-shop mechanism. In the US, the Texas Attorney General's filing against DataConnect Inc. under the TDPSA marks the first enforcement action under the new state law, confirming that state AGs are prepared to act immediately where federal privacy legislation remains stalled. Meanwhile, the EDPB's Opinion 28/2026 on AI training data creates binding compliance obligations for any organization operating in the EU that uses personal data to train AI models — a development with immediate implications for technology companies, financial institutions, and any organization deploying generative AI tools.
@@ -102,7 +94,7 @@ const SampleBrief = () => {
 
           {/* Section 2 — US Federal */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="US FEDERAL ANALYSIS" />
             <p className="text-[14px] text-slate leading-relaxed">
               No major federal privacy legislation advanced this week. However, the FTC continued its active enforcement posture with two new rulemakings: a proposed rule on rental housing fee transparency and a negative-option marketing rule. Neither directly concerns privacy, but both signal the FTC's sustained use of its Section 5 authority in consumer protection contexts adjacent to data practices. Privacy counsel should note that the FTC's current rulemaking pace suggests the agency is building an enforcement infrastructure that could pivot to AI and data practices rapidly once political conditions allow. No new NIST framework updates this week.
@@ -111,7 +103,7 @@ const SampleBrief = () => {
 
           {/* Section 3 — US State */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="US STATE ANALYSIS" />
             <p className="text-[14px] text-slate leading-relaxed">
               Texas leads enforcement activity this week with the first TDPSA action (see enforcement table). Three states to watch in the next 90 days: (1) Texas — AG has signaled further TDPSA enforcement actions are imminent, particularly against data brokers. (2) California — CPPA's ADMT regulations take effect April 1, 2026; organizations with automated decision-making systems affecting employment, housing, or credit must have pre-use notices and opt-out mechanisms in place. (3) New York — SHIELD Act enforcement activity has increased; the NY AG's office filed 3 data breach enforcement actions in the past 30 days. Compliance teams operating in multiple US states should prioritize: data broker registration filings (Texas, California, Oregon, Montana); ADMT notice deployment for California; and data breach notification procedure review for New York.
@@ -120,7 +112,7 @@ const SampleBrief = () => {
 
           {/* Section 4 — EU & UK */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="EU & UK ANALYSIS" />
             <p className="text-[14px] text-slate leading-relaxed">
               The ICO's £12.7M TikTok fine is the largest UK GDPR children's privacy fine to date and the second-largest UK GDPR fine overall. The ICO found that TikTok failed to obtain valid parental consent for users under 13 and failed to implement adequate age verification. Significantly, the ICO rejected TikTok's legitimate interests argument for processing children's data for algorithmic recommendations — a ruling with broad implications for any platform that targets or knowingly serves minors. EU DPAs are expected to open parallel investigations under Article 60 GDPR. The EDPB's Opinion 28/2026 on AI training data establishes that: (1) scraping personal data from public sources without a GDPR-compliant legal basis constitutes a violation regardless of whether the data was originally public; (2) legitimate interests cannot justify AI training on personal data without a robust balancing test; (3) data minimization obligations apply to AI training datasets. This opinion is binding on all EU DPAs and will directly affect every organization using EU residents' personal data in AI model training.
@@ -199,7 +191,7 @@ const SampleBrief = () => {
 
           {/* Section 5 — Global */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="GLOBAL DEVELOPMENTS" />
             <p className="text-[14px] text-slate leading-relaxed">
               Brazil's ANPD published Resolution No. 19 establishing standard contractual clauses for international data transfers — the first formal transfer mechanism under the LGPD. Organizations transferring personal data from Brazil to the US, EU, or APAC must now either use these SCCs or obtain explicit consent. The 90-day implementation period ends June 14, 2026. Canada's Bill C-27 (CPPA/AIDA) remains stalled in committee but parliamentary sources indicate a vote is expected before summer recess. Organizations with Canadian operations should begin CPPA compliance gap assessments now. Singapore's PDPC issued updated AI governance guidelines expanding the definition of 'significant decisions' subject to human review requirements.
@@ -208,7 +200,7 @@ const SampleBrief = () => {
 
           {/* Section 6 — Enforcement Table */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="ENFORCEMENT TABLE" />
             <div className="overflow-x-auto">
               <table className="w-full text-[12px] text-left">
@@ -249,7 +241,7 @@ const SampleBrief = () => {
 
           {/* Section 7 — Trend Signal */}
           <div className="bg-card border border-fog rounded-xl p-6 mb-4">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="TREND SIGNAL" />
             <p className="text-[14px] text-slate leading-relaxed">
               Week-over-week pattern: Enforcement volume is up 40% compared to the same period in 2025. The concentration of simultaneous enforcement actions across UK, US, and EU in a single week is unusual and suggests coordinated intelligence-sharing between regulators — a pattern that has preceded major enforcement waves in the past (see 2021 GDPR enforcement surge). The 30-90 day outlook: organizations should expect (1) follow-on EU investigations against TikTok within 60 days; (2) additional Texas TDPSA enforcement actions against data brokers within 30 days; (3) first ADMT enforcement actions from CPPA in Q2 2026 following the April 1 effective date. The EDPB AI training opinion is likely to be followed by coordinated DPA investigations against major AI developers in Q2-Q3 2026.
@@ -258,7 +250,7 @@ const SampleBrief = () => {
 
           {/* Section 8 — Why This Matters */}
           <div className="bg-navy text-white rounded-xl p-6 mb-8">
-            <SectionBadge free />
+            <SectionBadge />
             <SectionLabel label="WHY THIS MATTERS — ACTION ITEMS FOR GC/CPO" />
             <div className="space-y-4">
               {actionItems.map((item, i) => (
@@ -283,7 +275,7 @@ const SampleBrief = () => {
               Receive this analysis every Monday morning.
             </h3>
             <p className="text-slate-light text-[14px] mb-5 max-w-[500px] mx-auto">
-              Everything above is free. Premium re-writes this brief for your industry and jurisdiction — $20/month.
+              This is the Premium Intelligence Brief. Free accounts include a personalized weekly digest filtered to your regions and topics. Get Premium for the full brief, re-analyzed for your industry and jurisdiction — $20/month.
             </p>
             <div className="text-center">
               <Link

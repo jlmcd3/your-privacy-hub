@@ -41,7 +41,7 @@ const WeeklyBriefTeaser = () => {
             </h2>
             <p className="text-[13px] text-slate mt-1">
               Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
-              8 sections · Published every Monday · <strong>Free</strong>
+              8 sections · Published every Monday · <strong>Premium</strong>
             </p>
           </div>
           <Link
@@ -58,8 +58,8 @@ const WeeklyBriefTeaser = () => {
           {/* Header */}
           <div className="p-6 md:p-8 border-b border-white/10">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-[9px] font-bold tracking-widest uppercase text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-0.5 rounded-full">
-                ✓ Free — no subscription required
+              <span className="text-[9px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+                ⭐ Premium Intelligence Brief
               </span>
               {brief?.week_label && (
                 <span className="text-[11px] text-slate ml-auto">{brief.week_label}</span>
@@ -89,10 +89,10 @@ const WeeklyBriefTeaser = () => {
               ))}
             </div>
             <Link
-              to="/dashboard"
+              to="/sample-brief"
               className="inline-flex items-center gap-2 bg-white text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
-              Read this week's brief →
+              See a sample brief →
             </Link>
           </div>
 
@@ -103,9 +103,9 @@ const WeeklyBriefTeaser = () => {
                 ⭐ Premium — $20/month
               </p>
               <p className="text-[13px] text-slate-light leading-snug">
-                The same brief re-written specifically for your industry,
+                The full Intelligence Brief, re-analyzed every Monday for your industry,
                 your jurisdictions, and your compliance priorities.
-                <span className="text-white"> Not filtered — actually re-analyzed for you.</span>
+                <span className="text-white"> Sector-specific context. Priorities. Action items.</span>
               </p>
             </div>
             <Link

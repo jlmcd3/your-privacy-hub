@@ -36,7 +36,7 @@ const Login = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Log In | EndUserPrivacy</title>
-        <meta name="description" content="Sign in to your EndUserPrivacy account to access your personalized privacy intelligence dashboard and weekly briefs." />
+        <meta name="description" content="Sign in to your EndUserPrivacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
@@ -51,7 +51,7 @@ const Login = () => {
             {[
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
-              'Weekly intelligence brief — free',
+              'Weekly digest — free',
               'Personalized analysis for $20/month',
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">

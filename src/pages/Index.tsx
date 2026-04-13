@@ -78,11 +78,11 @@ const Index = () => {
                 ⭐ Weekly Intelligence Brief
               </div>
               <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                Every Monday. Free. 8-section briefing on every significant development.
+                Every Monday. Premium. 8-section analysis.
               </p>
               <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
                 Enforcement table · trend signals · action items ·
-                regional analysis. Always free.
+                regional analysis. Re-analyzed for your industry.
               </p>
               <Link
                 to="/sample-brief"

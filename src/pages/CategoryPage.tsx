@@ -243,11 +243,10 @@ const CategoryPage = () => {
               ⭐ Premium Intelligence
             </p>
             <p className="text-sm font-bold text-foreground mb-2">
-              Get all {meta.title} updates in your weekly brief
+              Get {meta.title} analysis in your Intelligence Brief
             </p>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-              Premium subscribers receive a structured weekly intelligence brief with AI analysis
-              across all categories.
+              Premium subscribers receive a full weekly Intelligence Brief with sector-specific context and action items.
             </p>
             <Link
               to="/subscribe"
