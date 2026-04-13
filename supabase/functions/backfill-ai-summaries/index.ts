@@ -117,7 +117,8 @@ Otherwise return JSON with these exact fields:
 - affected_sectors (array of strings or null: industry sectors most relevant to this development)
 - related_development (string or null: a prior case, decision, or development this connects to, if clearly applicable)
 - attention_level (one of: "High", "Medium", "Low": overall priority signal for professionals)
-- key_date (string in YYYY-MM-DD format or null: a specific regulatory implementation or deadline date if mentioned)`,
+- key_date (string in YYYY-MM-DD format or null: a specific regulatory implementation or deadline date if mentioned)
+- li_relevant (boolean: true if this article contains any of the following: (1) a formal DPA or EDPB enforcement decision or ruling that evaluates a legitimate interest claim; (2) official guidance, opinion, or framework from a DPA or the EDPB addressing whether a type of processing can rely on legitimate interests; (3) regulatory commentary, public statement, or expressed concern from a DPA about legitimate interest claims; (4) a complaint rejection or supervisory closure that implicitly validates an LI basis. false otherwise)`,
           },
         ],
       }),
