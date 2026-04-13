@@ -78,11 +78,11 @@ const Index = () => {
                 ⭐ Weekly Intelligence Brief
               </div>
               <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                Every Monday. Free. 8-section AI analysis.
+                Every Monday. Free. 8-section briefing on every significant development.
               </p>
               <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
-                Enforcement table · trend signals · GC/CPO action items ·
-                regional analysis. Always free with registration.
+                Enforcement table · trend signals · action items ·
+                regional analysis. Always free.
               </p>
               <Link
                 to="/sample-brief"
@@ -133,7 +133,7 @@ const Index = () => {
       <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
-      <ToolkitSection />
+      <div className="py-12"><ToolkitSection /></div>
       <PremiumBanner />
       <Footer />
     </div>

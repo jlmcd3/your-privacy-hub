@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
           // TODO: replace with dedicated children's privacy page
-          { icon: "👶", label: "Children's Privacy", href: "/category/us-states" },
+          { icon: "👶", label: "Children's Privacy", href: "/topics/children-privacy" },
           { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },

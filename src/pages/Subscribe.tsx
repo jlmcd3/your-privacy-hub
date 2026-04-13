@@ -78,8 +78,8 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Privacy Intelligence Reports — 10 Topic Tracks | EndUserPrivacy Premium</title>
-        <meta name="description" content="Personalized weekly privacy intelligence. Choose from 10 topic tracks: US State Laws, GDPR Enforcement, AI Act, Children's Privacy, AdTech, Health Data, Litigation, Biometric, Cross-Border Transfers, Data Breach. $20/month." />
+        <title>Intelligence Brief — $20/month | EndUserPrivacy</title>
+        <meta name="description" content="The weekly privacy Intelligence Brief, re-written for your industry and jurisdictions every Monday. $20/month. Browse everything free." />
       </Helmet>
       <Navbar />
 
@@ -91,9 +91,18 @@ const Subscribe = () => {
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
             Everything you can browse and read is always free — including the weekly
-            Intelligence Brief. Intelligence is something different: a brief re-written
+            Intelligence Brief. Premium adds the analyst layer: the same brief re-analyzed
             every Monday specifically for your industry, your jurisdictions, and your
-            compliance obligations. That's $20/month.
+            compliance priorities. $20/month.
+          </p>
+        </div>
+      </div>
+
+      {/* Founding offer banner */}
+      <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
+        <div className="max-w-[720px] mx-auto text-center">
+          <p className="text-amber-800 font-semibold text-[14px]">
+            🎁 Founding offer: First 25 subscribers get Premium free for one year, then $20/month.
           </p>
         </div>
       </div>
@@ -150,7 +159,7 @@ const Subscribe = () => {
       <div className="max-w-3xl mx-auto px-4 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            See what your Pro brief would look like this week
+            See what your brief would look like this week
           </h2>
           <p className="text-slate text-[13px]">
             Pick your sector and region. We'll show you what your Monday brief
@@ -164,11 +173,10 @@ const Subscribe = () => {
       <div className="max-w-3xl mx-auto px-4 py-12 border-t border-fog">
         <div className="text-center mb-8">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            Choose your report tracks
+            What do you want covered?
           </h2>
           <p className="text-slate text-[13px] max-w-lg mx-auto">
-            Premium briefs are written for your specific topic area every Monday.
-            Pick one track or combine several.
+            Select the areas most relevant to your work. Your brief covers all selected tracks every Monday.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -548,7 +556,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$20/month", "Enterprise / quote-based", "Annual membership"],
+                  ["Price", "$20/month", "$300–$3,500+/year", "$550+/year"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],

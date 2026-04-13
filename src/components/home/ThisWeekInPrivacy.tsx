@@ -74,9 +74,9 @@ export default function ThisWeekInPrivacy() {
     return (
       <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
-            ✨TOP PRIVACY NEWS THIS WEEK
-          </span>
+          <h2 className="font-display font-bold text-white text-[18px]">
+            This Week in Privacy
+          </h2>
           <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {report.date}
           </span>
@@ -103,7 +103,7 @@ export default function ThisWeekInPrivacy() {
           to="/sample-brief"
           className="inline-block text-[12px] font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
         >
-          Read Full Brief →
+          Read this week's brief →
         </Link>
       </div>
     );
@@ -123,11 +123,11 @@ export default function ThisWeekInPrivacy() {
   return (
     <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400">
-          ✨TOP PRIVACY NEWS THIS WEEK
-        </span>
+        <h2 className="font-display font-bold text-white text-[18px]">
+          This Week in Privacy
+        </h2>
         {brief.week_label && (
-          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {brief.week_label}
           </span>
         )}
@@ -152,7 +152,7 @@ export default function ThisWeekInPrivacy() {
         to="/sample-brief"
         className="inline-block text-[12px] font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
       >
-        Read Full Brief →
+        Read this week's brief →
       </Link>
     </div>
   );
