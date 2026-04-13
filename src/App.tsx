@@ -53,6 +53,8 @@ import BiometricPrivacy from "./pages/BiometricPrivacy.tsx";
 import BreachNotification from "./pages/BreachNotification.tsx";
 import CrossBorderTransfers from "./pages/CrossBorderTransfers.tsx";
 import GetIntelligence from "./pages/GetIntelligence.tsx";
+import LegitimateInterestTracker from "./pages/LegitimateInterestTracker.tsx";
+import AdminSeedLI from "./pages/AdminSeedLI.tsx";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +107,8 @@ const App = () => (
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
            <Route path="/get-intelligence" element={<GetIntelligence />} />
+           <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
+           <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
