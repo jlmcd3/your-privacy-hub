@@ -162,6 +162,7 @@ const GetIntelligence = () => {
 
   return (
     <div className="min-h-screen bg-paper">
+      <Navbar />
       <Helmet>
         <title>Get Your Privacy Intelligence | EndUserPrivacy</title>
         <meta name="description" content="Personalized privacy intelligence for your jurisdiction and practice. Built from 67 regulatory sources. Takes 60 seconds." />
