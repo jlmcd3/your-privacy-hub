@@ -214,17 +214,21 @@ Deno.serve(async (req) => {
       anthropicKey
     );
     if (aiSummary) {
+      const updatePayload: Record<string, any> = {
+        ai_summary: aiSummary,
+        enrichment_version: 2,
+        regulatory_theory: aiSummary.regulatory_theory ?? null,
+        affected_sectors: aiSummary.affected_sectors ?? null,
+        related_development: aiSummary.related_development ?? null,
+        attention_level: aiSummary.attention_level ?? null,
+        key_date: aiSummary.key_date ? new Date(aiSummary.key_date) : null,
+      };
+      if (aiSummary.li_relevant === true) {
+        updatePayload.li_relevant = true;
+      }
       await supabase
         .from("updates")
-        .update({
-          ai_summary: aiSummary,
-          enrichment_version: 2,
-          regulatory_theory: aiSummary.regulatory_theory ?? null,
-          affected_sectors: aiSummary.affected_sectors ?? null,
-          related_development: aiSummary.related_development ?? null,
-          attention_level: aiSummary.attention_level ?? null,
-          key_date: aiSummary.key_date ? new Date(aiSummary.key_date) : null,
-        })
+        .update(updatePayload)
         .eq("id", article.id);
       updated++;
     } else {
