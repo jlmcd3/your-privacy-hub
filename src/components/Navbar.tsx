@@ -38,8 +38,8 @@ const navItems: NavItem[] = [
         header: "Topic Hubs",
         divider: true,
         items: [
-          { icon: "🤖", label: "AI Governance", href: "/category/ai-privacy" },
-          { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
+          { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
+          { icon: "⚖️", label: "Breaches & Enforcement", href: "/category/enforcement" },
           { icon: "📡", label: "AdTech & Consent", href: "/category/adtech" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
