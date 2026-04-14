@@ -58,16 +58,18 @@ const SEED_ROWS = [
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
 
-  // Idempotent guard: if rows already exist, exit
+  // Early-exit guard: seed data is now managed via direct SQL. This function is deprecated.
   const { count } = await supabase
     .from("li_tracker_entries")
     .select("id", { count: "exact", head: true });
 
-  if (count && count > 0) {
-    return new Response(JSON.stringify({ message: `Already seeded. ${count} rows exist.`, inserted: 0, existing: count }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  // Always exit — seed data is inserted directly via SQL migration
+  return new Response(JSON.stringify({ 
+    message: "This function is deprecated. Seed data is managed via direct SQL.", 
+    existing: count || 0 
+  }), {
+    headers: { "Content-Type": "application/json" },
+  });
 
   const today = new Date().toISOString().split("T")[0];
   const rows = SEED_ROWS.map(row => ({
