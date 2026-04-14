@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Lock, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Lock, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import Navbar from "@/components/Navbar";
@@ -26,19 +26,16 @@ const authorityStatusClass = (s: string | null) => {
 };
 
 const TAB_ITEMS = [
-  { label: "Federal Framework", anchor: "federal-framework" },
-  { label: "State Laws", anchor: "state-laws" },
   { label: "Authority Directory", anchor: "state-authorities" },
   { label: "Recent Developments", anchor: "recent-developments" },
 ];
 
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
-  const [federalExpanded, setFederalExpanded] = useState(false);
   const [authSearch, setAuthSearch] = useState("");
   const [authStatusFilter, setAuthStatusFilter] = useState("All");
   const [authorityExpanded, setAuthorityExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState("federal-framework");
+  const [activeTab, setActiveTab] = useState("state-authorities");
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -135,59 +132,6 @@ const USPrivacyLaws = () => {
 
       <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
 
-        {/* ── Section 1: Federal Framework ── */}
-        <div ref={setRef("federal-framework")} id="federal-framework" className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mb-10 scroll-mt-24">
-          <h2 className="font-display text-[20px] md:text-[24px] text-white mb-2 flex items-center gap-2">
-            🏛️ The Federal Privacy Framework
-          </h2>
-          <p className="text-[13px] text-slate-light mb-6 leading-relaxed">
-            The U.S. has no single comprehensive federal privacy law. Instead, a patchwork of sector-specific statutes and FTC enforcement authority governs data privacy at the federal level.
-          </p>
-
-          <div className="mb-4">
-            <h3 className="font-display text-[17px] md:text-[19px] text-white/90 mb-2">{FEDERAL_SECTIONS[0].heading}</h3>
-            <p className="text-[13px] text-slate-light leading-relaxed">{FEDERAL_SECTIONS[0].content}</p>
-          </div>
-
-          {federalExpanded && (
-            <div className="space-y-5 mt-5 pt-5 border-t border-white/10">
-              {FEDERAL_SECTIONS.slice(1).map((sec, i) => (
-                <div key={i}>
-                  <h3 className="font-display text-[17px] md:text-[19px] text-white/90 mb-2">{sec.heading}</h3>
-                  <p className="text-[13px] text-slate-light leading-relaxed">{sec.content}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={() => setFederalExpanded(!federalExpanded)}
-            className="mt-5 flex items-center gap-1.5 text-[13px] font-semibold text-sky hover:text-sky/80 transition-colors bg-transparent border-none cursor-pointer"
-          >
-            {federalExpanded ? (
-              <>Hide <ChevronUp className="w-4 h-4" /></>
-            ) : (
-              <>Show full federal framework <ChevronDown className="w-4 h-4" /></>
-            )}
-          </button>
-        </div>
-
-        {/* ── Divider ── */}
-        <div ref={setRef("state-laws")} id="state-laws" className="relative flex items-center my-10 scroll-mt-24">
-          <div className="flex-1 border-t border-fog" />
-          <span className="px-4 text-[13px] font-semibold text-slate bg-paper">🗺️ State Privacy Laws</span>
-          <div className="flex-1 border-t border-fog" />
-        </div>
-
-        {/* ── Section 2: State Laws (no mid-section premium upsell) ── */}
-        <div className="space-y-8">
-          {STATE_SECTIONS.map((sec, i) => (
-            <div key={i}>
-              <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
-              <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
-            </div>
-          ))}
-        </div>
 
         {/* ── Section: State Authorities Directory (collapsed by default) ── */}
         <div ref={setRef("state-authorities")} id="state-authorities" className="mt-12 mb-10 scroll-mt-24">
