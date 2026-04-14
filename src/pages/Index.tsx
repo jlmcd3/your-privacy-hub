@@ -10,14 +10,9 @@ import AdBanner from "@/components/AdBanner";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
-import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
-
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
-import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
-import PatternSignalCards from "@/components/home/PatternSignalCards";
-import LongitudinalContext from "@/components/home/LongitudinalContext";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 
@@ -52,18 +47,6 @@ const Index = () => {
           <div className="min-w-0">
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
-
-            {/* Key signals — visible on all screen sizes */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <EnforcementStatsBanner />
-              <UpcomingDeadlines />
-            </div>
-
-            {/* Enforcement pattern signals */}
-            <PatternSignalCards />
-
-            {/* Longitudinal context — shows most recent synthesis */}
-            <LongitudinalContext />
 
             {/* Article feed with filters */}
             <LatestUpdates />
@@ -105,12 +88,6 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-
-            {/* Enforcement stats */}
-            <EnforcementStatsBanner />
-
-            {/* Upcoming deadlines */}
-            <UpcomingDeadlines />
 
             {/* Search */}
             <div>
