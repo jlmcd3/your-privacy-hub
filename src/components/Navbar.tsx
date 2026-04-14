@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         items: [
+          { icon: "📰", label: "All Updates", href: "/updates" },
           { icon: "🇺🇸", label: "U.S. Federal", href: "/category/us-federal" },
           { icon: "🗺️", label: "U.S. States", href: "/category/us-states" },
           { icon: "🇪🇺", label: "EU & UK", href: "/category/eu-uk" },
