@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import EmailSignup from "@/components/EmailSignup";
 import EnforcementCharts from "@/components/enforcement/EnforcementCharts";
+import EnforcementPatternIntelligence from "@/components/enforcement/EnforcementPatternIntelligence";
 
 interface EnforcementAction {
   id: string;
@@ -171,6 +172,10 @@ const EnforcementTrackerPage = () => {
             </div>
           </div>
         )}
+
+        {/* Enforcement Pattern Intelligence */}
+        <EnforcementPatternIntelligence />
+
         {/* Search & filters */}
         <div className="flex flex-col md:flex-row gap-3 items-start md:items-center mb-6">
           <div className="relative flex-1 max-w-[400px]">
