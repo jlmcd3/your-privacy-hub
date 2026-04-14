@@ -10,14 +10,9 @@ import AdBanner from "@/components/AdBanner";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
-import EnforcementStatsBanner from "@/components/home/EnforcementStatsBanner";
-
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
-import UpcomingDeadlines from "@/components/home/UpcomingDeadlines";
 import ToolkitSection from "@/components/home/ToolkitSection";
-import PatternSignalCards from "@/components/home/PatternSignalCards";
-import LongitudinalContext from "@/components/home/LongitudinalContext";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 
