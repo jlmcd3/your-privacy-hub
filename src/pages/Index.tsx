@@ -45,8 +45,7 @@ const Index = () => {
 
           {/* === LEFT COLUMN === */}
           <div className="min-w-0">
-            {/* This Week in Privacy */}
-            <ThisWeekInPrivacy />
+            {/* Article feed with filters */}
 
             {/* Article feed with filters */}
             <LatestUpdates />
