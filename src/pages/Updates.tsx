@@ -395,30 +395,6 @@ const Updates = () => {
                     </select>
                 </div>
 
-                {/* Source pills */}
-                {sourcePills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        <button
-                            onClick={() => setActiveSource(null)}
-                            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                                !activeSource ? "bg-navy text-white" : "bg-muted text-foreground"
-                            }`}
-                        >
-                            All sources
-                        </button>
-                        {sourcePills.map((d) => (
-                            <button
-                                key={d}
-                                onClick={() => setActiveSource(activeSource === d ? null : d)}
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                                    activeSource === d ? "bg-navy text-white" : "bg-muted text-foreground"
-                                }`}
-                            >
-                                {d}
-                            </button>
-                        ))}
-                    </div>
-                )}
 
                 {/* Faceted Filters: Sectors + Attention Level */}
                 {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
