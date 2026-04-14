@@ -24,6 +24,29 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
+    label: "Intelligence",
+    sections: [
+      {
+        header: "Free Tools",
+        items: [
+          { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
+          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
+          { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
+          { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
+          { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
+          { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
+        ],
+      },
+      {
+        header: "Premium",
+        divider: true,
+        items: [
+          { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
+        ],
+      },
+    ],
+  },
+  {
     label: "Latest News",
     sections: [
       {
@@ -60,29 +83,6 @@ const navItems: NavItem[] = [
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
           { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Intelligence",
-    sections: [
-      {
-        header: "Free Tools",
-        items: [
-          { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
-          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
-          { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
-          { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
-          { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
-          { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
-        ],
-      },
-      {
-        header: "Premium",
-        divider: true,
-        items: [
-          { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
         ],
       },
     ],
