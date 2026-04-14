@@ -14,6 +14,7 @@ const LI_EXTRACTION_PROMPT = `You are a GDPR legal analyst. Review the following
 - case_reference (string or null): Case name, opinion number, or guidance title if stated
 - summary (string): One factual sentence describing the regulatory position
 - confidence (string): One of: high | medium | low
+- source_url (string or null): The URL of the primary source document if mentioned in the article
 If the article contains multiple findings, return an array of objects. If no legitimate interest findings are present, return an empty array. Return only valid JSON with no preamble or explanation.`;
 
 async function callClaude(article: { title: string; summary: string | null }) {
@@ -53,7 +54,7 @@ async function callClaude(article: { title: string; summary: string | null }) {
 async function upsertFinding(finding: any, articleId: string) {
   const { data: existing } = await supabase
     .from("li_tracker_entries")
-    .select("id, outcome")
+    .select("id, outcome, source_url")
     .eq("processing_activity", finding.processing_activity)
     .eq("dpa_source", finding.dpa_source)
     .maybeSingle();
@@ -61,16 +62,18 @@ async function upsertFinding(finding: any, articleId: string) {
   const today = new Date().toISOString().split("T")[0];
 
   if (existing) {
-    if (existing.outcome === finding.outcome) {
-      await supabase.from("li_tracker_entries").update({ last_confirmed: today, updated_at: new Date().toISOString() }).eq("id", existing.id);
-    } else {
-      await supabase.from("li_tracker_entries").update({
-        outcome: "contested",
-        summary: `Conflicting positions: previously ${existing.outcome}, new signal suggests ${finding.outcome}. ${finding.summary}`,
-        last_confirmed: today,
-        updated_at: new Date().toISOString(),
-      }).eq("id", existing.id);
+    // Only update source_url if existing value is NULL (preserve verified seed URLs)
+    const updateData: any = { last_confirmed: today, updated_at: new Date().toISOString() };
+    if (!existing.source_url && finding.source_url) {
+      updateData.source_url = finding.source_url;
     }
+
+    if (existing.outcome !== finding.outcome) {
+      updateData.outcome = "contested";
+      updateData.summary = `Conflicting positions: previously ${existing.outcome}, new signal suggests ${finding.outcome}. ${finding.summary}`;
+    }
+
+    await supabase.from("li_tracker_entries").update(updateData).eq("id", existing.id);
   } else {
     await supabase.from("li_tracker_entries").insert({
       processing_activity: finding.processing_activity,
@@ -81,6 +84,7 @@ async function upsertFinding(finding: any, articleId: string) {
       case_reference: finding.case_reference || null,
       summary: finding.summary,
       source_article_id: articleId,
+      source_url: finding.source_url || null,
       confidence: finding.confidence || "medium",
       last_confirmed: today,
     });
@@ -90,12 +94,14 @@ async function upsertFinding(finding: any, articleId: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
 
+  // 30-day safety net window (not 8 days) to catch missed articles
   const { data: articles } = await supabase
     .from("updates")
     .select("id, title, summary")
     .eq("li_relevant", true)
     .eq("li_processed", false)
-    .gte("created_at", new Date(Date.now() - 8 * 86400000).toISOString())
+    .gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString())
+    .order("created_at", { ascending: false })
     .limit(50);
 
   let processed = 0, findings = 0;
