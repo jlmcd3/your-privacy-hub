@@ -32,9 +32,6 @@ const navItems: NavItem[] = [
           { icon: "🗺️", label: "U.S. States", href: "/category/us-states" },
           { icon: "🇪🇺", label: "EU & UK", href: "/category/eu-uk" },
           { icon: "🌏", label: "Global", href: "/category/global" },
-          { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
-          { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
-          { icon: "📡", label: "AdTech", href: "/category/adtech" },
         ],
       },
       {
@@ -42,12 +39,11 @@ const navItems: NavItem[] = [
         divider: true,
         items: [
           { icon: "🤖", label: "AI Governance", href: "/category/ai-privacy" },
-          { icon: "🔓", label: "Breaches & Enforcement", href: "/category/enforcement" },
+          { icon: "⚖️", label: "Enforcement Actions", href: "/category/enforcement" },
+          { icon: "📡", label: "AdTech & Consent", href: "/category/adtech" },
           { icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" },
           { icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" },
-          // TODO: replace with dedicated children's privacy page
           { icon: "👶", label: "Children's Privacy", href: "/topics/children-privacy" },
-          { icon: "🍪", label: "AdTech & Consent", href: "/category/adtech" },
         ],
       },
     ],
