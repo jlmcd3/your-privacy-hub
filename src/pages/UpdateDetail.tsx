@@ -59,7 +59,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   global: "Global",
 };
 
-const PREMIUM_FIELDS: { key: keyof AISummary; label: string }[] = [
+const ANALYSIS_FIELDS: { key: keyof AISummary; label: string }[] = [
   { key: "compliance_impact", label: "Compliance Impact" },
   { key: "who_should_care", label: "Who Should Care" },
   { key: "urgency", label: "Urgency" },
@@ -81,7 +81,6 @@ const UpdateDetail = () => {
   const [article, setArticle] = useState<Update | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
   const [related, setRelated] = useState<RelatedUpdate[]>([]);
 
   // Fetch article
@@ -102,18 +101,6 @@ const UpdateDetail = () => {
       });
   }, [id]);
 
-  // Fetch premium status
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("profiles")
-      .select("is_premium")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        setIsPremium(data?.is_premium ?? false);
-      });
-  }, [user]);
 
   // Fetch related articles
   useEffect(() => {
@@ -259,37 +246,19 @@ const UpdateDetail = () => {
               </>
             )}
 
-            {/* Premium-gated fields */}
-            {PREMIUM_FIELDS.some(f => ai?.[f.key]) && (
+            {/* Analysis fields */}
+            {ANALYSIS_FIELDS.some(f => ai?.[f.key]) && (
               <div className="mb-6 space-y-4">
-                {PREMIUM_FIELDS.map(({ key, label }) => {
+                {ANALYSIS_FIELDS.map(({ key, label }) => {
                   const value = ai?.[key];
                   if (!value || typeof value !== "string") return null;
                   return (
                     <div key={key}>
                       <h3 className="text-foreground font-bold text-[14px] mb-1">{label}</h3>
-                      {isPremium ? (
-                        <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
-                      ) : (
-                        <div className="filter blur-sm pointer-events-none select-none">
-                          <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
-                        </div>
-                      )}
+                      <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
                     </div>
                   );
                 })}
-
-                {!isPremium && (
-                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
-                    <p className="text-[13px] font-semibold text-amber-900 mb-2">Unlock full analysis for every article</p>
-                    <Link
-                      to="/subscribe"
-                      className="inline-block bg-amber-400 text-navy font-bold text-[13px] px-5 py-2 rounded-lg no-underline hover:bg-amber-300 transition-colors"
-                    >
-                      Get Intelligence — $20/month →
-                    </Link>
-                  </div>
-                )}
               </div>
             )}
 
