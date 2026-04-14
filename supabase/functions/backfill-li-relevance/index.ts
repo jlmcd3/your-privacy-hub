@@ -16,18 +16,45 @@ const LI_EXTRACTION_PROMPT = `You are a GDPR legal analyst. Review the following
 - confidence (string): One of: high | medium | low
 If the article contains multiple findings, return an array of objects. If no legitimate interest findings are present, return an empty array. Return only valid JSON with no preamble or explanation.`;
 
+const TITLE_KEYWORDS = [
+  '%legitimate interest%',
+  '%Article 6(1)(f)%',
+  '%LIA%',
+  '%balancing test%',
+  '%lawful basis%',
+  '%6(1)(f)%',
+  '%processing basis%',
+  '%legal basis%',
+  '%EDPB guidelines%',
+  '%recognized legitimate%',
+];
+
+const SUMMARY_KEYWORDS = [
+  '%legitimate interest%',
+  '%Article 6(1)(f)%',
+  '%LIA%',
+  '%balancing test%',
+  '%lawful basis%',
+  '%6(1)(f)%',
+  '%processing basis%',
+  '%legal basis%',
+];
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
 
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!anthropicKey) return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not set" }), { status: 500 });
 
-  // Find articles mentioning LI keywords
+  // Expanded keyword query
+  const titleFilter = TITLE_KEYWORDS.map(k => `title.ilike.${k}`).join(",");
+  const summaryFilter = SUMMARY_KEYWORDS.map(k => `summary.ilike.${k}`).join(",");
+
   const { data: articles } = await supabase
     .from("updates")
     .select("id, title, summary")
-    .or("li_relevant.is.null,li_relevant.eq.false")
-    .or("title.ilike.%legitimate interest%,title.ilike.%Article 6(1)(f)%,title.ilike.%LIA%,title.ilike.%balancing test%,summary.ilike.%legitimate interest%,summary.ilike.%Article 6(1)(f)%,summary.ilike.%LIA%,summary.ilike.%balancing test%")
+    .eq("li_processed", false)
+    .or(`${titleFilter},${summaryFilter}`)
     .limit(100);
 
   let processed = 0, findings = 0;
