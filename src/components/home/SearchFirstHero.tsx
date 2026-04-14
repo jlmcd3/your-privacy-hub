@@ -52,7 +52,7 @@ export default function SearchFirstHero() {
 
           {/* Right: Globe */}
           <div className="hidden sm:block flex-shrink-0 w-full lg:w-[400px]">
-            <div className="rounded-xl overflow-hidden relative" style={{ height: "300px" }}>
+            <div className="rounded-xl overflow-hidden relative" style={{ height: "420px" }}>
               <StarFieldBackground />
               <div className="relative z-10 flex items-center justify-center w-full h-full">
                 <SpinTheGlobe compact />
