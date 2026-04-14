@@ -52,7 +52,7 @@ const Footer = () => {
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Research</h4>
             {[
               { label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
-              { label: "GDPR Enforcement", href: "/gdpr-enforcement" },
+              { label: "GDPR & UK", href: "/gdpr-enforcement" },
               { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
               { label: "Global Privacy Laws", href: "/global-privacy-laws" },
             ].map((l) => (
