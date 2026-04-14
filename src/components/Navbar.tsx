@@ -50,28 +50,16 @@ const navItems: NavItem[] = [
   },
   {
     label: "Laws & Frameworks",
-    wide: true,
     sections: [
       {
         items: [
-          { icon: "🗺️", label: "Interactive Map", href: "/jurisdictions" },
           { icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" },
-          { icon: "📋", label: "Legitimate Interest Tracker", href: "/legitimate-interest-tracker" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
           { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
-        ],
-      },
-      {
-        header: "Free Tools",
-        divider: true,
-        items: [
-          { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
-          { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
-          { icon: "📜", label: "Legislation Tracker", badge: "FREE", badgeGreen: true, href: "/legislation-tracker" },
         ],
       },
     ],
@@ -84,6 +72,10 @@ const navItems: NavItem[] = [
         items: [
           { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
+          { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
+          { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
+          { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
+          { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
         ],
       },
       {
