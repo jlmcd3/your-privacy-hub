@@ -48,18 +48,6 @@ const Index = () => {
             {/* This Week in Privacy */}
             <ThisWeekInPrivacy />
 
-            {/* Key signals — visible on all screen sizes */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <EnforcementStatsBanner />
-              <UpcomingDeadlines />
-            </div>
-
-            {/* Enforcement pattern signals */}
-            <PatternSignalCards />
-
-            {/* Longitudinal context — shows most recent synthesis */}
-            <LongitudinalContext />
-
             {/* Article feed with filters */}
             <LatestUpdates />
           </div>
@@ -101,16 +89,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Enforcement stats */}
-            <EnforcementStatsBanner />
-
-            {/* Upcoming deadlines */}
-            <UpcomingDeadlines />
-
-            {/* Search */}
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
-                Search the platform
               </p>
               <SearchBar />
             </div>
