@@ -212,7 +212,6 @@ const LegitimateInterestTracker = () => {
             </div>
           </>
         )}
-        </div>
 
         {/* Data sourcing note */}
         <div className="bg-muted/50 rounded-xl p-5 mb-10 text-[12px] text-muted-foreground leading-relaxed">
