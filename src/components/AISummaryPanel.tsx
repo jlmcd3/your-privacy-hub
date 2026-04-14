@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye, Lock } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye } from "lucide-react";
 
 interface AISummary {
   why_it_matters: string;
@@ -20,7 +19,6 @@ interface AISummary {
 interface AISummaryPanelProps {
   summary: AISummary | null;
   compact?: boolean;
-  isPremium?: boolean; // false = free user, full panel locked
 }
 
 const URGENCY_CONFIG: Record<string, { color: string; icon: typeof AlertCircle; label: string }> = {
@@ -36,7 +34,7 @@ const RISK_CONFIG: Record<string, string> = {
   "Low": "bg-green-50 text-green-700 border-green-200",
 };
 
-const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISummaryPanelProps) => {
+const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
   const [open, setOpen] = useState(false);
 
   if (!summary) return null;
@@ -78,28 +76,18 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
         </p>
       )}
 
-      {/* Expand button: locked for free users */}
-      {isPremium ? (
-        <button
-          onClick={() => setOpen(!open)}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer px-0 mt-0.5"
-        >
-          <Sparkles className="w-3 h-3" />
-          {open ? "Hide" : "Full AI analysis"}
-          {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
-      ) : (
-        <Link
-          to="/subscribe"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors mt-0.5"
-        >
-          <Lock className="w-3 h-3" />
-          Full AI analysis — Premium →
-        </Link>
-      )}
+      {/* Expand button: available to all users */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer px-0 mt-0.5"
+      >
+        <Sparkles className="w-3 h-3" />
+        {open ? "Hide" : "Full Analysis"}
+        {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
 
-      {/* Expanded full panel: only renders for premium users */}
-      {isPremium && open && (
+      {/* Expanded full panel */}
+      {open && (
         <div className="mt-2 p-4 bg-primary/[0.03] border border-primary/10 rounded-xl space-y-3 text-[12px]">
           <div>
             <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
