@@ -54,8 +54,6 @@ export default function SearchFirstHero() {
           </div>
         </div>
       </div>
-        </div>
-      </div>
     </div>
   );
 }
