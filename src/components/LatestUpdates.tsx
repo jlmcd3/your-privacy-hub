@@ -274,7 +274,7 @@ const LatestUpdates = () => {
                   Latest Privacy Updates
                 </h2>
                 <p className="text-[12px] text-slate-light">
-                  Updated daily
+                  Updated daily and analyzed for key takeaways.{" "}
                 </p>
               </div>
               {hasActiveFilters && (
