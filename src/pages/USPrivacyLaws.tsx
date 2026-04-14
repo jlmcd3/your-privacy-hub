@@ -135,7 +135,8 @@ const USPrivacyLaws = () => {
 
         {/* ── Section: State Authorities Directory (collapsed by default) ── */}
         <div ref={setRef("state-authorities")} id="state-authorities" className="mt-12 mb-10 scroll-mt-24">
-          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-4">U.S. State Privacy Authority Directory</h2>
+          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">U.S. State Privacy Authority Directory</h2>
+          <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">Browse the enforcement authorities responsible for privacy regulation in every U.S. state. Use the search and status filters below to find specific states, statutes, or agencies.</p>
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
@@ -247,6 +248,7 @@ const USPrivacyLaws = () => {
               <h2 className="font-display text-xl text-navy">Recent U.S. Privacy Developments</h2>
               <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
             </div>
+            <p className="text-[13px] text-muted-foreground leading-relaxed mb-2">Stay current with the latest federal and state privacy actions, rulemakings, and enforcement updates. This feed pulls the most recent developments so you can track what's changing across U.S. jurisdictions.</p>
             <div className="divide-y divide-fog">
               {recentArticles.map((a: any) => (
                 <ArticleCard
