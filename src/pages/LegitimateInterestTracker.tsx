@@ -23,6 +23,23 @@ const signalStyle = (type: string) => {
   return "";
 };
 
+const SourceCell = ({ sourceUrl, caseReference }: { sourceUrl: string | null; caseReference: string | null }) => {
+  if (sourceUrl && caseReference) {
+    return (
+      <a
+        href={sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:underline"
+      >
+        {caseReference}
+      </a>
+    );
+  }
+  if (caseReference) return <span>{caseReference}</span>;
+  return <span>—</span>;
+};
+
 const LegitimateInterestTracker = () => {
   const [entries, setEntries] = useState<any[]>([]);
   const [trendSummary, setTrendSummary] = useState<any>(null);
@@ -30,7 +47,6 @@ const LegitimateInterestTracker = () => {
   const [signalFilter, setSignalFilter] = useState("All Signal Types");
   const [jurisdictionFilter, setJurisdictionFilter] = useState("All Jurisdictions");
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -172,7 +188,7 @@ const LegitimateInterestTracker = () => {
                 <table className="w-full border-collapse text-sm">
                   <thead className="bg-muted">
                     <tr>
-                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Summary", "Reference"].map(h => (
+                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Summary", "Source"].map(h => (
                         <th key={h} className="px-3 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
                       ))}
                     </tr>
@@ -188,7 +204,9 @@ const LegitimateInterestTracker = () => {
                         <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.dpa_source}</td>
                         <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.jurisdiction}</td>
                         <td className="px-3 py-3 text-[12px] text-muted-foreground border-b border-border max-w-[200px]">{e.summary}</td>
-                        <td className="px-3 py-3 text-[11px] text-muted-foreground border-b border-border max-w-[120px] truncate" title={e.case_reference || ""}>{e.case_reference || "—"}</td>
+                        <td className="px-3 py-3 text-[11px] text-muted-foreground border-b border-border max-w-[120px]">
+                          <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -206,7 +224,9 @@ const LegitimateInterestTracker = () => {
                     <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
                   </div>
                   <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
-                  {e.case_reference && <p className="text-[11px] text-muted-foreground">Ref: {e.case_reference}</p>}
+                  <div className="text-[11px] text-muted-foreground">
+                    <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -215,7 +235,7 @@ const LegitimateInterestTracker = () => {
 
         {/* Data sourcing note */}
         <div className="bg-muted/50 rounded-xl p-5 mb-10 text-[12px] text-muted-foreground leading-relaxed">
-          This tracker compiles positions drawn from EDPB guidelines and opinions, ICO guidance and enforcement decisions, national DPA enforcement decisions and guidance across EU member states, and regulatory commentary surfaced through the EndUserPrivacy article feed. Each entry links to a source article where available. Positions reflect the regulatory record as of the date shown and may evolve as new decisions are issued. This is informational only and does not constitute legal advice.
+          This tracker compiles positions drawn from EDPB guidelines and opinions, ICO guidance and enforcement decisions, national DPA enforcement decisions and guidance across EU member states, and regulatory commentary surfaced through the EndUserPrivacy article feed. Each entry links to the primary source document where available. Positions reflect the regulatory record as of the date shown and may evolve as new decisions are issued. This is informational only and does not constitute legal advice.
         </div>
 
         {/* Premium upsell */}
