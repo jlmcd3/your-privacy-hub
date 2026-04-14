@@ -31,16 +31,22 @@ const LegitimateInterestTracker = () => {
   const [jurisdictionFilter, setJurisdictionFilter] = useState("All Jurisdictions");
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    supabase.from("li_tracker_entries").select("*").then(({ data }) => {
-      if (data) {
-        setEntries(data);
-        const dates = data.map(d => d.created_at).filter(Boolean).sort();
-        if (dates.length) setLastUpdated(new Date(dates[dates.length - 1]).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }));
+    Promise.all([
+      supabase.from("li_tracker_entries").select("*"),
+      supabase.from("li_trend_summaries").select("*").order("created_at", { ascending: false }).limit(1),
+    ]).then(([entriesRes, trendRes]) => {
+      if (entriesRes.data) {
+        setEntries(entriesRes.data);
+        const confirmed = entriesRes.data.map(d => d.last_confirmed).filter(Boolean).sort();
+        if (confirmed.length) {
+          setLastUpdated(new Date(confirmed[confirmed.length - 1] + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }));
+        }
       }
-    });
-    supabase.from("li_trend_summaries").select("*").order("created_at", { ascending: false }).limit(1).then(({ data }) => {
-      if (data && data.length) setTrendSummary(data[0]);
+      if (trendRes.data && trendRes.data.length) setTrendSummary(trendRes.data[0]);
+      setLoading(false);
     });
   }, []);
 
@@ -79,7 +85,7 @@ const LegitimateInterestTracker = () => {
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">Legitimate Interest Tracker</h1>
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">Global privacy law, tracked daily.</p>
-          {lastUpdated && <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated}</div>}
+          <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated || "Updated regularly"}</div>
         </div>
       </div>
 
