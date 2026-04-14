@@ -65,7 +65,7 @@ const navItems: NavItem[] = [
           { icon: "📋", label: "Legitimate Interest Tracker", href: "/legitimate-interest-tracker" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
-          
+          { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
         ],
       },
       {
