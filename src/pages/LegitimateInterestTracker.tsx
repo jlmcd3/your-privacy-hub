@@ -150,49 +150,68 @@ const LegitimateInterestTracker = () => {
           </select>
         </div>
 
-        {/* Desktop table */}
-        <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-10">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Summary", "Reference"].map(h => (
-                    <th key={h} className="px-3 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(e => (
-                  <tr key={e.id} className="hover:bg-muted/50 transition-colors">
-                    <td className="px-3 py-3 text-[13px] font-medium text-foreground border-b border-border">{e.processing_activity}</td>
-                    <td className="px-3 py-3 border-b border-border">
-                      <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                    </td>
-                    <td className={`px-3 py-3 text-[12px] border-b border-border ${signalStyle(e.signal_type)}`}>{e.signal_type}</td>
-                    <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.dpa_source}</td>
-                    <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.jurisdiction}</td>
-                    <td className="px-3 py-3 text-[12px] text-muted-foreground border-b border-border max-w-[200px]">{e.summary}</td>
-                    <td className="px-3 py-3 text-[11px] text-muted-foreground border-b border-border max-w-[120px] truncate" title={e.case_reference || ""}>{e.case_reference || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Loading / Empty state */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+            <p className="text-sm text-muted-foreground">Loading tracker data…</p>
           </div>
-        </div>
-
-        {/* Mobile cards */}
-        <div className="md:hidden space-y-3 mb-10">
-          {filtered.map(e => (
-            <div key={e.id} className="bg-card border border-border rounded-xl p-4">
-              <p className="font-bold text-[14px] text-foreground mb-2">{e.processing_activity}</p>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
-              </div>
-              <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
-              {e.case_reference && <p className="text-[11px] text-muted-foreground">Ref: {e.case_reference}</p>}
+        ) : entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 bg-card border border-border rounded-2xl mb-10">
+            <div className="animate-pulse rounded-full h-10 w-10 bg-muted mb-4 flex items-center justify-center">
+              <span className="text-lg">⏳</span>
             </div>
-          ))}
+            <p className="text-sm font-medium text-foreground mb-1">Data is being loaded. Check back shortly.</p>
+            <p className="text-xs text-muted-foreground">The tracker database is being populated.</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-10">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Summary", "Reference"].map(h => (
+                        <th key={h} className="px-3 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(e => (
+                      <tr key={e.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-3 py-3 text-[13px] font-medium text-foreground border-b border-border">{e.processing_activity}</td>
+                        <td className="px-3 py-3 border-b border-border">
+                          <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
+                        </td>
+                        <td className={`px-3 py-3 text-[12px] border-b border-border ${signalStyle(e.signal_type)}`}>{e.signal_type}</td>
+                        <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.dpa_source}</td>
+                        <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.jurisdiction}</td>
+                        <td className="px-3 py-3 text-[12px] text-muted-foreground border-b border-border max-w-[200px]">{e.summary}</td>
+                        <td className="px-3 py-3 text-[11px] text-muted-foreground border-b border-border max-w-[120px] truncate" title={e.case_reference || ""}>{e.case_reference || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3 mb-10">
+              {filtered.map(e => (
+                <div key={e.id} className="bg-card border border-border rounded-xl p-4">
+                  <p className="font-bold text-[14px] text-foreground mb-2">{e.processing_activity}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
+                    <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
+                  </div>
+                  <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
+                  {e.case_reference && <p className="text-[11px] text-muted-foreground">Ref: {e.case_reference}</p>}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
         </div>
 
         {/* Data sourcing note */}
