@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import { Link } from "react-router-dom";
+import { Search, X } from "lucide-react";
 
 interface Update {
   id: string;
@@ -18,6 +19,11 @@ interface Update {
   published_at: string;
   is_premium: boolean;
   ai_summary?: any;
+  topic_tags?: string[];
+  attention_level?: string;
+  affected_sectors?: string[];
+  regulatory_theory?: string;
+  related_development?: string;
 }
 
 const FALLBACK_UPDATES: Update[] = [
@@ -102,7 +108,6 @@ const FALLBACK_UPDATES: Update[] = [
 ];
 
 const LOCATION_FILTERS = [
-  { key: "all", label: "All" },
   { key: "us-federal", label: "🇺🇸 U.S. Federal" },
   { key: "us-states", label: "🗺️ U.S. States" },
   { key: "eu-uk", label: "🇪🇺 EU & UK" },
@@ -136,7 +141,9 @@ const LatestUpdates = () => {
   const { user } = useAuth();
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeLocations, setActiveLocations] = useState<Set<string>>(new Set());
+  const [activeTopics, setActiveTopics] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
   const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
@@ -174,6 +181,32 @@ const LatestUpdates = () => {
     load();
   }, []);
 
+  const toggleLocation = (key: string) => {
+    setActiveLocations((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleTopic = (key: string) => {
+    setActiveTopics((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const hasActiveFilters = activeLocations.size > 0 || activeTopics.size > 0 || searchTerm.length > 0;
+
+  const clearAll = () => {
+    setActiveLocations(new Set());
+    setActiveTopics(new Set());
+    setSearchTerm("");
+  };
+
   // Tiered access: Pro = unlimited, logged in = 21 days, anonymous = 15 articles
   const now = new Date();
   const twentyOneDaysAgo = new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000);
@@ -184,15 +217,45 @@ const LatestUpdates = () => {
     visibleUpdates = visibleUpdates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
   }
 
-  const filtered =
-    activeFilter === "all"
-      ? visibleUpdates
-      : visibleUpdates.filter((u) => {
-          // Match against category or topic_tags
-          if (u.category === activeFilter) return true;
-          if ((u as any).topic_tags?.includes(activeFilter)) return true;
-          return false;
-        });
+  const filtered = useMemo(() => {
+    let result = visibleUpdates;
+
+    // Location filter (OR within group)
+    if (activeLocations.size > 0) {
+      result = result.filter((u) => activeLocations.has(u.category));
+    }
+
+    // Topic filter (OR within group)
+    if (activeTopics.size > 0) {
+      result = result.filter((u) => {
+        if (activeTopics.has(u.category)) return true;
+        if (u.topic_tags?.some((t) => activeTopics.has(t))) return true;
+        return false;
+      });
+    }
+
+    // Search
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter((u) => {
+        const fields = [
+          u.title,
+          u.summary,
+          u.regulator,
+          u.source_name,
+          u.category,
+          u.regulatory_theory,
+          u.related_development,
+          u.attention_level,
+          ...(u.topic_tags || []),
+          ...(u.affected_sectors || []),
+        ];
+        return fields.some((f) => f?.toLowerCase().includes(q));
+      });
+    }
+
+    return result;
+  }, [visibleUpdates, activeLocations, activeTopics, searchTerm]);
 
   // Anonymous limit
   const FREE_LIMIT = 15;
@@ -205,21 +268,45 @@ const LatestUpdates = () => {
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
-            <div>
-              <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
-                Latest Privacy Updates
-              </h2>
-              <p className="text-[12px] text-slate-light">
-                Updated daily
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
+                  Latest Privacy Updates
+                </h2>
+                <p className="text-[12px] text-slate-light">
+                  Updated daily
+                </p>
+              </div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearAll}
+                  className="text-[11px] text-sky hover:text-white bg-white/10 border border-white/15 rounded-full px-3 py-1 cursor-pointer transition-colors flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" /> Clear filters
+                </button>
+              )}
             </div>
+
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-4 h-4" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Find the latest news on jurisdictions, privacy topics, and enforcement actions."
+                className="w-full py-2 pl-10 pr-4 text-[13px] rounded-lg bg-white/10 border border-white/15 text-white placeholder:text-white/40 outline-none focus:border-white/30 transition-colors"
+              />
+            </div>
+
+            {/* Filters */}
             <div className="flex gap-2 flex-wrap items-center">
               {LOCATION_FILTERS.map((f) => (
                 <span
                   key={f.key}
-                  onClick={() => setActiveFilter(f.key)}
+                  onClick={() => toggleLocation(f.key)}
                   className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
-                    activeFilter === f.key
+                    activeLocations.has(f.key)
                       ? "bg-white/15 text-white border-white/20 font-semibold"
                       : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
                   }`}
@@ -231,9 +318,9 @@ const LatestUpdates = () => {
               {TOPIC_FILTERS.map((f) => (
                 <span
                   key={f.key}
-                  onClick={() => setActiveFilter(f.key)}
+                  onClick={() => toggleTopic(f.key)}
                   className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
-                    activeFilter === f.key
+                    activeTopics.has(f.key)
                       ? "bg-white/15 text-white border-white/20 font-semibold"
                       : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
                   }`}
