@@ -31,17 +31,6 @@ export default function SearchFirstHero() {
                 See the Intelligence Brief →
               </Link>
             </div>
-            <div className="flex gap-6 justify-center lg:justify-start flex-wrap">
-              <Link to="/get-intelligence" className="text-blue-200/70 hover:text-white text-[13px] font-medium no-underline transition-colors">
-                🧠 Intelligence Brief
-              </Link>
-              <Link to="/jurisdictions" className="text-blue-200/70 hover:text-white text-[13px] font-medium no-underline transition-colors">
-                🌍 Global Law Map
-              </Link>
-              <Link to="/enforcement-tracker" className="text-blue-200/70 hover:text-white text-[13px] font-medium no-underline transition-colors">
-                ⚖️ Enforcement Tracker
-              </Link>
-            </div>
           </div>
 
           {/* Right: Globe */}
