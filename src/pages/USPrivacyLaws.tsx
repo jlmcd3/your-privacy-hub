@@ -10,51 +10,6 @@ import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
-const FEDERAL_SECTIONS = [
-  {
-    heading: "FTC Authority and Enforcement",
-    content: "The Federal Trade Commission serves as the primary federal privacy and data security enforcement authority, operating under Section 5 of the FTC Act which prohibits 'unfair or deceptive acts or practices.' The FTC has used this broad authority to bring hundreds of enforcement actions for privacy and data security violations, establishing de facto privacy standards through consent decrees. Key FTC enforcement areas include: deceptive privacy practices, inadequate data security, children's privacy (COPPA), health data sharing, and dark patterns. In March 2026, the FTC proposed expanding COPPA protections to require verifiable parental consent for targeted advertising directed at children under 16."
-  },
-  {
-    heading: "Sector-Specific Federal Privacy Laws",
-    content: "Major federal privacy statutes include: HIPAA (Health Insurance Portability and Accountability Act) governing protected health information; COPPA (Children's Online Privacy Protection Act) protecting children under 13 online; GLBA (Gramm-Leach-Bliley Act) governing financial institution data practices; FERPA (Family Educational Rights and Privacy Act) protecting student education records; ECPA (Electronic Communications Privacy Act) governing wiretapping and electronic surveillance; and the Video Privacy Protection Act. Each statute has its own scope, requirements, enforcement mechanisms, and regulatory authority."
-  },
-  {
-    heading: "Federal Privacy Bill Landscape",
-    content: "Multiple comprehensive federal privacy bills have been introduced but none enacted as of March 2026. The American Data Privacy and Protection Act (ADPPA) advanced furthest in 2022, passing the House Energy and Commerce Committee with bipartisan support before stalling. Key points of contention include: federal preemption of state laws (particularly California's CPRA), private right of action provisions, FTC rulemaking authority, and algorithmic accountability requirements. The political dynamics remain challenging, with industry groups, consumer advocates, and state attorneys general holding divergent positions on preemption and enforcement mechanisms."
-  },
-  {
-    heading: "Executive Orders and Agency Actions",
-    content: "In the absence of comprehensive legislation, executive orders and agency actions have shaped federal privacy policy. Executive orders on AI safety include provisions addressing privacy risks from AI systems. The FTC has pursued an active rulemaking agenda, including commercial surveillance rules and updated COPPA rules. The HHS Office for Civil Rights continues to update HIPAA guidance for emerging technologies. The CFPB has addressed data privacy in the financial sector through its rulemaking on open banking and data rights. These agency actions, while significant, are subject to changes in administration priorities and judicial review."
-  },
-  {
-    heading: "Implications for Compliance",
-    content: "The sectoral approach creates significant compliance complexity for organizations operating across industries. Organizations must navigate overlapping and sometimes conflicting requirements from multiple federal statutes, FTC enforcement precedent, and the growing body of state privacy laws. Key compliance considerations include: identifying all applicable federal statutes based on data types and industry sectors, monitoring FTC enforcement trends and consent decree requirements, maintaining compliance with evolving state laws in the absence of federal preemption, and preparing for potential comprehensive federal legislation that could restructure the entire framework."
-  },
-];
-
-const STATE_SECTIONS = [
-  {
-    heading: "The State Privacy Law Landscape",
-    content: "Since California's Consumer Privacy Act (CCPA) took effect in 2020 — later strengthened by the California Privacy Rights Act (CPRA) — state legislatures across the country have followed suit. Virginia's Consumer Data Protection Act (VCDPA), Colorado's Privacy Act (CPA), Connecticut's Data Privacy Act (CTDPA), and Utah's Consumer Privacy Act (UCPA) represented the initial wave. By 2025, states including Texas, Oregon, Montana, Indiana, Tennessee, Iowa, Delaware, New Hampshire, New Jersey, Nebraska, Maryland, Minnesota, Rhode Island, and Kentucky had enacted their own comprehensive privacy statutes. Each law varies in scope, consumer rights, business obligations, enforcement mechanisms, and effective dates."
-  },
-  {
-    heading: "Key Consumer Rights Across State Laws",
-    content: "Most state privacy laws grant consumers a common set of rights: the right to know what personal data is collected, the right to delete personal data, the right to opt out of the sale of personal data, and the right to correct inaccurate data. However, significant differences exist. California's CPRA provides the broadest set of rights, including the right to limit the use of sensitive personal information. Texas's TDPSA includes broad definitions of sensitive data. Several states have introduced rights related to automated decision-making, with California's CPPA finalizing ADMT regulations in March 2026."
-  },
-  {
-    heading: "Enforcement Authority",
-    content: "Enforcement authority varies significantly across states. California is unique in having a dedicated privacy enforcement agency — the California Privacy Protection Agency (CPPA). Most other states vest enforcement authority in the state Attorney General. No state privacy law currently provides a private right of action for general privacy violations, though California's CCPA allows limited private action for data breaches involving unencrypted personal information. The Texas Attorney General's office has been particularly active, filing the first enforcement action under the TDPSA in March 2026."
-  },
-  {
-    heading: "Compliance Considerations",
-    content: "Organizations subject to multiple state privacy laws face significant compliance complexity. Key considerations include: determining applicability thresholds (which vary by state based on revenue, data volume, or percentage of revenue from data sales), implementing consent mechanisms for sensitive data processing, establishing universal opt-out mechanisms, conducting data protection assessments where required, and maintaining privacy notices that satisfy requirements across all applicable jurisdictions. Many organizations are adopting a 'highest common denominator' approach, implementing controls that satisfy the most stringent state requirements."
-  },
-  {
-    heading: "Pending Legislation and Trends",
-    content: "Several states have privacy bills pending as of March 2026, including New York's comprehensive privacy act. Key trends include: expanding definitions of sensitive data to include neural and biometric data, introducing AI-specific provisions and automated decision-making transparency requirements, strengthening children's privacy protections, and increasing enforcement budgets and activity. The absence of federal preemption means this trend toward state-level privacy legislation is expected to continue."
-  },
-];
 
 const RELATED_LINKS = [
   { icon: "🏢", label: "U.S. State Privacy Authority Directory", href: "/us-state-privacy-authorities" },
