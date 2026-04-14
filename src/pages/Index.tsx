@@ -89,6 +89,10 @@ const Index = () => {
               </div>
             </div>
 
+            {/* Search */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
+                Search the platform
               </p>
               <SearchBar />
             </div>
