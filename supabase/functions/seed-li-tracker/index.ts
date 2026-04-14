@@ -6,44 +6,86 @@ const supabase = createClient(
 );
 
 const SEED_ROWS = [
-  { processing_activity: "Fraud prevention for transactions", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Strong LI candidate where data sharing and logic are clearly disclosed and proportionate." },
-  { processing_activity: "Network and information security / cybersecurity", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Expressly recognized by EDPB as a common legitimate interest area." },
-  { processing_activity: "Internal administrative transfers within a corporate group", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Specifically recognized in GDPR and EDPB materials assuming ordinary safeguards are met." },
-  { processing_activity: "Basic anti-abuse and account security", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Good LI candidate where use is genuinely tied to platform or network security." },
-  { processing_activity: "Direct marketing to existing customers", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Potentially viable under LI, but ePrivacy and national direct-marketing rules can still block the practice." },
-  { processing_activity: "Internal analytics (low-risk)", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Often acceptable if low-risk, narrowly scoped, and not used for profiling." },
-  { processing_activity: "Video surveillance for security purposes", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Security can be a legitimate interest, but camera placement, scope, retention, and notice are decisive." },
-  { processing_activity: "Creditworthiness assessment", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Recognized as possible LI in some decisions, but analysis is fact-specific and may overlap with Article 22." },
-  { processing_activity: "Behavioral advertising and profiling across services", outcome: "rejected", signal_type: "Enforcement Decision", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB digest points to Meta behavioral advertising as failing necessity because less intrusive alternatives existed." },
-  { processing_activity: "Cross-site tracking for ad targeting", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Where LI arguments struggle most, especially once ePrivacy rules are layered in." },
-  { processing_activity: "Large-scale scraping or repurposing of public personal data", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Even if data is public, LI requires a precise interest, strict necessity, and a favorable balancing test." },
-  { processing_activity: "Processing involving children's data", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Article 6(1)(f) itself flags children as requiring special protection in the balancing test." },
+  // === ACCEPTED (12) ===
+  { processing_activity: "Fraud prevention and detection for financial transactions", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB Guidelines 1/2024 identify fraud prevention as a paradigmatic legitimate interest — strong candidate where datasharing logic is clearly disclosed and narrowly scoped.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Network and information security — internal cybersecurity operations", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Expressly listed by the EDPB as a recognized legitimate interest area; widely accepted across EU DPAs without significant qualification.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Internal administrative transfers within a corporate group", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Specifically identified in Recital 48 GDPR and confirmed in EDPB guidance as a legitimate interest, assuming ordinary safeguards apply.", case_reference: "GDPR Recital 48; EDPB Guidelines 1/2024" },
+  { processing_activity: "Basic anti-abuse measures and platform account security", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Good LI candidate where the use is genuinely tied to platform or network integrity; must be narrowly defined and not extend to general user monitoring.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "IT security incident response and forensic investigation", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Processing personal data to investigate and contain a security incident is recognized as a legitimate operational interest; must be proportionate to the incident scope.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Physical security of premises and access control", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Commonly accepted in principle across EU DPAs; means used must still be proportionate — access logs yes, blanket monitoring of all movement no.", case_reference: "EDPB Guidelines 1/2024; national DPA guidance" },
+  { processing_activity: "Whistleblowing hotlines — internal compliance channels", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB and WP29 guidance confirm LI is a viable basis for internal reporting channels, provided data is limited to the investigation and access is restricted.", case_reference: "WP29 Opinion 1/2006; EDPB Guidelines 1/2024" },
+  { processing_activity: "Cybersecurity threat intelligence sharing between organizations", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB materials expressly recognize cross-organization security sharing as a legitimate interest area, particularly in critical infrastructure contexts.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Preventing misuse of services — spam and bot detection", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Closely linked to network security; accepted as LI where the processing is necessary to detect and block automated abuse rather than to monitor users generally.", case_reference: "EDPB Guidelines 1/2024; ICO LIA Framework" },
+  { processing_activity: "Exercising or defending legal claims in litigation", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "ICO", jurisdiction: "United Kingdom", summary: "ICO LIA framework recognizes defense or exercise of legal claims as a legitimate interest; processing must be limited to what the legal proceeding requires.", case_reference: "ICO Legitimate Interests Guidance 2024" },
+  { processing_activity: "Recognized Legitimate Interest — UK specific basis (Schedule 1 DPA 2018)", outcome: "accepted", signal_type: "Official Guidance", dpa_source: "ICO", jurisdiction: "United Kingdom", summary: "The UK Data (Use and Access) Act 2025 and ICO guidance of March 2026 clarify a new 'recognized legitimate interest' basis covering specific listed purposes including research, law enforcement support, and democratic engagement.", case_reference: "ICO Guidance on Recognized LI, March 2026" },
+  { processing_activity: "Security logging and audit trails for regulatory compliance", outcome: "accepted", signal_type: "Enforcement Decision", dpa_source: "CNIL", jurisdiction: "France", summary: "CNIL 2018 guidance accepted security logging as LI for regulated entities; access must be role-limited and retention proportionate to audit requirements.", case_reference: "CNIL 2018 security guidance" },
+
+  // === CONDITIONAL (16) ===
+  { processing_activity: "Direct marketing to existing customers", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Potentially viable as LI under GDPR, but ePrivacy Directive and national direct-marketing rules can independently block or condition the practice regardless of LI assessment outcome.", case_reference: "EDPB Guidelines 06/2020; WP29 Opinion on LI" },
+  { processing_activity: "Internal analytics and business intelligence (low-risk, aggregated)", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Often acceptable if analytics are genuinely low-risk, aggregated, not used for profiling individuals, and individuals would reasonably expect some performance measurement.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Video surveillance and CCTV for security purposes", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Security can be a legitimate interest for CCTV, but camera placement, field of view, retention period, notice, and intrusiveness are all independently decisive — each must pass necessity and balancing tests.", case_reference: "EDPB Guidelines 3/2019 on video devices" },
+  { processing_activity: "Creditworthiness assessment before extending credit", outcome: "conditional", signal_type: "Enforcement Decision", dpa_source: "EDPB", jurisdiction: "EU", summary: "Recognized as possible LI in some national DPA decisions, but analysis is highly fact-specific and may overlap with Article 22 automated decision-making obligations, which adds a separate layer of compliance.", case_reference: "EDPB one-stop-shop case digest 2026" },
+  { processing_activity: "Out-of-court debt collection for overdue amounts", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Often viewed as a plausible LI, but disclosure obligations, proportionality of processing, and local debt-collection law all affect the outcome significantly.", case_reference: "EDPB Guidelines 1/2024; national DPA guidance" },
+  { processing_activity: "Product or service promotion to existing customers (expected, low-impact)", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Better justified under LI when the marketing is low-impact, would be reasonably expected by customers, and is easy for individuals to object to.", case_reference: "WP29 Opinion 06/2014; EDPB Guidelines 1/2024" },
+  { processing_activity: "Property and premises protection — landlord or facilities management", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Commonly legitimate in principle, but the means used must be proportionate — processing must not exceed what the protection purpose genuinely requires.", case_reference: "EDPB Guidelines 1/2024; national DPA guidance" },
+  { processing_activity: "Customer satisfaction surveys sent to existing customers", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "ICO", jurisdiction: "United Kingdom", summary: "ICO guidance treats post-transaction surveys as potentially viable under LI where the relationship is recent, the survey is limited in scope, and the customer would reasonably expect contact.", case_reference: "ICO Direct Marketing Guidance 2023" },
+  { processing_activity: "Processing for scientific research purposes with appropriate safeguards", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Scientific research can support a legitimate interest claim but must be balanced against individual rights; Article 89 safeguards and data minimization principles apply independently.", case_reference: "EDPB Guidelines 05/2020 on research" },
+  { processing_activity: "Obtaining personal data to enforce a specific legal claim", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "More defensible where the processing is tied to a concrete, active legal claim rather than a general reservation of rights; scope must match the specific claim.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "AI deployment for customer-facing user assistance (bounded, expected)", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB Opinion 28/2024 on AI indicates LI can be used in AI deployment where the use is expected by the user, bounded in scope, and lower-risk — subject to full balancing test.", case_reference: "EDPB Opinion 28/2024 on AI systems" },
+  { processing_activity: "AI use for cybersecurity improvement and threat detection", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Stronger case than adtech-style AI uses because the underlying interest aligns with recognized security interests; must still pass necessity and proportionality tests.", case_reference: "EDPB Opinion 28/2024 on AI systems" },
+  { processing_activity: "Product improvement based on aggregated, non-identified usage data", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Recognized as a possible LI in EDPB materials but remains fact-specific — necessity and balancing tests must assess whether less intrusive means could achieve the same goal.", case_reference: "EDPB one-stop-shop case digest 2026" },
+  { processing_activity: "Minimal fraud screening at checkout (limited data points, transparent)", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "A stronger LI case when tied to concrete fraud risk signals, limited data points, and clear disclosure — weaker when screening extends to general risk profiling.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Requiring additional identity data to prevent mistaken credit pulls", outcome: "conditional", signal_type: "Enforcement Decision", dpa_source: "EDPB", jurisdiction: "EU", summary: "Regulators have credited this kind of safeguard logic where it genuinely reduces misidentification risk; must be narrowly scoped and disclosed.", case_reference: "EDPB one-stop-shop case digest 2026" },
+  { processing_activity: "Processing involving children's data on general-audience services", outcome: "conditional", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Article 6(1)(f) itself flags children as requiring special protection in the balancing test; any LI claim involving children's data faces heightened scrutiny.", case_reference: "GDPR Article 6(1)(f); EDPB Guidelines 1/2024" },
+
+  // === REJECTED (8) ===
+  { processing_activity: "Behavioral advertising and cross-service profiling", outcome: "rejected", signal_type: "Enforcement Decision", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB one-stop-shop case digest (March 2026) cites Meta behavioral advertising as a paradigmatic necessity failure — less intrusive alternatives existed to achieve the same commercial objective.", case_reference: "EDPB one-stop-shop case digest 2026; Meta/DPC decision" },
+  { processing_activity: "Cross-site tracking and third-party cookie tracking for ad targeting", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Where LI arguments struggle most in practice; once ePrivacy Directive rules requiring consent for cookie placement are layered in, LI as a GDPR basis cannot override the ePrivacy consent requirement.", case_reference: "EDPB Guidelines 06/2020; EDPB one-stop-shop digest 2026" },
+  { processing_activity: "Large-scale scraping and repurposing of publicly available personal data", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Even when data is technically public, LI still requires a precise and present interest, a strict necessity finding, and a favorable balancing test — general commercial data collection routinely fails.", case_reference: "EDPB one-stop-shop case digest 2026" },
+  { processing_activity: "Extensive employee monitoring — keystroke logging, continuous screen capture", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "High-risk processing due to fundamental power imbalance in employment context; EDPB guidance notes most extensive monitoring fails the balancing test because employees cannot reasonably be expected to accept it.", case_reference: "EDPB Guidelines 1/2024; WP29 Opinion 2/2017 on employee monitoring" },
+  { processing_activity: "Hidden ranking suppression and shadow banning for platform safety", outcome: "rejected", signal_type: "Enforcement Decision", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB one-stop-shop case digest notes the platform safety interest was accepted in principle, but the measure failed the necessity and proportionality tests — less intrusive alternatives were available.", case_reference: "EDPB one-stop-shop case digest 2026" },
+  { processing_activity: "Selling or licensing personal data to unrelated third parties for commercial gain", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "No legitimate interest can justify commercial sale of personal data as a standalone activity; data subjects would not reasonably expect their data to be sold and the balancing test fails.", case_reference: "EDPB Guidelines 1/2024; ICO LIA Framework" },
+  { processing_activity: "Processing personal data to enforce debt that was already discharged or incorrect", outcome: "rejected", signal_type: "Enforcement Decision", dpa_source: "CNIL", jurisdiction: "France", summary: "CNIL and Italian DPA enforcement actions confirm that a claimed LI must be real and present at the time of processing — an LI that no longer exists (discharged debt, wrong person) cannot retrospectively justify processing.", case_reference: "CNIL enforcement; Italian DPA case 10233368, April 2026" },
+  { processing_activity: "Tracking individuals' location history over time for commercial profiling", outcome: "rejected", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Location tracking at scale fails both the necessity and balancing tests; individuals have a strong privacy interest in their movements that commercial interests in profiling cannot override.", case_reference: "EDPB Guidelines 1/2024; national DPA enforcement" },
+
+  // === CONTESTED (4) ===
+  { processing_activity: "AI model training and development using personal data", outcome: "contested", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "EDPB Opinion 28/2024 says LI can be used in AI development in some cases, but only with a rigorous analysis — outcome is highly fact-specific and DPAs have reached different conclusions in practice.", case_reference: "EDPB Opinion 28/2024 on AI systems" },
+  { processing_activity: "Reporting payment defaults to credit registries", outcome: "contested", signal_type: "Enforcement Decision", dpa_source: "EDPB", jurisdiction: "EU", summary: "Can be argued under LI, but regulators have treated the legal basis and surrounding safeguards very carefully — outcome varies by national DPA and depends heavily on disclosure, accuracy, and proportionality.", case_reference: "EDPB one-stop-shop case digest 2026" },
+  { processing_activity: "Customer phone number collection for walk-in service operations", outcome: "contested", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Sometimes defensible but the controller needs a clearly stated present interest and must avoid collecting more than is needed for the operational purpose; outcomes vary across DPAs.", case_reference: "EDPB Guidelines 1/2024 on LI" },
+  { processing_activity: "Legitimate interest for analytics on children's platforms", outcome: "contested", signal_type: "Official Guidance", dpa_source: "EDPB", jurisdiction: "EU", summary: "Article 6(1)(f) itself flags children as requiring special protection in the balancing test; DPAs have generally been hostile to LI claims for any more than minimal processing on child-directed platforms.", case_reference: "GDPR Article 6(1)(f); EDPB Guidelines 1/2024" },
 ];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
 
-  const today = new Date().toISOString().split("T")[0];
-  let inserted = 0, updated = 0;
+  // Idempotent guard: if rows already exist, exit
+  const { count } = await supabase
+    .from("li_tracker_entries")
+    .select("id", { count: "exact", head: true });
 
-  for (const row of SEED_ROWS) {
-    const { data: existing } = await supabase
-      .from("li_tracker_entries")
-      .select("id")
-      .eq("processing_activity", row.processing_activity)
-      .eq("dpa_source", row.dpa_source)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase.from("li_tracker_entries").update({ last_confirmed: today, updated_at: new Date().toISOString() }).eq("id", existing.id);
-      updated++;
-    } else {
-      await supabase.from("li_tracker_entries").insert({ ...row, confidence: "high", source_article_id: null, last_confirmed: today });
-      inserted++;
-    }
+  if (count && count > 0) {
+    return new Response(JSON.stringify({ message: `Already seeded. ${count} rows exist.`, inserted: 0, existing: count }), {
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  return new Response(JSON.stringify({ inserted, updated, total: SEED_ROWS.length }), {
+  const today = new Date().toISOString().split("T")[0];
+  const rows = SEED_ROWS.map(row => ({
+    ...row,
+    confidence: "high",
+    source_article_id: null,
+    last_confirmed: today,
+  }));
+
+  const { error, data } = await supabase.from("li_tracker_entries").insert(rows);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+  }
+
+  console.log(`Seeded ${SEED_ROWS.length} LI tracker entries`);
+
+  return new Response(JSON.stringify({ inserted: SEED_ROWS.length, total: SEED_ROWS.length }), {
     headers: { "Content-Type": "application/json" },
   });
 });
