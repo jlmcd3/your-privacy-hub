@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: "Who writes the analysis?",
-    a: "All summaries and the weekly Intelligence Brief are AI-generated from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
+    a: "All summaries and the weekly Intelligence Brief are drawn from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
   },
   {
     q: "What countries and jurisdictions are covered?",
@@ -26,7 +26,7 @@ const faqs = [
     a: "Premium subscribers receive the full 8-section Weekly Intelligence Brief every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.",
   },
   {
-    q: "Is the content AI-only or human-reviewed?",
+    q: "How is the analysis produced?",
     a: "AI-generated with a built-in verification pass. After the brief is generated, a second AI call checks every enforcement table entry against the source articles to verify that fine amounts, regulator names, and other specific facts are directly traceable to the original sources. Sections with thin source coverage are flagged in the brief itself.",
   },
   {
