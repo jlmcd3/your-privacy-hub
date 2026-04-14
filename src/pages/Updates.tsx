@@ -418,47 +418,6 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* AI Summary Filters — only show if any articles have ai_summary */}
-                {updates.some(u => u.ai_summary && !u.ai_summary.skipped) && (
-                    <div className="flex flex-wrap items-center gap-3 mb-6 px-3 py-2.5 bg-navy/5 rounded-xl border border-navy/10">
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">AI filters:</span>
-
-                        <select
-                            value={urgencyFilter}
-                            onChange={e => setUrgencyFilter(e.target.value)}
-                            className="text-[11px] bg-background text-foreground border border-border rounded-lg px-2.5 py-1 outline-none focus:border-sky cursor-pointer"
-                        >
-                            <option value="all">All urgency</option>
-                            <option value="Immediate">🔴 Immediate</option>
-                            <option value="This quarter">🟡 This quarter</option>
-                            <option value="Monitor">🟢 Monitor</option>
-                        </select>
-
-                        <select
-                            value={legalWeightFilter}
-                            onChange={e => setLegalWeightFilter(e.target.value)}
-                            className="text-[11px] bg-background text-foreground border border-border rounded-lg px-2.5 py-1 outline-none focus:border-sky cursor-pointer"
-                        >
-                            <option value="all">All legal weight</option>
-                            <option value="Binding">Binding</option>
-                            <option value="Enforcement">Enforcement</option>
-                            <option value="Guidance">Guidance</option>
-                            <option value="Proposal">Proposal</option>
-                            <option value="Commentary">Commentary</option>
-                        </select>
-
-                        <button
-                            onClick={() => setCrossJurisdictionOnly(!crossJurisdictionOnly)}
-                            className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                                crossJurisdictionOnly
-                                    ? "bg-accent/20 text-accent border-accent/30 font-semibold"
-                                    : "bg-background text-muted-foreground border-border hover:bg-muted"
-                            }`}
-                        >
-                            🌐 Cross-jurisdiction only
-                        </button>
-                    </div>
-                )}
 
                 {/* Active filter summary + clear */}
                 {hasActiveFilters && (
