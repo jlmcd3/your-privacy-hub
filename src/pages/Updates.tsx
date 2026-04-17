@@ -353,30 +353,6 @@ const Updates = () => {
                     })}
                 </div>
 
-                {/* Search + date range */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input
-                            type="text"
-                            placeholder="Search updates…"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background"
-                        />
-                    </div>
-                    <select
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="px-3 py-2 border border-border rounded-lg text-sm bg-background"
-                    >
-                        {DATE_RANGES.map((d) => (
-                            <option key={d.key} value={d.key}>{d.label}</option>
-                        ))}
-                    </select>
-                </div>
-
-
                 {/* Faceted Filters: Sectors + Attention Level */}
                 {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
                     <div className="flex flex-wrap items-center gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
