@@ -248,15 +248,61 @@ const GovernanceAssessment = () => {
             </>
           )}
 
-          {summaryStep && (
-            <>
-              <h2 className="text-xl font-semibold">Review Your Answers</h2>
-              <pre className="text-xs bg-muted p-4 rounded overflow-auto max-h-96">{JSON.stringify(buildIntake(), null, 2)}</pre>
-              <div className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-                This is a compliance framework tool, not legal advice. Findings should be reviewed with qualified legal counsel.
-              </div>
-            </>
-          )}
+          {summaryStep && (() => {
+            const rows: { label: string; value: string }[] = [];
+            const push = (label: string, value: string | string[] | undefined | null) => {
+              if (value == null) return;
+              if (Array.isArray(value)) {
+                if (value.length === 0) return;
+                rows.push({ label, value: value.join(", ") });
+              } else {
+                const v = String(value).trim();
+                if (!v) return;
+                rows.push({ label, value: v });
+              }
+            };
+            push("Sector", sector);
+            push("Organisation size", orgSize);
+            push("Jurisdictions", jurisdictions);
+            push("EU/UK personal data", euUkData);
+            const toolsDisplay = otherTool.trim() ? [...tools, `Other: ${otherTool.trim()}`] : tools;
+            push("Tools in use", toolsDisplay);
+            push("Data categories", dataCategories);
+            push("Special category data", specialCategory);
+            if (specialCategory === "Yes") push("Special categories", specialCategoriesList);
+            push("Privacy policy", privacyPolicy);
+            push("Acceptable use policy", acceptableUse);
+            if (showDpoQ) push("DPO appointed", dpoStatus);
+            push("DPIA conducted previously", dpiaStatus);
+            push("Incident response plan", incidentResponse);
+            push("Employee privacy training", trainingStatus);
+            push("Data submission instruction", toolInstruction);
+            if (showStep5) {
+              push("DPA signed with vendors", dpaStatus);
+              push("Cross-border transfers", transferStatus);
+            }
+            return (
+              <>
+                <div>
+                  <h2 className="text-xl font-semibold">Review your answers</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Review the inputs below before running. You can go back to edit any step.
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-card divide-y">
+                  {rows.map((r) => (
+                    <div key={r.label} className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3">
+                      <div className="text-sm font-medium text-muted-foreground sm:col-span-1">{r.label}</div>
+                      <div className="text-sm text-foreground sm:col-span-2 break-words">{r.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
+                  This is a compliance framework tool, not legal advice. Findings should be reviewed with qualified legal counsel.
+                </div>
+              </>
+            );
+          })()}
 
           <div className="flex justify-between pt-4 border-t">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
