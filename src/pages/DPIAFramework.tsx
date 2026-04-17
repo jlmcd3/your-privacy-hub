@@ -193,7 +193,29 @@ const DPIAFramework = () => {
           <DialogHeader><DialogTitle>Premium tool</DialogTitle><DialogDescription>This tool is included with Premium ($20/month) or available for a one-time purchase ($249).</DialogDescription></DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button onClick={() => navigate("/subscribe?tool=dpia-framework")}>Purchase — $249</Button>
+            <Button
+              disabled={submitting}
+              onClick={async () => {
+                setSubmitting(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+                    body: {
+                      tool_type: "dpia_framework",
+                      user_id: user?.id ?? null,
+                      intake_data: buildIntake(),
+                      return_url: window.location.origin,
+                    },
+                  });
+                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
+                  window.location.href = data.url;
+                } catch (err: any) {
+                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {submitting ? "Redirecting…" : "Purchase — $249"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
