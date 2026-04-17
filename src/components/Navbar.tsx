@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
+          { icon: "🔍", label: "Enforcement Intelligence", badge: "NEW", badgeGreen: true, href: "/enforcement-intelligence" },
           { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
           { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
           { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
