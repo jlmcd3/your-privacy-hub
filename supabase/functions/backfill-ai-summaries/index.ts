@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 2 })
+        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 3 })
         .eq("id", article.id);
       skipped++;
       continue;
@@ -223,15 +223,13 @@ Deno.serve(async (req) => {
     if (aiSummary) {
       const updatePayload: Record<string, any> = {
         ai_summary: aiSummary,
-        enrichment_version: 2,
-        regulatory_theory: aiSummary.regulatory_theory ?? null,
-        affected_sectors: aiSummary.affected_sectors ?? null,
-        related_development: aiSummary.related_development ?? null,
-        attention_level: aiSummary.attention_level ?? null,
-        key_date: aiSummary.key_date ? new Date(aiSummary.key_date) : null,
+        enrichment_version: 3,
       };
-      if (aiSummary.li_relevant === true) {
-        updatePayload.li_relevant = true;
+      if (
+        Array.isArray(aiSummary.affected_jurisdictions) &&
+        aiSummary.affected_jurisdictions.length > 0
+      ) {
+        updatePayload.affected_jurisdictions = aiSummary.affected_jurisdictions;
       }
       await supabase
         .from("updates")
@@ -241,7 +239,7 @@ Deno.serve(async (req) => {
     } else {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true }, enrichment_version: 2 })
+        .update({ ai_summary: { skipped: true }, enrichment_version: 3 })
         .eq("id", article.id);
       skipped++;
     }
