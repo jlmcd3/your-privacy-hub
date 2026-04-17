@@ -681,6 +681,7 @@ export type Database = {
           affected_jurisdictions: string[] | null
           affected_sectors: string[] | null
           ai_summary: Json | null
+          analysis_basis: string | null
           attention_level: string | null
           category: string
           created_at: string
@@ -698,6 +699,7 @@ export type Database = {
           related_development: string | null
           source_domain: string | null
           source_name: string | null
+          source_note: string | null
           summary: string | null
           title: string
           topic_tags: string[] | null
@@ -707,6 +709,7 @@ export type Database = {
           affected_jurisdictions?: string[] | null
           affected_sectors?: string[] | null
           ai_summary?: Json | null
+          analysis_basis?: string | null
           attention_level?: string | null
           category?: string
           created_at?: string
@@ -724,6 +727,7 @@ export type Database = {
           related_development?: string | null
           source_domain?: string | null
           source_name?: string | null
+          source_note?: string | null
           summary?: string | null
           title: string
           topic_tags?: string[] | null
@@ -733,6 +737,7 @@ export type Database = {
           affected_jurisdictions?: string[] | null
           affected_sectors?: string[] | null
           ai_summary?: Json | null
+          analysis_basis?: string | null
           attention_level?: string | null
           category?: string
           created_at?: string
@@ -750,6 +755,7 @@ export type Database = {
           related_development?: string | null
           source_domain?: string | null
           source_name?: string | null
+          source_note?: string | null
           summary?: string | null
           title?: string
           topic_tags?: string[] | null
