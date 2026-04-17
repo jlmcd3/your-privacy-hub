@@ -15,11 +15,11 @@ const corsHeaders = {
 const MEDIAWIKI_API = "https://gdprhub.eu/api.php";
 const JINA = "https://r.jina.ai/";
 
-async function listDecisionPages(limit: number, cmcontinue?: string) {
+async function listDecisionPages(category: string, limit: number, cmcontinue?: string) {
   const url = new URL(MEDIAWIKI_API);
   url.searchParams.set("action", "query");
   url.searchParams.set("list", "categorymembers");
-  url.searchParams.set("cmtitle", "Category:Decisions");
+  url.searchParams.set("cmtitle", category);
   url.searchParams.set("cmlimit", String(limit));
   url.searchParams.set("cmtype", "page");
   url.searchParams.set("format", "json");
@@ -90,52 +90,63 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
   const max = Math.min(parseInt(url.searchParams.get("max") ?? "50"), 500);
-  const cmcontinue = url.searchParams.get("cmcontinue") ?? undefined;
+  const yearsParam = url.searchParams.get("years");
+  const currentYear = new Date().getUTCFullYear();
+  const years = yearsParam
+    ? yearsParam.split(",").map((y) => y.trim()).filter(Boolean)
+    : [String(currentYear), String(currentYear - 1), String(currentYear - 2)];
 
   let inserted = 0, skipped = 0, errors = 0;
-  let nextContinue: string | undefined;
+  const perYear: Record<string, number> = {};
 
   try {
     let remaining = max;
-    let cont = cmcontinue;
 
-    while (remaining > 0) {
-      const batch = Math.min(remaining, 50);
-      const data = await listDecisionPages(batch, cont);
-      const members: Array<{ title: string }> = data?.query?.categorymembers ?? [];
-      nextContinue = data?.continue?.cmcontinue;
+    for (const year of years) {
+      if (remaining <= 0) break;
+      const category = `Category:${year}`;
+      let cont: string | undefined = undefined;
+      perYear[year] = 0;
 
-      for (const m of members) {
-        try {
-          const etid = `gdprhub:${m.title}`;
-          const { data: existing } = await supabase
-            .from("enforcement_actions")
-            .select("id")
-            .eq("etid", etid)
-            .maybeSingle();
-          if (existing) { skipped++; continue; }
+      while (remaining > 0) {
+        const batch = Math.min(remaining, 50);
+        const data = await listDecisionPages(category, batch, cont);
+        const members: Array<{ title: string }> = data?.query?.categorymembers ?? [];
+        const nextContinue = data?.continue?.cmcontinue;
 
-          const md = await fetchPageMarkdown(m.title);
-          const row = parseDecision(m.title, md);
-          const { error } = await supabase.from("enforcement_actions").insert(row);
-          if (error) { errors++; console.error("insert", m.title, error.message); }
-          else inserted++;
-          await new Promise((r) => setTimeout(r, 400));
-        } catch (e) {
-          errors++;
-          console.error("page", m.title, (e as Error).message);
+        for (const m of members) {
+          if (remaining <= 0) break;
+          try {
+            const etid = `gdprhub:${m.title}`;
+            const { data: existing } = await supabase
+              .from("enforcement_actions")
+              .select("id")
+              .eq("etid", etid)
+              .maybeSingle();
+            if (existing) { skipped++; remaining--; continue; }
+
+            const md = await fetchPageMarkdown(m.title);
+            const row = parseDecision(m.title, md);
+            const { error } = await supabase.from("enforcement_actions").insert(row);
+            if (error) { errors++; console.error("insert", m.title, error.message); }
+            else { inserted++; perYear[year]++; }
+            remaining--;
+            await new Promise((r) => setTimeout(r, 400));
+          } catch (e) {
+            errors++;
+            console.error("page", m.title, (e as Error).message);
+          }
         }
-      }
 
-      remaining -= members.length;
-      if (!nextContinue || members.length === 0) break;
-      cont = nextContinue;
+        if (!nextContinue || members.length === 0) break;
+        cont = nextContinue;
+      }
     }
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message, inserted, skipped, errors }),
+    return new Response(JSON.stringify({ error: (e as Error).message, inserted, skipped, errors, perYear }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  return new Response(JSON.stringify({ inserted, skipped, errors, nextContinue }),
+  return new Response(JSON.stringify({ inserted, skipped, errors, perYear }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
