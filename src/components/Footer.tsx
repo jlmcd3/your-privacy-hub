@@ -66,7 +66,7 @@ const Footer = () => {
             <Link to="/subscribe" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Intelligence Brief</Link>
             <Link to="/enforcement-tracker" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
             <Link to="/faq" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">FAQ</Link>
-            <Link to="/sample-brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Brief</Link>
+            <Link to="/sample-brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Weekly Intelligence Brief</Link>
           </div>
         </div>
 
