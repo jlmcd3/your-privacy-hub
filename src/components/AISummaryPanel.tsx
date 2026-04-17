@@ -44,9 +44,7 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
   const urgencyConfig = summary.urgency ? URGENCY_CONFIG[summary.urgency] : null;
   const UrgencyIcon = urgencyConfig?.icon ?? Eye;
 
-  const teaserText = summary.why_it_matters
-    ? summary.why_it_matters.split(/\.\s+/)[0] + "."
-    : "";
+
 
   return (
     <div
