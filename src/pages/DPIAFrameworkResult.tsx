@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -40,6 +40,8 @@ const Field = ({ label, value }: { label: string; value: any }) => value ? (
 
 const DPIAFrameworkResult = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const purchased = searchParams.get("purchased") === "true";
   const [dpia, setDpia] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [consultationNote, setConsultationNote] = useState("");
@@ -69,6 +71,11 @@ const DPIAFrameworkResult = () => {
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 space-y-6">
+        {purchased && (
+          <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
+            ✅ Purchase confirmed. Your assessment is being generated.
+          </div>
+        )}
         {loading && <p>Loading…</p>}
 
         {!loading && (status === "pending" || status === "processing") && (
