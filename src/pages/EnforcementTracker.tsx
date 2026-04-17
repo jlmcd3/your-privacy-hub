@@ -123,6 +123,26 @@ const EnforcementTrackerPage = () => {
         .some((v) => v?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let av: string | number = "";
+      let bv: string | number = "";
+      if (sortKey === "fine_eur") {
+        av = a.fine_eur ?? -1;
+        bv = b.fine_eur ?? -1;
+      } else {
+        av = (a[sortKey] || "").toString().toLowerCase();
+        bv = (b[sortKey] || "").toString().toLowerCase();
+      }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
+
   // Stats
   const totalActions = actions.length;
   const totalFinesEur = actions.reduce((sum, a) => sum + (a.fine_eur || 0), 0);
