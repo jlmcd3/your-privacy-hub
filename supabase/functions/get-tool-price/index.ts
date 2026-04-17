@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { type StripeEnv, createStripeClient, resolvePriceId } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,52 +8,50 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tool catalog. Display amounts are the source of truth for UI fallback when
-// Stripe price IDs are not yet configured. Once the user adds the matching
-// secret, the Stripe price ID is returned and used by checkout.
 const TOOLS: Record<
   string,
   {
     name: string;
-    standalone_cents: number;
-    subscriber_cents: number;
-    standalone_secret: string;
-    subscriber_secret: string;
+    standalone_lookup: string;
+    subscriber_lookup: string | null;
+    fallback_standalone_cents: number;
+    fallback_subscriber_cents: number;
   }
 > = {
   healthcheck: {
     name: "Data Privacy Healthcheck",
-    standalone_cents: 2900,
-    subscriber_cents: 1500,
-    standalone_secret: "STRIPE_HC_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_HC_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "hc_standalone",
+    subscriber_lookup: "hc_subscriber",
+    fallback_standalone_cents: 2900,
+    fallback_subscriber_cents: 1500,
   },
   li_analyzer: {
     name: "Legitimate Interest Analyzer",
-    standalone_cents: 3900,
-    subscriber_cents: 1900,
-    standalone_secret: "STRIPE_LI_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_LI_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "li_standalone",
+    subscriber_lookup: "li_subscriber",
+    fallback_standalone_cents: 3900,
+    fallback_subscriber_cents: 1900,
   },
   dpia_builder: {
     name: "DPIA Builder",
-    standalone_cents: 6900,
-    subscriber_cents: 3900,
-    standalone_secret: "STRIPE_DPIA_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_DPIA_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "dpia_standalone",
+    subscriber_lookup: "dpia_subscriber",
+    fallback_standalone_cents: 6900,
+    fallback_subscriber_cents: 3900,
   },
 };
 
+function detectEnv(): StripeEnv {
+  return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
+}
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const url = new URL(req.url);
     const tool_slug = url.searchParams.get("tool_slug") || "";
     const tool = TOOLS[tool_slug];
-
     if (!tool) {
       return new Response(JSON.stringify({ error: "Unknown tool_slug" }), {
         status: 400,
@@ -60,17 +59,17 @@ serve(async (req) => {
       });
     }
 
-    // Determine subscriber status (best-effort — anonymous = standalone).
+    // Determine subscriber status (anonymous = standalone)
     let isSubscriber = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
-        const supabase = createClient(
+        const userClient = createClient(
           Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!,
+          Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!,
           { global: { headers: { Authorization: authHeader } } }
         );
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await userClient.auth.getUser();
         if (user) {
           const admin = createClient(
             Deno.env.get("SUPABASE_URL")!,
@@ -84,29 +83,44 @@ serve(async (req) => {
           isSubscriber = !!profile?.is_premium;
         }
       } catch (_) {
-        // fall through as non-subscriber
+        // ignore
       }
     }
 
-    const tier = isSubscriber ? "subscriber" : "standalone";
-    const amount_cents = isSubscriber ? tool.subscriber_cents : tool.standalone_cents;
-    const secretName = isSubscriber ? tool.subscriber_secret : tool.standalone_secret;
-    const stripe_price_id = Deno.env.get(secretName) || null;
+    const lookupKey =
+      isSubscriber && tool.subscriber_lookup ? tool.subscriber_lookup : tool.standalone_lookup;
+    const fallbackCents =
+      isSubscriber && tool.subscriber_lookup
+        ? tool.fallback_subscriber_cents
+        : tool.fallback_standalone_cents;
+
+    let amountCents = fallbackCents;
+    let stripeConfigured = false;
+    try {
+      const stripe = createStripeClient(detectEnv());
+      const stripePrice = await resolvePriceId(stripe, lookupKey);
+      if (stripePrice) {
+        amountCents = stripePrice.unit_amount ?? fallbackCents;
+        stripeConfigured = true;
+      }
+    } catch (e) {
+      console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
+    }
 
     return new Response(
       JSON.stringify({
         tool_slug,
         tool_name: tool.name,
-        tier,
-        amount_cents,
-        stripe_price_id,
-        stripe_configured: !!stripe_price_id,
+        tier: isSubscriber ? "subscriber" : "standalone",
+        amount_cents: amountCents,
+        stripe_price_id: null, // resolved server-side at checkout
+        stripe_configured: stripeConfigured,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("get-tool-price error:", err);
-    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
