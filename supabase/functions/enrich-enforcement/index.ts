@@ -72,12 +72,13 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "25"), 100);
 
-  const { data: rows, error } = await supabase
-    .from("enforcement_actions")
-    .select("id, regulator, jurisdiction, subject, sector, law, violation, fine_amount, fine_eur, raw_text")
-    .lt("enrichment_version", ENRICHMENT_VERSION)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  // Atomically claim a batch via FOR UPDATE SKIP LOCKED RPC.
+  // Claimed rows are marked enrichment_version = -1 (in-progress) so parallel
+  // workers do not pick them up.
+  const { data: rows, error } = await supabase.rpc("claim_enforcement_for_enrichment", {
+    _limit: limit,
+    _target_version: ENRICHMENT_VERSION,
+  });
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -88,7 +89,11 @@ Deno.serve(async (req) => {
   for (const row of rows ?? []) {
     try {
       const enriched = await enrichOne(row);
-      if (!enriched) { failed++; continue; }
+      if (!enriched) {
+        failed++;
+        await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
+        continue;
+      }
 
       const update: Record<string, unknown> = {
         data_categories: Array.isArray(enriched.data_categories) ? enriched.data_categories : null,
@@ -107,12 +112,18 @@ Deno.serve(async (req) => {
       };
 
       const { error: upErr } = await supabase.from("enforcement_actions").update(update).eq("id", row.id);
-      if (upErr) { failed++; console.error("update", row.id, upErr.message); }
-      else updated++;
+      if (upErr) {
+        failed++;
+        console.error("update", row.id, upErr.message);
+        await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
+      } else {
+        updated++;
+      }
     } catch (e) {
       const msg = (e as Error).message;
       if (msg === "rate_limited") { rateLimited++; await new Promise((r) => setTimeout(r, 2000)); }
       else { failed++; console.error("enrich", row.id, msg); }
+      await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
     }
     await new Promise((r) => setTimeout(r, 300));
   }

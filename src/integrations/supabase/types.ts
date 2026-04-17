@@ -1187,7 +1187,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_enforcement_for_enrichment: {
+        Args: { _limit: number; _target_version: number }
+        Returns: {
+          fine_amount: string
+          fine_eur: number
+          id: string
+          jurisdiction: string
+          law: string
+          raw_text: string
+          regulator: string
+          sector: string
+          subject: string
+          violation: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
