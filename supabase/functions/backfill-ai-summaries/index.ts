@@ -77,7 +77,7 @@ async function generateAISummary(
   summary: string | null,
   sourceName: string | null,
   apiKey: string
-) {
+): Promise<Record<string, unknown> | null> {
   try {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -89,36 +89,45 @@ async function generateAISummary(
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
+        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown, no explanation. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
             role: "user",
-            content: `You are a privacy regulatory analyst. Return ONLY valid JSON. No preamble, no markdown.
+            content: `Analyze this privacy and data protection article and return a JSON enrichment object.
 
-Analyze this article.
 Title: ${title}
-Description: ${summary || "No description."}
+Description: ${summary || "No description available."}
 Source: ${sourceName || "Unknown"}
 
-IMPORTANT: Only articles about privacy LAWS, STATUTES, REGULATIONS, ENFORCEMENT ACTIONS by regulators, and COMPLIANCE OBLIGATIONS are relevant.
-Articles that merely announce a data breach, security incident, or lawsuit settlement WITHOUT discussing the underlying law or regulatory response are NOT relevant.
+NOTE: This article has already been confirmed as relevant to privacy, data protection, or regulatory compliance before reaching you. Do NOT apply a relevance filter. All articles must be enriched, including those about:
+- AdTech, advertising privacy, consent management, cookie compliance, tracking
+- AI governance, AI regulation, AI Act, automated decision-making
+- Healthcare privacy (HIPAA), financial privacy, employment privacy
+- Data broker regulation, biometric data, children's privacy
+- Civil society analysis of privacy developments
+- Law firm commentary on regulatory developments
+- Cross-border data transfers
 
-If not about privacy regulation/law, return: {"skip": true}
+Return this JSON object with every field populated:
+{
+  "why_it_matters": "2 sentences. Name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "takeaways": [
+    "Specific factual point from this article — cite regulator or law name",
+    "Specific implication, deadline, or scope if present in the article",
+    "Specific type of organisation affected and what they must review or do"
+  ],
+  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no clear action exists, write exactly: Monitor — no immediate compliance action required.",
+  "who_should_care": "Choose one: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+  "urgency": "Choose one: Immediate | This quarter | Monitor",
+  "legal_weight": "Choose one: Binding | Enforcement | Guidance | Proposal | Commentary",
+  "source_strength": "Choose one: Primary regulator | Legal analysis | Media coverage",
+  "cross_jurisdiction_signal": "If this reflects a coordinated pattern across multiple regulators or jurisdictions simultaneously, describe it in one sentence. If not, return null.",
+  "risk_level": "Choose one: Low | Medium | High | Critical",
+  "affected_jurisdictions": [],
+  "precedent_novelty": "Choose one: new_theory | confirms_existing | reverses_prior | routine"
+}
 
-Otherwise return JSON with these exact fields:
-- why_it_matters (string: one to two sentences explaining what this development means for privacy professionals)
-- takeaways (array of 2-4 strings: specific, plain-English observations)
-- compliance_impact (string: one sentence describing what this may mean in practice)
-- who_should_care (one of: "Privacy leads", "Compliance teams", "Legal teams", "Security teams", "All privacy professionals")
-- urgency (one of: "High", "Medium", "Low")
-- legal_weight (one of: "In effect", "Enforcement action", "Guidance issued", "Proposed", "Commentary")
-- source_strength (one of: "Official", "Credible", "Secondary")
-- cross_jurisdiction_signal (string or null: if multiple jurisdictions are involved, note it briefly)
-- regulatory_theory (string or null: the core regulatory principle at issue, in plain English)
-- affected_sectors (array of strings or null: industry sectors most relevant to this development)
-- related_development (string or null: a prior case, decision, or development this connects to, if clearly applicable)
-- attention_level (one of: "High", "Medium", "Low": overall priority signal for professionals)
-- key_date (string in YYYY-MM-DD format or null: a specific regulatory implementation or deadline date if mentioned)
-- li_relevant (boolean: true if this article contains any of the following: (1) a formal DPA or EDPB enforcement decision or ruling that evaluates a legitimate interest claim; (2) official guidance, opinion, or framework from a DPA or the EDPB addressing whether a type of processing can rely on legitimate interests; (3) regulatory commentary, public statement, or expressed concern from a DPA about legitimate interest claims; (4) a complaint rejection or supervisory closure that implicitly validates an LI basis. false otherwise)`,
+For the affected_jurisdictions array: include only jurisdiction slugs where this development creates real compliance obligations or material risk. Use these exact slug values only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return an empty array [] only if the impact is genuinely too narrow to affect any listed jurisdiction.`,
           },
         ],
       }),
