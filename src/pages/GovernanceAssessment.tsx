@@ -320,7 +320,29 @@ const GovernanceAssessment = () => {
           <DialogHeader><DialogTitle>Premium tool</DialogTitle><DialogDescription>This assessment is included in Premium ($20/month) or available for a one-time purchase ($149).</DialogDescription></DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button onClick={() => navigate("/subscribe?tool=governance-assessment")}>Purchase — $149</Button>
+            <Button
+              disabled={submitting}
+              onClick={async () => {
+                setSubmitting(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+                    body: {
+                      tool_type: "governance_assessment",
+                      user_id: user?.id ?? null,
+                      intake_data: buildIntake(),
+                      return_url: window.location.origin,
+                    },
+                  });
+                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
+                  window.location.href = data.url;
+                } catch (err: any) {
+                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {submitting ? "Redirecting…" : "Purchase — $149"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
