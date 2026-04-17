@@ -44,40 +44,98 @@ serve(async (req) => {
       });
     }
 
-    const { plan } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { plan, tool_slug, interval } = body as {
+      plan?: string;
+      tool_slug?: string;
+      interval?: "month" | "year";
+    };
 
-    const priceId =
-      plan === "pro"
-        ? Deno.env.get("STRIPE_PRO_PRICE_ID")
-        : plan === "founding"
-          ? Deno.env.get("STRIPE_FOUNDING_PRICE_ID")
-          : Deno.env.get("STRIPE_STANDARD_PRICE_ID");
+    // Tool one-time checkout via tool_slug.
+    // Maps to subscriber/standalone Stripe price secrets configured later.
+    const TOOL_SECRETS: Record<string, { standalone: string; subscriber: string }> = {
+      healthcheck: {
+        standalone: "STRIPE_HC_STANDALONE_PRICE_ID",
+        subscriber: "STRIPE_HC_SUBSCRIBER_PRICE_ID",
+      },
+      li_analyzer: {
+        standalone: "STRIPE_LI_STANDALONE_PRICE_ID",
+        subscriber: "STRIPE_LI_SUBSCRIBER_PRICE_ID",
+      },
+      dpia_builder: {
+        standalone: "STRIPE_DPIA_STANDALONE_PRICE_ID",
+        subscriber: "STRIPE_DPIA_SUBSCRIBER_PRICE_ID",
+      },
+    };
+
+    let priceId: string | undefined;
+    let mode: "subscription" | "payment" = "subscription";
+    const metadata: Record<string, string> = { user_id: user.id };
+
+    if (tool_slug) {
+      const secrets = TOOL_SECRETS[tool_slug];
+      if (!secrets) {
+        return new Response(
+          JSON.stringify({ error: "Unknown tool_slug" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_premium")
+        .eq("id", user.id)
+        .single();
+      const isSubscriber = !!profile?.is_premium;
+      priceId = Deno.env.get(isSubscriber ? secrets.subscriber : secrets.standalone) || undefined;
+      mode = "payment";
+      metadata.tool_slug = tool_slug;
+      metadata.tier = isSubscriber ? "subscriber" : "standalone";
+    } else {
+      // Subscription plan flow
+      if (interval === "year" || plan === "annual") {
+        priceId = Deno.env.get("STRIPE_ANNUAL_PRICE_ID");
+      } else if (plan === "pro") {
+        priceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
+      } else if (plan === "founding") {
+        priceId = Deno.env.get("STRIPE_FOUNDING_PRICE_ID");
+      } else {
+        priceId = Deno.env.get("STRIPE_STANDARD_PRICE_ID");
+      }
+    }
 
     if (!priceId) {
       return new Response(
-        JSON.stringify({ error: "Price not configured for this plan" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Payments are not configured yet. Please check back soon.",
+          code: "stripe_not_configured",
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
+    const successPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}/success` : "/subscribe/success";
+    const cancelPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
-    // Create Stripe checkout session via REST API
+    const formBody: Record<string, string> = {
+      mode,
+      "line_items[0][price]": priceId,
+      "line_items[0][quantity]": "1",
+      success_url: `${origin}${successPath}`,
+      cancel_url: `${origin}${cancelPath}`,
+      customer_email: user.email!,
+    };
+    for (const [k, v] of Object.entries(metadata)) {
+      formBody[`metadata[${k}]`] = v;
+    }
+
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${stripeKey}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({
-        mode: "subscription",
-        "line_items[0][price]": priceId,
-        "line_items[0][quantity]": "1",
-        success_url: `${origin}/subscribe/success`,
-        cancel_url: `${origin}/subscribe`,
-        customer_email: user.email!,
-        "metadata[user_id]": user.id,
-      }),
+      body: new URLSearchParams(formBody),
     });
 
     const session = await stripeRes.json();
