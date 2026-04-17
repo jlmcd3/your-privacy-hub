@@ -28,6 +28,8 @@ const sevColor = (s: string) => {
 
 const GovernanceAssessmentResult = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const purchased = searchParams.get("purchased") === "true";
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
