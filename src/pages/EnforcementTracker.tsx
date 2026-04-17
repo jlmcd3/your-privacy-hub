@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Search, ExternalLink } from "lucide-react";
+import { Search, ExternalLink, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -88,6 +88,19 @@ const EnforcementTrackerPage = () => {
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [jurisdictionFilter, setJurisdictionFilter] = useState("all");
+  const [sortKey, setSortKey] = useState<"regulator" | "subject" | "fine_eur" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (key: "regulator" | "subject" | "fine_eur") => {
+    if (sortKey === key) {
+      // toggle: asc -> desc -> off
+      if (sortDir === "asc") setSortDir("desc");
+      else { setSortKey(null); setSortDir("asc"); }
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
 
   useEffect(() => {
     async function load() {
@@ -109,6 +122,26 @@ const EnforcementTrackerPage = () => {
       !searchTerm || [a.regulator, a.subject, a.jurisdiction, a.violation, a.law, a.fine_amount]
         .some((v) => v?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let av: string | number = "";
+      let bv: string | number = "";
+      if (sortKey === "fine_eur") {
+        av = a.fine_eur ?? -1;
+        bv = b.fine_eur ?? -1;
+      } else {
+        av = (a[sortKey] || "").toString().toLowerCase();
+        bv = (b[sortKey] || "").toString().toLowerCase();
+      }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
 
   // Stats
   const totalActions = actions.length;
@@ -227,9 +260,37 @@ const EnforcementTrackerPage = () => {
              <table className="w-full border-collapse">
               <thead className="bg-muted">
                 <tr>
-                  {["Regulator", "Company", "Jurisdiction", "Violation", "Fine", "Date", "Source"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
-                  ))}
+                  {([
+                    { label: "Regulator", key: "regulator" as const, sortable: true },
+                    { label: "Company", key: "subject" as const, sortable: true },
+                    { label: "Jurisdiction", key: null, sortable: false },
+                    { label: "Violation", key: null, sortable: false },
+                    { label: "Fine", key: "fine_eur" as const, sortable: true },
+                    { label: "Date", key: null, sortable: false },
+                    { label: "Source", key: null, sortable: false },
+                  ]).map((h) => {
+                    const isActive = h.sortable && sortKey === h.key;
+                    return (
+                      <th key={h.label} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">
+                        {h.sortable ? (
+                          <button
+                            type="button"
+                            onClick={() => h.key && handleSort(h.key)}
+                            className="inline-flex items-center gap-1 uppercase tracking-wider text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors bg-transparent p-0 cursor-pointer"
+                          >
+                            {h.label}
+                            {isActive ? (
+                              sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 opacity-40" />
+                            )}
+                          </button>
+                        ) : (
+                          h.label
+                        )}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -242,7 +303,7 @@ const EnforcementTrackerPage = () => {
                     </tr>
                   ))
                 ) : (
-                  filtered.map((row) => (
+                  sorted.map((row) => (
                     <tr key={row.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border">{row.regulator}</td>
                       <td className="px-4 py-3 text-sm text-foreground font-medium border-b border-border">{row.subject}</td>
