@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Fragment } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -188,26 +188,32 @@ const LegitimateInterestTracker = () => {
                 <table className="w-full border-collapse text-sm">
                   <thead className="bg-muted">
                     <tr>
-                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Summary", "Source"].map(h => (
+                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Source"].map(h => (
                         <th key={h} className="px-3 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.map(e => (
-                      <tr key={e.id} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-3 py-3 text-[13px] font-medium text-foreground border-b border-border">{e.processing_activity}</td>
-                        <td className="px-3 py-3 border-b border-border">
-                          <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                        </td>
-                        <td className={`px-3 py-3 text-[12px] border-b border-border ${signalStyle(e.signal_type)}`}>{e.signal_type}</td>
-                        <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.dpa_source}</td>
-                        <td className="px-3 py-3 text-[12px] text-foreground border-b border-border">{e.jurisdiction}</td>
-                        <td className="px-3 py-3 text-[12px] text-muted-foreground border-b border-border max-w-[200px]">{e.summary}</td>
-                        <td className="px-3 py-3 text-[11px] text-muted-foreground border-b border-border max-w-[120px]">
-                          <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
-                        </td>
-                      </tr>
+                      <Fragment key={e.id}>
+                        <tr className="hover:bg-muted/50 transition-colors">
+                          <td className="px-3 pt-3 pb-2 text-[13px] font-medium text-foreground">{e.processing_activity}</td>
+                          <td className="px-3 pt-3 pb-2">
+                            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
+                          </td>
+                          <td className={`px-3 pt-3 pb-2 text-[12px] ${signalStyle(e.signal_type)}`}>{e.signal_type}</td>
+                          <td className="px-3 pt-3 pb-2 text-[12px] text-foreground">{e.dpa_source}</td>
+                          <td className="px-3 pt-3 pb-2 text-[12px] text-foreground">{e.jurisdiction}</td>
+                          <td className="px-3 pt-3 pb-2 text-[11px] text-muted-foreground max-w-[140px]">
+                            <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-muted/50 transition-colors">
+                          <td colSpan={6} className="px-3 pt-0 pb-3 text-[12px] text-muted-foreground leading-relaxed border-b border-border">
+                            {e.summary}
+                          </td>
+                        </tr>
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
