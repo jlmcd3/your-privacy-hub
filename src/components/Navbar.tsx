@@ -25,6 +25,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     label: "Intelligence",
+    wide: true,
     sections: [
       {
         header: "Free Tools",
@@ -40,7 +41,6 @@ const navItems: NavItem[] = [
       },
       {
         header: "Premium Tools",
-        divider: true,
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
           { icon: "⚖️", label: "Legitimate Interest Analyzer", badge: "PRO", href: "/li-assessment" },
