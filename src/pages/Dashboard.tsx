@@ -46,6 +46,22 @@ interface WeeklyBrief {
   article_count: number;
   published_at: string;
   source_map: Record<string, { title: string; url: string; source: string }> | null;
+  top_enforcement_signals?: TopEnforcementSignal[] | null;
+}
+
+interface TopEnforcementSignal {
+  id: string;
+  regulator: string;
+  jurisdiction: string;
+  subject: string | null;
+  summary: string | null;
+  fine: string | null;
+  fine_eur_equivalent: number | null;
+  decision_date: string | null;
+  precedent_significance: number | null;
+  sector: string | null;
+  violation_types: string[] | null;
+  source_url: string | null;
 }
 
 const ACTION_COLOR: Record<string, string> = {
@@ -766,7 +782,64 @@ const Dashboard = () => {
                     </section>
                   )}
 
-                  {/* Cross-jurisdiction patterns */}
+                  {/* Top 10 enforcement signals — ranked by significance + recency */}
+                  {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
+                    <section className="py-7 border-b border-slate-100">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
+                        🔝 Top 10 Enforcement Signals
+                      </h3>
+                      <p className="text-[12px] text-slate-500 mb-4">
+                        Ranked by precedent significance and recency across the last 90 days.
+                      </p>
+                      <ol className="space-y-3 list-none p-0 m-0">
+                        {brief.top_enforcement_signals.map((s, i) => (
+                          <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
+                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-navy text-white text-[12px] font-bold flex items-center justify-center">
+                              {i + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-3 mb-1">
+                                <Link
+                                  to={`/enforcement-intelligence/${s.id}`}
+                                  className="font-display font-semibold text-navy hover:text-navy/80 text-[14px] leading-snug no-underline"
+                                >
+                                  {s.subject || s.regulator}
+                                </Link>
+                                {s.fine && (
+                                  <span className="text-[12px] font-semibold text-navy whitespace-nowrap tabular-nums">
+                                    {s.fine}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                <span className="font-medium">{s.regulator}</span>
+                                <span>·</span>
+                                <span>{s.jurisdiction}</span>
+                                {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
+                                {s.precedent_significance != null && (
+                                  <><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>
+                                )}
+                              </div>
+                              {s.summary && (
+                                <p className="text-[12.5px] text-slate-600 leading-relaxed line-clamp-2 m-0">
+                                  {s.summary}
+                                </p>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                      <div className="mt-4">
+                        <Link
+                          to="/enforcement-intelligence"
+                          className="text-[12px] font-semibold text-navy hover:underline"
+                        >
+                          Browse all enforcement actions →
+                        </Link>
+                      </div>
+                    </section>
+                  )}
+
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
                       <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">

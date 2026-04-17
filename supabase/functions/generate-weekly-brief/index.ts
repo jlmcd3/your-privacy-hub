@@ -120,6 +120,45 @@ Deno.serve(async (req) => {
 
     const enforcementHistory = await getEnforcementHistory();
 
+    // ── Top 10 enforcement signals (last 90d, ranked by significance + recency) ──
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const { data: topSignalCandidates } = await supabase
+      .from("enforcement_actions")
+      .select("id,regulator,jurisdiction,subject,violation,key_compliance_failure,fine_eur_equivalent,fine_eur,fine_amount,decision_date,precedent_significance,industry_sector,violation_types,source_url")
+      .eq("enrichment_version", 1)
+      .gte("decision_date", ninetyDaysAgo.toISOString().split("T")[0])
+      .not("precedent_significance", "is", null)
+      .order("precedent_significance", { ascending: false })
+      .order("decision_date", { ascending: false })
+      .limit(40);
+
+    // Re-rank with a blended score: significance (0-5) heavily weighted, then recency boost
+    const now = Date.now();
+    const topEnforcementSignals = (topSignalCandidates ?? [])
+      .map((r: any) => {
+        const sig = Number(r.precedent_significance ?? 0);
+        const ageDays = r.decision_date ? Math.max(0, (now - new Date(r.decision_date).getTime()) / 86400000) : 90;
+        const recencyBoost = Math.max(0, (90 - ageDays) / 90); // 0..1
+        return { row: r, score: sig * 2 + recencyBoost };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(({ row }) => ({
+        id: row.id,
+        regulator: row.regulator,
+        jurisdiction: row.jurisdiction,
+        subject: row.subject,
+        summary: row.key_compliance_failure || row.violation || null,
+        fine: row.fine_amount || (row.fine_eur_equivalent ? `€${Number(row.fine_eur_equivalent).toLocaleString()}` : null),
+        fine_eur_equivalent: row.fine_eur_equivalent ?? row.fine_eur ?? null,
+        decision_date: row.decision_date,
+        precedent_significance: row.precedent_significance,
+        sector: row.industry_sector,
+        violation_types: row.violation_types ?? [],
+        source_url: row.source_url,
+      }));
+
     const { data: prevBrief } = await supabase
       .from("weekly_briefs")
       .select("headline, trend_signal, week_label, enforcement_table")
@@ -404,6 +443,7 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
         article_count: articles.length,
         published_at: new Date().toISOString(),
         verification_report: verificationReport,
+        top_enforcement_signals: topEnforcementSignals,
       })
       .select()
       .single();
