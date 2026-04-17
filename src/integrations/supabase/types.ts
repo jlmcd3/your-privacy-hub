@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_purchases: {
+        Row: {
+          amount_cents: number
+          assessment_id: string
+          created_at: string | null
+          id: string
+          status: string
+          stripe_payment_intent_id: string
+          subscriber_at_time: boolean | null
+          tool_type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          assessment_id: string
+          created_at?: string | null
+          id?: string
+          status?: string
+          stripe_payment_intent_id: string
+          subscriber_at_time?: boolean | null
+          tool_type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          assessment_id?: string
+          created_at?: string | null
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          subscriber_at_time?: boolean | null
+          tool_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       custom_briefs: {
         Row: {
           articles_used: number | null
@@ -60,6 +96,62 @@ export type Database = {
             columns: ["base_brief_id"]
             isOneToOne: false
             referencedRelation: "weekly_briefs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dpia_frameworks: {
+        Row: {
+          created_at: string | null
+          id: string
+          intake_data: Json
+          is_subscriber_credit: boolean | null
+          purchase_price_cents: number | null
+          purchased_as_standalone: boolean | null
+          report_data: Json | null
+          report_version: number | null
+          source_assessment_id: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          report_version?: number | null
+          source_assessment_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          report_version?: number | null
+          source_assessment_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dpia_frameworks_source_assessment_id_fkey"
+            columns: ["source_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "governance_assessments"
             referencedColumns: ["id"]
           },
         ]
@@ -272,6 +364,54 @@ export type Database = {
         }
         Relationships: []
       }
+      governance_assessments: {
+        Row: {
+          created_at: string | null
+          dpia_scope: Json | null
+          id: string
+          intake_data: Json
+          is_subscriber_credit: boolean | null
+          purchase_price_cents: number | null
+          purchased_as_standalone: boolean | null
+          report_data: Json | null
+          report_version: number | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dpia_scope?: Json | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          report_version?: number | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dpia_scope?: Json | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          report_version?: number | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ingestion_runs: {
         Row: {
           enrichment_failed_429: number | null
@@ -338,6 +478,69 @@ export type Database = {
           name?: string
           region?: string | null
           slug?: string
+        }
+        Relationships: []
+      }
+      li_assessments: {
+        Row: {
+          alternatives_considered: string | null
+          created_at: string | null
+          data_categories: string[] | null
+          id: string
+          is_subscriber_credit: boolean | null
+          jurisdictions: string[] | null
+          processing_description: string
+          purchase_price_cents: number | null
+          purchased_as_standalone: boolean | null
+          relationship_type: string | null
+          report_data: Json | null
+          report_version: number | null
+          sector: string | null
+          stated_purpose: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alternatives_considered?: string | null
+          created_at?: string | null
+          data_categories?: string[] | null
+          id?: string
+          is_subscriber_credit?: boolean | null
+          jurisdictions?: string[] | null
+          processing_description: string
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          relationship_type?: string | null
+          report_data?: Json | null
+          report_version?: number | null
+          sector?: string | null
+          stated_purpose?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alternatives_considered?: string | null
+          created_at?: string | null
+          data_categories?: string[] | null
+          id?: string
+          is_subscriber_credit?: boolean | null
+          jurisdictions?: string[] | null
+          processing_description?: string
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          relationship_type?: string | null
+          report_data?: Json | null
+          report_version?: number | null
+          sector?: string | null
+          stated_purpose?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
