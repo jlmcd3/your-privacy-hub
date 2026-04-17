@@ -9,6 +9,7 @@ interface AssessmentRow {
   type: "li" | "governance" | "dpia";
   created_at: string;
   status: string;
+  pdf_url?: string | null;
 }
 
 const TOOLS = [
@@ -85,28 +86,28 @@ export default function PremiumToolsSection({ isPremium }: Props) {
       const [li, gov, dpia] = await Promise.all([
         supabase
           .from("li_assessments")
-          .select("id, created_at, status")
+          .select("id, created_at, status, pdf_url")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(5),
         supabase
           .from("governance_assessments")
-          .select("id, created_at, status")
+          .select("id, created_at, status, pdf_url")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(5),
         supabase
           .from("dpia_frameworks")
-          .select("id, created_at, status")
+          .select("id, created_at, status, pdf_url")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
 
       const merged: AssessmentRow[] = [
-        ...(li.data ?? []).map((r: any) => ({ id: r.id, type: "li" as const, created_at: r.created_at, status: r.status })),
-        ...(gov.data ?? []).map((r: any) => ({ id: r.id, type: "governance" as const, created_at: r.created_at, status: r.status })),
-        ...(dpia.data ?? []).map((r: any) => ({ id: r.id, type: "dpia" as const, created_at: r.created_at, status: r.status })),
+        ...(li.data ?? []).map((r: any) => ({ id: r.id, type: "li" as const, created_at: r.created_at, status: r.status, pdf_url: r.pdf_url })),
+        ...(gov.data ?? []).map((r: any) => ({ id: r.id, type: "governance" as const, created_at: r.created_at, status: r.status, pdf_url: r.pdf_url })),
+        ...(dpia.data ?? []).map((r: any) => ({ id: r.id, type: "dpia" as const, created_at: r.created_at, status: r.status, pdf_url: r.pdf_url })),
       ]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
@@ -210,12 +211,24 @@ export default function PremiumToolsSection({ isPremium }: Props) {
                       {row.status}
                     </span>
                   </div>
-                  <Link
-                    to={`${TYPE_HREF[row.type]}/${row.id}`}
-                    className="text-[13px] font-semibold text-primary hover:underline no-underline"
-                  >
-                    View →
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    {row.pdf_url && (
+                      <a
+                        href={row.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-medium text-primary hover:underline no-underline"
+                      >
+                        ↓ PDF
+                      </a>
+                    )}
+                    <Link
+                      to={`${TYPE_HREF[row.type]}/${row.id}`}
+                      className="text-[13px] font-semibold text-primary hover:underline no-underline"
+                    >
+                      View →
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
