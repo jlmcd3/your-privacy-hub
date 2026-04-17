@@ -16,7 +16,7 @@ async function checkUrl(url: string): Promise<"valid" | "dead"> {
       res = await fetch(url, { method: "GET", redirect: "follow", signal: controller.signal });
     }
     clearTimeout(timeout);
-    if (res.status === 404 || res.status === 410) return "dead";
+    if (res.status === 404 || res.status === 410 || res.status === 400) return "dead";
     return "valid";
   } catch (_e) {
     clearTimeout(timeout);
