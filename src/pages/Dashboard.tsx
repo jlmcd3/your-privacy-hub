@@ -132,12 +132,13 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete, digest_jurisdictions, digest_topics")
+      .select("is_premium, subscription_interval, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete, digest_jurisdictions, digest_topics")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
+        setSubscriptionInterval((data as any)?.subscription_interval ?? null);
         // Show onboarding for free users who haven't completed it
         if (!premium && !(data as any)?.onboarding_complete) {
           setShowOnboarding(true);
