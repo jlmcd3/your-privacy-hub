@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 export default function NewsfeedPaywallCard() {
+  const { isPremium, isLoading } = usePremiumStatus();
+  if (isLoading || isPremium) return null;
   return (
     <div className="relative my-6 rounded-2xl overflow-hidden border border-blue/20">
       {/* Blurred ghost articles behind */}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const features = [
   "Know what changed before your next board meeting",
@@ -9,6 +10,8 @@ const features = [
 ];
 
 const PremiumBanner = () => {
+  const { isPremium, isLoading } = usePremiumStatus();
+  if (isLoading || isPremium) return null;
   return (
     <section className="py-10 md:py-16 px-4 md:px-8 bg-paper" id="premium">
       <div className="max-w-[1280px] mx-auto">

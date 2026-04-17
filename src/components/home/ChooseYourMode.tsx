@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const MODES = [
   {
@@ -35,11 +36,14 @@ const MODES = [
 
 export default function ChooseYourMode() {
   const { user } = useAuth();
-  const modes = MODES.map((m) => ({
-    ...m,
-    href: m.premium && user ? "/dashboard" : m.href,
-    cta: m.premium && user ? "My Dashboard" : m.cta,
-  }));
+  const { isPremium } = usePremiumStatus();
+  const modes = MODES
+    .filter((m) => !(m.premium && isPremium)) // hide upgrade tile for premium users
+    .map((m) => ({
+      ...m,
+      href: m.premium && user ? "/dashboard" : m.href,
+      cta: m.premium && user ? "My Dashboard" : m.cta,
+    }));
 
   return (
     <div className="py-6">
