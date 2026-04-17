@@ -45,17 +45,21 @@ const Subscribe = () => {
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
 
-  const handleSubscribe = async () => {
+  const startCheckout = async (plan: "pro" | "annual") => {
     if (!user) {
-      navigate("/signup?redirect=/subscribe");
+      navigate(`/signup?redirect=/subscribe`);
       return;
     }
-    setLoading("pro");
+    setLoading(plan);
     setError(null);
     try {
+      const body =
+        plan === "annual"
+          ? { plan: "annual", interval: "year" as const }
+          : { plan: "pro" };
       const { data, error: fnError } = await supabase.functions.invoke(
         "create-checkout-session",
-        { body: { plan: "pro" } }
+        { body }
       );
       if (fnError) { setError(fnError.message || "Something went wrong"); setLoading(null); return; }
       if (data?.url) { window.location.href = data.url; }
@@ -65,6 +69,8 @@ const Subscribe = () => {
       setLoading(null);
     }
   };
+
+  const handleSubscribe = () => startCheckout("pro");
 
   return (
     <div className="min-h-screen bg-paper">
