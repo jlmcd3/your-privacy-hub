@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
-          { icon: "📋", label: "Sample Brief", href: "/sample-brief" },
+          { icon: "📋", label: "Sample Weekly Intelligence Brief", href: "/sample-brief" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "🔍", label: "Enforcement Intelligence", badge: "NEW", badgeGreen: true, href: "/enforcement-intelligence" },
           { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
