@@ -260,9 +260,37 @@ const EnforcementTrackerPage = () => {
              <table className="w-full border-collapse">
               <thead className="bg-muted">
                 <tr>
-                  {["Regulator", "Company", "Jurisdiction", "Violation", "Fine", "Date", "Source"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
-                  ))}
+                  {([
+                    { label: "Regulator", key: "regulator" as const, sortable: true },
+                    { label: "Company", key: "subject" as const, sortable: true },
+                    { label: "Jurisdiction", key: null, sortable: false },
+                    { label: "Violation", key: null, sortable: false },
+                    { label: "Fine", key: "fine_eur" as const, sortable: true },
+                    { label: "Date", key: null, sortable: false },
+                    { label: "Source", key: null, sortable: false },
+                  ]).map((h) => {
+                    const isActive = h.sortable && sortKey === h.key;
+                    return (
+                      <th key={h.label} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">
+                        {h.sortable ? (
+                          <button
+                            type="button"
+                            onClick={() => h.key && handleSort(h.key)}
+                            className="inline-flex items-center gap-1 uppercase tracking-wider text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors bg-transparent p-0 cursor-pointer"
+                          >
+                            {h.label}
+                            {isActive ? (
+                              sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 opacity-40" />
+                            )}
+                          </button>
+                        ) : (
+                          h.label
+                        )}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -275,7 +303,7 @@ const EnforcementTrackerPage = () => {
                     </tr>
                   ))
                 ) : (
-                  filtered.map((row) => (
+                  sorted.map((row) => (
                     <tr key={row.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border">{row.regulator}</td>
                       <td className="px-4 py-3 text-sm text-foreground font-medium border-b border-border">{row.subject}</td>
