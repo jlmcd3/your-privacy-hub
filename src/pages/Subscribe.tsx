@@ -443,17 +443,19 @@ const Subscribe = () => {
                       );
                     }
 
+                    const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
+
                     const renderFree = () => {
-                      if (row.free === true)  return <Check className="w-4 h-4 text-accent mx-auto" />;
-                      if (row.free === false) return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
-                      return <span className="text-[11px] font-medium text-slate">{row.free}</span>;
+                      if (dataRow.free === true)  return <Check className="w-4 h-4 text-accent mx-auto" />;
+                      if (dataRow.free === false) return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
+                      return <span className="text-[11px] font-medium text-slate">{dataRow.free}</span>;
                     };
 
                     const renderPro = () => {
-                      if (row.pro === true)            return <Check className="w-4 h-4 text-amber-500 mx-auto" />;
-                      if (row.pro === false)           return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
-                      if (row.pro === "Included free") return <span className="text-[11px] font-semibold text-green-600">Included free</span>;
-                      return <span className="text-[11px] font-semibold text-amber-600">{row.pro}</span>;
+                      if (dataRow.pro === true)            return <Check className="w-4 h-4 text-amber-500 mx-auto" />;
+                      if (dataRow.pro === false)           return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
+                      if (dataRow.pro === "Included free") return <span className="text-[11px] font-semibold text-green-600">Included free</span>;
+                      return <span className="text-[11px] font-semibold text-amber-600">{dataRow.pro}</span>;
                     };
 
                     return (
