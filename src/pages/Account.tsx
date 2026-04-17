@@ -12,6 +12,7 @@ export default function Account() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isPremium, setIsPremium] = useState(false);
+  const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
@@ -19,11 +20,14 @@ export default function Account() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("is_premium")
+      .select("is_premium, subscription_interval")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
-        if (data) setIsPremium(data.is_premium);
+        if (data) {
+          setIsPremium(data.is_premium);
+          setSubscriptionInterval((data as any).subscription_interval ?? null);
+        }
         setLoading(false);
       });
   }, [user]);
@@ -65,7 +69,7 @@ export default function Account() {
               <span className="text-[13px] text-slate">Plan</span>
               {isPremium ? (
                 <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
-                  ⭐ Premium
+                  ⭐ Premium {subscriptionInterval === "year" ? "(Annual)" : "(Monthly)"}
                 </span>
               ) : (
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate bg-fog border border-silver px-2.5 py-1 rounded-full">
@@ -130,8 +134,9 @@ export default function Account() {
               Get Your Pro Intelligence Brief
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
-              The weekly brief re-written for your industry and jurisdictions — $20/month.
-              The standard brief is always free.
+              The weekly brief re-written for your industry and jurisdictions.
+              $20/month or $180/year (save $60). Plus subscriber pricing on all
+              compliance framework tools.
             </p>
             <Link
               to="/subscribe"
