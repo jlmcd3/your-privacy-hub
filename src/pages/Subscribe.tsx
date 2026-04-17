@@ -45,17 +45,21 @@ const Subscribe = () => {
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
 
-  const handleSubscribe = async () => {
+  const startCheckout = async (plan: "pro" | "annual") => {
     if (!user) {
-      navigate("/signup?redirect=/subscribe");
+      navigate(`/signup?redirect=/subscribe`);
       return;
     }
-    setLoading("pro");
+    setLoading(plan);
     setError(null);
     try {
+      const body =
+        plan === "annual"
+          ? { plan: "annual", interval: "year" as const }
+          : { plan: "pro" };
       const { data, error: fnError } = await supabase.functions.invoke(
         "create-checkout-session",
-        { body: { plan: "pro" } }
+        { body }
       );
       if (fnError) { setError(fnError.message || "Something went wrong"); setLoading(null); return; }
       if (data?.url) { window.location.href = data.url; }
@@ -65,6 +69,8 @@ const Subscribe = () => {
       setLoading(null);
     }
   };
+
+  const handleSubscribe = () => startCheckout("pro");
 
   return (
     <div className="min-h-screen bg-paper">
@@ -567,33 +573,23 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* Single Pro plan card */}
-        <div className="max-w-md mx-auto">
-          <div
-            id="pro-plan-card"
-            className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 border-2 border-blue/40 relative"
-          >
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-              The only paid tier
-            </div>
+        {/* Two-plan layout: Monthly + Annual */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {/* Monthly */}
+          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border border-blue/40 relative flex flex-col">
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-              ⭐ Premium
+              ⭐ Premium Monthly
             </div>
-            <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
+            <div className="text-white font-display font-bold text-[40px] leading-none mb-4">
               $20<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
-            <p className="text-blue-200 text-sm mb-5">
-              Intelligence. Written for your industry and jurisdiction. Every Monday.
-            </p>
-            <ul className="space-y-2.5 mb-6">
+            <ul className="space-y-2.5 mb-6 flex-1">
               {[
-                "Everything in Free (all library features)",
-                "Full weekly Intelligence Brief re-analyzed for you",
-                "Industry lens: Healthcare, AdTech, AI, Legal, Fintech, Retail",
-                "Jurisdiction focus: EU, US, APAC, or your combination",
-                "Subject-matter depth: AI, biometric, litigation, or your priorities",
-                "Sector-specific GC/CPO action items every week",
-                "Priority Monday delivery — lands before your week starts",
+                "Weekly Intelligence Brief — curated for privacy professionals",
+                "Full article feed with AI enrichment",
+                "Why It Matters analysis on every article",
+                "Subscriber pricing on all assessment tools",
+                "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
                   <span className="text-amber-400 font-bold flex-shrink-0 mt-0.5">✓</span>
@@ -601,26 +597,95 @@ const Subscribe = () => {
                 </li>
               ))}
             </ul>
-
-            {/* Founding offer */}
-            <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-4 mb-5">
-              <p className="text-[13px] text-amber-200 leading-relaxed">
-                🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium
-                free for one year, then $20/month.
-              </p>
-            </div>
-
             <button
-              onClick={handleSubscribe}
+              onClick={() => startCheckout("pro")}
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-white text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "pro" ? "Redirecting…" : "Get Premium →"}
+              {loading === "pro" ? "Redirecting…" : "Start Monthly Plan"}
             </button>
-            <p className="text-center text-blue-300 text-[11px] mt-3">
-              Cancel anytime · Secure checkout via Stripe
+          </div>
+
+          {/* Annual */}
+          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border-2 border-amber-400/60 relative flex flex-col">
+            <div className="absolute -top-3 right-5 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+              Best Value
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
+              ⭐ Premium Annual
+            </div>
+            <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
+              $180<span className="text-lg font-normal text-blue-200">/year</span>
+            </div>
+            <p className="text-blue-200 text-[12px] mb-4">
+              $15/month — save $60 vs monthly
+            </p>
+            <ul className="space-y-2.5 mb-6 flex-1">
+              {[
+                "2 months free vs. monthly billing",
+                "Weekly Intelligence Brief — curated for privacy professionals",
+                "Full article feed with AI enrichment",
+                "Why It Matters analysis on every article",
+                "Subscriber pricing on all assessment tools",
+                "Cancel any time",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                  <span className="text-amber-400 font-bold flex-shrink-0 mt-0.5">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => startCheckout("annual")}
+              disabled={loading !== null}
+              className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-amber-400 text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
+            >
+              {loading === "annual" ? "Redirecting…" : "Start Annual Plan"}
+            </button>
+          </div>
+        </div>
+
+        {/* Founding offer */}
+        <div className="max-w-3xl mx-auto mt-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-center">
+            <p className="text-[13px] text-amber-800">
+              🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium free for one year, then your chosen plan price.
             </p>
           </div>
+        </div>
+
+        {/* Subscriber Pricing on All Tools */}
+        <div className="max-w-3xl mx-auto mt-12">
+          <h3 className="font-display text-[20px] text-navy text-center mb-5">
+            Subscriber Pricing on All Tools
+          </h3>
+          <div className="bg-card border border-fog rounded-2xl overflow-hidden">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="bg-fog">
+                  <th className="px-5 py-3 text-left text-[12px] uppercase tracking-wider text-slate font-semibold">Tool</th>
+                  <th className="px-5 py-3 text-left text-[12px] uppercase tracking-wider text-slate font-semibold">Standalone</th>
+                  <th className="px-5 py-3 text-left text-[12px] uppercase tracking-wider text-amber-600 font-semibold">Subscriber</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Data Privacy Healthcheck", "$29", "$15"],
+                  ["Legitimate Interest Analyzer", "$39", "$19"],
+                  ["DPIA Builder", "$69", "$39"],
+                ].map(([tool, std, sub]) => (
+                  <tr key={tool} className="border-t border-fog">
+                    <td className="px-5 py-3 text-navy font-medium">{tool}</td>
+                    <td className="px-5 py-3 text-slate">{std} per analysis</td>
+                    <td className="px-5 py-3 text-navy font-semibold">{sub} per analysis</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-center text-[12px] text-slate-light mt-3 italic">
+            One Healthcheck + one LI Analyzer as a subscriber saves you more than one month's subscription cost.
+          </p>
         </div>
 
         {error && (
