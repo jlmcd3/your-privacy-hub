@@ -115,7 +115,7 @@ const IntelligenceBadge = () => (
 );
 
 // — Enrichment detail accordion —
-const EnrichmentAccordion = ({ item }: { item: ArticleItem }) => {
+const EnrichmentAccordion = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
   const [open, setOpen] = useState(false);
   const s = item.ai_summary;
   if (!s) return null;
@@ -142,7 +142,12 @@ const EnrichmentAccordion = ({ item }: { item: ArticleItem }) => {
         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
         {open ? 'Hide details' : 'View analysis'}
       </button>
-      {open && (
+      {open && !isPremium && (
+        <div className="mt-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+          <PremiumGate message="Full compliance analysis is a Premium feature." blur={false} />
+        </div>
+      )}
+      {open && isPremium && (
         <div className="mt-2 pl-3 border-l-2 space-y-1.5" style={{ borderColor: '#4A6FA5' }}>
           {details.map((d) => (
             <div key={d.label}>
