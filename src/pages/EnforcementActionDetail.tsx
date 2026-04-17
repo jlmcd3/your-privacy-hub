@@ -1,0 +1,280 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Action {
+  id: string;
+  etid: string | null;
+  regulator: string;
+  subject: string | null;
+  jurisdiction: string;
+  decision_date: string | null;
+  fine_amount: string | null;
+  fine_eur: number | null;
+  fine_eur_equivalent: number | null;
+  law: string | null;
+  violation: string | null;
+  source_url: string | null;
+  raw_text: string | null;
+  industry_sector: string | null;
+  company_type: string | null;
+  data_categories: string[] | null;
+  violation_types: string[] | null;
+  tool_relevance: string[] | null;
+  key_compliance_failure: string | null;
+  preventive_measures: string | null;
+  precedent_significance: number | null;
+  breach_related: boolean | null;
+  biometric_related: boolean | null;
+  dpa_related: boolean | null;
+}
+
+function formatEur(n: number | null) {
+  if (!n || n <= 0) return null;
+  return new Intl.NumberFormat("en-EU", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+}
+
+const TOOL_LINKS: Record<string, string> = {
+  "DPIA": "/dpia-framework",
+  "LIA": "/li-assessment",
+  "Records of Processing": "/governance-assessment",
+  "Vendor DD": "/governance-assessment",
+  "Cookie Consent": "/cookie-consent",
+  "Breach Response": "/breach-notification",
+  "DSR Workflow": "/governance-assessment",
+  "Children Compliance": "/governance-assessment",
+  "Biometric Compliance": "/biometric-privacy",
+  "Cross-Border Transfer": "/cross-border-transfers",
+};
+
+export default function EnforcementActionDetail() {
+  const { id } = useParams();
+  const [action, setAction] = useState<Action | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [related, setRelated] = useState<Action[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("enforcement_actions")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      setAction((data as Action) ?? null);
+      setLoading(false);
+
+      if (data) {
+        const { data: rel } = await supabase
+          .from("enforcement_actions")
+          .select("id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law")
+          .eq("jurisdiction", (data as Action).jurisdiction)
+          .neq("id", id)
+          .eq("enrichment_version", 1)
+          .order("decision_date", { ascending: false, nullsFirst: false })
+          .limit(5);
+        setRelated((rel as Action[]) ?? []);
+      }
+    })();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-4">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-12 w-3/4" />
+          <Skeleton className="h-64 w-full" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!action) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="max-w-4xl mx-auto px-4 py-16 text-center">
+          <h1 className="font-serif text-3xl mb-4">Action not found</h1>
+          <Link to="/enforcement-intelligence" className="text-primary hover:underline">← Back to Enforcement Intelligence</Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const fine = formatEur(action.fine_eur_equivalent ?? action.fine_eur);
+  const title = action.subject || "Privacy enforcement action";
+  const desc = action.key_compliance_failure || action.violation?.slice(0, 160) || `${action.regulator} enforcement action in ${action.jurisdiction}.`;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{title} — {action.regulator} | Enforcement Intelligence</title>
+        <meta name="description" content={desc} />
+        <link rel="canonical" href={`https://enduserprivacy.com/enforcement-intelligence/${action.id}`} />
+      </Helmet>
+      <Navbar />
+
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <Link to="/enforcement-intelligence" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+          <ArrowLeft className="w-4 h-4" /> Back to Enforcement Intelligence
+        </Link>
+
+        <header className="mb-8">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
+            <span className="font-medium text-foreground">{action.jurisdiction}</span>
+            <span>•</span>
+            <span>{action.regulator}</span>
+            {action.decision_date && <><span>•</span><span>{new Date(action.decision_date).toLocaleDateString()}</span></>}
+            {action.law && <><span>•</span><span>{action.law}</span></>}
+          </div>
+          <h1 className="font-serif text-3xl md:text-4xl mb-4">{title}</h1>
+
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            {fine && (
+              <div>
+                <div className="text-xs text-muted-foreground">Fine</div>
+                <div className="font-mono text-2xl font-semibold">{fine}</div>
+              </div>
+            )}
+            {action.precedent_significance && (
+              <div>
+                <div className="text-xs text-muted-foreground">Precedent significance</div>
+                <div className="text-amber-500 text-lg">
+                  {"★".repeat(action.precedent_significance)}
+                  <span className="text-muted-foreground/40">{"★".repeat(5 - action.precedent_significance)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {action.industry_sector && <Badge variant="outline" className="capitalize">{action.industry_sector}</Badge>}
+            {action.company_type && <Badge variant="outline" className="capitalize">{action.company_type}</Badge>}
+            {action.breach_related && <Badge variant="secondary">Data breach</Badge>}
+            {action.biometric_related && <Badge variant="secondary">Biometric</Badge>}
+            {action.dpa_related === false && <Badge variant="secondary">Civil litigation</Badge>}
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {action.key_compliance_failure && (
+            <Card className="md:col-span-2">
+              <CardContent className="p-5">
+                <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Key compliance failure</h2>
+                <p className="text-base leading-relaxed">{action.key_compliance_failure}</p>
+              </CardContent>
+            </Card>
+          )}
+          {action.preventive_measures && (
+            <Card>
+              <CardContent className="p-5">
+                <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">What should have been done</h2>
+                <p className="text-sm leading-relaxed">{action.preventive_measures}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {(action.violation_types?.length || action.data_categories?.length) && (
+          <Card className="mb-6">
+            <CardContent className="p-5 space-y-4">
+              {action.violation_types && action.violation_types.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Violation types</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {action.violation_types.map((v) => <Badge key={v} variant="secondary" className="capitalize">{v}</Badge>)}
+                  </div>
+                </div>
+              )}
+              {action.data_categories && action.data_categories.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Data categories</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {action.data_categories.map((c) => (
+                      <Badge key={c} className="capitalize bg-primary/10 text-primary hover:bg-primary/20">{c}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {action.violation && (
+          <Card className="mb-6">
+            <CardContent className="p-5">
+              <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Violation summary</h2>
+              <p className="text-base leading-relaxed whitespace-pre-wrap">{action.violation}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {action.tool_relevance && action.tool_relevance.length > 0 && (
+          <Card className="mb-6">
+            <CardContent className="p-5">
+              <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">Relevant compliance tools</h2>
+              <div className="flex flex-wrap gap-2">
+                {action.tool_relevance.map((t) => {
+                  const href = TOOL_LINKS[t];
+                  return href ? (
+                    <Link key={t} to={href}>
+                      <Button variant="outline" size="sm">{t}</Button>
+                    </Link>
+                  ) : (
+                    <Badge key={t} variant="outline">{t}</Badge>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {action.source_url && (
+          <div className="mb-8">
+            <a href={action.source_url} target="_blank" rel="noopener noreferrer">
+              <Button variant="default" className="gap-2">
+                View original source <ExternalLink className="w-4 h-4" />
+              </Button>
+            </a>
+          </div>
+        )}
+
+        {related.length > 0 && (
+          <section className="mt-12">
+            <h2 className="font-serif text-2xl mb-4">More from {action.jurisdiction}</h2>
+            <div className="space-y-2">
+              {related.map((r) => (
+                <Link key={r.id} to={`/enforcement-intelligence/${r.id}`} className="block">
+                  <Card className="hover:border-primary/40 transition">
+                    <CardContent className="p-4 flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-muted-foreground">{r.regulator} • {r.decision_date ? new Date(r.decision_date).toLocaleDateString() : ""}</div>
+                        <div className="font-medium truncate">{r.subject || "Undisclosed entity"}</div>
+                      </div>
+                      <div className="font-mono text-sm shrink-0">{formatEur(r.fine_eur_equivalent ?? r.fine_eur) ?? "—"}</div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+
+      <Footer />
+    </div>
+  );
+}

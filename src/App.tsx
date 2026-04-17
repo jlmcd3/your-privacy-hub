@@ -62,6 +62,8 @@ import GovernanceAssessment from "./pages/GovernanceAssessment.tsx";
 import GovernanceAssessmentResult from "./pages/GovernanceAssessmentResult.tsx";
 import DPIAFramework from "./pages/DPIAFramework.tsx";
 import DPIAFrameworkResult from "./pages/DPIAFrameworkResult.tsx";
+import EnforcementIntelligence from "./pages/EnforcementIntelligence.tsx";
+import EnforcementActionDetail from "./pages/EnforcementActionDetail.tsx";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +125,8 @@ const App = () => (
            <Route path="/governance-assessment/result/:id" element={<ProtectedRoute><GovernanceAssessmentResult /></ProtectedRoute>} />
            <Route path="/dpia-framework" element={<DPIAFramework />} />
            <Route path="/dpia-framework/result/:id" element={<ProtectedRoute><DPIAFrameworkResult /></ProtectedRoute>} />
+           <Route path="/enforcement-intelligence" element={<EnforcementIntelligence />} />
+           <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
