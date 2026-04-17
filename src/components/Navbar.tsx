@@ -42,9 +42,9 @@ const navItems: NavItem[] = [
         divider: true,
         items: [
           { icon: "⭐", label: "Get Intelligence", badge: "PRO", href: "/get-intelligence" },
-          { icon: "⚖️", label: "LI Assessment", badge: "PRO", href: "/li-assessment" },
-          { icon: "🛡️", label: "Governance Assessment", badge: "PRO", href: "/governance-assessment" },
-          { icon: "📑", label: "DPIA Framework", badge: "PRO", href: "/dpia-framework" },
+          { icon: "⚖️", label: "Legitimate Interest Analyzer", badge: "PRO", href: "/li-assessment" },
+          { icon: "🛡️", label: "Data Privacy Healthcheck", badge: "PRO", href: "/governance-assessment" },
+          { icon: "📑", label: "DPIA Builder", badge: "PRO", href: "/dpia-framework" },
         ],
       },
     ],
