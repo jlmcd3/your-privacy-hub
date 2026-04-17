@@ -57,10 +57,10 @@ const SampleBrief = () => {
               >
                 Get Premium →
               </Link>
-              <Link to="/get-intelligence"
-                className="inline-flex items-center gap-2 border-2 border-white text-white
-                  font-bold text-[14px] px-6 py-3 rounded-xl hover:bg-white/10 transition-colors
-                  no-underline mt-3">
+              <Link
+                to="/get-intelligence"
+                className="inline-flex items-center px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors no-underline text-[14px]"
+              >
                 Build a brief like this for your practice →
               </Link>
               <Link
