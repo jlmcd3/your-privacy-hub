@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 
 import OnboardingModal from "@/components/OnboardingModal";
 import ReportCredits from "@/components/dashboard/ReportCredits";
+import PremiumToolsSection from "@/components/dashboard/PremiumToolsSection";
 import DigestPreferences from "@/components/DigestPreferences";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
@@ -778,6 +779,8 @@ const Dashboard = () => {
             )}
           </>
         )}
+
+        <PremiumToolsSection isPremium={isPremium} />
       </div>
 
       <Footer />
