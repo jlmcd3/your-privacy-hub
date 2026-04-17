@@ -124,25 +124,25 @@ const DPIAFramework = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>DPIA Framework | EndUserPrivacy</title></Helmet>
+      <Helmet><title>DPIA Builder | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">⭐ Premium Tool</span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">DPIA Framework</h1>
-          <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment framework for a specific processing activity, structured against GDPR Article 35 requirements.</p>
+          <h1 className="text-3xl md:text-4xl font-serif mb-3">DPIA Builder</h1>
+          <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment builder for a specific processing activity, structured against GDPR Article 35 requirements.</p>
         </div>
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 space-y-6">
         <div className="p-4 bg-purple-50 dark:bg-purple-950/30 border-l-4 border-purple-500 rounded text-sm">
-          This tool produces a DPIA framework document — a structured starting point for your organisation's Data Protection Officer or legal counsel to complete and own. It is not a finished DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Qualified legal review is required before relying on this document.
+          This tool produces a DPIA Builder document — a structured starting point for your organisation's Data Protection Officer or legal counsel to complete and own. It is not a finished DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Qualified legal review is required before relying on this document.
         </div>
 
         {prefilled && (
           <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded text-sm">
-            Pre-populated from your Governance Readiness Assessment. Review and edit all fields before running.
+            Pre-populated from your Data Privacy Healthcheck. Review and edit all fields before running.
           </div>
         )}
 
@@ -183,7 +183,7 @@ const DPIAFramework = () => {
           </div>
 
           <Button type="submit" size="lg" disabled={submitting}>
-            {submitting ? "Generating DPIA framework — this takes about 30 seconds…" : "Generate DPIA Framework"}
+            {submitting ? "Generating your DPIA Builder report — this takes about 30 seconds…" : "Generate DPIA Builder"}
           </Button>
         </form>
       </main>

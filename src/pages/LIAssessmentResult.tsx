@@ -73,12 +73,12 @@ const LIAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>LI Assessment Result | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Legitimate Interest Analyzer | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-10">
         <div className="max-w-5xl mx-auto px-4">
-          <h1 className="text-3xl font-serif mb-2">Legitimate Interest Assessment</h1>
+          <h1 className="text-3xl font-serif mb-2">Legitimate Interest Analyzer</h1>
           {assessment?.processing_description && (
             <p className="text-slate-300 text-sm">
               {assessment.processing_description.length > 120 ? assessment.processing_description.slice(0, 120) + "…" : assessment.processing_description}
@@ -231,7 +231,7 @@ const LIAssessmentResult = () => {
               <p className="text-sm text-muted-foreground mb-3">
                 If your assessment identifies high-risk processing, you may be required to conduct a Data Protection Impact Assessment under GDPR Article 35.
               </p>
-              <Button asChild><Link to="/dpia-framework">Open DPIA Framework →</Link></Button>
+              <Button asChild><Link to="/dpia-framework">Open DPIA Builder →</Link></Button>
             </section>
           </>
         )}

@@ -67,7 +67,7 @@ const DPIAFrameworkResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>DPIA Framework Result | EndUserPrivacy</title></Helmet>
+      <Helmet><title>DPIA Builder | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 space-y-6">
@@ -81,7 +81,7 @@ const DPIAFrameworkResult = () => {
         {!loading && (status === "pending" || status === "processing") && (
           <div className="bg-card border rounded-lg p-10 text-center">
             <div className="animate-pulse mb-4 text-2xl">⏳</div>
-            <p>Generating your DPIA framework — this takes about 30 seconds.</p>
+            <p>Generating your DPIA Builder report — this takes about 30 seconds.</p>
           </div>
         )}
 
@@ -95,7 +95,7 @@ const DPIAFrameworkResult = () => {
         {status === "complete" && (
           <>
             <header className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="text-3xl font-serif mb-1">DPIA Framework</h1>
+              <h1 className="text-3xl font-serif mb-1">DPIA Builder</h1>
               <p className="text-slate-300">{meta.processing_activity_name || dpia?.intake_data?.processing_activity_name}</p>
               <p className="text-slate-400 text-xs mt-2">
                 {meta.framework_version && `Version ${meta.framework_version} · `}
@@ -223,7 +223,7 @@ const DPIAFrameworkResult = () => {
               )}
               <Button onClick={() => window.print()} variant="outline">Print</Button>
               <Button asChild variant="outline"><Link to="/dashboard">Back to Dashboard</Link></Button>
-              <Button asChild variant="outline"><Link to="/governance-assessment">Run Governance Assessment</Link></Button>
+              <Button asChild variant="outline"><Link to="/governance-assessment">Run Data Privacy Healthcheck</Link></Button>
             </div>
           </>
         )}
