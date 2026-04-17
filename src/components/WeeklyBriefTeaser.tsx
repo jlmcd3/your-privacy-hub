@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 interface BriefPreview {
   week_label: string;
@@ -10,6 +11,7 @@ interface BriefPreview {
 }
 
 const WeeklyBriefTeaser = () => {
+  const { isPremium, isLoading } = usePremiumStatus();
   const [brief, setBrief] = useState<BriefPreview | null>(null);
 
   useEffect(() => {
@@ -28,6 +30,8 @@ const WeeklyBriefTeaser = () => {
   const teaserText = brief?.executive_summary
     ? brief.executive_summary.split(". ").slice(0, 2).join(". ") + "…"
     : null;
+
+  if (isLoading || isPremium) return null;
 
   return (
     <section className="py-10 md:py-14 px-4 md:px-8 bg-paper">
