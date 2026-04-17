@@ -15,37 +15,37 @@ interface AssessmentRow {
 const TOOLS = [
   {
     icon: "⚖️",
-    title: "Legitimate Interest Assessment",
+    title: "Legitimate Interest Analyzer",
     description:
-      "Assess whether proposed processing can rely on legitimate interest under GDPR Article 6(1)(f). Returns a three-part test analysis and precedent landscape.",
-    cta: "Run Assessment",
+      "Search a curated database of enforcement decisions and regulatory guidance to see how regulators have treated processing use cases similar to yours — and what documentation you need for a defensible balancing record.",
+    cta: "Run Analyzer",
     href: "/li-assessment",
     note: "2 included/month",
   },
   {
-    icon: "🏛️",
-    title: "Governance Readiness Assessment",
+    icon: "🛡️",
+    title: "Data Privacy Healthcheck",
     description:
-      "Ten-domain review of data governance practices mapped to applicable regulatory frameworks. Includes a DPIA scope list as output.",
-    cta: "Run Assessment",
+      "Ten-domain review of your organisation's privacy practices mapped to applicable regulatory frameworks. Each finding is rated by severity and paired with a recommended action, suggested owner, and timeline.",
+    cta: "Run Healthcheck",
     href: "/governance-assessment",
     note: "1 included/month",
   },
   {
     icon: "📋",
-    title: "DPIA Framework",
+    title: "DPIA Builder",
     description:
-      "Structured Data Protection Impact Assessment framework for a specific processing activity, built against GDPR Article 35 requirements.",
-    cta: "Open DPIA Framework",
+      "Structured Data Protection Impact Assessment framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
+    cta: "Open DPIA Builder",
     href: "/dpia-framework",
     note: "Included for annual subscribers",
   },
 ];
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
-  li: "LI Assessment",
-  governance: "Governance",
-  dpia: "DPIA Framework",
+  li: "LI Analyzer",
+  governance: "Privacy Healthcheck",
+  dpia: "DPIA Builder",
 };
 
 const TYPE_BADGE: Record<AssessmentRow["type"], string> = {
