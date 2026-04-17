@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye, Lock } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye } from "lucide-react";
 import PremiumGate from "./PremiumGate";
 
 interface AISummary {
