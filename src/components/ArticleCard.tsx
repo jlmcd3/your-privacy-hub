@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, Lock } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
+import PremiumGate from "@/components/PremiumGate";
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
@@ -114,7 +115,7 @@ const IntelligenceBadge = () => (
 );
 
 // — Enrichment detail accordion —
-const EnrichmentAccordion = ({ item }: { item: ArticleItem }) => {
+const EnrichmentAccordion = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
   const [open, setOpen] = useState(false);
   const s = item.ai_summary;
   if (!s) return null;
@@ -141,7 +142,12 @@ const EnrichmentAccordion = ({ item }: { item: ArticleItem }) => {
         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
         {open ? 'Hide details' : 'View analysis'}
       </button>
-      {open && (
+      {open && !isPremium && (
+        <div className="mt-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+          <PremiumGate message="Full compliance analysis is a Premium feature." blur={false} />
+        </div>
+      )}
+      {open && isPremium && (
         <div className="mt-2 pl-3 border-l-2 space-y-1.5" style={{ borderColor: '#4A6FA5' }}>
           {details.map((d) => (
             <div key={d.label}>
@@ -184,7 +190,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
 };
 
 // — FULL variant ——————————————————————————————————
-const FullCard = ({ item }: { item: ArticleItem }) => {
+const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
   const urgency = item.ai_summary?.urgency;
   const weight = item.ai_summary?.legal_weight;
   const enriched = isEnriched(item);
@@ -263,13 +269,25 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
         )}
         {/* Why it matters */}
         {item.ai_summary?.why_it_matters && (
-          <p className="text-[13px] text-emerald-700 leading-relaxed line-clamp-2 mt-1 italic">
-            <span className="font-semibold not-italic">Why it matters:</span>{' '}
-            {stripHtml(item.ai_summary.why_it_matters)}
-          </p>
+          <div className="mt-1">
+            <p className={`text-[13px] text-emerald-700 leading-relaxed italic ${isPremium ? '' : 'line-clamp-2'}`}>
+              <span className="font-semibold not-italic">Why it matters:</span>{' '}
+              {stripHtml(item.ai_summary.why_it_matters)}
+            </p>
+            {!isPremium && (
+              <Link
+                to="/subscribe"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors mt-0.5 no-underline"
+              >
+                <Lock className="w-2.5 h-2.5" />
+                Full analysis — Premium
+              </Link>
+            )}
+          </div>
         )}
         {/* Enrichment accordion */}
-        {enriched && <EnrichmentAccordion item={item} />}
+        {enriched && <EnrichmentAccordion item={item} isPremium={isPremium} />}
       </div>
       {/* External link */}
       {item.source_url && (
@@ -353,14 +371,15 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
 interface ArticleCardProps {
   item: ArticleItem;
   variant?: ArticleCardVariant;
+  isPremium?: boolean;
 }
 
-export const ArticleCard = ({ item, variant = 'full' }: ArticleCardProps) => {
+export const ArticleCard = ({ item, variant = 'full', isPremium = false }: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
     case 'enforcement': return <EnforcementCard item={item} />;
-    default:            return <FullCard item={item} />;
+    default:            return <FullCard item={item} isPremium={isPremium} />;
   }
 };
 

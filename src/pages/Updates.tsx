@@ -440,11 +440,12 @@ const Updates = () => {
                     isLoading={loading || loadingMore}
                     hasMore={hasMore}
                     onLoadMore={handleLoadMore}
-                    renderArticle={(article) => (
+                    renderArticle={(article, _i, isPremium) => (
                         <ArticleCard
                             key={article.id}
                             item={{...article, source_url: article.url} as unknown as ArticleItem}
                             variant='full'
+                            isPremium={isPremium}
                         />
                     )}
                 />
