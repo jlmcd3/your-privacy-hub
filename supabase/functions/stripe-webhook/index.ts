@@ -73,6 +73,45 @@ serve(async (req) => {
       case "checkout.session.completed": {
         const session = event.data.object;
         const userId = session.metadata?.user_id;
+
+        // Handle tool purchase completions (standalone, non-subscriber)
+        if (session.metadata?.tool_type && session.metadata?.assessment_id) {
+          const { tool_type, assessment_id } = session.metadata;
+
+          await supabase.from("assessment_purchases").insert({
+            user_id: userId || null,
+            tool_type,
+            assessment_id,
+            amount_cents: session.amount_total || 0,
+            stripe_payment_intent_id: session.payment_intent as string,
+            status: "paid",
+            subscriber_at_time: false,
+          });
+
+          const tableMap: Record<string, string> = {
+            li_assessment: "li_assessments",
+            governance_assessment: "governance_assessments",
+            dpia_framework: "dpia_frameworks",
+          };
+          const table = tableMap[tool_type];
+          if (table) {
+            await supabase.from(table).update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              purchase_price_cents: session.amount_total || 0,
+            }).eq("id", assessment_id);
+
+            const fnMap: Record<string, string> = {
+              li_assessment: "run-li-assessment",
+              governance_assessment: "run-governance-assessment",
+              dpia_framework: "run-dpia-framework",
+            };
+            const fn = fnMap[tool_type];
+            const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
+            await supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } });
+          }
+          break;
+        }
+
         if (!userId) break;
 
         // Check if this is a report credit purchase
