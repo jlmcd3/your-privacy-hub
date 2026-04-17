@@ -50,6 +50,60 @@ export type Database = {
         }
         Relationships: []
       }
+      biometric_assessments: {
+        Row: {
+          analysis_text: string | null
+          created_at: string | null
+          id: string
+          intake_data: Json
+          is_free_tier: boolean | null
+          is_subscriber_credit: boolean | null
+          jurisdictions: string[] | null
+          pdf_url: string | null
+          purchase_price_cents: number | null
+          purchased_as_standalone: boolean | null
+          report_data: Json | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analysis_text?: string | null
+          created_at?: string | null
+          id?: string
+          intake_data?: Json
+          is_free_tier?: boolean | null
+          is_subscriber_credit?: boolean | null
+          jurisdictions?: string[] | null
+          pdf_url?: string | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analysis_text?: string | null
+          created_at?: string | null
+          id?: string
+          intake_data?: Json
+          is_free_tier?: boolean | null
+          is_subscriber_credit?: boolean | null
+          jurisdictions?: string[] | null
+          pdf_url?: string | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       custom_briefs: {
         Row: {
           articles_used: number | null
@@ -99,6 +153,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dpa_documents: {
+        Row: {
+          created_at: string | null
+          document_text: string | null
+          id: string
+          intake_data: Json
+          is_subscriber_credit: boolean | null
+          pdf_url: string | null
+          purchase_price_cents: number | null
+          purchased_as_standalone: boolean | null
+          report_data: Json | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_text?: string | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_text?: string | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       dpia_frameworks: {
         Row: {
@@ -508,6 +610,54 @@ export type Database = {
           run_at?: string
           skipped?: number | null
           summaries_generated?: number | null
+        }
+        Relationships: []
+      }
+      ir_playbooks: {
+        Row: {
+          created_at: string | null
+          id: string
+          intake_data: Json
+          is_subscriber_credit: boolean | null
+          pdf_url: string | null
+          playbook_text: string | null
+          purchase_price_cents: number | null
+          purchased_as_standalone: boolean | null
+          report_data: Json | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
+          playbook_text?: string | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          intake_data?: Json
+          is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
+          playbook_text?: string | null
+          purchase_price_cents?: number | null
+          purchased_as_standalone?: boolean | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
