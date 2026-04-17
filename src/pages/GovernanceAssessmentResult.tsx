@@ -54,7 +54,7 @@ const GovernanceAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Governance Assessment Result | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Data Privacy Healthcheck | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 space-y-6">
@@ -84,7 +84,7 @@ const GovernanceAssessmentResult = () => {
           <>
             {/* Cover */}
             <section className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="text-3xl font-serif mb-2">Data Governance Readiness Assessment</h1>
+              <h1 className="text-3xl font-serif mb-2">Data Privacy Healthcheck</h1>
               <p className="text-slate-300 text-sm">
                 {intake.sector ? `${intake.sector} · ` : ""}{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : ""}
               </p>
@@ -177,7 +177,7 @@ const GovernanceAssessmentResult = () => {
                   ))}
                 </ul>
                 <Button asChild>
-                  <Link to={`/dpia-framework?source=${id}`}>Open DPIA Framework for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
+                  <Link to={`/dpia-framework?source=${id}`}>Open DPIA Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
                 </Button>
               </section>
             )}
