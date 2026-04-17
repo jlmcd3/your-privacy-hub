@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp, Sparkles, AlertCircle, Clock, Eye, Lock } from "lucide-react";
+import PremiumGate from "./PremiumGate";
 
 interface AISummary {
   why_it_matters: string;
@@ -19,6 +21,7 @@ interface AISummary {
 interface AISummaryPanelProps {
   summary: AISummary | null;
   compact?: boolean;
+  isPremium?: boolean;
 }
 
 const URGENCY_CONFIG: Record<string, { color: string; icon: typeof AlertCircle; label: string }> = {
@@ -34,7 +37,7 @@ const RISK_CONFIG: Record<string, string> = {
   "Low": "bg-green-50 text-green-700 border-green-200",
 };
 
-const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
+const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISummaryPanelProps) => {
   const [open, setOpen] = useState(false);
 
   if (!summary) return null;
@@ -62,9 +65,25 @@ const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
           </span>
         )}
         {!compact && teaserText && (
-          <p className="text-[12px] text-muted-foreground leading-snug line-clamp-2">
-            {teaserText}
-          </p>
+          isPremium ? (
+            <p className="text-[12px] text-muted-foreground leading-snug">
+              {summary.why_it_matters}
+            </p>
+          ) : (
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] text-muted-foreground leading-snug line-clamp-2">
+                {teaserText}
+              </p>
+              <Link
+                to="/subscribe"
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors mt-0.5 no-underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Lock className="w-2.5 h-2.5" />
+                Full analysis — Premium
+              </Link>
+            </div>
+          )
         )}
       </div>
 
@@ -86,8 +105,14 @@ const AISummaryPanel = ({ summary, compact = false }: AISummaryPanelProps) => {
         {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
       </button>
 
-      {/* Expanded full panel */}
-      {open && (
+      {/* Expanded full panel — gated for non-premium users */}
+      {open && !isPremium && (
+        <div className="mt-2">
+          <PremiumGate message="Full compliance analysis is a Premium feature." blur={false} />
+        </div>
+      )}
+
+      {open && isPremium && (
         <div className="mt-2 p-4 bg-primary/[0.03] border border-primary/10 rounded-xl space-y-3 text-[12px]">
           <div>
             <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
