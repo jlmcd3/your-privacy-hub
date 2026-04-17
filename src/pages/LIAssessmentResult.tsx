@@ -231,7 +231,7 @@ const LIAssessmentResult = () => {
               <p className="text-sm text-muted-foreground mb-3">
                 If your assessment identifies high-risk processing, you may be required to conduct a Data Protection Impact Assessment under GDPR Article 35.
               </p>
-              <Button asChild><Link to="/dpia-framework">Open DPIA Framework →</Link></Button>
+              <Button asChild><Link to="/dpia-framework">Open DPIA Builder →</Link></Button>
             </section>
           </>
         )}
