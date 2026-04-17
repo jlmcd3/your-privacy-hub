@@ -73,7 +73,7 @@ const LIAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>LI Assessment Result | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Legitimate Interest Analyzer | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-10">
