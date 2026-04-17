@@ -91,7 +91,7 @@ export default function EnforcementActionDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="max-w-4xl mx-auto px-4 py-8 space-y-4">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-12 w-3/4" />
           <Skeleton className="h-64 w-full" />
@@ -105,7 +105,7 @@ export default function EnforcementActionDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h1 className="font-serif text-3xl mb-4">Action not found</h1>
           <Link to="/enforcement-intelligence" className="text-primary hover:underline">← Back to Enforcement Intelligence</Link>
         </main>
@@ -127,7 +127,7 @@ export default function EnforcementActionDetail() {
       </Helmet>
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to="/enforcement-intelligence" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4" /> Back to Enforcement Intelligence
         </Link>

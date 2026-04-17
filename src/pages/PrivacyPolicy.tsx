@@ -10,7 +10,7 @@ const PrivacyPolicy = () => {
         <meta name="description" content="How EndUserPrivacy collects, uses, and safeguards your information. Our commitment to data protection and transparency." />
       </Helmet>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 md:px-8 py-12 md:py-20">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8">Privacy Policy</h1>
         <div className="prose prose-sm max-w-none text-foreground/90 space-y-4">
           <p>

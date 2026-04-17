@@ -137,7 +137,7 @@ const UpdateDetail = () => {
       )}
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-4 py-10">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {loading && (
           <div className="space-y-4">
             <div className="h-4 w-64 bg-muted rounded animate-pulse" />

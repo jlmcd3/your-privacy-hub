@@ -63,7 +63,7 @@ const PillarPage = ({ title, subtitle, icon, lastUpdated, intro, sections, relat
 
       <AdBanner variant="leaderboard" adSlot={`eup-pillar-top`} className="py-3" />
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10 md:py-14">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
           <p className="text-[15px] text-navy leading-relaxed">{intro}</p>
         </div>

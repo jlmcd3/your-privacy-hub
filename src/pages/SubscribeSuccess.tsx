@@ -60,7 +60,7 @@ export default function SubscribeSuccess() {
       </Helmet>
       <Navbar />
 
-      <div className="max-w-[640px] mx-auto px-4 py-16 md:py-20">
+      <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
 
         {/* Celebration header */}
         <div className="text-center mb-10">

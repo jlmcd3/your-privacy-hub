@@ -126,7 +126,7 @@ const LIAssessment = () => {
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Compliance Framework Tool · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
           </span>
@@ -140,7 +140,7 @@ const LIAssessment = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <section className="bg-card border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">How this assessment works</h2>
           <ol className="space-y-2 list-decimal pl-5 text-foreground">

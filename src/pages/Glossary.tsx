@@ -34,7 +34,7 @@ const Glossary = () => {
       <Navbar />
 
       <div className="border-b border-border bg-card">
-        <div className="max-w-4xl mx-auto px-4 py-10 md:py-14">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📖 Reference</p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Privacy Law Glossary</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
@@ -43,7 +43,7 @@ const Glossary = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 flex-1 w-full">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         <input
           type="text"
           placeholder="Search terms…"

@@ -83,7 +83,7 @@ export default function Tools() {
         </div>
       </section>
 
-      <div className="max-w-[960px] mx-auto px-4 md:px-8 py-12">
+      <div className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {tools.map((tool) => (
             <Link

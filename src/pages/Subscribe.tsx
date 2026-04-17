@@ -117,7 +117,7 @@ const Subscribe = () => {
       </div>
 
       {fromBuilder && (
-        <div className="max-w-3xl mx-auto px-4 pt-6 pb-2">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4
             flex items-start gap-3">
             <span className="text-green-600 text-[18px] flex-shrink-0 mt-0.5">✓</span>
@@ -136,7 +136,7 @@ const Subscribe = () => {
       )}
 
       {/* Interactive Pro Brief Preview */}
-      <div className="max-w-3xl mx-auto px-4 pt-12 pb-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
         {/* Social proof bar */}
         <div className="max-w-3xl mx-auto mb-8 text-center">
           <p className="text-[12px] text-slate mb-4 uppercase tracking-wider font-semibold">
@@ -165,7 +165,7 @@ const Subscribe = () => {
           </div>
         </div>
       </div>
-      <div className="max-w-3xl mx-auto px-4 pb-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             See what your brief would look like this week
@@ -179,7 +179,7 @@ const Subscribe = () => {
       </div>
 
       {/* Report Tracks */}
-      <div className="max-w-3xl mx-auto px-4 py-12 border-t border-fog">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-fog">
         <div className="text-center mb-8">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             What do you want covered?
@@ -238,7 +238,7 @@ const Subscribe = () => {
       </div>
 
       {/* Sample Brief Preview */}
-      <div className="max-w-[760px] mx-auto px-4 py-12">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-2xl mb-2">
             What does the Intelligence Brief look like?
@@ -413,7 +413,7 @@ const Subscribe = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Comparison table */}
         <div className="mb-14">
           <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Pro</h2>
