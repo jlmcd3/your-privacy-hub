@@ -139,7 +139,7 @@ const CategoryPage = () => {
 
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">
             {meta.icon} {({
               "enforcement": "Enforcement Intelligence",
@@ -166,7 +166,7 @@ const CategoryPage = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-category-top" className="py-3" />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
         {/* Article list */}
         <div>
           {loading && <div className="space-y-4">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>}
@@ -261,7 +261,7 @@ const CategoryPage = () => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <EmailSignup variant="card" />
       </div>
 
