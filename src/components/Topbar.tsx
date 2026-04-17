@@ -40,7 +40,9 @@ const Topbar = () => {
       <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex justify-between items-center">
         <div className="flex gap-5 items-center">
           <span className="text-navy-light hidden lg:inline">·</span>
-          <span className="hidden lg:inline">Last update: {lastUpdate}</span>
+          <Link to="/updates" className="hidden lg:inline hover:text-sky transition-colors no-underline text-slate-light">
+            Last update: {lastUpdate}
+          </Link>
           <span className="text-navy-light hidden xl:inline">·</span>
           <Link to="/dashboard" className="hover:text-sky transition-colors hidden xl:inline no-underline text-slate-light">{briefLabel}</Link>
         </div>
