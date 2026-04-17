@@ -86,6 +86,7 @@ const Dashboard = () => {
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
   const [reportsUsed, setReportsUsed] = useState(0);
