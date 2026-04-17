@@ -41,3 +41,22 @@ verify_jwt = false
 
 [functions.get-enforcement-context]
 verify_jwt = false
+
+# Payment functions — public endpoints + webhook
+[functions.create-tool-checkout]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.purchase-report-credits]
+verify_jwt = false
+
+[functions.get-tool-price]
+verify_jwt = false
+
+[functions.payments-webhook]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
