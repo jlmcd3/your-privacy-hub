@@ -51,8 +51,7 @@ const GovernanceAssessment = () => {
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
-  const [paywallOpen, setPaywallOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
 
   // Step 1
   const [sector, setSector] = useState("");
@@ -133,22 +132,23 @@ const GovernanceAssessment = () => {
     transfer_status: showStep5 ? transferStatus : "n/a",
   });
 
-  const handleSubmit = async () => {
+  const handlePurchase = async () => {
     if (!user) { navigate(`/login?return=${encodeURIComponent("/governance-assessment")}`); return; }
-    const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).maybeSingle();
-    if (!profile?.is_premium) { setPaywallOpen(true); return; }
-    setSubmitting(true);
+    setPurchasing(true);
     try {
-      const { data: row, error } = await supabase.from("governance_assessments").insert({
-        user_id: user.id, intake_data: buildIntake(), status: "pending",
-      }).select().single();
-      if (error || !row) throw error ?? new Error("Insert failed");
-      const { error: fnErr } = await supabase.functions.invoke("run-governance-assessment", { body: { assessment_id: row.id } });
-      if (fnErr) throw fnErr;
-      navigate(`/governance-assessment/result/${row.id}`);
+      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+        body: {
+          tool_type: "governance_assessment",
+          user_id: user.id,
+          intake_data: buildIntake(),
+          return_url: window.location.origin,
+        },
+      });
+      if (error || !data?.url) throw error ?? new Error("Checkout failed");
+      window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Submission failed", description: err.message ?? "Try again.", variant: "destructive" });
-      setSubmitting(false);
+      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      setPurchasing(false);
     }
   };
 
