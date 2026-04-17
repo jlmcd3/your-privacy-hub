@@ -311,43 +311,22 @@ const GovernanceAssessment = () => {
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Running your governance assessment — this typically takes 45-60 seconds…" : "Run Assessment"}</Button>
+              <Button onClick={handlePurchase} disabled={purchasing}>
+                {purchasing ? "Redirecting…" : `Purchase Full Healthcheck — $${PRICE}`}
+              </Button>
             )}
           </div>
         </div>
+
+        <ToolSamplePreview
+          toolType="healthcheck"
+          toolName="Data Privacy Healthcheck"
+          price={PRICE}
+          onPurchase={handlePurchase}
+          purchasing={purchasing}
+        />
       </main>
 
-      <Dialog open={paywallOpen} onOpenChange={setPaywallOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Premium tool</DialogTitle><DialogDescription>This assessment is included in Premium ($20/month) or available for a one-time purchase ($149).</DialogDescription></DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button
-              disabled={submitting}
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-                    body: {
-                      tool_type: "governance_assessment",
-                      user_id: user?.id ?? null,
-                      intake_data: buildIntake(),
-                      return_url: window.location.origin,
-                    },
-                  });
-                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
-                  window.location.href = data.url;
-                } catch (err: any) {
-                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
-                  setSubmitting(false);
-                }
-              }}
-            >
-              {submitting ? "Redirecting…" : "Purchase — $149"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       <Footer />
     </div>
   );
