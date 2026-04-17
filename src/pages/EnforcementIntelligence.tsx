@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import EnforcementStats from "@/components/enforcement/EnforcementStats";
 
 interface Row {
   id: string;
@@ -184,6 +185,11 @@ export default function EnforcementIntelligence() {
             sector, data category, violation type, and precedent significance.
           </p>
         </header>
+
+        {/* Summary stats — respect active filters */}
+        <EnforcementStats
+          filters={{ q, jurisdiction, sector, dataCat, violation, significance }}
+        />
 
         {/* Filters */}
         <Card className="mb-6">
