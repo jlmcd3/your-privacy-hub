@@ -346,11 +346,12 @@ const LatestUpdates = () => {
                   <>
                     <NewsfeedList
                       articles={displayArticles}
-                      renderArticle={(u) => (
+                      renderArticle={(u, _i, isPremium) => (
                         <ArticleCard
                           key={u.id}
                           item={{...u, source_url: u.url} as unknown as ArticleItem}
                           variant='full'
+                          isPremium={isPremium}
                         />
                       )}
                     />
