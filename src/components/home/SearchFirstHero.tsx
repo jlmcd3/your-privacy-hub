@@ -15,7 +15,7 @@ export default function SearchFirstHero() {
               Global privacy law, tracked daily.
             </h1>
             <p className="text-blue-200/80 text-[14px] md:text-[16px] mb-8">
-              Privacy intelligence across 150+ jurisdictions, updated daily. The latest privacy developments, analyzed and filtered to what matters. Weekly updates customized for you.
+              Everything a privacy professional needs in one place. Daily intelligence across 150+ jurisdictions. Weekly briefs written for your sector and regions. Assessment tools calibrated to real enforcement decisions.
             </p>
             <div className="flex gap-3 justify-center lg:justify-start flex-wrap mb-8">
               <Link
