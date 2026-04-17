@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 type Step = 1 | 2 | 3 | "preview";
 
@@ -69,6 +70,7 @@ const Progress = ({ n }: { n: number }) => (
 );
 
 const GetIntelligence = () => {
+  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
   const [step, setStep] = useState<Step>(1);
   const [jurisdiction, setJurisdiction] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
@@ -281,7 +283,7 @@ const GetIntelligence = () => {
                 Building your report…
               </div>
             ) : (
-              <div className="pb-52">
+              <div className={isPremium ? "" : "pb-52"}>
 
                 {/* Header */}
                 <div className="mb-6">
@@ -338,101 +340,104 @@ const GetIntelligence = () => {
                   )}
                 </div>
 
-                {/* Blurred sections */}
+                {/* Blurred sections — only for non-premium users; premium sees them clear */}
                 {BLURRED.map(s => (
                   <div key={s.title} className="mb-6">
                     <h3 className="font-bold text-navy text-[15px] mb-3">{s.title}</h3>
                     <div className="bg-white border border-fog rounded-xl px-4 py-3">
-                      <p className="text-[13px] text-slate leading-relaxed
-                        filter blur-sm pointer-events-none select-none">
+                      <p className={`text-[13px] text-slate leading-relaxed ${
+                        !isPremium && !premiumLoading ? "filter blur-sm pointer-events-none select-none" : ""
+                      }`}>
                         {s.text}
                       </p>
                     </div>
                   </div>
                 ))}
 
-                {/* Gate overlay — fixed bottom */}
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-fog
-                  shadow-lg px-4 py-4 z-50">
-                  <div className="max-w-2xl mx-auto">
+                {/* Gate overlay — fixed bottom; hidden for premium and while loading premium status */}
+                {!isPremium && !premiumLoading && (
+                  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-fog
+                    shadow-lg px-4 py-4 z-50">
+                    <div className="max-w-2xl mx-auto">
 
-                    {/* Default gate */}
-                    {!showEmailCapture && (
-                      <>
-                        <p className="font-bold text-navy text-[16px] mb-1">
-                          Unlock the Full Analysis
-                        </p>
-                        <p className="text-[12px] text-slate mb-3">
-                          Compliance implications · Enforcement patterns · Action items
-                        </p>
-                        <div className="flex flex-wrap items-center gap-3">
+                      {/* Default gate */}
+                      {!showEmailCapture && (
+                        <>
+                          <p className="font-bold text-navy text-[16px] mb-1">
+                            Unlock the Full Analysis
+                          </p>
+                          <p className="text-[12px] text-slate mb-3">
+                            Compliance implications · Enforcement patterns · Action items
+                          </p>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <Link to={subscribeUrl}
+                              className="bg-navy text-white font-bold text-[14px] px-7 py-2.5
+                                rounded-xl hover:opacity-90 no-underline transition-all">
+                              Get My Report →
+                            </Link>
+                            <span className="text-[12px] text-slate">
+                              $20/month · cancel anytime
+                            </span>
+                            <button type="button" onClick={() => setShowEmailCapture(true)}
+                              className="text-blue text-[13px] font-semibold hover:text-navy">
+                              Send my preview →
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Email capture */}
+                      {showEmailCapture && !emailSent && (
+                        <>
+                          <p className="font-bold text-navy text-[15px] mb-1">
+                            Send your preview by email
+                          </p>
+                          <p className="text-[12px] text-slate mb-3">
+                            We'll send this preview now and a reminder in 48 hours.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link to={subscribeUrl}
+                              className="bg-navy text-white font-bold text-[13px] px-5 py-2
+                                rounded-xl hover:opacity-90 no-underline">
+                              Get My Report →
+                            </Link>
+                            <input type="email" value={email}
+                              onChange={e => setEmail(e.target.value)}
+                              placeholder="you@company.com"
+                              className="border border-fog rounded-xl px-3 py-2 text-[13px]
+                                flex-1 min-w-[200px] outline-none focus:border-navy" />
+                            <button type="button" onClick={handleEmailCapture}
+                              disabled={!email}
+                              className="bg-blue-600 text-white font-bold text-[13px] px-4 py-2
+                                rounded-xl hover:opacity-90 disabled:opacity-40">
+                              Send →
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Email sent confirmation */}
+                      {emailSent && (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-green-600 font-bold text-[14px]">
+                              ✓ Your preview is on its way.
+                            </p>
+                            <p className="text-[12px] text-slate">
+                              Check your inbox for intelligence@enduserprivacy.com
+                            </p>
+                          </div>
                           <Link to={subscribeUrl}
-                            className="bg-navy text-white font-bold text-[14px] px-7 py-2.5
-                              rounded-xl hover:opacity-90 no-underline transition-all">
+                            className="bg-navy text-white font-bold text-[13px] px-5 py-2.5
+                              rounded-xl hover:opacity-90 no-underline flex-shrink-0 ml-4">
                             Get My Report →
                           </Link>
-                          <span className="text-[12px] text-slate">
-                            $20/month · cancel anytime
-                          </span>
-                          <button type="button" onClick={() => setShowEmailCapture(true)}
-                            className="text-blue text-[13px] font-semibold hover:text-navy">
-                            Send my preview →
-                          </button>
                         </div>
-                      </>
-                    )}
+                      )}
 
-                    {/* Email capture */}
-                    {showEmailCapture && !emailSent && (
-                      <>
-                        <p className="font-bold text-navy text-[15px] mb-1">
-                          Send your preview by email
-                        </p>
-                        <p className="text-[12px] text-slate mb-3">
-                          We'll send this preview now and a reminder in 48 hours.
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Link to={subscribeUrl}
-                            className="bg-navy text-white font-bold text-[13px] px-5 py-2
-                              rounded-xl hover:opacity-90 no-underline">
-                            Get My Report →
-                          </Link>
-                          <input type="email" value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="you@company.com"
-                            className="border border-fog rounded-xl px-3 py-2 text-[13px]
-                              flex-1 min-w-[200px] outline-none focus:border-navy" />
-                          <button type="button" onClick={handleEmailCapture}
-                            disabled={!email}
-                            className="bg-blue-600 text-white font-bold text-[13px] px-4 py-2
-                              rounded-xl hover:opacity-90 disabled:opacity-40">
-                            Send →
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Email sent confirmation */}
-                    {emailSent && (
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-green-600 font-bold text-[14px]">
-                            ✓ Your preview is on its way.
-                          </p>
-                          <p className="text-[12px] text-slate">
-                            Check your inbox for intelligence@enduserprivacy.com
-                          </p>
-                        </div>
-                        <Link to={subscribeUrl}
-                          className="bg-navy text-white font-bold text-[13px] px-5 py-2.5
-                            rounded-xl hover:opacity-90 no-underline flex-shrink-0 ml-4">
-                          Get My Report →
-                        </Link>
-                      </div>
-                    )}
-
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </>
