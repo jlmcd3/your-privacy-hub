@@ -8,25 +8,37 @@ import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 
-const comparisonRows = [
-  { feature: "Daily privacy news feed",                             free: true,  pro: true  },
-  { feature: "Jurisdiction profiles (150+ countries)",              free: true,  pro: true  },
-  { feature: "Regulator directory (119 authorities)",               free: true,  pro: true  },
-  { feature: "Research guides (GDPR, AI, US laws)",                 free: true,  pro: true  },
-  { feature: "Enforcement tracker (all actions)",                   free: true,  pro: true  },
-  { feature: "Personalized weekly digest (your regions and topics)", free: true,  pro: true  },
-  { feature: "Cross-jurisdiction pattern observation",              free: true,  pro: true  },
-  { feature: "Full 8-section weekly brief analysis",                free: false, pro: true  },
-  { feature: "Enforcement table & trend signals",                   free: false, pro: true  },
-  { feature: "Why This Matters — action items",                     free: false, pro: true  },
-  { feature: "On-demand personalized reports (6/month)",            free: false, pro: true  },
-  { feature: "Additional report credit bundles ($5/$15/$20)",       free: false, pro: true  },
-  { feature: "Brief written for your industry",                     free: false, pro: true  },
-  { feature: "Jurisdiction focus (EU-only, US-only, APAC…)",       free: false, pro: true  },
-  { feature: "Subject-matter depth (AI, biometric, litigation…)",  free: false, pro: true  },
-  { feature: "Sector-specific compliance action items",            free: false, pro: true  },
-  { feature: "Historical continuity (issue tracking across weeks)", free: false, pro: true  },
-  { feature: "Priority Monday delivery",                           free: false, pro: true  },
+type ComparisonRow =
+  | { feature: string; free: boolean; pro: boolean; isSection?: false }
+  | { feature: string; free: string;  pro: string;  isSection?: false }
+  | { feature: string; isSection: true };
+
+const comparisonRows: ComparisonRow[] = [
+  { feature: "Daily privacy news feed",                              free: true,                  pro: true  },
+  { feature: "Jurisdiction profiles (150+ countries)",               free: true,                  pro: true  },
+  { feature: "Regulator directory (119 authorities)",                free: true,                  pro: true  },
+  { feature: "Research guides (GDPR, AI Act, US laws)",              free: true,                  pro: true  },
+  { feature: "Enforcement tracker — all actions",                    free: true,                  pro: true  },
+  { feature: "Personalized weekly digest (your regions & topics)",   free: true,                  pro: true  },
+  { feature: "Cross-jurisdiction pattern observation",               free: true,                  pro: true  },
+
+  { isSection: true, feature: "Intelligence Brief" },
+  { feature: "Full 8-section weekly Intelligence Brief",             free: false,                 pro: true  },
+  { feature: "Enforcement trends & pattern signals",                 free: false,                 pro: true  },
+  { feature: "Why This Matters — full article analysis",             free: false,                 pro: true  },
+  { feature: "Brief written for your industry & jurisdictions",      free: false,                 pro: true  },
+  { feature: "Jurisdiction & subject-matter depth focus",            free: false,                 pro: true  },
+  { feature: "Historical continuity across weekly issues",           free: false,                 pro: true  },
+  { feature: "Priority Monday delivery",                             free: false,                 pro: true  },
+
+  { isSection: true, feature: "Assessment Tools" },
+  { feature: "Sample preview of all tools",                          free: true,                  pro: true  },
+  { feature: "Data Privacy Healthcheck",                             free: "$29 per analysis",    pro: "$15 per analysis"   },
+  { feature: "Legitimate Interest Analyzer",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
+  { feature: "DPIA Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
+  { feature: "DPA Generator",                                        free: "$69 per document",    pro: "$39 per document"   },
+  { feature: "Incident Response Playbook Generator",                 free: "$39 per playbook",    pro: "Included free"      },
+  { feature: "Biometric Privacy Compliance Checker",                 free: "1 jurisdiction free", pro: "Included free"      },
 ];
 
 // Note: Compliance framework tools (LI Analyzer, Healthcheck, DPIA Builder)
@@ -415,22 +427,45 @@ const Subscribe = () => {
                       Free
                     </th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[140px]">
-                      Pro ($20/mo)
+                      Premium ($20/mo or $180/yr)
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonRows.map((row, i) => (
-                    <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                      <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{row.feature}</td>
-                      <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.free ? <Check className="w-4 h-4 text-accent mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
-                      </td>
-                      <td className="px-5 py-3 text-center border-t border-fog">
-                        {row.pro ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <XIcon className="w-4 h-4 text-slate-light mx-auto" />}
-                      </td>
-                    </tr>
-                  ))}
+                  {comparisonRows.map((row, i) => {
+                    if ('isSection' in row && row.isSection) {
+                      return (
+                        <tr key={i} className="bg-navy/5">
+                          <td colSpan={3} className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-navy/60 border-t border-fog">
+                            {row.feature}
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
+
+                    const renderFree = () => {
+                      if (dataRow.free === true)  return <Check className="w-4 h-4 text-accent mx-auto" />;
+                      if (dataRow.free === false) return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
+                      return <span className="text-[11px] font-medium text-slate">{dataRow.free}</span>;
+                    };
+
+                    const renderPro = () => {
+                      if (dataRow.pro === true)            return <Check className="w-4 h-4 text-amber-500 mx-auto" />;
+                      if (dataRow.pro === false)           return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
+                      if (dataRow.pro === "Included free") return <span className="text-[11px] font-semibold text-green-600">Included free</span>;
+                      return <span className="text-[11px] font-semibold text-amber-600">{dataRow.pro}</span>;
+                    };
+
+                    return (
+                      <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
+                        <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{row.feature}</td>
+                        <td className="px-5 py-3 text-center border-t border-fog">{renderFree()}</td>
+                        <td className="px-5 py-3 text-center border-t border-fog">{renderPro()}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
