@@ -1125,6 +1125,7 @@ export type Database = {
           privacy_litigation: string | null
           published_at: string
           source_map: Json | null
+          top_enforcement_signals: Json | null
           trend_signal: string | null
           us_federal: string | null
           us_states: string | null
@@ -1149,6 +1150,7 @@ export type Database = {
           privacy_litigation?: string | null
           published_at?: string
           source_map?: Json | null
+          top_enforcement_signals?: Json | null
           trend_signal?: string | null
           us_federal?: string | null
           us_states?: string | null
@@ -1173,6 +1175,7 @@ export type Database = {
           privacy_litigation?: string | null
           published_at?: string
           source_map?: Json | null
+          top_enforcement_signals?: Json | null
           trend_signal?: string | null
           us_federal?: string | null
           us_states?: string | null
