@@ -15,8 +15,10 @@ import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import ToolkitSection from "@/components/home/ToolkitSection";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const Index = () => {
+  const { isPremium } = usePremiumStatus();
 
   return (
     <div className="min-h-screen bg-paper">
@@ -54,39 +56,41 @@ const Index = () => {
           {/* === RIGHT SIDEBAR === */}
           <aside className="hidden lg:flex flex-col gap-6">
 
-            {/* Weekly brief sidebar card */}
-            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5 text-white">
-              <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-2">
-                ⭐ Weekly Intelligence Brief
-              </div>
-              <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                Every Monday. Premium. 8-section analysis.
-              </p>
-              <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
-                Enforcement table · trend signals · action items ·
-                regional analysis. Re-analyzed for your industry.
-              </p>
-              <Link
-                to="/sample-brief"
-                className="block text-center text-[12px] font-semibold text-navy bg-white hover:opacity-90 px-4 py-2 rounded-lg no-underline mb-3"
-              >
-                See a sample brief →
-              </Link>
-              <div className="border-t border-white/10 pt-3">
-                <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
-                  ⭐ Pro — $20/month
+            {/* Weekly brief sidebar card — hidden for premium */}
+            {!isPremium && (
+              <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5 text-white">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-2">
+                  ⭐ Weekly Intelligence Brief
+                </div>
+                <p className="font-display font-bold text-[15px] leading-snug mb-2">
+                  Every Monday. Premium. 8-section analysis.
                 </p>
-                <p className="text-[11px] text-blue-200 leading-snug mb-2">
-                  Re-written for your industry and jurisdictions.
+                <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
+                  Enforcement table · trend signals · action items ·
+                  regional analysis. Re-analyzed for your industry.
                 </p>
                 <Link
-                  to="/subscribe"
-                  className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
+                  to="/sample-brief"
+                  className="block text-center text-[12px] font-semibold text-navy bg-white hover:opacity-90 px-4 py-2 rounded-lg no-underline mb-3"
                 >
-                  Get Intelligence →
+                  See a sample brief →
                 </Link>
+                <div className="border-t border-white/10 pt-3">
+                  <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
+                    ⭐ Pro — $20/month
+                  </p>
+                  <p className="text-[11px] text-blue-200 leading-snug mb-2">
+                    Re-written for your industry and jurisdictions.
+                  </p>
+                  <Link
+                    to="/subscribe"
+                    className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
+                  >
+                    Get Intelligence →
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Search */}
             <div>

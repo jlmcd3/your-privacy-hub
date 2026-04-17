@@ -4,9 +4,11 @@ import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const GlossaryTerm = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { isPremium } = usePremiumStatus();
   const term = glossaryData.find((t) => t.slug === slug);
 
   if (!term) {
@@ -75,13 +77,15 @@ const GlossaryTerm = () => {
           </div>
         )}
 
-        <div className="mt-12 bg-card border border-border rounded-xl p-6 text-center">
-          <p className="text-sm font-bold text-foreground mb-2">Get weekly updates on regulatory changes</p>
-          <p className="text-xs text-muted-foreground mb-4">Stay informed on how these terms apply to emerging enforcement actions and guidance.</p>
-          <Link to="/subscribe" className="inline-block px-5 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-opacity no-underline">
-            View Premium Plans →
-          </Link>
-        </div>
+        {!isPremium && (
+          <div className="mt-12 bg-card border border-border rounded-xl p-6 text-center">
+            <p className="text-sm font-bold text-foreground mb-2">Get weekly updates on regulatory changes</p>
+            <p className="text-xs text-muted-foreground mb-4">Stay informed on how these terms apply to emerging enforcement actions and guidance.</p>
+            <Link to="/subscribe" className="inline-block px-5 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-opacity no-underline">
+              View Premium Plans →
+            </Link>
+          </div>
+        )}
       </div>
 
       <Footer />
