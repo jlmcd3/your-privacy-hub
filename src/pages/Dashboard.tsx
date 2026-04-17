@@ -46,6 +46,22 @@ interface WeeklyBrief {
   article_count: number;
   published_at: string;
   source_map: Record<string, { title: string; url: string; source: string }> | null;
+  top_enforcement_signals?: TopEnforcementSignal[] | null;
+}
+
+interface TopEnforcementSignal {
+  id: string;
+  regulator: string;
+  jurisdiction: string;
+  subject: string | null;
+  summary: string | null;
+  fine: string | null;
+  fine_eur_equivalent: number | null;
+  decision_date: string | null;
+  precedent_significance: number | null;
+  sector: string | null;
+  violation_types: string[] | null;
+  source_url: string | null;
 }
 
 const ACTION_COLOR: Record<string, string> = {
