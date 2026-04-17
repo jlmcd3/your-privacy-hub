@@ -122,7 +122,68 @@
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 
-/* Typography utility classes */
+/* ============================================================
+   TYPOGRAPHY UTILITY CLASSES
+   ------------------------------------------------------------
+   Use these in place of ad-hoc text-[Xpx]/font-bold/uppercase
+   combinations. Each class encodes one semantic role.
+   ============================================================ */
+
+/* --- Heading scale (use on real <h1>/<h2>/<h3> elements) --- */
+
+/* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
+.text-hero-h1 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 2.25rem;     /* 36px */
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+@media (min-width: 768px) {
+  .text-hero-h1 { font-size: 2.75rem; } /* 44px */
+}
+
+/* Page H1 — used on standard light-background page headers */
+.text-page-h1 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.75rem;     /* 28px */
+  font-weight: 400;
+  line-height: 1.2;
+}
+@media (min-width: 768px) {
+  .text-page-h1 { font-size: 2.25rem; } /* 36px */
+}
+
+/* Section H2 — used for major page sections */
+.text-section-h2 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.5rem;      /* 24px */
+  font-weight: 400;
+  line-height: 1.25;
+}
+@media (min-width: 768px) {
+  .text-section-h2 { font-size: 1.75rem; } /* 28px */
+}
+
+/* Card title — used on article cards, dashboard tiles, list items */
+.text-card-title {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 1rem;        /* 16px */
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* --- Supporting text roles --- */
+
+/* Eyebrow — small uppercase label above a heading ("Intelligence Guide") */
+.text-eyebrow {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.6875rem;   /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .text-nav {
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 0.875rem;    /* 14px */
