@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
+import { useToolPrice } from "@/hooks/useToolPrice";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
@@ -17,7 +18,7 @@ const SAFEGUARDS = ["Encryption at rest", "Encryption in transit", "Access contr
 const JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal", "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)", "Australia", "Singapore", "Other"];
 const LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))", "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))", "Legitimate interest (Art. 6(1)(f))", "Not yet determined"];
 
-const PRICE = 249;
+// Price tiers managed by useToolPrice hook (subscriber-aware)
 
 const Pills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -39,6 +40,7 @@ const DPIAFramework = () => {
   const { toast } = useToast();
   const [params] = useSearchParams();
   const sourceId = params.get("source");
+  const pricing = useToolPrice("dpia_framework");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -114,19 +116,22 @@ const DPIAFramework = () => {
       if (error || !data?.url) throw error ?? new Error("Checkout failed");
       window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      const msg = err?.message?.includes("stripe_not_configured") || err?.context?.status === 503
+        ? "Payments are not yet configured. Please check back soon."
+        : err.message ?? "Try again.";
+      toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
       setPurchasing(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>DPIA Builder — ${PRICE} | EndUserPrivacy</title></Helmet>
+      <Helmet><title>DPIA Builder — from ${pricing.subscriberPrice} | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Compliance Framework Tool · ${PRICE}</span>
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Compliance Framework Tool · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}</span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">DPIA Builder</h1>
           <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment builder for a specific processing activity, structured against GDPR Article 35 requirements.</p>
         </div>
@@ -179,7 +184,11 @@ const DPIAFramework = () => {
         <ToolSamplePreview
           toolType="dpia"
           toolName="DPIA Builder"
-          price={PRICE}
+          price={pricing.price}
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber}
+          stripeConfigured={pricing.stripeConfigured}
           onPurchase={handlePurchase}
           purchasing={purchasing}
         />
