@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import OnboardingModal from "@/components/OnboardingModal";
-import ReportCredits from "@/components/dashboard/ReportCredits";
+
 import PremiumToolsSection from "@/components/dashboard/PremiumToolsSection";
 import DigestPreferences from "@/components/DigestPreferences";
 import PremiumGate from "@/components/PremiumGate";
@@ -130,10 +130,6 @@ const Dashboard = () => {
       const { data, error } = await supabase.functions.invoke("generate-brief-on-demand");
       if (!error && data?.brief) {
         setCustomBrief(data.brief);
-        setReportsUsed(prev => prev + 1);
-        if (data.bonus_credits_remaining !== undefined) {
-          setBonusCredits(data.bonus_credits_remaining);
-        }
       }
     } catch (e) {
       console.error("Brief generation failed:", e);
@@ -159,19 +155,10 @@ const Dashboard = () => {
         if (!premium && !(data as any)?.onboarding_complete) {
           setShowOnboarding(true);
         }
-        setBonusCredits((data as any)?.bonus_report_credits ?? 0);
         setDigestPrefsSet(
           Array.isArray((data as any)?.digest_jurisdictions) &&
           (data as any).digest_jurisdictions.length > 0
         );
-
-        // Use profiles.monthly_reports_used (server-side source of truth)
-        const monthStart = new Date();
-        monthStart.setDate(1);
-        monthStart.setHours(0, 0, 0, 0);
-        const resetDate = (data as any)?.reports_reset_date ? new Date((data as any).reports_reset_date) : null;
-        const used = (resetDate && resetDate >= monthStart) ? ((data as any)?.monthly_reports_used ?? 0) : 0;
-        setReportsUsed(used);
       });
   }, [user, authLoading, navigate]);
 
@@ -216,14 +203,6 @@ const Dashboard = () => {
       .then(({ data }: any) => { if (data) setFreeDigest(data); });
   }, [user, isPremium]);
 
-  // Handle credits_purchased redirect from Stripe
-  useEffect(() => {
-    const purchased = searchParams.get("credits_purchased");
-    if (purchased) {
-      setBonusCredits(prev => prev + parseInt(purchased, 10));
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
 
   if (authLoading || isPremium === null) {
     return (
@@ -398,7 +377,7 @@ const Dashboard = () => {
             <p className="text-[11px] font-bold uppercase tracking-widest text-steel mb-3">
               Your subscriber tool pricing
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-2">
               <Link
                 to="/governance-assessment"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
@@ -431,6 +410,37 @@ const Dashboard = () => {
                   <span className="text-muted-foreground"> /analysis</span>
                 </p>
                 <p className="text-[10px] text-green-700">Save $30 vs standard</p>
+              </Link>
+              <Link
+                to="/dpa-generator"
+                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
+              >
+                <p className="text-[12px] font-semibold text-foreground">DPA Generator</p>
+                <p className="text-[12px] text-foreground">
+                  <span className="font-bold">$39</span>
+                  <span className="text-muted-foreground"> /document</span>
+                </p>
+                <p className="text-[10px] text-green-700">Save $30 vs standard</p>
+              </Link>
+              <Link
+                to="/ir-playbook"
+                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
+              >
+                <p className="text-[12px] font-semibold text-foreground">IR Playbook</p>
+                <p className="text-[12px] text-foreground">
+                  <span className="font-bold">Included free</span>
+                </p>
+                <p className="text-[10px] text-green-700">Free with your subscription</p>
+              </Link>
+              <Link
+                to="/biometric-checker"
+                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
+              >
+                <p className="text-[12px] font-semibold text-foreground">Biometric Checker</p>
+                <p className="text-[12px] text-foreground">
+                  <span className="font-bold">Included free</span>
+                </p>
+                <p className="text-[10px] text-green-700">Free with your subscription</p>
               </Link>
             </div>
           </div>
@@ -492,9 +502,6 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-[13px]">This usually takes 20-40 seconds.</p>
           </div>
         )}
-
-        {/* Report credits — shown near top so usage state is visible on arrival */}
-        <ReportCredits reportsUsed={reportsUsed} bonusCredits={bonusCredits} />
 
         {/* Custom brief for Pro users — document layout */}
         {customBrief && (
