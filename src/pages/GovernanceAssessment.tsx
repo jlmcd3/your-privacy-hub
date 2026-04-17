@@ -154,12 +154,12 @@ const GovernanceAssessment = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Data Governance Readiness Assessment | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Data Privacy Healthcheck | EndUserPrivacy</title></Helmet>
       <Navbar />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">⭐ Premium Tool</span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Data Governance Readiness Assessment</h1>
+          <h1 className="text-3xl md:text-4xl font-serif mb-3">Data Privacy Healthcheck</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
           <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
         </div>
