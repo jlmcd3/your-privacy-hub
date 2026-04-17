@@ -328,29 +328,6 @@ const Updates = () => {
                         </button>
                     ))}
 
-                    {/* Separator */}
-                    <span className="w-px h-5 bg-border mx-1" />
-
-                    {/* Enrichment filters */}
-                    {ENRICHMENT_FILTERS.map((f) => {
-                        const count = f.key === "enriched"
-                            ? updates.filter(u => u.enrichment_version && u.enrichment_version > 0).length
-                            : updates.filter(u => !u.enrichment_version || u.enrichment_version === 0).length;
-                        return (
-                            <button
-                                key={f.key}
-                                onClick={() => setActiveFilter(f.key)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                    activeFilter === f.key
-                                        ? "bg-navy text-white"
-                                        : "bg-muted text-foreground hover:bg-muted/80"
-                                }`}
-                            >
-                                {f.label}
-                                <span className="ml-1 text-[10px] opacity-70">({count})</span>
-                            </button>
-                        );
-                    })}
                 </div>
 
                 {/* Faceted Filters: Sectors + Attention Level */}
