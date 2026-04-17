@@ -48,6 +48,8 @@ const TestCard = ({ title, test }: { title: string; test: any }) => (
 
 const LIAssessmentResult = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const purchased = searchParams.get("purchased") === "true";
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
