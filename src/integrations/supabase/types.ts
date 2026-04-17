@@ -106,6 +106,7 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
@@ -121,6 +122,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
@@ -136,6 +138,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
@@ -371,6 +374,7 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
@@ -386,6 +390,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
@@ -401,6 +406,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
@@ -489,6 +495,7 @@ export type Database = {
           id: string
           is_subscriber_credit: boolean | null
           jurisdictions: string[] | null
+          pdf_url: string | null
           processing_description: string
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
@@ -509,6 +516,7 @@ export type Database = {
           id?: string
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          pdf_url?: string | null
           processing_description: string
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
@@ -529,6 +537,7 @@ export type Database = {
           id?: string
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          pdf_url?: string | null
           processing_description?: string
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null

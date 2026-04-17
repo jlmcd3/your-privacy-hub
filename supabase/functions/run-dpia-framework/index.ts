@@ -183,6 +183,20 @@ Return JSON with this exact DPIA structure:
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
 
+    const { data: userData } = await supabase.auth.admin.getUserById(
+      dpia.user_id
+    ).catch(() => ({ data: null as any }));
+
+    await supabase.functions.invoke("generate-report-pdf", {
+      body: {
+        tool_type: "dpia_framework",
+        assessment_id: dpia_id,
+        user_email: userData?.user?.email || null,
+        user_name: userData?.user?.user_metadata?.full_name || null,
+        result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/dpia-framework/result/${dpia_id}`,
+      },
+    }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
+
     return new Response(JSON.stringify({ success: true, dpia_id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 

@@ -193,9 +193,27 @@ const GovernanceAssessmentResult = () => {
               ⚠️ {report?.disclaimer || "This is a compliance framework tool. Review findings with qualified legal counsel."}
             </section>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button asChild variant="outline"><Link to="/governance-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
+              {assessment?.pdf_url ? (
+                <a
+                  href={assessment.pdf_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
+                >
+                  ↓ Download PDF
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
+                  title="PDF is being prepared — refresh in a moment"
+                >
+                  ↓ PDF preparing...
+                </button>
+              )}
             </div>
           </>
         )}

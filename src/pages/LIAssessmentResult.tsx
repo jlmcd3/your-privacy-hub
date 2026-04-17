@@ -87,9 +87,26 @@ const LIAssessmentResult = () => {
           {report?.generated_at && (
             <p className="text-slate-400 text-xs mt-2">Generated {new Date(report.generated_at).toLocaleString()}</p>
           )}
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex gap-2 flex-wrap">
             <Button asChild variant="secondary"><Link to="/li-assessment">Run New Assessment</Link></Button>
-            <Button variant="outline" disabled title="PDF export coming soon" className="text-slate-900">Download PDF</Button>
+            {assessment?.pdf_url ? (
+              <a
+                href={assessment.pdf_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
+              >
+                ↓ Download PDF
+              </a>
+            ) : status === "complete" ? (
+              <button
+                disabled
+                className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
+                title="PDF is being prepared — refresh in a moment"
+              >
+                ↓ PDF preparing...
+              </button>
+            ) : null}
           </div>
         </div>
       </header>

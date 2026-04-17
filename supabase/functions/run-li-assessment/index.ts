@@ -251,6 +251,21 @@ Return JSON:
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
 
+    // Fetch user email for delivery
+    const { data: userData } = await supabase.auth.admin.getUserById(
+      assessment.user_id
+    ).catch(() => ({ data: null as any }));
+
+    await supabase.functions.invoke("generate-report-pdf", {
+      body: {
+        tool_type: "li_assessment",
+        assessment_id,
+        user_email: userData?.user?.email || null,
+        user_name: userData?.user?.user_metadata?.full_name || null,
+        result_url: `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/li-assessment/result/${assessment_id}`,
+      },
+    }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
+
     return new Response(JSON.stringify({ success: true, assessment_id, report: reportData }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
