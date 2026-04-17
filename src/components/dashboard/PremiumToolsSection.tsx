@@ -42,6 +42,36 @@ const TOOLS = [
     standalonePrice: 69,
     subscriberPrice: 39,
   },
+  {
+    icon: "📄",
+    title: "DPA Generator",
+    description:
+      "Draft a GDPR Article 28 Data Processing Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
+    cta: "View Sample & Purchase",
+    href: "/dpa-generator",
+    standalonePrice: 69,
+    subscriberPrice: 39,
+  },
+  {
+    icon: "🚨",
+    title: "IR Playbook Generator",
+    description:
+      "Jurisdiction-specific data breach response playbook with hour-by-hour actions, notification timelines, DPA portal links, and notification templates.",
+    cta: "View Sample & Purchase",
+    href: "/ir-playbook",
+    standalonePrice: 39,
+    subscriberPrice: 0,
+  },
+  {
+    icon: "🫆",
+    title: "Biometric Compliance Checker",
+    description:
+      "Check biometric processing (face, fingerprint, voice, iris) against BIPA, GDPR Art. 9, and global biometric laws. First jurisdiction free for everyone.",
+    cta: "View Sample & Purchase",
+    href: "/biometric-checker",
+    standalonePrice: 29,
+    subscriberPrice: 0,
+  },
 ];
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {

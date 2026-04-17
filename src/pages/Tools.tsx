@@ -40,6 +40,24 @@ const tools = [
     description: "Visual milestone timelines for major regulatory frameworks — GDPR enforcement history, EU AI Act rollout, US state law progression.",
     href: "/timelines",
   },
+  {
+    icon: "📄",
+    title: "DPA Generator",
+    description: "Generate a GDPR Article 28 Data Processing Agreement calibrated to real enforcement precedents. Standalone $69 · Subscribers $39.",
+    href: "/dpa-generator",
+  },
+  {
+    icon: "🚨",
+    title: "IR Playbook Generator",
+    description: "Jurisdiction-specific breach response playbook with notification timelines, DPA portal links, and templates. Standalone $39 · Free for subscribers.",
+    href: "/ir-playbook",
+  },
+  {
+    icon: "🫆",
+    title: "Biometric Compliance Checker",
+    description: "Check biometric processing against BIPA, GDPR Art. 9, and global biometric laws. First jurisdiction free · Multi-jurisdiction $29 · Free for subscribers.",
+    href: "/biometric-checker",
+  },
 ];
 
 export default function Tools() {

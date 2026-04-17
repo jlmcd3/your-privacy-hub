@@ -51,6 +51,33 @@ const TOOLS: Record<
     subscriber_secret: "STRIPE_DPIA_SUBSCRIBER_PRICE_ID",
     table: "dpia_frameworks",
   },
+  dpa_generator: {
+    name: "DPA Generator",
+    description: "Single GDPR Article 28 Data Processing Agreement — compliance framework tool, not legal advice.",
+    standalone_cents: 6900,
+    subscriber_cents: 3900,
+    standalone_secret: "STRIPE_DPA_STANDALONE_PRICE_ID",
+    subscriber_secret: "STRIPE_DPA_SUBSCRIBER_PRICE_ID",
+    table: "dpa_documents",
+  },
+  ir_playbook: {
+    name: "IR Playbook Generator",
+    description: "Single Incident Response Playbook — compliance framework tool, not legal advice.",
+    standalone_cents: 3900,
+    subscriber_cents: 0,
+    standalone_secret: "STRIPE_IR_STANDALONE_PRICE_ID",
+    subscriber_secret: "STRIPE_IR_SUBSCRIBER_PRICE_ID",
+    table: "ir_playbooks",
+  },
+  biometric_checker: {
+    name: "Biometric Compliance Checker",
+    description: "Multi-jurisdiction biometric compliance analysis — compliance framework tool, not legal advice.",
+    standalone_cents: 2900,
+    subscriber_cents: 0,
+    standalone_secret: "STRIPE_BIOMETRIC_STANDALONE_PRICE_ID",
+    subscriber_secret: "STRIPE_BIOMETRIC_SUBSCRIBER_PRICE_ID",
+    table: "biometric_assessments",
+  },
 };
 
 Deno.serve(async (req) => {
