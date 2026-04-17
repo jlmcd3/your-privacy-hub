@@ -238,7 +238,37 @@ const LIAssessment = () => {
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button onClick={() => navigate("/subscribe?tool=li-assessment")}>Purchase — $199</Button>
+            <Button
+              disabled={submitting}
+              onClick={async () => {
+                setSubmitting(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+                    body: {
+                      tool_type: "li_assessment",
+                      user_id: user?.id ?? null,
+                      intake_data: {
+                        processing_description: processingDescription,
+                        data_categories: dataCategories,
+                        relationship_type: relationship,
+                        jurisdictions,
+                        sector: sector || null,
+                        stated_purpose: statedPurpose,
+                        alternatives_considered: alternatives || null,
+                      },
+                      return_url: window.location.origin,
+                    },
+                  });
+                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
+                  window.location.href = data.url;
+                } catch (err: any) {
+                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {submitting ? "Redirecting…" : "Purchase — $199"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
