@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { formatFine } from "@/lib/utils";
 import EmailSignup from "@/components/EmailSignup";
 import EnforcementCharts from "@/components/enforcement/EnforcementCharts";
 import EnforcementPatternIntelligence from "@/components/enforcement/EnforcementPatternIntelligence";
@@ -199,7 +200,10 @@ const EnforcementTrackerPage = () => {
             </div>
             <div className="bg-card border border-fog rounded-xl p-4 text-center">
               <div className="font-display text-[32px] font-bold text-navy">
-                {actions.filter(a => a.fine_eur).sort((a, b) => (b.fine_eur || 0) - (a.fine_eur || 0))[0]?.fine_amount || '—'}
+                {(() => {
+                  const top = actions.filter(a => a.fine_eur).sort((a, b) => (b.fine_eur || 0) - (a.fine_eur || 0))[0];
+                  return top ? formatFine(top.fine_amount, top.fine_eur, top.jurisdiction) : '—';
+                })()}
               </div>
               <div className="text-[12px] text-slate mt-1">Largest tracked fine</div>
             </div>
@@ -309,7 +313,7 @@ const EnforcementTrackerPage = () => {
                       <td className="px-4 py-3 text-sm text-foreground font-medium border-b border-border">{row.subject}</td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border">{row.jurisdiction}</td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border max-w-[300px] truncate">{row.violation}</td>
-                      <td className="px-4 py-3 font-semibold text-destructive text-sm border-b border-border">{row.fine_amount}</td>
+                      <td className="px-4 py-3 font-semibold text-destructive text-sm border-b border-border whitespace-nowrap">{formatFine(row.fine_amount, row.fine_eur, row.jurisdiction)}</td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">
                         {row.decision_date ? new Date(row.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                       </td>
