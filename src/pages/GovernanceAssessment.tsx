@@ -6,10 +6,12 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
+
+const PRICE = 149;
 
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
 const SIZES = ["1-10", "11-50", "51-250", "251-1000", "1001+"];
@@ -49,8 +51,7 @@ const GovernanceAssessment = () => {
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
-  const [paywallOpen, setPaywallOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
 
   // Step 1
   const [sector, setSector] = useState("");
@@ -131,22 +132,23 @@ const GovernanceAssessment = () => {
     transfer_status: showStep5 ? transferStatus : "n/a",
   });
 
-  const handleSubmit = async () => {
+  const handlePurchase = async () => {
     if (!user) { navigate(`/login?return=${encodeURIComponent("/governance-assessment")}`); return; }
-    const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).maybeSingle();
-    if (!profile?.is_premium) { setPaywallOpen(true); return; }
-    setSubmitting(true);
+    setPurchasing(true);
     try {
-      const { data: row, error } = await supabase.from("governance_assessments").insert({
-        user_id: user.id, intake_data: buildIntake(), status: "pending",
-      }).select().single();
-      if (error || !row) throw error ?? new Error("Insert failed");
-      const { error: fnErr } = await supabase.functions.invoke("run-governance-assessment", { body: { assessment_id: row.id } });
-      if (fnErr) throw fnErr;
-      navigate(`/governance-assessment/result/${row.id}`);
+      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+        body: {
+          tool_type: "governance_assessment",
+          user_id: user.id,
+          intake_data: buildIntake(),
+          return_url: window.location.origin,
+        },
+      });
+      if (error || !data?.url) throw error ?? new Error("Checkout failed");
+      window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Submission failed", description: err.message ?? "Try again.", variant: "destructive" });
-      setSubmitting(false);
+      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      setPurchasing(false);
     }
   };
 
@@ -309,43 +311,22 @@ const GovernanceAssessment = () => {
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={submitting}>{submitting ? "Running your governance assessment — this typically takes 45-60 seconds…" : "Run Assessment"}</Button>
+              <Button onClick={handlePurchase} disabled={purchasing}>
+                {purchasing ? "Redirecting…" : `Purchase Full Healthcheck — $${PRICE}`}
+              </Button>
             )}
           </div>
         </div>
+
+        <ToolSamplePreview
+          toolType="healthcheck"
+          toolName="Data Privacy Healthcheck"
+          price={PRICE}
+          onPurchase={handlePurchase}
+          purchasing={purchasing}
+        />
       </main>
 
-      <Dialog open={paywallOpen} onOpenChange={setPaywallOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Premium tool</DialogTitle><DialogDescription>This assessment is included in Premium ($20/month) or available for a one-time purchase ($149).</DialogDescription></DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button
-              disabled={submitting}
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-                    body: {
-                      tool_type: "governance_assessment",
-                      user_id: user?.id ?? null,
-                      intake_data: buildIntake(),
-                      return_url: window.location.origin,
-                    },
-                  });
-                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
-                  window.location.href = data.url;
-                } catch (err: any) {
-                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
-                  setSubmitting(false);
-                }
-              }}
-            >
-              {submitting ? "Redirecting…" : "Purchase — $149"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       <Footer />
     </div>
   );

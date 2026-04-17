@@ -3,20 +3,21 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
 const SAFEGUARDS = ["Encryption at rest", "Encryption in transit", "Access controls", "Data minimisation", "Pseudonymisation", "Staff training", "DPA signed with processor", "Anonymisation", "Contractual restrictions", "None"];
 const JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal", "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)", "Australia", "Singapore", "Other"];
 const LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))", "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))", "Legitimate interest (Art. 6(1)(f))", "Not yet determined"];
+
+const PRICE = 249;
 
 const Pills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -50,8 +51,7 @@ const DPIAFramework = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [legalBasis, setLegalBasis] = useState("");
-  const [paywallOpen, setPaywallOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
 
   // Pre-populate from governance assessment if ?source= present
@@ -97,39 +97,36 @@ const DPIAFramework = () => {
     source_assessment_id: sourceId || null,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePurchase = async () => {
     const err = validate();
-    if (err) { toast({ title: "Required", description: err, variant: "destructive" }); return; }
+    if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
     if (!user) { navigate(`/login?return=${encodeURIComponent("/dpia-framework")}`); return; }
-    const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).maybeSingle();
-    if (!profile?.is_premium) { setPaywallOpen(true); return; }
-    setSubmitting(true);
+    setPurchasing(true);
     try {
-      const { data: row, error } = await supabase.from("dpia_frameworks").insert({
-        user_id: user.id,
-        intake_data: buildIntake(),
-        source_assessment_id: sourceId || null,
-        status: "pending",
-      }).select().single();
-      if (error || !row) throw error ?? new Error("Insert failed");
-      const { error: fnErr } = await supabase.functions.invoke("run-dpia-framework", { body: { dpia_id: row.id } });
-      if (fnErr) throw fnErr;
-      navigate(`/dpia-framework/result/${row.id}`);
+      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+        body: {
+          tool_type: "dpia_framework",
+          user_id: user.id,
+          intake_data: buildIntake(),
+          return_url: window.location.origin,
+        },
+      });
+      if (error || !data?.url) throw error ?? new Error("Checkout failed");
+      window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Submission failed", description: err.message ?? "Try again.", variant: "destructive" });
-      setSubmitting(false);
+      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      setPurchasing(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>DPIA Builder | EndUserPrivacy</title></Helmet>
+      <Helmet><title>DPIA Builder — ${PRICE} | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">⭐ Premium Tool</span>
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Compliance Framework Tool · ${PRICE}</span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">DPIA Builder</h1>
           <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment builder for a specific processing activity, structured against GDPR Article 35 requirements.</p>
         </div>
@@ -142,11 +139,11 @@ const DPIAFramework = () => {
 
         {prefilled && (
           <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded text-sm">
-            Pre-populated from your Data Privacy Healthcheck. Review and edit all fields before running.
+            Pre-populated from your Data Privacy Healthcheck. Review and edit all fields before purchasing.
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-card border rounded-lg p-6 space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="bg-card border rounded-lg p-6 space-y-6">
           <div>
             <Label>Name this processing activity *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Employee location monitoring via mobile app" className="mt-2" />
@@ -177,48 +174,17 @@ const DPIAFramework = () => {
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
           </div>
-
-          <div className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-            This is a compliance framework tool, not legal advice.
-          </div>
-
-          <Button type="submit" size="lg" disabled={submitting}>
-            {submitting ? "Generating your DPIA Builder report — this takes about 30 seconds…" : "Generate DPIA Builder"}
-          </Button>
         </form>
+
+        <ToolSamplePreview
+          toolType="dpia"
+          toolName="DPIA Builder"
+          price={PRICE}
+          onPurchase={handlePurchase}
+          purchasing={purchasing}
+        />
       </main>
 
-      <Dialog open={paywallOpen} onOpenChange={setPaywallOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Premium tool</DialogTitle><DialogDescription>This tool is included with Premium ($20/month) or available for a one-time purchase ($249).</DialogDescription></DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button
-              disabled={submitting}
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-                    body: {
-                      tool_type: "dpia_framework",
-                      user_id: user?.id ?? null,
-                      intake_data: buildIntake(),
-                      return_url: window.location.origin,
-                    },
-                  });
-                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
-                  window.location.href = data.url;
-                } catch (err: any) {
-                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
-                  setSubmitting(false);
-                }
-              }}
-            >
-              {submitting ? "Redirecting…" : "Purchase — $249"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       <Footer />
     </div>
   );

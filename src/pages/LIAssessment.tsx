@@ -3,15 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -32,6 +30,8 @@ const SECTORS = [
   "Media/publishing", "Marketing/advertising", "Professional services", "Education",
   "Government/public sector", "Other",
 ];
+
+const PRICE = 199;
 
 const MultiPills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -54,7 +54,7 @@ const MultiPills = ({ options, value, onChange }: { options: string[]; value: st
 );
 
 const LIAssessment = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -65,9 +65,7 @@ const LIAssessment = () => {
   const [sector, setSector] = useState("");
   const [statedPurpose, setStatedPurpose] = useState("");
   const [alternatives, setAlternatives] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [paywallOpen, setPaywallOpen] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
 
   const validate = () => {
     if (processingDescription.trim().length < 50) return "Processing description must be at least 50 characters.";
@@ -78,72 +76,54 @@ const LIAssessment = () => {
     return null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePurchase = async () => {
     const err = validate();
     if (err) {
-      toast({ title: "Please complete the form", description: err, variant: "destructive" });
+      toast({ title: "Please complete the form first", description: err, variant: "destructive" });
       return;
     }
     if (!user) {
       navigate(`/login?return=${encodeURIComponent("/li-assessment")}`);
       return;
     }
-    // check premium
-    const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).maybeSingle();
-    if (!profile?.is_premium) {
-      setIsPremium(false);
-      setPaywallOpen(true);
-      return;
-    }
-    setIsPremium(true);
-    await runAssessment();
-  };
-
-  const runAssessment = async () => {
-    setSubmitting(true);
+    setPurchasing(true);
     try {
-      const { data: row, error: insertErr } = await supabase
-        .from("li_assessments")
-        .insert({
-          user_id: user!.id,
-          processing_description: processingDescription,
-          data_categories: dataCategories,
-          relationship_type: relationship,
-          jurisdictions,
-          sector: sector || null,
-          stated_purpose: statedPurpose,
-          alternatives_considered: alternatives || null,
-          status: "pending",
-        })
-        .select()
-        .single();
-      if (insertErr || !row) throw insertErr ?? new Error("Insert failed");
-
-      const { error: fnErr } = await supabase.functions.invoke("run-li-assessment", {
-        body: { assessment_id: row.id },
+      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
+        body: {
+          tool_type: "li_assessment",
+          user_id: user.id,
+          intake_data: {
+            processing_description: processingDescription,
+            data_categories: dataCategories,
+            relationship_type: relationship,
+            jurisdictions,
+            sector: sector || null,
+            stated_purpose: statedPurpose,
+            alternatives_considered: alternatives || null,
+          },
+          return_url: window.location.origin,
+        },
       });
-      if (fnErr) throw fnErr;
-
-      navigate(`/li-assessment/result/${row.id}`);
+      if (error || !data?.url) throw error ?? new Error("Checkout failed");
+      window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Assessment failed", description: err.message ?? "Please try again.", variant: "destructive" });
-      setSubmitting(false);
+      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      setPurchasing(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Legitimate Interest Analyzer | EndUserPrivacy</title>
-        <meta name="description" content="Assess whether your proposed processing can rely on legitimate interest under GDPR Article 6(1)(f)." />
+        <title>Legitimate Interest Analyzer — ${PRICE} | EndUserPrivacy</title>
+        <meta name="description" content="Assess whether your proposed processing can rely on legitimate interest under GDPR Article 6(1)(f). One-time purchase: $199." />
       </Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Premium Tool
+            ⚖️ Compliance Framework Tool · ${PRICE}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Legitimate Interest Analyzer</h1>
           <p className="text-slate-300 text-lg">
@@ -168,7 +148,7 @@ const LIAssessment = () => {
           </div>
         </section>
 
-        <form onSubmit={handleSubmit} className="bg-card border rounded-lg p-6 space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="bg-card border rounded-lg p-6 space-y-6">
           <div>
             <Label htmlFor="desc" className="text-base">Describe your proposed processing activity *</Label>
             <Textarea
@@ -217,61 +197,16 @@ const LIAssessment = () => {
             <Textarea id="alt" value={alternatives} onChange={(e) => setAlternatives(e.target.value)} placeholder="e.g. We considered consent but believe it would be unworkable because..." className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">The necessity test requires demonstrating that processing is necessary. Documenting considered alternatives strengthens your assessment.</p>
           </div>
-
-          <div className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-            This tool produces a compliance framework output to assist your legal analysis. It does not constitute legal advice and does not determine whether your processing is lawful. All findings must be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis.
-          </div>
-
-          <Button type="submit" size="lg" disabled={submitting || authLoading} className="w-full md:w-auto">
-            {submitting ? "Running assessment — this takes about 30 seconds…" : "Run Assessment"}
-          </Button>
         </form>
-      </main>
 
-      <Dialog open={paywallOpen} onOpenChange={setPaywallOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Premium tool</DialogTitle>
-            <DialogDescription>
-              This assessment is included in Premium ($20/month) or available for a one-time purchase ($199). Subscribe or purchase to continue.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => navigate("/subscribe")}>Subscribe — $20/month</Button>
-            <Button
-              disabled={submitting}
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-                    body: {
-                      tool_type: "li_assessment",
-                      user_id: user?.id ?? null,
-                      intake_data: {
-                        processing_description: processingDescription,
-                        data_categories: dataCategories,
-                        relationship_type: relationship,
-                        jurisdictions,
-                        sector: sector || null,
-                        stated_purpose: statedPurpose,
-                        alternatives_considered: alternatives || null,
-                      },
-                      return_url: window.location.origin,
-                    },
-                  });
-                  if (error || !data?.url) throw error ?? new Error("Checkout failed");
-                  window.location.href = data.url;
-                } catch (err: any) {
-                  toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
-                  setSubmitting(false);
-                }
-              }}
-            >
-              {submitting ? "Redirecting…" : "Purchase — $199"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <ToolSamplePreview
+          toolType="li"
+          toolName="Legitimate Interest Analyzer"
+          price={PRICE}
+          onPurchase={handlePurchase}
+          purchasing={purchasing}
+        />
+      </main>
 
       <Footer />
     </div>
