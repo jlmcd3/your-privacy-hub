@@ -190,7 +190,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
 };
 
 // — FULL variant ——————————————————————————————————
-const FullCard = ({ item }: { item: ArticleItem }) => {
+const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
   const urgency = item.ai_summary?.urgency;
   const weight = item.ai_summary?.legal_weight;
   const enriched = isEnriched(item);
