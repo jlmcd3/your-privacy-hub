@@ -371,14 +371,15 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
 interface ArticleCardProps {
   item: ArticleItem;
   variant?: ArticleCardVariant;
+  isPremium?: boolean;
 }
 
-export const ArticleCard = ({ item, variant = 'full' }: ArticleCardProps) => {
+export const ArticleCard = ({ item, variant = 'full', isPremium = false }: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
     case 'enforcement': return <EnforcementCard item={item} />;
-    default:            return <FullCard item={item} />;
+    default:            return <FullCard item={item} isPremium={isPremium} />;
   }
 };
 
