@@ -14,7 +14,7 @@ const LI_EXTRACTION_PROMPT = `You are a GDPR legal analyst. Review the following
 - case_reference (string or null): Case name, opinion number, or guidance title if stated
 - summary (string): One factual sentence describing the regulatory position
 - confidence (string): One of: high | medium | low
-- source_url (string or null): The URL of the primary source document if mentioned in the article
+- source_url (string or null): Set to null unless a full, complete URL (beginning with https://) appears verbatim in the article text provided. Do not construct, infer, or guess URLs. If no URL appears explicitly in the text, return null.
 If the article contains multiple findings, return an array of objects. If no legitimate interest findings are present, return an empty array. Return only valid JSON with no preamble or explanation.`;
 
 async function callClaude(article: { title: string; summary: string | null }) {
