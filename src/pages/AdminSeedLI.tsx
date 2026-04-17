@@ -147,7 +147,7 @@ const AdminSeedLI = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Navbar />
-      <div className="max-w-[800px] mx-auto px-4 py-10">
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="font-display text-2xl text-foreground mb-2">Admin: LI Tracker Setup</h1>
         <p className="text-sm text-muted-foreground mb-8">Three-step deployment workflow for the Legitimate Interest Tracker.</p>
 

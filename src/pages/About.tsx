@@ -44,7 +44,7 @@ const About = () => {
           </div>
         </div>
 
-        <section className="max-w-[760px] mx-auto px-4 py-12">
+        <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
               End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.

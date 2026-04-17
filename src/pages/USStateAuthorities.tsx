@@ -51,7 +51,7 @@ const USStateAuthorities = () => {
 
       <AdBanner variant="leaderboard" className="py-5" />
 
-      <div className="max-w-[1280px] mx-auto px-8 py-10">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Filters */}
         <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-fog shadow-eup-sm">
           <div className="relative flex-1 max-w-[400px]">

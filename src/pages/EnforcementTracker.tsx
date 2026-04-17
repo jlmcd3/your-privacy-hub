@@ -178,7 +178,7 @@ const EnforcementTrackerPage = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-enforcement-top" className="py-3 hidden" />
 
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Stats summary header */}
         {actions.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

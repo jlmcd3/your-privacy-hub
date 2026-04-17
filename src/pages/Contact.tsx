@@ -24,7 +24,7 @@ const Contact = () => {
             </p>
           </div>
         </section>
-        <section className="max-w-[760px] mx-auto px-4 py-12 text-center">
+        <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <div className="bg-card border border-fog rounded-2xl p-8 max-w-[480px] mx-auto">
             <h2 className="font-display text-[20px] font-bold text-navy mb-2">Email Us</h2>
             <p className="text-[14px] text-slate mb-6">

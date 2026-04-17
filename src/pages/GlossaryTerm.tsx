@@ -37,7 +37,7 @@ const GlossaryTerm = () => {
       <Navbar />
 
       <div className="border-b border-border bg-card">
-        <div className="max-w-3xl mx-auto px-4 py-10 md:py-14">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <Link to="/glossary" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors no-underline mb-4 inline-block">
             ← Back to Glossary
           </Link>
@@ -50,7 +50,7 @@ const GlossaryTerm = () => {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8 flex-1">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         <div className="bg-card border border-border rounded-xl p-6 mb-8">
           <h2 className="text-sm font-semibold text-foreground mb-3">Definition</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">{term.definition}</p>

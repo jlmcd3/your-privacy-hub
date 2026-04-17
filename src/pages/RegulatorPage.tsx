@@ -89,7 +89,7 @@ const RegulatorPage = () => {
     return (
       <div className="min-h-screen bg-paper">
         <Navbar />
-        <div className="max-w-[860px] mx-auto px-4 md:px-8 py-20 text-center">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-3xl text-navy mb-4">Regulator Not Found</h1>
           <p className="text-slate mb-6">The regulator you're looking for is not yet in our database.</p>
           <Link to="/global-privacy-authorities" className="text-blue hover:underline">Browse all regulators →</Link>
@@ -137,7 +137,7 @@ const RegulatorPage = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-regulator-top" className="py-3" />
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Key info card */}
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-fog">

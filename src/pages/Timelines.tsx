@@ -20,7 +20,7 @@ const Timelines = () => {
       <Navbar />
 
       <div className="border-b border-border bg-card">
-        <div className="max-w-4xl mx-auto px-4 py-10 md:py-14">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📜 Reference</p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Regulatory Timelines</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
@@ -29,7 +29,7 @@ const Timelines = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 flex-1 w-full">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-[13px] text-amber-900 leading-snug">

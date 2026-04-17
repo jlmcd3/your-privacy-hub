@@ -62,7 +62,7 @@ export default function IRPlaybook() {
       <Helmet><title>Incident Response Playbook Generator | EndUserPrivacy</title>
         <meta name="description" content="Generate a complete data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
       <Navbar />
-      <main className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
+      <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Incident Response Playbook</h1>
           <p className="text-slate text-[14px]">Generate a complete, jurisdiction-specific breach response playbook with notification deadlines and templates.</p>

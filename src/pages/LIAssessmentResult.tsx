@@ -78,7 +78,7 @@ const LIAssessmentResult = () => {
       <Navbar />
 
       <header className="bg-slate-900 text-white py-10">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-serif mb-2">Legitimate Interest Analyzer</h1>
           {assessment?.processing_description && (
             <p className="text-slate-300 text-sm">
@@ -112,7 +112,7 @@ const LIAssessmentResult = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         {purchased && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.

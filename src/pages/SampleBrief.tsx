@@ -78,7 +78,7 @@ const SampleBrief = () => {
         </section>
 
         {/* Brief Document */}
-        <div className="max-w-[800px] mx-auto px-4 py-10">
+        <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-10">
 
             {/* Document header — dark branded band */}

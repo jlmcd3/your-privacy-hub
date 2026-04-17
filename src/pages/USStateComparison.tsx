@@ -46,7 +46,7 @@ const USStateComparison = () => {
       <Navbar />
 
       <div className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📊 Comparison Tool</p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">U.S. State Privacy Law Comparison</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
@@ -59,7 +59,7 @@ const USStateComparison = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         <div className="mb-6">
           <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
             <input

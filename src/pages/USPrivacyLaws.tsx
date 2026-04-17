@@ -130,7 +130,7 @@ const USPrivacyLaws = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
 
         {/* ── Section: State Authorities Directory (collapsed by default) ── */}

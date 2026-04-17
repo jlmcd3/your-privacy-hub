@@ -244,7 +244,7 @@ const Dashboard = () => {
           <title>Intelligence Dashboard | EndUserPrivacy</title>
         </Helmet>
         <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Premium upsell banner */}
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
@@ -346,7 +346,7 @@ const Dashboard = () => {
       </Helmet>
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Subscription plan status */}
         <div className="mb-8 bg-card border border-border rounded-2xl p-5">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">

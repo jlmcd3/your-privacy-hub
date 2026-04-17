@@ -169,7 +169,7 @@ const GetIntelligence = () => {
         <title>Get Your Privacy Intelligence | EndUserPrivacy</title>
         <meta name="description" content="Personalized privacy intelligence for your jurisdiction and practice. Built from 67 regulatory sources. Takes 60 seconds." />
       </Helmet>
-      <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* —— STEP 1 —— */}
         {step === 1 && (

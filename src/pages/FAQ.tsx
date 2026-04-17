@@ -68,7 +68,7 @@ const FAQ = () => {
       </section>
 
       {/* Accordion */}
-      <div className="max-w-[760px] mx-auto px-4 py-12 flex-1">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
         {faqs.map((faq, i) => (
           <div key={i} className="bg-card border border-fog rounded-xl mb-3 overflow-hidden">
             <button

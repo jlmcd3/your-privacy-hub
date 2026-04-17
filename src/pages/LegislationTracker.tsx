@@ -94,7 +94,7 @@ export default function LegislationTracker() {
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 max-w-[1280px] mx-auto px-4 md:px-8 py-8 w-full">
+        <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
             📜 Legislation Status Tracker
           </h1>

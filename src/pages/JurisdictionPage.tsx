@@ -210,7 +210,7 @@ const JurisdictionPage = () => {
     return (
       <div className="min-h-screen bg-paper">
         <Navbar />
-        <div className="max-w-[860px] mx-auto px-4 md:px-8 py-20 text-center">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-3xl text-navy mb-4">Jurisdiction Not Found</h1>
           <p className="text-slate mb-6">The jurisdiction you're looking for is not yet in our database.</p>
           <Link to="/global-privacy-authorities" className="text-blue hover:underline">Browse all jurisdictions →</Link>
@@ -247,7 +247,7 @@ const JurisdictionPage = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-top" className="py-5" />
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Overview */}
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
           <h2 className="font-display text-xl text-navy mb-3">Overview</h2>

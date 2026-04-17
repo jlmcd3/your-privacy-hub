@@ -177,7 +177,7 @@ export default function EnforcementIntelligence() {
       </Helmet>
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
           <h1 className="font-serif text-4xl md:text-5xl mb-3">Enforcement Intelligence</h1>
           <p className="text-muted-foreground max-w-3xl">

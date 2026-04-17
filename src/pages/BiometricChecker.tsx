@@ -54,7 +54,7 @@ export default function BiometricChecker() {
       <Helmet><title>Biometric Privacy Compliance Checker | EndUserPrivacy</title>
         <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. First jurisdiction always free." /></Helmet>
       <Navbar />
-      <main className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
+      <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Checker</h1>
           <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. First jurisdiction free; multi-jurisdiction is $29 or free with Premium.</p>

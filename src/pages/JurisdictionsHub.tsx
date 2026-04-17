@@ -128,7 +128,7 @@ export default function JurisdictionsHub() {
           <AdBanner variant="leaderboard" adSlot="eup-map-top" className="py-3" />
 
           {/* Map section */}
-          <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-8">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <GlobalPrivacyMap />
             <p className="text-xs text-slate-light text-center mt-3">
               Some small jurisdictions (e.g. Singapore, Luxembourg city-state areas) are
@@ -139,7 +139,7 @@ export default function JurisdictionsHub() {
 
           {/* Recently updated strip — dynamic */}
           <div className="border-t border-fog bg-white">
-            <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-6">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
                 🕐 Recently Updated Jurisdictions
               </h2>

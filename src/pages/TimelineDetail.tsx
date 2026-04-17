@@ -67,7 +67,7 @@ const TimelineDetail = () => {
       <Navbar />
 
       <div className="border-b border-border bg-card">
-        <div className="max-w-3xl mx-auto px-4 py-10 md:py-14">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <Link to="/timelines" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors no-underline mb-4 inline-block">
             ← All Timelines
           </Link>
@@ -77,7 +77,7 @@ const TimelineDetail = () => {
       </div>
 
       {/* Legend */}
-      <div className="max-w-3xl mx-auto px-4 pt-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex gap-4 flex-wrap mb-8">
           {Object.entries(TYPE_LABELS).map(([key, label]) => (
             <div key={key} className="flex items-center gap-1.5">
@@ -91,7 +91,7 @@ const TimelineDetail = () => {
       <AdBanner variant="leaderboard" adSlot="eup-timeline-top" className="py-3 max-w-3xl mx-auto" />
 
       {/* Timeline */}
-      <div className="max-w-3xl mx-auto px-4 pb-12 flex-1">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 flex-1">
         <div className="relative">
           {/* Vertical line */}
           <div className="absolute left-[7px] top-0 bottom-0 w-0.5 bg-border" />

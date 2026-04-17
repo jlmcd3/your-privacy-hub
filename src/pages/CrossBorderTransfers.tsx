@@ -67,7 +67,7 @@ export default function CrossBorderTransfersPage() {
       <Navbar />
       <AdBanner />
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">Intelligence Guide</p>
         <h1 className="font-display text-[28px] md:text-[36px] text-foreground leading-tight mb-4">
           Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules

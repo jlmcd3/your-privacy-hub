@@ -165,7 +165,7 @@ const TopicHub = () => {
 
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-5xl mx-auto px-4 py-10 md:py-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">{meta.icon} Topic Hub</p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">{meta.name}</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">{meta.description}</p>
@@ -179,7 +179,7 @@ const TopicHub = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-topichub-top" className="py-3" />
 
-      <div className="max-w-5xl mx-auto px-4 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
         {/* Article list */}
         <div className="space-y-4">
           {loading && [...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
@@ -269,7 +269,7 @@ const TopicHub = () => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 pb-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <EmailSignup variant="card" />
       </div>
 
