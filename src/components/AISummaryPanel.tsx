@@ -64,29 +64,10 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
             {urgencyConfig.label}
           </span>
         )}
-        {!compact && teaserText && (
-          isPremium ? (
-            <p className="text-[12px] text-muted-foreground leading-snug">
-              {summary.why_it_matters}
-            </p>
-          ) : (
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-muted-foreground leading-snug line-clamp-2">
-                {teaserText}
-              </p>
-              <p className="text-[11px] text-muted-foreground leading-snug mt-1">
-                You're reading the preview. Premium unlocks the full analysis on every update.
-              </p>
-              <Link
-                to="/subscribe"
-                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors mt-1 no-underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Lock className="w-2.5 h-2.5" />
-                Go Premium — $20/mo →
-              </Link>
-            </div>
-          )
+        {!compact && summary.why_it_matters && (
+          <p className="text-[12px] text-muted-foreground leading-snug">
+            {summary.why_it_matters}
+          </p>
         )}
       </div>
 
