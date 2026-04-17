@@ -275,14 +275,19 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
               {stripHtml(item.ai_summary.why_it_matters)}
             </p>
             {!isPremium && (
-              <Link
-                to="/subscribe"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors mt-0.5 no-underline"
-              >
-                <Lock className="w-2.5 h-2.5" />
-                Full analysis — Premium
-              </Link>
+              <div className="mt-1.5">
+                <p className="text-[11px] text-muted-foreground leading-snug mb-1">
+                  You're reading the preview. Premium unlocks the full analysis on every update.
+                </p>
+                <Link
+                  to="/subscribe"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors no-underline"
+                >
+                  <Lock className="w-2.5 h-2.5" />
+                  Go Premium — $20/mo →
+                </Link>
+              </div>
             )}
           </div>
         )}

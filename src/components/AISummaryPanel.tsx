@@ -74,13 +74,16 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
               <p className="text-[12px] text-muted-foreground leading-snug line-clamp-2">
                 {teaserText}
               </p>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-1">
+                You're reading the preview. Premium unlocks the full analysis on every update.
+              </p>
               <Link
                 to="/subscribe"
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors mt-0.5 no-underline"
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors mt-1 no-underline"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Lock className="w-2.5 h-2.5" />
-                Full analysis — Premium
+                Go Premium — $20/mo →
               </Link>
             </div>
           )
