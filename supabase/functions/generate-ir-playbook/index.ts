@@ -38,7 +38,14 @@ interface Body {
   processorName?: string;
   contained: string;
   organisationType: string;
+  assessment_id?: string;
+  user_id?: string;
 }
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 function mapDataTypesToCategories(types: string[]): string[] {
   const map: Record<string, string> = {
@@ -191,14 +198,59 @@ Output ONLY the playbook. No preamble or commentary.`;
     const aiData = await aiRes.json();
     const playbook_text = aiData.content?.[0]?.text ?? "";
 
+    const portals = body.jurisdictions
+      .filter((j) => DPA_PORTALS[j])
+      .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
+
+    const report_data = {
+      portals,
+      enforcement_precedents: enforcement_context.slice(0, 5),
+      generated_at: new Date().toISOString(),
+    };
+
+    let savedId: string | null = null;
+    try {
+      if (body.assessment_id) {
+        const { data, error } = await supabase
+          .from("ir_playbooks")
+          .update({
+            status: "complete",
+            intake_data: body,
+            playbook_text,
+            report_data,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", body.assessment_id)
+          .select("id")
+          .maybeSingle();
+        if (error) throw error;
+        savedId = data?.id ?? body.assessment_id;
+      } else {
+        const { data, error } = await supabase
+          .from("ir_playbooks")
+          .insert({
+            user_id: body.user_id ?? null,
+            status: "complete",
+            intake_data: body,
+            playbook_text,
+            report_data,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        savedId = data.id;
+      }
+    } catch (persistErr) {
+      console.error("ir_playbooks persist failed:", persistErr);
+    }
+
     return new Response(
       JSON.stringify({
+        id: savedId,
         playbook_text,
-        portals: body.jurisdictions
-          .filter((j) => DPA_PORTALS[j])
-          .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] })),
-        enforcement_precedents: enforcement_context.slice(0, 5),
-        generated_at: new Date().toISOString(),
+        portals,
+        enforcement_precedents: report_data.enforcement_precedents,
+        generated_at: report_data.generated_at,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -13,7 +13,15 @@ interface Body {
   purpose: string;
   jurisdictions: string[];
   enrolledCount: string;
+  assessment_id?: string;
+  user_id?: string;
+  is_free_tier?: boolean;
 }
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 // BIPA statutory damages: $1,000/negligent, $5,000/intentional. Mathematical illustration only.
 function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
@@ -179,13 +187,60 @@ Output ONLY the compliance assessment. No preamble.`;
     const aiData = await aiRes.json();
     const assessment_text = aiData.content?.[0]?.text ?? "";
 
+    const report_data = {
+      bipa_risk: bipaRisk,
+      jurisdictions_analysed: body.jurisdictions,
+      enforcement_precedents: enforcement_context.slice(0, 5),
+      generated_at: new Date().toISOString(),
+    };
+
+    let savedId: string | null = null;
+    try {
+      if (body.assessment_id) {
+        const { data, error } = await supabase
+          .from("biometric_assessments")
+          .update({
+            status: "complete",
+            intake_data: body,
+            jurisdictions: body.jurisdictions,
+            analysis_text: assessment_text,
+            report_data,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", body.assessment_id)
+          .select("id")
+          .maybeSingle();
+        if (error) throw error;
+        savedId = data?.id ?? body.assessment_id;
+      } else {
+        const { data, error } = await supabase
+          .from("biometric_assessments")
+          .insert({
+            user_id: body.user_id ?? null,
+            status: "complete",
+            intake_data: body,
+            jurisdictions: body.jurisdictions,
+            analysis_text: assessment_text,
+            report_data,
+            is_free_tier: !!body.is_free_tier,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        savedId = data.id;
+      }
+    } catch (persistErr) {
+      console.error("biometric_assessments persist failed:", persistErr);
+    }
+
     return new Response(
       JSON.stringify({
+        id: savedId,
         assessment_text,
         bipa_risk: bipaRisk,
         jurisdictions_analysed: body.jurisdictions,
-        enforcement_precedents: enforcement_context.slice(0, 5),
-        generated_at: new Date().toISOString(),
+        enforcement_precedents: report_data.enforcement_precedents,
+        generated_at: report_data.generated_at,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

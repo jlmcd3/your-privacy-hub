@@ -22,7 +22,14 @@ interface Body {
   auditRights: string;
   includeTransferClause: boolean;
   transferMechanism: string;
+  assessment_id?: string;
+  user_id?: string;
 }
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 interface EnforcementCtx {
   regulator?: string;
@@ -191,11 +198,53 @@ Requirements:
     const aiData = await aiRes.json();
     const dpa_text = aiData.content?.[0]?.text ?? "";
 
+    const report_data = {
+      enforcement_precedents: enforcement_context.slice(0, 5),
+      generated_at: new Date().toISOString(),
+    };
+
+    let savedId: string | null = null;
+    try {
+      if (body.assessment_id) {
+        const { data, error } = await supabase
+          .from("dpa_documents")
+          .update({
+            status: "complete",
+            intake_data: body,
+            document_text: dpa_text,
+            report_data,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", body.assessment_id)
+          .select("id")
+          .maybeSingle();
+        if (error) throw error;
+        savedId = data?.id ?? body.assessment_id;
+      } else {
+        const { data, error } = await supabase
+          .from("dpa_documents")
+          .insert({
+            user_id: body.user_id ?? null,
+            status: "complete",
+            intake_data: body,
+            document_text: dpa_text,
+            report_data,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        savedId = data.id;
+      }
+    } catch (persistErr) {
+      console.error("dpa_documents persist failed:", persistErr);
+    }
+
     return new Response(
       JSON.stringify({
+        id: savedId,
         dpa_text,
-        enforcement_precedents: enforcement_context.slice(0, 5),
-        generated_at: new Date().toISOString(),
+        enforcement_precedents: report_data.enforcement_precedents,
+        generated_at: report_data.generated_at,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
