@@ -159,6 +159,23 @@ Return JSON:
       if (m) synthesis = JSON.parse(m[0]);
     } catch { synthesis = { executive_summary: "Assessment complete. Review domain findings.", dpia_scope: [] }; }
 
+    // Fetch enforcement precedents (3-5) relevant to this org's profile
+    let enforcementPrecedents: any[] = [];
+    try {
+      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
+        body: {
+          tool: "Governance",
+          jurisdictions: intake.jurisdictions || [],
+          sector: intake.sector || undefined,
+          biometric: intake.special_category_data || undefined,
+          limit: 5,
+        },
+      });
+      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+    } catch (e) {
+      console.error("get-enforcement-context failed (non-fatal):", e);
+    }
+
     const reportData = {
       generated_at: new Date().toISOString(),
       assessment_id,
@@ -170,6 +187,7 @@ Return JSON:
       readiness_rationale: synthesis.readiness_rationale || "",
       interaction_effects: synthesis.interaction_effects || "",
       domain_findings: domainResults,
+      enforcement_precedents: enforcementPrecedents,
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
