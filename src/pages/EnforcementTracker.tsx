@@ -200,7 +200,10 @@ const EnforcementTrackerPage = () => {
             </div>
             <div className="bg-card border border-fog rounded-xl p-4 text-center">
               <div className="font-display text-[32px] font-bold text-navy">
-                {actions.filter(a => a.fine_eur).sort((a, b) => (b.fine_eur || 0) - (a.fine_eur || 0))[0]?.fine_amount || '—'}
+                {(() => {
+                  const top = actions.filter(a => a.fine_eur).sort((a, b) => (b.fine_eur || 0) - (a.fine_eur || 0))[0];
+                  return top ? formatFine(top.fine_amount, top.fine_eur, top.jurisdiction) : '—';
+                })()}
               </div>
               <div className="text-[12px] text-slate mt-1">Largest tracked fine</div>
             </div>
