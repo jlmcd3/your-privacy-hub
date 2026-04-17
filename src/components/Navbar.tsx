@@ -130,9 +130,12 @@ const Navbar = () => {
           <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
         </Link>
         {briefLabel && (
-          <span className="hidden xl:inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 ml-3">
+          <Link
+            to="/dashboard"
+            className="hidden xl:inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 ml-3 no-underline hover:bg-amber-100 transition-colors"
+          >
             ⭐ {briefLabel}
-          </span>
+          </Link>
         )}
 
         {/* Desktop nav */}
@@ -213,6 +216,7 @@ const Navbar = () => {
             <>
               <Link
                 to="/dashboard"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
               >
                 🧠 My Dashboard
@@ -324,7 +328,10 @@ const Navbar = () => {
                 <Link
                   to="/dashboard"
                   className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                 >
                   🧠 My Dashboard
                 </Link>
