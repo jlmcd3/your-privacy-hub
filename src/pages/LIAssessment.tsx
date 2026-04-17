@@ -120,7 +120,7 @@ const LIAssessment = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Legitimate Interest Analyzer — from ${pricing.subscriberPrice} | EndUserPrivacy</title>
+        <title>{`Legitimate Interest Analyzer — from $${pricing.subscriberPrice} | EndUserPrivacy`}</title>
         <meta name="description" content={`Assess whether your proposed processing can rely on legitimate interest under GDPR Article 6(1)(f). One-time purchase from $${pricing.subscriberPrice}.`} />
       </Helmet>
       <Navbar />
