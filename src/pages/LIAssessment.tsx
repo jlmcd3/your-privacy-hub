@@ -145,7 +145,7 @@ const LIAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Premium Tool
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Legitimate Interest Assessment</h1>
+          <h1 className="text-3xl md:text-4xl font-serif mb-3">Legitimate Interest Analyzer</h1>
           <p className="text-slate-300 text-lg">
             Assess whether your proposed processing can rely on legitimate interest under GDPR Article 6(1)(f) or UK GDPR equivalent.
           </p>
