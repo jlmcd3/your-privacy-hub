@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const enforcementRows = [
   { reg: "ICO (UK)", jur: "UK", co: "TikTok Ltd", viol: "Children's data without parental consent", fine: "£12.7M", date: "Mar 3, 2026", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2023/04/ico-fines-tiktok-12-7-million-for-misusing-childrens-data/" },
@@ -28,6 +29,7 @@ const tocItems = [
 ];
 
 const SampleBrief = () => {
+  const { isPremium } = usePremiumStatus();
   return (
     <div className="min-h-screen flex flex-col bg-slate-800">
       <Helmet>
@@ -51,12 +53,14 @@ const SampleBrief = () => {
               from the prior week, re-analyzed specifically for their industry and jurisdiction.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                to="/subscribe"
-                className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
-              >
-                Get Premium →
-              </Link>
+              {!isPremium && (
+                <Link
+                  to="/subscribe"
+                  className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
+                >
+                  Get Premium →
+                </Link>
+              )}
               <Link
                 to="/get-intelligence"
                 className="inline-flex items-center px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors no-underline text-[14px]"
