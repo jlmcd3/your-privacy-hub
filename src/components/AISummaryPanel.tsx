@@ -91,8 +91,19 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
 
       {/* Expanded full panel — gated for non-premium users */}
       {open && !isPremium && (
-        <div className="mt-2">
-          <PremiumGate message="Full compliance analysis is a Premium feature." blur={false} />
+        <div className="mt-2 p-4 bg-primary/[0.03] border border-primary/10 rounded-xl space-y-3 text-[12px]">
+          <div>
+            <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
+              Why it matters
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {summary.why_it_matters}
+            </p>
+          </div>
+          <PremiumGate
+            message="Key takeaways, compliance impact, and full risk analysis are Premium features."
+            blur={false}
+          />
         </div>
       )}
 
