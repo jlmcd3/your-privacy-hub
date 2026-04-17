@@ -55,6 +55,12 @@ import CrossBorderTransfers from "./pages/CrossBorderTransfers.tsx";
 import GetIntelligence from "./pages/GetIntelligence.tsx";
 import LegitimateInterestTracker from "./pages/LegitimateInterestTracker.tsx";
 import AdminSeedLI from "./pages/AdminSeedLI.tsx";
+import LIAssessment from "./pages/LIAssessment.tsx";
+import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";
+import GovernanceAssessment from "./pages/GovernanceAssessment.tsx";
+import GovernanceAssessmentResult from "./pages/GovernanceAssessmentResult.tsx";
+import DPIAFramework from "./pages/DPIAFramework.tsx";
+import DPIAFrameworkResult from "./pages/DPIAFrameworkResult.tsx";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +115,12 @@ const App = () => (
            <Route path="/get-intelligence" element={<GetIntelligence />} />
            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
            <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
+           <Route path="/li-assessment" element={<LIAssessment />} />
+           <Route path="/li-assessment/result/:id" element={<ProtectedRoute><LIAssessmentResult /></ProtectedRoute>} />
+           <Route path="/governance-assessment" element={<GovernanceAssessment />} />
+           <Route path="/governance-assessment/result/:id" element={<ProtectedRoute><GovernanceAssessmentResult /></ProtectedRoute>} />
+           <Route path="/dpia-framework" element={<DPIAFramework />} />
+           <Route path="/dpia-framework/result/:id" element={<ProtectedRoute><DPIAFrameworkResult /></ProtectedRoute>} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
