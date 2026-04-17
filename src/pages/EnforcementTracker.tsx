@@ -88,6 +88,19 @@ const EnforcementTrackerPage = () => {
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [jurisdictionFilter, setJurisdictionFilter] = useState("all");
+  const [sortKey, setSortKey] = useState<"regulator" | "subject" | "fine_eur" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (key: "regulator" | "subject" | "fine_eur") => {
+    if (sortKey === key) {
+      // toggle: asc -> desc -> off
+      if (sortDir === "asc") setSortDir("desc");
+      else { setSortKey(null); setSortDir("asc"); }
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
 
   useEffect(() => {
     async function load() {
