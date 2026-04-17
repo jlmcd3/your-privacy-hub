@@ -779,6 +779,8 @@ const Dashboard = () => {
             )}
           </>
         )}
+
+        <PremiumToolsSection isPremium={isPremium} />
       </div>
 
       <Footer />
