@@ -126,7 +126,7 @@ const DPIAFramework = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>DPIA Builder — from ${pricing.subscriberPrice} | EndUserPrivacy</title></Helmet>
+      <Helmet><title>{`DPIA Builder — from $${pricing.subscriberPrice ?? ""} | EndUserPrivacy`}</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
