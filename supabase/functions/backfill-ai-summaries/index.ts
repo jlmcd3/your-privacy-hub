@@ -77,7 +77,7 @@ async function generateAISummary(
   summary: string | null,
   sourceName: string | null,
   apiKey: string
-): Promise<Record<string, unknown> | null> {
+) {
   try {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -89,43 +89,36 @@ async function generateAISummary(
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
-        system: `You are a privacy regulatory analyst at a leading intelligence firm.
-Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers.
-Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown, no explanation. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
             role: "user",
-            content: `Analyze this privacy/data protection article.
+            content: `You are a privacy regulatory analyst. Return ONLY valid JSON. No preamble, no markdown.
+
+Analyze this article.
 Title: ${title}
-Description: ${summary || "No description available."}
+Description: ${summary || "No description."}
 Source: ${sourceName || "Unknown"}
 
-STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations, return exactly: {"skip": true}
+IMPORTANT: Only articles about privacy LAWS, STATUTES, REGULATIONS, ENFORCEMENT ACTIONS by regulators, and COMPLIANCE OBLIGATIONS are relevant.
+Articles that merely announce a data breach, security incident, or lawsuit settlement WITHOUT discussing the underlying law or regulatory response are NOT relevant.
 
-STEP 2 — If relevant, return this JSON:
-{
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance.",
-  "takeaways": [
-    "Specific factual point from this article — cite regulator or law name",
-    "Specific implication, deadline, or scope if present",
-    "Specific type of organization affected and what they must review or do"
-  ],
-  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
-  "who_should_care": "DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
-  "urgency": "Immediate | This quarter | Monitor",
-  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
-  "source_strength": "Primary regulator | Legal analysis | Media coverage",
-  "cross_jurisdiction_signal": "If this reflects a pattern across multiple regulators simultaneously, describe it in one sentence. Otherwise null.",
-  "risk_level": "Low | Medium | High | Critical",
-  "affected_jurisdictions": [
-    "Array of jurisdiction slugs with real compliance implications.",
-    "Use: eu, united-kingdom, us-federal, california, texas, new-york,",
-    "france, germany, italy, spain, ireland, netherlands, poland, belgium,",
-    "denmark, sweden, norway, australia, canada, brazil, singapore, japan,",
-    "south-korea. Return [] if narrowly jurisdictional."
-  ],
-  "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
-}`,
+If not about privacy regulation/law, return: {"skip": true}
+
+Otherwise return JSON with these exact fields:
+- why_it_matters (string: one to two sentences explaining what this development means for privacy professionals)
+- takeaways (array of 2-4 strings: specific, plain-English observations)
+- compliance_impact (string: one sentence describing what this may mean in practice)
+- who_should_care (one of: "Privacy leads", "Compliance teams", "Legal teams", "Security teams", "All privacy professionals")
+- urgency (one of: "High", "Medium", "Low")
+- legal_weight (one of: "In effect", "Enforcement action", "Guidance issued", "Proposed", "Commentary")
+- source_strength (one of: "Official", "Credible", "Secondary")
+- cross_jurisdiction_signal (string or null: if multiple jurisdictions are involved, note it briefly)
+- regulatory_theory (string or null: the core regulatory principle at issue, in plain English)
+- affected_sectors (array of strings or null: industry sectors most relevant to this development)
+- related_development (string or null: a prior case, decision, or development this connects to, if clearly applicable)
+- attention_level (one of: "High", "Medium", "Low": overall priority signal for professionals)
+- key_date (string in YYYY-MM-DD format or null: a specific regulatory implementation or deadline date if mentioned)
+- li_relevant (boolean: true if this article contains any of the following: (1) a formal DPA or EDPB enforcement decision or ruling that evaluates a legitimate interest claim; (2) official guidance, opinion, or framework from a DPA or the EDPB addressing whether a type of processing can rely on legitimate interests; (3) regulatory commentary, public statement, or expressed concern from a DPA about legitimate interest claims; (4) a complaint rejection or supervisory closure that implicitly validates an LI basis. false otherwise)`,
           },
         ],
       }),
@@ -191,14 +184,14 @@ Deno.serve(async (req) => {
   const { data: articles } = await supabase
     .from("updates")
     .select("id, title, summary, source_name")
-    .or('ai_summary.is.null,enrichment_version.lt.3')
+    .or('ai_summary.is.null,enrichment_version.lt.2')
     .order("published_at", { ascending: false })
     .limit(batchSize);
 
   const { count } = await supabase
     .from("updates")
     .select("id", { count: "exact", head: true })
-    .or('ai_summary.is.null,enrichment_version.lt.3');
+    .or('ai_summary.is.null,enrichment_version.lt.2');
 
   let updated = 0,
     skipped = 0;
@@ -208,7 +201,7 @@ Deno.serve(async (req) => {
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 3 })
+        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 2 })
         .eq("id", article.id);
       skipped++;
       continue;
@@ -223,13 +216,15 @@ Deno.serve(async (req) => {
     if (aiSummary) {
       const updatePayload: Record<string, any> = {
         ai_summary: aiSummary,
-        enrichment_version: 3,
+        enrichment_version: 2,
+        regulatory_theory: aiSummary.regulatory_theory ?? null,
+        affected_sectors: aiSummary.affected_sectors ?? null,
+        related_development: aiSummary.related_development ?? null,
+        attention_level: aiSummary.attention_level ?? null,
+        key_date: aiSummary.key_date ? new Date(aiSummary.key_date) : null,
       };
-      if (
-        Array.isArray(aiSummary.affected_jurisdictions) &&
-        aiSummary.affected_jurisdictions.length > 0
-      ) {
-        updatePayload.affected_jurisdictions = aiSummary.affected_jurisdictions;
+      if (aiSummary.li_relevant === true) {
+        updatePayload.li_relevant = true;
       }
       await supabase
         .from("updates")
@@ -239,7 +234,7 @@ Deno.serve(async (req) => {
     } else {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true }, enrichment_version: 3 })
+        .update({ ai_summary: { skipped: true }, enrichment_version: 2 })
         .eq("id", article.id);
       skipped++;
     }
