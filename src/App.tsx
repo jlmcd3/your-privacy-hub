@@ -64,6 +64,9 @@ import DPIAFramework from "./pages/DPIAFramework.tsx";
 import DPIAFrameworkResult from "./pages/DPIAFrameworkResult.tsx";
 import EnforcementIntelligence from "./pages/EnforcementIntelligence.tsx";
 import EnforcementActionDetail from "./pages/EnforcementActionDetail.tsx";
+import DPAGenerator from "./pages/DPAGenerator.tsx";
+import IRPlaybook from "./pages/IRPlaybook.tsx";
+import BiometricChecker from "./pages/BiometricChecker.tsx";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +130,9 @@ const App = () => (
            <Route path="/dpia-framework/result/:id" element={<ProtectedRoute><DPIAFrameworkResult /></ProtectedRoute>} />
            <Route path="/enforcement-intelligence" element={<EnforcementIntelligence />} />
            <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
+           <Route path="/dpa-generator" element={<DPAGenerator />} />
+           <Route path="/ir-playbook" element={<IRPlaybook />} />
+           <Route path="/biometric-checker" element={<BiometricChecker />} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
