@@ -19,7 +19,8 @@ const TOOLS = [
       "Search a curated database of enforcement decisions and regulatory guidance to see how regulators have treated processing use cases similar to yours — and what documentation you need for a defensible balancing record.",
     cta: "View Sample & Purchase",
     href: "/li-assessment",
-    price: "$199",
+    standalonePrice: 39,
+    subscriberPrice: 19,
   },
   {
     icon: "🛡️",
@@ -28,7 +29,8 @@ const TOOLS = [
       "Ten-domain review of your organisation's privacy practices mapped to applicable regulatory frameworks. Each finding is rated by severity and paired with a recommended action, suggested owner, and timeline.",
     cta: "View Sample & Purchase",
     href: "/governance-assessment",
-    price: "$149",
+    standalonePrice: 29,
+    subscriberPrice: 15,
   },
   {
     icon: "📋",
@@ -37,7 +39,8 @@ const TOOLS = [
       "Structured Data Protection Impact Assessment framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
     cta: "View Sample & Purchase",
     href: "/dpia-framework",
-    price: "$249",
+    standalonePrice: 69,
+    subscriberPrice: 39,
   },
 ];
 
@@ -70,7 +73,7 @@ interface Props {
   isPremium: boolean;
 }
 
-export default function PremiumToolsSection({ isPremium: _isPremium }: Props) {
+export default function PremiumToolsSection({ isPremium }: Props) {
   const { user } = useAuth();
   const [recent, setRecent] = useState<AssessmentRow[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -128,35 +131,49 @@ export default function PremiumToolsSection({ isPremium: _isPremium }: Props) {
           Compliance Framework Tools
         </h2>
         <p className="text-muted-foreground text-[14px] mt-1">
-          Standalone compliance framework reports. Purchase only what you need.
+          Standalone compliance framework reports. Purchase only what you need —
+          {isPremium ? " Premium subscriber rate applied at checkout." : " Premium subscribers pay less."}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {TOOLS.map((tool) => (
-          <div
-            key={tool.title}
-            className="bg-card border border-border rounded-2xl p-5 flex flex-col"
-          >
-            <div className="text-[28px] mb-2">{tool.icon}</div>
-            <h3 className="font-display font-bold text-foreground text-[15px] leading-snug mb-2">
-              {tool.title}
-            </h3>
-            <p className="text-muted-foreground text-[13px] leading-relaxed flex-1 mb-4">
-              {tool.description}
-            </p>
-            <div className="mb-3">
-              <span className="font-display font-bold text-foreground text-[20px]">{tool.price}</span>
-              <span className="text-muted-foreground text-[12px] ml-1">one-time</span>
-            </div>
-            <Link
-              to={tool.href}
-              className="inline-flex items-center justify-center bg-navy text-white font-semibold text-[13px] py-2.5 px-4 rounded-xl no-underline hover:opacity-90 transition-all"
+        {TOOLS.map((tool) => {
+          const displayPrice = isPremium ? tool.subscriberPrice : tool.standalonePrice;
+          return (
+            <div
+              key={tool.title}
+              className="bg-card border border-border rounded-2xl p-5 flex flex-col"
             >
-              {tool.cta} →
-            </Link>
-          </div>
-        ))}
+              <div className="text-[28px] mb-2">{tool.icon}</div>
+              <h3 className="font-display font-bold text-foreground text-[15px] leading-snug mb-2">
+                {tool.title}
+              </h3>
+              <p className="text-muted-foreground text-[13px] leading-relaxed flex-1 mb-4">
+                {tool.description}
+              </p>
+              <div className="mb-3">
+                <span className="font-display font-bold text-foreground text-[20px]">${displayPrice}</span>
+                <span className="text-muted-foreground text-[12px] ml-1">one-time</span>
+                {!isPremium && (
+                  <span className="block text-[11px] text-amber-700 mt-0.5">
+                    ⭐ Premium: ${tool.subscriberPrice}
+                  </span>
+                )}
+                {isPremium && tool.standalonePrice > tool.subscriberPrice && (
+                  <span className="block text-[11px] text-muted-foreground line-through mt-0.5">
+                    Standalone ${tool.standalonePrice}
+                  </span>
+                )}
+              </div>
+              <Link
+                to={tool.href}
+                className="inline-flex items-center justify-center bg-navy text-white font-semibold text-[13px] py-2.5 px-4 rounded-xl no-underline hover:opacity-90 transition-all"
+              >
+                {tool.cta} →
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       <div>

@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
+import { useToolPrice } from "@/hooks/useToolPrice";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -31,7 +32,7 @@ const SECTORS = [
   "Government/public sector", "Other",
 ];
 
-const PRICE = 199;
+// Price tiers managed by useToolPrice hook (subscriber-aware)
 
 const MultiPills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -57,6 +58,7 @@ const LIAssessment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const pricing = useToolPrice("li_assessment");
 
   const [processingDescription, setProcessingDescription] = useState("");
   const [dataCategories, setDataCategories] = useState<string[]>([]);
@@ -107,7 +109,10 @@ const LIAssessment = () => {
       if (error || !data?.url) throw error ?? new Error("Checkout failed");
       window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      const msg = err?.message?.includes("stripe_not_configured") || err?.context?.status === 503
+        ? "Payments are not yet configured. Please check back soon."
+        : err.message ?? "Try again.";
+      toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
       setPurchasing(false);
     }
   };
@@ -115,15 +120,15 @@ const LIAssessment = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Legitimate Interest Analyzer — ${PRICE} | EndUserPrivacy</title>
-        <meta name="description" content="Assess whether your proposed processing can rely on legitimate interest under GDPR Article 6(1)(f). One-time purchase: $199." />
+        <title>Legitimate Interest Analyzer — from ${pricing.subscriberPrice} | EndUserPrivacy</title>
+        <meta name="description" content={`Assess whether your proposed processing can rely on legitimate interest under GDPR Article 6(1)(f). One-time purchase from $${pricing.subscriberPrice}.`} />
       </Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Compliance Framework Tool · ${PRICE}
+            ⚖️ Compliance Framework Tool · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Legitimate Interest Analyzer</h1>
           <p className="text-slate-300 text-lg">
@@ -202,7 +207,11 @@ const LIAssessment = () => {
         <ToolSamplePreview
           toolType="li"
           toolName="Legitimate Interest Analyzer"
-          price={PRICE}
+          price={pricing.price}
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber}
+          stripeConfigured={pricing.stripeConfigured}
           onPurchase={handlePurchase}
           purchasing={purchasing}
         />

@@ -6,7 +6,16 @@ export type ToolType = "li" | "healthcheck" | "dpia";
 interface Props {
   toolType: ToolType;
   toolName: string;
+  /** Price the current viewer will pay (subscriber rate if applicable) */
   price: number;
+  /** Standalone (non-subscriber) price — shown for comparison when viewer is a subscriber */
+  standalonePrice?: number;
+  /** Subscriber price — shown as a teaser to non-subscribers */
+  subscriberPrice?: number;
+  /** True when current viewer is a Premium subscriber */
+  isSubscriber?: boolean;
+  /** True when Stripe is wired up server-side. When false, the CTA shows a soft-disabled state. */
+  stripeConfigured?: boolean;
   onPurchase: () => void;
   purchasing: boolean;
 }
@@ -163,8 +172,20 @@ function DPIASample() {
   );
 }
 
-export default function ToolSamplePreview({ toolType, toolName, price, onPurchase, purchasing }: Props) {
+export default function ToolSamplePreview({
+  toolType,
+  toolName,
+  price,
+  standalonePrice,
+  subscriberPrice,
+  isSubscriber = false,
+  stripeConfigured = true,
+  onPurchase,
+  purchasing,
+}: Props) {
   const Sample = toolType === "li" ? LISample : toolType === "healthcheck" ? HealthcheckSample : DPIASample;
+  const showSubscriberTeaser = !isSubscriber && subscriberPrice && subscriberPrice < price;
+  const showStandaloneCompare = isSubscriber && standalonePrice && standalonePrice > price;
 
   return (
     <section className="bg-card border rounded-lg overflow-hidden">
@@ -198,11 +219,26 @@ export default function ToolSamplePreview({ toolType, toolName, price, onPurchas
             <Button
               size="lg"
               onClick={onPurchase}
-              disabled={purchasing}
-              className="bg-white text-navy hover:bg-white/90 font-bold"
+              disabled={purchasing || !stripeConfigured}
+              className="bg-white text-navy hover:bg-white/90 font-bold disabled:opacity-70"
             >
-              {purchasing ? "Redirecting…" : `Purchase Full Analysis — $${price}`}
+              {!stripeConfigured
+                ? `Payments Coming Soon — $${price}`
+                : purchasing
+                  ? "Redirecting…"
+                  : `Purchase Full Analysis — $${price}`}
             </Button>
+            {showStandaloneCompare && (
+              <p className="text-[11px] text-amber-300 mt-3">
+                ⭐ Premium subscriber rate · Standalone price ${standalonePrice}
+              </p>
+            )}
+            {showSubscriberTeaser && (
+              <p className="text-[11px] text-amber-300 mt-3">
+                Premium subscribers pay only ${subscriberPrice} —{" "}
+                <a href="/subscribe" className="underline hover:text-amber-200">see plans</a>
+              </p>
+            )}
             <p className="text-[11px] text-blue-200/80 mt-4">
               This tool produces a compliance framework document, not legal advice.
             </p>

@@ -10,8 +10,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
+import { useToolPrice } from "@/hooks/useToolPrice";
 
-const PRICE = 149;
+// Price tiers managed by useToolPrice hook (subscriber-aware)
 
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
 const SIZES = ["1-10", "11-50", "51-250", "251-1000", "1001+"];
@@ -49,6 +50,7 @@ const GovernanceAssessment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const pricing = useToolPrice("governance_assessment");
 
   const [step, setStep] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
@@ -147,7 +149,10 @@ const GovernanceAssessment = () => {
       if (error || !data?.url) throw error ?? new Error("Checkout failed");
       window.location.href = data.url;
     } catch (err: any) {
-      toast({ title: "Checkout failed", description: err.message ?? "Try again.", variant: "destructive" });
+      const msg = err?.message?.includes("stripe_not_configured") || err?.context?.status === 503
+        ? "Payments are not yet configured. Please check back soon."
+        : err.message ?? "Try again.";
+      toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
       setPurchasing(false);
     }
   };
@@ -160,7 +165,7 @@ const GovernanceAssessment = () => {
       <Navbar />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">⭐ Premium Tool</span>
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">⚖️ Compliance Framework Tool · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}</span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Data Privacy Healthcheck</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
           <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
@@ -311,8 +316,12 @@ const GovernanceAssessment = () => {
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
-              <Button onClick={handlePurchase} disabled={purchasing}>
-                {purchasing ? "Redirecting…" : `Purchase Full Healthcheck — $${PRICE}`}
+              <Button onClick={handlePurchase} disabled={purchasing || !pricing.stripeConfigured}>
+                {!pricing.stripeConfigured
+                  ? `Payments Coming Soon — $${pricing.price}`
+                  : purchasing
+                    ? "Redirecting…"
+                    : `Purchase Full Healthcheck — $${pricing.price}`}
               </Button>
             )}
           </div>
@@ -321,7 +330,11 @@ const GovernanceAssessment = () => {
         <ToolSamplePreview
           toolType="healthcheck"
           toolName="Data Privacy Healthcheck"
-          price={PRICE}
+          price={pricing.price}
+          standalonePrice={pricing.standalonePrice}
+          subscriberPrice={pricing.subscriberPrice}
+          isSubscriber={pricing.isSubscriber}
+          stripeConfigured={pricing.stripeConfigured}
           onPurchase={handlePurchase}
           purchasing={purchasing}
         />
