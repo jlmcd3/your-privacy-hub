@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
 
 const ratingColor = (r: string) => {
@@ -188,6 +189,11 @@ const GovernanceAssessmentResult = () => {
                 <p className="text-sm">{report.interaction_effects}</p>
               </section>
             )}
+
+            <EnforcementPrecedents
+              precedents={report?.enforcement_precedents}
+              context="Enforcement signals from regulators in your jurisdictions and sector — context for the top three risks above."
+            />
 
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
               ⚠️ {report?.disclaimer || "This is a compliance framework tool. Review findings with qualified legal counsel."}

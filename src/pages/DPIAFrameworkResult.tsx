@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
 
 const sevColor = (s: string) => {
@@ -201,6 +202,11 @@ const DPIAFrameworkResult = () => {
               </div>
               <Field label="Review schedule" value={report?.section_6_signoff?.review_schedule} />
             </Section>
+
+            <EnforcementPrecedents
+              precedents={report?.enforcement_precedents}
+              context="Recent regulator decisions on similar processing activities — review these alongside Section 3 (Risks) and Section 4 (Mitigation)."
+            />
 
             <div className="flex flex-wrap gap-2 print:hidden">
               {dpia?.pdf_url ? (

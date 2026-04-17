@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
 
 const strengthColor = (s: string) => {
@@ -182,6 +183,12 @@ const LIAssessmentResult = () => {
               )}
               {report?.data_currency_note && <p className="text-xs text-muted-foreground mt-3 italic">{report.data_currency_note}</p>}
             </section>
+
+            {/* Enforcement precedents from get-enforcement-context */}
+            <EnforcementPrecedents
+              precedents={report?.enforcement_precedents}
+              context="Recent regulator decisions matched to your processing activity, data categories, and jurisdictions."
+            />
 
             {/* Documentation */}
             {(Array.isArray(report?.recommended_documentation) || Array.isArray(report?.balancing_record_elements)) && (

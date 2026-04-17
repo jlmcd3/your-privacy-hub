@@ -73,6 +73,29 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
     const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
 
+    // Fetch enforcement precedents (3-5) for this DPIA scope
+    let enforcementPrecedents: any[] = [];
+    try {
+      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
+        body: {
+          tool: "DPIA",
+          data_categories: intake.data_categories || [],
+          jurisdictions: intake.jurisdictions || [],
+          sector: intake.sector || undefined,
+          limit: 5,
+        },
+      });
+      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+    } catch (e) {
+      console.error("get-enforcement-context failed (non-fatal):", e);
+    }
+
+    const enforcementContextStr = enforcementPrecedents.length > 0
+      ? enforcementPrecedents.map((r: any, i: number) =>
+          `[E${i + 1}] ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}`
+        ).join("\n")
+      : "No directly analogous enforcement precedents retrieved.";
+
     const reportText = await callAnthropic("claude-sonnet-4-6", system,
       `Generate a DPIA framework document for this processing activity.
 
@@ -86,6 +109,9 @@ Third-party processors: ${thirdParties}
 Existing safeguards: ${safeguards}
 Jurisdictions: ${jurisdictions}
 ${orgContext}
+
+ENFORCEMENT PRECEDENTS (recent regulator decisions on similar processing — cite by [E1]–[E5] in risk assessment and mitigation sections):
+${enforcementContextStr}
 
 Return JSON with this exact DPIA structure:
 
@@ -176,6 +202,7 @@ Return JSON with this exact DPIA structure:
 
     reportData.generated_at = new Date().toISOString();
     reportData.dpia_id = dpia_id;
+    reportData.enforcement_precedents = enforcementPrecedents;
 
     await supabase.from("dpia_frameworks").update({
       status: "complete",
