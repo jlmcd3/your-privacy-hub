@@ -184,7 +184,7 @@ const CategoryPage = () => {
           {!loading && updates.length > 0 && (
             <NewsfeedList
               articles={updates}
-              renderArticle={(u) => (
+              renderArticle={(u, _i, isPremium) => (
                 <a
                   key={u.id}
                   href={u.url}
@@ -225,7 +225,7 @@ const CategoryPage = () => {
                         {stripHtml(u.summary)}
                       </p>
                     )}
-                    <AISummaryPanel summary={u.ai_summary || null} />
+                    <AISummaryPanel summary={u.ai_summary || null} isPremium={isPremium} />
                   </div>
                   <div className="hidden md:flex items-center text-muted-foreground group-hover:text-primary transition-colors">
                     <ExternalLink className="w-4 h-4" />

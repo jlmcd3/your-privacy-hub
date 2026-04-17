@@ -264,7 +264,7 @@ const FullCard = ({ item }: { item: ArticleItem }) => {
         {/* Why it matters */}
         {item.ai_summary?.why_it_matters && (
           <p className="text-[13px] text-emerald-700 leading-relaxed line-clamp-2 mt-1 italic">
-            <span className="font-semibold not-italic">Key takeaways:</span>{' '}
+            <span className="font-semibold not-italic">Why it matters:</span>{' '}
             {stripHtml(item.ai_summary.why_it_matters)}
           </p>
         )}
