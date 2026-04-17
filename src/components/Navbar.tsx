@@ -170,7 +170,7 @@ const Navbar = () => {
 
               {item.sections && openDropdown === item.label && (
                 <div className="absolute top-full left-0 pt-1 z-50">
-                  <div className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 ${item.wide ? "min-w-[480px] grid grid-cols-2 gap-x-2" : "min-w-[240px]"}`}>
+                  <div className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${item.wide ? "min-w-[480px] grid grid-cols-2 gap-x-2" : "min-w-[240px]"}`}>
                     {item.sections.map((section, si) => (
                       <div key={si}>
                         {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
