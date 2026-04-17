@@ -216,6 +216,7 @@ const Navbar = () => {
             <>
               <Link
                 to="/dashboard"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
               >
                 🧠 My Dashboard
@@ -327,7 +328,10 @@ const Navbar = () => {
                 <Link
                   to="/dashboard"
                   className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                 >
                   🧠 My Dashboard
                 </Link>
