@@ -86,6 +86,7 @@ const Dashboard = () => {
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
   const [reportsUsed, setReportsUsed] = useState(0);
@@ -131,12 +132,13 @@ const Dashboard = () => {
     if (!user) { navigate("/login?redirect=/dashboard"); return; }
     supabase
       .from("profiles")
-      .select("is_premium, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete, digest_jurisdictions, digest_topics")
+      .select("is_premium, subscription_interval, bonus_report_credits, monthly_reports_used, reports_reset_date, onboarding_complete, digest_jurisdictions, digest_topics")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
+        setSubscriptionInterval((data as any)?.subscription_interval ?? null);
         // Show onboarding for free users who haven't completed it
         if (!premium && !(data as any)?.onboarding_complete) {
           setShowOnboarding(true);
@@ -352,6 +354,72 @@ const Dashboard = () => {
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Subscription plan status */}
+        <div className="mb-8 bg-card border border-border rounded-2xl p-5">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-display font-bold text-foreground text-[16px]">
+                {subscriptionInterval === "year" ? "⭐ Premium Annual" : "⭐ Premium Monthly"}
+              </span>
+              {subscriptionInterval === "year" && (
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Best Value
+                </span>
+              )}
+            </div>
+            <Link to="/account" className="text-[12px] font-semibold text-primary hover:underline no-underline">
+              Manage →
+            </Link>
+          </div>
+          {subscriptionInterval === "year" && (
+            <p className="text-[12px] text-muted-foreground mb-4">
+              Annual plan — saving $60/year vs monthly billing.
+            </p>
+          )}
+
+          {/* Tool pricing reminder */}
+          <div className="border-t border-border pt-4">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-steel mb-3">
+              Your subscriber tool pricing
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Link
+                to="/governance-assessment"
+                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
+              >
+                <p className="text-[12px] font-semibold text-foreground">Healthcheck</p>
+                <p className="text-[12px] text-foreground">
+                  <span className="font-bold">$15</span>
+                  <span className="text-muted-foreground"> /analysis</span>
+                </p>
+                <p className="text-[10px] text-green-700">Save $14 vs standard</p>
+              </Link>
+              <Link
+                to="/li-assessment"
+                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
+              >
+                <p className="text-[12px] font-semibold text-foreground">LI Analyzer</p>
+                <p className="text-[12px] text-foreground">
+                  <span className="font-bold">$19</span>
+                  <span className="text-muted-foreground"> /analysis</span>
+                </p>
+                <p className="text-[10px] text-green-700">Save $20 vs standard</p>
+              </Link>
+              <Link
+                to="/dpia-framework"
+                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
+              >
+                <p className="text-[12px] font-semibold text-foreground">DPIA Builder</p>
+                <p className="text-[12px] text-foreground">
+                  <span className="font-bold">$39</span>
+                  <span className="text-muted-foreground"> /analysis</span>
+                </p>
+                <p className="text-[10px] text-green-700">Save $30 vs standard</p>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="mb-10">
           <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
