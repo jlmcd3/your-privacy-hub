@@ -92,6 +92,29 @@ Return JSON:
       if (m) classification = JSON.parse(m[0]);
     } catch { classification = { use_case_category: "other" }; }
 
+    // Fetch enforcement precedents (3-5) from get-enforcement-context
+    let enforcementPrecedents: any[] = [];
+    try {
+      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
+        body: {
+          tool: "LIA",
+          data_categories: assessment.data_categories || [],
+          jurisdictions: assessment.jurisdictions || [],
+          sector: assessment.sector || undefined,
+          limit: 5,
+        },
+      });
+      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+    } catch (e) {
+      console.error("get-enforcement-context failed (non-fatal):", e);
+    }
+
+    const enforcementContextStr = enforcementPrecedents.length > 0
+      ? enforcementPrecedents.map((r: any, i: number) =>
+          `[E${i + 1}] ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
+        ).join("\n")
+      : "No directly analogous enforcement precedents retrieved.";
+
     // Fetch precedents from li_tracker_entries
     const { data: allPrecedents } = await supabase
       .from("li_tracker_entries")
@@ -140,6 +163,9 @@ Alternatives considered: ${assessment.alternatives_considered || "not specified"
 
 PRECEDENT DATABASE (tracked regulatory decisions):
 ${precedentContext}
+
+ENFORCEMENT PRECEDENTS (recent regulator fines/decisions, cite by code [E1]–[E5]):
+${enforcementContextStr}
 
 Return JSON with this exact structure:
 {
@@ -239,6 +265,7 @@ Return JSON:
       classification,
       precedents_reviewed: precedents.length,
       precedent_database_size: (allPrecedents || []).length,
+      enforcement_precedents: enforcementPrecedents,
       three_part_test: analysis,
       documentation_recommendations: docRecs,
       disclaimer: "This report is a compliance framework tool produced to assist in identifying areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under GDPR Article 6(1)(f) or equivalent provisions.",
