@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { type StripeEnv, createStripeClient, resolvePriceId } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,21 +8,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Subscription plans → human-readable lookup keys (created via payments tools)
+const PLAN_LOOKUPS: Record<string, string> = {
+  pro: "premium_monthly",
+  premium: "premium_monthly",
+  standard: "premium_monthly",
+};
+
+// Tool one-time purchases via tool_slug
+const TOOL_LOOKUPS: Record<string, { standalone: string; subscriber: string }> = {
+  healthcheck: { standalone: "hc_standalone", subscriber: "hc_subscriber" },
+  li_analyzer: { standalone: "li_standalone", subscriber: "li_subscriber" },
+  dpia_builder: { standalone: "dpia_standalone", subscriber: "dpia_subscriber" },
+};
+
+function detectEnv(): StripeEnv {
+  return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
+}
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      return new Response(
-        JSON.stringify({ error: "Stripe is not configured yet" }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify user auth
+    // Auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Not authenticated" }), {
@@ -29,13 +38,11 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
@@ -44,41 +51,22 @@ serve(async (req) => {
       });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const { plan, tool_slug, interval } = body as {
+    const { plan, tool_slug } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
-      interval?: "month" | "year";
     };
 
-    // Tool one-time checkout via tool_slug.
-    // Maps to subscriber/standalone Stripe price secrets configured later.
-    const TOOL_SECRETS: Record<string, { standalone: string; subscriber: string }> = {
-      healthcheck: {
-        standalone: "STRIPE_HC_STANDALONE_PRICE_ID",
-        subscriber: "STRIPE_HC_SUBSCRIBER_PRICE_ID",
-      },
-      li_analyzer: {
-        standalone: "STRIPE_LI_STANDALONE_PRICE_ID",
-        subscriber: "STRIPE_LI_SUBSCRIBER_PRICE_ID",
-      },
-      dpia_builder: {
-        standalone: "STRIPE_DPIA_STANDALONE_PRICE_ID",
-        subscriber: "STRIPE_DPIA_SUBSCRIBER_PRICE_ID",
-      },
-    };
-
-    let priceId: string | undefined;
+    let lookupKey: string | undefined;
     let mode: "subscription" | "payment" = "subscription";
     const metadata: Record<string, string> = { user_id: user.id };
 
     if (tool_slug) {
-      const secrets = TOOL_SECRETS[tool_slug];
-      if (!secrets) {
-        return new Response(
-          JSON.stringify({ error: "Unknown tool_slug" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      const lookups = TOOL_LOOKUPS[tool_slug];
+      if (!lookups) {
+        return new Response(JSON.stringify({ error: "Unknown tool_slug" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       const { data: profile } = await supabase
         .from("profiles")
@@ -86,30 +74,21 @@ serve(async (req) => {
         .eq("id", user.id)
         .single();
       const isSubscriber = !!profile?.is_premium;
-      priceId = Deno.env.get(isSubscriber ? secrets.subscriber : secrets.standalone) || undefined;
+      lookupKey = isSubscriber ? lookups.subscriber : lookups.standalone;
       mode = "payment";
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else {
-      // Subscription plan flow
-      if (interval === "year" || plan === "annual") {
-        priceId = Deno.env.get("STRIPE_ANNUAL_PRICE_ID");
-      } else if (plan === "pro") {
-        priceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
-      } else if (plan === "founding") {
-        priceId = Deno.env.get("STRIPE_FOUNDING_PRICE_ID");
-      } else {
-        priceId = Deno.env.get("STRIPE_STANDARD_PRICE_ID");
-      }
+      lookupKey = PLAN_LOOKUPS[plan || "pro"] || PLAN_LOOKUPS.pro;
     }
 
-    if (!priceId) {
+    const env = detectEnv();
+    const stripe = createStripeClient(env);
+    const stripePrice = await resolvePriceId(stripe, lookupKey!);
+    if (!stripePrice) {
       return new Response(
-        JSON.stringify({
-          error: "Payments are not configured yet. Please check back soon.",
-          code: "stripe_not_configured",
-        }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -117,42 +96,22 @@ serve(async (req) => {
     const successPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}/success` : "/subscribe/success";
     const cancelPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
-    const formBody: Record<string, string> = {
+    const session = await stripe.checkout.sessions.create({
       mode,
-      "line_items[0][price]": priceId,
-      "line_items[0][quantity]": "1",
+      line_items: [{ price: stripePrice.id, quantity: 1 }],
       success_url: `${origin}${successPath}`,
       cancel_url: `${origin}${cancelPath}`,
       customer_email: user.email!,
-    };
-    for (const [k, v] of Object.entries(metadata)) {
-      formBody[`metadata[${k}]`] = v;
-    }
-
-    const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${stripeKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams(formBody),
+      metadata,
+      ...(mode === "subscription" && { subscription_data: { metadata } }),
     });
-
-    const session = await stripeRes.json();
-
-    if (session.error) {
-      return new Response(JSON.stringify({ error: session.error.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("create-checkout-session error:", err);
-    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
+    return new Response(JSON.stringify({ error: (err as Error).message || "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

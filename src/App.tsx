@@ -40,6 +40,7 @@ import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
+import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
 import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
 import LegislationTracker from "./pages/LegislationTracker.tsx";
@@ -79,6 +80,7 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <ScrollToTopButton />
+        <PaymentTestModeBanner />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />

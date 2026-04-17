@@ -1,98 +1,100 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@13.6.0?target=deno";
+import { type StripeEnv, createStripeClient, resolvePriceId } from "../_shared/stripe.ts";
 
-const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// New tiered pricing — every user pays per use. Subscribers get a discounted rate.
-// Stripe price IDs are read from env at request time so the function can be deployed
-// before Stripe is configured. When secrets are missing, returns 503 so UI can show
-// a friendly "payments coming soon" message.
+// Tool catalog. Lookup keys map to prices created in the payment system
+// (see payments--batch_create_product results). Subscriber tier optional —
+// if not set, falls back to the standalone price.
 const TOOLS: Record<
   string,
   {
     name: string;
-    description: string;
-    standalone_cents: number;
-    subscriber_cents: number;
-    standalone_secret: string;
-    subscriber_secret: string;
+    standalone_lookup: string;
+    subscriber_lookup: string | null;
     table: string;
+    fallback_standalone_cents: number;
+    fallback_subscriber_cents: number;
   }
 > = {
   li_assessment: {
     name: "Legitimate Interest Analyzer",
-    description: "Single Legitimate Interest Analyzer report — compliance framework tool, not legal advice.",
-    standalone_cents: 3900,
-    subscriber_cents: 1900,
-    standalone_secret: "STRIPE_LI_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_LI_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "li_standalone",
+    subscriber_lookup: "li_subscriber",
     table: "li_assessments",
+    fallback_standalone_cents: 3900,
+    fallback_subscriber_cents: 1900,
   },
   governance_assessment: {
     name: "Data Privacy Healthcheck",
-    description: "Single Data Privacy Healthcheck report — compliance framework tool, not legal advice.",
-    standalone_cents: 2900,
-    subscriber_cents: 1500,
-    standalone_secret: "STRIPE_HC_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_HC_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "hc_standalone",
+    subscriber_lookup: "hc_subscriber",
     table: "governance_assessments",
+    fallback_standalone_cents: 2900,
+    fallback_subscriber_cents: 1500,
   },
   dpia_framework: {
     name: "DPIA Builder",
-    description: "Single DPIA Builder document — compliance framework tool, not legal advice.",
-    standalone_cents: 6900,
-    subscriber_cents: 3900,
-    standalone_secret: "STRIPE_DPIA_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_DPIA_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "dpia_standalone",
+    subscriber_lookup: "dpia_subscriber",
     table: "dpia_frameworks",
+    fallback_standalone_cents: 6900,
+    fallback_subscriber_cents: 3900,
   },
   dpa_generator: {
     name: "DPA Generator",
-    description: "Single GDPR Article 28 Data Processing Agreement — compliance framework tool, not legal advice.",
-    standalone_cents: 6900,
-    subscriber_cents: 3900,
-    standalone_secret: "STRIPE_DPA_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_DPA_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "dpa_standalone",
+    subscriber_lookup: "dpa_subscriber",
     table: "dpa_documents",
+    fallback_standalone_cents: 6900,
+    fallback_subscriber_cents: 3900,
   },
   ir_playbook: {
     name: "IR Playbook Generator",
-    description: "Single Incident Response Playbook — compliance framework tool, not legal advice.",
-    standalone_cents: 3900,
-    subscriber_cents: 0,
-    standalone_secret: "STRIPE_IR_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_IR_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "ir_standalone",
+    subscriber_lookup: null,
     table: "ir_playbooks",
+    fallback_standalone_cents: 3900,
+    fallback_subscriber_cents: 0,
   },
   biometric_checker: {
     name: "Biometric Compliance Checker",
-    description: "Multi-jurisdiction biometric compliance analysis — compliance framework tool, not legal advice.",
-    standalone_cents: 2900,
-    subscriber_cents: 0,
-    standalone_secret: "STRIPE_BIOMETRIC_STANDALONE_PRICE_ID",
-    subscriber_secret: "STRIPE_BIOMETRIC_SUBSCRIBER_PRICE_ID",
+    standalone_lookup: "biometric_standalone",
+    subscriber_lookup: null,
     table: "biometric_assessments",
+    fallback_standalone_cents: 2900,
+    fallback_subscriber_cents: 0,
   },
 };
+
+// Derive sandbox vs live from which gateway key is configured. Sandbox is
+// always configured first; live appears after the user claims the account.
+function detectEnv(): StripeEnv {
+  return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { tool_type, user_id, intake_data, return_url } = await req.json();
-
     const tool = TOOLS[tool_type];
     if (!tool) {
-      return new Response(JSON.stringify({ error: "Invalid tool type" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Invalid tool type" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Determine subscriber tier
     let isSubscriber = false;
     if (user_id) {
       const { data: profile } = await supabase
@@ -103,22 +105,21 @@ Deno.serve(async (req) => {
       isSubscriber = !!profile?.is_premium;
     }
 
-    const amount_cents = isSubscriber ? tool.subscriber_cents : tool.standalone_cents;
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const lookupKey =
+      isSubscriber && tool.subscriber_lookup ? tool.subscriber_lookup : tool.standalone_lookup;
+    const fallbackCents =
+      isSubscriber && tool.subscriber_lookup
+        ? tool.fallback_subscriber_cents
+        : tool.fallback_standalone_cents;
 
-    if (!stripeKey) {
-      return new Response(
-        JSON.stringify({
-          error: "stripe_not_configured",
-          message: "Payments are not yet configured. Please check back soon.",
-        }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const env = detectEnv();
+    const stripe = createStripeClient(env);
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+    // Resolve the human-readable price ID to Stripe's internal price ID.
+    const stripePrice = await resolvePriceId(stripe, lookupKey);
+    const amountCents = stripePrice?.unit_amount ?? fallbackCents;
 
-    // Insert pending assessment record
+    // Insert pending assessment record (price stored for accounting).
     let assessmentData: Record<string, unknown> = {};
     if (tool_type === "li_assessment") {
       assessmentData = {
@@ -126,7 +127,7 @@ Deno.serve(async (req) => {
         status: "pending",
         processing_description: intake_data?.processing_description || "",
         purchased_as_standalone: !isSubscriber,
-        purchase_price_cents: amount_cents,
+        purchase_price_cents: amountCents,
         ...(intake_data || {}),
       };
     } else {
@@ -135,7 +136,7 @@ Deno.serve(async (req) => {
         status: "pending",
         intake_data: intake_data || {},
         purchased_as_standalone: !isSubscriber,
-        purchase_price_cents: amount_cents,
+        purchase_price_cents: amountCents,
       };
     }
 
@@ -149,19 +150,16 @@ Deno.serve(async (req) => {
       throw new Error("Failed to create assessment record");
     }
 
-    const origin = return_url || Deno.env.get("SITE_URL") || "";
+    const origin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
 
-    // Prefer pre-configured Stripe price ID; fall back to ad-hoc price_data
-    const priceIdSecret = isSubscriber ? tool.subscriber_secret : tool.standalone_secret;
-    const stripePriceId = Deno.env.get(priceIdSecret);
-
-    const lineItem = stripePriceId
-      ? { price: stripePriceId, quantity: 1 }
+    const lineItem = stripePrice
+      ? { price: stripePrice.id, quantity: 1 }
       : {
+          // Fallback inline price if lookup_key not yet provisioned
           price_data: {
             currency: "usd",
-            product_data: { name: tool.name, description: tool.description },
-            unit_amount: amount_cents,
+            product_data: { name: tool.name },
+            unit_amount: amountCents,
           },
           quantity: 1,
         };
@@ -186,7 +184,9 @@ Deno.serve(async (req) => {
     );
   } catch (e) {
     console.error("create-tool-checkout error:", e);
-    return new Response(JSON.stringify({ error: "Failed to create checkout session" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: (e as Error).message || "Failed to create checkout session" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
