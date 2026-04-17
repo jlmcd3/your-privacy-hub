@@ -40,6 +40,8 @@ const Field = ({ label, value }: { label: string; value: any }) => value ? (
 
 const DPIAFrameworkResult = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const purchased = searchParams.get("purchased") === "true";
   const [dpia, setDpia] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [consultationNote, setConsultationNote] = useState("");
