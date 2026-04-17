@@ -189,51 +189,114 @@ export type Database = {
       enforcement_actions: {
         Row: {
           action_type: string | null
+          biometric_related: boolean | null
+          breach_related: boolean | null
+          company_type: string | null
           created_at: string | null
+          data_categories: string[] | null
           decision_date: string | null
+          dpa_related: boolean | null
+          enrichment_version: number | null
           etid: string | null
           fine_amount: string | null
           fine_eur: number | null
+          fine_eur_equivalent: number | null
           id: string
+          industry_sector: string | null
           jurisdiction: string
+          key_compliance_failure: string | null
           law: string | null
+          precedent_significance: number | null
+          preventive_measures: string | null
+          raw_text: string | null
           regulator: string
           sector: string | null
+          source_database: string | null
           source_url: string | null
           subject: string | null
+          tool_relevance: string[] | null
           violation: string | null
+          violation_types: string[] | null
         }
         Insert: {
           action_type?: string | null
+          biometric_related?: boolean | null
+          breach_related?: boolean | null
+          company_type?: string | null
           created_at?: string | null
+          data_categories?: string[] | null
           decision_date?: string | null
+          dpa_related?: boolean | null
+          enrichment_version?: number | null
           etid?: string | null
           fine_amount?: string | null
           fine_eur?: number | null
+          fine_eur_equivalent?: number | null
           id?: string
+          industry_sector?: string | null
           jurisdiction: string
+          key_compliance_failure?: string | null
           law?: string | null
+          precedent_significance?: number | null
+          preventive_measures?: string | null
+          raw_text?: string | null
           regulator: string
           sector?: string | null
+          source_database?: string | null
           source_url?: string | null
           subject?: string | null
+          tool_relevance?: string[] | null
           violation?: string | null
+          violation_types?: string[] | null
         }
         Update: {
           action_type?: string | null
+          biometric_related?: boolean | null
+          breach_related?: boolean | null
+          company_type?: string | null
           created_at?: string | null
+          data_categories?: string[] | null
           decision_date?: string | null
+          dpa_related?: boolean | null
+          enrichment_version?: number | null
           etid?: string | null
           fine_amount?: string | null
           fine_eur?: number | null
+          fine_eur_equivalent?: number | null
           id?: string
+          industry_sector?: string | null
           jurisdiction?: string
+          key_compliance_failure?: string | null
           law?: string | null
+          precedent_significance?: number | null
+          preventive_measures?: string | null
+          raw_text?: string | null
           regulator?: string
           sector?: string | null
+          source_database?: string | null
           source_url?: string | null
           subject?: string | null
+          tool_relevance?: string[] | null
           violation?: string | null
+          violation_types?: string[] | null
+        }
+        Relationships: []
+      }
+      enforcement_context_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          response: Json
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          response: Json
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          response?: Json
         }
         Relationships: []
       }
