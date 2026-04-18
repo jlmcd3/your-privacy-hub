@@ -14,7 +14,7 @@ interface AssessmentRow {
 const TOOLS = [
   {
     icon: "⚖️",
-    title: "Legitimate Interest Analyzer",
+    title: "Legitimate Interest Assessment Tool",
     description:
       "Search a curated database of enforcement decisions and regulatory guidance to see how regulators have treated processing use cases similar to yours — and what documentation you need for a defensible balancing record.",
     cta: "View Sample & Purchase",

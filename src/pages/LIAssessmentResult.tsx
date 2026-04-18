@@ -74,12 +74,12 @@ const LIAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Legitimate Interest Analyzer | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Legitimate Interest Assessment Tool | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-10">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-serif mb-2">Legitimate Interest Analyzer</h1>
+          <h1 className="text-3xl font-serif mb-2">Legitimate Interest Assessment Tool</h1>
           {assessment?.processing_description && (
             <p className="text-slate-300 text-sm">
               {assessment.processing_description.length > 120 ? assessment.processing_description.slice(0, 120) + "…" : assessment.processing_description}
