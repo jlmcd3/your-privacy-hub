@@ -46,7 +46,7 @@ const TOOLS = [
     icon: "📄",
     title: "Custom Data Protection Agreement",
     description:
-      "Draft a GDPR Article 28 Data Processing Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
+      "Draft a GDPR Article 28 Custom Data Protection Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
     cta: "View Sample & Purchase",
     href: "/dpa-generator",
     standalonePrice: 69,
