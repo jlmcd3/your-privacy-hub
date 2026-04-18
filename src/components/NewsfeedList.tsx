@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import NewsfeedPaywallCard from "./NewsfeedPaywallCard";
@@ -6,6 +6,7 @@ import InFeedAd from "./InFeedAd";
 
 const FREE_LIMIT = 15;
 const BATCH_SIZE = 15;
+const IN_FEED_AD_FREQUENCY = 5;
 
 interface Article {
   id: string;
@@ -64,15 +65,17 @@ export default function NewsfeedList({
 
   return (
     <div>
-      {/* Article list */}
+      {/* Article list — interleave an in-feed ad every N items (Premium sees ads too). */}
       <div className="space-y-0">
-        {visibleArticles.map((article, i) => (
-          <div key={article.id || i}>
-            {renderArticle(article, i, isPremium)}
-            {i === 3 && <InFeedAd adSlot="eup-infeed-1" />}
-            {i === 8 && <InFeedAd adSlot="eup-infeed-2" />}
-          </div>
-        ))}
+        {visibleArticles.map((article, i) => {
+          const showAdAfter = (i + 1) % IN_FEED_AD_FREQUENCY === 0 && i !== visibleArticles.length - 1;
+          return (
+            <Fragment key={article.id || i}>
+              {renderArticle(article, i, isPremium)}
+              {showAdAfter && <InFeedAd adSlot={`eup-infeed-${i + 1}`} />}
+            </Fragment>
+          );
+        })}
       </div>
 
       {isLoading && (
