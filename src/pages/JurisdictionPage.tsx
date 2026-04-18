@@ -121,83 +121,125 @@ const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
 
-  const [devArticles, setDevArticles] = useState<any[] | null>(null);
+  const [directRecent, setDirectRecent] = useState<any[]>([]);
+  const [regionalRecent, setRegionalRecent] = useState<any[]>([]);
+  const [archive, setArchive] = useState<any[]>([]);
   const [devLoading, setDevLoading] = useState(true);
+  const [showRegional, setShowRegional] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
 
   const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
 
   useEffect(() => {
     if (!jurisdiction) return;
     setDevLoading(true);
+    setShowRegional(false);
+    setShowArchive(false);
 
     (async () => {
-      // Fetch a larger pool so we can score relevance properly
-      const { data, error } = await (supabase as any)
-        .from("updates")
-        .select("id,title,summary,url,source_domain,source_name,image_url,category,published_at")
-        .eq("category", derivedCategory)
-        .order("published_at", { ascending: false })
-        .limit(60);
-
-      if (error || !data || data.length === 0) {
-        setDevArticles(null);
-        setDevLoading(false);
-        return;
-      }
-
-      // Build a relevance score for each article based on jurisdiction name mentions
-      const name = jurisdiction.name.toLowerCase();
+      const name = jurisdiction.name;
+      const nameLower = name.toLowerCase();
       const authorityTerms = jurisdiction.authorities
         .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
-      const allTerms = [name, ...authorityTerms];
+      const allTerms = [nameLower, ...authorityTerms];
 
-      const scored = data.map((a: any) => {
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions";
+
+      // Tier 1: enriched-direct (last 90d)
+      const directQ = (supabase as any)
+        .from("updates").select(select)
+        .contains("direct_jurisdictions", [name])
+        .gte("published_at", ninetyDaysAgo)
+        .order("published_at", { ascending: false })
+        .limit(20);
+
+      // Tier 2: enriched-affected only (last 90d)
+      const affectedQ = (supabase as any)
+        .from("updates").select(select)
+        .contains("affected_jurisdictions", [name])
+        .gte("published_at", ninetyDaysAgo)
+        .order("published_at", { ascending: false })
+        .limit(20);
+
+      // Keyword fallback pool (for unenriched + archive). Scoped to category bucket.
+      const kwPoolQ = (supabase as any)
+        .from("updates").select(select)
+        .eq("category", derivedCategory)
+        .order("published_at", { ascending: false })
+        .limit(120);
+
+      const [{ data: directData }, { data: affectedData }, { data: poolData }] =
+        await Promise.all([directQ, affectedQ, kwPoolQ]);
+
+      const matchesKeyword = (a: any) => {
         const text = ((a.title || "") + " " + (a.summary || "")).toLowerCase();
-        const titleLower = (a.title || "").toLowerCase();
-        let score = 0;
-        if (allTerms.some(t => titleLower.includes(t))) score += 3;
-        if (allTerms.some(t => text.includes(t))) score += 1;
-        // Recency bonus: articles within 7 days get +1
-        const ageMs = Date.now() - new Date(a.published_at).getTime();
-        if (ageMs < 7 * 24 * 60 * 60 * 1000) score += 1;
-        return { ...a, _score: score, _isExact: score >= 3 };
+        return allTerms.some(t => t && text.includes(t));
+      };
+
+      const seen = new Set<string>();
+      const direct: any[] = [];
+      const regional: any[] = [];
+      const archiveList: any[] = [];
+      const ninetyMs = Date.now() - 90 * 24 * 60 * 60 * 1000;
+
+      const pushUnique = (bucket: any[], a: any) => {
+        if (!seen.has(a.id)) { seen.add(a.id); bucket.push(a); }
+      };
+
+      (directData || []).forEach((a: any) => pushUnique(direct, a));
+
+      (affectedData || []).forEach((a: any) => {
+        if (!seen.has(a.id)) pushUnique(regional, a);
       });
 
-      const sorted = scored.sort((a: any, b: any) => {
-        if (b._score !== a._score) return b._score - a._score;
-        return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+      // Keyword pass over the broader pool (catches unenriched articles)
+      (poolData || []).forEach((a: any) => {
+        if (seen.has(a.id)) return;
+        if (!matchesKeyword(a)) return;
+        const ts = new Date(a.published_at).getTime();
+        const isDirectByEnrichment = a.direct_jurisdictions?.includes?.(name);
+        const isAffectedByEnrichment = a.affected_jurisdictions?.includes?.(name);
+        if (ts >= ninetyMs) {
+          if (isAffectedByEnrichment && !isDirectByEnrichment) pushUnique(regional, a);
+          else pushUnique(direct, a);
+        } else {
+          pushUnique(archiveList, a);
+        }
       });
 
-      const top8 = sorted.slice(0, 8);
-      setDevArticles(top8);
+      // Also consider direct-enriched older items as archive (separate small fetch)
+      const { data: oldDirect } = await (supabase as any)
+        .from("updates").select(select)
+        .contains("direct_jurisdictions", [name])
+        .lt("published_at", ninetyDaysAgo)
+        .order("published_at", { ascending: false })
+        .limit(20);
+      (oldDirect || []).forEach((a: any) => pushUnique(archiveList, a));
+
+      const sortByDate = (arr: any[]) =>
+        arr.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+
+      setDirectRecent(sortByDate(direct).slice(0, 8));
+      setRegionalRecent(sortByDate(regional).slice(0, 10));
+      setArchive(sortByDate(archiveList).slice(0, 20));
       setDevLoading(false);
 
-      // Translate non-English articles in background
-      const nonEnglish = top8.filter((a: any) =>
+      // Translate non-English titles in the visible direct tier
+      const visibleDirect = sortByDate(direct).slice(0, 8);
+      const nonEnglish = visibleDirect.filter((a: any) =>
         isLikelyNonEnglish(a.title + " " + (a.summary || ""))
       );
       if (nonEnglish.length > 0) {
         try {
           const { data: translated } = await supabase.functions.invoke("translate-articles", {
-            body: {
-              articles: nonEnglish.map((a: any) => ({
-                id: a.id, title: a.title, summary: a.summary,
-              })),
-            },
+            body: { articles: nonEnglish.map((a: any) => ({ id: a.id, title: a.title, summary: a.summary })) },
           });
           if (translated?.articles) {
-            const translatedMap = new Map(
-              translated.articles.map((t: any) => [t.id, t])
-            );
-            setDevArticles(prev =>
-              prev
-                ? prev.map((a: any) =>
-                    translatedMap.has(a.id)
-                      ? { ...a, ...(translatedMap.get(a.id) as any) }
-                      : a
-                  )
-                : prev
-            );
+            const tMap = new Map(translated.articles.map((t: any) => [t.id, t]));
+            setDirectRecent(prev => prev.map((a: any) =>
+              tMap.has(a.id) ? { ...a, ...(tMap.get(a.id) as any) } : a
+            ));
           }
         } catch (e) {
           console.error("Translation failed:", e);
@@ -333,98 +375,154 @@ const JurisdictionPage = () => {
 
         <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
-        {/* Recent Developments from category */}
-        {devLoading ? (
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="font-display text-[20px] text-navy">Recent Developments</h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">
-                Live
-              </span>
-            </div>
-            <p className="text-sm text-slate mb-4">
-              Top stories relevant to {jurisdiction.name} — AI-curated from our daily monitoring
-            </p>
-            <div className="flex flex-col gap-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
-              ))}
-            </div>
-          </div>
-        ) : devArticles ? (
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="font-display text-[20px] text-navy">Recent Developments</h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">
-                Live
-              </span>
-            </div>
-            <p className="text-sm text-slate mb-4">
-              Top stories relevant to {jurisdiction.name} — AI-curated from our daily monitoring
-            </p>
-            <div className="space-y-2">
-              {devArticles.map((a: any) => (
-                <a
-                  key={a.id}
-                  href={a.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
-                >
-                  {a.image_url && (
-                    <img
-                      src={a.image_url}
-                      alt=""
-                      className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0"
-                    />
+        {/* Recent Developments — tiered by relevance */}
+        {(() => {
+          const ArticleRow = ({ a, tag }: { a: any; tag?: string }) => (
+            <a
+              href={a.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
+            >
+              {a.image_url && (
+                <img src={a.image_url} alt="" className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5 flex items-center gap-2 flex-wrap">
+                  <span>{a.source_domain || a.source_name}</span>
+                  {a.wasTranslated && <span className="text-[10px] text-slate/60 normal-case">🌐 Translated</span>}
+                  {tag && (
+                    <span className="text-[9px] bg-fog text-slate-light px-1.5 py-0.5 rounded-full normal-case font-normal">{tag}</span>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5 flex items-center gap-2 flex-wrap">
-                      <span>{a.source_domain || a.source_name}</span>
-                      {a.wasTranslated && (
-                        <span className="text-[10px] text-slate/60 normal-case">🌐 Translated</span>
-                      )}
-                      {!a._isExact && (
-                        <span className="text-[9px] bg-fog text-slate-light px-1.5 py-0.5 rounded-full normal-case font-normal">
-                          Regional
-                        </span>
-                      )}
-                      <span>·</span>
-                      <span>
-                        {new Date(a.published_at).toLocaleDateString("en-US", {
-                          month: "short", day: "numeric", year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
-                      {normalizeTitle(a.title)}
-                    </p>
-                    {a.summary && (
-                      <p className="text-[12px] text-slate line-clamp-3 mt-0.5 mb-0">
-                        {stripHtml(a.summary)}
-                      </p>
+                  <span>·</span>
+                  <span>{new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                </div>
+                <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
+                  {normalizeTitle(a.title)}
+                </p>
+                {a.summary && (
+                  <p className="text-[12px] text-slate line-clamp-3 mt-0.5 mb-0">{stripHtml(a.summary)}</p>
+                )}
+              </div>
+              <ExternalLink size={14} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+            </a>
+          );
+
+          if (devLoading) {
+            return (
+              <div className="mb-10">
+                <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+                <p className="text-sm text-slate mb-4">Top stories relevant to {jurisdiction.name}</p>
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
+                </div>
+              </div>
+            );
+          }
+
+          const hasDirect = directRecent.length > 0;
+          const hasRegional = regionalRecent.length > 0;
+          const hasArchive = archive.length > 0;
+
+          return (
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="font-display text-[20px] text-navy">
+                  {hasDirect ? `Recent developments — ${jurisdiction.name}` : "Recent Developments"}
+                </h2>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
+              </div>
+
+              {hasDirect ? (
+                <>
+                  <p className="text-sm text-slate mb-4">
+                    Articles from the last 90 days that directly cover {jurisdiction.name}.
+                  </p>
+                  <div className="space-y-2">
+                    {directRecent.map((a) => <ArticleRow key={a.id} a={a} />)}
+                  </div>
+                </>
+              ) : (
+                <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
+                  <h3 className="font-display text-[18px] text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
+                  <p className="text-[13px] text-slate leading-relaxed mb-4">
+                    We haven't picked up jurisdiction-specific news in the last 90 days. This usually means the regulator hasn't
+                    published high-profile actions recently — not that nothing is happening. Try the options below.
+                  </p>
+                  <div className="flex flex-wrap gap-3 text-[12px] font-medium">
+                    {hasRegional && (
+                      <button onClick={() => setShowRegional(true)} className="text-blue hover:underline">
+                        See {regionalRecent.length} regional / spillover {regionalRecent.length === 1 ? "article" : "articles"} ↓
+                      </button>
+                    )}
+                    {hasArchive && (
+                      <button onClick={() => setShowArchive(true)} className="text-blue hover:underline">
+                        Browse earlier coverage ↓
+                      </button>
+                    )}
+                    {jurisdiction.authorities[0]?.website && (
+                      <a href={jurisdiction.authorities[0].website} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline">
+                        Visit {jurisdiction.authorities[0].abbreviation || "regulator"} site ↗
+                      </a>
                     )}
                   </div>
-                  <ExternalLink
-                    size={14}
-                    className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1"
-                  />
-                </a>
-              ))}
+                </div>
+              )}
+
+              {hasRegional && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowRegional((v) => !v)}
+                    className="w-full flex items-center justify-between text-left py-2 border-t border-fog hover:text-blue transition-colors"
+                  >
+                    <div>
+                      <span className="font-display text-[16px] text-navy">Also relevant to {jurisdiction.name}</span>
+                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                        Regional or cross-border developments that may affect {jurisdiction.name} ({regionalRecent.length})
+                      </p>
+                    </div>
+                    <span className="text-slate text-sm">{showRegional ? "−" : "+"}</span>
+                  </button>
+                  {showRegional && (
+                    <div className="space-y-2 mt-3">
+                      {regionalRecent.map((a) => <ArticleRow key={a.id} a={a} tag="Regional" />)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {hasArchive && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowArchive((v) => !v)}
+                    className="w-full flex items-center justify-between text-left py-2 border-t border-fog hover:text-blue transition-colors"
+                  >
+                    <div>
+                      <span className="font-display text-[16px] text-navy">Earlier coverage</span>
+                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                        Older than 90 days ({archive.length})
+                      </p>
+                    </div>
+                    <span className="text-slate text-sm">{showArchive ? "−" : "+"}</span>
+                  </button>
+                  {showArchive && (
+                    <div className="space-y-2 mt-3">
+                      {archive.map((a) => <ArticleRow key={a.id} a={a} tag="Archive" />)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(hasDirect || hasRegional || hasArchive) && (
+                <div className="flex items-center justify-end mt-4 pt-3 border-t border-fog">
+                  <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors">
+                    View all {categoryLabel} updates →
+                  </Link>
+                </div>
+              )}
             </div>
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-fog">
-              <p className="text-[11px] text-slate-light">
-                Showing top {devArticles.length} articles from the {categoryLabel} feed most relevant to {jurisdiction.name}
-              </p>
-              <Link
-                to={`/category/${derivedCategory}`}
-                className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors"
-              >
-                View all {categoryLabel} updates →
-              </Link>
-            </div>
-          </div>
-        ) : null}
+          );
+        })()}
 
         {/* Related */}
         <div className="border-t border-fog pt-8 mb-8">
