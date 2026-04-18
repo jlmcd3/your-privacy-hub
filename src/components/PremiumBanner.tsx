@@ -6,7 +6,6 @@ const features = [
   "See every enforcement action — all regulators, all jurisdictions",
   "Brief re-written specifically for your industry every week",
   "Sector-specific action items — not generic advice",
-  "Ad-free, always",
 ];
 
 const PremiumBanner = () => {
