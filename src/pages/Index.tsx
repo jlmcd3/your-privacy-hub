@@ -56,6 +56,9 @@ const Index = () => {
 
           {/* === RIGHT SIDEBAR === */}
           <aside className="hidden lg:flex flex-col gap-6">
+            {/* Sticky desktop rail ad — shown to all users */}
+            <StickyRailAd adSlot="eup-home-rail" topOffset={96} />
+
 
             {/* Weekly brief sidebar card — hidden for premium */}
             {!isPremium && (
@@ -107,11 +110,11 @@ const Index = () => {
       </div>
 
       {/* Below-fold content */}
-      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper hidden" />
+      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper" />
       <EmailSignup variant="strip" />
 
       <div className="h-px bg-fog" />
-      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper hidden" />
+      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper" />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <div className="py-12"><ToolkitSection /></div>
