@@ -36,7 +36,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Data Privacy Healthcheck",                             free: "$29 per analysis",    pro: "$15 per analysis"   },
   { feature: "Legitimate Interest Analyzer",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
   { feature: "DPIA Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
-  { feature: "DPA Generator",                                        free: "$69 per document",    pro: "$39 per document"   },
+  { feature: "Custom Data Protection Agreement",                     free: "$69 per document",    pro: "$39 per document"   },
   { feature: "Incident Response Playbook Generator",                 free: "$39 per playbook",    pro: "Included free"      },
   { feature: "Biometric Privacy Compliance Checker",                 free: "1 jurisdiction free", pro: "Included free"      },
 ];

@@ -413,7 +413,7 @@ const Dashboard = () => {
                 to="/dpa-generator"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">DPA Generator</p>
+                <p className="text-[12px] font-semibold text-foreground">Custom Data Protection Agreement</p>
                 <p className="text-[12px] text-foreground">
                   <span className="font-bold">$39</span>
                   <span className="text-muted-foreground"> /document</span>
