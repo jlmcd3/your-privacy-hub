@@ -375,98 +375,154 @@ const JurisdictionPage = () => {
 
         <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
-        {/* Recent Developments from category */}
-        {devLoading ? (
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="font-display text-[20px] text-navy">Recent Developments</h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">
-                Live
-              </span>
-            </div>
-            <p className="text-sm text-slate mb-4">
-              Top stories relevant to {jurisdiction.name} — AI-curated from our daily monitoring
-            </p>
-            <div className="flex flex-col gap-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
-              ))}
-            </div>
-          </div>
-        ) : devArticles ? (
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="font-display text-[20px] text-navy">Recent Developments</h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">
-                Live
-              </span>
-            </div>
-            <p className="text-sm text-slate mb-4">
-              Top stories relevant to {jurisdiction.name} — AI-curated from our daily monitoring
-            </p>
-            <div className="space-y-2">
-              {devArticles.map((a: any) => (
-                <a
-                  key={a.id}
-                  href={a.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
-                >
-                  {a.image_url && (
-                    <img
-                      src={a.image_url}
-                      alt=""
-                      className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0"
-                    />
+        {/* Recent Developments — tiered by relevance */}
+        {(() => {
+          const ArticleRow = ({ a, tag }: { a: any; tag?: string }) => (
+            <a
+              href={a.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
+            >
+              {a.image_url && (
+                <img src={a.image_url} alt="" className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5 flex items-center gap-2 flex-wrap">
+                  <span>{a.source_domain || a.source_name}</span>
+                  {a.wasTranslated && <span className="text-[10px] text-slate/60 normal-case">🌐 Translated</span>}
+                  {tag && (
+                    <span className="text-[9px] bg-fog text-slate-light px-1.5 py-0.5 rounded-full normal-case font-normal">{tag}</span>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5 flex items-center gap-2 flex-wrap">
-                      <span>{a.source_domain || a.source_name}</span>
-                      {a.wasTranslated && (
-                        <span className="text-[10px] text-slate/60 normal-case">🌐 Translated</span>
-                      )}
-                      {!a._isExact && (
-                        <span className="text-[9px] bg-fog text-slate-light px-1.5 py-0.5 rounded-full normal-case font-normal">
-                          Regional
-                        </span>
-                      )}
-                      <span>·</span>
-                      <span>
-                        {new Date(a.published_at).toLocaleDateString("en-US", {
-                          month: "short", day: "numeric", year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
-                      {normalizeTitle(a.title)}
-                    </p>
-                    {a.summary && (
-                      <p className="text-[12px] text-slate line-clamp-3 mt-0.5 mb-0">
-                        {stripHtml(a.summary)}
-                      </p>
+                  <span>·</span>
+                  <span>{new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                </div>
+                <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
+                  {normalizeTitle(a.title)}
+                </p>
+                {a.summary && (
+                  <p className="text-[12px] text-slate line-clamp-3 mt-0.5 mb-0">{stripHtml(a.summary)}</p>
+                )}
+              </div>
+              <ExternalLink size={14} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
+            </a>
+          );
+
+          if (devLoading) {
+            return (
+              <div className="mb-10">
+                <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+                <p className="text-sm text-slate mb-4">Top stories relevant to {jurisdiction.name}</p>
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
+                </div>
+              </div>
+            );
+          }
+
+          const hasDirect = directRecent.length > 0;
+          const hasRegional = regionalRecent.length > 0;
+          const hasArchive = archive.length > 0;
+
+          return (
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="font-display text-[20px] text-navy">
+                  {hasDirect ? `Recent developments — ${jurisdiction.name}` : "Recent Developments"}
+                </h2>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
+              </div>
+
+              {hasDirect ? (
+                <>
+                  <p className="text-sm text-slate mb-4">
+                    Articles from the last 90 days that directly cover {jurisdiction.name}.
+                  </p>
+                  <div className="space-y-2">
+                    {directRecent.map((a) => <ArticleRow key={a.id} a={a} />)}
+                  </div>
+                </>
+              ) : (
+                <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
+                  <h3 className="font-display text-[18px] text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
+                  <p className="text-[13px] text-slate leading-relaxed mb-4">
+                    We haven't picked up jurisdiction-specific news in the last 90 days. This usually means the regulator hasn't
+                    published high-profile actions recently — not that nothing is happening. Try the options below.
+                  </p>
+                  <div className="flex flex-wrap gap-3 text-[12px] font-medium">
+                    {hasRegional && (
+                      <button onClick={() => setShowRegional(true)} className="text-blue hover:underline">
+                        See {regionalRecent.length} regional / spillover {regionalRecent.length === 1 ? "article" : "articles"} ↓
+                      </button>
+                    )}
+                    {hasArchive && (
+                      <button onClick={() => setShowArchive(true)} className="text-blue hover:underline">
+                        Browse earlier coverage ↓
+                      </button>
+                    )}
+                    {jurisdiction.authorities[0]?.website && (
+                      <a href={jurisdiction.authorities[0].website} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline">
+                        Visit {jurisdiction.authorities[0].abbreviation || "regulator"} site ↗
+                      </a>
                     )}
                   </div>
-                  <ExternalLink
-                    size={14}
-                    className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1"
-                  />
-                </a>
-              ))}
+                </div>
+              )}
+
+              {hasRegional && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowRegional((v) => !v)}
+                    className="w-full flex items-center justify-between text-left py-2 border-t border-fog hover:text-blue transition-colors"
+                  >
+                    <div>
+                      <span className="font-display text-[16px] text-navy">Also relevant to {jurisdiction.name}</span>
+                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                        Regional or cross-border developments that may affect {jurisdiction.name} ({regionalRecent.length})
+                      </p>
+                    </div>
+                    <span className="text-slate text-sm">{showRegional ? "−" : "+"}</span>
+                  </button>
+                  {showRegional && (
+                    <div className="space-y-2 mt-3">
+                      {regionalRecent.map((a) => <ArticleRow key={a.id} a={a} tag="Regional" />)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {hasArchive && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowArchive((v) => !v)}
+                    className="w-full flex items-center justify-between text-left py-2 border-t border-fog hover:text-blue transition-colors"
+                  >
+                    <div>
+                      <span className="font-display text-[16px] text-navy">Earlier coverage</span>
+                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                        Older than 90 days ({archive.length})
+                      </p>
+                    </div>
+                    <span className="text-slate text-sm">{showArchive ? "−" : "+"}</span>
+                  </button>
+                  {showArchive && (
+                    <div className="space-y-2 mt-3">
+                      {archive.map((a) => <ArticleRow key={a.id} a={a} tag="Archive" />)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(hasDirect || hasRegional || hasArchive) && (
+                <div className="flex items-center justify-end mt-4 pt-3 border-t border-fog">
+                  <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors">
+                    View all {categoryLabel} updates →
+                  </Link>
+                </div>
+              )}
             </div>
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-fog">
-              <p className="text-[11px] text-slate-light">
-                Showing top {devArticles.length} articles from the {categoryLabel} feed most relevant to {jurisdiction.name}
-              </p>
-              <Link
-                to={`/category/${derivedCategory}`}
-                className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors"
-              >
-                View all {categoryLabel} updates →
-              </Link>
-            </div>
-          </div>
-        ) : null}
+          );
+        })()}
 
         {/* Related */}
         <div className="border-t border-fog pt-8 mb-8">
