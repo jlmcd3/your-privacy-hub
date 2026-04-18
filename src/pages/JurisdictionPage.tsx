@@ -121,83 +121,125 @@ const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const jurisdiction = slug ? allJurisdictions[slug] : null;
 
-  const [devArticles, setDevArticles] = useState<any[] | null>(null);
+  const [directRecent, setDirectRecent] = useState<any[]>([]);
+  const [regionalRecent, setRegionalRecent] = useState<any[]>([]);
+  const [archive, setArchive] = useState<any[]>([]);
   const [devLoading, setDevLoading] = useState(true);
+  const [showRegional, setShowRegional] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
 
   const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
 
   useEffect(() => {
     if (!jurisdiction) return;
     setDevLoading(true);
+    setShowRegional(false);
+    setShowArchive(false);
 
     (async () => {
-      // Fetch a larger pool so we can score relevance properly
-      const { data, error } = await (supabase as any)
-        .from("updates")
-        .select("id,title,summary,url,source_domain,source_name,image_url,category,published_at")
-        .eq("category", derivedCategory)
-        .order("published_at", { ascending: false })
-        .limit(60);
-
-      if (error || !data || data.length === 0) {
-        setDevArticles(null);
-        setDevLoading(false);
-        return;
-      }
-
-      // Build a relevance score for each article based on jurisdiction name mentions
-      const name = jurisdiction.name.toLowerCase();
+      const name = jurisdiction.name;
+      const nameLower = name.toLowerCase();
       const authorityTerms = jurisdiction.authorities
         .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
-      const allTerms = [name, ...authorityTerms];
+      const allTerms = [nameLower, ...authorityTerms];
 
-      const scored = data.map((a: any) => {
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions";
+
+      // Tier 1: enriched-direct (last 90d)
+      const directQ = (supabase as any)
+        .from("updates").select(select)
+        .contains("direct_jurisdictions", [name])
+        .gte("published_at", ninetyDaysAgo)
+        .order("published_at", { ascending: false })
+        .limit(20);
+
+      // Tier 2: enriched-affected only (last 90d)
+      const affectedQ = (supabase as any)
+        .from("updates").select(select)
+        .contains("affected_jurisdictions", [name])
+        .gte("published_at", ninetyDaysAgo)
+        .order("published_at", { ascending: false })
+        .limit(20);
+
+      // Keyword fallback pool (for unenriched + archive). Scoped to category bucket.
+      const kwPoolQ = (supabase as any)
+        .from("updates").select(select)
+        .eq("category", derivedCategory)
+        .order("published_at", { ascending: false })
+        .limit(120);
+
+      const [{ data: directData }, { data: affectedData }, { data: poolData }] =
+        await Promise.all([directQ, affectedQ, kwPoolQ]);
+
+      const matchesKeyword = (a: any) => {
         const text = ((a.title || "") + " " + (a.summary || "")).toLowerCase();
-        const titleLower = (a.title || "").toLowerCase();
-        let score = 0;
-        if (allTerms.some(t => titleLower.includes(t))) score += 3;
-        if (allTerms.some(t => text.includes(t))) score += 1;
-        // Recency bonus: articles within 7 days get +1
-        const ageMs = Date.now() - new Date(a.published_at).getTime();
-        if (ageMs < 7 * 24 * 60 * 60 * 1000) score += 1;
-        return { ...a, _score: score, _isExact: score >= 3 };
+        return allTerms.some(t => t && text.includes(t));
+      };
+
+      const seen = new Set<string>();
+      const direct: any[] = [];
+      const regional: any[] = [];
+      const archiveList: any[] = [];
+      const ninetyMs = Date.now() - 90 * 24 * 60 * 60 * 1000;
+
+      const pushUnique = (bucket: any[], a: any) => {
+        if (!seen.has(a.id)) { seen.add(a.id); bucket.push(a); }
+      };
+
+      (directData || []).forEach((a: any) => pushUnique(direct, a));
+
+      (affectedData || []).forEach((a: any) => {
+        if (!seen.has(a.id)) pushUnique(regional, a);
       });
 
-      const sorted = scored.sort((a: any, b: any) => {
-        if (b._score !== a._score) return b._score - a._score;
-        return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+      // Keyword pass over the broader pool (catches unenriched articles)
+      (poolData || []).forEach((a: any) => {
+        if (seen.has(a.id)) return;
+        if (!matchesKeyword(a)) return;
+        const ts = new Date(a.published_at).getTime();
+        const isDirectByEnrichment = a.direct_jurisdictions?.includes?.(name);
+        const isAffectedByEnrichment = a.affected_jurisdictions?.includes?.(name);
+        if (ts >= ninetyMs) {
+          if (isAffectedByEnrichment && !isDirectByEnrichment) pushUnique(regional, a);
+          else pushUnique(direct, a);
+        } else {
+          pushUnique(archiveList, a);
+        }
       });
 
-      const top8 = sorted.slice(0, 8);
-      setDevArticles(top8);
+      // Also consider direct-enriched older items as archive (separate small fetch)
+      const { data: oldDirect } = await (supabase as any)
+        .from("updates").select(select)
+        .contains("direct_jurisdictions", [name])
+        .lt("published_at", ninetyDaysAgo)
+        .order("published_at", { ascending: false })
+        .limit(20);
+      (oldDirect || []).forEach((a: any) => pushUnique(archiveList, a));
+
+      const sortByDate = (arr: any[]) =>
+        arr.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+
+      setDirectRecent(sortByDate(direct).slice(0, 8));
+      setRegionalRecent(sortByDate(regional).slice(0, 10));
+      setArchive(sortByDate(archiveList).slice(0, 20));
       setDevLoading(false);
 
-      // Translate non-English articles in background
-      const nonEnglish = top8.filter((a: any) =>
+      // Translate non-English titles in the visible direct tier
+      const visibleDirect = sortByDate(direct).slice(0, 8);
+      const nonEnglish = visibleDirect.filter((a: any) =>
         isLikelyNonEnglish(a.title + " " + (a.summary || ""))
       );
       if (nonEnglish.length > 0) {
         try {
           const { data: translated } = await supabase.functions.invoke("translate-articles", {
-            body: {
-              articles: nonEnglish.map((a: any) => ({
-                id: a.id, title: a.title, summary: a.summary,
-              })),
-            },
+            body: { articles: nonEnglish.map((a: any) => ({ id: a.id, title: a.title, summary: a.summary })) },
           });
           if (translated?.articles) {
-            const translatedMap = new Map(
-              translated.articles.map((t: any) => [t.id, t])
-            );
-            setDevArticles(prev =>
-              prev
-                ? prev.map((a: any) =>
-                    translatedMap.has(a.id)
-                      ? { ...a, ...(translatedMap.get(a.id) as any) }
-                      : a
-                  )
-                : prev
-            );
+            const tMap = new Map(translated.articles.map((t: any) => [t.id, t]));
+            setDirectRecent(prev => prev.map((a: any) =>
+              tMap.has(a.id) ? { ...a, ...(tMap.get(a.id) as any) } : a
+            ));
           }
         } catch (e) {
           console.error("Translation failed:", e);
