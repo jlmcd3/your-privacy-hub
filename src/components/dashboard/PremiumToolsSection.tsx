@@ -75,7 +75,7 @@ const TOOLS = [
 ];
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
-  li: "LI Analyzer",
+  li: "LI Assessment Tool",
   governance: "Privacy Healthcheck",
   dpia: "DPIA Builder",
 };
