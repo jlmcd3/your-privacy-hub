@@ -27,7 +27,7 @@ const TOOLS: Record<
   }
 > = {
   li_assessment: {
-    name: "Legitimate Interest Analyzer",
+    name: "Legitimate Interest Assessment Tool",
     standalone_lookup: "li_standalone",
     subscriber_lookup: "li_subscriber",
     table: "li_assessments",

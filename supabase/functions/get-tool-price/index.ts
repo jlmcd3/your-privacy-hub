@@ -26,7 +26,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 1500,
   },
   li_analyzer: {
-    name: "Legitimate Interest Analyzer",
+    name: "Legitimate Interest Assessment Tool",
     standalone_lookup: "li_standalone",
     subscriber_lookup: "li_subscriber",
     fallback_standalone_cents: 3900,

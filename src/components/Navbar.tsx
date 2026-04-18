@@ -43,7 +43,7 @@ const navItems: NavItem[] = [
         header: "Premium Tools",
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
-          { icon: "⚖️", label: "Legitimate Interest Analyzer", badge: "PRO", href: "/li-assessment" },
+          { icon: "⚖️", label: "Legitimate Interest Assessment Tool", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Data Privacy Healthcheck", badge: "PRO", href: "/governance-assessment" },
           { icon: "📑", label: "DPIA Builder", badge: "PRO", href: "/dpia-framework" },
           { icon: "📝", label: "Custom Data Protection Agreement", badge: "NEW", badgeGreen: true, href: "/dpa-generator" },
