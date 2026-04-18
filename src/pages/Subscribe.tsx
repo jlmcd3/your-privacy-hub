@@ -41,7 +41,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Biometric Privacy Compliance Checker",                 free: "1 jurisdiction free", pro: "Included free"      },
 ];
 
-// Note: Compliance framework tools (LI Analyzer, Healthcheck, DPIA Builder)
+// Note: Compliance framework tools (LI Assessment Tool, Healthcheck, DPIA Builder)
 // are NOT included with Premium. They are sold as standalone reports.
 
 const Subscribe = () => {
@@ -719,7 +719,7 @@ const Subscribe = () => {
             </table>
           </div>
           <p className="text-center text-[12px] text-slate-light mt-3 italic">
-            One Healthcheck + one LI Analyzer as a subscriber saves you more than one month's subscription cost.
+            One Healthcheck + one LI Assessment Tool as a subscriber saves you more than one month's subscription cost.
           </p>
         </div>
 

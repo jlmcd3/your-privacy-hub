@@ -391,7 +391,7 @@ const Dashboard = () => {
                 to="/li-assessment"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">LI Analyzer</p>
+                <p className="text-[12px] font-semibold text-foreground">LI Assessment Tool</p>
                 <p className="text-[12px] text-foreground">
                   <span className="font-bold">$19</span>
                   <span className="text-muted-foreground"> /analysis</span>
