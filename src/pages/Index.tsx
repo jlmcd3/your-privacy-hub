@@ -7,6 +7,7 @@ import WeeklyBriefTeaser from "@/components/WeeklyBriefTeaser";
 import PremiumBanner from "@/components/PremiumBanner";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import StickyRailAd from "@/components/StickyRailAd";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
 
