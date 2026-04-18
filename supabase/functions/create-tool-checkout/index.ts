@@ -51,7 +51,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 3900,
   },
   dpa_generator: {
-    name: "DPA Generator",
+    name: "Custom Data Protection Agreement",
     standalone_lookup: "dpa_standalone",
     subscriber_lookup: "dpa_subscriber",
     table: "dpa_documents",

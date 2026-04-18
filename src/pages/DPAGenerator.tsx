@@ -65,12 +65,12 @@ export default function DPAGenerator() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>DPA Generator | EndUserPrivacy</title>
-        <meta name="description" content="Generate a GDPR Article 28-compliant Data Processing Agreement, calibrated to live enforcement precedents." /></Helmet>
+      <Helmet><title>Custom Data Protection Agreement | EndUserPrivacy</title>
+        <meta name="description" content="Generate a GDPR Article 28-compliant Custom Data Protection Agreement, calibrated to live enforcement precedents." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">DPA Generator</h1>
+          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Custom Data Protection Agreement</h1>
           <p className="text-slate text-[14px]">Draft a GDPR Article 28-compliant controller-processor Data Processing Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
         </header>
 
@@ -93,7 +93,7 @@ export default function DPAGenerator() {
           </div>
         ) : (
           <ToolSampleOverlay
-            toolName="DPA Generator" priceLabel={access.priceLabel} onPurchase={handlePurchase}
+            toolName="Custom Data Protection Agreement" priceLabel={access.priceLabel} onPurchase={handlePurchase}
             isFreeForUser={access.isFreeForUser} isPremium={access.isPremium}
             subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
           >

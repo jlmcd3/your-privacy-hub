@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
           { icon: "⚖️", label: "Legitimate Interest Analyzer", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Data Privacy Healthcheck", badge: "PRO", href: "/governance-assessment" },
           { icon: "📑", label: "DPIA Builder", badge: "PRO", href: "/dpia-framework" },
-          { icon: "📝", label: "DPA Generator", badge: "NEW", badgeGreen: true, href: "/dpa-generator" },
+          { icon: "📝", label: "Custom Data Protection Agreement", badge: "NEW", badgeGreen: true, href: "/dpa-generator" },
           { icon: "🚨", label: "IR Playbook Builder", badge: "NEW", badgeGreen: true, href: "/ir-playbook" },
           { icon: "👁️", label: "Biometric Compliance Checker", badge: "NEW", badgeGreen: true, href: "/biometric-checker" },
         ],
