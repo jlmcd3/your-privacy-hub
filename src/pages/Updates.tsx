@@ -426,6 +426,8 @@ const Updates = () => {
                         />
                     )}
                 />
+
+                <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
             </div>
 
             <Footer />
