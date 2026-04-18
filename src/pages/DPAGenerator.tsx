@@ -71,13 +71,13 @@ export default function DPAGenerator() {
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Custom Data Protection Agreement</h1>
-          <p className="text-slate text-[14px]">Draft a GDPR Article 28-compliant controller-processor Data Processing Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
+          <p className="text-slate text-[14px]">Draft a GDPR Article 28-compliant controller-processor Custom Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
         </header>
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display font-bold text-navy text-[18px]">Data Processing Agreement — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display font-bold text-navy text-[18px]">Custom Data Protection Agreement — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
             <p className="text-[12px] text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
@@ -88,7 +88,7 @@ export default function DPAGenerator() {
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-[14px] font-semibold text-navy mb-1">Generating your Data Processing Agreement</p>
+            <p className="text-[14px] font-semibold text-navy mb-1">Generating your Custom Data Protection Agreement</p>
             <p className="text-[12px] text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
           </div>
         ) : (

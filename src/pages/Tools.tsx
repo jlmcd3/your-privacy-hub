@@ -43,7 +43,7 @@ const tools = [
   {
     icon: "📄",
     title: "Custom Data Protection Agreement",
-    description: "Generate a GDPR Article 28 Data Processing Agreement calibrated to real enforcement precedents. Standalone $69 · Subscribers $39.",
+    description: "Generate a GDPR Article 28 Custom Data Protection Agreement calibrated to real enforcement precedents. Standalone $69 · Subscribers $39.",
     href: "/dpa-generator",
   },
   {
