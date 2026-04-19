@@ -30,7 +30,8 @@ interface JurisdictionResult {
 }
 
 export default function RegistrationAssessmentResult() {
-  const { token } = useParams<{ token: string }>();
+  const { token: rawToken } = useParams<{ token: string }>();
+  const token = rawToken ? decodeURIComponent(rawToken) : undefined;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [assessment, setAssessment] = useState<any>(null);
@@ -59,7 +60,7 @@ export default function RegistrationAssessmentResult() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sign in to purchase");
-      navigate(`/signup?redirect=/registration-manager/result/${token}`);
+      navigate(`/signup?redirect=/registration-manager/result/${encodeURIComponent(token!)}`);
       return;
     }
     setPurchasing(tier);
