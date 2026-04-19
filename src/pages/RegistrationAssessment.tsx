@@ -110,7 +110,7 @@ export default function RegistrationAssessment() {
       );
       if (error) throw error;
       rememberAssessmentToken(data.shareable_token);
-      navigate(`/registration-manager/result/${data.shareable_token}`);
+      navigate(`/registration-manager/result/${encodeURIComponent(data.shareable_token)}`);
     } catch (e: any) {
       toast.error(e.message || "Could not generate assessment");
     } finally {
