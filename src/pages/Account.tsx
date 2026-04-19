@@ -13,6 +13,9 @@ export default function Account() {
   const navigate = useNavigate();
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [bonusCredits, setBonusCredits] = useState<number>(0);
+  const [reportsUsed, setReportsUsed] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
@@ -20,13 +23,18 @@ export default function Account() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("is_premium, subscription_interval")
+      .select(
+        "is_premium, subscription_interval, subscription_tier, bonus_report_credits, monthly_reports_used"
+      )
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         if (data) {
           setIsPremium(data.is_premium);
           setSubscriptionInterval((data as any).subscription_interval ?? null);
+          setSubscriptionTier((data as any).subscription_tier ?? null);
+          setBonusCredits((data as any).bonus_report_credits ?? 0);
+          setReportsUsed((data as any).monthly_reports_used ?? 0);
         }
         setLoading(false);
       });
