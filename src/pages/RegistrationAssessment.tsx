@@ -290,6 +290,9 @@ export default function RegistrationAssessment() {
                 </div>
               </CardContent>
             </Card>
+            <div className="mt-6">
+              <RegistrationDisclaimer />
+            </div>
           </div>
         </PageContainer>
       </main>
