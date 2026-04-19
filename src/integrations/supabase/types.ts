@@ -583,6 +583,45 @@ export type Database = {
         }
         Relationships: []
       }
+      horizon_intelligence: {
+        Row: {
+          anticipated_development: string
+          confidence: string | null
+          created_at: string | null
+          id: string
+          jurisdiction: string | null
+          recommended_action: string | null
+          sector: string | null
+          source_signal: string | null
+          timeline_label: string | null
+          week_of: string
+        }
+        Insert: {
+          anticipated_development: string
+          confidence?: string | null
+          created_at?: string | null
+          id?: string
+          jurisdiction?: string | null
+          recommended_action?: string | null
+          sector?: string | null
+          source_signal?: string | null
+          timeline_label?: string | null
+          week_of: string
+        }
+        Update: {
+          anticipated_development?: string
+          confidence?: string | null
+          created_at?: string | null
+          id?: string
+          jurisdiction?: string | null
+          recommended_action?: string | null
+          sector?: string | null
+          source_signal?: string | null
+          timeline_label?: string | null
+          week_of?: string
+        }
+        Relationships: []
+      }
       ingestion_runs: {
         Row: {
           enrichment_failed_429: number | null
@@ -917,6 +956,7 @@ export type Database = {
           subscription_end_date: string | null
           subscription_interval: string | null
           subscription_plan: string | null
+          subscription_tier: string | null
           updated_at: string
         }
         Insert: {
@@ -941,6 +981,7 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_interval?: string | null
           subscription_plan?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Update: {
@@ -965,6 +1006,7 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_interval?: string | null
           subscription_plan?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1053,6 +1095,45 @@ export type Database = {
           jurisdiction?: string
           topics?: string[]
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      sponsorships: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          ends_at: string | null
+          id: string
+          label: string | null
+          link_url: string | null
+          logo_url: string | null
+          placement: string | null
+          sponsor_name: string
+          starts_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          ends_at?: string | null
+          id?: string
+          label?: string | null
+          link_url?: string | null
+          logo_url?: string | null
+          placement?: string | null
+          sponsor_name: string
+          starts_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          ends_at?: string | null
+          id?: string
+          label?: string | null
+          link_url?: string | null
+          logo_url?: string | null
+          placement?: string | null
+          sponsor_name?: string
+          starts_at?: string | null
         }
         Relationships: []
       }
