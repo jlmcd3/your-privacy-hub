@@ -1131,6 +1131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      questionnaire_versions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          schema: Json
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          schema: Json
+          version: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          schema?: Json
+          version?: string
+        }
+        Relationships: []
+      }
       registration_assessments: {
         Row: {
           confidence_tier: string | null
@@ -1342,6 +1369,8 @@ export type Database = {
           assessment_id: string | null
           created_at: string
           currency: string
+          delivery_email: string | null
+          delivery_sent_at: string | null
           documents_generated_at: string | null
           filed_at: string | null
           fulfillment_status: string
@@ -1350,6 +1379,8 @@ export type Database = {
           next_renewal_at: string | null
           organization_snapshot: Json
           payment_status: string
+          renewal_reminder_email: string | null
+          renewal_reminders_enabled: boolean
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           tier: string
@@ -1361,6 +1392,8 @@ export type Database = {
           assessment_id?: string | null
           created_at?: string
           currency?: string
+          delivery_email?: string | null
+          delivery_sent_at?: string | null
           documents_generated_at?: string | null
           filed_at?: string | null
           fulfillment_status?: string
@@ -1369,6 +1402,8 @@ export type Database = {
           next_renewal_at?: string | null
           organization_snapshot: Json
           payment_status?: string
+          renewal_reminder_email?: string | null
+          renewal_reminders_enabled?: boolean
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           tier: string
@@ -1380,6 +1415,8 @@ export type Database = {
           assessment_id?: string | null
           created_at?: string
           currency?: string
+          delivery_email?: string | null
+          delivery_sent_at?: string | null
           documents_generated_at?: string | null
           filed_at?: string | null
           fulfillment_status?: string
@@ -1388,6 +1425,8 @@ export type Database = {
           next_renewal_at?: string | null
           organization_snapshot?: Json
           payment_status?: string
+          renewal_reminder_email?: string | null
+          renewal_reminders_enabled?: boolean
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           tier?: string
