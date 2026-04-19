@@ -63,3 +63,19 @@ verify_jwt = false
 
 [functions.validate-li-source-urls]
 verify_jwt = false
+
+# Registration Manager
+[functions.run-registration-assessment]
+verify_jwt = false
+
+[functions.get-registration-assessment]
+verify_jwt = false
+
+[functions.create-registration-checkout]
+verify_jwt = false
+
+[functions.generate-registration-docs]
+verify_jwt = false
+
+[functions.send-renewal-reminders]
+verify_jwt = false
