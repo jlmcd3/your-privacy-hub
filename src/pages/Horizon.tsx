@@ -94,6 +94,21 @@ export default function Horizon() {
           <span className="text-sm text-slate-light group-hover:text-navy transition-colors shrink-0">→</span>
         </Link>
 
+        {/* Action card → Registration Manager */}
+        <Link
+          to="/registration-manager"
+          className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 no-underline transition-colors hover:border-amber-300"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800">Act on signals</span>
+            <span className="text-sm text-slate truncate">
+              <span className="font-semibold text-navy">Registration Manager</span>
+              <span className="text-slate-light"> — Get ahead of upcoming filing & DPO obligations</span>
+            </span>
+          </div>
+          <span className="text-sm text-amber-700 group-hover:text-amber-900 transition-colors shrink-0">→</span>
+        </Link>
+
         {loading ? (
           <div className="text-center py-16 text-slate">Loading horizon signals…</div>
         ) : items.length === 0 ? (

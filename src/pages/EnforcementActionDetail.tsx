@@ -252,6 +252,29 @@ export default function EnforcementActionDetail() {
           </div>
         )}
 
+        {/* Registration Manager cross-link — many enforcement actions stem from missing/expired filings */}
+        <Card className="mb-8 border-amber-200 bg-amber-50/60">
+          <CardContent className="p-5 flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-800 mb-1">
+                Avoid this category of risk
+              </div>
+              <h3 className="font-semibold text-navy text-base mb-1">
+                Are your registrations & DPO appointments current in {action.jurisdiction}?
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                A meaningful share of enforcement actions begin with missing or lapsed filings.
+                Run a free assessment with Registration Manager to see your obligations.
+              </p>
+            </div>
+            <Link to="/registration-manager" className="shrink-0">
+              <Button variant="default" className="gap-2">
+                Free assessment <ExternalLink className="w-4 h-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
         {related.length > 0 && (
           <section className="mt-12">
             <h2 className="font-serif text-2xl mb-4">More from {action.jurisdiction}</h2>
