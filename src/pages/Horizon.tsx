@@ -32,6 +32,38 @@ const confidenceStyle = (c?: string | null) => {
   }
 };
 
+// Render [E#] / [U#] citation tags as inline pills.
+// [E#] tags deep-link to enforcement intelligence; [U#] tags are stylistic only.
+function renderCitations(text: string) {
+  const parts = text.split(/(\[(?:E|U)\d+(?:,\s*(?:E|U)?\d+)*\])/g);
+  return parts.map((part, i) => {
+    const m = part.match(/^\[((?:E|U)\d+(?:,\s*(?:E|U)?\d+)*)\]$/);
+    if (!m) return <span key={i}>{part}</span>;
+    const isEnforcement = /E\d/.test(m[1]);
+    if (isEnforcement) {
+      return (
+        <Link
+          key={i}
+          to="/enforcement-intelligence"
+          className="inline-block mx-0.5 px-1.5 py-0 text-[10px] font-mono font-semibold rounded border border-amber-300 bg-amber-50 text-amber-900 no-underline hover:bg-amber-100 transition-colors align-middle"
+          title="View underlying enforcement actions"
+        >
+          {part}
+        </Link>
+      );
+    }
+    return (
+      <span
+        key={i}
+        className="inline-block mx-0.5 px-1.5 py-0 text-[10px] font-mono font-semibold rounded border border-silver/60 bg-fog text-slate align-middle"
+        title="Recent regulatory update signal"
+      >
+        {part}
+      </span>
+    );
+  });
+}
+
 export default function Horizon() {
   const [items, setItems] = useState<HorizonItem[]>([]);
   const [loading, setLoading] = useState(true);
