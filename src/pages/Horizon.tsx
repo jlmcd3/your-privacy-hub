@@ -110,6 +110,21 @@ export default function Horizon() {
       </header>
 
       <main className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Companion card → Enforcement Intelligence */}
+        <Link
+          to="/enforcement-intelligence"
+          className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-fog bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Evidence view</span>
+            <span className="text-sm text-slate truncate">
+              <span className="font-semibold text-navy">Enforcement Intelligence</span>
+              <span className="text-slate-light"> — Verified cases underlying these forecasts</span>
+            </span>
+          </div>
+          <span className="text-sm text-slate-light group-hover:text-navy transition-colors shrink-0">→</span>
+        </Link>
+
         {loading ? (
           <div className="text-center py-16 text-slate">Loading horizon signals…</div>
         ) : items.length === 0 ? (
