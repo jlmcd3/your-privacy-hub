@@ -183,7 +183,7 @@ const DPIAFramework = () => {
 
         <ToolSamplePreview
           toolType="dpia"
-          toolName="DPIA Builder"
+          toolName="Impact Assessment Builder"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
