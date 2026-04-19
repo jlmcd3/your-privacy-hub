@@ -32,6 +32,38 @@ const confidenceStyle = (c?: string | null) => {
   }
 };
 
+// Render [E#] / [U#] citation tags as inline pills.
+// [E#] tags deep-link to enforcement intelligence; [U#] tags are stylistic only.
+function renderCitations(text: string) {
+  const parts = text.split(/(\[(?:E|U)\d+(?:,\s*(?:E|U)?\d+)*\])/g);
+  return parts.map((part, i) => {
+    const m = part.match(/^\[((?:E|U)\d+(?:,\s*(?:E|U)?\d+)*)\]$/);
+    if (!m) return <span key={i}>{part}</span>;
+    const isEnforcement = /E\d/.test(m[1]);
+    if (isEnforcement) {
+      return (
+        <Link
+          key={i}
+          to="/enforcement-intelligence"
+          className="inline-block mx-0.5 px-1.5 py-0 text-[10px] font-mono font-semibold rounded border border-amber-300 bg-amber-50 text-amber-900 no-underline hover:bg-amber-100 transition-colors align-middle"
+          title="View underlying enforcement actions"
+        >
+          {part}
+        </Link>
+      );
+    }
+    return (
+      <span
+        key={i}
+        className="inline-block mx-0.5 px-1.5 py-0 text-[10px] font-mono font-semibold rounded border border-silver/60 bg-fog text-slate align-middle"
+        title="Recent regulatory update signal"
+      >
+        {part}
+      </span>
+    );
+  });
+}
+
 export default function Horizon() {
   const [items, setItems] = useState<HorizonItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +110,21 @@ export default function Horizon() {
       </header>
 
       <main className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Companion card → Enforcement Intelligence */}
+        <Link
+          to="/enforcement-intelligence"
+          className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-fog bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Evidence view</span>
+            <span className="text-sm text-slate truncate">
+              <span className="font-semibold text-navy">Enforcement Intelligence</span>
+              <span className="text-slate-light"> — Verified cases underlying these forecasts</span>
+            </span>
+          </div>
+          <span className="text-sm text-slate-light group-hover:text-navy transition-colors shrink-0">→</span>
+        </Link>
+
         {loading ? (
           <div className="text-center py-16 text-slate">Loading horizon signals…</div>
         ) : items.length === 0 ? (
@@ -124,7 +171,7 @@ export default function Horizon() {
                 {item.source_signal && (
                   <p className="text-[13px] text-slate leading-relaxed mb-2">
                     <span className="font-semibold text-navy">Source signal: </span>
-                    {item.source_signal}
+                    {renderCitations(item.source_signal)}
                   </p>
                 )}
                 {item.recommended_action && (
