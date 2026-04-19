@@ -700,6 +700,126 @@ export type Database = {
         }
         Relationships: []
       }
+      jurisdiction_monitoring_log: {
+        Row: {
+          check_type: string
+          detected_at: string
+          id: string
+          jurisdiction_code: string
+          new_value: string | null
+          previous_value: string | null
+          reviewed: boolean
+          reviewer_notes: string | null
+          source_url: string | null
+        }
+        Insert: {
+          check_type: string
+          detected_at?: string
+          id?: string
+          jurisdiction_code: string
+          new_value?: string | null
+          previous_value?: string | null
+          reviewed?: boolean
+          reviewer_notes?: string | null
+          source_url?: string | null
+        }
+        Update: {
+          check_type?: string
+          detected_at?: string
+          id?: string
+          jurisdiction_code?: string
+          new_value?: string | null
+          previous_value?: string | null
+          reviewed?: boolean
+          reviewer_notes?: string | null
+          source_url?: string | null
+        }
+        Relationships: []
+      }
+      jurisdiction_requirements: {
+        Row: {
+          ai_registration_required: boolean
+          ai_threshold: string | null
+          authority_name: string
+          authority_url: string | null
+          created_at: string
+          dpo_required: boolean
+          dpo_threshold: string | null
+          filing_currency: string | null
+          filing_fee_cents: number | null
+          filing_portal_url: string | null
+          id: string
+          jurisdiction_code: string
+          jurisdiction_name: string
+          language_requirements: string[] | null
+          last_verified_at: string | null
+          law_name: string
+          notes: string | null
+          online_filing_available: boolean
+          region: string
+          registration_required: boolean
+          registration_threshold: string | null
+          renewal_period_months: number | null
+          representative_required: boolean
+          representative_threshold: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_registration_required?: boolean
+          ai_threshold?: string | null
+          authority_name: string
+          authority_url?: string | null
+          created_at?: string
+          dpo_required?: boolean
+          dpo_threshold?: string | null
+          filing_currency?: string | null
+          filing_fee_cents?: number | null
+          filing_portal_url?: string | null
+          id?: string
+          jurisdiction_code: string
+          jurisdiction_name: string
+          language_requirements?: string[] | null
+          last_verified_at?: string | null
+          law_name: string
+          notes?: string | null
+          online_filing_available?: boolean
+          region: string
+          registration_required?: boolean
+          registration_threshold?: string | null
+          renewal_period_months?: number | null
+          representative_required?: boolean
+          representative_threshold?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_registration_required?: boolean
+          ai_threshold?: string | null
+          authority_name?: string
+          authority_url?: string | null
+          created_at?: string
+          dpo_required?: boolean
+          dpo_threshold?: string | null
+          filing_currency?: string | null
+          filing_fee_cents?: number | null
+          filing_portal_url?: string | null
+          id?: string
+          jurisdiction_code?: string
+          jurisdiction_name?: string
+          language_requirements?: string[] | null
+          last_verified_at?: string | null
+          law_name?: string
+          notes?: string | null
+          online_filing_available?: boolean
+          region?: string
+          registration_required?: boolean
+          registration_threshold?: string | null
+          renewal_period_months?: number | null
+          representative_required?: boolean
+          representative_threshold?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       jurisdictions: {
         Row: {
           created_at: string | null
@@ -1011,6 +1131,279 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_assessments: {
+        Row: {
+          confidence_tier: string | null
+          converted_order_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          industry: string | null
+          intake_data: Json
+          organization_country: string | null
+          organization_name: string | null
+          organization_size: string | null
+          recommended_jurisdictions: string[] | null
+          result_summary: Json | null
+          shareable_token: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          confidence_tier?: string | null
+          converted_order_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          industry?: string | null
+          intake_data?: Json
+          organization_country?: string | null
+          organization_name?: string | null
+          organization_size?: string | null
+          recommended_jurisdictions?: string[] | null
+          result_summary?: Json | null
+          shareable_token?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          confidence_tier?: string | null
+          converted_order_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          industry?: string | null
+          intake_data?: Json
+          organization_country?: string | null
+          organization_name?: string | null
+          organization_size?: string | null
+          recommended_jurisdictions?: string[] | null
+          result_summary?: Json | null
+          shareable_token?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      registration_audit_log: {
+        Row: {
+          action: string
+          assessment_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          assessment_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          assessment_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_audit_log_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "registration_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registration_audit_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "registration_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registration_documents: {
+        Row: {
+          content_text: string | null
+          created_at: string
+          document_type: string
+          generation_model: string | null
+          id: string
+          jurisdiction_code: string
+          language: string
+          order_id: string
+          pdf_url: string | null
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          content_text?: string | null
+          created_at?: string
+          document_type: string
+          generation_model?: string | null
+          id?: string
+          jurisdiction_code: string
+          language?: string
+          order_id: string
+          pdf_url?: string | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          content_text?: string | null
+          created_at?: string
+          document_type?: string
+          generation_model?: string | null
+          id?: string
+          jurisdiction_code?: string
+          language?: string
+          order_id?: string
+          pdf_url?: string | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_documents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "registration_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registration_filings: {
+        Row: {
+          confirmation_pdf_url: string | null
+          confirmation_url: string | null
+          created_at: string
+          expires_at: string | null
+          filed_at: string
+          filing_method: string | null
+          filing_reference: string | null
+          id: string
+          jurisdiction_code: string
+          notes: string | null
+          order_id: string
+        }
+        Insert: {
+          confirmation_pdf_url?: string | null
+          confirmation_url?: string | null
+          created_at?: string
+          expires_at?: string | null
+          filed_at?: string
+          filing_method?: string | null
+          filing_reference?: string | null
+          id?: string
+          jurisdiction_code: string
+          notes?: string | null
+          order_id: string
+        }
+        Update: {
+          confirmation_pdf_url?: string | null
+          confirmation_url?: string | null
+          created_at?: string
+          expires_at?: string | null
+          filed_at?: string
+          filing_method?: string | null
+          filing_reference?: string | null
+          id?: string
+          jurisdiction_code?: string
+          notes?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_filings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "registration_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registration_orders: {
+        Row: {
+          amount_cents: number
+          assessment_id: string | null
+          created_at: string
+          currency: string
+          documents_generated_at: string | null
+          filed_at: string | null
+          fulfillment_status: string
+          id: string
+          jurisdictions: string[]
+          next_renewal_at: string | null
+          organization_snapshot: Json
+          payment_status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          assessment_id?: string | null
+          created_at?: string
+          currency?: string
+          documents_generated_at?: string | null
+          filed_at?: string | null
+          fulfillment_status?: string
+          id?: string
+          jurisdictions?: string[]
+          next_renewal_at?: string | null
+          organization_snapshot: Json
+          payment_status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          tier: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          assessment_id?: string | null
+          created_at?: string
+          currency?: string
+          documents_generated_at?: string | null
+          filed_at?: string | null
+          fulfillment_status?: string
+          id?: string
+          jurisdictions?: string[]
+          next_renewal_at?: string | null
+          organization_snapshot?: Json
+          payment_status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_orders_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "registration_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regulator_follows: {
         Row: {
           created_at: string | null
@@ -1064,6 +1457,51 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      renewal_notifications: {
+        Row: {
+          delivery_status: string
+          filing_id: string | null
+          id: string
+          notification_type: string
+          order_id: string
+          recipient_email: string
+          sent_at: string
+        }
+        Insert: {
+          delivery_status?: string
+          filing_id?: string | null
+          id?: string
+          notification_type: string
+          order_id: string
+          recipient_email: string
+          sent_at?: string
+        }
+        Update: {
+          delivery_status?: string
+          filing_id?: string | null
+          id?: string
+          notification_type?: string
+          order_id?: string
+          recipient_email?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_notifications_filing_id_fkey"
+            columns: ["filing_id"]
+            isOneToOne: false
+            referencedRelation: "registration_filings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renewal_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "registration_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_configs: {
         Row: {
