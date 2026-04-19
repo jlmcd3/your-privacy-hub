@@ -77,7 +77,8 @@ export default function Account() {
               <span className="text-[13px] text-slate">Plan</span>
               {isPremium ? (
                 <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
-                  ⭐ Premium {subscriptionInterval === "year" ? "(Annual)" : "(Monthly)"}
+                  ⭐ {subscriptionTier === "grandfathered_premium" ? "Premium (Legacy)" : "Professional"}{" "}
+                  {subscriptionInterval === "year" ? "(Annual)" : "(Monthly)"}
                 </span>
               ) : (
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate bg-fog border border-silver px-2.5 py-1 rounded-full">
@@ -85,6 +86,15 @@ export default function Account() {
                 </span>
               )}
             </div>
+            {isPremium && (
+              <div className="flex justify-between items-center py-2.5 border-b border-fog">
+                <span className="text-[13px] text-slate">Tool credits this month</span>
+                <span className="text-[13px] font-medium text-navy">
+                  {Math.max(0, 2 - reportsUsed)} of 2 included
+                  {bonusCredits > 0 ? ` · +${bonusCredits} bonus` : ""}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center py-2.5">
               <span className="text-[13px] text-slate">Password</span>
               <Link
@@ -139,18 +149,18 @@ export default function Account() {
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
-              Get Your Pro Intelligence Brief
+              Upgrade to Professional
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
-              The weekly brief re-written for your industry and jurisdictions.
-              $20/month or $180/year (save $60). Plus subscriber pricing on all
-              compliance framework tools.
+              Full archive, your weekly brief re-written for your industry and
+              jurisdictions, watchlists, and 2 tool credits every month.
+              $19/month or $190/year (save 17%).
             </p>
             <Link
               to="/subscribe"
               className="inline-block bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
             >
-              See Plans →
+              See plans →
             </Link>
           </div>
         )}
