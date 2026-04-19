@@ -69,6 +69,9 @@ import DPAGenerator from "./pages/DPAGenerator.tsx";
 import IRPlaybook from "./pages/IRPlaybook.tsx";
 import BiometricChecker from "./pages/BiometricChecker.tsx";
 import Horizon from "./pages/Horizon.tsx";
+import RegistrationAssessment from "./pages/RegistrationAssessment.tsx";
+import RegistrationAssessmentResult from "./pages/RegistrationAssessmentResult.tsx";
+import RegistrationOrder from "./pages/RegistrationOrder.tsx";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +140,9 @@ const App = () => (
            <Route path="/ir-playbook" element={<IRPlaybook />} />
            <Route path="/biometric-checker" element={<BiometricChecker />} />
            <Route path="/horizon" element={<Horizon />} />
+           <Route path="/registration-manager" element={<RegistrationAssessment />} />
+           <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
+           <Route path="/registration-manager/order/:id" element={<ProtectedRoute><RegistrationOrder /></ProtectedRoute>} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />

@@ -103,7 +103,7 @@ export default function RegistrationOrder() {
                 <span>${(order.amount_cents / 100).toFixed(2)} {order.currency.toUpperCase()}</span>
               </div>
               {status === "success" && (
-                <div className="mt-3 rounded-md bg-emerald-100/40 border border-emerald-300 px-3 py-2 text-sm text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
+                <div className="mt-3 rounded-md bg-muted border border-border px-3 py-2 text-sm text-foreground">
                   ✅ Payment received. We're preparing your documents.
                 </div>
               )}
