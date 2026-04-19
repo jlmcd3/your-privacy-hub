@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -21,20 +20,32 @@ import {
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 
 interface IntakeState {
+  // Step 1
   organization_name: string;
   organization_country: string;
   organization_size: string;
   industry: string;
   email: string;
+  employee_count: string;        // string for input UX, parsed before submit
+  annual_revenue_usd: string;
+  data_subjects_count: string;
+  role: "controller" | "processor" | "both" | "";
+  // Step 2
   processes_personal_data: boolean;
   processes_special_categories: boolean;
   processes_children_data: boolean;
+  large_scale_monitoring: boolean;
   uses_ai_systems: boolean;
   ai_high_risk: boolean;
+  ai_general_purpose_provider: boolean;
   cross_border_transfers: boolean;
   acts_as_data_broker: boolean;
+  sells_or_shares_personal_info: boolean;
+  processes_biometrics_for_id: boolean;
+  // Step 3
   has_eu_establishment: boolean;
   has_uk_establishment: boolean;
+  eu_lead_member_state: string;
   markets_served: string[];
 }
 
@@ -44,15 +55,24 @@ const EMPTY: IntakeState = {
   organization_size: "",
   industry: "",
   email: "",
+  employee_count: "",
+  annual_revenue_usd: "",
+  data_subjects_count: "",
+  role: "",
   processes_personal_data: true,
   processes_special_categories: false,
   processes_children_data: false,
+  large_scale_monitoring: false,
   uses_ai_systems: false,
   ai_high_risk: false,
+  ai_general_purpose_provider: false,
   cross_border_transfers: false,
   acts_as_data_broker: false,
+  sells_or_shares_personal_info: false,
+  processes_biometrics_for_id: false,
   has_eu_establishment: false,
   has_uk_establishment: false,
+  eu_lead_member_state: "",
   markets_served: [],
 };
 
@@ -63,7 +83,6 @@ export default function RegistrationAssessment() {
   const [intake, setIntake] = useState<IntakeState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
 
-  // Resume from token if provided
   useEffect(() => {
     const token = searchParams.get("token");
     if (!token) return;
@@ -104,9 +123,18 @@ export default function RegistrationAssessment() {
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      // Coerce numeric strings to numbers; drop empty fields
+      const payload = {
+        ...intake,
+        employee_count: intake.employee_count ? Number(intake.employee_count) : undefined,
+        annual_revenue_usd: intake.annual_revenue_usd ? Number(intake.annual_revenue_usd) : undefined,
+        data_subjects_count: intake.data_subjects_count ? Number(intake.data_subjects_count) : undefined,
+        role: intake.role || undefined,
+        eu_lead_member_state: intake.eu_lead_member_state || undefined,
+      };
       const { data, error } = await supabase.functions.invoke(
         "run-registration-assessment",
-        { body: { intake_data: intake, user_id: user?.id || null } }
+        { body: { intake_data: payload, user_id: user?.id || null } }
       );
       if (error) throw error;
       rememberAssessmentToken(data.shareable_token);
@@ -122,7 +150,7 @@ export default function RegistrationAssessment() {
     <>
       <Helmet>
         <title>DPA & AI Act Registration Assessment — EndUserPrivacy</title>
-        <meta name="description" content="Free 2-minute assessment that maps your organization to required DPA registrations, DPO appointments, and EU AI Act filings across 50+ jurisdictions." />
+        <meta name="description" content="Free assessment that maps your organization to required DPA registrations, DPO appointments, EU representative obligations, and EU AI Act filings across 50+ jurisdictions." />
         <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/registration-manager" />
       </Helmet>
       <Navbar />
@@ -134,7 +162,7 @@ export default function RegistrationAssessment() {
                 Where do you need to register?
               </h1>
               <p className="text-muted-foreground mt-2">
-                Free 2-minute assessment. We map your organization to required DPA, DPO, and EU AI Act filings worldwide.
+                Free assessment. We map your organization to required DPA, DPO, EU representative, and EU AI Act filings worldwide.
               </p>
             </header>
 
@@ -174,7 +202,7 @@ export default function RegistrationAssessment() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Org size</Label>
+                        <Label>Org size band</Label>
                         <Select value={intake.organization_size}
                           onValueChange={(v) => setIntake({ ...intake, organization_size: v })}>
                           <SelectTrigger><SelectValue placeholder="Select size" /></SelectTrigger>
@@ -186,6 +214,31 @@ export default function RegistrationAssessment() {
                         </Select>
                       </div>
                     </div>
+
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="emp">Employees handling personal data</Label>
+                        <Input id="emp" type="number" min={0} placeholder="e.g. 25"
+                          value={intake.employee_count}
+                          onChange={(e) => setIntake({ ...intake, employee_count: e.target.value })} />
+                        <p className="text-xs text-muted-foreground">Drives DE BDSG §38 (≥20) DPO trigger.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="rev">Annual revenue (USD)</Label>
+                        <Input id="rev" type="number" min={0} placeholder="e.g. 25000000"
+                          value={intake.annual_revenue_usd}
+                          onChange={(e) => setIntake({ ...intake, annual_revenue_usd: e.target.value })} />
+                        <p className="text-xs text-muted-foreground">Drives CCPA & state-law thresholds.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="ds">Data subjects / year</Label>
+                        <Input id="ds" type="number" min={0} placeholder="e.g. 250000"
+                          value={intake.data_subjects_count}
+                          onChange={(e) => setIntake({ ...intake, data_subjects_count: e.target.value })} />
+                        <p className="text-xs text-muted-foreground">Used for "large scale" GDPR DPO test.</p>
+                      </div>
+                    </div>
+
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Industry</Label>
@@ -200,11 +253,24 @@ export default function RegistrationAssessment() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">Contact email (optional)</Label>
-                        <Input id="email" type="email" value={intake.email}
-                          onChange={(e) => setIntake({ ...intake, email: e.target.value })}
-                          placeholder="you@company.com" />
+                        <Label>Role under GDPR</Label>
+                        <Select value={intake.role}
+                          onValueChange={(v) => setIntake({ ...intake, role: v as IntakeState["role"] })}>
+                          <SelectTrigger><SelectValue placeholder="Controller / Processor" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="controller">Controller</SelectItem>
+                            <SelectItem value="processor">Processor</SelectItem>
+                            <SelectItem value="both">Both (mixed)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Contact email (optional)</Label>
+                      <Input id="email" type="email" value={intake.email}
+                        onChange={(e) => setIntake({ ...intake, email: e.target.value })}
+                        placeholder="you@company.com" />
                     </div>
                   </>
                 )}
@@ -217,17 +283,26 @@ export default function RegistrationAssessment() {
                     <CheckRow checked={intake.processes_special_categories}
                       onChange={(v) => setIntake({ ...intake, processes_special_categories: v })}
                       label="We process special-category data (health, biometric, race, religion, sexual orientation, political opinion)" />
+                    <CheckRow checked={intake.processes_biometrics_for_id}
+                      onChange={(v) => setIntake({ ...intake, processes_biometrics_for_id: v })}
+                      label="We use biometric identifiers for identification (BIPA / TX CUBI / WA scope)" />
                     <CheckRow checked={intake.processes_children_data}
                       onChange={(v) => setIntake({ ...intake, processes_children_data: v })}
                       label="We process data of children under 16" />
+                    <CheckRow checked={intake.large_scale_monitoring}
+                      onChange={(v) => setIntake({ ...intake, large_scale_monitoring: v })}
+                      label="Our core activities involve large-scale, regular monitoring (tracking, scoring, behavioural targeting)" />
                     <CheckRow checked={intake.uses_ai_systems}
                       onChange={(v) => setIntake({ ...intake, uses_ai_systems: v })}
                       label="We use or deploy AI systems that affect users (recommendations, scoring, automated decisions)" />
                     {intake.uses_ai_systems && (
-                      <div className="ml-6">
+                      <div className="ml-6 space-y-3">
                         <CheckRow checked={intake.ai_high_risk}
                           onChange={(v) => setIntake({ ...intake, ai_high_risk: v })}
-                          label="At least one of our AI systems is high-risk under the EU AI Act (e.g. employment, credit, biometrics, education, critical infrastructure)" />
+                          label="At least one of our AI systems is high-risk under the EU AI Act (employment, credit, biometrics, education, critical infrastructure)" />
+                        <CheckRow checked={intake.ai_general_purpose_provider}
+                          onChange={(v) => setIntake({ ...intake, ai_general_purpose_provider: v })}
+                          label="We are a provider of a general-purpose AI model placed on the EU market" />
                       </div>
                     )}
                     <CheckRow checked={intake.cross_border_transfers}
@@ -235,7 +310,10 @@ export default function RegistrationAssessment() {
                       label="We transfer personal data across borders (e.g. to US sub-processors)" />
                     <CheckRow checked={intake.acts_as_data_broker}
                       onChange={(v) => setIntake({ ...intake, acts_as_data_broker: v })}
-                      label="We act as a data broker (sell or share personal data without a direct relationship to consumers)" />
+                      label="We act as a data broker (collect & sell personal data without a direct relationship to consumers)" />
+                    <CheckRow checked={intake.sells_or_shares_personal_info}
+                      onChange={(v) => setIntake({ ...intake, sells_or_shares_personal_info: v })}
+                      label="We sell or share personal information (CCPA-style — including cross-context advertising)" />
                   </div>
                 )}
 
@@ -246,6 +324,20 @@ export default function RegistrationAssessment() {
                       <CheckRow checked={intake.has_eu_establishment}
                         onChange={(v) => setIntake({ ...intake, has_eu_establishment: v })}
                         label="We have an EU establishment (office, employees, or subsidiary)" />
+                      {intake.has_eu_establishment && (
+                        <div className="ml-6 space-y-2">
+                          <Label className="text-sm">EU lead supervisory authority (if known)</Label>
+                          <Select value={intake.eu_lead_member_state}
+                            onValueChange={(v) => setIntake({ ...intake, eu_lead_member_state: v })}>
+                            <SelectTrigger className="max-w-xs"><SelectValue placeholder="Auto-pick from establishment" /></SelectTrigger>
+                            <SelectContent>
+                              {(groupedMarkets["EU"] || []).map((j) => (
+                                <SelectItem key={j.code} value={j.code}>{j.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       <CheckRow checked={intake.has_uk_establishment}
                         onChange={(v) => setIntake({ ...intake, has_uk_establishment: v })}
                         label="We have a UK establishment" />
