@@ -149,6 +149,17 @@ const Subscribe = () => {
         </div>
       </div>
 
+      {/* Registration Manager mention */}
+      <div className="bg-white border-b border-fog py-4 px-4">
+        <div className="max-w-[720px] mx-auto text-center text-[13px] text-slate">
+          Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
+          <Link to="/registration-manager" className="text-navy font-semibold underline underline-offset-2 hover:text-navy-mid">
+            Try Registration Manager →
+          </Link>{" "}
+          <span className="text-slate-light">— sold separately, not part of Professional.</span>
+        </div>
+      </div>
+
       {fromBuilder && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4
