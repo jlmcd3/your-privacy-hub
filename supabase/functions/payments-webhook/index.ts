@@ -120,6 +120,40 @@ async function handleCheckoutCompleted(session: any) {
     return;
   }
 
+  // Registration Manager order
+  if (session.metadata?.type === "registration_order" && session.metadata?.order_id) {
+    const orderId = session.metadata.order_id;
+    const tier = session.metadata.tier;
+
+    // Mark order as paid
+    await supabase
+      .from("registration_orders")
+      .update({
+        payment_status: "paid",
+        fulfillment_status: tier === "diy" ? "documents_pending" : "in_preparation",
+        stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+        stripe_session_id: session.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId);
+
+    // Trigger document generation immediately for DIY and Done-for-You tiers
+    if (tier === "diy" || tier === "done_for_you") {
+      await supabase.functions.invoke("generate-registration-docs", {
+        body: { order_id: orderId },
+      });
+    }
+
+    // Audit log
+    await supabase.from("registration_audit_log").insert({
+      action: "order_paid",
+      order_id: orderId,
+      user_id: userId || null,
+      metadata: { tier, amount_cents: session.amount_total || 0 },
+    });
+    return;
+  }
+
   if (!userId) return;
 
   // Report credits bundle
