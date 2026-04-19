@@ -95,6 +95,17 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  {
+    label: "Register",
+    sections: [
+      {
+        items: [
+          { icon: "🧭", label: "Start an Assessment", badge: "NEW", badgeGreen: true, href: "/registration-manager" },
+          { icon: "📂", label: "My Filings", href: "/registration-manager/my-filings" },
+        ],
+      },
+    ],
+  },
 ];
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);

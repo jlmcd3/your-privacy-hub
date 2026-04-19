@@ -79,3 +79,12 @@ verify_jwt = false
 
 [functions.send-renewal-reminders]
 verify_jwt = false
+
+[functions.send-registration-delivery-email]
+verify_jwt = false
+
+[functions.schedule-registration-renewals]
+verify_jwt = false
+
+[functions.monitor-jurisdictions]
+verify_jwt = false

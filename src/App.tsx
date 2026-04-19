@@ -69,9 +69,12 @@ import DPAGenerator from "./pages/DPAGenerator.tsx";
 import IRPlaybook from "./pages/IRPlaybook.tsx";
 import BiometricChecker from "./pages/BiometricChecker.tsx";
 import Horizon from "./pages/Horizon.tsx";
+import RegistrationLanding from "./pages/RegistrationLanding.tsx";
 import RegistrationAssessment from "./pages/RegistrationAssessment.tsx";
 import RegistrationAssessmentResult from "./pages/RegistrationAssessmentResult.tsx";
 import RegistrationOrder from "./pages/RegistrationOrder.tsx";
+import RegistrationDocuments from "./pages/RegistrationDocuments.tsx";
+import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
 
 const queryClient = new QueryClient();
 
@@ -140,9 +143,12 @@ const App = () => (
            <Route path="/ir-playbook" element={<IRPlaybook />} />
            <Route path="/biometric-checker" element={<BiometricChecker />} />
            <Route path="/horizon" element={<Horizon />} />
-           <Route path="/registration-manager" element={<RegistrationAssessment />} />
+           <Route path="/registration-manager" element={<RegistrationLanding />} />
+           <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
            <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
            <Route path="/registration-manager/order/:id" element={<ProtectedRoute><RegistrationOrder /></ProtectedRoute>} />
+           <Route path="/registration-manager/documents/:id" element={<ProtectedRoute><RegistrationDocuments /></ProtectedRoute>} />
+           <Route path="/registration-manager/my-filings" element={<ProtectedRoute><RegistrationMyFilings /></ProtectedRoute>} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />
