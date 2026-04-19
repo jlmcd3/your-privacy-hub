@@ -54,21 +54,22 @@ const Subscribe = () => {
   const bTopics = searchParams.get("t") ? searchParams.get("t")!.split(",").filter(Boolean) : [];
   const fromBuilder = !!bJurisdiction;
   const [error, setError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
 
-  const startCheckout = async (plan: "pro" | "annual") => {
+  const startCheckout = async (interval: "month" | "year" = billingInterval) => {
     if (!user) {
       navigate(`/signup?redirect=/subscribe`);
       return;
     }
-    setLoading(plan);
+    setLoading(interval);
     setError(null);
     try {
-      const body =
-        plan === "annual"
-          ? { plan: "annual", interval: "year" as const }
-          : { plan: "pro" };
+      const body = {
+        plan: interval === "year" ? "professional_yearly" : "professional_monthly",
+        interval,
+      };
       const { data, error: fnError } = await supabase.functions.invoke(
         "create-checkout-session",
         { body }
@@ -82,13 +83,13 @@ const Subscribe = () => {
     }
   };
 
-  const handleSubscribe = () => startCheckout("pro");
+  const handleSubscribe = () => startCheckout(billingInterval);
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Intelligence Brief — $20/month | EndUserPrivacy</title>
-        <meta name="description" content="The weekly privacy Intelligence Brief, re-written for your industry and jurisdictions every Monday. $20/month. Browse everything free." />
+        <title>Professional — $19/mo or $190/yr | EndUserPrivacy</title>
+        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and 2 tool credits per month. $19/month or $190/year." />
       </Helmet>
       <Navbar />
 
@@ -96,14 +97,46 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Intelligence is $20/month.
+            The library is free.<br />Professional is $19/month.
           </h1>
-          <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse is always free. Free accounts also include a personalized
-            weekly digest — filtered to your regions and topics. Premium adds the Intelligence Brief:
-            re-analyzed every Monday specifically for your industry, your jurisdictions, and your
-            compliance priorities. $20/month.
+          <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed mb-8">
+            Everything you can browse stays free. Free accounts also include a personalized
+            weekly digest. Professional adds the full Intelligence Brief, the complete
+            enforcement archive, watchlists, and 2 tool credits every month — re-analyzed
+            for your industry and jurisdictions every Monday.
           </p>
+
+          {/* Monthly/Yearly toggle */}
+          <div className="inline-flex items-center bg-white/10 border border-white/15 rounded-full p-1 mb-4">
+            <button
+              type="button"
+              onClick={() => setBillingInterval("month")}
+              className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all ${
+                billingInterval === "month" ? "bg-white text-navy" : "text-white/70 hover:text-white"
+              }`}
+            >
+              Monthly · $19
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval("year")}
+              className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all ${
+                billingInterval === "year" ? "bg-white text-navy" : "text-white/70 hover:text-white"
+              }`}
+            >
+              Yearly · $190 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">save $38</span>
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={handleSubscribe}
+              disabled={!!loading}
+              className="bg-white text-navy font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all"
+            >
+              {loading ? "Redirecting…" : `Get Professional — ${billingInterval === "year" ? "$190/year" : "$19/month"} →`}
+            </button>
+            {error && <p className="text-red-300 text-[12px] mt-3">{error}</p>}
+          </div>
         </div>
       </div>
 
@@ -111,7 +144,7 @@ const Subscribe = () => {
       <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
         <div className="max-w-[720px] mx-auto text-center">
           <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Premium free for one year, then $20/month.
+            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $19/month.
           </p>
         </div>
       </div>
