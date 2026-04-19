@@ -90,11 +90,11 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              "You are a privacy regulatory analyst. You receive two signal sources: (1) recent regulatory updates (guidance, rulemaking, statements) and (2) recent enforcement actions (fines, decisions). Use BOTH — enforcement actions are leading indicators of where regulators will push next, while updates show stated priorities. Produce 6-10 forward-looking 'Regulatory Horizon' entries: anticipated developments in the next 1-12 months. Cite source signals using the [U#] / [E#] tags from the corpus. Return JSON only.",
+              "You are a privacy regulatory analyst writing for sophisticated privacy professionals (DPOs, privacy counsel, GRC leaders). You receive two signal sources: recent regulatory updates (guidance, rulemaking, statements) and recent enforcement actions (fines, decisions). Use BOTH — enforcement actions are leading indicators of where regulators will push next. Produce 6-10 forward-looking 'Regulatory Horizon' entries for the next 1-12 months. CRITICAL: Write source_signal as natural analyst prose. Inline real case names, regulators, fine amounts, and years (e.g., 'the CNIL's €20M Clearview AI decision (2024)' or 'the FTC's GoodRx settlement') — NEVER use bracketed citation tags like [E1] or [U3]. The reader should be able to read the signal as if it were written by a Lexology or IAPP analyst. Return JSON only.",
           },
           {
             role: "user",
-            content: `${corpus}\n\nReturn JSON: { "items": [ { "jurisdiction": string|null, "sector": string|null, "anticipated_development": string (one sentence), "confidence": "high"|"medium"|"low", "timeline_label": "30 days"|"60-90 days"|"3-6 months"|"6-12 months", "source_signal": string (brief evidence — reference [U#] update tags and/or [E#] enforcement tags), "recommended_action": string (one practical step) } ] }`,
+            content: `${corpus}\n\nReturn JSON: { "items": [ { "jurisdiction": string|null, "sector": string|null, "anticipated_development": string (one sentence), "confidence": "high"|"medium"|"low", "timeline_label": "30 days"|"60-90 days"|"3-6 months"|"6-12 months", "source_signal": string (analyst prose with inline case names — no [E#] or [U#] tags), "recommended_action": string (one practical step) } ] }`,
           },
         ],
         response_format: { type: "json_object" },
