@@ -35,13 +35,13 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Sample preview of all tools",                          free: true,                  pro: true  },
   { feature: "Data Privacy Healthcheck",                             free: "$29 per analysis",    pro: "$15 per analysis"   },
   { feature: "Legitimate Interest Assessment Tool",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
-  { feature: "DPIA Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
+  { feature: "Impact Assessment Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
   { feature: "Custom Data Protection Agreement",                     free: "$69 per document",    pro: "$39 per document"   },
   { feature: "Incident Response Playbook Generator",                 free: "$39 per playbook",    pro: "Included free"      },
   { feature: "Biometric Privacy Compliance Checker",                 free: "1 jurisdiction free", pro: "Included free"      },
 ];
 
-// Note: Compliance framework tools (LI Assessment Tool, Healthcheck, DPIA Builder)
+// Note: Compliance framework tools (LI Assessment Tool, Healthcheck, Impact Assessment Builder)
 // are NOT included with Premium. They are sold as standalone reports.
 
 const Subscribe = () => {
