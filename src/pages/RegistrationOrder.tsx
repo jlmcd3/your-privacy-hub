@@ -150,6 +150,10 @@ export default function RegistrationOrder() {
                 ))}
               </div>
             )}
+
+            <div className="mt-8">
+              <RegistrationDisclaimer variant="compact" />
+            </div>
           </div>
         </PageContainer>
       </main>
