@@ -186,6 +186,21 @@ export default function EnforcementIntelligence() {
           </p>
         </header>
 
+        {/* Companion card → Regulatory Horizon */}
+        <Link
+          to="/horizon"
+          className="group mb-6 flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/30 px-4 py-3 no-underline transition-colors hover:bg-muted/60"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Forecast view</span>
+            <span className="text-sm text-foreground truncate">
+              <span className="font-semibold">Regulatory Horizon</span>
+              <span className="text-muted-foreground"> — Forward signals synthesized from these actions</span>
+            </span>
+          </div>
+          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors shrink-0">→</span>
+        </Link>
+
         {/* Summary stats — respect active filters */}
         <EnforcementStats
           filters={{ q, jurisdiction, sector, dataCat, violation, significance }}
