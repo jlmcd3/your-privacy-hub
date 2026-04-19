@@ -621,7 +621,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$20/month", "$300–$3,500+/year", "$550+/year"],
+                  ["Price", "$19/month or $190/year", "$300–$3,500+/year", "$550+/year"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
@@ -646,17 +646,18 @@ const Subscribe = () => {
           {/* Monthly */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border border-blue/40 relative flex flex-col">
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-              ⭐ Premium Monthly
+              ⭐ Professional Monthly
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-4">
-              $20<span className="text-lg font-normal text-blue-200">/month</span>
+              $19<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
                 "Weekly Intelligence Brief — curated for privacy professionals",
-                "Full article feed with AI enrichment",
+                "Full enforcement archive (all 119 authorities)",
+                "Watchlists for regulators, jurisdictions, and topics",
+                "2 tool credits every month (Healthcheck, LIA, DPIA…)",
                 "Why It Matters analysis on every article",
-                "Subscriber pricing on all assessment tools",
                 "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
@@ -666,11 +667,11 @@ const Subscribe = () => {
               ))}
             </ul>
             <button
-              onClick={() => startCheckout("pro")}
+              onClick={() => startCheckout("month")}
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-white text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "pro" ? "Redirecting…" : "Start Monthly Plan"}
+              {loading === "month" ? "Redirecting…" : "Start Monthly Plan"}
             </button>
           </div>
 
@@ -680,21 +681,21 @@ const Subscribe = () => {
               Best Value
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
-              ⭐ Premium Annual
+              ⭐ Professional Annual
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              $180<span className="text-lg font-normal text-blue-200">/year</span>
+              $190<span className="text-lg font-normal text-blue-200">/year</span>
             </div>
             <p className="text-blue-200 text-[12px] mb-4">
-              $15/month — save $60 vs monthly
+              ~$15.83/month — save $38 vs monthly
             </p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
-                "2 months free vs. monthly billing",
+                "Two months free vs. monthly billing",
                 "Weekly Intelligence Brief — curated for privacy professionals",
-                "Full article feed with AI enrichment",
-                "Why It Matters analysis on every article",
-                "Subscriber pricing on all assessment tools",
+                "Full enforcement archive (all 119 authorities)",
+                "Watchlists for regulators, jurisdictions, and topics",
+                "2 tool credits every month (Healthcheck, LIA, DPIA…)",
                 "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
@@ -704,11 +705,11 @@ const Subscribe = () => {
               ))}
             </ul>
             <button
-              onClick={() => startCheckout("annual")}
+              onClick={() => startCheckout("year")}
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-amber-400 text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "annual" ? "Redirecting…" : "Start Annual Plan"}
+              {loading === "year" ? "Redirecting…" : "Start Annual Plan"}
             </button>
           </div>
         </div>
