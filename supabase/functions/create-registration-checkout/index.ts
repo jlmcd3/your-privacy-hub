@@ -1,14 +1,14 @@
 // Create a Stripe checkout session for the Registration Manager.
-// Uses inline price_data (DIY $49, Done-for-You $299/jurisdiction, Renewal $199/yr/jurisdiction)
-// so the feature works without pre-provisioned Stripe products.
+// Uses inline price_data so the feature works without pre-provisioned Stripe products.
 //
-// Tiers:
-//   "diy"           — one-time $49 flat (regardless of jurisdiction count)
-//   "done_for_you"  — one-time $299 × N jurisdictions
-//   "renewal"       — recurring $199/yr × N jurisdictions
+// Tiers (we never submit filings on the user's behalf):
+//   "diy"             — one-time $49 flat (regardless of jurisdiction count)
+//   "counsel_review"  — one-time $299 flat (Counsel-Ready Pack: enhanced docs + handoff)
+//   "renewal"         — recurring $199/yr × N jurisdictions (renewal monitoring + regenerated docs)
+//
+// Backwards-compat: legacy "done_for_you" tier is silently mapped to "counsel_review".
 //
 // Persists a registration_orders row in pending state, then returns checkout URL.
-// The payments-webhook handler (existing) can be extended later to mark orders paid.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -25,9 +25,9 @@ function detectEnv(): StripeEnv {
 }
 
 const PRICING = {
-  diy: { unit_amount: 4900, name: "Registration Manager — DIY Toolkit", recurring: false },
-  done_for_you: { unit_amount: 29900, name: "Registration Manager — Done-for-You", recurring: false },
-  renewal: { unit_amount: 19900, name: "Registration Manager — Annual Renewal", recurring: true },
+  diy: { unit_amount: 4900, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
+  counsel_review: { unit_amount: 29900, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
+  renewal: { unit_amount: 19900, name: "Registration Manager — Annual Renewal Monitoring", recurring: true, per_jurisdiction: true },
 } as const;
 
 serve(async (req) => {
@@ -54,7 +54,10 @@ serve(async (req) => {
       });
     }
 
-    const { tier, jurisdictions, assessment_id, organization_snapshot } = await req.json();
+    const raw = await req.json();
+    // Backwards-compat: map legacy tier name
+    const tier = raw.tier === "done_for_you" ? "counsel_review" : raw.tier;
+    const { jurisdictions, assessment_id, organization_snapshot } = raw;
     if (!tier || !PRICING[tier as keyof typeof PRICING]) {
       return new Response(JSON.stringify({ error: "Invalid tier" }), {
         status: 400,
@@ -70,7 +73,8 @@ serve(async (req) => {
     }
 
     const cfg = PRICING[tier as keyof typeof PRICING];
-    const quantity = tier === "diy" ? 1 : Math.max(1, codes.length);
+    // DIY and Counsel-Ready Pack are flat-rate. Only renewal scales per jurisdiction.
+    const quantity = cfg.per_jurisdiction ? Math.max(1, codes.length) : 1;
     const totalCents = cfg.unit_amount * quantity;
 
     // Use service role for the order insert so RLS doesn't block

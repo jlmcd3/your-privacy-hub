@@ -26,12 +26,16 @@ const FAQS = [
     a: "We monitor authority websites and official gazettes monthly (weekly for the EU AI Act). Each filing pack records the verification date for the data used.",
   },
   {
-    q: "What's the difference between DIY and Done-for-You?",
-    a: "DIY ($49 first jurisdiction, +$49 per additional) generates the documents and a filing checklist — you submit them. Done-for-You ($299 + per-jurisdiction fees) adds white-glove filing assistance: we handle submission and confirmation tracking.",
+    q: "Do you submit filings to authorities for me?",
+    a: "No. We do not submit filings on your behalf. We generate the documents, jurisdiction-specific checklists, and portal links — you (or your counsel) submit them. This keeps you in direct legal control of every filing and avoids any agency or attorney-client ambiguity.",
+  },
+  {
+    q: "What's the difference between DIY and the Counsel-Ready Pack?",
+    a: "DIY ($49 first jurisdiction, +$49 per additional) generates the documents and a filing checklist. The Counsel-Ready Pack ($299) adds enhanced jurisdiction notes, a pre-filing walkthrough, and a structured handoff document so your privacy counsel can review and submit faster. You still file the documents yourself.",
   },
   {
     q: "Do you handle EU AI Act registrations?",
-    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, and we offer a discounted bundle ($499) when you register 3+ systems together.",
+    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, and we offer a discounted bundle ($499) when you prepare 3+ systems together. You submit the filings.",
   },
   {
     q: "Can I get reminders before renewals are due?",
@@ -46,7 +50,7 @@ export default function RegistrationLanding() {
         <title>Privacy Registration Manager — DPO, RoPA, AI Act Filings | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. Done-for-You filing available."
+          content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
@@ -102,8 +106,8 @@ export default function RegistrationLanding() {
             {[
               ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities."],
               ["2", "Personalized scope", "We map your activities to every jurisdiction that applies — with confidence ratings."],
-              ["3", "Generate documents", "Pay $49 (DIY) or $299 (Done-for-You). We draft every required filing in minutes."],
-              ["4", "File & renew", "Submit yourself or have us file. We track expiry dates and remind you ahead of renewals."],
+              ["3", "Generate documents", "Pay $49 (DIY) or $299 (Counsel-Ready Pack). We draft every required filing in minutes."],
+              ["4", "You file & we track renewals", "You (or your counsel) submit the filings. We schedule reminders 60/30/7 days before each renewal."],
             ].map(([n, t, b]) => (
               <Card key={n} className="border-border/60">
                 <CardContent className="p-5">
@@ -184,16 +188,20 @@ export default function RegistrationLanding() {
             <Card className="border-2 border-navy">
               <CardHeader>
                 <Badge className="w-fit mb-2 bg-navy text-white">RECOMMENDED</Badge>
-                <CardTitle className="text-navy">Done-for-You</CardTitle>
-                <div className="text-3xl font-bold text-navy">$299<span className="text-sm font-normal text-slate"> + per-jurisdiction fees</span></div>
-                <p className="text-xs text-slate">White-glove filing assistance</p>
+                <CardTitle className="text-navy">Counsel-Ready Pack</CardTitle>
+                <div className="text-3xl font-bold text-navy">$299<span className="text-sm font-normal text-slate"> flat</span></div>
+                <p className="text-xs text-slate">Enhanced documents + counsel handoff</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-slate">
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Everything in DIY</li>
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> We submit filings for you</li>
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Confirmation tracking & status</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Enhanced jurisdiction notes &amp; rationale</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Pre-filing walkthrough video</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Structured handoff doc for your counsel</li>
                 </ul>
+                <p className="text-[11px] text-slate-light mt-3 italic">
+                  You (or your counsel) submit all filings. We do not file on your behalf.
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -204,11 +212,11 @@ export default function RegistrationLanding() {
             </div>
             <div className="bg-violet-50 border border-violet-200 rounded-lg p-4">
               <div className="font-semibold text-violet-900 text-sm">AI Act Bundle — $499</div>
-              <p className="text-xs text-violet-800 mt-1">When registering 3+ high-risk AI systems.</p>
+              <p className="text-xs text-violet-800 mt-1">When preparing 3+ high-risk AI system registrations.</p>
             </div>
           </div>
           <p className="text-center text-xs text-slate-light mt-4">
-            Premium subscribers get 20% off all Registration Manager purchases.
+            Premium subscribers get 20% off all Registration Manager purchases. You always submit your own filings.
           </p>
         </section>
 

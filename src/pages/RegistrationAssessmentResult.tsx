@@ -55,7 +55,7 @@ export default function RegistrationAssessmentResult() {
     })();
   }, [token]);
 
-  async function purchase(tier: "diy" | "done_for_you" | "renewal") {
+  async function purchase(tier: "diy" | "counsel_review" | "renewal") {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sign in to purchase");
@@ -128,7 +128,7 @@ export default function RegistrationAssessmentResult() {
   const jurisdictions: JurisdictionResult[] = summary.jurisdictions || [];
   const confidence = summary.confidence || assessment.confidence_tier || "medium";
   const selectedCount = selected.size;
-  const dfyTotal = selectedCount * 299;
+  const crpTotal = 299;
 
   return (
     <>
@@ -207,30 +207,33 @@ export default function RegistrationAssessmentResult() {
 
             <Card className="bg-muted/40">
               <CardHeader>
-                <CardTitle>Get the documents and file</CardTitle>
+                <CardTitle>Get the documents — you file</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  We generate the documents and the filing checklist. You (or your counsel) submit them to each authority. We do not file on your behalf.
+                </p>
               </CardHeader>
               <CardContent className="grid md:grid-cols-3 gap-4">
                 <PlanCard
                   title="DIY Toolkit"
                   price="$49"
-                  blurb="One-time. Get every document for every flagged jurisdiction. You file."
+                  blurb="One-time. Get every document for every flagged jurisdiction, plus a step-by-step filing checklist."
                   cta={purchasing === "diy" ? "Loading…" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
                   disabled={purchasing !== null}
                 />
                 <PlanCard
-                  title="Done-for-You"
+                  title="Counsel-Ready Pack"
                   highlight
-                  price={`$299 × ${selectedCount} = $${dfyTotal}`}
-                  blurb="We prepare and submit your filings in each selected jurisdiction. Includes 12 months of renewal monitoring."
-                  cta={purchasing === "done_for_you" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Have us file"}
-                  onClick={() => purchase("done_for_you")}
+                  price={`$${crpTotal}`}
+                  blurb="Everything in DIY plus enhanced jurisdiction notes, a pre-filing walkthrough, and a counsel handoff doc. You still submit the filings."
+                  cta={purchasing === "counsel_review" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get counsel-ready pack"}
+                  onClick={() => purchase("counsel_review")}
                   disabled={purchasing !== null || selectedCount === 0}
                 />
                 <PlanCard
-                  title="Annual Renewal"
+                  title="Annual Renewal Monitoring"
                   price="$199 / year per jurisdiction"
-                  blurb="Already filed? Subscribe to automatic renewal monitoring and re-filing."
+                  blurb="Already filed? Subscribe to automatic renewal monitoring with reminders. Renewal documents regenerated; you submit."
                   cta={purchasing === "renewal" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Subscribe"}
                   onClick={() => purchase("renewal")}
                   disabled={purchasing !== null || selectedCount === 0}
