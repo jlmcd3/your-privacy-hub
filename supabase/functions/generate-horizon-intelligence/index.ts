@@ -43,20 +43,42 @@ Deno.serve(async (req) => {
     );
 
     const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
-    const { data: updates, error } = await supabase
-      .from("updates")
-      .select("title, summary, regulator, direct_jurisdictions, topic_tags, published_at")
-      .gte("published_at", since)
-      .order("published_at", { ascending: false })
-      .limit(80);
-    if (error) throw error;
+    const enforcementSince = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 
-    const corpus = (updates ?? [])
+    const [{ data: updates, error }, { data: enforcement, error: enfErr }] = await Promise.all([
+      supabase
+        .from("updates")
+        .select("title, summary, regulator, direct_jurisdictions, topic_tags, published_at")
+        .gte("published_at", since)
+        .order("published_at", { ascending: false })
+        .limit(80),
+      supabase
+        .from("enforcement_actions")
+        .select("regulator, jurisdiction, subject, sector, law, violation, key_compliance_failure, decision_date, fine_eur_equivalent, precedent_significance, violation_types")
+        .gte("enrichment_version", 1)
+        .gte("decision_date", enforcementSince)
+        .order("precedent_significance", { ascending: false, nullsFirst: false })
+        .order("decision_date", { ascending: false, nullsFirst: false })
+        .limit(40),
+    ]);
+    if (error) throw error;
+    if (enfErr) throw enfErr;
+
+    const updatesCorpus = (updates ?? [])
       .map(
         (u: any, i: number) =>
-          `[${i + 1}] ${u.title}\n  Regulator: ${u.regulator ?? "?"} | Jurisdictions: ${(u.direct_jurisdictions ?? []).join(", ")}\n  Topics: ${(u.topic_tags ?? []).join(", ")}\n  Summary: ${(u.summary ?? "").slice(0, 320)}`
+          `[U${i + 1}] ${u.title}\n  Regulator: ${u.regulator ?? "?"} | Jurisdictions: ${(u.direct_jurisdictions ?? []).join(", ")}\n  Topics: ${(u.topic_tags ?? []).join(", ")}\n  Summary: ${(u.summary ?? "").slice(0, 320)}`
       )
       .join("\n\n");
+
+    const enforcementCorpus = (enforcement ?? [])
+      .map(
+        (e: any, i: number) =>
+          `[E${i + 1}] ${e.regulator} v. ${e.subject ?? "?"} (${e.jurisdiction}, ${e.decision_date ?? "?"})\n  Law: ${e.law ?? "?"} | Sector: ${e.sector ?? "?"} | Fine: ${e.fine_eur_equivalent ? `€${Math.round(e.fine_eur_equivalent).toLocaleString()}` : "n/a"} | Significance: ${e.precedent_significance ?? "?"}/5\n  Violation types: ${(e.violation_types ?? []).join(", ")}\n  Key failure: ${(e.key_compliance_failure ?? e.violation ?? "").slice(0, 280)}`
+      )
+      .join("\n\n");
+
+    const corpus = `## RECENT REGULATORY UPDATES (last 14 days)\n\n${updatesCorpus}\n\n\n## RECENT ENFORCEMENT ACTIONS (last 90 days, ranked by precedent significance)\n\n${enforcementCorpus}`;
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY")!;
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
