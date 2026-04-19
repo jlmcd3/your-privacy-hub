@@ -72,6 +72,16 @@ const TOOLS = [
     standalonePrice: 29,
     subscriberPrice: 0,
   },
+  {
+    icon: "📂",
+    title: "Registration Filings",
+    description:
+      "Free assessment maps where your organisation must register (DPO, RoPA, AI Act, Article 27 rep). Then generate a counsel-ready filing pack you submit yourself. You file; we draft and track.",
+    cta: "Start Free Assessment",
+    href: "/registration-manager",
+    standalonePrice: 49,
+    subscriberPrice: 49,
+  },
 ];
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
