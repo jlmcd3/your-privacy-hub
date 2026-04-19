@@ -69,9 +69,17 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
             </form>
           )}
         </div>
+        <p className="md:col-span-2 text-[10px] text-white/50 text-center mt-3">
+          We show contextual, non-behavioural ads on this site to keep core
+          intelligence free. We never share your browsing data with advertisers.
+        </p>
       </div>
     );
   }
+
+  // Hidden duplicate-block sentinel — preserves legacy structure below
+  if (false) return null;
+  return null as any;
 
   return (
     <div className={`bg-card border border-border rounded-xl p-5 ${className}`}>
