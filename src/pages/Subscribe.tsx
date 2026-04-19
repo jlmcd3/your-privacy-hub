@@ -54,21 +54,22 @@ const Subscribe = () => {
   const bTopics = searchParams.get("t") ? searchParams.get("t")!.split(",").filter(Boolean) : [];
   const fromBuilder = !!bJurisdiction;
   const [error, setError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
 
-  const startCheckout = async (plan: "pro" | "annual") => {
+  const startCheckout = async (interval: "month" | "year" = billingInterval) => {
     if (!user) {
       navigate(`/signup?redirect=/subscribe`);
       return;
     }
-    setLoading(plan);
+    setLoading(interval);
     setError(null);
     try {
-      const body =
-        plan === "annual"
-          ? { plan: "annual", interval: "year" as const }
-          : { plan: "pro" };
+      const body = {
+        plan: interval === "year" ? "professional_yearly" : "professional_monthly",
+        interval,
+      };
       const { data, error: fnError } = await supabase.functions.invoke(
         "create-checkout-session",
         { body }
@@ -82,13 +83,13 @@ const Subscribe = () => {
     }
   };
 
-  const handleSubscribe = () => startCheckout("pro");
+  const handleSubscribe = () => startCheckout(billingInterval);
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Intelligence Brief — $20/month | EndUserPrivacy</title>
-        <meta name="description" content="The weekly privacy Intelligence Brief, re-written for your industry and jurisdictions every Monday. $20/month. Browse everything free." />
+        <title>Professional — $19/mo or $190/yr | EndUserPrivacy</title>
+        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and 2 tool credits per month. $19/month or $190/year." />
       </Helmet>
       <Navbar />
 
@@ -96,14 +97,46 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Intelligence is $20/month.
+            The library is free.<br />Professional is $19/month.
           </h1>
-          <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed">
-            Everything you can browse is always free. Free accounts also include a personalized
-            weekly digest — filtered to your regions and topics. Premium adds the Intelligence Brief:
-            re-analyzed every Monday specifically for your industry, your jurisdictions, and your
-            compliance priorities. $20/month.
+          <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed mb-8">
+            Everything you can browse stays free. Free accounts also include a personalized
+            weekly digest. Professional adds the full Intelligence Brief, the complete
+            enforcement archive, watchlists, and 2 tool credits every month — re-analyzed
+            for your industry and jurisdictions every Monday.
           </p>
+
+          {/* Monthly/Yearly toggle */}
+          <div className="inline-flex items-center bg-white/10 border border-white/15 rounded-full p-1 mb-4">
+            <button
+              type="button"
+              onClick={() => setBillingInterval("month")}
+              className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all ${
+                billingInterval === "month" ? "bg-white text-navy" : "text-white/70 hover:text-white"
+              }`}
+            >
+              Monthly · $19
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval("year")}
+              className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all ${
+                billingInterval === "year" ? "bg-white text-navy" : "text-white/70 hover:text-white"
+              }`}
+            >
+              Yearly · $190 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">save $38</span>
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={handleSubscribe}
+              disabled={!!loading}
+              className="bg-white text-navy font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all"
+            >
+              {loading ? "Redirecting…" : `Get Professional — ${billingInterval === "year" ? "$190/year" : "$19/month"} →`}
+            </button>
+            {error && <p className="text-red-300 text-[12px] mt-3">{error}</p>}
+          </div>
         </div>
       </div>
 
@@ -111,7 +144,7 @@ const Subscribe = () => {
       <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
         <div className="max-w-[720px] mx-auto text-center">
           <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Premium free for one year, then $20/month.
+            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $19/month.
           </p>
         </div>
       </div>
@@ -588,7 +621,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$20/month", "$300–$3,500+/year", "$550+/year"],
+                  ["Price", "$19/month or $190/year", "$300–$3,500+/year", "$550+/year"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
@@ -613,17 +646,18 @@ const Subscribe = () => {
           {/* Monthly */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border border-blue/40 relative flex flex-col">
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-              ⭐ Premium Monthly
+              ⭐ Professional Monthly
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-4">
-              $20<span className="text-lg font-normal text-blue-200">/month</span>
+              $19<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
                 "Weekly Intelligence Brief — curated for privacy professionals",
-                "Full article feed with AI enrichment",
+                "Full enforcement archive (all 119 authorities)",
+                "Watchlists for regulators, jurisdictions, and topics",
+                "2 tool credits every month (Healthcheck, LIA, DPIA…)",
                 "Why It Matters analysis on every article",
-                "Subscriber pricing on all assessment tools",
                 "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
@@ -633,11 +667,11 @@ const Subscribe = () => {
               ))}
             </ul>
             <button
-              onClick={() => startCheckout("pro")}
+              onClick={() => startCheckout("month")}
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-white text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "pro" ? "Redirecting…" : "Start Monthly Plan"}
+              {loading === "month" ? "Redirecting…" : "Start Monthly Plan"}
             </button>
           </div>
 
@@ -647,21 +681,21 @@ const Subscribe = () => {
               Best Value
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
-              ⭐ Premium Annual
+              ⭐ Professional Annual
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              $180<span className="text-lg font-normal text-blue-200">/year</span>
+              $190<span className="text-lg font-normal text-blue-200">/year</span>
             </div>
             <p className="text-blue-200 text-[12px] mb-4">
-              $15/month — save $60 vs monthly
+              ~$15.83/month — save $38 vs monthly
             </p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
-                "2 months free vs. monthly billing",
+                "Two months free vs. monthly billing",
                 "Weekly Intelligence Brief — curated for privacy professionals",
-                "Full article feed with AI enrichment",
-                "Why It Matters analysis on every article",
-                "Subscriber pricing on all assessment tools",
+                "Full enforcement archive (all 119 authorities)",
+                "Watchlists for regulators, jurisdictions, and topics",
+                "2 tool credits every month (Healthcheck, LIA, DPIA…)",
                 "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
@@ -671,11 +705,11 @@ const Subscribe = () => {
               ))}
             </ul>
             <button
-              onClick={() => startCheckout("annual")}
+              onClick={() => startCheckout("year")}
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-amber-400 text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "annual" ? "Redirecting…" : "Start Annual Plan"}
+              {loading === "year" ? "Redirecting…" : "Start Annual Plan"}
             </button>
           </div>
         </div>

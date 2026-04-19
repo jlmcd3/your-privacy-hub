@@ -151,11 +151,19 @@ serve(async (req) => {
           isPro = !!(proPriceId && priceId === proPriceId);
         }
 
+        // Resolve subscription tier + interval from session metadata (set in
+        // create-checkout-session) with safe fallbacks.
+        const tier = session.metadata?.subscription_tier || "professional";
+        const intervalMeta = session.metadata?.subscription_interval || "month";
+
         await supabase
           .from("profiles")
           .update({
             is_premium: true,
             is_pro: isPro,
+            subscription_tier: tier,
+            subscription_interval: intervalMeta,
+            subscription_plan: tier,
             stripe_customer_id: session.customer,
             stripe_price_id: priceId,
             payment_failed: false,
@@ -172,6 +180,7 @@ serve(async (req) => {
           .from("profiles")
           .update({
             is_premium: false,
+            subscription_tier: "free",
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_customer_id", customerId);

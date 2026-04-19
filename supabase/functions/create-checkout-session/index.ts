@@ -8,11 +8,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Subscription plans → human-readable lookup keys (created via payments tools)
+// Subscription plans → human-readable lookup keys
+// Professional = the new $19/mo or $190/yr tier (full archive, weekly brief,
+// watchlists, 2 tool credits/month). Legacy "premium_monthly" lookup key is
+// kept as a fallback for any in-flight links.
 const PLAN_LOOKUPS: Record<string, string> = {
-  pro: "premium_monthly",
-  premium: "premium_monthly",
-  standard: "premium_monthly",
+  professional_monthly: "professional_monthly",
+  professional_yearly: "professional_yearly",
+  // Legacy aliases — all map to the new monthly Professional price.
+  pro: "professional_monthly",
+  premium: "professional_monthly",
+  standard: "professional_monthly",
+  monthly: "professional_monthly",
+  yearly: "professional_yearly",
+  annual: "professional_yearly",
 };
 
 // Tool one-time purchases via tool_slug
@@ -51,9 +60,10 @@ serve(async (req) => {
       });
     }
 
-    const { plan, tool_slug } = (await req.json().catch(() => ({}))) as {
+    const { plan, tool_slug, interval } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
+      interval?: "month" | "year";
     };
 
     let lookupKey: string | undefined;
@@ -79,7 +89,13 @@ serve(async (req) => {
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else {
-      lookupKey = PLAN_LOOKUPS[plan || "pro"] || PLAN_LOOKUPS.pro;
+      // Resolve interval-aware plan key. If caller passes interval=year, prefer yearly.
+      const requestedKey = interval === "year"
+        ? "professional_yearly"
+        : (plan || "professional_monthly");
+      lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.professional_monthly;
+      metadata.subscription_tier = "professional";
+      metadata.subscription_interval = lookupKey === "professional_yearly" ? "year" : "month";
     }
 
     const env = detectEnv();
