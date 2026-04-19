@@ -107,9 +107,13 @@ Deno.test("Persona 4 — French AdTech, GPAI provider, US data broker", () => {
   };
   const out = runRegistrationAssessment(intake);
 
-  // OSS collapses EU markets to FR
-  const euCodes = out.jurisdictions.map(j => j.code).filter(c => ["FR","DE","ES","IE"].includes(c));
-  assertEquals(euCodes, ["FR"]);
+  // OSS collapses EU markets to FR (lead SA). DE may still surface for the
+  // BDSG-specific DPO note even under OSS, but ES/IE should NOT.
+  const euCodes = out.jurisdictions.map(j => j.code).filter(c => ["FR","ES","IE"].includes(c));
+  assertEquals(euCodes, ["FR"], "OSS should leave only FR (DE may remain for BDSG DPO note)");
+  // DE entry, if present, should be tagged with the BDSG DPO rule, not a generic market rule
+  const de = out.jurisdictions.find(j => j.code === "DE");
+  if (de) assertEquals(de.rule_id, "R5_DE_DPO");
   // UK still gets ICO fee + UK rep (no UK establishment declared)
   assert(out.obligations_summary.uk_representative_required);
   // Data broker registries: CA, VT, TX (OR not in markets)
