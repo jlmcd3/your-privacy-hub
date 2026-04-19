@@ -85,7 +85,7 @@ export default function RegistrationMyFilings() {
                       <div className="flex items-start justify-between flex-wrap gap-3">
                         <div>
                           <CardTitle className="text-base text-navy">
-                            {o.tier === "diy" ? "DIY" : "Done-for-You"} · {o.jurisdictions.length} jurisdiction{o.jurisdictions.length === 1 ? "" : "s"}
+                            {o.tier === "diy" ? "DIY" : o.tier === "counsel_review" || o.tier === "done_for_you" ? "Counsel-Ready Pack" : "Renewal"} · {o.jurisdictions.length} jurisdiction{o.jurisdictions.length === 1 ? "" : "s"}
                           </CardTitle>
                           <p className="text-xs text-slate mt-1">
                             {new Date(o.created_at).toLocaleDateString()} · ${(o.amount_cents / 100).toFixed(0)} {o.currency.toUpperCase()}

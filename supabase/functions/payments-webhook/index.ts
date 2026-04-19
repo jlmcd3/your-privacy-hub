@@ -125,20 +125,21 @@ async function handleCheckoutCompleted(session: any) {
     const orderId = session.metadata.order_id;
     const tier = session.metadata.tier;
 
-    // Mark order as paid
+    // Mark order as paid. Note: we never submit filings on the user's behalf, so
+    // the fulfillment status only ever moves through document generation states.
     await supabase
       .from("registration_orders")
       .update({
         payment_status: "paid",
-        fulfillment_status: tier === "diy" ? "documents_pending" : "in_preparation",
+        fulfillment_status: "documents_pending",
         stripe_payment_intent_id: (session.payment_intent as string) || session.id,
         stripe_session_id: session.id,
         updated_at: new Date().toISOString(),
       })
       .eq("id", orderId);
 
-    // Trigger document generation immediately for DIY and Done-for-You tiers
-    if (tier === "diy" || tier === "done_for_you") {
+    // Trigger document generation immediately for all paid one-time tiers
+    if (tier === "diy" || tier === "counsel_review" || tier === "done_for_you") {
       await supabase.functions.invoke("generate-registration-docs", {
         body: { order_id: orderId },
       });
