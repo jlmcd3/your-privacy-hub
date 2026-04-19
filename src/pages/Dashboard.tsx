@@ -402,7 +402,7 @@ const Dashboard = () => {
                 to="/dpia-framework"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">DPIA Builder</p>
+                <p className="text-[12px] font-semibold text-foreground">Impact Assessment Builder</p>
                 <p className="text-[12px] text-foreground">
                   <span className="font-bold">$39</span>
                   <span className="text-muted-foreground"> /analysis</span>

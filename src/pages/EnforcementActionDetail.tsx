@@ -43,7 +43,7 @@ function formatEur(n: number | null) {
 }
 
 const TOOL_LINKS: Record<string, string> = {
-  "DPIA": "/dpia-framework",
+  "DPIA (Impact Assessment)": "/dpia-framework",
   "LIA": "/li-assessment",
   "Records of Processing": "/governance-assessment",
   "Vendor DD": "/governance-assessment",

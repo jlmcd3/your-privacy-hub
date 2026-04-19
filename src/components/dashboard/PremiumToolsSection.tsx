@@ -34,9 +34,9 @@ const TOOLS = [
   },
   {
     icon: "📋",
-    title: "DPIA Builder",
+    title: "Impact Assessment Builder",
     description:
-      "Structured Data Protection Impact Assessment framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
+      "Structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
     cta: "View Sample & Purchase",
     href: "/dpia-framework",
     standalonePrice: 69,
@@ -87,7 +87,7 @@ const TOOLS = [
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
   li: "LI Assessment Tool",
   governance: "Privacy Healthcheck",
-  dpia: "DPIA Builder",
+  dpia: "Impact Assessment Builder",
 };
 
 const TYPE_BADGE: Record<AssessmentRow["type"], string> = {
