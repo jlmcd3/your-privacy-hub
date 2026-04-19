@@ -133,6 +133,20 @@ Output Markdown with clear headings, bullet points, and signature blocks where r
       })
       .eq("id", order_id);
 
+    // Schedule first renewal date based on shortest jurisdiction renewal period
+    try {
+      await supabase.functions.invoke("schedule-registration-renewals", { body: { order_id } });
+    } catch (e) {
+      console.warn("schedule-registration-renewals failed:", (e as Error).message);
+    }
+
+    // Send delivery email (best-effort)
+    try {
+      await supabase.functions.invoke("send-registration-delivery-email", { body: { order_id } });
+    } catch (e) {
+      console.warn("send-registration-delivery-email failed:", (e as Error).message);
+    }
+
     return new Response(JSON.stringify({ generated_count: generated.length, generated }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
