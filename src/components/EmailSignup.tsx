@@ -77,10 +77,6 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
     );
   }
 
-  // Hidden duplicate-block sentinel — preserves legacy structure below
-  if (false) return null;
-  return null as any;
-
   return (
     <div className={`bg-card border border-border rounded-xl p-5 ${className}`}>
       <h4 className="font-display text-base text-foreground mb-1">
