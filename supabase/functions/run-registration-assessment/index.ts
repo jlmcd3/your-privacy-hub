@@ -1,10 +1,14 @@
 // Free Registration Assessment — anonymous-friendly.
-// Takes intake data (org country, size, industry, processing activities, AI usage,
-// markets served) and returns a recommended set of jurisdictions with confidence
-// tier, plus a result_summary for display. Persists to registration_assessments
-// and returns the shareable_token so the user can come back without an account.
+// Thin HTTP wrapper around the declarative rules engine in
+// _shared/registration-engine.ts. All logic, deduplication, OSS handling,
+// AI-Act, BDSG-DPO and data-broker rules live in the engine so they can
+// be unit-tested independently with `deno test`.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  runRegistrationAssessment,
+  type IntakeData,
+} from "../_shared/registration-engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,73 +20,6 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
-
-interface IntakeData {
-  organization_name?: string;
-  organization_country?: string; // ISO code where org is established
-  organization_size?: "micro" | "small" | "medium" | "large" | "enterprise";
-  industry?: string;
-  email?: string;
-  // Processing context
-  processes_personal_data?: boolean;
-  processes_special_categories?: boolean; // health, biometric, etc
-  processes_children_data?: boolean;
-  uses_ai_systems?: boolean;
-  ai_high_risk?: boolean; // EU AI Act high-risk
-  cross_border_transfers?: boolean;
-  // Markets — ISO codes of markets where org offers goods/services or monitors
-  markets_served?: string[];
-  // Self-declared role
-  acts_as_data_broker?: boolean;
-  has_eu_establishment?: boolean;
-  has_uk_establishment?: boolean;
-}
-
-function deriveJurisdictions(intake: IntakeData): { codes: string[]; confidence: "high" | "medium" | "low"; rationale: Record<string, string> } {
-  const codes = new Set<string>();
-  const rationale: Record<string, string> = {};
-
-  // Always include the home country if it's in our table
-  if (intake.organization_country) {
-    codes.add(intake.organization_country);
-    rationale[intake.organization_country] = "Established in this jurisdiction";
-  }
-
-  // Markets served drive extraterritorial application
-  for (const m of intake.markets_served || []) {
-    codes.add(m);
-    rationale[m] = `Offers goods/services to residents of ${m}`;
-  }
-
-  // EU presence triggers EU-wide attention; pick lead or all served EU codes
-  if (intake.has_eu_establishment) {
-    rationale["IE"] = rationale["IE"] || "Common EU lead supervisory authority";
-  }
-
-  // UK separate
-  if (intake.has_uk_establishment || (intake.markets_served || []).includes("UK")) {
-    codes.add("UK");
-    rationale["UK"] = "UK GDPR applies; ICO annual fee required";
-  }
-
-  // California data broker
-  if (intake.acts_as_data_broker && (intake.markets_served || []).includes("US-CA")) {
-    codes.add("US-CA");
-    rationale["US-CA"] = "Data broker registration required with CPPA";
-  }
-
-  // Confidence: high if intake is rich; medium if moderate; low if minimal
-  const filled = [
-    intake.organization_country,
-    intake.organization_size,
-    intake.industry,
-    intake.markets_served?.length,
-    intake.processes_personal_data !== undefined,
-  ].filter(Boolean).length;
-
-  const confidence = filled >= 4 ? "high" : filled >= 2 ? "medium" : "low";
-  return { codes: Array.from(codes), confidence, rationale };
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -101,56 +38,71 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { codes, confidence, rationale } = deriveJurisdictions(intake);
+    // 1. Run the pure rules engine
+    const engineOutput = runRegistrationAssessment(intake);
+    const codes = engineOutput.jurisdictions.map((j) => j.code);
 
-    // Fetch full requirement rows for the recommended jurisdictions
+    // 2. Look up requirement metadata for every recommended jurisdiction
     const { data: reqs, error: reqsErr } = await supabase
       .from("jurisdiction_requirements")
       .select("*")
       .in("jurisdiction_code", codes.length ? codes : ["__none__"]);
     if (reqsErr) throw reqsErr;
 
+    const reqByCode = new Map((reqs || []).map((r: any) => [r.jurisdiction_code, r]));
+
+    // 3. Compose the displayable result_summary, joining engine output with reqs
     const result_summary = {
       generated_at: new Date().toISOString(),
-      confidence,
-      rationale,
-      jurisdictions: (reqs || []).map((r) => ({
-        code: r.jurisdiction_code,
-        name: r.jurisdiction_name,
-        region: r.region,
-        law: r.law_name,
-        authority: r.authority_name,
-        authority_url: r.authority_url,
-        registration_required: r.registration_required,
-        dpo_required: r.dpo_required,
-        ai_registration_required: r.ai_registration_required,
-        representative_required: r.representative_required,
-        filing_fee_cents: r.filing_fee_cents,
-        filing_currency: r.filing_currency,
-        renewal_period_months: r.renewal_period_months,
-        notes: r.notes,
-        why: rationale[r.jurisdiction_code],
-      })),
+      confidence: engineOutput.confidence,
+      confidence_reasons: engineOutput.confidence_reasons,
+      rules_fired: engineOutput.rules_fired,
+      warnings: engineOutput.warnings,
+      obligations_summary: engineOutput.obligations_summary,
+      jurisdictions: engineOutput.jurisdictions.map((j) => {
+        const r = reqByCode.get(j.code);
+        return {
+          code: j.code,
+          name: r?.jurisdiction_name || j.code,
+          region: r?.region || null,
+          law: r?.law_name || null,
+          authority: r?.authority_name || null,
+          authority_url: r?.authority_url || null,
+          registration_required: r?.registration_required ?? null,
+          dpo_required: r?.dpo_required ?? null,
+          ai_registration_required: r?.ai_registration_required ?? null,
+          representative_required: r?.representative_required ?? null,
+          filing_fee_cents: r?.filing_fee_cents ?? null,
+          filing_currency: r?.filing_currency ?? null,
+          renewal_period_months: r?.renewal_period_months ?? null,
+          notes: r?.notes ?? null,
+          why: j.why,
+          rule_id: j.rule_id,
+          obligations: j.obligations,
+        };
+      }),
     };
 
+    // 4. Persist
     let row;
+    const persistPayload = {
+      intake_data: intake,
+      organization_country: intake.organization_country,
+      organization_name: intake.organization_name,
+      organization_size: intake.organization_size,
+      industry: intake.industry,
+      email: intake.email,
+      recommended_jurisdictions: codes,
+      confidence_tier: engineOutput.confidence,
+      result_summary,
+      status: "completed",
+      user_id: userId,
+    };
+
     if (existingId && shareableToken) {
-      // Update existing assessment (e.g. user revising answers)
       const { data, error } = await supabase
         .from("registration_assessments")
-        .update({
-          intake_data: intake,
-          organization_country: intake.organization_country,
-          organization_name: intake.organization_name,
-          organization_size: intake.organization_size,
-          industry: intake.industry,
-          email: intake.email,
-          recommended_jurisdictions: codes,
-          confidence_tier: confidence,
-          result_summary,
-          status: "completed",
-          user_id: userId,
-        })
+        .update(persistPayload)
         .eq("id", existingId)
         .eq("shareable_token", shareableToken)
         .select()
@@ -160,19 +112,7 @@ Deno.serve(async (req) => {
     } else {
       const { data, error } = await supabase
         .from("registration_assessments")
-        .insert({
-          user_id: userId,
-          intake_data: intake,
-          organization_country: intake.organization_country,
-          organization_name: intake.organization_name,
-          organization_size: intake.organization_size,
-          industry: intake.industry,
-          email: intake.email,
-          recommended_jurisdictions: codes,
-          confidence_tier: confidence,
-          result_summary,
-          status: "completed",
-        })
+        .insert(persistPayload)
         .select()
         .single();
       if (error) throw error;
@@ -183,7 +123,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         assessment_id: row.id,
         shareable_token: row.shareable_token,
-        confidence,
+        confidence: engineOutput.confidence,
         recommended_jurisdictions: codes,
         result_summary,
       }),
