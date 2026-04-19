@@ -43,7 +43,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 1500,
   },
   dpia_framework: {
-    name: "DPIA Builder",
+    name: "Impact Assessment Builder",
     standalone_lookup: "dpia_standalone",
     subscriber_lookup: "dpia_subscriber",
     table: "dpia_frameworks",

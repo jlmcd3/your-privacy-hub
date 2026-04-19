@@ -78,7 +78,7 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpia",
     icon: "📄",
-    name: "DPIA Builder",
+    name: "Impact Assessment Builder",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
     href: "/dpia-framework",
     subscriberPrice: "$39 per DPIA",
@@ -178,7 +178,7 @@ const TOOLS: ToolDef[] = [
 const PRICING_GRID: [string, string][] = [
   ["Data Privacy Healthcheck", "$29 → $15"],
   ["Legitimate Interest Assessment Tool", "$39 → $19"],
-  ["DPIA Builder", "$69 → $39"],
+  ["Impact Assessment Builder", "$69 → $39"],
   ["Custom Data Protection Agreement", "$69 → $39"],
   ["IR Playbook Generator", "$39 → Free"],
   ["Biometric Checker", "$29 → Free"],
@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Data Privacy Healthcheck, Legitimate Interest Assessment Tool, DPIA Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Data Privacy Healthcheck, Legitimate Interest Assessment Tool, Impact Assessment Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15."
         />
       </Helmet>
       <Navbar />
