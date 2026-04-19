@@ -752,7 +752,7 @@ const Subscribe = () => {
                 {[
                   ["Data Privacy Healthcheck", "$29", "$15"],
                   ["Legitimate Interest Assessment Tool", "$39", "$19"],
-                  ["DPIA Builder", "$69", "$39"],
+                  ["Impact Assessment Builder", "$69", "$39"],
                 ].map(([tool, std, sub]) => (
                   <tr key={tool} className="border-t border-fog">
                     <td className="px-5 py-3 text-navy font-medium">{tool}</td>
