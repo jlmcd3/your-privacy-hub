@@ -116,9 +116,9 @@ Deno.test("Persona 4 — French AdTech, GPAI provider, US data broker", () => {
   if (de) assertEquals(de.rule_id, "R5_DE_DPO");
   // UK still gets ICO fee + UK rep (no UK establishment declared)
   assert(out.obligations_summary.uk_representative_required);
-  // Data broker registries: CA, VT, TX (OR not in markets)
+  // Data broker registries: "US" is in markets, so all four state registries fire
   const brokerStates = out.obligations_summary.data_broker_registrations.sort();
-  assertEquals(brokerStates, ["US-CA","US-TX","US-VT"]);
+  assertEquals(brokerStates, ["US-CA","US-OR","US-TX","US-VT"]);
   // GPAI obligations
   assert(out.obligations_summary.ai_act_provider_obligations);
   assert(out.rules_fired.includes("R6_AI_GPAI"));
