@@ -35,7 +35,7 @@ function renderEmail(args: {
   <h2 style="margin:0 0 16px">Registration renewal due in ${args.days_until} days</h2>
   <p>Your data protection registration in <strong>${args.jurisdiction_code}</strong> expires on <strong>${new Date(args.expires_at).toDateString()}</strong>.</p>
   ${args.filing_reference ? `<p>Filing reference: <code>${args.filing_reference}</code></p>` : ""}
-  <p>EndUserPrivacy can re-file on your behalf. Open your order to start the renewal:</p>
+  <p>Open your order to regenerate the renewal documents and submit them to the authority:</p>
   <p><a href="${url}" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px">Open registration order</a></p>
   <p style="color:#64748b;font-size:12px;margin-top:32px">EndUserPrivacy — automated renewal reminder.</p>
   </body></html>`;
