@@ -10,6 +10,8 @@ import AdBanner from "@/components/AdBanner";
 import StickyRailAd from "@/components/StickyRailAd";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import EmailSignup from "@/components/EmailSignup";
+import SponsorshipBanner from "@/components/SponsorshipBanner";
+import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
@@ -56,8 +58,14 @@ const Index = () => {
 
           {/* === RIGHT SIDEBAR === */}
           <aside className="hidden lg:flex flex-col gap-6">
-            {/* Sticky desktop rail ad — shown to all users */}
-            <StickyRailAd adSlot="eup-home-rail" topOffset={96} />
+            {/* Sticky desktop rail ad — shown to all users (Professional included) */}
+            <StickyRailAd
+              adSlot={AD_SLOTS.home_sidebar_rail.id}
+              googleAdClient={GOOGLE_AD_CLIENT}
+              googleAdSlot={AD_SLOTS.home_sidebar_rail.googleAdSlot}
+              topOffset={96}
+            />
+            <SponsorshipBanner placement="home_sidebar" />
 
 
             {/* Weekly brief sidebar card — hidden for premium */}
@@ -110,11 +118,24 @@ const Index = () => {
       </div>
 
       {/* Below-fold content */}
-      <AdBanner variant="leaderboard" adSlot="eup-home-bottom" className="py-4 bg-paper" />
+      <SponsorshipBanner placement="home_belowfold" className="mx-auto max-w-[1280px] mt-6" />
+      <AdBanner
+        variant="leaderboard"
+        adSlot={AD_SLOTS.home_bottom_leaderboard.id}
+        googleAdClient={GOOGLE_AD_CLIENT}
+        googleAdSlot={AD_SLOTS.home_bottom_leaderboard.googleAdSlot}
+        className="py-4 bg-paper"
+      />
       <EmailSignup variant="strip" />
 
       <div className="h-px bg-fog" />
-      <AdBanner variant="inline" adSlot="eup-home-mid2" className="py-4 bg-paper" />
+      <AdBanner
+        variant="inline"
+        adSlot={AD_SLOTS.home_mid_inline.id}
+        googleAdClient={GOOGLE_AD_CLIENT}
+        googleAdSlot={AD_SLOTS.home_mid_inline.googleAdSlot}
+        className="py-4 bg-paper"
+      />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <div className="py-12"><ToolkitSection /></div>

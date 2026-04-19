@@ -68,6 +68,7 @@ import EnforcementActionDetail from "./pages/EnforcementActionDetail.tsx";
 import DPAGenerator from "./pages/DPAGenerator.tsx";
 import IRPlaybook from "./pages/IRPlaybook.tsx";
 import BiometricChecker from "./pages/BiometricChecker.tsx";
+import Horizon from "./pages/Horizon.tsx";
 
 const queryClient = new QueryClient();
 
@@ -135,6 +136,7 @@ const App = () => (
            <Route path="/dpa-generator" element={<DPAGenerator />} />
            <Route path="/ir-playbook" element={<IRPlaybook />} />
            <Route path="/biometric-checker" element={<BiometricChecker />} />
+           <Route path="/horizon" element={<Horizon />} />
            <Route path="/updates" element={<Updates />} />
            <Route path="/updates/:id" element={<UpdateDetail />} />
           <Route path="/faq" element={<FAQ />} />

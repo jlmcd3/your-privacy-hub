@@ -60,7 +60,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
     return (
       <div className="bg-fog rounded-2xl p-6 text-center">
         <Lock className="w-8 h-8 text-slate mx-auto mb-3" />
-        <h3 className="font-bold text-navy text-[15px] mb-2">Watchlist is a Premium Feature</h3>
+        <h3 className="font-bold text-navy text-[15px] mb-2">Watchlist is a Professional feature</h3>
         <p className="text-slate text-sm mb-4">
           Follow specific jurisdictions, regulators, and topics to receive
           weekly digest updates on what changed.
@@ -69,7 +69,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
           to="/subscribe"
           className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
         >
-          Upgrade to Premium →
+          Upgrade to Professional →
         </Link>
       </div>
     );

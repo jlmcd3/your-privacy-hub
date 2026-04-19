@@ -40,9 +40,10 @@ const navItems: NavItem[] = [
         ],
       },
       {
-        header: "Premium Tools",
+        header: "Professional Tools",
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
+          { icon: "🛰️", label: "Regulatory Horizon", badge: "NEW", badgeGreen: true, href: "/horizon" },
           { icon: "⚖️", label: "Legitimate Interest Assessment Tool", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Data Privacy Healthcheck", badge: "PRO", href: "/governance-assessment" },
           { icon: "📑", label: "DPIA Builder", badge: "PRO", href: "/dpia-framework" },
@@ -230,7 +231,7 @@ const Navbar = () => {
                   to="/subscribe"
                   className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
                 >
-                  ⭐ Upgrade
+                  ⭐ Go Professional
                 </Link>
               )}
               <Link
@@ -345,7 +346,7 @@ const Navbar = () => {
                     className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
-                    ⭐ Upgrade to Premium
+                    ⭐ Go Professional
                   </Link>
                 )}
                 <Link
