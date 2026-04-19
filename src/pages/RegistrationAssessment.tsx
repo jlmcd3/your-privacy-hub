@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   JURISDICTION_OPTIONS, ORG_SIZES, INDUSTRIES, rememberAssessmentToken,
 } from "@/data/registration_jurisdictions";
+import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 
 interface IntakeState {
   organization_name: string;
