@@ -43,20 +43,42 @@ Deno.serve(async (req) => {
     );
 
     const since = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
-    const { data: updates, error } = await supabase
-      .from("updates")
-      .select("title, summary, regulator, direct_jurisdictions, topic_tags, published_at")
-      .gte("published_at", since)
-      .order("published_at", { ascending: false })
-      .limit(80);
-    if (error) throw error;
+    const enforcementSince = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 
-    const corpus = (updates ?? [])
+    const [{ data: updates, error }, { data: enforcement, error: enfErr }] = await Promise.all([
+      supabase
+        .from("updates")
+        .select("title, summary, regulator, direct_jurisdictions, topic_tags, published_at")
+        .gte("published_at", since)
+        .order("published_at", { ascending: false })
+        .limit(80),
+      supabase
+        .from("enforcement_actions")
+        .select("regulator, jurisdiction, subject, sector, law, violation, key_compliance_failure, decision_date, fine_eur_equivalent, precedent_significance, violation_types")
+        .gte("enrichment_version", 1)
+        .gte("decision_date", enforcementSince)
+        .order("precedent_significance", { ascending: false, nullsFirst: false })
+        .order("decision_date", { ascending: false, nullsFirst: false })
+        .limit(40),
+    ]);
+    if (error) throw error;
+    if (enfErr) throw enfErr;
+
+    const updatesCorpus = (updates ?? [])
       .map(
         (u: any, i: number) =>
-          `[${i + 1}] ${u.title}\n  Regulator: ${u.regulator ?? "?"} | Jurisdictions: ${(u.direct_jurisdictions ?? []).join(", ")}\n  Topics: ${(u.topic_tags ?? []).join(", ")}\n  Summary: ${(u.summary ?? "").slice(0, 320)}`
+          `[U${i + 1}] ${u.title}\n  Regulator: ${u.regulator ?? "?"} | Jurisdictions: ${(u.direct_jurisdictions ?? []).join(", ")}\n  Topics: ${(u.topic_tags ?? []).join(", ")}\n  Summary: ${(u.summary ?? "").slice(0, 320)}`
       )
       .join("\n\n");
+
+    const enforcementCorpus = (enforcement ?? [])
+      .map(
+        (e: any, i: number) =>
+          `[E${i + 1}] ${e.regulator} v. ${e.subject ?? "?"} (${e.jurisdiction}, ${e.decision_date ?? "?"})\n  Law: ${e.law ?? "?"} | Sector: ${e.sector ?? "?"} | Fine: ${e.fine_eur_equivalent ? `€${Math.round(e.fine_eur_equivalent).toLocaleString()}` : "n/a"} | Significance: ${e.precedent_significance ?? "?"}/5\n  Violation types: ${(e.violation_types ?? []).join(", ")}\n  Key failure: ${(e.key_compliance_failure ?? e.violation ?? "").slice(0, 280)}`
+      )
+      .join("\n\n");
+
+    const corpus = `## RECENT REGULATORY UPDATES (last 14 days)\n\n${updatesCorpus}\n\n\n## RECENT ENFORCEMENT ACTIONS (last 90 days, ranked by precedent significance)\n\n${enforcementCorpus}`;
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY")!;
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -68,11 +90,11 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              "You are a privacy regulatory analyst. Given recent regulatory developments, produce 6-10 forward-looking 'Regulatory Horizon' entries: anticipated developments in the next 1-12 months. Return JSON only.",
+              "You are a privacy regulatory analyst. You receive two signal sources: (1) recent regulatory updates (guidance, rulemaking, statements) and (2) recent enforcement actions (fines, decisions). Use BOTH — enforcement actions are leading indicators of where regulators will push next, while updates show stated priorities. Produce 6-10 forward-looking 'Regulatory Horizon' entries: anticipated developments in the next 1-12 months. Cite source signals using the [U#] / [E#] tags from the corpus. Return JSON only.",
           },
           {
             role: "user",
-            content: `Recent updates (last 14 days):\n\n${corpus}\n\nReturn JSON: { "items": [ { "jurisdiction": string|null, "sector": string|null, "anticipated_development": string (one sentence), "confidence": "high"|"medium"|"low", "timeline_label": "30 days"|"60-90 days"|"3-6 months"|"6-12 months", "source_signal": string (brief evidence), "recommended_action": string (one practical step) } ] }`,
+            content: `${corpus}\n\nReturn JSON: { "items": [ { "jurisdiction": string|null, "sector": string|null, "anticipated_development": string (one sentence), "confidence": "high"|"medium"|"low", "timeline_label": "30 days"|"60-90 days"|"3-6 months"|"6-12 months", "source_signal": string (brief evidence — reference [U#] update tags and/or [E#] enforcement tags), "recommended_action": string (one practical step) } ] }`,
           },
         ],
         response_format: { type: "json_object" },
