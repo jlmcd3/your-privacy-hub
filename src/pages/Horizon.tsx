@@ -140,7 +140,7 @@ export default function Horizon() {
                 {item.source_signal && (
                   <p className="text-[13px] text-slate leading-relaxed mb-2">
                     <span className="font-semibold text-navy">Source signal: </span>
-                    {renderCitations(item.source_signal)}
+                    {item.source_signal}
                   </p>
                 )}
                 {item.recommended_action && (
