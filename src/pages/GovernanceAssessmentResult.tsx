@@ -178,7 +178,7 @@ const GovernanceAssessmentResult = () => {
                   ))}
                 </ul>
                 <Button asChild>
-                  <Link to={`/dpia-framework?source=${id}`}>Open DPIA Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
+                  <Link to={`/dpia-framework?source=${id}`}>Open Impact Assessment Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
                 </Button>
               </section>
             )}
