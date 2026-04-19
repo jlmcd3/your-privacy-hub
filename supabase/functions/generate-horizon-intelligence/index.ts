@@ -90,11 +90,11 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              "You are a privacy regulatory analyst. Given recent regulatory developments, produce 6-10 forward-looking 'Regulatory Horizon' entries: anticipated developments in the next 1-12 months. Return JSON only.",
+              "You are a privacy regulatory analyst. You receive two signal sources: (1) recent regulatory updates (guidance, rulemaking, statements) and (2) recent enforcement actions (fines, decisions). Use BOTH — enforcement actions are leading indicators of where regulators will push next, while updates show stated priorities. Produce 6-10 forward-looking 'Regulatory Horizon' entries: anticipated developments in the next 1-12 months. Cite source signals using the [U#] / [E#] tags from the corpus. Return JSON only.",
           },
           {
             role: "user",
-            content: `Recent updates (last 14 days):\n\n${corpus}\n\nReturn JSON: { "items": [ { "jurisdiction": string|null, "sector": string|null, "anticipated_development": string (one sentence), "confidence": "high"|"medium"|"low", "timeline_label": "30 days"|"60-90 days"|"3-6 months"|"6-12 months", "source_signal": string (brief evidence), "recommended_action": string (one practical step) } ] }`,
+            content: `${corpus}\n\nReturn JSON: { "items": [ { "jurisdiction": string|null, "sector": string|null, "anticipated_development": string (one sentence), "confidence": "high"|"medium"|"low", "timeline_label": "30 days"|"60-90 days"|"3-6 months"|"6-12 months", "source_signal": string (brief evidence — reference [U#] update tags and/or [E#] enforcement tags), "recommended_action": string (one practical step) } ] }`,
           },
         ],
         response_format: { type: "json_object" },
