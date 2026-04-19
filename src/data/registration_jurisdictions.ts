@@ -44,7 +44,17 @@ export const JURISDICTION_OPTIONS: JurisdictionOption[] = [
   { code: "UK", name: "United Kingdom", region: "Europe" },
   { code: "CH", name: "Switzerland", region: "Europe" },
   // North America
+  { code: "US", name: "United States (federal / nationwide)", region: "North America" },
   { code: "US-CA", name: "California (US)", region: "North America" },
+  { code: "US-CO", name: "Colorado (US)", region: "North America" },
+  { code: "US-CT", name: "Connecticut (US)", region: "North America" },
+  { code: "US-IL", name: "Illinois (US — BIPA)", region: "North America" },
+  { code: "US-OR", name: "Oregon (US)", region: "North America" },
+  { code: "US-TX", name: "Texas (US)", region: "North America" },
+  { code: "US-UT", name: "Utah (US)", region: "North America" },
+  { code: "US-VA", name: "Virginia (US)", region: "North America" },
+  { code: "US-VT", name: "Vermont (US)", region: "North America" },
+  { code: "US-WA", name: "Washington (US — My Health My Data)", region: "North America" },
   { code: "CA", name: "Canada (federal)", region: "North America" },
   { code: "CA-QC", name: "Quebec (Canada)", region: "North America" },
   // Latin America
