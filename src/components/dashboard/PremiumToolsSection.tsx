@@ -72,6 +72,16 @@ const TOOLS = [
     standalonePrice: 29,
     subscriberPrice: 0,
   },
+  {
+    icon: "📂",
+    title: "Registration Filings",
+    description:
+      "Free assessment maps where your organisation must register (DPO, RoPA, AI Act, Article 27 rep). Then generate a counsel-ready filing pack you submit yourself. You file; we draft and track.",
+    cta: "Start Free Assessment",
+    href: "/registration-manager",
+    standalonePrice: 49,
+    subscriberPrice: 49,
+  },
 ];
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
@@ -106,6 +116,7 @@ interface Props {
 export default function PremiumToolsSection({ isPremium }: Props) {
   const { user } = useAuth();
   const [recent, setRecent] = useState<AssessmentRow[]>([]);
+  const [hasFilings, setHasFilings] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -115,7 +126,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
     }
     let cancelled = false;
     (async () => {
-      const [li, gov, dpia] = await Promise.all([
+      const [li, gov, dpia, orders] = await Promise.all([
         supabase
           .from("li_assessments")
           .select("id, created_at, status, pdf_url")
@@ -134,6 +145,12 @@ export default function PremiumToolsSection({ isPremium }: Props) {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(5),
+        supabase
+          .from("registration_orders")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("payment_status", "paid")
+          .limit(1),
       ]);
 
       const merged: AssessmentRow[] = [
@@ -146,6 +163,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
 
       if (!cancelled) {
         setRecent(merged);
+        setHasFilings((orders.data ?? []).length > 0);
         setLoaded(true);
       }
     })();
@@ -207,9 +225,19 @@ export default function PremiumToolsSection({ isPremium }: Props) {
       </div>
 
       <div>
-        <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3">
-          Your Recent Reports
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel">
+            Your Recent Reports
+          </h3>
+          {hasFilings && (
+            <Link
+              to="/registration-manager/my-filings"
+              className="text-[12px] font-semibold text-primary hover:underline no-underline"
+            >
+              📂 My Registration Filings →
+            </Link>
+          )}
+        </div>
         {!loaded ? (
           <p className="text-[13px] text-muted-foreground">Loading…</p>
         ) : recent.length === 0 ? (

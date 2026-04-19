@@ -44,6 +44,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
           { icon: "🛰️", label: "Regulatory Horizon", badge: "NEW", badgeGreen: true, href: "/horizon" },
+          { icon: "📂", label: "Registration Filings", badge: "NEW", badgeGreen: true, href: "/registration-manager" },
           { icon: "⚖️", label: "Legitimate Interest Assessment Tool", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Data Privacy Healthcheck", badge: "PRO", href: "/governance-assessment" },
           { icon: "📑", label: "DPIA Builder", badge: "PRO", href: "/dpia-framework" },
@@ -91,17 +92,6 @@ const navItems: NavItem[] = [
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
           { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
           { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Register",
-    sections: [
-      {
-        items: [
-          { icon: "🧭", label: "Start an Assessment", badge: "NEW", badgeGreen: true, href: "/registration-manager" },
-          { icon: "📂", label: "My Filings", href: "/registration-manager/my-filings" },
         ],
       },
     ],
