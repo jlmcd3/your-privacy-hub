@@ -38,8 +38,8 @@ const TOOLS: ToolDef[] = [
   {
     slug: "healthcheck",
     icon: "🛡️",
-    name: "Privacy Programme Assessment",
-    tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
+    name: "Privacy Program Assessment Tool",
+    tagline: "A structured assessment of your privacy program across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
     href: "/governance-assessment",
     subscriberPrice: "$15 per assessment",
     standalonePrice: "$29",
@@ -98,14 +98,14 @@ const TOOLS: ToolDef[] = [
   {
     slug: "dpa-generator",
     icon: "📄",
-    name: "Custom Data Protection Agreement",
-    tagline: "A GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
+    name: "Your Custom DPA",
+    tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
     subscriberPrice: "$39 per document",
     standalonePrice: "$69",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
-      "Before generating the document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is numbered hierarchically, marks all fields requiring your specific input, and is structured for legal review before execution.",
+      "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is numbered hierarchically, marks all fields requiring your specific input, and is structured for legal review before execution.",
       "This tool generates a draft legal document. It does not constitute legal advice, and the output should be reviewed by qualified legal counsel before execution. What it provides is a well-grounded, enforcement-calibrated draft that significantly reduces the time your legal team needs to spend on first principles.",
     ],
     sampleSections: [
@@ -117,14 +117,14 @@ const TOOLS: ToolDef[] = [
   {
     slug: "ir-playbook",
     icon: "🚨",
-    name: "Incident Response Playbook Generator",
-    tagline: "A complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
+    name: "Your Breach Response Playbook",
+    tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
     subscriberPrice: "Included free with Premium",
     standalonePrice: "$39",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
-      "The Incident Response Playbook Generator produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
+      "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
       "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Premium subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
     ],
     sampleSections: [
@@ -176,14 +176,14 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", "$29 standalone → $15 subscriber rate"],
+  ["Privacy Program Assessment Tool", "$29 standalone → $15 subscriber rate"],
   ["Legitimate Interest Assessment Tool", "$39 standalone → $19 subscriber rate"],
   ["Impact Assessment Builder", "$69 standalone → $39 subscriber rate"],
-  ["Custom Data Protection Agreement", "$69 standalone → $39 subscriber rate"],
-  ["IR Playbook Generator", "$39 → Free with Premium"],
+  ["Your Custom DPA", "$69 standalone → $39 subscriber rate"],
+  ["Your Breach Response Playbook", "$39 → Free with Premium"],
   ["Biometric Checker", "$29 → Free with Premium"],
-  ["Registration Manager (DIY)", "$49 / $89 / $149 by jurisdiction count"],
-  ["Registration Manager (Counsel-Ready)", "$299 flat"],
+  ["Your Registration Filings (DIY)", "$49 / $89 / $149 by jurisdiction count"],
+  ["Your Registration Filings (Counsel-Ready)", "$299 flat"],
 ];
 
 export default function Tools() {
@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Programme Assessment (DPIA-ready healthcheck), Legitimate Interest Assessment Tool, Impact Assessment Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15 — up to 50% off standalone rates with Professional."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber pricing from $15 — up to 50% off standalone rates with Professional."
         />
       </Helmet>
       <Navbar />
@@ -304,7 +304,7 @@ export default function Tools() {
             Every tool. Subscriber pricing. $20/month.
           </h2>
           <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
-            Premium subscribers pay significantly less on every tool and receive the Incident Response Playbook Generator and Biometric Compliance Checker included at no additional cost. One LI Assessment as a subscriber saves more than one month's subscription fee.
+            Premium subscribers pay significantly less on every tool and receive Your Breach Response Playbook and the Biometric Compliance Checker included at no additional cost. One LI Assessment as a subscriber saves more than one month's subscription fee.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[560px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
