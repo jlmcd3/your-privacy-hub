@@ -38,14 +38,14 @@ const TOOLS: ToolDef[] = [
   {
     slug: "healthcheck",
     icon: "🛡️",
-    name: "Data Privacy Healthcheck",
-    tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
+    name: "Privacy Programme Assessment",
+    tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
     href: "/governance-assessment",
     subscriberPrice: "$15 per assessment",
     standalonePrice: "$29",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
-      "The Data Privacy Healthcheck works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
+      "The Privacy Programme Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
       "The output is a dated, scored assessment document produced for internal review. It is not a regulatory audit and does not carry the authority of one. It is designed to be reviewed by your privacy professional or legal adviser and used as a structured starting point for remediation planning — the kind of document that demonstrates your organisation took a considered approach to identifying its compliance gaps.",
     ],
     sampleSections: [
@@ -176,13 +176,13 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Data Privacy Healthcheck", "$29 → $15"],
-  ["Legitimate Interest Assessment Tool", "$39 → $19"],
-  ["Impact Assessment Builder", "$69 → $39"],
+  ["Privacy Programme Assessment", "$29 → $15 · 2 free credits/mo with Premium"],
+  ["Legitimate Interest Assessment Tool", "$39 → $19 · 2 free credits/mo with Premium"],
+  ["Impact Assessment Builder", "$69 → $39 · 2 free credits/mo with Premium"],
   ["Custom Data Protection Agreement", "$69 → $39"],
-  ["IR Playbook Generator", "$39 → Free"],
-  ["Biometric Checker", "$29 → Free"],
-  ["Registration Manager (DIY)", "$49 flat"],
+  ["IR Playbook Generator", "$39 → Free with Premium"],
+  ["Biometric Checker", "$29 → Free with Premium"],
+  ["Registration Manager (DIY)", "$49 / $89 / $149 by jurisdiction count"],
   ["Registration Manager (Counsel-Ready)", "$299 flat"],
 ];
 
@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Data Privacy Healthcheck, Legitimate Interest Assessment Tool, Impact Assessment Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Programme Assessment (DPIA-ready healthcheck), Legitimate Interest Assessment Tool, Impact Assessment Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15 — Premium includes 2 tool credits per month."
         />
       </Helmet>
       <Navbar />

@@ -55,7 +55,7 @@ const GovernanceAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Data Privacy Healthcheck | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Privacy Programme Assessment | EndUserPrivacy</title></Helmet>
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
@@ -85,7 +85,7 @@ const GovernanceAssessmentResult = () => {
           <>
             {/* Cover */}
             <section className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="text-3xl font-serif mb-2">Data Privacy Healthcheck</h1>
+              <h1 className="text-3xl font-serif mb-2">Privacy Programme Assessment</h1>
               <p className="text-slate-300 text-sm">
                 {intake.sector ? `${intake.sector} · ` : ""}{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : ""}
               </p>

@@ -33,7 +33,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "Assessment Tools" },
   { feature: "Sample preview of all tools",                          free: true,                  pro: true  },
-  { feature: "Data Privacy Healthcheck",                             free: "$29 per analysis",    pro: "$15 per analysis"   },
+  { feature: "Privacy Programme Assessment",                         free: "$29 per analysis",    pro: "$15 per analysis · 2 free credits/mo" },
   { feature: "Legitimate Interest Assessment Tool",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
   { feature: "Impact Assessment Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
   { feature: "Custom Data Protection Agreement",                     free: "$69 per document",    pro: "$39 per document"   },
@@ -750,7 +750,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Data Privacy Healthcheck", "$29", "$15"],
+                  ["Privacy Programme Assessment", "$29", "$15"],
                   ["Legitimate Interest Assessment Tool", "$39", "$19"],
                   ["Impact Assessment Builder", "$69", "$39"],
                 ].map(([tool, std, sub]) => (

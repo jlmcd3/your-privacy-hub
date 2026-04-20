@@ -229,7 +229,7 @@ const DPIAFrameworkResult = () => {
               )}
               <Button onClick={() => window.print()} variant="outline">Print</Button>
               <Button asChild variant="outline"><Link to="/dashboard">Back to Dashboard</Link></Button>
-              <Button asChild variant="outline"><Link to="/governance-assessment">Run Data Privacy Healthcheck</Link></Button>
+              <Button asChild variant="outline"><Link to="/governance-assessment">Run Privacy Programme Assessment</Link></Button>
             </div>
           </>
         )}
