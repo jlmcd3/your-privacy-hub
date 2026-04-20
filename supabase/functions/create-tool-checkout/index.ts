@@ -35,7 +35,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 1900,
   },
   governance_assessment: {
-    name: "Privacy Programme Assessment",
+    name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone",
     subscriber_lookup: "hc_subscriber",
     table: "governance_assessments",
@@ -51,7 +51,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 3900,
   },
   dpa_generator: {
-    name: "Custom Data Protection Agreement",
+    name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone",
     subscriber_lookup: "dpa_subscriber",
     table: "dpa_documents",
@@ -59,7 +59,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 3900,
   },
   ir_playbook: {
-    name: "IR Playbook Generator",
+    name: "Your Breach Response Playbook",
     standalone_lookup: "ir_standalone",
     subscriber_lookup: null,
     table: "ir_playbooks",

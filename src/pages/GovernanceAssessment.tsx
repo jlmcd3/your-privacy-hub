@@ -161,7 +161,7 @@ const GovernanceAssessment = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Privacy Programme Assessment | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Privacy Program Assessment Tool | EndUserPrivacy</title></Helmet>
       <Navbar />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -170,7 +170,7 @@ const GovernanceAssessment = () => {
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
             {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Subscribers pay ${pricing.subscriberPrice} →</a></>}
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Programme Assessment</h1>
+          <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks. Formerly the Data Privacy Healthcheck.</p>
           <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
         </div>
@@ -333,7 +333,7 @@ const GovernanceAssessment = () => {
 
         <ToolSamplePreview
           toolType="healthcheck"
-          toolName="Privacy Programme Assessment"
+          toolName="Privacy Program Assessment Tool"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
