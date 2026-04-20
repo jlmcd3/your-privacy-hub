@@ -80,7 +80,7 @@ serve(async (req) => {
       });
     }
     const codes: string[] = Array.isArray(jurisdictions) ? jurisdictions : [];
-    if (tier !== "diy" && codes.length === 0) {
+    if (codes.length === 0) {
       return new Response(JSON.stringify({ error: "Select at least one jurisdiction" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -88,9 +88,20 @@ serve(async (req) => {
     }
 
     const cfg = PRICING[tier as keyof typeof PRICING];
-    // DIY and Counsel-Ready Pack are flat-rate. Only renewal scales per jurisdiction.
-    const quantity = cfg.per_jurisdiction ? Math.max(1, codes.length) : 1;
-    const totalCents = cfg.unit_amount * quantity;
+    // Pricing rules:
+    //   diy            -> tiered flat fee based on jurisdiction count (qty 1)
+    //   counsel_review -> flat $299 (qty 1)
+    //   renewal        -> $199/yr × N jurisdictions
+    let unitAmount = cfg.unit_amount;
+    let quantity = 1;
+    let productName = cfg.name;
+    if (tier === "diy") {
+      unitAmount = diyPriceCents(codes.length);
+      productName = diyPriceLabel(codes.length);
+    } else if (cfg.per_jurisdiction) {
+      quantity = Math.max(1, codes.length);
+    }
+    const totalCents = unitAmount * quantity;
 
     // Use service role for the order insert so RLS doesn't block
     const adminClient = createClient(
@@ -125,8 +136,8 @@ serve(async (req) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: cfg.name },
-            unit_amount: cfg.unit_amount,
+            product_data: { name: productName },
+            unit_amount: unitAmount,
             ...(cfg.recurring ? { recurring: { interval: "year" as const } } : {}),
           },
           quantity,
