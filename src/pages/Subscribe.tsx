@@ -33,7 +33,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "Assessment Tools" },
   { feature: "Sample preview of all tools",                          free: true,                  pro: true  },
-  { feature: "Privacy Programme Assessment",                         free: "$29 per analysis",    pro: "$15 per analysis · 2 free credits/mo" },
+  { feature: "Privacy Programme Assessment",                         free: "$29 per analysis",    pro: "$15 per analysis (subscriber rate)" },
   { feature: "Legitimate Interest Assessment Tool",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
   { feature: "Impact Assessment Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
   { feature: "Custom Data Protection Agreement",                     free: "$69 per document",    pro: "$39 per document"   },
@@ -89,7 +89,7 @@ const Subscribe = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Professional — $19/mo or $190/yr | EndUserPrivacy</title>
-        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and 2 tool credits per month. $19/month or $190/year." />
+        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber pricing on every assessment tool (up to 50% off). $19/month or $190/year." />
       </Helmet>
       <Navbar />
 
@@ -102,8 +102,8 @@ const Subscribe = () => {
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed mb-8">
             Everything you can browse stays free. Free accounts also include a personalized
             weekly digest. Professional adds the full Intelligence Brief, the complete
-            enforcement archive, watchlists, and 2 tool credits every month — re-analyzed
-            for your industry and jurisdictions every Monday.
+            enforcement archive, watchlists, and subscriber pricing on every assessment tool
+            (up to 50% off) — re-analyzed for your industry and jurisdictions every Monday.
           </p>
 
           {/* Monthly/Yearly toggle */}
@@ -667,7 +667,7 @@ const Subscribe = () => {
                 "Weekly Intelligence Brief — curated for privacy professionals",
                 "Full enforcement archive (all 119 authorities)",
                 "Watchlists for regulators, jurisdictions, and topics",
-                "2 tool credits every month (Healthcheck, LIA, DPIA…)",
+                "Subscriber pricing on every tool — save up to 50% (Healthcheck, LIA, DPIA…)",
                 "Why It Matters analysis on every article",
                 "Cancel any time",
               ].map((item) => (
@@ -706,7 +706,7 @@ const Subscribe = () => {
                 "Weekly Intelligence Brief — curated for privacy professionals",
                 "Full enforcement archive (all 119 authorities)",
                 "Watchlists for regulators, jurisdictions, and topics",
-                "2 tool credits every month (Healthcheck, LIA, DPIA…)",
+                "Subscriber pricing on every tool — save up to 50% (Healthcheck, LIA, DPIA…)",
                 "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">

@@ -157,27 +157,6 @@ async function handleCheckoutCompleted(session: any) {
 
   if (!userId) return;
 
-  // Report credits bundle
-  if (session.metadata?.type === "report_credits") {
-    const credits = parseInt(session.metadata.credits, 10);
-    if (credits > 0) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("bonus_report_credits")
-        .eq("id", userId)
-        .single();
-      const current = (profile as any)?.bonus_report_credits ?? 0;
-      await supabase
-        .from("profiles")
-        .update({
-          bonus_report_credits: current + credits,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
-    }
-    return;
-  }
-
   // Premium subscription
   await supabase
     .from("profiles")

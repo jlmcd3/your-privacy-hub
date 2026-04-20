@@ -114,28 +114,6 @@ serve(async (req) => {
 
         if (!userId) break;
 
-        // Check if this is a report credit purchase
-        if (session.metadata?.type === "report_credits") {
-          const credits = parseInt(session.metadata.credits, 10);
-          if (credits > 0) {
-            // Fetch current credits and add
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("bonus_report_credits")
-              .eq("id", userId)
-              .single();
-            const current = (profile as any)?.bonus_report_credits ?? 0;
-            await supabase
-              .from("profiles")
-              .update({
-                bonus_report_credits: current + credits,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", userId);
-          }
-          break;
-        }
-
         // Subscription checkout
         const subId = session.subscription;
         let priceId: string | null = null;

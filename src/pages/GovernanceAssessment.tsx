@@ -168,7 +168,7 @@ const GovernanceAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Compliance Framework Tool · ${pricing.price}
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Premium includes 2 tool credits/month →</a></>}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Subscribers pay ${pricing.subscriberPrice} →</a></>}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Programme Assessment</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks. Formerly the Data Privacy Healthcheck.</p>
