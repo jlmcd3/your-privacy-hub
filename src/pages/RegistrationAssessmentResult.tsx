@@ -104,7 +104,7 @@ export default function RegistrationAssessmentResult() {
         {
           body: {
             tier,
-            jurisdictions: tier === "diy" ? [] : Array.from(selected),
+            jurisdictions: Array.from(selected),
             assessment_id: assessment?.id,
             organization_snapshot: {
               name: assessment?.organization_name,
@@ -165,6 +165,75 @@ export default function RegistrationAssessmentResult() {
   const selectedCount = selected.size;
   const crpTotal = 299;
 
+  // Tiered DIY pricing — must mirror diyPriceCents() in create-registration-checkout
+  const diyPrice = selectedCount <= 1 ? 49 : selectedCount <= 3 ? 89 : 149;
+  const diyTierLabel = selectedCount <= 1 ? "1 jurisdiction" : selectedCount <= 3 ? "2-3 jurisdictions" : "4+ jurisdictions";
+
+  // Confidence-tier copy: rewrite CTA framing so users understand WHY to upgrade
+  const confidenceCopy: Record<string, { headline: string; subline: string }> = {
+    high: {
+      headline: "Your map is high-confidence — ready to file",
+      subline: "Every flagged jurisdiction matched on multiple deterministic rules. The DIY Toolkit gives you the documents you need; Counsel-Ready adds a pre-filing walkthrough if you want a second pair of eyes.",
+    },
+    medium: {
+      headline: "Your map covers the obvious — Counsel-Ready closes the edge cases",
+      subline: "We flagged the jurisdictions that matched on hard thresholds. There may be additional filings (sectoral DPAs, voluntary registrations, lead-authority disputes) that depend on facts only your counsel knows. The Counsel-Ready Pack includes the analysis they'll need to confirm scope.",
+    },
+    low: {
+      headline: "Your inputs are ambiguous — get Counsel-Ready before you file",
+      subline: "We could not determine some jurisdictions with high confidence. Filing without a counsel review risks under-registration (enforcement) or over-registration (wasted spend and exposure). Counsel-Ready includes the trace of every rule fired so your lawyer can validate scope quickly.",
+    },
+  };
+  const cConf = confidenceCopy[confidence] || confidenceCopy.medium;
+
+  // Email gate — show ONLY if anonymous and not yet unlocked
+  if (!emailUnlocked && jurisdictions.length > 0) {
+    return (
+      <>
+        <Helmet><title>Your Registration Map — EndUserPrivacy</title></Helmet>
+        <Navbar />
+        <main>
+          <PageContainer>
+            <div className="max-w-md mx-auto py-16">
+              <Card>
+                <CardHeader className="text-center">
+                  <Mail className="h-10 w-10 text-primary mx-auto mb-3" />
+                  <CardTitle>Your registration map is ready</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {jurisdictions.length} jurisdiction{jurisdictions.length === 1 ? "" : "s"} flagged · confidence: <span className="capitalize font-medium">{confidence}</span>
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Where should we send your shareable link? You'll also get a free weekly privacy enforcement digest.
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="email-gate">Work email</Label>
+                    <Input
+                      id="email-gate"
+                      type="email"
+                      placeholder="you@company.com"
+                      value={pendingEmail}
+                      onChange={(e) => setPendingEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && unlockWithEmail()}
+                    />
+                  </div>
+                  <Button onClick={unlockWithEmail} disabled={savingEmail} className="w-full">
+                    {savingEmail ? "Unlocking…" : "Show my registration map"}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    No spam. Unsubscribe in one click. Your assessment data stays private.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </PageContainer>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -188,6 +257,16 @@ export default function RegistrationAssessmentResult() {
                 {jurisdictions.length} jurisdiction{jurisdictions.length === 1 ? "" : "s"} flagged
               </p>
             </header>
+
+            {/* Confidence-tier framing block — explains WHY to pick a tier */}
+            {jurisdictions.length > 0 && (
+              <Card className="mb-6 border-primary/30 bg-primary/5">
+                <CardContent className="py-5">
+                  <p className="font-semibold text-foreground">{cConf.headline}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{cConf.subline}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {jurisdictions.length === 0 ? (
               <Card>
@@ -250,25 +329,28 @@ export default function RegistrationAssessmentResult() {
               <CardContent className="grid md:grid-cols-3 gap-4">
                 <PlanCard
                   title="DIY Toolkit"
-                  price="$49"
-                  blurb="One-time. Get every document for every flagged jurisdiction, plus a step-by-step filing checklist."
-                  cta={purchasing === "diy" ? "Loading…" : "Get the toolkit"}
+                  price={`$${diyPrice}`}
+                  priceFootnote={`${diyTierLabel} · ${selectedCount || "0"} selected`}
+                  blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Tiered: $49 / $89 / $149 by count."
+                  cta={purchasing === "diy" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
-                  disabled={purchasing !== null}
+                  disabled={purchasing !== null || selectedCount === 0}
                 />
                 <PlanCard
                   title="Counsel-Ready Pack"
                   highlight
                   price={`$${crpTotal}`}
-                  blurb="Everything in DIY plus enhanced jurisdiction notes, a pre-filing walkthrough, and a counsel handoff doc. You still submit the filings."
+                  priceFootnote="Flat — any number of jurisdictions"
+                  blurb="Everything in DIY plus enhanced jurisdiction notes, a pre-filing walkthrough, the rules-fired trace for your lawyer, and a counsel handoff doc."
                   cta={purchasing === "counsel_review" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get counsel-ready pack"}
                   onClick={() => purchase("counsel_review")}
                   disabled={purchasing !== null || selectedCount === 0}
                 />
                 <PlanCard
                   title="Annual Renewal Monitoring"
-                  price="$199 / year per jurisdiction"
-                  blurb="Already filed? Subscribe to automatic renewal monitoring with reminders. Renewal documents regenerated; you submit."
+                  price="$199 / yr / jurisdiction"
+                  priceFootnote="Recurring · cancel anytime"
+                  blurb="Already filed? We monitor renewal deadlines, send reminders 90/60/30/7 days out, and regenerate updated documents. You submit the renewal."
                   cta={purchasing === "renewal" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Subscribe"}
                   onClick={() => purchase("renewal")}
                   disabled={purchasing !== null || selectedCount === 0}
