@@ -7,9 +7,11 @@ import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Loader2 } from "lucide-react";
+import { Copy, Loader2, Mail } from "lucide-react";
 
 interface JurisdictionResult {
   code: string;
@@ -38,6 +40,12 @@ export default function RegistrationAssessmentResult() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [purchasing, setPurchasing] = useState<string | null>(null);
 
+  // Email gate — anonymous viewers must leave an email before seeing the report.
+  // Local-only, never blocks if the assessment was created with an email or by a logged-in user.
+  const [emailUnlocked, setEmailUnlocked] = useState<boolean>(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
   useEffect(() => {
     if (!token) return;
     (async () => {
@@ -52,9 +60,35 @@ export default function RegistrationAssessmentResult() {
       }
       setAssessment(data.assessment);
       setSelected(new Set(data.assessment.recommended_jurisdictions || []));
+      // Unlock immediately if email already on file (or signed-in user)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user || data.assessment.email || localStorage.getItem(`reg-email-unlocked-${token}`) === "1") {
+        setEmailUnlocked(true);
+      }
       setLoading(false);
     })();
   }, [token]);
+
+  async function unlockWithEmail() {
+    if (!pendingEmail.includes("@") || pendingEmail.length < 5) {
+      toast.error("Enter a valid email");
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      // Best-effort capture into the marketing list (subscribe-email is idempotent)
+      await supabase.functions.invoke("subscribe-email", { body: { email: pendingEmail.trim() } });
+      localStorage.setItem(`reg-email-unlocked-${token}`, "1");
+      setEmailUnlocked(true);
+      toast.success("Your registration map is ready");
+    } catch (e) {
+      // Even if capture fails, unlock — we already have the email locally.
+      localStorage.setItem(`reg-email-unlocked-${token}`, "1");
+      setEmailUnlocked(true);
+    } finally {
+      setSavingEmail(false);
+    }
+  }
 
   async function purchase(tier: "diy" | "counsel_review" | "renewal") {
     const { data: { user } } = await supabase.auth.getUser();
