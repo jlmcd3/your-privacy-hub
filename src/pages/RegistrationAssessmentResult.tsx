@@ -374,11 +374,12 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PlanCard({ title, price, blurb, cta, onClick, disabled, highlight }: { title: string; price: string; blurb: string; cta: string; onClick: () => void; disabled?: boolean; highlight?: boolean }) {
+function PlanCard({ title, price, priceFootnote, blurb, cta, onClick, disabled, highlight }: { title: string; price: string; priceFootnote?: string; blurb: string; cta: string; onClick: () => void; disabled?: boolean; highlight?: boolean }) {
   return (
     <div className={`rounded-lg border bg-background p-4 flex flex-col ${highlight ? "border-primary ring-1 ring-primary" : ""}`}>
       <div className="font-semibold text-foreground">{title}</div>
       <div className="text-2xl font-bold mt-1">{price}</div>
+      {priceFootnote && <div className="text-[11px] text-muted-foreground mt-0.5">{priceFootnote}</div>}
       <p className="text-sm text-muted-foreground mt-2 flex-1">{blurb}</p>
       <Button className="mt-4" onClick={onClick} disabled={disabled} variant={highlight ? "default" : "outline"}>
         {cta}
