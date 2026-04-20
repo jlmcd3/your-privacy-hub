@@ -10,8 +10,6 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const INCLUDED_REPORTS = 6;
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -32,44 +30,17 @@ Deno.serve(async (req) => {
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // Check Pro subscription and report credits from profiles (server-side source of truth)
+  // Premium-only: subscriber-discounted brief generation. No per-month credit cap.
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { data: profile } = await adminClient
     .from("profiles")
-    .select("is_premium, monthly_reports_used, reports_reset_date, bonus_report_credits")
+    .select("is_premium")
     .eq("id", user.id)
     .single();
 
   if (!profile?.is_premium) {
     return new Response(JSON.stringify({ error: "Premium subscription required" }),
       { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
-
-  // Monthly reset logic: if reports_reset_date is before the start of the current month, reset counter
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const resetDate = profile.reports_reset_date ? new Date(profile.reports_reset_date) : null;
-  let used = (resetDate && resetDate >= monthStart) ? (profile.monthly_reports_used ?? 0) : 0;
-  let bonusCredits = profile.bonus_report_credits ?? 0;
-
-  // If counter was stale (from a previous month), reset it in the database
-  if (!resetDate || resetDate < monthStart) {
-    await adminClient
-      .from("profiles")
-      .update({ monthly_reports_used: 0, reports_reset_date: monthStart.toISOString() })
-      .eq("id", user.id);
-    used = 0;
-  }
-
-  // Enforce cap: 6 included + bonus credits
-  if (used >= INCLUDED_REPORTS && bonusCredits <= 0) {
-    return new Response(JSON.stringify({
-      error: "Report limit reached",
-      message: `You've used all ${INCLUDED_REPORTS} included reports this month. Purchase additional report credits to generate more.`,
-      used,
-      included: INCLUDED_REPORTS,
-      bonus_credits: bonusCredits,
-    }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   // Call generate-custom-brief internally with admin token
@@ -99,31 +70,6 @@ Deno.serve(async (req) => {
 
     const result = await resp.json();
 
-    // After successful generation, increment monthly_reports_used OR decrement bonus_report_credits
-    const newUsed = used + 1;
-    let newBonusCredits = bonusCredits;
-
-    if (newUsed > INCLUDED_REPORTS) {
-      // This report consumes a bonus credit
-      newBonusCredits = Math.max(0, bonusCredits - 1);
-      await adminClient
-        .from("profiles")
-        .update({
-          monthly_reports_used: newUsed,
-          bonus_report_credits: newBonusCredits,
-          reports_reset_date: monthStart.toISOString(),
-        })
-        .eq("id", user.id);
-    } else {
-      await adminClient
-        .from("profiles")
-        .update({
-          monthly_reports_used: newUsed,
-          reports_reset_date: monthStart.toISOString(),
-        })
-        .eq("id", user.id);
-    }
-
     // Fetch the newly generated brief to return it
     const { data: newBrief } = await adminClient
       .from("custom_briefs")
@@ -136,9 +82,6 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       brief: newBrief,
-      reports_used: newUsed,
-      reports_included: INCLUDED_REPORTS,
-      bonus_credits_remaining: newBonusCredits,
       ...result,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
