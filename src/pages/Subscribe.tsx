@@ -36,8 +36,8 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Privacy Programme Assessment",                         free: "$29 per analysis",    pro: "$15 per analysis (subscriber rate)" },
   { feature: "Legitimate Interest Assessment Tool",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
   { feature: "Impact Assessment Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
-  { feature: "Custom Data Protection Agreement",                     free: "$69 per document",    pro: "$39 per document"   },
-  { feature: "Incident Response Playbook Generator",                 free: "$39 per playbook",    pro: "Included free"      },
+  { feature: "Your Custom DPA",                                       free: "$69 per document",    pro: "$39 per document"   },
+  { feature: "Your Breach Response Playbook",                         free: "$39 per playbook",    pro: "Included free"      },
   { feature: "Biometric Privacy Compliance Checker",                 free: "1 jurisdiction free", pro: "Included free"      },
 ];
 
