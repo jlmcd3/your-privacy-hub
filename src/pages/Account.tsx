@@ -14,8 +14,6 @@ export default function Account() {
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
-  const [bonusCredits, setBonusCredits] = useState<number>(0);
-  const [reportsUsed, setReportsUsed] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
@@ -23,9 +21,7 @@ export default function Account() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select(
-        "is_premium, subscription_interval, subscription_tier, bonus_report_credits, monthly_reports_used"
-      )
+      .select("is_premium, subscription_interval, subscription_tier")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -33,8 +29,6 @@ export default function Account() {
           setIsPremium(data.is_premium);
           setSubscriptionInterval((data as any).subscription_interval ?? null);
           setSubscriptionTier((data as any).subscription_tier ?? null);
-          setBonusCredits((data as any).bonus_report_credits ?? 0);
-          setReportsUsed((data as any).monthly_reports_used ?? 0);
         }
         setLoading(false);
       });
@@ -88,11 +82,13 @@ export default function Account() {
             </div>
             {isPremium && (
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
-                <span className="text-[13px] text-slate">Tool credits this month</span>
-                <span className="text-[13px] font-medium text-navy">
-                  {Math.max(0, 2 - reportsUsed)} of 2 included
-                  {bonusCredits > 0 ? ` · +${bonusCredits} bonus` : ""}
-                </span>
+                <span className="text-[13px] text-slate">Tool pricing</span>
+                <Link
+                  to="/tools"
+                  className="text-[13px] text-blue hover:text-navy no-underline font-medium"
+                >
+                  Subscriber rates active →
+                </Link>
               </div>
             )}
             <div className="flex justify-between items-center py-2.5">
@@ -153,8 +149,8 @@ export default function Account() {
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
               Full archive, your weekly brief re-written for your industry and
-              jurisdictions, watchlists, and 2 tool credits every month.
-              $19/month or $190/year (save 17%).
+              jurisdictions, watchlists, and subscriber pricing on every assessment tool
+              (save up to 50%). $19/month or $190/year (save 17%).
             </p>
             <Link
               to="/subscribe"

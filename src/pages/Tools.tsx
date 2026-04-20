@@ -176,10 +176,10 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", "$29 → $15 · 2 free credits/mo with Premium"],
-  ["Legitimate Interest Assessment Tool", "$39 → $19 · 2 free credits/mo with Premium"],
-  ["Impact Assessment Builder", "$69 → $39 · 2 free credits/mo with Premium"],
-  ["Custom Data Protection Agreement", "$69 → $39"],
+  ["Privacy Programme Assessment", "$29 standalone → $15 subscriber rate"],
+  ["Legitimate Interest Assessment Tool", "$39 standalone → $19 subscriber rate"],
+  ["Impact Assessment Builder", "$69 standalone → $39 subscriber rate"],
+  ["Custom Data Protection Agreement", "$69 standalone → $39 subscriber rate"],
   ["IR Playbook Generator", "$39 → Free with Premium"],
   ["Biometric Checker", "$29 → Free with Premium"],
   ["Registration Manager (DIY)", "$49 / $89 / $149 by jurisdiction count"],
@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Programme Assessment (DPIA-ready healthcheck), Legitimate Interest Assessment Tool, Impact Assessment Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15 — Premium includes 2 tool credits per month."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Programme Assessment (DPIA-ready healthcheck), Legitimate Interest Assessment Tool, Impact Assessment Builder, Custom Data Protection Agreement, IR Playbook, Biometric Compliance Checker. Subscriber pricing from $15 — up to 50% off standalone rates with Professional."
         />
       </Helmet>
       <Navbar />
