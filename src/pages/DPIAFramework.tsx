@@ -144,7 +144,7 @@ const DPIAFramework = () => {
 
         {prefilled && (
           <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded text-sm">
-            Pre-populated from your Data Privacy Healthcheck. Review and edit all fields before purchasing.
+            Pre-populated from your Privacy Programme Assessment. Review and edit all fields before purchasing.
           </div>
         )}
 

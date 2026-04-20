@@ -24,8 +24,23 @@ function detectEnv(): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
+// DIY pricing is tiered by jurisdiction count:
+//   1 jurisdiction         = $49
+//   2-3 jurisdictions      = $89
+//   4+ jurisdictions       = $149
+function diyPriceCents(numJurisdictions: number): number {
+  if (numJurisdictions <= 1) return 4900;
+  if (numJurisdictions <= 3) return 8900;
+  return 14900;
+}
+function diyPriceLabel(numJurisdictions: number): string {
+  if (numJurisdictions <= 1) return "Registration Manager — DIY Toolkit (1 jurisdiction)";
+  if (numJurisdictions <= 3) return `Registration Manager — DIY Toolkit (${numJurisdictions} jurisdictions)`;
+  return `Registration Manager — DIY Toolkit (${numJurisdictions} jurisdictions)`;
+}
+
 const PRICING = {
-  diy: { unit_amount: 4900, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
+  diy: { unit_amount: 0 /* dynamic */, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
   counsel_review: { unit_amount: 29900, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
   renewal: { unit_amount: 19900, name: "Registration Manager — Annual Renewal Monitoring", recurring: true, per_jurisdiction: true },
 } as const;
@@ -65,7 +80,7 @@ serve(async (req) => {
       });
     }
     const codes: string[] = Array.isArray(jurisdictions) ? jurisdictions : [];
-    if (tier !== "diy" && codes.length === 0) {
+    if (codes.length === 0) {
       return new Response(JSON.stringify({ error: "Select at least one jurisdiction" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -73,9 +88,20 @@ serve(async (req) => {
     }
 
     const cfg = PRICING[tier as keyof typeof PRICING];
-    // DIY and Counsel-Ready Pack are flat-rate. Only renewal scales per jurisdiction.
-    const quantity = cfg.per_jurisdiction ? Math.max(1, codes.length) : 1;
-    const totalCents = cfg.unit_amount * quantity;
+    // Pricing rules:
+    //   diy            -> tiered flat fee based on jurisdiction count (qty 1)
+    //   counsel_review -> flat $299 (qty 1)
+    //   renewal        -> $199/yr × N jurisdictions
+    let unitAmount = cfg.unit_amount;
+    let quantity = 1;
+    let productName = cfg.name;
+    if (tier === "diy") {
+      unitAmount = diyPriceCents(codes.length);
+      productName = diyPriceLabel(codes.length);
+    } else if (cfg.per_jurisdiction) {
+      quantity = Math.max(1, codes.length);
+    }
+    const totalCents = unitAmount * quantity;
 
     // Use service role for the order insert so RLS doesn't block
     const adminClient = createClient(
@@ -110,8 +136,8 @@ serve(async (req) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: cfg.name },
-            unit_amount: cfg.unit_amount,
+            product_data: { name: productName },
+            unit_amount: unitAmount,
             ...(cfg.recurring ? { recurring: { interval: "year" as const } } : {}),
           },
           quantity,

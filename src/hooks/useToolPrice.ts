@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
  */
 const FALLBACK: Record<string, { standalone: number; subscriber: number; name: string }> = {
   li_assessment: { standalone: 39, subscriber: 19, name: "Legitimate Interest Assessment Tool" },
-  governance_assessment: { standalone: 29, subscriber: 15, name: "Data Privacy Healthcheck" },
+  governance_assessment: { standalone: 29, subscriber: 15, name: "Privacy Programme Assessment" },
   dpia_framework: { standalone: 69, subscriber: 39, name: "Impact Assessment Builder" },
 };
 

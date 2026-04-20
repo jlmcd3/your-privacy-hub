@@ -161,13 +161,17 @@ const GovernanceAssessment = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Data Privacy Healthcheck | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Privacy Programme Assessment | EndUserPrivacy</title></Helmet>
       <Navbar />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">⚖️ Compliance Framework Tool · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}</span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Data Privacy Healthcheck</h1>
-          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            ⚖️ Compliance Framework Tool · ${pricing.price}
+            {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Premium includes 2 tool credits/month →</a></>}
+          </span>
+          <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Programme Assessment</h1>
+          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks. Formerly the Data Privacy Healthcheck.</p>
           <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
         </div>
       </header>
@@ -329,7 +333,7 @@ const GovernanceAssessment = () => {
 
         <ToolSamplePreview
           toolType="healthcheck"
-          toolName="Data Privacy Healthcheck"
+          toolName="Privacy Programme Assessment"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}

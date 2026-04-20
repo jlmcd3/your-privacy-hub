@@ -35,7 +35,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 1900,
   },
   governance_assessment: {
-    name: "Data Privacy Healthcheck",
+    name: "Privacy Programme Assessment",
     standalone_lookup: "hc_standalone",
     subscriber_lookup: "hc_subscriber",
     table: "governance_assessments",
