@@ -45,7 +45,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$29",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
-      "The Privacy Programme Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
+      "The Privacy Program Assessment Tool works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
       "The output is a dated, scored assessment document produced for internal review. It is not a regulatory audit and does not carry the authority of one. It is designed to be reviewed by your privacy professional or legal adviser and used as a structured starting point for remediation planning — the kind of document that demonstrates your organisation took a considered approach to identifying its compliance gaps.",
     ],
     sampleSections: [

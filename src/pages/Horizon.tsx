@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -69,6 +70,7 @@ function matchesWatchlist(item: HorizonItem, watch: WatchItem[]): boolean {
 
 export default function Horizon() {
   const { user } = useAuth();
+  const { isPremium } = usePremiumStatus();
   const [items, setItems] = useState<HorizonItem[]>([]);
   const [watch, setWatch] = useState<WatchItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,8 @@ export default function Horizon() {
         .order("week_of", { ascending: false })
         .limit(60);
 
-      const watchReq = user
+      // Only Premium subscribers get personalized watchlist filtering on this page
+      const watchReq = user && isPremium
         ? (supabase as any)
             .from("user_watchlist")
             .select("type, slug, label")
@@ -105,18 +108,19 @@ export default function Horizon() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, isPremium]);
 
-  const hasWatchlist = watch.length > 0;
+  const hasWatchlist = isPremium && watch.length > 0;
 
   const visibleItems = useMemo(() => {
-    if (!filterMine || !hasWatchlist) return items;
+    if (!isPremium || !filterMine || !hasWatchlist) return items;
     const filtered = items.filter((i) => matchesWatchlist(i, watch));
     // Fall back to global if filter empties the page
     return filtered.length > 0 ? filtered : items;
-  }, [items, watch, filterMine, hasWatchlist]);
+  }, [items, watch, filterMine, hasWatchlist, isPremium]);
 
   const filteredEmpty =
+    isPremium &&
     filterMine &&
     hasWatchlist &&
     items.length > 0 &&
@@ -145,9 +149,11 @@ export default function Horizon() {
             What's coming next. Anticipated privacy regulations, enforcement
             shifts, and policy signals — synthesized from primary regulator
             output and updated weekly.
-            {hasWatchlist
-              ? " Filtered to the jurisdictions and topics you follow."
-              : " Add jurisdictions and topics to your watchlist on your dashboard to personalize this view."}
+            {isPremium
+              ? hasWatchlist
+                ? " Filtered to the jurisdictions and topics you follow."
+                : " Add jurisdictions and topics to your watchlist on your dashboard to personalize this view."
+              : " Premium subscribers can filter this feed to the jurisdictions and topics they follow."}
           </p>
         </div>
       </header>
@@ -189,7 +195,22 @@ export default function Horizon() {
             <Link to="/login" className="font-semibold text-navy no-underline hover:underline">
               Sign in
             </Link>{" "}
-            and add jurisdictions or topics to your watchlist to personalize this view.
+            and upgrade to Premium to filter this feed to the jurisdictions and topics you follow.
+          </div>
+        )}
+
+        {user && !isPremium && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-slate flex flex-wrap items-center justify-between gap-3">
+            <span>
+              <span className="font-semibold text-navy">Personalize this watchlist.</span>{" "}
+              Premium subscribers filter Regulatory Horizon signals to the jurisdictions and topics they follow.
+            </span>
+            <Link
+              to="/subscribe"
+              className="text-[12px] font-semibold text-amber-900 no-underline hover:underline whitespace-nowrap"
+            >
+              Upgrade to Premium →
+            </Link>
           </div>
         )}
 

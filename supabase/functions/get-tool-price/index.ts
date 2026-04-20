@@ -19,7 +19,7 @@ const TOOLS: Record<
   }
 > = {
   healthcheck: {
-    name: "Privacy Programme Assessment",
+    name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone",
     subscriber_lookup: "hc_subscriber",
     fallback_standalone_cents: 2900,
