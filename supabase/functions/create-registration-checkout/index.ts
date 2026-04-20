@@ -24,8 +24,23 @@ function detectEnv(): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
+// DIY pricing is tiered by jurisdiction count:
+//   1 jurisdiction         = $49
+//   2-3 jurisdictions      = $89
+//   4+ jurisdictions       = $149
+function diyPriceCents(numJurisdictions: number): number {
+  if (numJurisdictions <= 1) return 4900;
+  if (numJurisdictions <= 3) return 8900;
+  return 14900;
+}
+function diyPriceLabel(numJurisdictions: number): string {
+  if (numJurisdictions <= 1) return "Registration Manager — DIY Toolkit (1 jurisdiction)";
+  if (numJurisdictions <= 3) return `Registration Manager — DIY Toolkit (${numJurisdictions} jurisdictions)`;
+  return `Registration Manager — DIY Toolkit (${numJurisdictions} jurisdictions)`;
+}
+
 const PRICING = {
-  diy: { unit_amount: 4900, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
+  diy: { unit_amount: 0 /* dynamic */, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
   counsel_review: { unit_amount: 29900, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
   renewal: { unit_amount: 19900, name: "Registration Manager — Annual Renewal Monitoring", recurring: true, per_jurisdiction: true },
 } as const;
