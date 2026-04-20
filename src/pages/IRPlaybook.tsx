@@ -59,18 +59,18 @@ export default function IRPlaybook() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Incident Response Playbook Generator | EndUserPrivacy</title>
-        <meta name="description" content="Generate a complete data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
+      <Helmet><title>Your Breach Response Playbook | EndUserPrivacy</title>
+        <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Incident Response Playbook</h1>
-          <p className="text-slate text-[14px]">Generate a complete, jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
+          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
+          <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
         </header>
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-[18px]">Incident Response Playbook</h2><CopyButton text={result} /></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-[18px]">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
             <p className="text-[12px] text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
             <ToolDisclaimer />
@@ -78,7 +78,7 @@ export default function IRPlaybook() {
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-[14px] font-semibold text-navy mb-1">Generating your Incident Response Playbook</p>
+            <p className="text-[14px] font-semibold text-navy mb-1">Generating your Breach Response Playbook</p>
             <p className="text-[12px] text-muted-foreground">Checking notification deadlines and enforcement precedents for {form.jurisdictions.join(", ")} — this usually takes 15–20 seconds.</p>
           </div>
         ) : phase === "form" ? (
@@ -110,7 +110,7 @@ export default function IRPlaybook() {
           </div>
         ) : (
           <ToolSampleOverlay
-            toolName="IR Playbook Generator" priceLabel={access.priceLabel} onPurchase={handlePurchase}
+            toolName="Your Breach Response Playbook" priceLabel={access.priceLabel} onPurchase={handlePurchase}
             isFreeForUser={access.isFreeForUser} isPremium={access.isPremium}
             subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
           >

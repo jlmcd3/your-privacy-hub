@@ -44,9 +44,9 @@ const TOOLS = [
   },
   {
     icon: "📄",
-    title: "Custom Data Protection Agreement",
+    title: "Your Custom DPA",
     description:
-      "Draft a GDPR Article 28 Custom Data Protection Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
+      "Draft your custom GDPR Article 28 Data Protection Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
     cta: "View Sample & Purchase",
     href: "/dpa-generator",
     standalonePrice: 69,
@@ -54,9 +54,9 @@ const TOOLS = [
   },
   {
     icon: "🚨",
-    title: "IR Playbook Generator",
+    title: "Your Breach Response Playbook",
     description:
-      "Jurisdiction-specific data breach response playbook with hour-by-hour actions, notification timelines, DPA portal links, and notification templates.",
+      "Your jurisdiction-specific data breach response playbook with hour-by-hour actions, notification timelines, DPA portal links, and notification templates.",
     cta: "View Sample & Purchase",
     href: "/ir-playbook",
     standalonePrice: 39,
@@ -74,7 +74,7 @@ const TOOLS = [
   },
   {
     icon: "📂",
-    title: "Registration Filings",
+    title: "Your Registration Filings",
     description:
       "Free assessment maps where your organisation must register (DPO, RoPA, AI Act, Article 27 rep). Then generate a counsel-ready filing pack you submit yourself. You file; we draft and track.",
     cta: "Start Free Assessment",
@@ -234,7 +234,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               to="/registration-manager/my-filings"
               className="text-[12px] font-semibold text-primary hover:underline no-underline"
             >
-              📂 My Registration Filings →
+              📂 Your Registration Filings →
             </Link>
           )}
         </div>

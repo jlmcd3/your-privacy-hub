@@ -413,7 +413,7 @@ const Dashboard = () => {
                 to="/dpa-generator"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">Custom Data Protection Agreement</p>
+                <p className="text-[12px] font-semibold text-foreground">Your Custom DPA</p>
                 <p className="text-[12px] text-foreground">
                   <span className="font-bold">$39</span>
                   <span className="text-muted-foreground"> /document</span>
@@ -424,7 +424,7 @@ const Dashboard = () => {
                 to="/ir-playbook"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">IR Playbook</p>
+                <p className="text-[12px] font-semibold text-foreground">Your Breach Response Playbook</p>
                 <p className="text-[12px] text-foreground">
                   <span className="font-bold">Included free</span>
                 </p>
