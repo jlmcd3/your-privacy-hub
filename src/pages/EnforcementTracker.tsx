@@ -381,11 +381,11 @@ const EnforcementTrackerPage = () => {
 
         {/* Premium CTA */}
         <div className="p-7 mt-6 bg-card border border-border rounded-xl text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-primary mb-2">⭐ Premium Intelligence</div>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-primary mb-2">⭐ Professional Intelligence</div>
           <p className="text-foreground font-semibold text-[15px] mb-1">Get full enforcement analysis every Monday</p>
-          <p className="text-muted-foreground text-sm mb-4">Premium subscribers receive enforcement insights with AI-synthesized compliance implications.</p>
+          <p className="text-muted-foreground text-sm mb-4">Professional subscribers receive enforcement insights with AI-synthesized compliance implications.</p>
           <Link to="/subscribe" className="inline-block px-6 py-2.5 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-all no-underline">
-            View Premium Plans →
+            View Professional Plans →
           </Link>
         </div>
 

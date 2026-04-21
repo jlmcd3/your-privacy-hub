@@ -225,7 +225,7 @@ const RegulatorPage = () => {
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
                 <Lock className="w-5 h-5 text-navy/40 mb-2" />
                 <p className="text-[13px] font-semibold text-navy mb-1 text-center px-4">
-                  Premium subscribers get weekly intelligence for every regulator they follow.
+                  Professional subscribers get weekly intelligence for every regulator they follow.
                 </p>
                 <p className="text-[11.5px] text-slate text-center px-6 mb-4">
                   Enforcement actions, guidance updates, and what each development means — every Monday.

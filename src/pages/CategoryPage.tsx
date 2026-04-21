@@ -240,19 +240,19 @@ const CategoryPage = () => {
         <div className="hidden md:block">
           <div className="sticky top-24 border border-border rounded-xl p-5 bg-card">
             <p className="text-xs font-semibold text-primary mb-2">
-              ⭐ Premium Intelligence
+              ⭐ Professional Intelligence
             </p>
             <p className="text-sm font-bold text-foreground mb-2">
               Get {meta.title} analysis in your Intelligence Brief
             </p>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-              Premium subscribers receive a full weekly Intelligence Brief with sector-specific context and action items.
+              Professional subscribers receive a full weekly Intelligence Brief with sector-specific context and action items.
             </p>
             <Link
               to="/subscribe"
               className="block text-center text-xs font-semibold text-primary-foreground bg-primary rounded-lg py-2 hover:opacity-90 transition-opacity"
             >
-              View Premium Plans →
+              View Professional Plans →
             </Link>
           </div>
           <div className="mt-4">

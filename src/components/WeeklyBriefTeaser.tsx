@@ -63,7 +63,7 @@ const WeeklyBriefTeaser = () => {
           <div className="p-6 md:p-8 border-b border-white/10">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[9px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
-                ⭐ Premium Intelligence Brief
+                ⭐ Professional Intelligence Brief
               </span>
               {brief?.week_label && (
                 <span className="text-[11px] text-slate ml-auto">{brief.week_label}</span>
@@ -104,7 +104,7 @@ const WeeklyBriefTeaser = () => {
           <div className="px-6 md:px-8 py-5 bg-white/[0.03] flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <p className="text-[12px] font-bold text-amber-400 uppercase tracking-wider mb-1">
-                ⭐ Premium — $20/month
+                ⭐ Professional — $29/month
               </p>
               <p className="text-[13px] text-slate-light leading-snug">
                 The full Intelligence Brief, re-analyzed every Monday for your industry,

@@ -263,7 +263,7 @@ const Dashboard = () => {
                   to="/subscribe"
                   className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
-                  Get Premium — $20/month →
+                  Get Professional — $20/month →
                 </Link>
               </div>
             </div>
@@ -327,8 +327,8 @@ const Dashboard = () => {
               )}
 
               <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
-                <p className="text-[13px] text-slate">Get Premium for analysis, priorities, and action items.</p>
-                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get Premium →</Link>
+                <p className="text-[13px] text-slate">Get Professional for analysis, priorities, and action items.</p>
+                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get Professional →</Link>
               </div>
             </div>
           )}
