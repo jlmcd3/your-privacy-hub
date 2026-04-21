@@ -13,22 +13,22 @@ const corsHeaders = {
 // watchlists, 2 tool credits/month). Legacy "premium_monthly" lookup key is
 // kept as a fallback for any in-flight links.
 const PLAN_LOOKUPS: Record<string, string> = {
-  professional_monthly: "professional_monthly",
-  professional_yearly: "professional_yearly",
+  professional_monthly: "professional_monthly_v2",
+  professional_yearly: "professional_yearly_v2",
   // Legacy aliases — all map to the new monthly Professional price.
-  pro: "professional_monthly",
-  premium: "professional_monthly",
-  standard: "professional_monthly",
-  monthly: "professional_monthly",
-  yearly: "professional_yearly",
-  annual: "professional_yearly",
+  pro: "professional_monthly_v2",
+  premium: "professional_monthly_v2",
+  standard: "professional_monthly_v2",
+  monthly: "professional_monthly_v2",
+  yearly: "professional_yearly_v2",
+  annual: "professional_yearly_v2",
 };
 
 // Tool one-time purchases via tool_slug
 const TOOL_LOOKUPS: Record<string, { standalone: string; subscriber: string }> = {
-  healthcheck: { standalone: "hc_standalone", subscriber: "hc_subscriber" },
-  li_analyzer: { standalone: "li_standalone", subscriber: "li_subscriber" },
-  dpia_builder: { standalone: "dpia_standalone", subscriber: "dpia_subscriber" },
+  healthcheck: { standalone: "hc_standalone_v2", subscriber: "hc_subscriber_v2" },
+  li_analyzer: { standalone: "li_standalone_v2", subscriber: "li_subscriber_v2" },
+  dpia_builder: { standalone: "dpia_standalone_v2", subscriber: "dpia_subscriber_v2" },
 };
 
 function detectEnv(): StripeEnv {
@@ -95,7 +95,7 @@ serve(async (req) => {
         : (plan || "professional_monthly");
       lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.professional_monthly;
       metadata.subscription_tier = "professional";
-      metadata.subscription_interval = lookupKey === "professional_yearly" ? "year" : "month";
+      metadata.subscription_interval = lookupKey === "professional_yearly_v2" ? "year" : "month";
     }
 
     const env = detectEnv();

@@ -29,7 +29,7 @@ export default function FreeVsPaidStrip() {
       <p className="text-[11px] text-muted-foreground">
         📚 Free to browse · Free weekly digest included{" "}
         <span className="text-border mx-1.5">·</span>
-        <span className="text-amber-600 font-semibold">⭐ Professional $19/mo — full archive, watchlists, <span className="underline">subscriber pricing on every tool (save up to 50%)</span></span>
+        <span className="text-amber-600 font-semibold">⭐ Professional $29/mo — full archive, watchlists, <span className="underline">subscriber rates on every tool</span></span>
         <span className="text-border mx-1.5">·</span>
         <Link to="/subscribe" className="text-primary font-semibold no-underline hover:underline">
           See what's included →

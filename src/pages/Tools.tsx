@@ -41,8 +41,8 @@ const TOOLS: ToolDef[] = [
     name: "Privacy Program Assessment Tool",
     tagline: "A structured assessment of your privacy program across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
     href: "/governance-assessment",
-    subscriberPrice: "$15 per assessment",
-    standalonePrice: "$29",
+    subscriberPrice: "$25 per assessment",
+    standalonePrice: "$49",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
       "The Privacy Program Assessment Tool works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
@@ -61,8 +61,8 @@ const TOOLS: ToolDef[] = [
     name: "Legitimate Interest Assessment Tool",
     tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
     href: "/li-assessment",
-    subscriberPrice: "$19 per assessment",
-    standalonePrice: "$39",
+    subscriberPrice: "$35 per assessment",
+    standalonePrice: "$79",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
       "The Legitimate Interest Assessment Tool guides you through the purpose test, necessity test, and balancing test with prompts calibrated to your specific processing activity. A direct marketing assessment asks different questions than one covering employee monitoring or fraud prevention. The analysis draws from enforcement decisions relevant to your use case, so the output reflects where regulators have found assessments adequate and where they have not.",
@@ -81,11 +81,11 @@ const TOOLS: ToolDef[] = [
     name: "Impact Assessment Builder",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
     href: "/dpia-framework",
-    subscriberPrice: "$39 per DPIA",
-    standalonePrice: "$69",
+    subscriberPrice: "$49 per DPIA",
+    standalonePrice: "$99",
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
-      "The DPIA Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis that template-based assessments most commonly omit. The prompts are specific to your processing type — AI systems, biometric data, profiling, and systematic monitoring each present distinct risk considerations. Enforcement decisions relevant to your processing type are incorporated before any output is generated.",
+      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis that template-based assessments most commonly omit. The prompts are specific to your processing type — AI systems, biometric data, profiling, and systematic monitoring each present distinct risk considerations. Enforcement decisions relevant to your processing type are incorporated before any output is generated.",
       "The output is designed to be reviewed by the appropriate privacy professional in your organisation and retained as part of your permanent accountability record. It is a professional-grade starting point — one that reflects current enforcement posture — and is intended to form the basis of a documented professional review, not to substitute for it.",
     ],
     sampleSections: [
@@ -101,8 +101,8 @@ const TOOLS: ToolDef[] = [
     name: "Your Custom DPA",
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
-    subscriberPrice: "$39 per document",
-    standalonePrice: "$69",
+    subscriberPrice: "$49 per document",
+    standalonePrice: "$99",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
       "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is numbered hierarchically, marks all fields requiring your specific input, and is structured for legal review before execution.",
@@ -120,12 +120,12 @@ const TOOLS: ToolDef[] = [
     name: "Your Breach Response Playbook",
     tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
-    subscriberPrice: "Included free with Premium",
-    standalonePrice: "$39",
+    subscriberPrice: "Included with Professional",
+    standalonePrice: "$59",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
       "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
-      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Premium subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
+      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Professional subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
     ],
     sampleSections: [
       { label: "Immediate actions (0–2 hours)", content: "1. Assemble incident response team: IR Lead, DPO, Legal Counsel, IT Security. 2. Preserve all evidence — do not delete or modify logs. 3. Isolate affected systems from the network. 4. Document discovery time (UTC) and the name of the person who discovered the incident." },
@@ -137,14 +137,14 @@ const TOOLS: ToolDef[] = [
     slug: "biometric-checker",
     icon: "👉",
     name: "Biometric Privacy Compliance Checker",
-    tagline: "Per-jurisdiction compliance assessment for biometric data. First jurisdiction always free.",
+    tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
-    subscriberPrice: "Included free with Premium",
-    standalonePrice: "First jurisdiction free · $29 multi-jurisdiction",
+    subscriberPrice: "Included with Professional",
+    standalonePrice: "$49",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks. The relevant laws are not always obvious until an organisation is already mid-implementation.",
       "The Biometric Privacy Compliance Checker produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population, intended to support internal risk assessment and board-level conversations, not to constitute legal advice.",
-      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. Your first jurisdiction is always free. Multi-jurisdiction assessments are included with Premium subscriptions.",
+      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free EndUserPrivacy account is required to run any analysis. Multi-jurisdiction assessments are included with Professional subscriptions.",
     ],
     sampleSections: [
       { label: "Illinois (BIPA) – applies: Yes", content: "Key requirement: Written release from each individual before collecting or using biometric identifiers. Release must specifically describe the purpose and duration of collection. Oral consent is not sufficient." },
@@ -156,15 +156,15 @@ const TOOLS: ToolDef[] = [
   {
     slug: "registration-manager",
     icon: "🗂️",
-    name: "DPA & AI Act Registration Manager",
+    name: "Your Registration Filings",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
     href: "/registration-manager",
-    subscriberPrice: "DIY $49 · Counsel-Ready Pack $299",
-    standalonePrice: "Free assessment · Annual renewal monitoring $199/jurisdiction",
+    subscriberPrice: "20% off DIY · $75 off Counsel-Ready Pack",
+    standalonePrice: "Free assessment · DIY from $59 · Counsel-Ready $399",
     body: [
       "Most privacy programmes know they need to register a DPO somewhere. Far fewer have a current, jurisdiction-by-jurisdiction map of where formal registration with the supervisory authority is mandatory, where an EU/UK representative must be appointed, where the AI Act register applies, and when each filing must be renewed. The result is a quiet, recurring source of regulatory exposure that surfaces — usually — only when something else goes wrong.",
-      "The Registration Manager begins with a free assessment: organisation type, size, sectors, and the markets in which you operate. From that, it produces a recommended registration footprint across 50+ jurisdictions — flagging where DPO registration, controller registration, representative appointment, and AI Act notification are required, and on what timeline. From there, you can generate the filings yourself with the DIY toolkit, or upgrade to the Counsel-Ready Pack for enhanced jurisdiction notes and a structured handoff your privacy counsel can review and submit.",
-      "Every output is a structured document intended for review by your privacy or legal professional before submission. We do not submit filings on your behalf. Annual renewal monitoring is included for any jurisdiction you order — so the obligation does not quietly lapse a year later.",
+      "The Registration Manager begins with a free assessment: organisation type, size, sectors, and the markets in which you operate. From that, it produces a recommended registration footprint across 50+ jurisdictions — flagging where DPO registration, controller registration, representative appointment, and AI Act notification are required, and on what timeline. From there, you can generate the filings yourself with the DIY tier, or upgrade to the Counsel-Ready Pack for enhanced jurisdiction notes and a structured handoff your privacy counsel can review and submit.",
+      "Every output is a structured document intended for review by your privacy or legal professional before submission. We do not submit filings on your behalf. Annual renewal monitoring is available so the obligation does not quietly lapse a year later.",
     ],
     sampleSections: [
       { label: "Recommended jurisdictions (sample)", content: "Germany (BfDI / state DPA), France (CNIL), Italy (Garante), Spain (AEPD), United Kingdom (ICO), Ireland (DPC). AI Act registration: required for one EU deployment. EU representative: required (no establishment in the Union)." },
@@ -176,14 +176,14 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Program Assessment Tool", "$29 standalone → $15 subscriber rate"],
-  ["Legitimate Interest Assessment Tool", "$39 standalone → $19 subscriber rate"],
-  ["Impact Assessment Builder", "$69 standalone → $39 subscriber rate"],
-  ["Your Custom DPA", "$69 standalone → $39 subscriber rate"],
-  ["Your Breach Response Playbook", "$39 → Free with Premium"],
-  ["Biometric Checker", "$29 → Free with Premium"],
-  ["Your Registration Filings (DIY)", "$49 / $89 / $149 by jurisdiction count"],
-  ["Your Registration Filings (Counsel-Ready)", "$299 flat"],
+  ["Privacy Program Assessment Tool", "$49 standalone → $25 subscriber rate"],
+  ["Legitimate Interest Assessment Tool", "$79 standalone → $35 subscriber rate"],
+  ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
+  ["Your Custom DPA", "$99 standalone → $49 subscriber rate"],
+  ["Your Breach Response Playbook", "$59 → Included with Professional"],
+  ["Biometric Privacy Compliance Checker", "$49 → Included with Professional"],
+  ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
+  ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
 ];
 
 export default function Tools() {
@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber pricing from $15 — up to 50% off standalone rates with Professional."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber rates from $25 with Professional."
         />
       </Helmet>
       <Navbar />
@@ -220,7 +220,7 @@ export default function Tools() {
               to="/subscribe"
               className="text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline"
             >
-              Subscribe — from $20/month →
+              Subscribe — from $29/month →
             </Link>
             <a
               href="#tools"
@@ -301,10 +301,10 @@ export default function Tools() {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
-            Every tool. Subscriber pricing. $20/month.
+            Every tool. Subscriber rates. $29/month.
           </h2>
           <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
-            Premium subscribers pay significantly less on every tool and receive Your Breach Response Playbook and the Biometric Compliance Checker included at no additional cost. One LI Assessment as a subscriber saves more than one month's subscription fee.
+            Professional subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and the Biometric Privacy Compliance Checker included at no additional cost.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[560px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
@@ -318,10 +318,10 @@ export default function Tools() {
             to="/subscribe"
             className="inline-block text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline"
           >
-            Start your Premium subscription →
+            Start your Professional subscription →
           </Link>
           <p className="text-blue-200/60 text-[12px] mt-4">
-            Monthly at $20 · Annual at $180 · Cancel any time
+            Monthly at $29 · Annual at $290 · Cancel any time
           </p>
         </div>
       </div>
@@ -390,7 +390,7 @@ export default function Tools() {
                   onClick={() => setSampleModal(null)}
                   className="flex-1 text-center border border-primary/30 text-primary font-semibold text-[13px] py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
                 >
-                  Subscribe for best pricing →
+                  Subscribe for subscriber rates →
                 </Link>
               </div>
 

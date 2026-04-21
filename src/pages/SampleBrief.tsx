@@ -206,7 +206,7 @@ const SampleBrief = () => {
                   <Link to="/subscribe"
                     className="text-[12px] font-bold text-white bg-amber-500 hover:bg-amber-400
                     px-4 py-1.5 rounded-lg no-underline transition-all">
-                    Get your Pro brief — $20/month →
+                    Get your Pro brief — $29/month →
                   </Link>
                 </div>
               </div>
@@ -306,14 +306,14 @@ const SampleBrief = () => {
               Receive this analysis every Monday morning.
             </h3>
             <p className="text-blue-200 text-[14px] mb-5 max-w-[500px] mx-auto">
-              This is the Premium Intelligence Brief. Free accounts include a personalized weekly digest filtered to your regions and topics. Get Premium for the full brief, re-analyzed for your industry and jurisdiction — $20/month.
+              This is the Professional Intelligence Brief. Free accounts include a personalized weekly digest filtered to your regions and topics. Get Professional for the full brief, re-analyzed for your industry and jurisdiction — $29/month.
             </p>
             <div className="text-center">
               <Link
                 to="/subscribe"
                 className="inline-block bg-white text-navy font-bold text-[14px] py-3 px-10 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Get Premium — $20/month →
+                Get Professional — $29/month →
               </Link>
               <p className="text-blue-300 text-[12px] mt-3">
                 First 25 subscribers get the first year free · Cancel anytime

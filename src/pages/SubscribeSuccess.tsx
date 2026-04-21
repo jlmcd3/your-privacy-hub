@@ -111,7 +111,7 @@ export default function SubscribeSuccess() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
           <p className="text-amber-800 text-[13px] font-medium">
             🎁 You're one of the first 25 subscribers — your first year is free.
-            Your $20/month billing begins in 12 months.
+            Your $29/month (or $290/year) billing begins in 12 months.
           </p>
         </div>
 

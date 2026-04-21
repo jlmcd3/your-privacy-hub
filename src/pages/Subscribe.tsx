@@ -33,16 +33,13 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "Assessment Tools" },
   { feature: "Sample preview of all tools",                          free: true,                  pro: true  },
-  { feature: "Privacy Program Assessment Tool",                       free: "$29 per analysis",    pro: "$15 per analysis (subscriber rate)" },
-  { feature: "Legitimate Interest Assessment Tool",                         free: "$39 per analysis",    pro: "$19 per analysis"   },
-  { feature: "Impact Assessment Builder",                                         free: "$69 per document",    pro: "$39 per document"   },
-  { feature: "Your Custom DPA",                                       free: "$69 per document",    pro: "$39 per document"   },
-  { feature: "Your Breach Response Playbook",                         free: "$39 per playbook",    pro: "Included free"      },
-  { feature: "Biometric Privacy Compliance Checker",                 free: "1 jurisdiction free", pro: "Included free"      },
+  { feature: "Privacy Program Assessment Tool",                       free: "$49 per analysis",    pro: "$25 per analysis (subscriber rate)" },
+  { feature: "Legitimate Interest Assessment Tool",                   free: "$79 per analysis",    pro: "$35 per analysis"   },
+  { feature: "Impact Assessment Builder",                             free: "$99 per document",    pro: "$49 per document"   },
+  { feature: "Your Custom DPA",                                       free: "$99 per document",    pro: "$49 per document"   },
+  { feature: "Your Breach Response Playbook",                         free: "$59 per playbook",    pro: "Included"           },
+  { feature: "Biometric Privacy Compliance Checker",                  free: "$49 per assessment",  pro: "Included"           },
 ];
-
-// Note: Compliance framework tools (LI Assessment Tool, Healthcheck, Impact Assessment Builder)
-// are NOT included with Premium. They are sold as standalone reports.
 
 const Subscribe = () => {
   const { user } = useAuth();
@@ -88,8 +85,8 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Professional — $19/mo or $190/yr | EndUserPrivacy</title>
-        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber pricing on every assessment tool (up to 50% off). $19/month or $190/year." />
+        <title>Professional — $29/mo or $290/yr | EndUserPrivacy</title>
+        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool. $29/month or $290/year." />
       </Helmet>
       <Navbar />
 
@@ -97,13 +94,13 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Professional is $19/month.
+            The library is free.<br />Professional is $29/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed mb-8">
             Everything you can browse stays free. Free accounts also include a personalized
             weekly digest. Professional adds the full Intelligence Brief, the complete
-            enforcement archive, watchlists, and subscriber pricing on every assessment tool
-            (up to 50% off) — re-analyzed for your industry and jurisdictions every Monday.
+            enforcement archive, watchlists, and subscriber rates on every assessment tool —
+            re-analyzed for your industry and jurisdictions every Monday.
           </p>
 
           {/* Monthly/Yearly toggle */}
@@ -115,7 +112,7 @@ const Subscribe = () => {
                 billingInterval === "month" ? "bg-white text-navy" : "text-white/70 hover:text-white"
               }`}
             >
-              Monthly · $19
+              Monthly · $29
             </button>
             <button
               type="button"
@@ -124,7 +121,7 @@ const Subscribe = () => {
                 billingInterval === "year" ? "bg-white text-navy" : "text-white/70 hover:text-white"
               }`}
             >
-              Yearly · $190 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">save $38</span>
+              Yearly · $290 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">save $58</span>
             </button>
           </div>
           <div>
@@ -133,7 +130,7 @@ const Subscribe = () => {
               disabled={!!loading}
               className="bg-white text-navy font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all"
             >
-              {loading ? "Redirecting…" : `Get Professional — ${billingInterval === "year" ? "$190/year" : "$19/month"} →`}
+              {loading ? "Redirecting…" : `Get Professional — ${billingInterval === "year" ? "$290/year" : "$29/month"} →`}
             </button>
             {error && <p className="text-red-300 text-[12px] mt-3">{error}</p>}
           </div>
@@ -144,7 +141,7 @@ const Subscribe = () => {
       <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
         <div className="max-w-[720px] mx-auto text-center">
           <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $19/month.
+            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $29/month or $290/year.
           </p>
         </div>
       </div>
@@ -154,7 +151,7 @@ const Subscribe = () => {
         <div className="max-w-[720px] mx-auto text-center text-[13px] text-slate">
           Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
           <Link to="/registration-manager" className="text-navy font-semibold underline underline-offset-2 hover:text-navy-mid">
-            Try Registration Manager →
+            Try Your Registration Filings →
           </Link>{" "}
           <span className="text-slate-light">— sold separately, not part of Professional.</span>
         </div>
@@ -268,7 +265,7 @@ const Subscribe = () => {
           })}
         </div>
         <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
-          Each track is included in your $20/month Premium subscription. Select as many as you need — your Intelligence brief synthesizes all selected tracks into one weekly brief.
+          Each track is included in your $29/month Professional subscription. Select as many as you need — your Intelligence brief synthesizes all selected tracks into one weekly brief.
         </p>
         <div className="text-center mt-6">
           <button
@@ -276,7 +273,7 @@ const Subscribe = () => {
             disabled={!!loading}
             className="bg-navy text-white font-bold text-[14px] py-3 px-10 rounded-xl hover:opacity-90 transition-all"
           >
-            {loading ? "Redirecting…" : "Get Premium — all 10 tracks included →"}
+            {loading ? "Redirecting…" : "Get Professional — all 10 tracks included →"}
           </button>
         </div>
       </div>
@@ -288,7 +285,7 @@ const Subscribe = () => {
             What does the Intelligence Brief look like?
           </h2>
           <p className="text-slate text-sm">
-            Premium subscribers receive this 8-section analysis every Monday.
+            Professional subscribers receive this 8-section analysis every Monday.
             Here is a representative sample from Week 11, 2026.
           </p>
         </div>
@@ -298,7 +295,7 @@ const Subscribe = () => {
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
-                ⭐ PREMIUM
+                ⭐ PROFESSIONAL
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Executive Summary</span>
             </div>
@@ -314,7 +311,7 @@ const Subscribe = () => {
           <div className="bg-card border border-fog rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
-                ⭐ PREMIUM
+                ⭐ PROFESSIONAL
               </span>
               <span className="text-[10px] text-slate-light uppercase tracking-wider">Enforcement Table</span>
             </div>
@@ -353,7 +350,7 @@ const Subscribe = () => {
           <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-6 border border-amber-400/20">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-2.5 py-0.5">
-                ⭐ Pro Brief Preview
+                ⭐ Professional Brief Preview
               </span>
               <span className="text-[10px] text-blue-200 uppercase tracking-wider">
                 Your Personalized Brief — Healthcare in EU & UK
@@ -470,8 +467,8 @@ const Subscribe = () => {
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[120px]">
                       Free
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[140px]">
-                      Premium ($20/mo or $180/yr)
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[160px]">
+                      Professional ($29/mo or $290/yr)
                     </th>
                   </tr>
                 </thead>
@@ -498,7 +495,7 @@ const Subscribe = () => {
                     const renderPro = () => {
                       if (dataRow.pro === true)            return <Check className="w-4 h-4 text-amber-500 mx-auto" />;
                       if (dataRow.pro === false)           return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
-                      if (dataRow.pro === "Included free") return <span className="text-[11px] font-semibold text-green-600">Included free</span>;
+                      if (dataRow.pro === "Included")      return <span className="text-[11px] font-semibold text-green-600">Included</span>;
                       return <span className="text-[11px] font-semibold text-amber-600">{dataRow.pro}</span>;
                     };
 
@@ -548,7 +545,7 @@ const Subscribe = () => {
               {/* Pro — Healthcare */}
               <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-3">
-                  ⭐ Premium brief — Healthcare sector
+                  ⭐ Professional brief — Healthcare sector
                 </div>
                 <p className="text-[12px] font-semibold text-white mb-2 leading-snug">
                   ICO children's data ruling: direct implications for pediatric health platforms
@@ -593,7 +590,7 @@ const Subscribe = () => {
 
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
-              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Premium — $20/month</p>
+              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Professional — $29/month</p>
               <p className="text-[12px] text-sky mb-4">Intelligence. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
@@ -609,7 +606,7 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">$20/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$29/month →</p>
             </div>
           </div>
         </div>
@@ -632,7 +629,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$19/month or $190/year", "$300–$3,500+/year", "$550+/year"],
+                  ["Price", "$29/month or $290/year", "$300–$3,500+/year", "$550+/year"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
@@ -660,14 +657,14 @@ const Subscribe = () => {
               ⭐ Professional Monthly
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-4">
-              $19<span className="text-lg font-normal text-blue-200">/month</span>
+              $29<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
                 "Weekly Intelligence Brief — curated for privacy professionals",
                 "Full enforcement archive (all 119 authorities)",
                 "Watchlists for regulators, jurisdictions, and topics",
-                "Subscriber pricing on every tool — save up to 50% (Healthcheck, LIA, DPIA…)",
+                "Subscriber rates on every assessment tool",
                 "Why It Matters analysis on every article",
                 "Cancel any time",
               ].map((item) => (
@@ -695,10 +692,10 @@ const Subscribe = () => {
               ⭐ Professional Annual
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              $190<span className="text-lg font-normal text-blue-200">/year</span>
+              $290<span className="text-lg font-normal text-blue-200">/year</span>
             </div>
             <p className="text-blue-200 text-[12px] mb-4">
-              ~$15.83/month — save $38 vs monthly
+              ~$24.17/month — save $58 vs monthly
             </p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
@@ -706,7 +703,7 @@ const Subscribe = () => {
                 "Weekly Intelligence Brief — curated for privacy professionals",
                 "Full enforcement archive (all 119 authorities)",
                 "Watchlists for regulators, jurisdictions, and topics",
-                "Subscriber pricing on every tool — save up to 50% (Healthcheck, LIA, DPIA…)",
+                "Subscriber rates on every assessment tool",
                 "Cancel any time",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-[13px] text-white">
@@ -729,7 +726,7 @@ const Subscribe = () => {
         <div className="max-w-3xl mx-auto mt-6">
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-center">
             <p className="text-[13px] text-amber-800">
-              🎁 <strong>Founding offer:</strong> First 25 subscribers get Premium free for one year, then your chosen plan price.
+              🎁 <strong>Founding offer:</strong> First 25 subscribers get Professional free for one year, then $29/month or $290/year.
             </p>
           </div>
         </div>
@@ -750,22 +747,22 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Privacy Program Assessment Tool", "$29", "$15"],
-                  ["Legitimate Interest Assessment Tool", "$39", "$19"],
-                  ["Impact Assessment Builder", "$69", "$39"],
+                  ["Privacy Program Assessment Tool", "$49", "$25"],
+                  ["Legitimate Interest Assessment Tool", "$79", "$35"],
+                  ["Impact Assessment Builder", "$99", "$49"],
+                  ["Your Custom DPA", "$99", "$49"],
+                  ["Your Breach Response Playbook", "$59", "Included"],
+                  ["Biometric Privacy Compliance Checker", "$49", "Included"],
                 ].map(([tool, std, sub]) => (
                   <tr key={tool} className="border-t border-fog">
                     <td className="px-5 py-3 text-navy font-medium">{tool}</td>
-                    <td className="px-5 py-3 text-slate">{std} per analysis</td>
-                    <td className="px-5 py-3 text-navy font-semibold">{sub} per analysis</td>
+                    <td className="px-5 py-3 text-slate">{std}{std !== "Included" ? " per analysis" : ""}</td>
+                    <td className="px-5 py-3 text-navy font-semibold">{sub}{sub !== "Included" ? " per analysis" : ""}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="text-center text-[12px] text-slate-light mt-3 italic">
-            One Healthcheck + one LI Assessment Tool as a subscriber saves you more than one month's subscription cost.
-          </p>
         </div>
 
         {error && (
