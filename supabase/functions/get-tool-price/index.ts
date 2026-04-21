@@ -20,24 +20,24 @@ const TOOLS: Record<
 > = {
   healthcheck: {
     name: "Privacy Program Assessment Tool",
-    standalone_lookup: "hc_standalone",
-    subscriber_lookup: "hc_subscriber",
-    fallback_standalone_cents: 2900,
-    fallback_subscriber_cents: 1500,
+    standalone_lookup: "hc_standalone_v2",
+    subscriber_lookup: "hc_subscriber_v2",
+    fallback_standalone_cents: 4900,
+    fallback_subscriber_cents: 2500,
   },
   li_analyzer: {
     name: "Legitimate Interest Assessment Tool",
-    standalone_lookup: "li_standalone",
-    subscriber_lookup: "li_subscriber",
-    fallback_standalone_cents: 3900,
-    fallback_subscriber_cents: 1900,
+    standalone_lookup: "li_standalone_v2",
+    subscriber_lookup: "li_subscriber_v2",
+    fallback_standalone_cents: 7900,
+    fallback_subscriber_cents: 3500,
   },
   dpia_builder: {
     name: "Impact Assessment Builder",
-    standalone_lookup: "dpia_standalone",
-    subscriber_lookup: "dpia_subscriber",
-    fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 3900,
+    standalone_lookup: "dpia_standalone_v2",
+    subscriber_lookup: "dpia_subscriber_v2",
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
   },
 };
 
