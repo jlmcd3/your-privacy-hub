@@ -79,7 +79,7 @@ const Index = () => {
                   ⭐ Weekly Intelligence Brief
                 </div>
                 <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                  Every Monday. Premium. 8-section analysis.
+                  Every Monday. Professional. 8-section analysis.
                 </p>
                 <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
                   Enforcement table · trend signals · action items ·

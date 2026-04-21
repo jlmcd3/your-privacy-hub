@@ -98,7 +98,7 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
             </p>
           </div>
           <PremiumGate
-            message="Key takeaways, compliance impact, and full risk analysis are Premium features."
+            message="Key takeaways, compliance impact, and full risk analysis are Professional features."
             blur={false}
           />
         </div>

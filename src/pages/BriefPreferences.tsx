@@ -171,13 +171,13 @@ export default function BriefPreferences() {
     setSaving(false);
     setSaved(true);
     if (!isPremium) {
-      toast("Preferences saved! They'll activate when you upgrade to Premium.");
+      toast("Preferences saved! They'll activate when you upgrade to Professional.");
     }
   };
 
   return (
     <>
-      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Premium</title></Helmet>
+      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Professional</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
@@ -189,7 +189,7 @@ export default function BriefPreferences() {
           )}
           <div className="mb-8">
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
-              <span>⭐</span> Premium
+              <span>⭐</span> Professional
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">
               Configure your Intelligence Brief
@@ -283,14 +283,14 @@ export default function BriefPreferences() {
           {isPremium === false && (
             <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
-                Intelligence requires Premium ($20/month).
+                Intelligence requires Professional ($29/month).
                 Preferences are saved and will activate once you subscribe.
               </p>
               <Link
                 to="/subscribe"
                 className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Upgrade to Premium →
+                Upgrade to Professional →
               </Link>
             </div>
           )}

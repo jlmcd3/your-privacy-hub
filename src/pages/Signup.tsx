@@ -43,7 +43,7 @@ const Signup = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Create Account | EndUserPrivacy</title>
-        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Premium Intelligence Briefs from $20/month." />
+        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Professional Intelligence Briefs from $29/month." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">

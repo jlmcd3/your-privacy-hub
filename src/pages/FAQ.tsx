@@ -22,8 +22,8 @@ const faqs = [
     a: "The entire platform is free to browse: all regulator profiles, jurisdiction pages (150+ countries), the enforcement tracker (most recent 12 actions), all research guides (GDPR, AI Privacy, US Federal and State law, Global Privacy Laws), and the free Monday news digest email with the top 5 developments of the week.",
   },
   {
-    q: "What does Premium add?",
-    a: "Premium subscribers receive the full 8-section Weekly Intelligence Brief every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.",
+    q: "What does Professional add?",
+    a: "Professional subscribers receive the full 8-section Weekly Intelligence Brief every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.",
   },
   {
     q: "How is the analysis produced?",

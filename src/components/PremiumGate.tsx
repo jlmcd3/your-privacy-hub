@@ -25,7 +25,7 @@ export default function PremiumGate({ message, blur = true, children }: PremiumG
         <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
           <div className="text-center px-6 py-5 max-w-sm">
             <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full mb-3">
-              ⭐ Premium
+              ⭐ Professional
             </span>
             <p className="text-[13px] text-muted-foreground leading-snug mb-3">{message}</p>
             <Link
@@ -46,7 +46,7 @@ export default function PremiumGate({ message, blur = true, children }: PremiumG
       <div className="flex items-center justify-center gap-2 mb-2">
         <Lock className="w-4 h-4 text-amber-500" />
         <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-          ⭐ Premium
+          ⭐ Professional
         </span>
       </div>
       <p className="text-[13px] text-muted-foreground mb-3">{message}</p>

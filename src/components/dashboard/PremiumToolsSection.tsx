@@ -180,7 +180,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
         </h2>
         <p className="text-muted-foreground text-[14px] mt-1">
           Standalone compliance framework reports. Purchase only what you need —
-          {isPremium ? " Premium subscriber rate applied at checkout." : " Premium subscribers pay less."}
+          {isPremium ? " Premium subscriber rate applied at checkout." : " Professional subscribers pay less."}
         </p>
       </div>
 
@@ -204,7 +204,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
                 <span className="text-muted-foreground text-[12px] ml-1">one-time</span>
                 {!isPremium && (
                   <span className="block text-[11px] text-amber-700 mt-0.5">
-                    ⭐ Premium: ${tool.subscriberPrice}
+                    ⭐ Professional: ${tool.subscriberPrice}
                   </span>
                 )}
                 {isPremium && tool.standalonePrice > tool.subscriberPrice && (

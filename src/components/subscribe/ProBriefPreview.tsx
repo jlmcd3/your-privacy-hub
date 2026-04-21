@@ -251,7 +251,7 @@ export default function ProBriefPreview() {
                 document.getElementById("pro-plan-card")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              Get Premium →
+              Get Professional →
             </a>
           </div>
         </div>

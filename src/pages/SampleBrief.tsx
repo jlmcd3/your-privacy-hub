@@ -48,7 +48,7 @@ const SampleBrief = () => {
               See what your Intelligence brief sends you every Monday
             </h1>
             <p className="text-slate-light text-[15px] max-w-[600px] mx-auto mb-6">
-              This is what Premium subscribers receive every Monday — a full 8-section
+              This is what Professional subscribers receive every Monday — a full 8-section
               Intelligence Brief covering every significant privacy regulatory development
               from the prior week, re-analyzed specifically for their industry and jurisdiction.
             </p>
@@ -58,7 +58,7 @@ const SampleBrief = () => {
                   to="/subscribe"
                   className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
                 >
-                  Get Premium →
+                  Get Professional →
                 </Link>
               )}
               <Link

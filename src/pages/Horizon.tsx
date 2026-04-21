@@ -87,7 +87,7 @@ export default function Horizon() {
         .order("week_of", { ascending: false })
         .limit(60);
 
-      // Only Premium subscribers get personalized watchlist filtering on this page
+      // Only Professional subscribers get personalized watchlist filtering on this page
       const watchReq = user && isPremium
         ? (supabase as any)
             .from("user_watchlist")
@@ -153,7 +153,7 @@ export default function Horizon() {
               ? hasWatchlist
                 ? " Filtered to the jurisdictions and topics you follow."
                 : " Add jurisdictions and topics to your watchlist on your dashboard to personalize this view."
-              : " Premium subscribers can filter this feed to the jurisdictions and topics they follow."}
+              : " Professional subscribers can filter this feed to the jurisdictions and topics they follow."}
           </p>
         </div>
       </header>
@@ -195,7 +195,7 @@ export default function Horizon() {
             <Link to="/login" className="font-semibold text-navy no-underline hover:underline">
               Sign in
             </Link>{" "}
-            and upgrade to Premium to filter this feed to the jurisdictions and topics you follow.
+            and upgrade to Professional to filter this feed to the jurisdictions and topics you follow.
           </div>
         )}
 
@@ -203,13 +203,13 @@ export default function Horizon() {
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-slate flex flex-wrap items-center justify-between gap-3">
             <span>
               <span className="font-semibold text-navy">Personalize this watchlist.</span>{" "}
-              Premium subscribers filter Regulatory Horizon signals to the jurisdictions and topics they follow.
+              Professional subscribers filter Regulatory Horizon signals to the jurisdictions and topics they follow.
             </span>
             <Link
               to="/subscribe"
               className="text-[12px] font-semibold text-amber-900 no-underline hover:underline whitespace-nowrap"
             >
-              Upgrade to Premium →
+              Upgrade to Professional →
             </Link>
           </div>
         )}
