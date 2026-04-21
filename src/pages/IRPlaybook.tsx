@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
+import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,6 +34,7 @@ export default function IRPlaybook() {
     contained: "Unknown", organisationType: "Company",
   });
   const [result, setResult] = useState("");
+  const [authGateOpen, setAuthGateOpen] = useState(false);
 
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");
@@ -51,6 +53,7 @@ export default function IRPlaybook() {
 
   const handlePurchase = async () => {
     if (access.isPremium) { setPhase("form"); return; }
+    if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
       body: { tool_type: "ir_playbook", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/ir-playbook" },
     });
@@ -63,6 +66,7 @@ export default function IRPlaybook() {
         <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
           <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>

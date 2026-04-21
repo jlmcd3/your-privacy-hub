@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
+import AuthGateModal from "@/components/AuthGateModal";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -68,6 +69,7 @@ const LIAssessment = () => {
   const [statedPurpose, setStatedPurpose] = useState("");
   const [alternatives, setAlternatives] = useState("");
   const [purchasing, setPurchasing] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
 
   const validate = () => {
     if (processingDescription.trim().length < 50) return "Processing description must be at least 50 characters.";
@@ -85,7 +87,7 @@ const LIAssessment = () => {
       return;
     }
     if (!user) {
-      navigate(`/login?return=${encodeURIComponent("/li-assessment")}`);
+      setAuthGateOpen(true);
       return;
     }
     setPurchasing(true);
@@ -204,6 +206,7 @@ const LIAssessment = () => {
           </div>
         </form>
 
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/li-assessment" />
         <ToolSamplePreview
           toolType="li"
           toolName="Legitimate Interest Assessment Tool"

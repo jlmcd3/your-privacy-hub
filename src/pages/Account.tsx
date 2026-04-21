@@ -150,7 +150,7 @@ export default function Account() {
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
               Full archive, your weekly brief re-written for your industry and
               jurisdictions, watchlists, and subscriber pricing on every assessment tool
-              (save up to 50%). $19/month or $190/year (save 17%).
+              (save up to 50%). $29/month or $290/year (save 17%).
             </p>
             <Link
               to="/subscribe"

@@ -380,23 +380,23 @@ const Dashboard = () => {
                 to="/governance-assessment"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">Healthcheck</p>
+                <p className="text-[12px] font-semibold text-foreground">Privacy Program Assessment</p>
                 <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$15</span>
+                  <span className="font-bold">$25</span>
                   <span className="text-muted-foreground"> /analysis</span>
                 </p>
-                <p className="text-[10px] text-green-700">Save $14 vs standard</p>
+                <p className="text-[10px] text-green-700">Save $24 vs standard</p>
               </Link>
               <Link
                 to="/li-assessment"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">LI Assessment Tool</p>
+                <p className="text-[12px] font-semibold text-foreground">Legitimate Interest Assessment</p>
                 <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$19</span>
+                  <span className="font-bold">$35</span>
                   <span className="text-muted-foreground"> /analysis</span>
                 </p>
-                <p className="text-[10px] text-green-700">Save $20 vs standard</p>
+                <p className="text-[10px] text-green-700">Save $44 vs standard</p>
               </Link>
               <Link
                 to="/dpia-framework"
@@ -404,10 +404,10 @@ const Dashboard = () => {
               >
                 <p className="text-[12px] font-semibold text-foreground">Impact Assessment Builder</p>
                 <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$39</span>
+                  <span className="font-bold">$49</span>
                   <span className="text-muted-foreground"> /analysis</span>
                 </p>
-                <p className="text-[10px] text-green-700">Save $30 vs standard</p>
+                <p className="text-[10px] text-green-700">Save $50 vs standard</p>
               </Link>
               <Link
                 to="/dpa-generator"
@@ -415,10 +415,10 @@ const Dashboard = () => {
               >
                 <p className="text-[12px] font-semibold text-foreground">Your Custom DPA</p>
                 <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$39</span>
+                  <span className="font-bold">$49</span>
                   <span className="text-muted-foreground"> /document</span>
                 </p>
-                <p className="text-[10px] text-green-700">Save $30 vs standard</p>
+                <p className="text-[10px] text-green-700">Save $50 vs standard</p>
               </Link>
               <Link
                 to="/ir-playbook"

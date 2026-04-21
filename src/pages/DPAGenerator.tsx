@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
+import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,6 +40,7 @@ export default function DPAGenerator() {
   });
   const [phase, setPhase] = useState<"sample" | "generating" | "result">("sample");
   const [result, setResult] = useState<string>("");
+  const [authGateOpen, setAuthGateOpen] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -57,6 +59,7 @@ export default function DPAGenerator() {
 
   const handlePurchase = async () => {
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
+    if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
       body: { tool_type: "dpa_generator", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/dpa-generator" },
     });
@@ -69,6 +72,7 @@ export default function DPAGenerator() {
         <meta name="description" content="Generate your custom GDPR Article 28-compliant Data Protection Agreement, calibrated to live enforcement precedents." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Custom DPA</h1>
           <p className="text-slate text-[14px]">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>

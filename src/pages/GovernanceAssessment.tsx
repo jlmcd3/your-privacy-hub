@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
+import AuthGateModal from "@/components/AuthGateModal";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -54,6 +55,7 @@ const GovernanceAssessment = () => {
 
   const [step, setStep] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
 
   // Step 1
   const [sector, setSector] = useState("");
@@ -135,7 +137,7 @@ const GovernanceAssessment = () => {
   });
 
   const handlePurchase = async () => {
-    if (!user) { navigate(`/login?return=${encodeURIComponent("/governance-assessment")}`); return; }
+    if (!user) { setAuthGateOpen(true); return; }
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
@@ -331,6 +333,7 @@ const GovernanceAssessment = () => {
           </div>
         </div>
 
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/governance-assessment" />
         <ToolSamplePreview
           toolType="healthcheck"
           toolName="Privacy Program Assessment Tool"
