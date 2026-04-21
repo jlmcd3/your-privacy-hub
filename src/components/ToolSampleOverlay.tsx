@@ -58,15 +58,15 @@ export default function ToolSampleOverlay({
             <p className="text-[11px] text-muted-foreground">
               Subscribers pay ${subscriberPrice}.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
-                Subscribe for $20/month →
+                Subscribe for $29/month →
               </Link>
             </p>
           )}
           {showFreeForSubscribers && !isFreeForUser && (
             <p className="text-[11px] text-muted-foreground">
-              Free with a Premium subscription.{" "}
+              Included with a Professional subscription.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
-                Subscribe for $20/month →
+                Subscribe for $29/month →
               </Link>
             </p>
           )}

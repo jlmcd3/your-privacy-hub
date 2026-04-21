@@ -23,10 +23,10 @@ const PremiumBanner = () => {
               ⭐ Premium Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The library is free.<br />Professional intelligence is $19/month.
+              The library is free.<br />Professional intelligence is $29/month.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
-              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Professional adds the full Intelligence Brief, watchlists, the complete enforcement archive, and subscriber pricing on every assessment tool (up to 50% off) — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
+              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Professional adds the full Intelligence Brief, watchlists, the complete enforcement archive, and subscriber rates on every assessment tool — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (
@@ -49,10 +49,10 @@ const PremiumBanner = () => {
           <div className="relative z-10 bg-white/[0.06] border border-white/15 rounded-2xl p-6 md:p-7 text-center min-w-[180px] md:min-w-[200px]">
             <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Professional</div>
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
-              <sup className="text-[18px] md:text-[22px] align-super">$</sup>19
+              <sup className="text-[18px] md:text-[22px] align-super">$</sup>29
             </div>
             <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
-            <div className="text-[11px] text-white/70 mb-2">or $190/year — save $38</div>
+            <div className="text-[11px] text-white/70 mb-2">or $290/year — save $58</div>
             <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">
               First 25 subscribers: free for 1 year
             </div>

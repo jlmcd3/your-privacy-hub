@@ -376,7 +376,7 @@ const GetIntelligence = () => {
                               Get My Report →
                             </Link>
                             <span className="text-[12px] text-slate">
-                              $20/month · cancel anytime
+                              $29/month · cancel anytime
                             </span>
                             <button type="button" onClick={() => setShowEmailCapture(true)}
                               className="text-blue text-[13px] font-semibold hover:text-navy">

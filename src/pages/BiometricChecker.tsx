@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,15 +17,15 @@ const COUNTS = ["Fewer than 500","500-5,000","5,000-50,000","50,000-500,000","Mo
 
 export default function BiometricChecker() {
   const [params] = useSearchParams();
-  const access = useToolAccess({ standalonePrice: 29, subscriberPrice: null, freeJurisdictionLimit: 1 });
+  // No more anonymous free tier — every analysis requires a signed-in account.
+  const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], purpose: PURPOSE[0],
     jurisdictions: [] as string[], enrolledCount: COUNTS[1],
   });
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
   const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
-
-  const isFree = form.jurisdictions.length <= 1 || access.isPremium === true;
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -41,23 +42,33 @@ export default function BiometricChecker() {
     setPhase("result");
   };
 
-  const handlePurchase = async () => {
-    if (isFree) { handleGenerate(); return; }
+  const handleAnalyse = async () => {
+    // 1. Require login for everyone
+    if (!access.user) { setAuthModalOpen(true); return; }
+    // 2. Subscribers run free
+    if (access.isPremium) { handleGenerate(); return; }
+    // 3. Free account holders pay $49 to run
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
       body: { tool_type: "biometric_checker", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/biometric-checker" },
     });
     if (data?.url) window.location.href = data.url;
   };
 
+  const ctaLabel = !access.user
+    ? "Sign in to analyse"
+    : access.isPremium
+      ? "Analyse — Included with Professional"
+      : "Analyse — $49";
+
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Checker | EndUserPrivacy</title>
-        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. First jurisdiction always free." /></Helmet>
+        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Professional." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Checker</h1>
-          <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. First jurisdiction free; multi-jurisdiction is $29 or free with Premium.</p>
+          <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Professional.</p>
         </header>
 
         {phase === "result" && result ? (
@@ -102,18 +113,18 @@ export default function BiometricChecker() {
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
 
             <div className="border-t border-border pt-4">
-              {form.jurisdictions.length <= 1 ? (
-                <p className="text-[12px] text-muted-foreground mb-3">Free analysis — submit to run.</p>
+              {!access.user ? (
+                <p className="text-[12px] text-muted-foreground mb-3">A free EndUserPrivacy account is required to run any analysis. Professional subscribers receive this tool included at no additional charge.</p>
               ) : access.isPremium ? (
-                <p className="text-[12px] text-muted-foreground mb-3">Multi-jurisdiction analysis — included with your Premium subscription.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Included with your Professional subscription.</p>
               ) : (
-                <p className="text-[12px] text-muted-foreground mb-3">Multi-jurisdiction analysis — $29 · or free with Premium ($20/month).</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Professional ($29/month).</p>
               )}
               <div className="flex gap-3 flex-wrap">
-                <button onClick={handlePurchase} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
+                <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
                   className="bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
-                  {isFree ? "Analyse — Free" : "Analyse — $29"}</button>
-                {!isFree && !access.isPremium && (
+                  {ctaLabel}</button>
+                {access.user && !access.isPremium && (
                   <Link to="/subscribe" className="bg-card border border-primary text-primary font-semibold text-[14px] px-6 py-3 rounded-xl hover:bg-primary/5 no-underline">Subscribe instead →</Link>
                 )}
               </div>
@@ -121,6 +132,13 @@ export default function BiometricChecker() {
           </div>
         )}
       </main>
+      <AuthGateModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        heading="Create a free account to run your analysis"
+        body="A free EndUserPrivacy account is required to use this tool. Creating one takes under a minute."
+        redirectTo="/biometric-checker"
+      />
       <Footer />
     </div>
   );
