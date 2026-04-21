@@ -71,7 +71,7 @@ export default function Account() {
               <span className="text-[13px] text-slate">Plan</span>
               {isPremium ? (
                 <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
-                  ⭐ {subscriptionTier === "grandfathered_premium" ? "Premium (Legacy)" : "Professional"}{" "}
+                  ⭐ {subscriptionTier === "grandfathered_premium" ? "Professional (Legacy)" : "Professional"}{" "}
                   {subscriptionInterval === "year" ? "(Annual)" : "(Monthly)"}
                 </span>
               ) : (

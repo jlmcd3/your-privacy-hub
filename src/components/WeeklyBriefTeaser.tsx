@@ -45,7 +45,7 @@ const WeeklyBriefTeaser = () => {
             </h2>
             <p className="text-[13px] text-slate mt-1">
               Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
-              8 sections · Published every Monday · <strong>Premium</strong>
+              8 sections · Published every Monday · <strong>Professional</strong>
             </p>
           </div>
           <Link

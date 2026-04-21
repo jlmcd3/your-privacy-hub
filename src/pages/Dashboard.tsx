@@ -249,13 +249,13 @@ const Dashboard = () => {
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
               <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
-                ⭐ Upgrade to Premium
+                ⭐ Upgrade to Professional
               </div>
               <h3 className="font-display font-bold text-white text-[18px] mb-2">
                 This brief, re-analyzed for your practice
               </h3>
               <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
-                Your weekly digest tells you what happened. Premium tells you what it means
+                Your weekly digest tells you what happened. Professional tells you what it means
                 for your industry, what your priorities are, and what to do about it. $20/month.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -352,7 +352,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="font-display font-bold text-foreground text-[16px]">
-                {subscriptionInterval === "year" ? "⭐ Premium Annual" : "⭐ Premium Monthly"}
+                {subscriptionInterval === "year" ? "⭐ Professional Annual" : "⭐ Professional Monthly"}
               </span>
               {subscriptionInterval === "year" && (
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
