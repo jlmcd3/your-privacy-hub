@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
+import AuthGateModal from "@/components/AuthGateModal";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
@@ -55,6 +56,7 @@ const DPIAFramework = () => {
   const [legalBasis, setLegalBasis] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
 
   // Pre-populate from governance assessment if ?source= present
   useEffect(() => {
@@ -102,7 +104,7 @@ const DPIAFramework = () => {
   const handlePurchase = async () => {
     const err = validate();
     if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
-    if (!user) { navigate(`/login?return=${encodeURIComponent("/dpia-framework")}`); return; }
+    if (!user) { setAuthGateOpen(true); return; }
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
@@ -181,6 +183,7 @@ const DPIAFramework = () => {
           </div>
         </form>
 
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
         <ToolSamplePreview
           toolType="dpia"
           toolName="Impact Assessment Builder"

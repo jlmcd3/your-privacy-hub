@@ -75,8 +75,8 @@ const Signup = () => {
             <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Create Account</h1>
             <p className="text-sm text-slate text-center mb-7">
               {redirect.includes("subscribe") || redirect.includes("success")
-                ? "Create your account to complete your Premium subscription"
-                : "Join EndUserPrivacy — free to browse, Pro from $20/month"}
+                ? "Create your account to complete your Professional subscription"
+                : "Join EndUserPrivacy — free to browse, Professional from $29/month"}
             </p>
 
             {message && (
