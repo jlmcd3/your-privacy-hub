@@ -1302,6 +1302,10 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Repair subject-less / truncated RSS titles using the article description
+        // and (as fallback) the source-mapped jurisdiction display name.
+        title = repairTitle(title, description, directJurisdictions, source.source);
+
         const row: Record<string, unknown> = {
           title: title.slice(0, 400),
           summary: description.slice(0, 500) || null,
