@@ -13,7 +13,10 @@ const AGENCIES = [
   "federal-communications-commission",
 ];
 
+import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+
 Deno.serve(async () => {
+  const run = await startRun(supabase, "fetch-federal-register", { agencies: AGENCIES.length });
   const results = { inserted: 0, skipped: 0, errors: [] as string[] };
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split("T")[0];
 
@@ -51,7 +54,19 @@ Deno.serve(async () => {
     }
   } catch (e: any) {
     results.errors.push(`FedReg: ${e.message}`);
+    await failRun(supabase, run, e, { inserted: results.inserted, skipped: results.skipped });
+    return new Response(JSON.stringify(results), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
+
+  await finishRun(supabase, run, {
+    inserted: results.inserted,
+    skipped: results.skipped,
+    fetched: results.inserted + results.skipped,
+    metadata: { errors: results.errors },
+  });
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json" },

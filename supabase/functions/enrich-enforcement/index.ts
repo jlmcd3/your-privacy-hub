@@ -66,11 +66,15 @@ async function enrichOne(row: any): Promise<Record<string, unknown> | null> {
   try { return JSON.parse(text); } catch { return null; }
 }
 
+import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const url = new URL(req.url);
   const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "25"), 100);
+
+  const run = await startRun(supabase, "enrich-enforcement", { limit });
 
   // Atomically claim a batch via FOR UPDATE SKIP LOCKED RPC.
   // Claimed rows are marked enrichment_version = -1 (in-progress) so parallel
@@ -81,52 +85,71 @@ Deno.serve(async (req) => {
   });
 
   if (error) {
+    await failRun(supabase, run, error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   let updated = 0, failed = 0, rateLimited = 0;
 
-  for (const row of rows ?? []) {
-    try {
-      const enriched = await enrichOne(row);
-      if (!enriched) {
-        failed++;
-        await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
-        continue;
-      }
+  try {
+    for (const row of rows ?? []) {
+      try {
+        const enriched = await enrichOne(row);
+        if (!enriched) {
+          failed++;
+          await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
+          continue;
+        }
 
-      const update: Record<string, unknown> = {
-        data_categories: Array.isArray(enriched.data_categories) ? enriched.data_categories : null,
-        violation_types: Array.isArray(enriched.violation_types) ? enriched.violation_types : null,
-        industry_sector: typeof enriched.industry_sector === "string" ? enriched.industry_sector : null,
-        company_type: typeof enriched.company_type === "string" ? enriched.company_type : null,
-        key_compliance_failure: typeof enriched.key_compliance_failure === "string" ? enriched.key_compliance_failure : null,
-        preventive_measures: typeof enriched.preventive_measures === "string" ? enriched.preventive_measures : null,
-        tool_relevance: Array.isArray(enriched.tool_relevance) ? enriched.tool_relevance : null,
-        breach_related: Boolean(enriched.breach_related),
-        biometric_related: Boolean(enriched.biometric_related),
-        dpa_related: Boolean(enriched.dpa_related),
-        precedent_significance: typeof enriched.precedent_significance === "number" ? Math.max(1, Math.min(5, Math.round(enriched.precedent_significance))) : null,
-        fine_eur_equivalent: typeof enriched.fine_eur_equivalent === "number" ? enriched.fine_eur_equivalent : row.fine_eur ?? null,
-        enrichment_version: ENRICHMENT_VERSION,
-      };
+        const update: Record<string, unknown> = {
+          data_categories: Array.isArray(enriched.data_categories) ? enriched.data_categories : null,
+          violation_types: Array.isArray(enriched.violation_types) ? enriched.violation_types : null,
+          industry_sector: typeof enriched.industry_sector === "string" ? enriched.industry_sector : null,
+          company_type: typeof enriched.company_type === "string" ? enriched.company_type : null,
+          key_compliance_failure: typeof enriched.key_compliance_failure === "string" ? enriched.key_compliance_failure : null,
+          preventive_measures: typeof enriched.preventive_measures === "string" ? enriched.preventive_measures : null,
+          tool_relevance: Array.isArray(enriched.tool_relevance) ? enriched.tool_relevance : null,
+          breach_related: Boolean(enriched.breach_related),
+          biometric_related: Boolean(enriched.biometric_related),
+          dpa_related: Boolean(enriched.dpa_related),
+          precedent_significance: typeof enriched.precedent_significance === "number" ? Math.max(1, Math.min(5, Math.round(enriched.precedent_significance))) : null,
+          fine_eur_equivalent: typeof enriched.fine_eur_equivalent === "number" ? enriched.fine_eur_equivalent : row.fine_eur ?? null,
+          enrichment_version: ENRICHMENT_VERSION,
+        };
 
-      const { error: upErr } = await supabase.from("enforcement_actions").update(update).eq("id", row.id);
-      if (upErr) {
-        failed++;
-        console.error("update", row.id, upErr.message);
+        const { error: upErr } = await supabase.from("enforcement_actions").update(update).eq("id", row.id);
+        if (upErr) {
+          failed++;
+          console.error("update", row.id, upErr.message);
+          await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
+        } else {
+          updated++;
+        }
+      } catch (e) {
+        const msg = (e as Error).message;
+        if (msg === "rate_limited") { rateLimited++; await new Promise((r) => setTimeout(r, 2000)); }
+        else { failed++; console.error("enrich", row.id, msg); }
         await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
-      } else {
-        updated++;
       }
-    } catch (e) {
-      const msg = (e as Error).message;
-      if (msg === "rate_limited") { rateLimited++; await new Promise((r) => setTimeout(r, 2000)); }
-      else { failed++; console.error("enrich", row.id, msg); }
-      await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
+      await new Promise((r) => setTimeout(r, 300));
     }
-    await new Promise((r) => setTimeout(r, 300));
+  } catch (e) {
+    await failRun(supabase, run, e, {
+      fetched: rows?.length ?? 0,
+      enriched: updated,
+      enrichmentFailed429: rateLimited,
+      enrichmentFailedOther: failed,
+    });
+    throw e;
   }
+
+  await finishRun(supabase, run, {
+    fetched: rows?.length ?? 0,
+    enriched: updated,
+    enrichmentFailed429: rateLimited,
+    enrichmentFailedOther: failed,
+    status: (failed > 0 || rateLimited > 0) ? "partial" : "success",
+  });
 
   return new Response(JSON.stringify({ candidates: rows?.length ?? 0, updated, failed, rateLimited }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } });
