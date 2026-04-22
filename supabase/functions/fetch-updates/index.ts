@@ -1123,7 +1123,7 @@ Deno.serve(async (req) => {
       for (const item of items) {
         let title = stripHtml(extractTag(item, "title"));
         const link = extractLink(item);
-        let description = stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content"));
+        let description = cleanRssBoilerplate(stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content")));
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
