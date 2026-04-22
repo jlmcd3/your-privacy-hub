@@ -1064,6 +1064,8 @@ Description: ${description || ""}`,
     return { title, description };
   }
 }
+import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
@@ -1072,8 +1074,11 @@ Deno.serve(async (req) => {
   // No auth check needed — this function only ingests public RSS data
   // and writes via service_role. Rate-limited by cron schedule.
 
+  const run = await startRun(supabase, "fetch-updates", { sources: RSS_SOURCES.length });
   const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+
+  try {
 
   // Pre-fetch URLs that already have AI summaries to avoid redundant API calls
   const { data: existingRows } = await supabase
@@ -1176,15 +1181,29 @@ Deno.serve(async (req) => {
   }
 
 
-  // Log ingestion run — non-blocking
-  await supabase.from("ingestion_runs").insert({
-    run_at: new Date().toISOString(),
+  } catch (e) {
+    await failRun(supabase, run, e, {
+      inserted: results.inserted,
+      skipped: results.skipped,
+      enriched: results.summaries_generated,
+      enrichmentFailed429: results.enrichment_failed_429,
+      enrichmentFailedOther: results.enrichment_failed_other,
+      metadata: { errors: results.errors.slice(0, 5) },
+    });
+    return new Response(JSON.stringify({ ...results, error: (e as Error).message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
+  await finishRun(supabase, run, {
     inserted: results.inserted,
     skipped: results.skipped,
-    summaries_generated: results.summaries_generated,
-    enrichment_failed_429: results.enrichment_failed_429,
-    enrichment_failed_other: results.enrichment_failed_other,
-  }).catch(() => {});
+    enriched: results.summaries_generated,
+    enrichmentFailed429: results.enrichment_failed_429,
+    enrichmentFailedOther: results.enrichment_failed_other,
+    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length },
+  });
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },

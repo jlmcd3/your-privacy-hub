@@ -85,6 +85,8 @@ function parseDecision(title: string, markdown: string) {
   };
 }
 
+import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -96,6 +98,7 @@ Deno.serve(async (req) => {
     ? yearsParam.split(",").map((y) => y.trim()).filter(Boolean)
     : [String(currentYear), String(currentYear - 1), String(currentYear - 2)];
 
+  const run = await startRun(supabase, "ingest-gdprhub", { years, max });
   let inserted = 0, skipped = 0, errors = 0;
   const perYear: Record<string, number> = {};
 
@@ -143,9 +146,18 @@ Deno.serve(async (req) => {
       }
     }
   } catch (e) {
+    await failRun(supabase, run, e, { inserted, skipped, metadata: { perYear, errors } });
     return new Response(JSON.stringify({ error: (e as Error).message, inserted, skipped, errors, perYear }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+
+  await finishRun(supabase, run, {
+    inserted,
+    skipped,
+    fetched: inserted + skipped + errors,
+    metadata: { perYear, page_errors: errors },
+    status: errors > 0 ? "partial" : "success",
+  });
 
   return new Response(JSON.stringify({ inserted, skipped, errors, perYear }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } });

@@ -168,16 +168,20 @@ async function fetchWithRetry(
   throw new Error("Max retries exceeded");
 }
 
+import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
+  const run = await startRun(supabase, "fetch-newsapi");
   const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, errors: [] as string[] };
   const newsApiKey = Deno.env.get("NEWSAPI_KEY");
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   if (!newsApiKey) {
+    await failRun(supabase, run, new Error("NEWSAPI_KEY not set"));
     return new Response(JSON.stringify({ error: "NEWSAPI_KEY not set" }), {
       status: 500, headers: { "Content-Type": "application/json" },
     });
@@ -293,6 +297,13 @@ Deno.serve(async (req) => {
       results.errors.push(`NewsAPI [${q}]: ${e.message}`);
     }
   }
+
+  await finishRun(supabase, run, {
+    inserted: results.inserted,
+    skipped: results.skipped,
+    enriched: results.summaries_generated,
+    metadata: { errors: results.errors.slice(0, 10) },
+  });
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
