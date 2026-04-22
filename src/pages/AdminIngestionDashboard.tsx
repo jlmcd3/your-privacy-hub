@@ -26,10 +26,10 @@ interface RunRow {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  partial: "bg-amber-50 text-amber-700 border-amber-200",
-  error: "bg-red-50 text-red-700 border-red-200",
-  running: "bg-blue-50 text-blue-700 border-blue-200",
+  success: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-400",
+  partial: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-400",
+  error: "bg-destructive/10 text-destructive border-destructive/30",
+  running: "bg-primary/10 text-primary border-primary/30",
 };
 
 function formatDuration(ms: number | null): string {
@@ -232,7 +232,7 @@ export default function AdminIngestionDashboard() {
                         <td className="px-4 py-3 text-right text-[12px] text-foreground">{r.fetched ?? "—"}</td>
                         <td className="px-4 py-3 text-right text-[12px] text-foreground font-semibold">{r.inserted ?? 0}</td>
                         <td className="px-4 py-3 text-right text-[12px] text-foreground">{r.enriched ?? r.summaries_generated ?? 0}</td>
-                        <td className={`px-4 py-3 text-right text-[12px] font-semibold ${failed > 0 ? "text-red-600" : "text-muted-foreground"}`}>{failed || "—"}</td>
+                        <td className={`px-4 py-3 text-right text-[12px] font-semibold ${failed > 0 ? "text-destructive" : "text-muted-foreground"}`}>{failed || "—"}</td>
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => setExpandedId(isOpen ? null : r.id)}
@@ -260,7 +260,7 @@ export default function AdminIngestionDashboard() {
                               {r.error_message && (
                                 <div className="md:col-span-2">
                                   <div className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Error</div>
-                                  <pre className="bg-red-50 border border-red-200 rounded p-2 text-[11px] text-red-700 whitespace-pre-wrap break-all">{r.error_message}</pre>
+                                  <pre className="bg-destructive/10 border border-destructive/30 rounded p-2 text-[11px] text-destructive whitespace-pre-wrap break-all">{r.error_message}</pre>
                                 </div>
                               )}
                               {r.metadata && Object.keys(r.metadata).length > 0 && (
