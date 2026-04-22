@@ -683,20 +683,49 @@ function stripHtml(html: string): string {
 function cleanRssBoilerplate(text: string): string {
   if (!text) return text;
   let cleaned = text
-    // Remove "The post … appeared first on …" WordPress footer — match
-    // anywhere from the phrase to end of string, since RSS feeds often
-    // truncate mid-fragment.
+    // Remove "The post … appeared first on …" WordPress footer
     .replace(/\s*The post\s+.*$/i, "")
-    // Remove trailing "Continue Reading" / "Continue reading →" / "Read more"
-    // variants, including any preceding ellipsis or bracket.
+    // Remove trailing "Continue Reading" / "Read more" variants
     .replace(/\s*(?:[…\.]{1,3}|\[\s*(?:…|\.{3})\s*\])?\s*(?:Continue\s+reading|Read\s+more|Read\s+the\s+full\s+(?:article|post)|Click\s+here\s+to\s+read\s+more)\s*(?:[→»>\.…]+)?\s*$/i, "")
-    // Remove standalone "[…]" / "[...]" excerpt markers anywhere in the string
+    // Remove standalone "[…]" / "[...]" excerpt markers
     .replace(/\[\s*(?:…|\.{3})\s*\]/g, "")
-    // Collapse whitespace and trim trailing punctuation orphans
+    // Decode common HTML entities that survive stripHtml
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&hellip;/gi, "…")
+    // Normalize smart quotes/dashes for consistent punctuation
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2013|\u2014/g, "—")
+    // Collapse whitespace
     .replace(/\s+/g, " ")
-    .replace(/\s+([.,;:])/g, "$1")
+    // Fix space before punctuation (e.g. "word ." -> "word.")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    // Ensure single space after sentence punctuation when followed by a letter
+    .replace(/([.,;:!?])([A-Za-z])/g, "$1 $2")
+    // Collapse repeated punctuation (e.g. "..", "!!", "?!?" -> single)
+    .replace(/([,;:!?])\1+/g, "$1")
+    .replace(/\.{4,}/g, "…")
     .trim();
-  cleaned = cleaned.replace(/[\s\.…]+$/g, (m) => m.includes(".") ? "." : "");
+
+  // Strip dangling orphan punctuation/whitespace at end, then ensure a
+  // terminal sentence punctuation mark.
+  cleaned = cleaned.replace(/[\s,;:\-—–]+$/g, "").trim();
+  if (cleaned.length > 0) {
+    // Capitalize first character if it's a lowercase letter
+    const first = cleaned.charAt(0);
+    if (first >= "a" && first <= "z") {
+      cleaned = first.toUpperCase() + cleaned.slice(1);
+    }
+    // Ensure terminal punctuation
+    if (!/[.!?…]$/.test(cleaned)) {
+      cleaned += ".";
+    }
+  }
   return cleaned;
 }
 
