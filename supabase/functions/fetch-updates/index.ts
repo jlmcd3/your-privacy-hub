@@ -1181,15 +1181,29 @@ Deno.serve(async (req) => {
   }
 
 
-  // Log ingestion run — non-blocking
-  await supabase.from("ingestion_runs").insert({
-    run_at: new Date().toISOString(),
+  } catch (e) {
+    await failRun(supabase, run, e, {
+      inserted: results.inserted,
+      skipped: results.skipped,
+      enriched: results.summaries_generated,
+      enrichmentFailed429: results.enrichment_failed_429,
+      enrichmentFailedOther: results.enrichment_failed_other,
+      metadata: { errors: results.errors.slice(0, 5) },
+    });
+    return new Response(JSON.stringify({ ...results, error: (e as Error).message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
+  await finishRun(supabase, run, {
     inserted: results.inserted,
     skipped: results.skipped,
-    summaries_generated: results.summaries_generated,
-    enrichment_failed_429: results.enrichment_failed_429,
-    enrichment_failed_other: results.enrichment_failed_other,
-  }).catch(() => {});
+    enriched: results.summaries_generated,
+    enrichmentFailed429: results.enrichment_failed_429,
+    enrichmentFailedOther: results.enrichment_failed_other,
+    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length },
+  });
 
   return new Response(JSON.stringify(results), {
     headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
