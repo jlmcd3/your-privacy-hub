@@ -683,19 +683,19 @@ function stripHtml(html: string): string {
 function cleanRssBoilerplate(text: string): string {
   if (!text) return text;
   let cleaned = text
-    // Remove "The post … appeared first on …" WordPress footer (with or without
-    // surrounding punctuation)
-    .replace(/\s*The post\s+.+?\s+appeared first on\s+.+?\.?\s*$/i, "")
+    // Remove "The post … appeared first on …" WordPress footer — match
+    // anywhere from the phrase to end of string, since RSS feeds often
+    // truncate mid-fragment.
+    .replace(/\s*The post\s+.*$/i, "")
     // Remove trailing "Continue Reading" / "Continue reading →" / "Read more"
     // variants, including any preceding ellipsis or bracket.
-    .replace(/\s*(?:[…\.]{1,3}|\[\s*(?:…|\.{3})\s*\])?\s*(?:Continue\s+reading|Read\s+more|Read\s+the\s+full\s+(?:article|post)|Click\s+here\s+to\s+read\s+more)\s*(?:[→»>\.]+)?\s*$/i, "")
+    .replace(/\s*(?:[…\.]{1,3}|\[\s*(?:…|\.{3})\s*\])?\s*(?:Continue\s+reading|Read\s+more|Read\s+the\s+full\s+(?:article|post)|Click\s+here\s+to\s+read\s+more)\s*(?:[→»>\.…]+)?\s*$/i, "")
     // Remove standalone "[…]" / "[...]" excerpt markers anywhere in the string
     .replace(/\[\s*(?:…|\.{3})\s*\]/g, "")
     // Collapse whitespace and trim trailing punctuation orphans
     .replace(/\s+/g, " ")
     .replace(/\s+([.,;:])/g, "$1")
     .trim();
-  // Drop dangling trailing punctuation left over from cuts (e.g. ".  …")
   cleaned = cleaned.replace(/[\s\.…]+$/g, (m) => m.includes(".") ? "." : "");
   return cleaned;
 }
