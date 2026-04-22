@@ -677,6 +677,29 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+// Strips RSS/WordPress excerpt boilerplate that legal blogs append to feed
+// descriptions (e.g. "Continue Reading", "Read more", "[…]", "The post X
+// appeared first on Y").
+function cleanRssBoilerplate(text: string): string {
+  if (!text) return text;
+  let cleaned = text
+    // Remove "The post … appeared first on …" WordPress footer — match
+    // anywhere from the phrase to end of string, since RSS feeds often
+    // truncate mid-fragment.
+    .replace(/\s*The post\s+.*$/i, "")
+    // Remove trailing "Continue Reading" / "Continue reading →" / "Read more"
+    // variants, including any preceding ellipsis or bracket.
+    .replace(/\s*(?:[…\.]{1,3}|\[\s*(?:…|\.{3})\s*\])?\s*(?:Continue\s+reading|Read\s+more|Read\s+the\s+full\s+(?:article|post)|Click\s+here\s+to\s+read\s+more)\s*(?:[→»>\.…]+)?\s*$/i, "")
+    // Remove standalone "[…]" / "[...]" excerpt markers anywhere in the string
+    .replace(/\[\s*(?:…|\.{3})\s*\]/g, "")
+    // Collapse whitespace and trim trailing punctuation orphans
+    .replace(/\s+/g, " ")
+    .replace(/\s+([.,;:])/g, "$1")
+    .trim();
+  cleaned = cleaned.replace(/[\s\.…]+$/g, (m) => m.includes(".") ? "." : "");
+  return cleaned;
+}
+
 function extractLink(itemXml: string): string {
   const linkTag = itemXml.match(/<link[^>]*>([^<]+)<\/link>/i);
   if (linkTag) return linkTag[1].trim();
@@ -1100,7 +1123,7 @@ Deno.serve(async (req) => {
       for (const item of items) {
         let title = stripHtml(extractTag(item, "title"));
         const link = extractLink(item);
-        let description = stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content"));
+        let description = cleanRssBoilerplate(stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content")));
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
