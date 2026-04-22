@@ -1060,6 +1060,129 @@ STEP 2 — If relevant, return this JSON:
   }
 }
 
+// ── Title Repair ──────────────────────────────────────────────────
+// Many RSS feeds strip the publication name or leading subject, leaving
+// titles that begin with a verb, lowercase letter, or punctuation
+// (e.g. "Becomes 21st State to Pass Privacy Law"). We detect these
+// subject-less / truncated titles and prepend the missing entity by
+// (1) scanning the description for a known jurisdiction or proper noun,
+// or (2) falling back to the source-mapped jurisdiction display name.
+
+const JURISDICTION_SLUG_TO_NAME: Record<string, string> = {
+  'italy': 'Italy', 'france': 'France', 'germany': 'Germany', 'spain': 'Spain',
+  'belgium': 'Belgium', 'netherlands': 'Netherlands', 'denmark': 'Denmark',
+  'norway': 'Norway', 'sweden': 'Sweden', 'finland': 'Finland', 'estonia': 'Estonia',
+  'latvia': 'Latvia', 'lithuania': 'Lithuania', 'poland': 'Poland', 'ireland': 'Ireland',
+  'eu': 'EU', 'united-kingdom': 'UK', 'us-federal': 'US',
+  'california': 'California', 'texas': 'Texas', 'new-york': 'New York',
+  'district-of-columbia': 'D.C.', 'singapore': 'Singapore', 'australia': 'Australia',
+  'canada': 'Canada', 'brazil': 'Brazil', 'south-korea': 'South Korea', 'japan': 'Japan',
+};
+
+// Proper nouns we expect to see leading a privacy news title.
+// Matched against the first ~120 chars of description to find a missing subject.
+const KNOWN_SUBJECTS = [
+  // US states (most common truncation source)
+  'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
+  'Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
+  'Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan',
+  'Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada',
+  'New Hampshire','New Jersey','New Mexico','New York','North Carolina',
+  'North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island',
+  'South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont',
+  'Virginia','Washington','West Virginia','Wisconsin','Wyoming',
+  // Countries / regions
+  'EU','European Union','UK','United Kingdom','US','United States','Ireland',
+  'Germany','France','Italy','Spain','Netherlands','Belgium','Poland','Denmark',
+  'Sweden','Norway','Finland','Brazil','Canada','Australia','Japan','South Korea',
+  'China','India','Singapore','Mexico','Argentina','South Africa','Israel',
+  // Major regulators / agencies often dropped from titles
+  'FTC','HHS','OCR','SEC','CFPB','DOJ','EDPB','EDPS','CNIL','ICO','DPC','AEPD',
+  'Garante','BfDI','Datatilsynet','IMY','PDPC','OAIC','OPC','ANPD','PIPC','PPC',
+  'CPPA','CCPA','GDPR',
+];
+
+// Words that typically open a verb-led, subject-less title fragment.
+const SUBJECTLESS_LEADERS = new Set([
+  'becomes','passes','enacts','signs','adopts','issues','announces','releases',
+  'publishes','proposes','launches','approves','rejects','fines','penalises',
+  'penalizes','sanctions','orders','rules','warns','investigates','sues','files',
+  'settles','agrees','reaches','updates','amends','expands','clarifies',
+  'requires','mandates','bans','restricts','imposes','urges','calls','pushes',
+  'considers','reviews','strengthens','tightens','loosens','introduces',
+  'unveils','finalizes','finalises','withdraws','postpones','delays',
+  'confirms','denies','grants','refuses','seeks','wins','loses','accuses',
+  'allows','blocks','approves','adopts','demands','threatens',
+]);
+
+function repairTitle(
+  rawTitle: string,
+  description: string,
+  sourceJurisdictions: string[],
+  sourceName: string | null,
+): string {
+  const t = (rawTitle || '').trim();
+  if (!t) return t;
+
+  // Detect "broken" titles: leading lowercase/symbol/ellipsis, or a verb-led fragment.
+  const firstChar = t.charAt(0);
+  const startsWithLowerOrSymbol = /^[a-z]/.test(firstChar) || /^[…\-—–:,.\(\[]/.test(firstChar);
+  const firstWord = (t.match(/^[A-Za-z']+/)?.[0] || '').toLowerCase();
+  const startsWithVerb = SUBJECTLESS_LEADERS.has(firstWord);
+  const isBroken = startsWithLowerOrSymbol || startsWithVerb;
+  if (!isBroken) return t;
+
+  // Skip repair if the title already contains a known subject anywhere in the
+  // first few words (e.g. "Today, California passes ...").
+  const head = t.slice(0, 60);
+  for (const subj of KNOWN_SUBJECTS) {
+    const re = new RegExp(`\\b${subj.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if (re.test(head)) {
+      // If lowercase leader, just capitalise; otherwise leave as-is.
+      return startsWithLowerOrSymbol
+        ? t.charAt(0).toUpperCase() + t.slice(1)
+        : t;
+    }
+  }
+
+  // 1) Scan the description for a known subject (prefer the earliest match).
+  let foundSubject: string | null = null;
+  if (description) {
+    const desc = description.slice(0, 240);
+    let bestIdx = Number.POSITIVE_INFINITY;
+    for (const subj of KNOWN_SUBJECTS) {
+      const re = new RegExp(`\\b${subj.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+      const m = desc.match(re);
+      if (m && typeof m.index === 'number' && m.index < bestIdx) {
+        bestIdx = m.index;
+        foundSubject = subj;
+      }
+    }
+  }
+
+  // 2) Fall back to the source's mapped jurisdiction (e.g. cnil.fr → France).
+  if (!foundSubject && sourceJurisdictions.length > 0) {
+    const slug = sourceJurisdictions[0];
+    foundSubject = JURISDICTION_SLUG_TO_NAME[slug] || null;
+  }
+
+  if (!foundSubject) {
+    // Nothing to prepend; at least fix capitalisation.
+    return startsWithLowerOrSymbol
+      ? t.charAt(0).toUpperCase() + t.slice(1)
+      : t;
+  }
+
+  // Strip a leading punctuation/ellipsis and lowercase the first letter so the
+  // sentence reads naturally after the prepended subject.
+  let body = t.replace(/^[\s…\-—–:,.\(\[]+/, '').trim();
+  if (startsWithVerb) {
+    // Keep verb lowercase: "Becomes" → "becomes" so result reads "Alabama becomes ...".
+    body = body.charAt(0).toLowerCase() + body.slice(1);
+  }
+  return `${foundSubject} ${body}`.trim();
+}
+
 // Detects if text is likely non-English using common word patterns
 function isLikelyNonEnglish(text: string): boolean {
   if (!text || text.length < 10) return false;
