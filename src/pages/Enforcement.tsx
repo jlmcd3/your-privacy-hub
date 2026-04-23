@@ -177,23 +177,44 @@ export default function Enforcement() {
             (error as any)?.context?.response?.status ??
             (error as any)?.status;
           if (status === 401) {
-            setArchiveError({
-              kind: "auth",
-              message:
-                "Your session has expired. Please sign in again to access the archive.",
+            const msg =
+              "Your session has expired. Please sign in again to access the archive.";
+            setArchiveError({ kind: "auth", message: msg });
+            toast.error("Sign-in required", {
+              description: msg,
+              action: {
+                label: "Sign in",
+                onClick: () => {
+                  window.location.href = `/login?redirect=${encodeURIComponent(
+                    "/enforcement?view=archive"
+                  )}`;
+                },
+              },
             });
           } else if (status === 403) {
-            setArchiveError({
-              kind: "premium",
-              message:
-                "A Premium subscription is required to search the full historical archive.",
+            const msg =
+              "A Premium subscription is required to search the full historical archive.";
+            setArchiveError({ kind: "premium", message: msg });
+            toast.error("Premium required", {
+              description: msg,
+              action: {
+                label: "Upgrade",
+                onClick: () => {
+                  window.location.href = "/subscribe";
+                },
+              },
             });
           } else {
-            setArchiveError({
-              kind: "other",
-              message:
-                error?.message ??
-                "Unable to load the archive right now. Please try again.",
+            const msg =
+              error?.message ??
+              "Unable to load the archive right now. Please try again.";
+            setArchiveError({ kind: "other", message: msg });
+            toast.error("Couldn't load the archive", {
+              description: msg,
+              action: {
+                label: "Try again",
+                onClick: () => setRetryNonce((n) => n + 1),
+              },
             });
           }
           setRows([]);
