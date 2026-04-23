@@ -396,9 +396,6 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         </div>
       )}
 
-      {compact && (
-        <p className="text-white/70 text-[10px] font-medium mb-1.5 tracking-wide uppercase text-center">Discover A Jurisdiction, Spin The Globe</p>
-      )}
 
       {/* Globe */}
       <div
@@ -430,7 +427,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
             }
           >
             <span className="relative z-10 flex items-center justify-center gap-2.5">
-              🌍 Spin the Globe
+              🌍 Spin the Globe to discover a jurisdiction
             </span>
             {!compact && (
               <div className="absolute inset-0 bg-gradient-to-br from-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
