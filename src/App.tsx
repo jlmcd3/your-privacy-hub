@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import USStateAuthorities from "./pages/USStateAuthorities.tsx";
 import GlobalAuthorities from "./pages/GlobalAuthorities.tsx";
-import EnforcementTrackerPage from "./pages/EnforcementTracker.tsx";
+
 import USPrivacyLaws from "./pages/USPrivacyLaws.tsx";
 import GDPREnforcement from "./pages/GDPREnforcement.tsx";
 import AIPrivacyRegulations from "./pages/AIPrivacyRegulations.tsx";
