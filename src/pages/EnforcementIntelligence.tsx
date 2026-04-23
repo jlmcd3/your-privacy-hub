@@ -171,7 +171,7 @@ export default function EnforcementIntelligence() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Enforcement Forecast Intelligence — Privacy Fines & Decisions Database</title>
+        <title>Enforcement Intelligence — Privacy Fines & Decisions Database</title>
         <meta name="description" content="Search and filter 3,700+ privacy enforcement actions worldwide. Filter by jurisdiction, sector, data category, violations, and precedent significance." />
         <link rel="canonical" href="https://enduserprivacy.com/enforcement-intelligence" />
       </Helmet>
@@ -179,7 +179,7 @@ export default function EnforcementIntelligence() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
-          <h1 className="font-serif text-4xl md:text-5xl mb-3">Enforcement Forecast Intelligence</h1>
+          <h1 className="font-serif text-4xl md:text-5xl mb-3">Enforcement Intelligence</h1>
           <p className="text-muted-foreground max-w-3xl">
             Search {count.toLocaleString()} enriched privacy enforcement actions from regulators worldwide. Filter by jurisdiction,
             sector, data category, violation type, and precedent significance.

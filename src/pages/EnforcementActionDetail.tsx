@@ -107,7 +107,7 @@ export default function EnforcementActionDetail() {
         <Navbar />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h1 className="font-serif text-3xl mb-4">Action not found</h1>
-          <Link to="/enforcement-intelligence" className="text-primary hover:underline">← Back to Enforcement Forecast Intelligence</Link>
+          <Link to="/enforcement-intelligence" className="text-primary hover:underline">← Back to Enforcement Intelligence</Link>
         </main>
         <Footer />
       </div>
@@ -121,7 +121,7 @@ export default function EnforcementActionDetail() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{title} — {action.regulator} | Enforcement Forecast Intelligence</title>
+        <title>{title} — {action.regulator} | Enforcement Intelligence</title>
         <meta name="description" content={desc} />
         <link rel="canonical" href={`https://enduserprivacy.com/enforcement-intelligence/${action.id}`} />
       </Helmet>
@@ -129,7 +129,7 @@ export default function EnforcementActionDetail() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to="/enforcement-intelligence" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back to Enforcement Forecast Intelligence
+          <ArrowLeft className="w-4 h-4" /> Back to Enforcement Intelligence
         </Link>
 
         <header className="mb-8">
