@@ -363,7 +363,7 @@ const LatestUpdates = () => {
                           Continue reading with a free account
                         </h3>
                         <p className="text-blue-200 text-[14px] mb-6 max-w-md mx-auto">
-                          Free accounts get 3 weeks of daily updates. Pro subscribers get the full archive.
+                          Free accounts get the most recent 3 weeks of analyzed privacy updates. Pro subscribers unlock the full archive.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Link
