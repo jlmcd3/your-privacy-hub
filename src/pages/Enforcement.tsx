@@ -311,7 +311,7 @@ export default function Enforcement() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Enforcement — Privacy Fines, Decisions & Intelligence</title>
+        <title>Enforcement Tracker — Privacy Fines, Decisions & Intelligence</title>
         <meta
           name="description"
           content="Search privacy enforcement actions worldwide. Recent 60 days fully enriched and free; full historical archive available with Premium."
@@ -322,7 +322,7 @@ export default function Enforcement() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
-          <h1 className="font-serif text-4xl md:text-5xl mb-3">Enforcement</h1>
+          <h1 className="font-serif text-4xl md:text-5xl mb-3">Enforcement Tracker</h1>
           {view === "recent" && (() => {
             const PUBLIC_WINDOW_DAYS = 60;
             const cutoff = new Date();
@@ -394,7 +394,7 @@ export default function Enforcement() {
             to="/horizon"
             className="ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors no-underline"
           >
-            Forecast view: Regulatory Watchlist →
+            Forecast view: Enforcement Forecast Intelligence →
           </Link>
         </div>
 
