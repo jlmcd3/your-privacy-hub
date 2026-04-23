@@ -13,7 +13,7 @@ export default function RegistrationManagerBanner() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="max-w-2xl">
             <Badge className="bg-amber-400 text-navy hover:bg-amber-400 mb-3">
-              <Sparkles className="w-3 h-3 mr-1" /> NEW
+              <Sparkles className="w-3 h-3 mr-1" /> Registration Manager
             </Badge>
             <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">
               Privacy registration filings — drafted in minutes

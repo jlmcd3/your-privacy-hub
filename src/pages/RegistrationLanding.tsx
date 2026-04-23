@@ -60,7 +60,7 @@ export default function RegistrationLanding() {
       <PageContainer>
         {/* 1. Hero */}
         <section className="py-12 md:py-16 text-center max-w-3xl mx-auto">
-          <Badge variant="outline" className="mb-4 border-accent/40 text-accent">NEW — Registration Manager</Badge>
+          <Badge variant="outline" className="mb-4 border-accent/40 text-accent">Registration Manager</Badge>
           <h1 className="font-display text-4xl md:text-5xl font-bold text-navy leading-tight">
             Privacy registration filings, drafted and tracked
           </h1>
