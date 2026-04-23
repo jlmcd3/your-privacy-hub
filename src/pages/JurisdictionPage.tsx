@@ -290,22 +290,6 @@ const JurisdictionPage = () => {
           <p className="text-[14px] text-slate leading-relaxed">{jurisdiction.overview}</p>
         </div>
 
-        {/* Key Facts strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          {[
-            { label: "Region", value: jurisdiction.region, icon: "🌍" },
-            { label: "Authorities", value: `${jurisdiction.authorities.length} regulator${jurisdiction.authorities.length !== 1 ? "s" : ""}`, icon: "🏛️" },
-            { label: "Coverage", value: `${categoryLabel} feed`, icon: "📡" },
-            { label: "Updates", value: "Daily monitoring", icon: "🔄" },
-          ].map((fact) => (
-            <div key={fact.label} className="bg-card border border-fog rounded-xl p-4 text-center">
-              <div className="text-2xl mb-1">{fact.icon}</div>
-              <div className="text-[11px] text-slate-light uppercase tracking-wider mb-0.5">{fact.label}</div>
-              <div className="text-[13px] font-bold text-navy">{fact.value}</div>
-            </div>
-          ))}
-        </div>
-
         {/* Authorities */}
         <h2 className="font-display text-xl text-navy mb-4">Regulatory Authorities</h2>
         <div className="space-y-4 mb-10">
