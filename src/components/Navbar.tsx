@@ -43,6 +43,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
           { icon: "🛰️", label: "Enforcement Forecast Intelligence", badge: "PRO", href: "/horizon" },
+          { icon: "🗄️", label: "Enforcement Tracker — Full Archive", badge: "PRO", href: "/enforcement?view=archive" },
           { icon: "📂", label: "Your Registration Filings", badge: "PRO", href: "/registration-manager" },
           { icon: "⚖️", label: "Legitimate Interest Assessment Tool", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Privacy Program Assessment Tool", badge: "PRO", href: "/governance-assessment" },
