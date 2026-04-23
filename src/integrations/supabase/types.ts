@@ -1943,63 +1943,7 @@ export type Database = {
       }
     }
     Views: {
-      enforcement_actions_public: {
-        Row: {
-          action_type: string | null
-          created_at: string | null
-          decision_date: string | null
-          etid: string | null
-          fine_amount: string | null
-          fine_eur: number | null
-          fine_eur_equivalent: number | null
-          id: string | null
-          jurisdiction: string | null
-          law: string | null
-          regulator: string | null
-          sector: string | null
-          source_database: string | null
-          source_url: string | null
-          subject: string | null
-          violation: string | null
-        }
-        Insert: {
-          action_type?: string | null
-          created_at?: string | null
-          decision_date?: string | null
-          etid?: string | null
-          fine_amount?: string | null
-          fine_eur?: number | null
-          fine_eur_equivalent?: number | null
-          id?: string | null
-          jurisdiction?: string | null
-          law?: string | null
-          regulator?: string | null
-          sector?: string | null
-          source_database?: string | null
-          source_url?: string | null
-          subject?: string | null
-          violation?: string | null
-        }
-        Update: {
-          action_type?: string | null
-          created_at?: string | null
-          decision_date?: string | null
-          etid?: string | null
-          fine_amount?: string | null
-          fine_eur?: number | null
-          fine_eur_equivalent?: number | null
-          id?: string | null
-          jurisdiction?: string | null
-          law?: string | null
-          regulator?: string | null
-          sector?: string | null
-          source_database?: string | null
-          source_url?: string | null
-          subject?: string | null
-          violation?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       claim_enforcement_for_enrichment: {
@@ -2013,6 +1957,27 @@ export type Database = {
           raw_text: string
           regulator: string
           sector: string
+          subject: string
+          violation: string
+        }[]
+      }
+      get_enforcement_action_basic: {
+        Args: { _id: string }
+        Returns: {
+          action_type: string
+          created_at: string
+          decision_date: string
+          etid: string
+          fine_amount: string
+          fine_eur: number
+          fine_eur_equivalent: number
+          id: string
+          jurisdiction: string
+          law: string
+          regulator: string
+          sector: string
+          source_database: string
+          source_url: string
           subject: string
           violation: string
         }[]
