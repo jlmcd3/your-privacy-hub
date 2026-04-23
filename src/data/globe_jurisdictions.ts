@@ -17,7 +17,7 @@ export interface GlobeJurisdiction {
 
 const GLOBE_JURISDICTIONS: GlobeJurisdiction[] = [
   // ── European Union (28 entries: EDPB + 27 member states) ──
-  { name: "European Union", cc: "eu", slug: "eu-edpb", lat: 50.8, lon: 4.4, law: "GDPR", regulator: "EDPB", tagline: "The EDPB coordinates GDPR enforcement across all EU member states." },
+  { name: "European Union", cc: "eu", slug: "european-union", lat: 50.8, lon: 4.4, law: "GDPR", regulator: "EDPB", tagline: "The EDPB coordinates GDPR enforcement across all EU member states." },
   { name: "Austria", cc: "at", slug: "austria", lat: 47.5, lon: 14.6, law: "GDPR / DSG", regulator: "DSB", tagline: "DSB issued the landmark Google Analytics ruling under GDPR." },
   { name: "Belgium", cc: "be", slug: "belgium", lat: 50.8, lon: 4.4, law: "GDPR", regulator: "APD/GBA", tagline: "APD hosts the EDPB secretariat in Brussels." },
   { name: "Bulgaria", cc: "bg", slug: "bulgaria", lat: 42.7, lon: 25.5, law: "GDPR", regulator: "CPDP", tagline: "Bulgaria's CPDP has been increasing enforcement activity." },
@@ -28,7 +28,7 @@ const GLOBE_JURISDICTIONS: GlobeJurisdiction[] = [
   { name: "Estonia", cc: "ee", slug: "estonia", lat: 58.6, lon: 25.0, law: "GDPR", regulator: "AKI", tagline: "Estonia leads Europe in digital governance and e-residency privacy." },
   { name: "Finland", cc: "fi", slug: "finland", lat: 61.9, lon: 25.7, law: "GDPR", regulator: "TSV", tagline: "Finland's DPA focuses heavily on telecom and health data." },
   { name: "France", cc: "fr", slug: "france", lat: 46.6, lon: 2.2, law: "GDPR", regulator: "CNIL", tagline: "CNIL has been one of Europe's most active data protection enforcers." },
-  { name: "Germany", cc: "de", slug: "germany-bfdi", lat: 51.2, lon: 10.4, law: "GDPR / BDSG", regulator: "BfDI", tagline: "Home to 16 state DPAs and landmark GDPR jurisprudence." },
+  { name: "Germany", cc: "de", slug: "germany", lat: 51.2, lon: 10.4, law: "GDPR / BDSG", regulator: "BfDI", tagline: "Home to 16 state DPAs and landmark GDPR jurisprudence." },
   { name: "Greece", cc: "gr", slug: "greece", lat: 39.1, lon: 21.8, law: "GDPR", regulator: "HDPA", tagline: "HDPA fined PwC €150K for unlawful employee data processing." },
   { name: "Hungary", cc: "hu", slug: "hungary", lat: 47.2, lon: 19.5, law: "GDPR", regulator: "NAIH", tagline: "NAIH oversees data protection and freedom of information." },
   { name: "Ireland", cc: "ie", slug: "ireland", lat: 53.4, lon: -8.2, law: "GDPR", regulator: "DPC", tagline: "DPC oversees the EU operations of Meta, Apple, and Google." },
@@ -50,10 +50,10 @@ const GLOBE_JURISDICTIONS: GlobeJurisdiction[] = [
   { name: "United Kingdom", cc: "gb", slug: "united-kingdom", lat: 55.4, lon: -3.4, law: "UK GDPR", regulator: "ICO", tagline: "Post-Brexit privacy is evolving fast under the DUAA 2025." },
 
   // ── Canada (4 entries: federal + 3 provinces) ──
-  { name: "Canada", cc: "ca", slug: "canada-opc", lat: 56.1, lon: -106.3, law: "PIPEDA", regulator: "OPC", tagline: "Bill C-27 is working its way through Parliament now." },
-  { name: "Canada — British Columbia", cc: "ca", slug: "canada-bc", lat: 53.7, lon: -127.6, law: "BC PIPA", regulator: "OIPC BC", tagline: "BC's PIPA applies to private-sector organizations in the province." },
-  { name: "Canada — Alberta", cc: "ca", slug: "canada-alberta", lat: 53.9, lon: -116.6, law: "Alberta PIPA", regulator: "OIPC Alberta", tagline: "Alberta's PIPA is one of three substantially similar provincial privacy laws." },
-  { name: "Canada — Quebec", cc: "ca", slug: "canada-quebec", lat: 52.9, lon: -73.5, law: "Law 25", regulator: "CAI", tagline: "Quebec's Law 25 is one of the strictest provincial privacy regimes in Canada." },
+  { name: "Canada", cc: "ca", slug: "canada", lat: 56.1, lon: -106.3, law: "PIPEDA", regulator: "OPC", tagline: "Bill C-27 is working its way through Parliament now." },
+  { name: "Canada — British Columbia", cc: "ca", slug: "canada--british-columbia", lat: 53.7, lon: -127.6, law: "BC PIPA", regulator: "OIPC BC", tagline: "BC's PIPA applies to private-sector organizations in the province." },
+  { name: "Canada — Alberta", cc: "ca", slug: "canada--alberta", lat: 53.9, lon: -116.6, law: "Alberta PIPA", regulator: "OIPC Alberta", tagline: "Alberta's PIPA is one of three substantially similar provincial privacy laws." },
+  { name: "Canada — Quebec", cc: "ca", slug: "canada--quebec", lat: 52.9, lon: -73.5, law: "Law 25", regulator: "CAI", tagline: "Quebec's Law 25 is one of the strictest provincial privacy regimes in Canada." },
 
   // ── Asia-Pacific (13 entries) ──
   { name: "Australia", cc: "au", slug: "australia", lat: -25.3, lon: 133.8, law: "Privacy Act 1988", regulator: "OAIC", tagline: "Major Privacy Act reforms took effect in 2024." },
@@ -82,7 +82,6 @@ const GLOBE_JURISDICTIONS: GlobeJurisdiction[] = [
   // ── Middle East & Africa (9 entries) ──
   { name: "Saudi Arabia", cc: "sa", slug: "saudi-arabia", lat: 23.9, lon: 45.1, law: "PDPL", regulator: "SDAIA", tagline: "Saudi Arabia's PDPL takes full effect in September 2024." },
   { name: "UAE", cc: "ae", slug: "united-arab-emirates", lat: 23.4, lon: 53.8, law: "UAE PDPL", regulator: "UAE Data Office", tagline: "UAE's federal data protection law came into force in 2022." },
-  { name: "UAE — Dubai (DIFC)", cc: "ae", slug: "uae-difc", lat: 25.2, lon: 55.3, law: "DIFC DPL 2020", regulator: "DIFC CDP", tagline: "DIFC operates its own data protection regime and holds EU adequacy." },
   { name: "Israel", cc: "il", slug: "israel", lat: 31.0, lon: 34.9, law: "PPL", regulator: "PPA", tagline: "Israel holds EU adequacy and is modernizing its 1981 privacy law." },
   { name: "South Africa", cc: "za", slug: "south-africa", lat: -30.6, lon: 22.9, law: "POPIA", regulator: "Info Regulator", tagline: "POPIA has been fully in force since 2021." },
   { name: "Nigeria", cc: "ng", slug: "nigeria", lat: 9.1, lon: 8.7, law: "NDPA 2023", regulator: "NDPC", tagline: "Nigeria established its Data Protection Commission in 2023." },
