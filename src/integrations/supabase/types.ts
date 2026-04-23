@@ -1961,6 +1961,27 @@ export type Database = {
           violation: string
         }[]
       }
+      get_enforcement_action_basic: {
+        Args: { _id: string }
+        Returns: {
+          action_type: string
+          created_at: string
+          decision_date: string
+          etid: string
+          fine_amount: string
+          fine_eur: number
+          fine_eur_equivalent: number
+          id: string
+          jurisdiction: string
+          law: string
+          regulator: string
+          sector: string
+          source_database: string
+          source_url: string
+          subject: string
+          violation: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1968,6 +1989,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_current_user_premium: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
