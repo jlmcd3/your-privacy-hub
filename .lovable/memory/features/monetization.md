@@ -7,12 +7,12 @@ type: feature
 
 ## Tiers
 - **Free**: Newsfeed (15 most recent), enforcement tracker, brief teaser, free weekly digest. Tools available at standalone (non-subscriber) prices.
-- **Professional**: $19/mo or $190/yr (save 17%). Full archive, weekly brief re-written for industry/jurisdictions, watchlists, **subscriber-discounted pricing on every assessment tool (up to 50% off)**, Regulatory Horizon access.
+- **Professional**: $29/mo or $290/yr (save $58). Full archive, weekly brief re-written for industry/jurisdictions, watchlists, **subscriber-discounted pricing on every assessment tool (up to 50% off)**, Regulatory Horizon access.
 - **grandfathered_premium**: legacy $20/mo holders, retained at original price.
 
 ## Stripe lookup keys
-- `professional_monthly` — $19.00
-- `professional_yearly` — $190.00
+- `professional_monthly` (v2) — $29.00
+- `professional_yearly` (v2) — $290.00
 
 ## Tool pricing model
 There is **no monthly tool-credit allowance**. Every tool charges per use, with two price tiers resolved at checkout via `get-tool-price` / `create-tool-checkout`:

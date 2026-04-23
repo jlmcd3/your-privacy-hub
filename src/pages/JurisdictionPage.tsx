@@ -611,7 +611,7 @@ const JurisdictionPage = () => {
             ✦ Professional subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
-            Get Professional — $20/month →
+            Get Professional — $29/month →
           </Link>
           <p className="mt-3 text-slate-light text-[12px]">
             Not sure yet?{" "}
