@@ -16,7 +16,6 @@ import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import ToolkitSection from "@/components/home/ToolkitSection";
-import RegistrationManagerBanner from "@/components/home/RegistrationManagerBanner";
 import ProToolsBanner from "@/components/home/ProToolsBanner";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
@@ -44,10 +43,7 @@ const Index = () => {
       {/* Layer 5: Free vs paid */}
       <FreeVsPaidStrip />
 
-      {/* Layer 5b: Registration Manager cross-link */}
-      <RegistrationManagerBanner />
-
-      {/* Layer 5c: Pro Tools cross-link */}
+      {/* Layer 5b: Pro Tools cross-link (includes Registration Manager) */}
       <ProToolsBanner />
 
       {/* Layer 6: Main editorial content */}

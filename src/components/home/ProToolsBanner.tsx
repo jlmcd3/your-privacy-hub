@@ -14,6 +14,7 @@ import {
   Fingerprint,
   Siren,
   Sparkles,
+  ClipboardList,
 } from "lucide-react";
 
 type Tool = {
@@ -26,6 +27,14 @@ type Tool = {
 };
 
 const TOOLS: Tool[] = [
+  {
+    icon: ClipboardList,
+    title: "Registration Manager",
+    blurb: "DPO appointments, RoPA templates, EU AI Act registrations, and Article 27 letters — tailored to your jurisdictions.",
+    price: "Free assessment · pay only when you generate",
+    cta: "Start free assessment",
+    href: "/registration-manager",
+  },
   {
     icon: ShieldCheck,
     title: "Privacy Program Assessment",
