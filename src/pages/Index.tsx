@@ -51,7 +51,7 @@ const Index = () => {
       <ProToolsBanner />
 
       {/* Layer 6: Main editorial content */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-7 md:pt-9">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Two-column layout: main content + sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
