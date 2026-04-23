@@ -1,0 +1,2 @@
+UPDATE public.jurisdictions SET region = 'Middle East & Africa' WHERE slug = 'algeria';
+UPDATE public.jurisdictions SET region = 'Asia Pacific' WHERE slug IN ('armenia','azerbaijan','georgia','kyrgyzstan','uzbekistan');
