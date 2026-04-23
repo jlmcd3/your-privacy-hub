@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
         header: "Free Tools",
         items: [
           { icon: "📋", label: "Intelligence Brief (one free with account registration)", href: "/sample-brief" },
+          { icon: "📰", label: "Privacy Regulatory Updates", badge: "FREE", badgeGreen: true, href: "/updates" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
           { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
