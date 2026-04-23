@@ -2,20 +2,60 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { slugify } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
 import AdBanner from "@/components/AdBanner";
 
+// Map ingestion codes (used in updates.direct_jurisdictions) to jurisdiction page slugs + display
+const JURISDICTION_META: Record<string, { slug: string; name: string; flag: string }> = {
+  eu: { slug: "european-union", name: "European Union", flag: "🇪🇺" },
+  "european-union": { slug: "european-union", name: "European Union", flag: "🇪🇺" },
+  uk: { slug: "united-kingdom", name: "United Kingdom", flag: "🇬🇧" },
+  "united-kingdom": { slug: "united-kingdom", name: "United Kingdom", flag: "🇬🇧" },
+  us: { slug: "united-states", name: "United States", flag: "🇺🇸" },
+  "united-states": { slug: "united-states", name: "United States", flag: "🇺🇸" },
+  france: { slug: "france", name: "France", flag: "🇫🇷" },
+  germany: { slug: "germany", name: "Germany", flag: "🇩🇪" },
+  italy: { slug: "italy", name: "Italy", flag: "🇮🇹" },
+  spain: { slug: "spain", name: "Spain", flag: "🇪🇸" },
+  ireland: { slug: "ireland", name: "Ireland", flag: "🇮🇪" },
+  netherlands: { slug: "netherlands", name: "Netherlands", flag: "🇳🇱" },
+  belgium: { slug: "belgium", name: "Belgium", flag: "🇧🇪" },
+  poland: { slug: "poland", name: "Poland", flag: "🇵🇱" },
+  denmark: { slug: "denmark", name: "Denmark", flag: "🇩🇰" },
+  sweden: { slug: "sweden", name: "Sweden", flag: "🇸🇪" },
+  norway: { slug: "norway", name: "Norway", flag: "🇳🇴" },
+  india: { slug: "india", name: "India", flag: "🇮🇳" },
+  australia: { slug: "australia", name: "Australia", flag: "🇦🇺" },
+  canada: { slug: "canada", name: "Canada", flag: "🇨🇦" },
+  brazil: { slug: "brazil", name: "Brazil", flag: "🇧🇷" },
+  japan: { slug: "japan", name: "Japan", flag: "🇯🇵" },
+  china: { slug: "china", name: "China", flag: "🇨🇳" },
+  singapore: { slug: "singapore", name: "Singapore", flag: "🇸🇬" },
+  "south-korea": { slug: "south-korea", name: "South Korea", flag: "🇰🇷" },
+};
+
+function relativeDays(published: string): string {
+  const diff = Date.now() - new Date(published).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+}
+
+
+type RecentItem = { slug: string; flag: string; name: string; update: string; days: string };
 
 export default function JurisdictionsHub() {
-  const [recentUpdates, setRecentUpdates] = useState([
-    { flag: "🇫🇷", name: "France", update: "Clearview AI €20M fine", days: "2 days ago" },
-    { flag: "🇬🇧", name: "UK", update: "DUAA provisions in force", days: "5 days ago" },
-    { flag: "🇮🇳", name: "India", update: "DPDP rules draft released", days: "1 week ago" },
-    { flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
-    { flag: "🇺🇸", name: "US Federal", update: "FTC AI commercial practices", days: "10 days ago" },
+  const [recentUpdates, setRecentUpdates] = useState<RecentItem[]>([
+    { slug: "france", flag: "🇫🇷", name: "France", update: "Clearview AI €20M fine", days: "2 days ago" },
+    { slug: "united-kingdom", flag: "🇬🇧", name: "United Kingdom", update: "DUAA provisions in force", days: "5 days ago" },
+    { slug: "india", flag: "🇮🇳", name: "India", update: "DPDP rules draft released", days: "1 week ago" },
+    { slug: "australia", flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
+    { slug: "united-states", flag: "🇺🇸", name: "United States", update: "FTC AI commercial practices", days: "10 days ago" },
   ]);
 
   const [statusCounts, setStatusCounts] = useState({
@@ -50,28 +90,32 @@ export default function JurisdictionsHub() {
   useEffect(() => {
     supabase
       .from("updates")
-      .select("title, category, published_at")
+      .select("title, direct_jurisdictions, published_at")
+      .not("direct_jurisdictions", "is", null)
       .order("published_at", { ascending: false })
-      .limit(5)
+      .limit(40)
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          const mapped = data.map((a: any) => ({
-            flag: ({ "eu-uk": "🇪🇺", "us-federal": "🇺🇸", "us-states": "🗺️",
-                    "global": "🌐", "enforcement": "⚖️", "ai-privacy": "🤖" } as Record<string, string>)[a.category] ?? "🌐",
-            name: ({ "eu-uk": "EU & UK", "us-federal": "U.S. Federal", "us-states": "U.S. States",
-                    "global": "Global", "enforcement": "Enforcement", "ai-privacy": "AI & Privacy" } as Record<string, string>)[a.category] ?? a.category,
-            update: a.title.length > 55 ? a.title.substring(0, 52) + "…" : a.title,
-            days: (() => {
-              const diff = Date.now() - new Date(a.published_at).getTime();
-              const days = Math.floor(diff / 86400000);
-              if (days === 0) return "Today";
-              if (days === 1) return "Yesterday";
-              if (days < 7) return `${days} days ago`;
-              return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? "s" : ""} ago`;
-            })(),
-          }));
-          setRecentUpdates(mapped);
+        if (!data) return;
+        const seen = new Set<string>();
+        const items: RecentItem[] = [];
+        for (const a of data as any[]) {
+          const codes: string[] = a.direct_jurisdictions ?? [];
+          for (const code of codes) {
+            const meta = JURISDICTION_META[code?.toLowerCase?.()];
+            if (!meta || seen.has(meta.slug)) continue;
+            seen.add(meta.slug);
+            items.push({
+              slug: meta.slug,
+              flag: meta.flag,
+              name: meta.name,
+              update: a.title.length > 55 ? a.title.substring(0, 52) + "…" : a.title,
+              days: relativeDays(a.published_at),
+            });
+            if (items.length >= 6) break;
+          }
+          if (items.length >= 6) break;
         }
+        if (items.length > 0) setRecentUpdates(items);
       });
   }, []);
 
@@ -146,8 +190,8 @@ export default function JurisdictionsHub() {
               <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
                 {recentUpdates.map((item) => (
                   <Link
-                    key={item.name}
-                    to={`/jurisdiction/${slugify(item.name)}`}
+                    key={item.slug}
+                    to={`/jurisdiction/${item.slug}`}
                     className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all"
                   >
                     <span className="text-base">{item.flag}</span>
