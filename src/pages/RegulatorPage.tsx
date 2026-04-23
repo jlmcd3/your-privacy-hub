@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import FollowButton from "@/components/FollowButton";
+
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 
 // Build regulator lookup from JSON
@@ -129,9 +129,6 @@ const RegulatorPage = () => {
               Official website →
             </a>
           )}
-          <div className="mt-4">
-            <FollowButton followType="regulator" followKey={slug!} label={regulator.abbreviation || regulator.name} />
-          </div>
         </div>
       </div>
 

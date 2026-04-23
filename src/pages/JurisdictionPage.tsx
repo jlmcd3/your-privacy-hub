@@ -7,8 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import FollowButton from "@/components/FollowButton";
-import ExportPDFButton from "@/components/jurisdiction/ExportPDFButton";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
@@ -272,18 +270,14 @@ const JurisdictionPage = () => {
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
       <Navbar />
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
+      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-6 md:py-8 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold uppercase tracking-widest mb-3">
+          <div className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
             <span>🌐</span>
             <span>Jurisdiction Profile</span>
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3">{jurisdiction.name}</h1>
+          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{jurisdiction.name}</h1>
           <p className="text-sm text-slate-light">Region: {jurisdiction.region} · {jurisdiction.authorities.length} regulatory {jurisdiction.authorities.length === 1 ? "authority" : "authorities"}</p>
-          <div className="mt-4 flex items-center gap-3">
-            <FollowButton followType="jurisdiction" followKey={slug!} label={jurisdiction.name} />
-            <ExportPDFButton jurisdictionName={jurisdiction.name} />
-          </div>
         </div>
       </div>
 
