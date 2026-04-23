@@ -323,6 +323,32 @@ export default function Enforcement() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
           <h1 className="font-serif text-4xl md:text-5xl mb-3">Enforcement</h1>
+          {view === "recent" && (() => {
+            const PUBLIC_WINDOW_DAYS = 60;
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - PUBLIC_WINDOW_DAYS);
+            const cutoffLabel = cutoff.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            });
+            return (
+              <div
+                className="mb-3 inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground"
+                data-testid="enforcement-window-indicator"
+                data-window-days={PUBLIC_WINDOW_DAYS}
+                data-cutoff-date={cutoff.toISOString().slice(0, 10)}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                <span>
+                  Window: <strong className="text-foreground">{PUBLIC_WINDOW_DAYS} days</strong>
+                  {" · "}
+                  Showing actions on or after{" "}
+                  <strong className="text-foreground">{cutoffLabel}</strong>
+                </span>
+              </div>
+            );
+          })()}
           <p className="text-muted-foreground max-w-3xl">
             {view === "recent" ? (
               <>
