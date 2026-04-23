@@ -154,7 +154,7 @@ export default function EnforcementStats({ filters }: { filters: Filters }) {
       {/* Headline numbers */}
       <Card>
         <CardContent className="p-5">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Last 45 days</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Last 60 days</div>
           <div className="space-y-3">
             <div>
               <div className="text-2xl font-serif">{stats.total.toLocaleString()}</div>

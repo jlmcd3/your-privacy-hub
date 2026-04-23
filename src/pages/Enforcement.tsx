@@ -314,7 +314,7 @@ export default function Enforcement() {
         <title>Enforcement — Privacy Fines, Decisions & Intelligence</title>
         <meta
           name="description"
-          content="Search privacy enforcement actions worldwide. Recent 45 days fully enriched and free; full historical archive available with Premium."
+          content="Search privacy enforcement actions worldwide. Recent 60 days fully enriched and free; full historical archive available with Premium."
         />
         <link rel="canonical" href="https://enduserprivacy.com/enforcement" />
       </Helmet>
@@ -326,7 +326,7 @@ export default function Enforcement() {
           <p className="text-muted-foreground max-w-3xl">
             {view === "recent" ? (
               <>
-                Search the last <strong>45 days</strong> of enriched privacy enforcement actions —
+                Search the last <strong>60 days</strong> of enriched privacy enforcement actions —
                 free for everyone. Filter by jurisdiction, sector, data category, violation type,
                 and precedent significance.
               </>
@@ -349,7 +349,7 @@ export default function Enforcement() {
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
-            Recent (last 45 days)
+            Recent (last 60 days)
           </button>
           <button
             onClick={() => switchView("archive")}
@@ -384,7 +384,7 @@ export default function Enforcement() {
                 <p className="text-sm text-muted-foreground">
                   Search 3,700+ historical enforcement actions with full intelligence —
                   significance ratings, key compliance failures, violation taxonomies, and
-                  preventive measures. Recent 45 days remain free for everyone.
+                  preventive measures. Recent 60 days remain free for everyone.
                 </p>
               </div>
               <Link to="/subscribe" className="shrink-0">
@@ -633,7 +633,7 @@ export default function Enforcement() {
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
                 No enforcement actions match your filters
-                {view === "recent" && " in the last 45 days"}.
+                {view === "recent" && " in the last 60 days"}.
                 {view === "recent" && (
                   <div className="mt-3">
                     <button

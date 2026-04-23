@@ -66,7 +66,7 @@ export default function EnforcementActionDetail() {
     (async () => {
       setLoading(true);
 
-      // Try the full table first (works for last 45 days, returns enriched fields).
+      // Try the full table first (works for last 60 days, returns enriched fields).
       const { data: fullData } = await supabase
         .from("enforcement_actions")
         .select("*")
@@ -115,7 +115,7 @@ export default function EnforcementActionDetail() {
       }
       setLoading(false);
 
-      // Related cases — only from the last 45 days (public window)
+      // Related cases — only from the last 60 days (public window)
       const currentJurisdiction =
         (fullData as Action | null)?.jurisdiction ?? null;
       if (currentJurisdiction) {
