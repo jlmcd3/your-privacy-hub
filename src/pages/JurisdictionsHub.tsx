@@ -2,11 +2,49 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { slugify } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
 import AdBanner from "@/components/AdBanner";
+
+// Map ingestion codes (used in updates.direct_jurisdictions) to jurisdiction page slugs + display
+const JURISDICTION_META: Record<string, { slug: string; name: string; flag: string }> = {
+  eu: { slug: "european-union", name: "European Union", flag: "🇪🇺" },
+  "european-union": { slug: "european-union", name: "European Union", flag: "🇪🇺" },
+  uk: { slug: "united-kingdom", name: "United Kingdom", flag: "🇬🇧" },
+  "united-kingdom": { slug: "united-kingdom", name: "United Kingdom", flag: "🇬🇧" },
+  us: { slug: "united-states", name: "United States", flag: "🇺🇸" },
+  "united-states": { slug: "united-states", name: "United States", flag: "🇺🇸" },
+  france: { slug: "france", name: "France", flag: "🇫🇷" },
+  germany: { slug: "germany", name: "Germany", flag: "🇩🇪" },
+  italy: { slug: "italy", name: "Italy", flag: "🇮🇹" },
+  spain: { slug: "spain", name: "Spain", flag: "🇪🇸" },
+  ireland: { slug: "ireland", name: "Ireland", flag: "🇮🇪" },
+  netherlands: { slug: "netherlands", name: "Netherlands", flag: "🇳🇱" },
+  belgium: { slug: "belgium", name: "Belgium", flag: "🇧🇪" },
+  poland: { slug: "poland", name: "Poland", flag: "🇵🇱" },
+  denmark: { slug: "denmark", name: "Denmark", flag: "🇩🇰" },
+  sweden: { slug: "sweden", name: "Sweden", flag: "🇸🇪" },
+  norway: { slug: "norway", name: "Norway", flag: "🇳🇴" },
+  india: { slug: "india", name: "India", flag: "🇮🇳" },
+  australia: { slug: "australia", name: "Australia", flag: "🇦🇺" },
+  canada: { slug: "canada", name: "Canada", flag: "🇨🇦" },
+  brazil: { slug: "brazil", name: "Brazil", flag: "🇧🇷" },
+  japan: { slug: "japan", name: "Japan", flag: "🇯🇵" },
+  china: { slug: "china", name: "China", flag: "🇨🇳" },
+  singapore: { slug: "singapore", name: "Singapore", flag: "🇸🇬" },
+  "south-korea": { slug: "south-korea", name: "South Korea", flag: "🇰🇷" },
+};
+
+function relativeDays(published: string): string {
+  const diff = Date.now() - new Date(published).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+}
 
 
 export default function JurisdictionsHub() {
