@@ -220,7 +220,7 @@ export default function Horizon() {
           </div>
         )}
 
-        {/* Companion card → Enforcement Intelligence */}
+        {/* Companion card → Enforcement Forecast Intelligence */}
         <Link
           to="/enforcement-intelligence"
           className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-fog bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
@@ -228,7 +228,7 @@ export default function Horizon() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Evidence view</span>
             <span className="text-sm text-slate truncate">
-              <span className="font-semibold text-navy">Enforcement Intelligence</span>
+              <span className="font-semibold text-navy">Enforcement Forecast Intelligence</span>
               <span className="text-slate-light"> — Verified cases underlying these forecasts</span>
             </span>
           </div>
