@@ -103,7 +103,7 @@ export default function Enforcement() {
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
 
-  // Load filter options once (from public 45-day window)
+  // Load filter options once (from public 60-day window)
   useEffect(() => {
     (async () => {
       const { data: jdata } = await supabase
@@ -227,7 +227,7 @@ export default function Enforcement() {
         return;
       }
 
-      // Recent view: direct query against the public 45-day window
+      // Recent view: direct query against the public 60-day window
       let query = supabase
         .from("enforcement_actions")
         .select(
