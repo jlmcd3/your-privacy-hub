@@ -54,7 +54,7 @@ export default function EnforcementStats({ filters }: { filters: Filters }) {
 
     (async () => {
       // Build same filters as main query but pull only fields needed for aggregation
-      // Stats reflect current 45-day public window (matches what the user sees)
+      // Stats reflect current 60-day public window (matches what the user sees)
       let query = supabase
         .from("enforcement_actions")
         .select("jurisdiction,decision_date,fine_eur_equivalent,fine_eur,violation_types");
