@@ -290,6 +290,17 @@ const JurisdictionPage = () => {
   }, [jurisdiction, derivedCategory]);
 
   if (!jurisdiction) {
+    if (fallbackLoading) {
+      return (
+        <div className="min-h-screen bg-paper">
+          <Navbar />
+          <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+            <p className="text-slate">Loading jurisdiction…</p>
+          </div>
+          <Footer />
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-paper">
         <Navbar />
