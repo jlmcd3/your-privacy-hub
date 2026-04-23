@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,11 +9,16 @@ import Footer from "@/components/Footer";
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get("redirect") || "/account";
+
+  const blockExfil = (e: React.ClipboardEvent | React.DragEvent) => {
+    e.preventDefault();
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,15 +110,36 @@ const Signup = () => {
               </div>
               <div>
                 <label className="block text-[13px] font-medium text-navy mb-1.5">Password</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-[14px] bg-paper border border-silver rounded-lg text-navy outline-none placeholder:text-slate-light focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
-                  placeholder="Min. 6 characters"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onCopy={blockExfil}
+                    onCut={blockExfil}
+                    onDragStart={blockExfil}
+                    onDrop={blockExfil}
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    className="w-full px-3.5 py-2.5 pr-11 text-[14px] bg-paper border border-silver rounded-lg text-navy outline-none placeholder:text-slate-light focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+                    placeholder="Min. 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate hover:text-navy transition-colors bg-transparent border-none cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
               <button
                 type="submit"
