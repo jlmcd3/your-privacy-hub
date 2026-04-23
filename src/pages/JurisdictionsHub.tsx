@@ -190,8 +190,8 @@ export default function JurisdictionsHub() {
               <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
                 {recentUpdates.map((item) => (
                   <Link
-                    key={item.name}
-                    to={`/jurisdiction/${slugify(item.name)}`}
+                    key={item.slug}
+                    to={`/jurisdiction/${item.slug}`}
                     className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all"
                   >
                     <span className="text-base">{item.flag}</span>
