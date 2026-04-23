@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Filter, Lock, Search, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Filter, LogIn, Lock, RefreshCw, Search, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
@@ -94,7 +94,11 @@ export default function Enforcement() {
   const [rows, setRows] = useState<Row[]>([]);
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [archiveError, setArchiveError] = useState<
+    | { kind: "auth" | "premium" | "other"; message: string }
+    | null
+  >(null);
+  const [retryNonce, setRetryNonce] = useState(0);
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
 
@@ -167,9 +171,30 @@ export default function Enforcement() {
 
         if (cancelled) return;
         if (error || !data) {
-          setArchiveError(
-            error?.message ?? "Unable to load archive. Please try again."
-          );
+          // FunctionsHttpError exposes .context.response with the HTTP status
+          const status: number | undefined =
+            (error as any)?.context?.response?.status ??
+            (error as any)?.status;
+          if (status === 401) {
+            setArchiveError({
+              kind: "auth",
+              message:
+                "Your session has expired. Please sign in again to access the archive.",
+            });
+          } else if (status === 403) {
+            setArchiveError({
+              kind: "premium",
+              message:
+                "A Premium subscription is required to search the full historical archive.",
+            });
+          } else {
+            setArchiveError({
+              kind: "other",
+              message:
+                error?.message ??
+                "Unable to load the archive right now. Please try again.",
+            });
+          }
           setRows([]);
           setCount(0);
         } else {
@@ -228,6 +253,7 @@ export default function Enforcement() {
     page,
     isPremium,
     authLoading,
+    retryNonce,
   ]);
 
   const setParam = (key: string, value: string) => {
@@ -517,9 +543,61 @@ export default function Enforcement() {
         </div>
 
         {archiveError && (
-          <Card className="mb-3 border-destructive/40">
-            <CardContent className="p-4 text-sm text-destructive">
-              {archiveError}
+          <Card
+            className={`mb-3 ${
+              archiveError.kind === "premium"
+                ? "border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/10"
+                : archiveError.kind === "auth"
+                ? "border-primary/40 bg-primary/5"
+                : "border-destructive/40 bg-destructive/5"
+            }`}
+          >
+            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-start gap-2 flex-1">
+                {archiveError.kind === "premium" ? (
+                  <Lock className="w-4 h-4 mt-0.5 text-amber-700 dark:text-amber-400 shrink-0" />
+                ) : archiveError.kind === "auth" ? (
+                  <LogIn className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 mt-0.5 text-destructive shrink-0" />
+                )}
+                <div className="text-sm">
+                  <p className="font-medium mb-0.5">
+                    {archiveError.kind === "premium"
+                      ? "Premium required"
+                      : archiveError.kind === "auth"
+                      ? "Sign-in required"
+                      : "Couldn't load the archive"}
+                  </p>
+                  <p className="text-muted-foreground">{archiveError.message}</p>
+                </div>
+              </div>
+              <div className="shrink-0 flex gap-2">
+                {archiveError.kind === "premium" && (
+                  <Link to="/subscribe">
+                    <Button size="sm">Upgrade to Premium</Button>
+                  </Link>
+                )}
+                {archiveError.kind === "auth" && (
+                  <Link
+                    to={`/login?redirect=${encodeURIComponent(
+                      "/enforcement?view=archive"
+                    )}`}
+                  >
+                    <Button size="sm">Sign in</Button>
+                  </Link>
+                )}
+                {archiveError.kind === "other" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setRetryNonce((n) => n + 1)}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                    Try again
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
