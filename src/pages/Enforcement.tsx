@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import EnforcementStats from "@/components/enforcement/EnforcementStats";
+import InFeedAd from "@/components/InFeedAd";
+import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 import { toast } from "sonner";
 
 interface Row {
