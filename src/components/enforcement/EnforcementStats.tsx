@@ -54,7 +54,7 @@ export default function EnforcementStats({ filters }: { filters: Filters }) {
 
     (async () => {
       // Build same filters as main query but pull only fields needed for aggregation
-      // Stats reflect current 45-day public window (matches what the user sees)
+      // Stats reflect current 60-day public window (matches what the user sees)
       let query = supabase
         .from("enforcement_actions")
         .select("jurisdiction,decision_date,fine_eur_equivalent,fine_eur,violation_types");
@@ -154,7 +154,7 @@ export default function EnforcementStats({ filters }: { filters: Filters }) {
       {/* Headline numbers */}
       <Card>
         <CardContent className="p-5">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Last 45 days</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Last 60 days</div>
           <div className="space-y-3">
             <div>
               <div className="text-2xl font-serif">{stats.total.toLocaleString()}</div>

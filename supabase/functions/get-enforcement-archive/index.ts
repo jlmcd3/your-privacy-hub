@@ -1,5 +1,5 @@
-// Premium-only edge function: returns enforcement actions older than 45 days
-// (the public RLS policy already serves the last 45 days directly to the client).
+// Premium-only edge function: returns enforcement actions older than 60 days
+// (the public RLS policy already serves the last 60 days directly to the client).
 // Premium gating is enforced server-side by checking profiles.is_premium / is_pro.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
@@ -20,7 +20,7 @@ interface ListBody {
   page?: number;
   pageSize?: number;
   // If true, return ALL enforcement actions (premium archive view).
-  // If false (default), return only rows older than 45 days (premium "older history" extension).
+  // If false (default), return only rows older than 60 days (premium "older history" extension).
   includeRecent?: boolean;
 }
 
@@ -100,9 +100,9 @@ Deno.serve(async (req) => {
       );
 
     if (!includeRecent) {
-      // Premium archive only: rows older than 45 days
+      // Premium archive only: rows older than 60 days
       const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 45);
+      cutoff.setDate(cutoff.getDate() - 60);
       query = query.lt('decision_date', cutoff.toISOString().slice(0, 10));
     }
 
