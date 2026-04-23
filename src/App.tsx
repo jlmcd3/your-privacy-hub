@@ -64,7 +64,7 @@ import GovernanceAssessment from "./pages/GovernanceAssessment.tsx";
 import GovernanceAssessmentResult from "./pages/GovernanceAssessmentResult.tsx";
 import DPIAFramework from "./pages/DPIAFramework.tsx";
 import DPIAFrameworkResult from "./pages/DPIAFrameworkResult.tsx";
-import EnforcementIntelligence from "./pages/EnforcementIntelligence.tsx";
+import Enforcement from "./pages/Enforcement.tsx";
 import EnforcementActionDetail from "./pages/EnforcementActionDetail.tsx";
 import DPAGenerator from "./pages/DPAGenerator.tsx";
 import IRPlaybook from "./pages/IRPlaybook.tsx";
@@ -93,7 +93,11 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
           <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
-          <Route path="/enforcement-tracker" element={<EnforcementTrackerPage />} />
+          <Route path="/enforcement" element={<Enforcement />} />
+          <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
+          <Route path="/enforcement-tracker" element={<Navigate to="/enforcement" replace />} />
+          <Route path="/enforcement-intelligence" element={<Navigate to="/enforcement" replace />} />
+          <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
           <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
           <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
           <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
@@ -139,8 +143,6 @@ const App = () => (
            <Route path="/governance-assessment/result/:id" element={<ProtectedRoute><GovernanceAssessmentResult /></ProtectedRoute>} />
            <Route path="/dpia-framework" element={<DPIAFramework />} />
            <Route path="/dpia-framework/result/:id" element={<ProtectedRoute><DPIAFrameworkResult /></ProtectedRoute>} />
-           <Route path="/enforcement-intelligence" element={<EnforcementIntelligence />} />
-           <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
            <Route path="/dpa-generator" element={<DPAGenerator />} />
            <Route path="/ir-playbook" element={<IRPlaybook />} />
            <Route path="/biometric-checker" element={<BiometricChecker />} />

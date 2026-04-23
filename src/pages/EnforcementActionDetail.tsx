@@ -65,21 +65,67 @@ export default function EnforcementActionDetail() {
     if (!id) return;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+
+      // Try the full table first (works for last 45 days, returns enriched fields).
+      const { data: fullData } = await supabase
         .from("enforcement_actions")
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      setAction((data as Action) ?? null);
+
+      if (fullData) {
+        setAction(fullData as Action);
+      } else {
+        // Older actions: fall back to the public basic-columns RPC (any age, basic fields only).
+        const { data: basic } = await supabase.rpc(
+          "get_enforcement_action_basic",
+          { _id: id }
+        );
+        const row = Array.isArray(basic) ? basic[0] : basic;
+        if (row) {
+          setAction({
+            id: row.id,
+            etid: row.etid,
+            regulator: row.regulator,
+            subject: row.subject,
+            jurisdiction: row.jurisdiction,
+            decision_date: row.decision_date,
+            fine_amount: row.fine_amount,
+            fine_eur: row.fine_eur,
+            fine_eur_equivalent: row.fine_eur_equivalent,
+            law: row.law,
+            violation: row.violation,
+            source_url: row.source_url,
+            raw_text: null,
+            industry_sector: null,
+            company_type: null,
+            data_categories: null,
+            violation_types: null,
+            tool_relevance: null,
+            key_compliance_failure: null,
+            preventive_measures: null,
+            precedent_significance: null,
+            breach_related: null,
+            biometric_related: null,
+            dpa_related: null,
+          } as Action);
+        } else {
+          setAction(null);
+        }
+      }
       setLoading(false);
 
-      if (data) {
+      // Related cases — only from the last 45 days (public window)
+      const currentJurisdiction =
+        (fullData as Action | null)?.jurisdiction ?? null;
+      if (currentJurisdiction) {
         const { data: rel } = await supabase
           .from("enforcement_actions")
-          .select("id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law")
-          .eq("jurisdiction", (data as Action).jurisdiction)
+          .select(
+            "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law"
+          )
+          .eq("jurisdiction", currentJurisdiction)
           .neq("id", id)
-          .eq("enrichment_version", 1)
           .order("decision_date", { ascending: false, nullsFirst: false })
           .limit(5);
         setRelated((rel as Action[]) ?? []);
@@ -107,7 +153,7 @@ export default function EnforcementActionDetail() {
         <Navbar />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h1 className="font-serif text-3xl mb-4">Action not found</h1>
-          <Link to="/enforcement-intelligence" className="text-primary hover:underline">← Back to Enforcement Intelligence</Link>
+          <Link to="/enforcement" className="text-primary hover:underline">← Back to Enforcement</Link>
         </main>
         <Footer />
       </div>
