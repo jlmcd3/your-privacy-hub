@@ -19,16 +19,16 @@ export default function SearchFirstHero() {
             </p>
             <div className="flex gap-3 justify-center lg:justify-start flex-wrap mb-8">
               <Link
+                to="/sample-brief"
+                className="bg-white text-navy font-bold px-6 py-3 rounded-lg hover:opacity-90 no-underline text-[14px] transition-all"
+              >
+                See the Intelligence Brief →
+              </Link>
+              <Link
                 to="/updates"
                 className="bg-white text-navy font-bold px-6 py-3 rounded-lg hover:opacity-90 no-underline text-[14px] transition-all"
               >
                 Browse today's developments →
-              </Link>
-              <Link
-                to="/sample-brief"
-                className="border border-white/40 text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 no-underline text-[14px] transition-all"
-              >
-                See the Intelligence Brief →
               </Link>
             </div>
           </div>
