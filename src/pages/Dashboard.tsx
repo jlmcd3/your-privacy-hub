@@ -256,14 +256,14 @@ const Dashboard = () => {
               </h3>
               <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
                 Your weekly digest tells you what happened. Professional tells you what it means
-                for your industry, what your priorities are, and what to do about it. $20/month.
+                for your industry, what your priorities are, and what to do about it. $29/month.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/subscribe"
                   className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
-                  Get Professional — $20/month →
+                  Get Professional — $29/month →
                 </Link>
               </div>
             </div>

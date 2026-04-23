@@ -119,7 +119,7 @@ export default function CookieConsentPage() {
             </Link>
             <Link to="/subscribe" className="p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 no-underline transition-all">
               <p className="text-[13px] font-semibold text-foreground">⭐ Get weekly analyst coverage</p>
-              <p className="text-[11px] text-muted-foreground">AdTech & Consent track — $20/month</p>
+              <p className="text-[11px] text-muted-foreground">AdTech & Consent track — $29/month</p>
             </Link>
           </div>
         </section>
