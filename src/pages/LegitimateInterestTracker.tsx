@@ -4,6 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import InFeedAd from "@/components/InFeedAd";
+import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 
 const OUTCOME_ORDER = ["accepted", "conditional", "rejected", "contested"];
 
@@ -194,7 +196,7 @@ const LegitimateInterestTracker = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(e => (
+                    {filtered.map((e, idx) => (
                       <Fragment key={e.id}>
                         <tr className="hover:bg-muted/50 transition-colors">
                           <td className="px-3 pt-3 pb-2 text-[13px] font-medium text-foreground">{e.processing_activity}</td>
@@ -213,6 +215,17 @@ const LegitimateInterestTracker = () => {
                             {e.summary}
                           </td>
                         </tr>
+                        {(idx + 1) % 8 === 0 && idx !== filtered.length - 1 && (
+                          <tr>
+                            <td colSpan={6} className="px-3 py-2 border-b border-border bg-muted/20">
+                              <InFeedAd
+                                adSlot={`li_tracker_infeed_${Math.floor(idx / 8)}`}
+                                googleAdClient={GOOGLE_AD_CLIENT}
+                                googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
+                              />
+                            </td>
+                          </tr>
+                        )}
                       </Fragment>
                     ))}
                   </tbody>
@@ -222,18 +235,27 @@ const LegitimateInterestTracker = () => {
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-3 mb-10">
-              {filtered.map(e => (
-                <div key={e.id} className="bg-card border border-border rounded-xl p-4">
-                  <p className="font-bold text-[14px] text-foreground mb-2">{e.processing_activity}</p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                    <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
+              {filtered.map((e, idx) => (
+                <Fragment key={e.id}>
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <p className="font-bold text-[14px] text-foreground mb-2">{e.processing_activity}</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
+                      <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
+                    </div>
+                    <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
+                    <div className="text-[11px] text-muted-foreground">
+                      <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
+                    </div>
                   </div>
-                  <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
-                  <div className="text-[11px] text-muted-foreground">
-                    <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
-                  </div>
-                </div>
+                  {(idx + 1) % 6 === 0 && idx !== filtered.length - 1 && (
+                    <InFeedAd
+                      adSlot={`li_tracker_infeed_m_${Math.floor(idx / 6)}`}
+                      googleAdClient={GOOGLE_AD_CLIENT}
+                      googleAdSlot={getAdSlot("feed_infeed_3").googleAdSlot}
+                    />
+                  )}
+                </Fragment>
               ))}
             </div>
           </>
