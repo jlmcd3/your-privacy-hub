@@ -129,7 +129,7 @@ export default function Horizon() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Your Regulatory Watchlist | Anticipated Privacy Developments — EndUserPrivacy</title>
+        <title>Enforcement Forecast Intelligence | Anticipated Privacy Developments — EndUserPrivacy</title>
         <meta
           name="description"
           content="Forward-looking intelligence on anticipated privacy law and enforcement developments — filtered to the jurisdictions and topics you follow. Updated weekly."
@@ -143,7 +143,7 @@ export default function Horizon() {
             ⏱ Forward-looking intelligence
           </div>
           <h1 className="font-display font-bold text-[32px] md:text-[40px] leading-tight mb-3">
-            Your Regulatory Watchlist
+            Enforcement Forecast Intelligence
           </h1>
           <p className="text-blue-100 text-[15px] leading-relaxed max-w-2xl">
             What's coming next. Anticipated privacy regulations, enforcement

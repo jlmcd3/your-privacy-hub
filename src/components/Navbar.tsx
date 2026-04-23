@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
         header: "Professional Tools",
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
-          { icon: "🛰️", label: "Your Regulatory Watchlist", badge: "PRO", href: "/horizon" },
+          { icon: "🛰️", label: "Enforcement Forecast Intelligence", badge: "PRO", href: "/horizon" },
           { icon: "📂", label: "Your Registration Filings", badge: "PRO", href: "/registration-manager" },
           { icon: "⚖️", label: "Legitimate Interest Assessment Tool", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Privacy Program Assessment Tool", badge: "PRO", href: "/governance-assessment" },
