@@ -506,18 +506,41 @@ const JurisdictionPage = () => {
         <div className="border-t border-fog pt-8 mb-8">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link to="/global-privacy-authorities" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> Global Authority Directory
-            </Link>
-            <Link to="/enforcement-tracker" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> Enforcement Tracker
-            </Link>
-            <Link to="/global-privacy-laws" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> Global Privacy Laws
-            </Link>
-            <Link to="/gdpr-enforcement" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
-              <span className="text-blue">→</span> GDPR Enforcement
-            </Link>
+            {(() => {
+              const isEU = derivedCategory === "eu-uk";
+              const isUS = derivedCategory === "us-federal" || jurisdiction.region === "United States";
+              const resources: { icon: string; iconImage?: string; label: string; href: string }[] = [];
+
+              if (isUS) {
+                resources.push({ icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" });
+                resources.push({ icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" });
+              }
+              if (isEU) {
+                resources.push({ icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" });
+              }
+
+              resources.push({ icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" });
+              resources.push({ icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" });
+              resources.push({ icon: "📊", label: "Enforcement Tracker", href: "/enforcement-tracker" });
+              resources.push({ icon: "👁️", label: "Biometric Data", href: "/biometric-privacy" });
+              resources.push({ icon: "🌐", label: "Data Transfers", href: "/cross-border-transfers" });
+              resources.push({ icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" });
+
+              return resources.slice(0, 6).map((r) => (
+                <Link
+                  key={r.label}
+                  to={r.href}
+                  className="flex items-center gap-2.5 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium"
+                >
+                  {r.iconImage ? (
+                    <img src={r.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
+                  ) : (
+                    <span className="text-base">{r.icon}</span>
+                  )}
+                  <span>{r.label}</span>
+                </Link>
+              ));
+            })()}
           </div>
         </div>
 

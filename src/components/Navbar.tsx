@@ -90,7 +90,7 @@ const navItems: NavItem[] = [
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { icon: "🌍", label: "Global DPA Directory", href: "/global-privacy-authorities" },
+          { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
           { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
         ],
       },
