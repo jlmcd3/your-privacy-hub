@@ -117,7 +117,10 @@ const isLikelyNonEnglish = (text: string): boolean => {
 
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const jurisdiction = slug ? allJurisdictions[slug] : null;
+  const staticJurisdiction = slug ? allJurisdictions[slug] : null;
+  const [dbFallback, setDbFallback] = useState<any>(null);
+  const [fallbackLoading, setFallbackLoading] = useState(false);
+  const jurisdiction = staticJurisdiction || dbFallback;
 
   const [directRecent, setDirectRecent] = useState<any[]>([]);
   const [regionalRecent, setRegionalRecent] = useState<any[]>([]);
@@ -127,6 +130,46 @@ const JurisdictionPage = () => {
   const [showArchive, setShowArchive] = useState(false);
 
   const derivedCategory = jurisdiction ? deriveCategory(jurisdiction) : "global";
+
+  // Fallback: if slug isn't in static data, fetch from DB jurisdictions table
+  useEffect(() => {
+    if (staticJurisdiction || !slug) {
+      setDbFallback(null);
+      return;
+    }
+    setFallbackLoading(true);
+    setDbFallback(null);
+    (supabase as any)
+      .from("jurisdictions")
+      .select("name, slug, region, law_name, dpa_name, law_status, dla_piper_url")
+      .eq("slug", slug)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          const regionFlags: Record<string, string> = {
+            "EU & UK": "🇪🇺", "Americas": "🌎", "Asia Pacific": "🌏",
+            "Middle East & Africa": "🌍", "Other": "🌐",
+          };
+          setDbFallback({
+            name: data.name,
+            region: data.region || "Global",
+            flag: regionFlags[data.region] || "🌐",
+            overview: `${data.name} privacy regulation${
+              data.law_name ? ` is governed by ${data.law_name}` : " is tracked in our global directory"
+            }${data.dpa_name ? `, with ${data.dpa_name} as the primary regulatory authority` : ""}.`,
+            authorities: data.dpa_name
+              ? [{
+                  name: data.dpa_name,
+                  website: data.dla_piper_url || "",
+                  legislation: data.law_name,
+                }]
+              : [],
+          });
+        }
+        setFallbackLoading(false);
+      });
+  }, [slug, staticJurisdiction]);
+
 
   useEffect(() => {
     if (!jurisdiction) return;
@@ -247,6 +290,17 @@ const JurisdictionPage = () => {
   }, [jurisdiction, derivedCategory]);
 
   if (!jurisdiction) {
+    if (fallbackLoading) {
+      return (
+        <div className="min-h-screen bg-paper">
+          <Navbar />
+          <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+            <p className="text-slate">Loading jurisdiction…</p>
+          </div>
+          <Footer />
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-paper">
         <Navbar />
