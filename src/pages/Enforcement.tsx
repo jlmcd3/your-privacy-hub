@@ -324,7 +324,14 @@ export default function Enforcement() {
               : "Search privacy enforcement actions worldwide. Recent 60 days fully enriched and free; full historical archive available with Premium."
           }
         />
-        <link rel="canonical" href="https://enduserprivacy.com/enforcement" />
+        <link
+          rel="canonical"
+          href={
+            view === "archive"
+              ? "https://enduserprivacy.com/enforcement?view=archive"
+              : "https://enduserprivacy.com/enforcement"
+          }
+        />
       </Helmet>
       <Navbar />
 
