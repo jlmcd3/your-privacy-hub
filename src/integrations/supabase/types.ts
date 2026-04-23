@@ -1943,7 +1943,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      enforcement_actions_public: {
+        Row: {
+          action_type: string | null
+          created_at: string | null
+          decision_date: string | null
+          etid: string | null
+          fine_amount: string | null
+          fine_eur: number | null
+          fine_eur_equivalent: number | null
+          id: string | null
+          jurisdiction: string | null
+          law: string | null
+          regulator: string | null
+          sector: string | null
+          source_database: string | null
+          source_url: string | null
+          subject: string | null
+          violation: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          created_at?: string | null
+          decision_date?: string | null
+          etid?: string | null
+          fine_amount?: string | null
+          fine_eur?: number | null
+          fine_eur_equivalent?: number | null
+          id?: string | null
+          jurisdiction?: string | null
+          law?: string | null
+          regulator?: string | null
+          sector?: string | null
+          source_database?: string | null
+          source_url?: string | null
+          subject?: string | null
+          violation?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          created_at?: string | null
+          decision_date?: string | null
+          etid?: string | null
+          fine_amount?: string | null
+          fine_eur?: number | null
+          fine_eur_equivalent?: number | null
+          id?: string | null
+          jurisdiction?: string | null
+          law?: string | null
+          regulator?: string | null
+          sector?: string | null
+          source_database?: string | null
+          source_url?: string | null
+          subject?: string | null
+          violation?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       claim_enforcement_for_enrichment: {
