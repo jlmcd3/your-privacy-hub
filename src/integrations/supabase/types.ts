@@ -1968,6 +1968,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_current_user_premium: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
