@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,11 +9,16 @@ import Footer from "@/components/Footer";
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get("redirect") || "/account";
+
+  const blockExfil = (e: React.ClipboardEvent | React.DragEvent) => {
+    e.preventDefault();
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
