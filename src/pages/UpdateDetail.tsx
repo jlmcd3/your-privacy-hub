@@ -75,6 +75,29 @@ function formatDate(dateStr: string): string {
   });
 }
 
+/**
+ * Strip HTML tags and collapse whitespace from raw summary content.
+ * Some ingested sources (e.g. GDPRhub MediaWiki diffs) embed HTML tables
+ * and markup that would render as a wall of garbled text if shown raw.
+ */
+function cleanSummary(raw: string | null | undefined): string {
+  if (!raw) return "";
+  // Remove script/style blocks entirely
+  let text = raw.replace(/<(script|style)[\s\S]*?<\/\1>/gi, "");
+  // Strip all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, " ");
+  // Decode a handful of common HTML entities
+  text = text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+  // Collapse whitespace
+  return text.replace(/\s+/g, " ").trim();
+}
+
 const UpdateDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
