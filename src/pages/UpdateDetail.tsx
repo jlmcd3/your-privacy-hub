@@ -262,57 +262,152 @@ const UpdateDetail = () => {
               )}
             </div>
 
-            <hr className="border-border mb-6" />
-
-            {/* Summary */}
-            {article.summary && (
-              <>
-                <p className="text-[15px] text-muted-foreground leading-relaxed mb-6">
-                  {article.summary}
-                </p>
-                <hr className="border-border mb-6" />
-              </>
-            )}
-
-            {/* Why It Matters */}
-            {ai?.why_it_matters && (
-              <>
-                <h2 className="text-foreground font-bold text-[16px] mb-2">Why It Matters</h2>
-                <p className="text-[14px] text-muted-foreground leading-relaxed mb-6">
-                  {ai.why_it_matters}
-                </p>
-              </>
-            )}
-
-            {/* Key Takeaways */}
-            {ai?.takeaways && ai.takeaways.length > 0 && (
-              <>
-                <h2 className="text-foreground font-bold text-[16px] mb-2">Key Takeaways</h2>
-                <ul className="list-disc pl-5 space-y-1.5 mb-6">
-                  {ai.takeaways.map((item, i) => (
-                    <li key={i} className="text-[14px] text-muted-foreground leading-relaxed">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            {/* Analysis fields */}
-            {ANALYSIS_FIELDS.some(f => ai?.[f.key]) && (
-              <div className="mb-6 space-y-4">
-                {ANALYSIS_FIELDS.map(({ key, label }) => {
-                  const value = ai?.[key];
-                  if (!value || typeof value !== "string") return null;
-                  return (
-                    <div key={key}>
-                      <h3 className="text-foreground font-bold text-[14px] mb-1">{label}</h3>
-                      <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
-                    </div>
-                  );
-                })}
+            {/* ============================================================
+                SECTION 1 — FEED (raw source summary, free for all)
+                ============================================================ */}
+            <section aria-labelledby="section-feed" className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Feed</span>
+                <span className="text-[10px] text-muted-foreground/60">Source summary</span>
               </div>
+              <hr className="border-border mb-4" />
+              {cleanedSummary ? (
+                <p className="text-[15px] text-muted-foreground leading-relaxed">
+                  {cleanedSummary}
+                </p>
+              ) : (
+                <p className="text-[14px] italic text-muted-foreground">
+                  Visit the original source to read the full article.
+                </p>
+              )}
+            </section>
+
+            {/* ============================================================
+                SECTION 2 — BRIEFED (AI-enriched summary, free for all)
+                ============================================================ */}
+            {hasBriefed && (
+              <section aria-labelledby="section-briefed" className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Briefed</span>
+                  <span className="text-[10px] text-muted-foreground/60">AI summary &amp; takeaways</span>
+                </div>
+                <hr className="border-border mb-4" />
+
+                {ai?.why_it_matters && (
+                  <div className="border-l-4 border-primary bg-primary/5 px-4 py-3 mb-5 rounded-r">
+                    <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                      Why it matters
+                    </div>
+                    <p className="text-[14px] leading-relaxed text-foreground">
+                      {ai.why_it_matters}
+                    </p>
+                  </div>
+                )}
+
+                {ai?.takeaways && ai.takeaways.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
+                    <ul className="list-disc pl-5 space-y-1.5">
+                      {ai.takeaways.map((item, i) => (
+                        <li key={i} className="text-[14px] text-muted-foreground leading-relaxed">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {ANALYSIS_FIELDS.some(f => ai?.[f.key]) && (
+                  <div className="space-y-3">
+                    {ANALYSIS_FIELDS.map(({ key, label }) => {
+                      const value = ai?.[key];
+                      if (!value || typeof value !== "string") return null;
+                      return (
+                        <div key={key}>
+                          <h4 className="text-foreground font-semibold text-[13px] mb-0.5">{label}</h4>
+                          <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
             )}
+
+            {/* ============================================================
+                SECTION 3 — ANALYZED (Pro-only deep analysis)
+                ============================================================ */}
+            <section aria-labelledby="section-analyzed" className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Analyzed</span>
+                <span className="text-[9px] bg-purple-700 text-white px-1.5 py-0.5 rounded font-semibold">PRO</span>
+                <span className="text-[10px] text-muted-foreground/60">Deep regulatory analysis</span>
+              </div>
+              <hr className="border-border mb-4" />
+
+              {!hasAnalyzed ? (
+                <p className="text-[14px] italic text-muted-foreground">
+                  No deep analysis available for this article yet.
+                </p>
+              ) : (
+                <div className="relative">
+                  <div className={isPremium ? "space-y-3" : "opacity-10 pointer-events-none select-none space-y-3"}>
+                    {article.regulatory_theory && (
+                      <div className="border border-border rounded-lg p-3">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
+                        <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
+                      </div>
+                    )}
+                    {article.related_development && (
+                      <div className="border border-border rounded-lg p-3">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
+                        <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
+                      </div>
+                    )}
+                    {article.attention_level && (
+                      <div className="border border-border rounded-lg p-3">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Attention level</div>
+                        <span className="inline-block text-[12px] px-2 py-0.5 rounded bg-muted text-foreground capitalize">
+                          {article.attention_level}
+                        </span>
+                      </div>
+                    )}
+                    {article.affected_sectors && article.affected_sectors.length > 0 && (
+                      <div className="border border-border rounded-lg p-3">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Affected sectors</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {article.affected_sectors.map((s) => (
+                            <span key={s} className="text-[12px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isPremium && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                      <div className="bg-background border border-border rounded-xl shadow-md p-5 max-w-[320px]">
+                        <Lock size={20} className="mx-auto mb-2 text-purple-700" />
+                        <h3 className="text-[15px] font-semibold text-foreground mb-1">
+                          Full analysis — Pro feature
+                        </h3>
+                        <p className="text-[12px] text-muted-foreground mb-3 leading-relaxed">
+                          Regulatory theory, cross-jurisdiction signals, and action intelligence on every update.
+                        </p>
+                        <Link
+                          to="/subscribe"
+                          className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
+                        >
+                          See Pro plan
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
 
             {/* Topic tags */}
             {article.topic_tags && article.topic_tags.length > 0 && (
