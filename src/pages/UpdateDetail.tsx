@@ -31,6 +31,11 @@ interface Update {
   regulator: string | null;
   topic_tags: string[] | null;
   ai_summary: AISummary | null;
+  // Deep analysis fields (Pro tier)
+  regulatory_theory: string | null;
+  related_development: string | null;
+  attention_level: string | null;
+  affected_sectors: string[] | null;
 }
 
 interface RelatedUpdate {
