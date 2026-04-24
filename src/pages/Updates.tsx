@@ -108,11 +108,16 @@ const Updates = () => {
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
 
-    // Pre-filter from ?region= query param
+    // Pre-filter from ?region= or ?topic= query param
     useEffect(() => {
         const region = searchParams.get("region");
-        if (region) setActiveFilter(region);
+        const topic = searchParams.get("topic");
+        if (topic) setActiveFilter(topic);
+        else if (region) setActiveFilter(region);
     }, [searchParams]);
+
+    const topicFilter = searchParams.get("topic");
+    const regionFilter = searchParams.get("region");
 
     // Close drawer on Escape
     useEffect(() => {
@@ -191,14 +196,14 @@ const Updates = () => {
         loadPage(page + PAGE_SIZE, false);
     }, [loadPage, page]);
 
-    // Sync search term to URL
+    // Sync search term to URL (preserve topic/region params)
     useEffect(() => {
-        if (searchTerm) {
-            setSearchParams({ q: searchTerm }, { replace: true });
-        } else {
-            setSearchParams({}, { replace: true });
-        }
-    }, [searchTerm, setSearchParams]);
+        const next: Record<string, string> = {};
+        if (searchTerm) next.q = searchTerm;
+        if (topicFilter) next.topic = topicFilter;
+        if (regionFilter) next.region = regionFilter;
+        setSearchParams(next, { replace: true });
+    }, [searchTerm, topicFilter, regionFilter, setSearchParams]);
 
     // Compute available sectors for faceted filtering
     const availableSectors = useMemo(() => {
@@ -303,6 +308,23 @@ const Updates = () => {
             </section>
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
+                {topicFilter && (
+                    <div className="mb-3">
+                        <div className="flex items-center gap-1.5 mb-1 text-[11px] text-muted-foreground">
+                            <Link to="/updates" className="hover:text-foreground no-underline">All updates</Link>
+                            <span>›</span>
+                            <span className="text-foreground/80">
+                                {topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                            </span>
+                        </div>
+                        <h2 className="text-[15px] font-medium text-foreground m-0">
+                            {topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                        </h2>
+                        <p className="text-[11px] text-muted-foreground m-0">
+                            {filtered.length} updates · refreshed daily
+                        </p>
+                    </div>
+                )}
                 <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 mb-4
                   flex items-center justify-between flex-wrap gap-3">
                   <p className="text-[13px] text-navy font-medium">

@@ -6,6 +6,7 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import EmailSignup from "@/components/EmailSignup";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -90,6 +91,7 @@ const SkeletonCard = () => (
 const TopicHub = () => {
   const { slug } = useParams<{ slug: string }>();
   const meta = slug ? TOPIC_META[slug] : null;
+  const { isPremium } = usePremiumStatus();
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -212,7 +214,7 @@ const TopicHub = () => {
                 {u.summary && (
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-3 leading-relaxed">{stripHtml(u.summary)}</p>
                 )}
-                <AISummaryPanel summary={u.ai_summary || null} />
+                <AISummaryPanel summary={u.ai_summary || null} isPremium={isPremium} />
               </div>
               <div className="hidden md:flex items-center text-muted-foreground group-hover:text-primary transition-colors">
                 <ExternalLink className="w-4 h-4" />

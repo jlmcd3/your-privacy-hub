@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -79,6 +79,16 @@ import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
 
 const queryClient = new QueryClient();
 
+function CategoryRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/updates?topic=${slug ?? ''}`} replace />;
+}
+
+function TopicRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/updates?topic=${slug ?? ''}`} replace />;
+}
+
 const App = () => (
   <HelmetProvider>
   <QueryClientProvider client={queryClient}>
@@ -107,8 +117,8 @@ const App = () => (
           <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
           <Route path="/jurisdictions" element={<JurisdictionsHub />} />
           <Route path="/regulator/:slug" element={<RegulatorPage />} />
-          <Route path="/category/:slug" element={<CategoryPage />} />
-          <Route path="/topics/:slug" element={<TopicHub />} />
+          <Route path="/category/:slug" element={<CategoryRedirect />} />
+          <Route path="/topics/:slug" element={<TopicRedirect />} />
           <Route path="/glossary" element={<Glossary />} />
           <Route path="/glossary/:slug" element={<GlossaryTerm />} />
           <Route path="/calendar" element={<Calendar />} />
