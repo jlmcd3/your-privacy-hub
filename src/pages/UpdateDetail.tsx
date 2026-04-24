@@ -3,10 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
-import { ArrowLeft, ExternalLink, Tag } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
 
 interface AISummary {
   why_it_matters?: string;
