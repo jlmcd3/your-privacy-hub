@@ -79,6 +79,16 @@ import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
 
 const queryClient = new QueryClient();
 
+function CategoryRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/updates?topic=${slug ?? ''}`} replace />;
+}
+
+function TopicRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/updates?topic=${slug ?? ''}`} replace />;
+}
+
 const App = () => (
   <HelmetProvider>
   <QueryClientProvider client={queryClient}>
