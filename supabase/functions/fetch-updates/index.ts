@@ -658,6 +658,9 @@ async function extractOgImage(url: string): Promise<string | null> {
 
 function stripHtml(html: string): string {
   return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
     // Decode double-encoded ampersands first (&amp; → &)
     .replace(/&amp;/gi, "&")
     // Remove all HTML tags
@@ -932,7 +935,8 @@ Rules:
 (3) Return ONLY valid JSON — no preamble, no markdown, no explanation.
 (4) Be precise about legal weight: distinguish binding regulatory decisions from
     guidance, proposals, and commentary. This distinction matters enormously to
-    legal professionals.`,
+    legal professionals.
+(5) The why_it_matters field must add analytical insight beyond what the title states. Never begin by restating or paraphrasing the title. Explain specifically why this development is significant for compliance practitioners.`,
         messages: [
           {
             role: "user",
@@ -1148,7 +1152,7 @@ function repairTitle(
   // 1) Scan the description for a known subject (prefer the earliest match).
   let foundSubject: string | null = null;
   if (description) {
-    const desc = description.slice(0, 240);
+    const desc = description.slice(0, 400);
     let bestIdx = Number.POSITIVE_INFINITY;
     for (const subj of KNOWN_SUBJECTS) {
       const re = new RegExp(`\\b${subj.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
@@ -1324,7 +1328,7 @@ Deno.serve(async (req) => {
         // Generate AI summary only if key available AND article doesn't already have one
         if (anthropicKey && !existingUrlsWithSummary.has(link)) {
           try {
-            const aiSummary = await generateAISummary(title, description, source.source, anthropicKey);
+            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey);
             if (aiSummary) {
               row.ai_summary = aiSummary;
               // Extract affected_jurisdictions from AI response into dedicated column
