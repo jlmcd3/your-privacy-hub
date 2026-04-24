@@ -117,8 +117,8 @@ const App = () => (
           <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
           <Route path="/jurisdictions" element={<JurisdictionsHub />} />
           <Route path="/regulator/:slug" element={<RegulatorPage />} />
-          <Route path="/category/:slug" element={<CategoryPage />} />
-          <Route path="/topics/:slug" element={<TopicHub />} />
+          <Route path="/category/:slug" element={<CategoryRedirect />} />
+          <Route path="/topics/:slug" element={<TopicRedirect />} />
           <Route path="/glossary" element={<Glossary />} />
           <Route path="/glossary/:slug" element={<GlossaryTerm />} />
           <Route path="/calendar" element={<Calendar />} />
