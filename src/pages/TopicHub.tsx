@@ -6,6 +6,7 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import EmailSignup from "@/components/EmailSignup";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
