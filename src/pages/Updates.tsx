@@ -108,11 +108,16 @@ const Updates = () => {
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
 
-    // Pre-filter from ?region= query param
+    // Pre-filter from ?region= or ?topic= query param
     useEffect(() => {
         const region = searchParams.get("region");
-        if (region) setActiveFilter(region);
+        const topic = searchParams.get("topic");
+        if (topic) setActiveFilter(topic);
+        else if (region) setActiveFilter(region);
     }, [searchParams]);
+
+    const topicFilter = searchParams.get("topic");
+    const regionFilter = searchParams.get("region");
 
     // Close drawer on Escape
     useEffect(() => {
