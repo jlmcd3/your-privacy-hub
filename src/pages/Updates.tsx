@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -8,6 +8,9 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
+import ArticleDrawer from "@/components/ArticleDrawer";
+import { useAuth } from "@/hooks/useAuth";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 interface Update {
     id: string;
