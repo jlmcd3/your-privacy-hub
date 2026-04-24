@@ -31,7 +31,7 @@ export function getServiceClient(): SupabaseClient {
 }
 
 export async function startRun(
-  supabase: SupabaseClient,
+  supabase: any,
   jobName: string,
   metadata: Record<string, unknown> = {},
 ): Promise<RunHandle> {
@@ -57,7 +57,7 @@ export async function startRun(
 }
 
 export async function finishRun(
-  supabase: SupabaseClient,
+  supabase: any,
   run: RunHandle,
   result: RunResultCounts = {},
 ): Promise<void> {
@@ -88,7 +88,7 @@ export async function finishRun(
 }
 
 export async function failRun(
-  supabase: SupabaseClient,
+  supabase: any,
   run: RunHandle,
   err: unknown,
   partialCounts: RunResultCounts = {},

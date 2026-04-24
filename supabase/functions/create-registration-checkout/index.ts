@@ -92,9 +92,9 @@ serve(async (req) => {
     //   diy            -> tiered flat fee based on jurisdiction count (qty 1)
     //   counsel_review -> flat $299 (qty 1)
     //   renewal        -> $199/yr × N jurisdictions
-    let unitAmount = cfg.unit_amount;
+    let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
-    let productName = cfg.name;
+    let productName: string = cfg.name;
     if (tier === "diy") {
       unitAmount = diyPriceCents(codes.length);
       productName = diyPriceLabel(codes.length);
