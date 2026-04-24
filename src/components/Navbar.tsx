@@ -30,8 +30,8 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
-          { icon: "📋", label: "Intelligence Brief (one free with account registration)", href: "/sample-brief" },
-          { icon: "📰", label: "Privacy Regulatory Updates", badge: "FREE", badgeGreen: true, href: "/updates" },
+          { icon: "📋", label: "Your free intelligence brief", href: "/subscribe" },
+          { icon: "📰", label: "Browse updates", badge: "FREE", badgeGreen: true, href: "/updates" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
           { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
@@ -57,18 +57,19 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    label: "Latest News",
+    label: "Updates",
     sections: [
       {
+        header: "Browse by region",
         items: [
-          { icon: "🇺🇸", label: "U.S. Federal", href: "/category/us-federal" },
-          { icon: "🗺️", label: "U.S. States", href: "/category/us-states" },
-          { icon: "🇪🇺", label: "EU & UK", href: "/category/eu-uk" },
-          { icon: "🌏", label: "Global", href: "/category/global" },
+          { icon: "🇺🇸", label: "U.S. Federal", href: "/updates?region=us-federal" },
+          { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
+          { icon: "🇪🇺", label: "EU & UK", href: "/updates?region=eu-uk" },
+          { icon: "🌐", label: "Global", href: "/updates?region=global" },
         ],
       },
       {
-        header: "Topic Hubs",
+        header: "Browse by topic",
         divider: true,
         items: [
           { icon: "🤖", label: "AI & Privacy", href: "/category/ai-privacy" },
@@ -236,6 +237,15 @@ const Navbar = () => {
                   ⭐ Go Professional
                 </Link>
               )}
+              {isPremium ? (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-700 text-purple-100">
+                  Pro
+                </span>
+              ) : (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
+                  FREE PLAN
+                </span>
+              )}
               <Link
                 to="/account"
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
@@ -250,6 +260,12 @@ const Navbar = () => {
                 className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
               >
                 Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-100 transition-colors no-underline"
+              >
+                Sign up free
               </Link>
               <Link
                 to="/subscribe"
