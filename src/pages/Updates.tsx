@@ -196,14 +196,14 @@ const Updates = () => {
         loadPage(page + PAGE_SIZE, false);
     }, [loadPage, page]);
 
-    // Sync search term to URL
+    // Sync search term to URL (preserve topic/region params)
     useEffect(() => {
-        if (searchTerm) {
-            setSearchParams({ q: searchTerm }, { replace: true });
-        } else {
-            setSearchParams({}, { replace: true });
-        }
-    }, [searchTerm, setSearchParams]);
+        const next: Record<string, string> = {};
+        if (searchTerm) next.q = searchTerm;
+        if (topicFilter) next.topic = topicFilter;
+        if (regionFilter) next.region = regionFilter;
+        setSearchParams(next, { replace: true });
+    }, [searchTerm, topicFilter, regionFilter, setSearchParams]);
 
     // Compute available sectors for faceted filtering
     const availableSectors = useMemo(() => {
