@@ -91,6 +91,7 @@ const SkeletonCard = () => (
 const TopicHub = () => {
   const { slug } = useParams<{ slug: string }>();
   const meta = slug ? TOPIC_META[slug] : null;
+  const { isPremium } = usePremiumStatus();
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
 
