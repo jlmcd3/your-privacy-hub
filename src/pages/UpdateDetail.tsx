@@ -107,6 +107,7 @@ function cleanSummary(raw: string | null | undefined): string {
 const UpdateDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { isPremium } = usePremiumStatus();
   const [article, setArticle] = useState<Update | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -117,7 +118,9 @@ const UpdateDetail = () => {
     if (!id) return;
     (supabase as any)
       .from("updates")
-      .select("id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary")
+      .select(
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors"
+      )
       .eq("id", id)
       .single()
       .then(({ data, error }: any) => {
@@ -149,7 +152,27 @@ const UpdateDetail = () => {
   const ai = article?.ai_summary as AISummary | null;
   const catColor = CATEGORY_COLORS[article?.category || "global"] || CATEGORY_COLORS.global;
   const catLabel = CATEGORY_LABELS[article?.category || "global"] || article?.category || "Global";
-  const metaDesc = ai?.why_it_matters?.slice(0, 160) || article?.summary?.slice(0, 160) || "";
+  const cleanedSummary = cleanSummary(article?.summary);
+  const metaDesc = ai?.why_it_matters?.slice(0, 160) || cleanedSummary.slice(0, 160) || "";
+
+  // Briefed tier — present when ungated AI enrichment exists
+  const hasBriefed = Boolean(
+    ai?.why_it_matters ||
+      (ai?.takeaways && ai.takeaways.length > 0) ||
+      ai?.compliance_impact ||
+      ai?.who_should_care ||
+      ai?.urgency ||
+      ai?.legal_weight ||
+      ai?.risk_level
+  );
+
+  // Analyzed tier — Pro-only deep analysis
+  const hasAnalyzed = Boolean(
+    article?.regulatory_theory ||
+      article?.related_development ||
+      article?.attention_level ||
+      (article?.affected_sectors && article.affected_sectors.length > 0)
+  );
 
   return (
     <div className="min-h-screen bg-background">
