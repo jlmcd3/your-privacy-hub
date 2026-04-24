@@ -87,8 +87,8 @@ async function generateAISummary(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
         system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown, no explanation. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
