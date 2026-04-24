@@ -98,11 +98,30 @@ const Updates = () => {
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
     const [activeAttention, setActiveAttention] = useState<string | null>(null);
+    const [selectedArticle, setSelectedArticle] = useState<Update | null>(null);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const { isPremium } = usePremiumStatus();
+    const userTier: "free" | "pro" = isPremium ? "pro" : "free";
 
     // AI summary filter state
     const [urgencyFilter, setUrgencyFilter] = useState("all");
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
+
+    // Pre-filter from ?region= query param
+    useEffect(() => {
+        const region = searchParams.get("region");
+        if (region) setActiveFilter(region);
+    }, [searchParams]);
+
+    // Close drawer on Escape
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setDrawerOpen(false);
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, []);
 
     const buildQuery = useCallback((offset: number) => {
         return supabase
@@ -414,21 +433,53 @@ const Updates = () => {
 
                 <AdBanner />
 
-                {/* Newsfeed */}
-                <NewsfeedList
-                    articles={filtered}
-                    isLoading={loading || loadingMore}
-                    hasMore={hasMore}
-                    onLoadMore={handleLoadMore}
-                    renderArticle={(article, _i, isPremium) => (
-                        <ArticleCard
-                            key={article.id}
-                            item={{...article, source_url: article.url} as unknown as ArticleItem}
-                            variant='full'
-                            isPremium={isPremium}
+                {/* Newsfeed + slide-in drawer */}
+                <div className="relative overflow-hidden">
+                    <div className={`transition-all duration-200 ${drawerOpen ? "pr-[360px]" : ""}`}>
+                        <NewsfeedList
+                            articles={filtered}
+                            isLoading={loading || loadingMore}
+                            hasMore={hasMore}
+                            onLoadMore={handleLoadMore}
+                            renderArticle={(article, _i, isPremiumCard) => (
+                                <div
+                                    key={article.id}
+                                    onClick={() => {
+                                        setSelectedArticle(article as unknown as Update);
+                                        setDrawerOpen(true);
+                                    }}
+                                    className="cursor-pointer relative group"
+                                >
+                                    <ArticleCard
+                                        item={{...article, source_url: article.url} as unknown as ArticleItem}
+                                        variant='full'
+                                        isPremium={isPremiumCard}
+                                    />
+                                    <ChevronRight className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                </div>
+                            )}
                         />
-                    )}
-                />
+                    </div>
+
+                    <ArticleDrawer
+                        article={selectedArticle ? {
+                            id: selectedArticle.id,
+                            title: selectedArticle.title,
+                            source: selectedArticle.source_name || selectedArticle.source_domain || "Source",
+                            published_at: selectedArticle.published_at,
+                            url: selectedArticle.url,
+                            summary: selectedArticle.summary,
+                            ai_summary: selectedArticle.ai_summary,
+                            attention_level: selectedArticle.attention_level || undefined,
+                            regulatory_theory: selectedArticle.regulatory_theory || undefined,
+                            related_development: selectedArticle.related_development || undefined,
+                            affected_sectors: selectedArticle.affected_sectors || undefined,
+                        } : null}
+                        isOpen={drawerOpen}
+                        onClose={() => setDrawerOpen(false)}
+                        userTier={userTier}
+                    />
+                </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
             </div>
