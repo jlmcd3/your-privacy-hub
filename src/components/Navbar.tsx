@@ -80,9 +80,9 @@ const navItems: NavItem[] = [
       {
         header: "Browse by region",
         items: [
-          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
+          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
           { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
-          { icon: "", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
+          { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
           { icon: "🌐", label: "Global", href: "/updates?region=global" },
         ],
       },
@@ -105,7 +105,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         items: [
-          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
+          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" },
