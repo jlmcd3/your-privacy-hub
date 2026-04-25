@@ -4,6 +4,24 @@ import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper component for icon images with fallback
+const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  if (!src || hasError) {
+    return <span className="text-base">{fallback || "\ud83d\udccc"}</span>;
+  }
+  
+  return (
+    <img 
+      src={src} 
+      alt={alt} 
+      className="w-4 h-3 object-cover rounded-[2px]" 
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
 interface NavItem {
   label: string;
   href?: string;
@@ -62,9 +80,9 @@ const navItems: NavItem[] = [
       {
         header: "Browse by region",
         items: [
-          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
+          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
           { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
-          { icon: "", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
+          { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
           { icon: "🌐", label: "Global", href: "/updates?region=global" },
         ],
       },
@@ -87,7 +105,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         items: [
-          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
+          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" },
@@ -194,11 +212,7 @@ const Navbar = () => {
                             className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                             onClick={() => setOpenDropdown(null)}
                           >
-                            {sub.iconImage ? (
-                              <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
-                            ) : (
-                              <span className="text-base">{sub.icon}</span>
-                            )}
+                            <IconImage src={sub.iconImage} fallback={sub.icon} />
                             <span className="flex-1 font-medium">{sub.label}</span>
                             {sub.badge && (
                               <span
@@ -324,11 +338,7 @@ const Navbar = () => {
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                           onClick={() => setMobileOpen(false)}
                         >
-                          {sub.iconImage ? (
-                            <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
-                          ) : (
-                            <span>{sub.icon}</span>
-                          )}
+                          <IconImage src={sub.iconImage} fallback={sub.icon} />
                           <span className="flex-1">{sub.label}</span>
                           {sub.badge && (
                             <span
