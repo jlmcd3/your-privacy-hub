@@ -76,7 +76,7 @@ const navItems: NavItem[] = [
           { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement" },
           { icon: "📱", label: "AdTech & Consent", href: "/updates?topic=adtech" },
           { icon: "👤", label: "Biometric Data", href: "/updates?topic=biometric-data" },
-          { icon: "", iconImage: "/data-transfers-icon.svg", label: "Data Transfers", href: "/updates?topic=cross-border" },
+          { icon: "🌐", label: "Data Transfers", href: "/updates?topic=cross-border" },
           { icon: "🧒", label: "Children's Privacy", href: "/updates?topic=children-privacy" },
         ],
       },
