@@ -4,6 +4,24 @@ import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper component for icon images with fallback
+const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  if (!src || hasError) {
+    return <span className="text-base">{fallback || "\ud83d\udccc"}</span>;
+  }
+  
+  return (
+    <img 
+      src={src} 
+      alt={alt} 
+      className="w-4 h-3 object-cover rounded-[2px]" 
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
 interface NavItem {
   label: string;
   href?: string;
