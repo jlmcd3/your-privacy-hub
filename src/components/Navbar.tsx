@@ -62,9 +62,9 @@ const navItems: NavItem[] = [
       {
         header: "Browse by region",
         items: [
-          { icon: "🇺🇸", label: "U.S. Federal", href: "/updates?region=us-federal" },
+          { icon: "", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
           { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
-          { icon: "🇪🇺", label: "EU & UK", href: "/updates?region=eu-uk" },
+          { icon: "", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
           { icon: "🌐", label: "Global", href: "/updates?region=global" },
         ],
       },
