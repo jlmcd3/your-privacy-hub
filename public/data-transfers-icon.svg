@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Globe -->
+  <circle cx="12" cy="12" r="9" stroke="currentColor" fill="none"/>
+  <ellipse cx="12" cy="12" rx="4" ry="9" stroke="currentColor" fill="none"/>
+  <path d="M3 12h18" stroke="currentColor"/>
+  <path d="M12 3c2.5 3 4 6 4 9s-1.5 6-4 9" stroke="currentColor" fill="none"/>
+  <path d="M12 3c-2.5 3-4 6-4 9s1.5 6 4 9" stroke="currentColor" fill="none"/>
+  <!-- Curved arrow around globe -->
+  <path d="M18 6c3 2.5 4.5 5.5 4 9-.5 3.5-3 6-6 7" stroke="currentColor" fill="none"/>
+  <path d="M16 22l3-1-1-2" stroke="currentColor" fill="none"/>
+</svg>
