@@ -212,11 +212,7 @@ const Navbar = () => {
                             className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                             onClick={() => setOpenDropdown(null)}
                           >
-                            {sub.iconImage ? (
-                              <img src={sub.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
-                            ) : (
-                              <span className="text-base">{sub.icon}</span>
-                            )}
+                            <IconImage src={sub.iconImage} fallback={sub.icon} />
                             <span className="flex-1 font-medium">{sub.label}</span>
                             {sub.badge && (
                               <span
