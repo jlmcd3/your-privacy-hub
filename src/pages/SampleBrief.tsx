@@ -346,7 +346,6 @@ const SampleBrief = () => {
             </div>
             )}
           </div>{/* end white document card */}
-          </div>{/* end white document card */}
 
           {/* Bottom CTA — outside the document */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 text-center">
