@@ -695,7 +695,7 @@ const Subscribe = () => {
               $390<span className="text-lg font-normal text-blue-200">/year</span>
             </div>
             <p className="text-blue-200 text-[12px] mb-4">
-              ~$24.17/month — Save $78 vs monthly
+              ~$32.50/month — Save $78 (2 months free)
             </p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
