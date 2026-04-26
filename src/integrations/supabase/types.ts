@@ -625,6 +625,24 @@ export type Database = {
         }
         Relationships: []
       }
+      ingestion_alert_state: {
+        Row: {
+          alert_key: string
+          last_alerted_at: string
+          last_payload: Json | null
+        }
+        Insert: {
+          alert_key: string
+          last_alerted_at?: string
+          last_payload?: Json | null
+        }
+        Update: {
+          alert_key?: string
+          last_alerted_at?: string
+          last_payload?: Json | null
+        }
+        Relationships: []
+      }
       ingestion_runs: {
         Row: {
           duration_ms: number | null
