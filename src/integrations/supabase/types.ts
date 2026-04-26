@@ -291,33 +291,6 @@ export type Database = {
         }
         Relationships: []
       }
-      email_subscribers: {
-        Row: {
-          confirmed: boolean | null
-          email: string
-          id: string
-          source: string | null
-          subscribed_at: string | null
-          unsubscribed_at: string | null
-        }
-        Insert: {
-          confirmed?: boolean | null
-          email: string
-          id?: string
-          source?: string | null
-          subscribed_at?: string | null
-          unsubscribed_at?: string | null
-        }
-        Update: {
-          confirmed?: boolean | null
-          email?: string
-          id?: string
-          source?: string | null
-          subscribed_at?: string | null
-          unsubscribed_at?: string | null
-        }
-        Relationships: []
-      }
       enforcement_actions: {
         Row: {
           action_type: string | null
