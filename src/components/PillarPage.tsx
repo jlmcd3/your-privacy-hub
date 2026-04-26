@@ -181,21 +181,33 @@ const PillarPage = ({
           {!user && (
             <>
               <div className="divide-y divide-fog">
-                {recentArticles.slice(0, 3).map((a: any) => (
-                  <div key={a.id} className="py-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      {a.source_name && (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
-                      )}
-                      {a.published_at && (
-                        <span className="text-[10px] text-slate">
-                          {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                        </span>
-                      )}
+                {recentArticles.slice(0, 3).map((a: any) => {
+                  const TitleEl: any = a.url ? "a" : "div";
+                  const titleProps = a.url
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    : {};
+                  return (
+                    <div key={a.id} className="py-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        {a.source_name && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
+                        )}
+                        {a.published_at && (
+                          <span className="text-[10px] text-slate">
+                            {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+                      <TitleEl
+                        {...titleProps}
+                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 no-underline ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
+                      >
+                        <span>{a.title}</span>
+                        {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
+                      </TitleEl>
                     </div>
-                    <p className="text-[13px] font-medium text-navy leading-snug">{a.title}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-4 p-4 border border-dashed border-fog rounded-xl text-center bg-slate-50">
                 <p className="text-[12px] text-slate mb-3">
@@ -223,28 +235,36 @@ const PillarPage = ({
           {user && !isPremium && (
             <>
               <div className="divide-y divide-fog">
-                {recentArticles.slice(0, 6).map((a: any) => (
-                  <div
-                    key={a.id}
-                    className="py-3 cursor-pointer group"
-                    onClick={() => a.url && window.open(a.url, "_blank")}
-                  >
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      {a.source_name && (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
-                      )}
-                      {a.published_at && (
-                        <span className="text-[10px] text-slate">
-                          {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                        </span>
+                {recentArticles.slice(0, 6).map((a: any) => {
+                  const TitleEl: any = a.url ? "a" : "div";
+                  const titleProps = a.url
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    : {};
+                  return (
+                    <div key={a.id} className="py-3 group">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        {a.source_name && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
+                        )}
+                        {a.published_at && (
+                          <span className="text-[10px] text-slate">
+                            {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+                      <TitleEl
+                        {...titleProps}
+                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 mb-1 no-underline ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
+                      >
+                        <span>{a.title}</span>
+                        {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
+                      </TitleEl>
+                      {a.summary && (
+                        <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{a.summary}</p>
                       )}
                     </div>
-                    <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors">{a.title}</p>
-                    {a.summary && (
-                      <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{a.summary}</p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-3 text-right">
                 <Link to="/updates" className="text-[12px] text-sky-700 hover:underline">
@@ -269,45 +289,53 @@ const PillarPage = ({
           {user && isPremium && (
             <>
               <div className="divide-y divide-fog">
-                {recentArticles.map((a: any) => (
-                  <div
-                    key={a.id}
-                    className="py-3 cursor-pointer group"
-                    onClick={() => a.url && window.open(a.url, "_blank")}
-                  >
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      {a.ai_summary?.urgency && (
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded font-medium ${
-                            a.ai_summary.urgency === "immediate"
-                              ? "bg-red-100 text-red-800"
+                {recentArticles.map((a: any) => {
+                  const TitleEl: any = a.url ? "a" : "div";
+                  const titleProps = a.url
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    : {};
+                  return (
+                    <div key={a.id} className="py-3 group">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        {a.ai_summary?.urgency && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded font-medium ${
+                              a.ai_summary.urgency === "immediate"
+                                ? "bg-red-100 text-red-800"
+                                : a.ai_summary.urgency === "this-quarter"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
+                          >
+                            {a.ai_summary.urgency === "immediate"
+                              ? "High urgency"
                               : a.ai_summary.urgency === "this-quarter"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {a.ai_summary.urgency === "immediate"
-                            ? "High urgency"
-                            : a.ai_summary.urgency === "this-quarter"
-                            ? "Medium urgency"
-                            : "Monitor"}
-                        </span>
-                      )}
-                      {a.source_name && (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
-                      )}
-                      {a.published_at && (
-                        <span className="text-[10px] text-slate">
-                          {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                        </span>
+                              ? "Medium urgency"
+                              : "Monitor"}
+                          </span>
+                        )}
+                        {a.source_name && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
+                        )}
+                        {a.published_at && (
+                          <span className="text-[10px] text-slate">
+                            {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+                      <TitleEl
+                        {...titleProps}
+                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 mb-1 no-underline ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
+                      >
+                        <span>{a.title}</span>
+                        {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
+                      </TitleEl>
+                      {a.ai_summary?.why_it_matters && (
+                        <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{a.ai_summary.why_it_matters}</p>
                       )}
                     </div>
-                    <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors">{a.title}</p>
-                    {a.ai_summary?.why_it_matters && (
-                      <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{a.ai_summary.why_it_matters}</p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-3 text-right">
                 <Link to="/updates" className="text-[12px] text-sky-700 hover:underline">
