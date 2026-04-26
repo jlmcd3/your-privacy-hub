@@ -2,9 +2,18 @@
 // Uses inline price_data so the feature works without pre-provisioned Stripe products.
 //
 // Tiers (we never submit filings on the user's behalf):
-//   "diy"             — one-time $49 flat (regardless of jurisdiction count)
-//   "counsel_review"  — one-time $299 flat (Counsel-Ready Pack: enhanced docs + handoff)
-//   "renewal"         — recurring $199/yr × N jurisdictions (renewal monitoring + regenerated docs)
+//   "diy"             — one-time tiered fee by jurisdiction count
+//                       1 jurisdiction        = $59
+//                       up to 3 jurisdictions = $149
+//                       up to 7 jurisdictions = $275
+//                       8+ (unlimited)        = $499
+//   "counsel_review"  — one-time $399 flat (Counsel-Ready Pack: enhanced docs + handoff)
+//   "renewal"         — recurring $79/yr × N jurisdictions (renewal monitoring + regenerated docs)
+//
+// Subscriber discounts (Professional plan):
+//   - 20% off all DIY packages
+//   - $75 off the Counsel-Ready Pack
+//   - Renewal monitoring is unchanged
 //
 // Backwards-compat: legacy "done_for_you" tier is silently mapped to "counsel_review".
 //
@@ -24,25 +33,30 @@ function detectEnv(): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
-// DIY pricing is tiered by jurisdiction count:
-//   1 jurisdiction         = $49
-//   2-3 jurisdictions      = $89
-//   4+ jurisdictions       = $149
+// DIY pricing ladder — must stay in sync with src/pages/RegistrationLanding.tsx
+// and src/pages/Tools.tsx. The pricing reconciliation scanner
+// (scripts/scan-pricing.mjs) enforces this.
 function diyPriceCents(numJurisdictions: number): number {
-  if (numJurisdictions <= 1) return 4900;
-  if (numJurisdictions <= 3) return 8900;
-  return 14900;
+  if (numJurisdictions <= 1) return 5900;   // $59
+  if (numJurisdictions <= 3) return 14900;  // $149
+  if (numJurisdictions <= 7) return 27500;  // $275
+  return 49900;                             // $499 — Portfolio (unlimited)
 }
 function diyPriceLabel(numJurisdictions: number): string {
   if (numJurisdictions <= 1) return "Registration Manager — DIY Toolkit (1 jurisdiction)";
-  if (numJurisdictions <= 3) return `Registration Manager — DIY Toolkit (${numJurisdictions} jurisdictions)`;
-  return `Registration Manager — DIY Toolkit (${numJurisdictions} jurisdictions)`;
+  if (numJurisdictions <= 3) return `Registration Manager — DIY Toolkit (up to 3 jurisdictions, ${numJurisdictions} selected)`;
+  if (numJurisdictions <= 7) return `Registration Manager — DIY Toolkit (up to 7 jurisdictions, ${numJurisdictions} selected)`;
+  return `Registration Manager — DIY Portfolio (unlimited, ${numJurisdictions} jurisdictions)`;
 }
+
+const COUNSEL_REVIEW_CENTS = 39900; // $399 flat
+const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500; // -$75 for Pro
+const RENEWAL_PER_JURISDICTION_CENTS = 7900; // $79/yr
 
 const PRICING = {
   diy: { unit_amount: 0 /* dynamic */, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
-  counsel_review: { unit_amount: 29900, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
-  renewal: { unit_amount: 19900, name: "Registration Manager — Annual Renewal Monitoring", recurring: true, per_jurisdiction: true },
+  counsel_review: { unit_amount: COUNSEL_REVIEW_CENTS, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
+  renewal: { unit_amount: RENEWAL_PER_JURISDICTION_CENTS, name: "Registration Manager — Annual Renewal Monitoring", recurring: true, per_jurisdiction: true },
 } as const;
 
 serve(async (req) => {
@@ -88,26 +102,42 @@ serve(async (req) => {
     }
 
     const cfg = PRICING[tier as keyof typeof PRICING];
-    // Pricing rules:
-    //   diy            -> tiered flat fee based on jurisdiction count (qty 1)
-    //   counsel_review -> flat $299 (qty 1)
-    //   renewal        -> $199/yr × N jurisdictions
+
+    // Look up subscriber status for promotional discounts.
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("is_premium, is_pro")
+      .eq("id", user.id)
+      .single();
+    const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
+
+    // Pricing rules (must match src/pages/RegistrationLanding.tsx + Tools.tsx):
+    //   diy            -> tiered flat fee by jurisdiction count, 20% off for subscribers
+    //   counsel_review -> flat $399, -$75 for subscribers
+    //   renewal        -> $79/yr × N jurisdictions (no subscriber discount)
     let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
     let productName: string = cfg.name;
     if (tier === "diy") {
       unitAmount = diyPriceCents(codes.length);
       productName = diyPriceLabel(codes.length);
-    } else if (cfg.per_jurisdiction) {
+      if (isSubscriber) {
+        unitAmount = Math.round(unitAmount * 0.8); // 20% off
+        productName = `${productName} — Professional 20% off`;
+      }
+    } else if (tier === "counsel_review" && isSubscriber) {
+      unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
+      productName = `${productName} — Professional $75 off`;
+    }
+    // Per-jurisdiction quantities apply to all per_jurisdiction tiers (e.g. renewal).
+    if (cfg.per_jurisdiction) {
       quantity = Math.max(1, codes.length);
     }
     const totalCents = unitAmount * quantity;
-
-    // Use service role for the order insert so RLS doesn't block
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     const { data: order, error: orderErr } = await adminClient
       .from("registration_orders")
