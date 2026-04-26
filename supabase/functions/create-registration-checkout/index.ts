@@ -132,10 +132,9 @@ serve(async (req) => {
     } else if (tier === "counsel_review" && isSubscriber) {
       unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
       productName = `${productName} — Professional $75 off`;
-    } else if (cfg.per_jurisdiction) {
-      quantity = Math.max(1, codes.length);
     }
-    if (cfg.per_jurisdiction && tier !== "diy") {
+    // Per-jurisdiction quantities apply to all per_jurisdiction tiers (e.g. renewal).
+    if (cfg.per_jurisdiction) {
       quantity = Math.max(1, codes.length);
     }
     const totalCents = unitAmount * quantity;
