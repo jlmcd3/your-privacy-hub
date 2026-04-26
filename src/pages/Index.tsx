@@ -133,14 +133,6 @@ const Index = () => {
       <EmailSignup variant="strip" />
 
       <div className="h-px bg-fog" />
-      <AdBanner
-        variant="inline"
-        adSlot={AD_SLOTS.home_mid_inline.id}
-        googleAdClient={GOOGLE_AD_CLIENT}
-        googleAdSlot={AD_SLOTS.home_mid_inline.googleAdSlot}
-        className="py-4 bg-paper"
-      />
-      <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <div className="py-12"><ToolkitSection /></div>
       <PremiumBanner />
