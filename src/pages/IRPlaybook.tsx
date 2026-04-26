@@ -47,7 +47,7 @@ export default function IRPlaybook() {
 
   const handleGenerate = async () => {
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: form });
+    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id } });
     if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
     setResult(data.playbook_text);
     if (data?.id) { navigate(`/ir-playbook/result/${data.id}`); return; }

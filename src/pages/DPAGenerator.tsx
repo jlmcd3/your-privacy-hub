@@ -52,7 +52,7 @@ export default function DPAGenerator() {
 
   const handleGenerate = async () => {
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-dpa", { body: form });
+    const { data, error } = await supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id } });
     if (error || !data?.dpa_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
     setResult(data.dpa_text);
     // If the edge function returned a saved row id, hop to the persistent result page so the user can return later.
