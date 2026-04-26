@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
+import BackLink from "@/components/dashboard/BackLink";
 
 const ratingColor = (r: string) => {
   const x = (r || "").toLowerCase();

@@ -9,6 +9,7 @@ import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 
 export default function DPAResult() {

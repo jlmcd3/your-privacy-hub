@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
+import BackLink from "@/components/dashboard/BackLink";
 
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
