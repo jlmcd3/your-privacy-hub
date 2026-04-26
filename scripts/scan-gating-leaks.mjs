@@ -119,9 +119,10 @@ const findings = [];
 for (const r of routes) {
   const file = componentFile(r.component);
   if (!file) continue;
+  if (MARKETING_ROUTES.has(r.path)) continue; // expected to advertise Pro
   const a = analyzeFile(file);
 
-  // LEAK A: page is publicly reachable AND renders Pro labels AND has no runtime gate
+  // LEAK A: public route renders gated-content labels with no runtime check
   if (!r.protected && a.hasPremiumLabel && !a.hasRuntimeGate) {
     findings.push({
       severity: "high",
@@ -129,13 +130,14 @@ for (const r of routes) {
       route: r.path,
       component: r.component,
       file: a.file,
+      labels: a.premiumLabelSnippets,
       message:
-        "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium).",
+        'Public route uses "Pro/Premium-only" language but has no runtime premium check.',
     });
   }
 
-  // LEAK B: page is publicly reachable, mentions "free users" but has no gate -> verify
-  if (!r.protected && a.mentionsFree && a.hasPremiumLabel && !a.hasRuntimeGate) {
+  // LEAK B: explicitly references free-tier limits without enforcing them
+  if (!r.protected && a.mentionsFree && !a.hasRuntimeGate) {
     findings.push({
       severity: "medium",
       type: "free_mention_without_gate",
@@ -143,11 +145,11 @@ for (const r of routes) {
       component: r.component,
       file: a.file,
       message:
-        "Page references free-vs-paid distinction without enforcing it at runtime.",
+        "Page references a free-vs-paid distinction without enforcing it at runtime.",
     });
   }
 
-  // INFO: protected route that ALSO blurs/limits — likely fine, just record
+  // INFO: protected route, but no per-tier differentiation inside
   if (r.protected && !a.hasRuntimeGate) {
     findings.push({
       severity: "info",
@@ -156,7 +158,7 @@ for (const r of routes) {
       component: r.component,
       file: a.file,
       message:
-        "Route is auth-protected but component does not differentiate free vs premium logged-in users.",
+        "Auth-protected route does not differentiate free vs premium logged-in users.",
     });
   }
 }
