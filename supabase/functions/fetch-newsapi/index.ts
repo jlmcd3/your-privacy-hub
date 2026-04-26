@@ -314,7 +314,22 @@ STEP 2 — If relevant, return this JSON:
               const match = aiText.match(/\{[\s\S]*\}/);
               if (match) {
                 const parsed = JSON.parse(match[0]);
-                if (!parsed.skip) { row.ai_summary = parsed; results.summaries_generated++; }
+                if (!parsed.skip) {
+                  row.ai_summary = parsed;
+                  if (Array.isArray(parsed.affected_jurisdictions) && parsed.affected_jurisdictions.length > 0) {
+                    row.affected_jurisdictions = parsed.affected_jurisdictions;
+                  }
+                  if (typeof parsed.regulatory_theory === "string" && parsed.regulatory_theory.trim()) {
+                    row.regulatory_theory = parsed.regulatory_theory;
+                  }
+                  if (Array.isArray(parsed.action_items) && parsed.action_items.length > 0) {
+                    row.action_items = parsed.action_items;
+                  }
+                  if (typeof parsed.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.key_date)) {
+                    row.key_date = parsed.key_date;
+                  }
+                  results.summaries_generated++;
+                }
               }
             }
           } catch { /* AI enrichment is best-effort */ }
