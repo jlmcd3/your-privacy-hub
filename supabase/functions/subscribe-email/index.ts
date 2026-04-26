@@ -16,18 +16,30 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json();
+    const { email, source } = await req.json();
 
-    if (!email || !email.includes("@")) {
+    if (!email || typeof email !== "string" || !email.includes("@") || email.length > 255) {
       return new Response(JSON.stringify({ error: "Valid email required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Validate source: optional string, max 64 chars, alphanumerics + dashes/underscores
+    let safeSource = "website";
+    if (source !== undefined && source !== null) {
+      if (typeof source !== "string" || source.length > 64 || !/^[a-zA-Z0-9_-]+$/.test(source)) {
+        return new Response(JSON.stringify({ error: "Invalid source" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      safeSource = source;
+    }
+
     const { error } = await supabase
       .from("email_signups")
-      .insert({ email: email.toLowerCase().trim(), confirmed: false, source: "website" });
+      .insert({ email: email.toLowerCase().trim(), confirmed: false, source: safeSource });
 
     if (error) {
       if (error.code === "23505") {
