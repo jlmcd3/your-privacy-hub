@@ -19,6 +19,8 @@ export interface ArticleItem {
   regulatory_theory?: string | null;
   related_development?: string | null;
   enrichment_version?: number | null;
+  image_url?: string | null;
+  is_premium?: boolean;
   ai_summary?: {
     urgency?: string | null;
     legal_weight?: string | null;
@@ -30,7 +32,7 @@ export interface ArticleItem {
 }
 
 // Variant controls the density and context of display
-export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement';
+export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview';
 
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
