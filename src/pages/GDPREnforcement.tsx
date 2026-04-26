@@ -202,6 +202,32 @@ const GDPREnforcement = () => {
         </div>
       </div>
 
+      {/* ── Recent Developments — moved above the fold ── */}
+      {recentArticles.length > 0 && (
+        <div ref={setRef("gdpr-recent")} id="gdpr-recent" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 scroll-mt-24">
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="font-display text-base text-navy">Recent developments</h2>
+            <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">Live</span>
+          </div>
+          <div className="divide-y divide-fog">
+            {recentArticles.map((a: any) => (
+              <ArticleCard
+                key={a.id}
+                item={{
+                  id: a.id,
+                  title: a.title,
+                  summary: a.summary,
+                  source_name: a.source_name,
+                  published_at: a.published_at,
+                  source_url: a.url,
+                } as ArticleItem}
+                variant="full"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
