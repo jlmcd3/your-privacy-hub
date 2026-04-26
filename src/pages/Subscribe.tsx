@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
+import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 
 type ComparisonRow =
   | { feature: string; free: boolean; pro: boolean; isSection?: false }
@@ -772,6 +773,9 @@ const Subscribe = () => {
             {error}
           </p>
         )}
+
+        {/* Free digest signup — for visitors not ready to subscribe */}
+        <FreeDigestSignup source="website" className="mt-10" />
 
         {/* Trust strip */}
         <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground py-3 border-t border-border mt-8">
