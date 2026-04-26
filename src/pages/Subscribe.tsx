@@ -653,7 +653,7 @@ const Subscribe = () => {
         </div>
 
         {/* Two-plan layout: Monthly + Annual */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto items-start">
           {/* Monthly */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border border-blue/40 relative flex flex-col">
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
