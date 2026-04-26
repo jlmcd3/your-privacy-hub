@@ -1234,19 +1234,25 @@ Deno.serve(async (req) => {
   // and writes via service_role. Rate-limited by cron schedule.
 
   const run = await startRun(supabase, "fetch-updates", { sources: RSS_SOURCES.length });
-  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, errors: [] as string[] };
+  const startedMs = Date.now();
+  const maxRuntimeMs = 240_000;
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, stopped_due_to_time_budget: false, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   try {
 
-  // Pre-fetch URLs that already have AI summaries to avoid redundant API calls
+  // Pre-fetch all existing URLs so duplicate RSS items do not spend time on
+  // image extraction / AI enrichment and do not get counted as new inserts.
   const { data: existingRows } = await supabase
     .from("updates")
-    .select("url")
-    .not("ai_summary", "is", null);
-  const existingUrlsWithSummary = new Set((existingRows || []).map((r: { url: string }) => r.url));
+    .select("url");
+  const existingUrls = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
   for (const source of RSS_SOURCES) {
+    if (Date.now() - startedMs > maxRuntimeMs) {
+      results.stopped_due_to_time_budget = true;
+      break;
+    }
     try {
       const res = await fetch(source.url, {
         signal: AbortSignal.timeout(12000),
@@ -1257,12 +1263,17 @@ Deno.serve(async (req) => {
       const items = extractAllItems(xml).slice(0, 10);
 
       for (const item of items) {
+        if (Date.now() - startedMs > maxRuntimeMs) {
+          results.stopped_due_to_time_budget = true;
+          break;
+        }
         let title = stripHtml(extractTag(item, "title"));
         const link = extractLink(item);
         let description = cleanRssBoilerplate(stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content")));
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
+        if (existingUrls.has(link)) { results.skipped_existing++; continue; }
 
         // Translate non-English content to English before processing
         if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
@@ -1305,8 +1316,8 @@ Deno.serve(async (req) => {
           direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
         };
 
-        // Generate AI summary only if key available AND article doesn't already have one
-        if (anthropicKey && !existingUrlsWithSummary.has(link)) {
+        // Generate AI summary only for new articles; existing URLs are skipped above.
+        if (anthropicKey) {
           try {
             const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey);
             if (aiSummary) {
@@ -1347,7 +1358,10 @@ Deno.serve(async (req) => {
           .upsert(row, { onConflict: "url", ignoreDuplicates: true });
 
         if (error) results.skipped++;
-        else results.inserted++;
+        else {
+          results.inserted++;
+          existingUrls.add(link);
+        }
 
         // Prevent Anthropic API rate limiting — small delay between AI calls
         if (anthropicKey) {
@@ -1381,7 +1395,8 @@ Deno.serve(async (req) => {
     enriched: results.summaries_generated,
     enrichmentFailed429: results.enrichment_failed_429,
     enrichmentFailedOther: results.enrichment_failed_other,
-    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length },
+    status: results.stopped_due_to_time_budget ? "partial" : undefined,
+    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
   });
 
   return new Response(JSON.stringify(results), {
