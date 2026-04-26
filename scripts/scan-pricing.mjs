@@ -48,23 +48,35 @@ while ((m = TOOL_BLOCK_RE.exec(TOOL_SRC)) !== null) {
   });
 }
 
-// Parse registration tiers
-const diyMatch = REG_SRC.match(
-  /diyPriceCents[^{]*\{([\s\S]*?)return\s+(\d+)\s*;\s*\}/
-);
-const diyLadder = [...REG_SRC.matchAll(/<=\s*(\d+)\)\s*return\s+(\d+);/g)].map(
+// Parse registration tiers.
+// Capture the diy ladder: lines like `if (numJurisdictions <= N) return NNNN;`
+// plus the final fallback `return NNNN;` for unlimited.
+const diyLadder = [...REG_SRC.matchAll(/<=\s*(\d+)\)\s*return\s+(\d+)/g)].map(
   (x) => ({ jurisdictions_max: Number(x[1]), cents: Number(x[2]) })
 );
-const diyDefault = diyMatch ? Number(diyMatch[2]) : null;
+const diyFallbackMatch = REG_SRC.match(
+  /function\s+diyPriceCents[\s\S]*?return\s+(\d+);\s*\n\s*\}/
+);
+const diyDefault = diyFallbackMatch ? Number(diyFallbackMatch[1]) : null;
 
-const counselMatch = REG_SRC.match(/counsel_review:[\s\S]*?unit_amount:\s*(\d+)/);
-const renewalMatch = REG_SRC.match(/renewal:[\s\S]*?unit_amount:\s*(\d+)/);
+// Resolve top-level numeric constants (e.g. `const COUNSEL_REVIEW_CENTS = 39900;`)
+// so we can look up `unit_amount: COUNSEL_REVIEW_CENTS` references too.
+const constants: Record<string, number> = {};
+for (const m of REG_SRC.matchAll(/const\s+(\w+)\s*=\s*(\d+)\s*;/g)) {
+  constants[m[1]] = Number(m[2]);
+}
+function resolveAmount(raw) {
+  if (/^\d+$/.test(raw)) return Number(raw);
+  return constants[raw] ?? null;
+}
+const counselMatch = REG_SRC.match(/counsel_review:[\s\S]*?unit_amount:\s*(\w+)/);
+const renewalMatch = REG_SRC.match(/renewal:[\s\S]*?unit_amount:\s*(\w+)/);
 
 const serverRegistration = {
   diy_ladder: diyLadder,
   diy_unlimited_cents: diyDefault,
-  counsel_review_cents: counselMatch ? Number(counselMatch[1]) : null,
-  renewal_per_jurisdiction_cents: renewalMatch ? Number(renewalMatch[1]) : null,
+  counsel_review_cents: counselMatch ? resolveAmount(counselMatch[1]) : null,
+  renewal_per_jurisdiction_cents: renewalMatch ? resolveAmount(renewalMatch[1]) : null,
 };
 
 // ---------- 2. UI-marketed prices ----------
