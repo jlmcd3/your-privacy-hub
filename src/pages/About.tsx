@@ -44,28 +44,38 @@ const About = () => {
           </div>
         </div>
 
-        <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           {/* Mission block */}
-          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 mb-10">
-            <p className="font-display text-[20px] md:text-[22px] text-navy leading-snug font-semibold mb-4">
-              "Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do."
-            </p>
+          <div className="bg-card border border-fog rounded-2xl p-6 md:p-10 mb-12 md:mb-16">
+            <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-steel bg-fog rounded-full px-3 py-1 mb-5">
+              Our mission
+            </span>
+            <blockquote className="font-display text-[22px] md:text-[28px] font-bold text-navy leading-tight mb-5">
+              “Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do.”
+            </blockquote>
             <p className="text-[15px] text-slate leading-relaxed">
               Your Privacy Hub monitors 119 regulatory authorities and 150+ jurisdictions daily, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
             </p>
           </div>
 
           {/* What we cover */}
-          <div className="mb-10">
-            <h2 className="font-display text-[20px] font-bold text-navy mb-4">What we cover</h2>
+          <div className="mb-12 md:mb-16">
+            <h2 className="font-display text-[20px] md:text-[24px] font-bold text-navy mb-5 md:mb-6">
+              What we cover
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { stat: "119", label: "Regulatory authorities monitored" },
                 { stat: "150+", label: "Jurisdictions covered" },
                 { stat: "Daily", label: "Updated, enriched with regulatory context" },
               ].map((item) => (
-                <div key={item.label} className="bg-card border border-fog rounded-xl p-5 text-center">
-                  <div className="font-display text-[28px] font-bold text-navy leading-none mb-2">{item.stat}</div>
+                <div
+                  key={item.label}
+                  className="bg-card border border-fog rounded-xl p-5 md:p-6 text-center"
+                >
+                  <div className="font-display text-[28px] md:text-[36px] font-bold text-navy leading-none mb-2">
+                    {item.stat}
+                  </div>
                   <div className="text-[13px] text-slate leading-snug">{item.label}</div>
                 </div>
               ))}
@@ -73,10 +83,13 @@ const About = () => {
           </div>
 
           {/* Contact callout */}
-          <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 mb-10">
+          <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 md:p-8 mb-12 md:mb-16">
             <p className="text-[15px] text-navy leading-relaxed">
               Questions about coverage, methodology, or your subscription? Reach us at{" "}
-              <a href="mailto:hello@enduserprivacy.com" className="text-sky font-semibold hover:underline">
+              <a
+                href="mailto:hello@enduserprivacy.com"
+                className="text-sky font-semibold hover:underline"
+              >
                 hello@enduserprivacy.com
               </a>{" "}
               — we respond within one business day.
