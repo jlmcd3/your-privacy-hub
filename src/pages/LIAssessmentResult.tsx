@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
+import BackLink from "@/components/dashboard/BackLink";
 
 const strengthColor = (s: string) => {
   const v = (s || "").toLowerCase();
@@ -76,6 +77,9 @@ const LIAssessmentResult = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Legitimate Interest Assessment Tool | Your Privacy Hub</title></Helmet>
       <Navbar />
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <BackLink to="/dashboard/reports" label="Back to My Reports" />
+      </div>
 
       <header className="bg-slate-900 text-white py-10">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">

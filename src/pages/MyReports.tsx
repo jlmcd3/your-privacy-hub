@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight } from "lucide-react";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 
 type ReportRow = {
   id: string;
@@ -142,6 +143,7 @@ export default function MyReports() {
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">

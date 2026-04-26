@@ -9,6 +9,7 @@ import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 
 export default function IRPlaybookResult() {
@@ -38,6 +39,7 @@ export default function IRPlaybookResult() {
       <Helmet><title>Your Breach Response Playbook | Your Privacy Hub</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
         {loading ? (
           <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
         ) : !row ? (
