@@ -227,7 +227,7 @@ INTELLIGENCE STANDARDS — apply to every section you write:
 - MONITOR: development to watch, no current action required
 Each action item must name the affected role: (DPO) / (Legal Counsel) / (Board Escalation). Do not write generic actions like 'review your privacy practices' — write specific ones like 'Review Article 6(1)(f) LIA documentation against the EDPB's updated standard (DPO).'
 
-6. WHAT TO IGNORE. Include a brief 'What to ignore this week' note in the executive summary — explicitly naming 1-2 high-profile items that are less significant than they appear, and why. This saves the reader time and demonstrates editorial judgment.
+6. WHAT TO IGNORE. Include a 'What to ignore this week' note in the executive summary — explicitly naming 1-2 items and the specific reason each can be deprioritized. An item deserves 'what to ignore' treatment when: (a) it is law firm or consultant commentary on a development already covered in a prior week's brief, adding no new regulatory development; (b) it is a media-amplified story that, on examination, reflects routine regulatory activity (a small fine in line with the sector average, a procedural ruling, a settlement that doesn't change doctrine); (c) it is a speculative think-piece without underlying regulatory action. State what makes the item routine or duplicative. Do not use 'what to ignore' for items you simply ran out of space to cover. Only use it for items that received media attention disproportionate to their regulatory significance.
 
 YOUR DOMAIN COVERAGE — You have expert-level mastery across all of these sectors:
 
@@ -407,6 +407,16 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
+        system: `You are a fact-checker for a regulatory intelligence publication. Your task: verify that specific factual claims in a regulatory enforcement table are traceable to the cited source articles.
+
+Return ONLY valid JSON. No preamble, no explanation.
+
+VERIFICATION STANDARDS:
+- A fine amount is verified only if the exact number appears verbatim in the source article. "Not disclosed" is acceptable if the fine is not stated.
+- A regulator name is verified only if it appears by name in the source article.
+- A subject (company name) is verified only if it appears in the source article.
+- Mark as unverified any claim that you cannot trace to the cited article — do not rely on training knowledge to confirm facts.
+- fabricated_facts: any specific claim (number, name, date) in the enforcement table that does not appear in any provided source article.`,
         messages: [{ role: "user", content: verifyPrompt }],
       }),
     });
