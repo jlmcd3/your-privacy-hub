@@ -59,6 +59,7 @@ import GetIntelligence from "./pages/GetIntelligence.tsx";
 import LegitimateInterestTracker from "./pages/LegitimateInterestTracker.tsx";
 import AdminSeedLI from "./pages/AdminSeedLI.tsx";
 import AdminIngestionDashboard from "./pages/AdminIngestionDashboard.tsx";
+import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
 import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";
 import GovernanceAssessment from "./pages/GovernanceAssessment.tsx";
@@ -149,6 +150,7 @@ const App = () => (
            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
            <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
            <Route path="/admin/ingestion" element={<ProtectedRoute><AdminIngestionDashboard /></ProtectedRoute>} />
+           <Route path="/admin/gating-leaks" element={<ProtectedRoute><AdminGatingLeaks /></ProtectedRoute>} />
            <Route path="/li-assessment" element={<LIAssessment />} />
            <Route path="/li-assessment/result/:id" element={<ProtectedRoute><LIAssessmentResult /></ProtectedRoute>} />
            <Route path="/governance-assessment" element={<GovernanceAssessment />} />
