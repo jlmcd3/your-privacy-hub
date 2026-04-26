@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import NewsfeedList from "@/components/NewsfeedList";
-import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
+import { type ArticleItem } from "@/components/ArticleCard";
+import { TieredFeed } from "@/components/TieredFeed";
 import { Link } from "react-router-dom";
 import { Search, X } from "lucide-react";
 
@@ -163,9 +163,9 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
+          .select("id,title,summary,url,source_name,source_url,source_domain,image_url,published_at,category,regulator,is_premium,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
           .order("published_at", { ascending: false })
-          .limit(50);
+          .limit(20);
 
         if (!error && data && data.length > 0) {
           setUpdates(data as Update[]);
