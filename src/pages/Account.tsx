@@ -162,6 +162,9 @@ export default function Account() {
           </div>
         )}
 
+        {/* Weekly Brief Language (Intelligence subscribers only) */}
+        <BriefLanguageSelector />
+
         {/* Quick links */}
         <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
           <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
