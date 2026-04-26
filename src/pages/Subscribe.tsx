@@ -141,7 +141,7 @@ const Subscribe = () => {
       <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
         <div className="max-w-[720px] mx-auto text-center">
           <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $39/month or $390/year.
+            🎁 Founding offer: First 25 subscribers get Intelligence free for one year, then $39/month or $390/year.
           </p>
         </div>
       </div>
@@ -153,7 +153,7 @@ const Subscribe = () => {
           <Link to="/registration-manager" className="text-navy font-semibold underline underline-offset-2 hover:text-navy-mid">
             Try Your Registration Filings →
           </Link>{" "}
-          <span className="text-slate-light">— sold separately, not part of Professional.</span>
+          <span className="text-slate-light">— sold separately, not part of Intelligence.</span>
         </div>
       </div>
 
@@ -726,7 +726,7 @@ const Subscribe = () => {
         <div className="max-w-3xl mx-auto mt-6">
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-center">
             <p className="text-[13px] text-amber-800">
-              🎁 <strong>Founding offer:</strong> First 25 subscribers get Professional free for one year, then $39/month or $390/year.
+              🎁 <strong>Founding offer:</strong> First 25 subscribers get Intelligence free for one year, then $39/month or $390/year.
             </p>
           </div>
         </div>

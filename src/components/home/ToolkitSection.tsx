@@ -27,7 +27,7 @@ export default function ToolkitSection() {
       <div className="max-w-[1280px] mx-auto">
         <div className="text-center mb-8">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            Professional Toolkit
+            Intelligence Toolkit
           </h2>
           <p className="text-slate text-[13px]">
             Structured tools for planning and compliance. Always free.
