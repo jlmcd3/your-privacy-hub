@@ -378,7 +378,7 @@ const Dashboard = () => {
           </div>
           {subscriptionInterval === "year" && (
             <p className="text-[12px] text-muted-foreground mb-4">
-              Annual plan — saving $60/year vs monthly billing.
+              Annual plan — saving $78/year vs monthly billing.
             </p>
           )}
 
