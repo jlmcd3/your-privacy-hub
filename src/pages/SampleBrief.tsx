@@ -1,8 +1,10 @@
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import SampleBriefLanguageToggle from "@/components/brief/SampleBriefLanguageToggle";
 
 const enforcementRows = [
   { reg: "ICO (UK)", jur: "UK", co: "TikTok Ltd", viol: "Children's data without parental consent", fine: "£12.7M", date: "Mar 3, 2026", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2023/04/ico-fines-tiktok-12-7-million-for-misusing-childrens-data/" },
@@ -28,8 +30,38 @@ const tocItems = [
   { label: "Action Items", anchor: "actions" },
 ];
 
+// English HTML used as the source for translation and as the default render
+// when the user clicks "English (original)". Mirrors the hardcoded sections
+// below so translated and original views convey the same content.
+const englishText = `
+<h3>Executive Summary</h3>
+<p>This week's dominant regulatory theme is enforcement convergence: three separate authorities — the UK ICO, Texas AG, and EU EDPB — each took significant action within the same seven-day window, signaling accelerating enforcement activity across all major jurisdictions simultaneously. The ICO's £12.7 million fine against TikTok for processing children's data without adequate parental consent establishes a new benchmark for children's privacy enforcement under UK GDPR, and is expected to trigger follow-on investigations by EU DPAs under the GDPR's one-stop-shop mechanism. In the US, the Texas Attorney General's filing against DataConnect Inc. under the TDPSA marks the first enforcement action under the new state law, confirming that state AGs are prepared to act immediately where federal privacy legislation remains stalled. Meanwhile, the EDPB's Opinion 28/2026 on AI training data creates binding compliance obligations for any organization operating in the EU that uses personal data to train AI models — a development with immediate implications for technology companies, financial institutions, and any organization deploying generative AI tools.</p>
+
+<h3>US Federal Analysis</h3>
+<p>No major federal privacy legislation advanced this week. However, the FTC continued its active enforcement posture with two new rulemakings: a proposed rule on rental housing fee transparency and a negative-option marketing rule. Neither directly concerns privacy, but both signal the FTC's sustained use of its Section 5 authority in consumer protection contexts adjacent to data practices. Privacy counsel should note that the FTC's current rulemaking pace suggests the agency is building an enforcement infrastructure that could pivot to AI and data practices rapidly once political conditions allow. No new NIST framework updates this week.</p>
+
+<h3>US State Analysis</h3>
+<p>Texas leads enforcement activity this week with the first TDPSA action. Three states to watch in the next 90 days: (1) Texas — AG has signaled further TDPSA enforcement actions are imminent, particularly against data brokers. (2) California — CPPA's ADMT regulations take effect April 1, 2026; organizations with automated decision-making systems affecting employment, housing, or credit must have pre-use notices and opt-out mechanisms in place. (3) New York — SHIELD Act enforcement activity has increased; the NY AG's office filed 3 data breach enforcement actions in the past 30 days. Compliance teams operating in multiple US states should prioritize: data broker registration filings (Texas, California, Oregon, Montana); ADMT notice deployment for California; and data breach notification procedure review for New York.</p>
+
+<h3>EU &amp; UK Analysis</h3>
+<p>The ICO's £12.7M TikTok fine is the largest UK GDPR children's privacy fine to date and the second-largest UK GDPR fine overall. The ICO found that TikTok failed to obtain valid parental consent for users under 13 and failed to implement adequate age verification. Significantly, the ICO rejected TikTok's legitimate interests argument for processing children's data for algorithmic recommendations — a ruling with broad implications for any platform that targets or knowingly serves minors. EU DPAs are expected to open parallel investigations under Article 60 GDPR. The EDPB's Opinion 28/2026 on AI training data establishes that: (1) scraping personal data from public sources without a GDPR-compliant legal basis constitutes a violation regardless of whether the data was originally public; (2) legitimate interests cannot justify AI training on personal data without a robust balancing test; (3) data minimization obligations apply to AI training datasets. This opinion is binding on all EU DPAs and will directly affect every organization using EU residents' personal data in AI model training.</p>
+
+<h3>Global Developments</h3>
+<p>Brazil's ANPD published Resolution No. 19 establishing standard contractual clauses for international data transfers — the first formal transfer mechanism under the LGPD. Organizations transferring personal data from Brazil to the US, EU, or APAC must now either use these SCCs or obtain explicit consent. The 90-day implementation period ends June 14, 2026. Canada's Bill C-27 (CPPA/AIDA) remains stalled in committee but parliamentary sources indicate a vote is expected before summer recess. Organizations with Canadian operations should begin CPPA compliance gap assessments now. Singapore's PDPC issued updated AI governance guidelines expanding the definition of 'significant decisions' subject to human review requirements.</p>
+
+<h3>Trend Signal</h3>
+<p>Week-over-week pattern: Enforcement volume is up 40% compared to the same period in 2025. The concentration of simultaneous enforcement actions across UK, US, and EU in a single week is unusual and suggests coordinated intelligence-sharing between regulators — a pattern that has preceded major enforcement waves in the past (see 2021 GDPR enforcement surge). The 30-90 day outlook: organizations should expect (1) follow-on EU investigations against TikTok within 60 days; (2) additional Texas TDPSA enforcement actions against data brokers within 30 days; (3) first ADMT enforcement actions from CPPA in Q2 2026 following the April 1 effective date. The EDPB AI training opinion is likely to be followed by coordinated DPA investigations against major AI developers in Q2-Q3 2026.</p>
+
+<h3>Action Items for GC / CPO</h3>
+<ol>
+${actionItems.map((a) => `<li>${a.text}</li>`).join("\n")}
+</ol>
+`.trim();
+
 const SampleBrief = () => {
   const { isPremium } = usePremiumStatus();
+  const [translatedContent, setTranslatedContent] = React.useState<string | null>(null);
+  const [contentDir, setContentDir] = React.useState<"ltr" | "rtl">("ltr");
   return (
     <div className="min-h-screen flex flex-col bg-slate-800">
       <Helmet>
@@ -79,6 +111,13 @@ const SampleBrief = () => {
 
         {/* Brief Document */}
         <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <SampleBriefLanguageToggle
+            englishContent={englishText}
+            onLanguageChange={(content, dir) => {
+              setTranslatedContent(content);
+              setContentDir(dir);
+            }}
+          />
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-10">
 
             {/* Document header — dark branded band */}
@@ -87,7 +126,7 @@ const SampleBrief = () => {
                 <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
                   ⭐ Your Privacy Hub Intelligence Brief
                 </span>
-                <span className="text-[11px] text-blue-300">Week 11 · 2026</span>
+                <span className="text-[11px] text-blue-300">Sample Edition</span>
               </div>
               <h2 className="font-display text-[22px] md:text-[26px] text-white font-bold leading-tight mb-3">
                 ICO Issues £12.7M TikTok Fine for Children's Data Violations;
@@ -113,6 +152,13 @@ const SampleBrief = () => {
             </div>
 
             {/* Document sections */}
+            {translatedContent !== null ? (
+              <div
+                dir={contentDir}
+                className="px-8 py-6 prose prose-sm max-w-none text-slate-700"
+                dangerouslySetInnerHTML={{ __html: translatedContent }}
+              />
+            ) : (
             <div className="px-8 py-2 divide-y divide-slate-100">
 
               {/* Section 1 — Executive Summary */}
@@ -297,7 +343,8 @@ const SampleBrief = () => {
                 </div>
               </section>
 
-            </div>{/* end divide-y container */}
+            </div>
+            )}
           </div>{/* end white document card */}
 
           {/* Bottom CTA — outside the document */}
