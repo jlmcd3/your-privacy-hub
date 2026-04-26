@@ -173,7 +173,10 @@ export default function BriefPreferences() {
     setSaved(true);
     if (!isPremium) {
       toast("Preferences saved! They'll activate when you get Intelligence.");
+    } else {
+      toast.success("Preferences saved!");
     }
+    setTimeout(() => navigate("/dashboard"), 800);
   };
 
   return (
