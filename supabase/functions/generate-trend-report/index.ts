@@ -119,6 +119,15 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 3000,
+      system: `You are a senior privacy regulatory intelligence analyst producing structured pattern analysis for a compliance platform serving DPOs and privacy counsel.
+
+Your task: identify trends, emerging risks, and enforcement patterns across a batch of recent privacy regulatory developments. Return ONLY valid JSON matching the schema in the user prompt. No preamble, no markdown, no explanation.
+
+QUALITY STANDARDS:
+1. Every trend, risk, and pattern must be grounded in the provided articles — do not draw on training knowledge for specific claims.
+2. enforcement_patterns must identify coordination signals: multiple regulators, same violation type, same time window. These are the highest-value intelligence items.
+3. Be specific: name regulators, laws, fine amounts, and sectors. "Increased DPA activity" is not a trend. "Three EU DPAs issued guidance on legitimate interest in the same 30-day window: CNIL, ICO, EDPB" is a trend.
+4. signal_strength definitions: Strong = 3+ pieces of direct evidence; Moderate = 2 pieces or 1 strong enforcement action; Emerging = directional evidence without confirmation.`,
       messages: [{ role: "user", content: prompt }],
     }),
   });
