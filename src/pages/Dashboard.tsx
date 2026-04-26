@@ -772,7 +772,7 @@ const Dashboard = () => {
                       ⭐ Your Privacy Hub Intelligence Brief
                     </span>
                     <span className="text-[11px] text-blue-300">
-                      {brief.week_label} · {brief.article_count} updates reviewed
+                      Covering {describeBriefPeriod(brief.published_at)} · {brief.article_count} updates reviewed
                     </span>
                   </div>
                   <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
@@ -950,10 +950,10 @@ const Dashboard = () => {
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
                   <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
-                    <span>📚</span> All Source Articles This Week
+                    <span>📚</span> All source articles for this brief
                   </h3>
                   <p className="text-[12px] text-slate-400 mb-4">
-                    {Object.keys(brief.source_map).length} articles monitored and synthesized to produce this brief. Click any title to read the original.
+                    {Object.keys(brief.source_map).length} articles monitored and synthesized for the period covering {describeBriefPeriod(brief.published_at)}. Click any title to read the original.
                   </p>
                   <div className="grid gap-2">
                     {Object.entries(brief.source_map)
