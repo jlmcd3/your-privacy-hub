@@ -238,7 +238,6 @@ Deno.serve(async (req) => {
       }
     }
   }
-  }
 
   console.log("[send-weekly-brief] done", stats);
   return json({ ok: true, brief_date: briefDate, ...stats });
