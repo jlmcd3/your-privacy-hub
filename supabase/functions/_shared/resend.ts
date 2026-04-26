@@ -29,7 +29,7 @@ export async function sendEmail(args: SendEmailArgs): Promise<{ id?: string; ski
     return { skipped: true, error: "LOVABLE_API_KEY missing" };
   }
 
-  const from = args.from || "EndUserPrivacy <onboarding@resend.dev>";
+  const from = args.from || "Your Privacy Hub <brief@yourprivacyhub.com>";
 
   const resp = await fetch(`${GATEWAY_URL}/emails`, {
     method: "POST",
