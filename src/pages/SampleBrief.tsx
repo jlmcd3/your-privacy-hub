@@ -119,7 +119,7 @@ const SampleBrief = () => {
                 <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
                   ⭐ Your Privacy Hub Intelligence Brief
                 </span>
-                <span className="text-[11px] text-blue-300">Week 11 · 2026</span>
+                <span className="text-[11px] text-blue-300">Sample Edition</span>
               </div>
               <h2 className="font-display text-[22px] md:text-[26px] text-white font-bold leading-tight mb-3">
                 ICO Issues £12.7M TikTok Fine for Children's Data Violations;
