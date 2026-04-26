@@ -145,9 +145,6 @@ Return this JSON object with every field populated:
 
 Generate 1–3 action_items entries. Return [] if no specific action applies. For entities: populate only from content explicitly present in the article — do not use training knowledge.
 
-(Original JSON closer was here, replaced.)
-}
-
 For the affected_jurisdictions array: include only jurisdiction slugs where this development creates real compliance obligations or material risk. Use these exact slug values only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return an empty array [] only if the impact is genuinely too narrow to affect any listed jurisdiction.`,
           },
         ],
