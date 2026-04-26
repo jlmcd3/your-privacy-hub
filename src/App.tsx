@@ -81,6 +81,10 @@ import RegistrationAssessmentResult from "./pages/RegistrationAssessmentResult.t
 import RegistrationOrder from "./pages/RegistrationOrder.tsx";
 import RegistrationDocuments from "./pages/RegistrationDocuments.tsx";
 import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
+import MyReports from "./pages/MyReports.tsx";
+import DPAResult from "./pages/DPAResult.tsx";
+import IRPlaybookResult from "./pages/IRPlaybookResult.tsx";
+import BiometricCheckerResult from "./pages/BiometricCheckerResult.tsx";
 
 const queryClient = new QueryClient();
 
@@ -149,6 +153,10 @@ const App = () => (
           <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/reports" element={<ProtectedRoute><MyReports /></ProtectedRoute>} />
+          <Route path="/dpa-generator/result/:id" element={<ProtectedRoute><DPAResult /></ProtectedRoute>} />
+          <Route path="/ir-playbook/result/:id" element={<ProtectedRoute><IRPlaybookResult /></ProtectedRoute>} />
+          <Route path="/biometric-checker/result/:id" element={<ProtectedRoute><BiometricCheckerResult /></ProtectedRoute>} />
            <Route path="/get-intelligence" element={<GetIntelligence />} />
            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
            <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
