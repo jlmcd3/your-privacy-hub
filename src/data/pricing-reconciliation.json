@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T01:52:02.596Z",
+  "generatedAt": "2026-04-26T01:52:21.670Z",
   "server_truth": {
     "tools": [
       {
@@ -62,10 +62,13 @@
       "server_subscriber": "$35",
       "ui_prices_seen": [
         "$25",
-        "$79"
+        "$35",
+        "$49",
+        "$79",
+        "$99"
       ],
       "standalone_match": true,
-      "subscriber_match": false
+      "subscriber_match": true
     },
     {
       "product": "Privacy Program Assessment Tool",
@@ -73,7 +76,10 @@
       "server_subscriber": "$25",
       "ui_prices_seen": [
         "$25",
-        "$49"
+        "$35",
+        "$49",
+        "$79",
+        "$99"
       ],
       "standalone_match": true,
       "subscriber_match": true
@@ -85,6 +91,7 @@
       "ui_prices_seen": [
         "$25",
         "$49",
+        "$59",
         "$99"
       ],
       "standalone_match": true,
@@ -96,17 +103,23 @@
       "server_subscriber": "$49",
       "ui_prices_seen": [
         "$25",
+        "$49",
+        "$59",
         "$99"
       ],
       "standalone_match": true,
-      "subscriber_match": false
+      "subscriber_match": true
     },
     {
       "product": "Your Breach Response Playbook",
       "server_standalone": "$59",
       "server_subscriber": "—",
       "ui_prices_seen": [
+        "$149",
         "$25",
+        "$275",
+        "$49",
+        "$499",
         "$59"
       ],
       "standalone_match": true,
@@ -117,8 +130,13 @@
       "server_standalone": "$49",
       "server_subscriber": "—",
       "ui_prices_seen": [
+        "$149",
         "$25",
-        "$49"
+        "$275",
+        "$399",
+        "$49",
+        "$499",
+        "$59"
       ],
       "standalone_match": true,
       "subscriber_match": true
@@ -128,7 +146,11 @@
       "server_standalone": "$49",
       "server_subscriber": "—",
       "ui_prices_seen": [
-        "$59"
+        "$59",
+        "$149",
+        "$275",
+        "$499",
+        "$399"
       ],
       "standalone_match": false,
       "subscriber_match": true
@@ -138,7 +160,9 @@
       "server_standalone": "$89",
       "server_subscriber": "—",
       "ui_prices_seen": [
-        "$149"
+        "$149",
+        "$275",
+        "$499"
       ],
       "standalone_match": false,
       "subscriber_match": true
@@ -148,7 +172,8 @@
       "server_standalone": "—",
       "server_subscriber": "—",
       "ui_prices_seen": [
-        "$275"
+        "$275",
+        "$499"
       ],
       "standalone_match": false,
       "subscriber_match": true
@@ -159,7 +184,10 @@
       "server_subscriber": "—",
       "ui_prices_seen": [
         "$59",
-        "$499"
+        "$149",
+        "$275",
+        "$499",
+        "$399"
       ],
       "standalone_match": false,
       "subscriber_match": true
@@ -170,8 +198,11 @@
       "server_subscriber": "—",
       "ui_prices_seen": [
         "$75",
+        "$59",
         "$399",
-        "$59"
+        "$149",
+        "$275",
+        "$499"
       ],
       "standalone_match": false,
       "subscriber_match": true
@@ -191,28 +222,14 @@
   "findings": [
     {
       "severity": "high",
-      "product": "Legitimate Interest Assessment Tool",
-      "issue": "Server charges $35 subscriber, but UI never shows that price.",
-      "ui_prices_seen": [
-        "$79",
-        "$25"
-      ]
-    },
-    {
-      "severity": "high",
-      "product": "Your Custom DPA",
-      "issue": "Server charges $49 subscriber, but UI never shows that price.",
-      "ui_prices_seen": [
-        "$99",
-        "$25"
-      ]
-    },
-    {
-      "severity": "high",
       "product": "Registration DIY — 1 jurisdiction",
       "issue": "UI markets $59 but server charges $49.",
       "ui_prices_seen": [
-        "$59"
+        "$59",
+        "$149",
+        "$275",
+        "$499",
+        "$399"
       ]
     },
     {
@@ -220,7 +237,9 @@
       "product": "Registration DIY — up to 3 jurisdictions",
       "issue": "UI markets $149 but server charges $89.",
       "ui_prices_seen": [
-        "$149"
+        "$149",
+        "$275",
+        "$499"
       ]
     },
     {
@@ -228,7 +247,8 @@
       "product": "Registration DIY — up to 7 jurisdictions",
       "issue": "UI markets $275 but server charges —.",
       "ui_prices_seen": [
-        "$275"
+        "$275",
+        "$499"
       ]
     },
     {
@@ -237,7 +257,10 @@
       "issue": "UI markets $499 but server charges $149.",
       "ui_prices_seen": [
         "$59",
-        "$499"
+        "$149",
+        "$275",
+        "$499",
+        "$399"
       ]
     },
     {
@@ -246,8 +269,11 @@
       "issue": "UI markets $399 but server charges $299.",
       "ui_prices_seen": [
         "$75",
+        "$59",
         "$399",
-        "$59"
+        "$149",
+        "$275",
+        "$499"
       ]
     },
     {
@@ -262,6 +288,6 @@
   ],
   "summary": {
     "products_checked": 12,
-    "mismatches": 8
+    "mismatches": 6
   }
 }
