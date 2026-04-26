@@ -197,7 +197,7 @@ for (const t of serverTools) {
 const regChecks = [
   { key: "registration_diy_1", marketed_cents: 5900, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 1)?.cents, label: "Registration DIY — 1 jurisdiction" },
   { key: "registration_diy_3", marketed_cents: 14900, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 3)?.cents, label: "Registration DIY — up to 3 jurisdictions" },
-  { key: "registration_diy_7", marketed_cents: 27500, server_cents: null /* server has no 7-tier */, label: "Registration DIY — up to 7 jurisdictions" },
+  { key: "registration_diy_7", marketed_cents: 27500, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 7)?.cents, label: "Registration DIY — up to 7 jurisdictions" },
   { key: "registration_diy_unlimited", marketed_cents: 49900, server_cents: serverRegistration.diy_unlimited_cents, label: "Registration DIY — unlimited" },
   { key: "registration_counsel_review", marketed_cents: 39900, server_cents: serverRegistration.counsel_review_cents, label: "Registration Counsel-Ready Pack" },
   { key: "registration_renewal", marketed_cents: 7900, server_cents: serverRegistration.renewal_per_jurisdiction_cents, label: "Registration Annual Renewal Monitoring (per jurisdiction)" },
