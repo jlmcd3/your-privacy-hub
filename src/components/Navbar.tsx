@@ -340,8 +340,10 @@ const Navbar = () => {
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy"
                           onClick={() => setMobileOpen(false)}
                         >
-                          <IconImage src={sub.iconImage} fallback={sub.icon} />
-                          <span className="flex-1">{sub.label}</span>
+                          <span className="flex items-center justify-center w-5 shrink-0">
+                            <IconImage src={sub.iconImage} fallback={sub.icon} />
+                          </span>
+                          <span className="flex-1 text-left">{sub.label}</span>
                           {sub.badge && (
                             <span
                               className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
