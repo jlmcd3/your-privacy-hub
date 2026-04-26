@@ -1,0 +1,267 @@
+{
+  "generatedAt": "2026-04-26T01:52:02.596Z",
+  "server_truth": {
+    "tools": [
+      {
+        "key": "li_assessment",
+        "name": "Legitimate Interest Assessment Tool",
+        "standalone_cents": 7900,
+        "subscriber_cents": 3500
+      },
+      {
+        "key": "governance_assessment",
+        "name": "Privacy Program Assessment Tool",
+        "standalone_cents": 4900,
+        "subscriber_cents": 2500
+      },
+      {
+        "key": "dpia_framework",
+        "name": "Impact Assessment Builder",
+        "standalone_cents": 9900,
+        "subscriber_cents": 4900
+      },
+      {
+        "key": "dpa_generator",
+        "name": "Your Custom DPA",
+        "standalone_cents": 9900,
+        "subscriber_cents": 4900
+      },
+      {
+        "key": "ir_playbook",
+        "name": "Your Breach Response Playbook",
+        "standalone_cents": 5900,
+        "subscriber_cents": 0
+      },
+      {
+        "key": "biometric_checker",
+        "name": "Biometric Privacy Compliance Checker",
+        "standalone_cents": 4900,
+        "subscriber_cents": 0
+      }
+    ],
+    "registration": {
+      "diy_ladder": [
+        {
+          "jurisdictions_max": 1,
+          "cents": 4900
+        },
+        {
+          "jurisdictions_max": 3,
+          "cents": 8900
+        }
+      ],
+      "diy_unlimited_cents": 14900,
+      "counsel_review_cents": 29900,
+      "renewal_per_jurisdiction_cents": 19900
+    }
+  },
+  "rows": [
+    {
+      "product": "Legitimate Interest Assessment Tool",
+      "server_standalone": "$79",
+      "server_subscriber": "$35",
+      "ui_prices_seen": [
+        "$25",
+        "$79"
+      ],
+      "standalone_match": true,
+      "subscriber_match": false
+    },
+    {
+      "product": "Privacy Program Assessment Tool",
+      "server_standalone": "$49",
+      "server_subscriber": "$25",
+      "ui_prices_seen": [
+        "$25",
+        "$49"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
+    },
+    {
+      "product": "Impact Assessment Builder",
+      "server_standalone": "$99",
+      "server_subscriber": "$49",
+      "ui_prices_seen": [
+        "$25",
+        "$49",
+        "$99"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
+    },
+    {
+      "product": "Your Custom DPA",
+      "server_standalone": "$99",
+      "server_subscriber": "$49",
+      "ui_prices_seen": [
+        "$25",
+        "$99"
+      ],
+      "standalone_match": true,
+      "subscriber_match": false
+    },
+    {
+      "product": "Your Breach Response Playbook",
+      "server_standalone": "$59",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$25",
+        "$59"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
+    },
+    {
+      "product": "Biometric Privacy Compliance Checker",
+      "server_standalone": "$49",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$25",
+        "$49"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
+    },
+    {
+      "product": "Registration DIY — 1 jurisdiction",
+      "server_standalone": "$49",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$59"
+      ],
+      "standalone_match": false,
+      "subscriber_match": true
+    },
+    {
+      "product": "Registration DIY — up to 3 jurisdictions",
+      "server_standalone": "$89",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$149"
+      ],
+      "standalone_match": false,
+      "subscriber_match": true
+    },
+    {
+      "product": "Registration DIY — up to 7 jurisdictions",
+      "server_standalone": "—",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$275"
+      ],
+      "standalone_match": false,
+      "subscriber_match": true
+    },
+    {
+      "product": "Registration DIY — unlimited",
+      "server_standalone": "$149",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$59",
+        "$499"
+      ],
+      "standalone_match": false,
+      "subscriber_match": true
+    },
+    {
+      "product": "Registration Counsel-Ready Pack",
+      "server_standalone": "$299",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$75",
+        "$399",
+        "$59"
+      ],
+      "standalone_match": false,
+      "subscriber_match": true
+    },
+    {
+      "product": "Registration Annual Renewal Monitoring (per jurisdiction)",
+      "server_standalone": "$199",
+      "server_subscriber": "—",
+      "ui_prices_seen": [
+        "$75",
+        "$79"
+      ],
+      "standalone_match": false,
+      "subscriber_match": true
+    }
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "product": "Legitimate Interest Assessment Tool",
+      "issue": "Server charges $35 subscriber, but UI never shows that price.",
+      "ui_prices_seen": [
+        "$79",
+        "$25"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Your Custom DPA",
+      "issue": "Server charges $49 subscriber, but UI never shows that price.",
+      "ui_prices_seen": [
+        "$99",
+        "$25"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — 1 jurisdiction",
+      "issue": "UI markets $59 but server charges $49.",
+      "ui_prices_seen": [
+        "$59"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — up to 3 jurisdictions",
+      "issue": "UI markets $149 but server charges $89.",
+      "ui_prices_seen": [
+        "$149"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — up to 7 jurisdictions",
+      "issue": "UI markets $275 but server charges —.",
+      "ui_prices_seen": [
+        "$275"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — unlimited",
+      "issue": "UI markets $499 but server charges $149.",
+      "ui_prices_seen": [
+        "$59",
+        "$499"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Registration Counsel-Ready Pack",
+      "issue": "UI markets $399 but server charges $299.",
+      "ui_prices_seen": [
+        "$75",
+        "$399",
+        "$59"
+      ]
+    },
+    {
+      "severity": "high",
+      "product": "Registration Annual Renewal Monitoring (per jurisdiction)",
+      "issue": "UI markets $79 but server charges $199.",
+      "ui_prices_seen": [
+        "$75",
+        "$79"
+      ]
+    }
+  ],
+  "summary": {
+    "products_checked": 12,
+    "mismatches": 8
+  }
+}
