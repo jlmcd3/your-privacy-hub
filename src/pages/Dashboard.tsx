@@ -72,18 +72,49 @@ const ACTION_COLOR: Record<string, string> = {
   Rulemaking: "bg-green-50 text-green-700 border-green-200",
 };
 
-function SectionBlock({ icon, title, content, sourceMap }: { icon: string; title: string; content: string | null; sourceMap: SourceMap }) {
+function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: string; title: string; subtitle?: string; content: string | null; sourceMap: SourceMap }) {
   if (!content) return null;
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
-      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
         <span className="mr-2">{icon}</span>{title}
       </h3>
-      <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
+      {subtitle && (
+        <p className="text-[12px] text-slate-500 mb-4 leading-snug">{subtitle}</p>
+      )}
+      <div className={`text-[15px] text-slate-700 leading-relaxed space-y-3 ${subtitle ? "" : "mt-3"}`}>
         <CitedParagraphs content={content} sourceMap={sourceMap} />
       </div>
       <SourcesList sourceMap={sourceMap} usedIn={content} />
     </section>
+  );
+}
+
+/** Document-shaped skeleton so users see the brief loading into its real layout. */
+function BriefSkeleton() {
+  return (
+    <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8 animate-pulse">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
+          <div className="h-3 w-48 bg-white/20 rounded mb-3" />
+          <div className="h-5 w-3/4 bg-white/30 rounded mb-2" />
+          <div className="h-3 w-40 bg-white/20 rounded" />
+        </div>
+        <div className="px-6 py-2 divide-y divide-slate-100">
+          {[0, 1, 2, 3].map(i => (
+            <section key={i} className="py-7">
+              <div className="h-2.5 w-32 bg-slate-200 rounded mb-3" />
+              <div className="h-2 w-56 bg-slate-100 rounded mb-5" />
+              <div className="space-y-2.5">
+                <div className="h-3 w-full bg-slate-100 rounded" />
+                <div className="h-3 w-[95%] bg-slate-100 rounded" />
+                <div className="h-3 w-[88%] bg-slate-100 rounded" />
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -99,19 +130,31 @@ function truncateToSentences(text: string | null, count = 2): string {
  * Plain-English description of when the brief was published, so readers
  * always know whether they're looking at this week's analysis or an older one.
  */
-function describeBriefFreshness(publishedAt: string): string {
+function describeBriefFreshness(publishedAt: string | null | undefined): string {
+  if (!publishedAt) return "Publication date unavailable";
   const published = new Date(publishedAt);
+  if (isNaN(published.getTime())) return "Publication date unavailable";
   const now = new Date();
   const dayMs = 1000 * 60 * 60 * 24;
   const days = Math.floor((now.getTime() - published.getTime()) / dayMs);
-  const dateStr = published.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  const sameYear = published.getFullYear() === now.getFullYear();
+  const dateStr = published.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: sameYear ? undefined : "numeric",
+  });
 
-  if (days <= 0) return `Published today, ${dateStr}`;
+  if (days < 0) return `Scheduled for ${dateStr}`;
+  if (days === 0) return `Published today, ${dateStr}`;
   if (days === 1) return `Published yesterday, ${dateStr}`;
   if (days < 7) return `Published ${dateStr} — ${days} days ago`;
   const weeks = Math.floor(days / 7);
   if (weeks === 1) return `Published ${dateStr} — 1 week ago`;
-  return `Published ${dateStr} — ${weeks} weeks ago`;
+  if (weeks < 8) return `Published ${dateStr} — ${weeks} weeks ago`;
+  const months = Math.floor(days / 30);
+  if (months === 1) return `Published ${dateStr} — 1 month ago`;
+  if (months < 12) return `Published ${dateStr} — ${months} months ago`;
+  return `Published ${dateStr}`;
 }
 
 /**
@@ -119,18 +162,22 @@ function describeBriefFreshness(publishedAt: string): string {
  * publication date. Replaces opaque labels like "Week 18 · 2026" with text
  * users can act on.
  */
-function describeBriefPeriod(publishedAt: string): string {
+function describeBriefPeriod(publishedAt: string | null | undefined): string {
+  if (!publishedAt) return "the past 7 days";
   const end = new Date(publishedAt);
+  if (isNaN(end.getTime())) return "the past 7 days";
   const start = new Date(end);
   start.setDate(end.getDate() - 6);
   const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = sameYear && start.getMonth() === end.getMonth();
+  // When the range stays inside one month, drop the redundant month on the end date.
   const startFmt = start.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: sameYear ? undefined : "numeric",
   });
   const endFmt = end.toLocaleDateString("en-US", {
-    month: "short",
+    month: sameMonth ? undefined : "short",
     day: "numeric",
     year: "numeric",
   });
@@ -741,13 +788,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {loading && (
-          <div className="space-y-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
-            ))}
-          </div>
-        )}
+        {loading && <BriefSkeleton />}
 
         {!loading && !brief && (
           <div className="text-center py-20">
@@ -796,15 +837,15 @@ const Dashboard = () => {
                   </section>
 
                   {/* All other sections */}
-                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🤖" title="AI Governance" content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="👁️" title="Biometric Data" content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="Privacy Litigation" content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" subtitle="Federal agency moves, Congressional bills, and what they mean for your program." content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="U.S. State Analysis" subtitle="State legislatures and attorneys general — new laws, amendments, and enforcement." content={brief.us_states} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" subtitle="EDPB, member-state DPAs, and the UK ICO — guidance, enforcement, and rulemaking." content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🌍" title="Global Developments" subtitle="Privacy moves outside the US and EU — APAC, LATAM, Middle East, and Africa." content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🤖" title="AI Governance" subtitle="Where AI regulation meets data privacy — training data, automated decisions, and biometrics." content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" subtitle="Cookies, consent, behavioral targeting, and commercial surveillance enforcement." content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="👁️" title="Biometric Data" subtitle="Face, voice, and biometric processing rules — BIPA, GDPR Art. 9, and parallels worldwide." content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="Privacy Litigation" subtitle="Class actions, settlements, and court rulings shaping how privacy laws are applied." content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📊" title="Enforcement Trends" subtitle="The pattern across this week's actions — what regulators are signaling next." content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
 
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (

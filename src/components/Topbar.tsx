@@ -16,11 +16,13 @@ const Topbar = () => {
       .then(({ data }) => {
         if (data && data.length > 0 && data[0].published_at) {
           const published = new Date(data[0].published_at);
+          if (isNaN(published.getTime())) return;
           const start = new Date(published);
           start.setDate(published.getDate() - 6);
-          const fmt = (d: Date) =>
-            d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          setBriefLabel(`Latest Intelligence Brief: ${fmt(start)}–${fmt(published)}`);
+          const sameMonth = start.getMonth() === published.getMonth() && start.getFullYear() === published.getFullYear();
+          const startFmt = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const endFmt = published.toLocaleDateString("en-US", sameMonth ? { day: "numeric" } : { month: "short", day: "numeric" });
+          setBriefLabel(`Latest Intelligence Brief: ${startFmt}–${endFmt}`);
         }
       });
 
