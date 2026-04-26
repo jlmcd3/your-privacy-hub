@@ -4,18 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
 const Topbar = () => {
-  const [briefLabel, setBriefLabel] = useState("Week 10 Intelligence Brief now available");
+  const [briefLabel, setBriefLabel] = useState("Latest Intelligence Brief now available");
   const [lastUpdate, setLastUpdate] = useState("Today");
 
   useEffect(() => {
     supabase
       .from("weekly_briefs")
-      .select("week_label, headline")
-      .order("created_at", { ascending: false })
+      .select("published_at")
+      .order("published_at", { ascending: false })
       .limit(1)
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          setBriefLabel(`${data[0].week_label} Intelligence Brief now available`);
+        if (data && data.length > 0 && data[0].published_at) {
+          const published = new Date(data[0].published_at);
+          const start = new Date(published);
+          start.setDate(published.getDate() - 6);
+          const fmt = (d: Date) =>
+            d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          setBriefLabel(`Latest Intelligence Brief: ${fmt(start)}–${fmt(published)}`);
         }
       });
 

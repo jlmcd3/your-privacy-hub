@@ -98,8 +98,6 @@ function truncateToSentences(text: string | null, count = 2): string {
 /**
  * Plain-English description of when the brief was published, so readers
  * always know whether they're looking at this week's analysis or an older one.
- * Examples: "Published today", "Published yesterday", "Published 3 days ago",
- * "Published April 19 (1 week ago)", "Published March 16 (6 weeks ago)".
  */
 function describeBriefFreshness(publishedAt: string): string {
   const published = new Date(publishedAt);
@@ -114,6 +112,29 @@ function describeBriefFreshness(publishedAt: string): string {
   const weeks = Math.floor(days / 7);
   if (weeks === 1) return `Published ${dateStr} — 1 week ago`;
   return `Published ${dateStr} — ${weeks} weeks ago`;
+}
+
+/**
+ * Human-readable date range the brief covers — the seven days ending on the
+ * publication date. Replaces opaque labels like "Week 18 · 2026" with text
+ * users can act on.
+ */
+function describeBriefPeriod(publishedAt: string): string {
+  const end = new Date(publishedAt);
+  const start = new Date(end);
+  start.setDate(end.getDate() - 6);
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startFmt = start.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: sameYear ? undefined : "numeric",
+  });
+  const endFmt = end.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `${startFmt} – ${endFmt}`;
 }
 
 const Dashboard = () => {
@@ -483,11 +504,19 @@ const Dashboard = () => {
             📋 Weekly Intelligence Brief
           </p>
           <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
-            {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
+            {loading
+              ? "Loading your latest brief…"
+              : brief?.headline ?? "Your next brief is on the way"}
           </h1>
-          {brief && (
+          {!loading && brief && (
             <p className="mt-3 text-[13px] text-muted-foreground">
-              {describeBriefFreshness(brief.published_at)} · {brief.week_label} · {brief.article_count} regulatory updates synthesized
+              Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
+            </p>
+          )}
+          {!loading && !brief && (
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              We publish a new Intelligence Brief every Monday morning. Your first
+              brief will appear here as soon as it's ready — no action needed.
             </p>
           )}
         </div>
@@ -743,7 +772,7 @@ const Dashboard = () => {
                       ⭐ Your Privacy Hub Intelligence Brief
                     </span>
                     <span className="text-[11px] text-blue-300">
-                      {brief.week_label} · {brief.article_count} updates reviewed
+                      Covering {describeBriefPeriod(brief.published_at)} · {brief.article_count} updates reviewed
                     </span>
                   </div>
                   <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
@@ -921,10 +950,10 @@ const Dashboard = () => {
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
                   <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
-                    <span>📚</span> All Source Articles This Week
+                    <span>📚</span> All source articles for this brief
                   </h3>
                   <p className="text-[12px] text-slate-400 mb-4">
-                    {Object.keys(brief.source_map).length} articles monitored and synthesized to produce this brief. Click any title to read the original.
+                    {Object.keys(brief.source_map).length} articles monitored and synthesized for the period covering {describeBriefPeriod(brief.published_at)}. Click any title to read the original.
                   </p>
                   <div className="grid gap-2">
                     {Object.entries(brief.source_map)
