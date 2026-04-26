@@ -218,7 +218,7 @@ const PillarPage = ({
                       </div>
                       <TitleEl
                         {...titleProps}
-                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 no-underline ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
+                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 no-underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
                       >
                         <span>{a.title}</span>
                         {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
