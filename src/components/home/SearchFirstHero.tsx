@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
-import { Globe } from "lucide-react";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 import StarFieldBackground from "@/components/globe/StarFieldBackground";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SearchFirstHero() {
+  const { user } = useAuth();
+
   return (
     <div className="relative bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
       <StarFieldBackground />
@@ -12,23 +14,25 @@ export default function SearchFirstHero() {
           {/* Left: text content */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] mb-3">
-              Global privacy law, tracked daily.
+              Privacy intelligence, already done.
             </h1>
             <p className="text-blue-200/80 text-[14px] md:text-[16px] mb-8">
-              Everything a privacy professional needs in one place. Daily intelligence across 150+ jurisdictions and 119 authorities. Weekly briefs written for your sector and regions. A complete tool suite — assessments, DPIAs, LIAs, DPAs, breach playbooks, and registration filings — calibrated to 3,500+ enforcement decisions worldwide.
+              The regulatory landscape, monitored and analyzed — so you can focus on the work that requires your judgment.
             </p>
             <div className="flex gap-3 justify-center lg:justify-start flex-wrap mb-8">
+              {!user && (
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center px-6 py-3 rounded-lg bg-teal-600 text-white font-semibold text-sm hover:bg-teal-700 transition-colors no-underline"
+                >
+                  Start monitoring — it's free
+                </Link>
+              )}
               <Link
                 to="/sample-brief"
-                className="bg-white text-navy font-bold px-6 py-3 rounded-lg hover:opacity-90 no-underline text-[14px] transition-all"
+                className="inline-flex items-center px-6 py-3 rounded-lg border border-white/40 text-white font-medium text-sm hover:bg-white/10 transition-colors no-underline"
               >
-                See the Intelligence Brief →
-              </Link>
-              <Link
-                to="/updates"
-                className="bg-white text-navy font-bold px-6 py-3 rounded-lg hover:opacity-90 no-underline text-[14px] transition-all"
-              >
-                Browse today's developments →
+                See a sample Intelligence Brief →
               </Link>
             </div>
           </div>
