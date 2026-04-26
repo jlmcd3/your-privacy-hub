@@ -104,6 +104,30 @@ export type Database = {
         }
         Relationships: []
       }
+      brief_translations: {
+        Row: {
+          brief_date: string
+          created_at: string
+          id: string
+          language_code: string
+          translated_content: string
+        }
+        Insert: {
+          brief_date: string
+          created_at?: string
+          id?: string
+          language_code: string
+          translated_content: string
+        }
+        Update: {
+          brief_date?: string
+          created_at?: string
+          id?: string
+          language_code?: string
+          translated_content?: string
+        }
+        Relationships: []
+      }
       custom_briefs: {
         Row: {
           articles_used: number | null
@@ -1118,6 +1142,7 @@ export type Database = {
           monthly_reports_used: number
           onboarding_complete: boolean | null
           payment_failed: boolean
+          preferred_language: string
           reports_reset_date: string | null
           stripe_customer_id: string | null
           stripe_price_id: string | null
@@ -1143,6 +1168,7 @@ export type Database = {
           monthly_reports_used?: number
           onboarding_complete?: boolean | null
           payment_failed?: boolean
+          preferred_language?: string
           reports_reset_date?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -1168,6 +1194,7 @@ export type Database = {
           monthly_reports_used?: number
           onboarding_complete?: boolean | null
           payment_failed?: boolean
+          preferred_language?: string
           reports_reset_date?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
