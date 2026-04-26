@@ -738,19 +738,20 @@ const Dashboard = () => {
 
                 {/* Document header */}
                 <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
                       ⭐ Your Privacy Hub Intelligence Brief
                     </span>
-                    <div className="flex items-center gap-2 text-[11px] text-blue-300">
-                      <span>{brief.week_label}</span>
-                      <span>·</span>
-                      <span>{brief.article_count} updates reviewed</span>
-                    </div>
+                    <span className="text-[11px] text-blue-300">
+                      {brief.week_label} · {brief.article_count} updates reviewed
+                    </span>
                   </div>
                   <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
                     {brief.headline}
                   </h2>
+                  <p className="mt-2 text-[12px] text-blue-200">
+                    {describeBriefFreshness(brief.published_at)}
+                  </p>
                 </div>
 
                 {/* Section content */}
