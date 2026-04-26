@@ -239,6 +239,54 @@ const PillarPage = ({
                         <span>{a.title}</span>
                         {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
                       </TitleEl>
+                      {a.ai_summary?.why_it_matters && (
+                        <div className="mt-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const opening = previewOpenId !== a.id;
+                              setPreviewOpenId(opening ? a.id : null);
+                              trackPreviewToggle(a, opening);
+                            }}
+                            aria-expanded={previewOpenId === a.id}
+                            className="text-[11px] font-semibold text-sky-700 hover:text-sky-900 inline-flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer"
+                          >
+                            {previewOpenId === a.id ? "Hide AI summary preview" : "Preview AI summary"}
+                          </button>
+                          {previewOpenId === a.id && (
+                            <div className="relative mt-2 rounded-lg border border-fog overflow-hidden">
+                              <div
+                                className="select-none pointer-events-none p-3 bg-slate-50 text-[12px] text-slate leading-relaxed"
+                                style={{ filter: "blur(4px)" }}
+                                aria-hidden
+                              >
+                                {a.ai_summary.why_it_matters}
+                              </div>
+                              <div className="absolute inset-0 flex items-center justify-center bg-white/55 backdrop-blur-[1px]">
+                                <div className="text-center px-3 py-2">
+                                  <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-1.5">
+                                    <Lock className="w-3 h-3" /> Sign in to read
+                                  </div>
+                                  <div className="flex gap-2 justify-center">
+                                    <Link
+                                      to="/login"
+                                      className="text-[11px] px-3 py-1 rounded-md bg-navy text-white font-medium no-underline hover:bg-navy-mid transition-colors"
+                                    >
+                                      Sign in
+                                    </Link>
+                                    <Link
+                                      to="/signup"
+                                      className="text-[11px] px-3 py-1 rounded-md border border-fog bg-white text-navy font-medium no-underline hover:bg-slate-50 transition-colors"
+                                    >
+                                      Create free account
+                                    </Link>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
