@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
     const results: Record<string, unknown> = {};
     if (target === "weekly" || target === "all") {
       results.weekly = await callFn("generate-weekly-brief");
+      results.weekly_send = await callFn("send-weekly-brief");
     }
     if (target === "custom" || target === "all") {
       results.custom = await callFn("generate-custom-brief");
