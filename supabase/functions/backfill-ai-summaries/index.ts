@@ -251,6 +251,21 @@ Deno.serve(async (req) => {
       ) {
         updatePayload.affected_jurisdictions = aiSummary.affected_jurisdictions;
       }
+      if (typeof aiSummary.regulatory_theory === "string" && aiSummary.regulatory_theory.trim()) {
+        updatePayload.regulatory_theory = aiSummary.regulatory_theory;
+      }
+      if (Array.isArray(aiSummary.action_items) && aiSummary.action_items.length > 0) {
+        updatePayload.action_items = aiSummary.action_items;
+      }
+      if (typeof aiSummary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date)) {
+        updatePayload.key_date = aiSummary.key_date;
+      }
+      if (aiSummary.entities && typeof aiSummary.entities === "object") {
+        updatePayload.entities = aiSummary.entities;
+      }
+      if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
+        updatePayload.defense_considerations = aiSummary.defense_considerations;
+      }
       await supabase
         .from("updates")
         .update(updatePayload)
