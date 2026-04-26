@@ -48,7 +48,7 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
-          { icon: "📋", label: "Your free intelligence brief", href: "/subscribe" },
+          { icon: "📄", label: "Sample Intelligence Brief", href: "/sample-brief", badge: "FREE", badgeGreen: true },
           { icon: "📰", label: "Browse updates", badge: "FREE", badgeGreen: true, href: "/updates" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
@@ -259,7 +259,7 @@ const Navbar = () => {
               )}
               {isPremium ? (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-700 text-purple-100">
-                  Pro
+                  Intelligence
                 </span>
               ) : (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">

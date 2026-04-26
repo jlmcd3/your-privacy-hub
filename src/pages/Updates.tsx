@@ -298,11 +298,22 @@ const Updates = () => {
 
             <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-14 px-4 md:px-8">
                 <div className="max-w-[1280px] mx-auto text-center">
+                    {(topicFilter || regionFilter) && (
+                        <div className="flex items-center justify-center gap-1.5 mb-1">
+                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">All updates</Link>
+                            <span className="text-[11px] text-white/60">›</span>
+                            <span className="text-[11px] text-white">
+                                {topicFilter
+                                    ? topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                    : regionFilter?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                            </span>
+                        </div>
+                    )}
                     <h1 className="font-display text-[28px] md:text-[36px] tracking-tight text-white mb-3">
-                        Privacy Regulatory Updates
+                        Processed updates
                     </h1>
                     <p className="text-[15px] text-white/70 max-w-2xl mx-auto">
-                        Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source.
+                        {updates.length} processed this week · refreshed daily
                     </p>
                 </div>
             </section>
