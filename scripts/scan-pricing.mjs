@@ -116,7 +116,7 @@ function findMarketedPrices(productPatterns) {
           const matches = [...window.matchAll(PRICE_RE)];
           for (const mm of matches) {
             const cents = Math.round(Number(mm[1]) * 100);
-            // Skip very large numbers (litigation exposure examples) and zero.
+            // Skip zero and unreasonably large numbers (litigation exposure examples).
             if (cents === 0 || cents > 100000000) continue;
             const arr = hits.get(cents) || [];
             arr.push({
@@ -125,8 +125,8 @@ function findMarketedPrices(productPatterns) {
               snippet: line.trim().slice(0, 140),
             });
             hits.set(cents, arr);
-            break; // first $ on the line is the canonical one
           }
+          break; // matched a product on this line; don't double-attribute
         }
       }
     });
