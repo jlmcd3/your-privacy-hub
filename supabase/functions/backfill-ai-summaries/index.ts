@@ -124,7 +124,28 @@ Return this JSON object with every field populated:
   "cross_jurisdiction_signal": "If this reflects a coordinated pattern across multiple regulators or jurisdictions simultaneously, describe it in one sentence. If not, return null.",
   "risk_level": "Choose one: Low | Medium | High | Critical",
   "affected_jurisdictions": [],
-  "precedent_novelty": "Choose one: new_theory | confirms_existing | reverses_prior | routine"
+  "precedent_novelty": "Choose one: new_theory | confirms_existing | reverses_prior | routine",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. Examples: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction', 'Data minimisation enforcement against over-collection'. Return null if no clear doctrine applies.",
+  "action_items": [
+    {
+      "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
+      "action": "Specific action naming the specific law, article number, or regulator. No generic actions.",
+      "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
+    }
+  ],
+  "key_date": "If this article references a specific compliance deadline, effective date, enforcement start, or public comment deadline, return YYYY-MM-DD. Return null if no specific date is stated.",
+  "entities": {
+    "regulators": ["Array of regulatory authority names mentioned, using official abbreviated form (ICO, EDPB, CNIL, FTC, BfDI, ANPD, PDPC). Empty array if none."],
+    "companies": ["Array of company or organization names that are the subject of regulatory action or guidance. Empty array if none."],
+    "laws": ["Array of specific laws with article numbers where stated (GDPR Art. 6(1)(f), CCPA §1798.120, BIPA 740 ILCS 14/). Empty array if none."],
+    "case_references": ["Array of specific case names or guidance document identifiers (C-597/19 Planet49, CNIL decision SAN-2022-018, EDPB Guidelines 1/2024). Empty array if none."]
+  },
+  "defense_considerations": "For Binding or Enforcement only: one sentence stating the strongest distinguishing factor or defense an organization could raise. Return null for Guidance, Proposal, or Commentary."
+}
+
+Generate 1–3 action_items entries. Return [] if no specific action applies. For entities: populate only from content explicitly present in the article — do not use training knowledge.
+
+(Original JSON closer was here, replaced.)
 }
 
 For the affected_jurisdictions array: include only jurisdiction slugs where this development creates real compliance obligations or material risk. Use these exact slug values only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return an empty array [] only if the impact is genuinely too narrow to affect any listed jurisdiction.`,
