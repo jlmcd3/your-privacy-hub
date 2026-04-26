@@ -269,7 +269,7 @@ const Dashboard = () => {
     load();
   }, [user]);
 
-  // Fetch custom brief for Pro users
+  // Fetch all personalized briefs (most recent first) for Pro users
   useEffect(() => {
     if (!user) return;
     (supabase as any)
@@ -277,9 +277,12 @@ const Dashboard = () => {
       .select("*")
       .eq("user_id", user.id)
       .order("generated_at", { ascending: false })
-      .limit(1)
-      .single()
-      .then(({ data }: any) => setCustomBrief(data));
+      .limit(50)
+      .then(({ data }: any) => {
+        const rows = Array.isArray(data) ? data : [];
+        setCustomBrief(rows[0] ?? null);
+        setBriefArchive(rows.slice(1));
+      });
   }, [user]);
 
   // Fetch free digest for non-premium users
