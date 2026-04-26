@@ -1,13 +1,14 @@
 /**
  * ADVERTISING POLICY — EndUserPrivacy.com FRD v2.1 §8.3
  *
- * 1. Ads are shown to ALL users including Intelligence subscribers.
+ * 1. Ads are shown to free and unregistered users only. Intelligence (Pro) subscribers see no ads.
  * 2. All ads served here MUST be contextual and non-behavioural.
  *    No user browsing data from this platform may be used for
  *    ad targeting or shared with ad networks.
  * 3. When no Google Ad config is provided, a labeled placeholder
  *    is shown so the slot is visible during development.
  */
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 interface AdBannerProps {
   variant?: "leaderboard" | "sidebar" | "inline" | "infeed";
@@ -24,6 +25,9 @@ const AdBanner = ({
   googleAdClient,
   googleAdSlot,
 }: AdBannerProps) => {
+  const { isPremium } = usePremiumStatus();
+  if (isPremium) return null;
+
   const dimensions = {
     leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
     sidebar: { desktop: { w: 300, h: 250 }, mobile: { w: 300, h: 250 } },

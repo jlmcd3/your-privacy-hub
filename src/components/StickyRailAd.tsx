@@ -17,6 +17,8 @@ interface StickyRailAdProps {
   topOffset?: number; // px; default 96
 }
 
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+
 export default function StickyRailAd({
   adSlot,
   googleAdClient,
@@ -24,6 +26,8 @@ export default function StickyRailAd({
   className = "",
   topOffset = 96,
 }: StickyRailAdProps) {
+  const { isPremium } = usePremiumStatus();
+  if (isPremium) return null;
   return (
     <div className={`hidden lg:block ${className}`}>
       <div
