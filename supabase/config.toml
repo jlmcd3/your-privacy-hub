@@ -91,3 +91,6 @@ verify_jwt = false
 
 [functions.monitor-jurisdictions]
 verify_jwt = false
+
+[functions.translate-weekly-brief]
+verify_jwt = false
