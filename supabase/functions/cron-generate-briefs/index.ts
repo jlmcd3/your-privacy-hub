@@ -2,8 +2,6 @@
 // It uses ADMIN_SECRET_TOKEN from its own env to call the protected
 // brief-generation functions, so we never need to embed the admin token
 // in SQL/cron commands.
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
