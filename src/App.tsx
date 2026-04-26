@@ -35,6 +35,7 @@ import Updates from "./pages/Updates.tsx";
 import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import DevOnly from "./components/DevOnly.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
@@ -151,8 +152,8 @@ const App = () => (
            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
            <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
            <Route path="/admin/ingestion" element={<ProtectedRoute><AdminIngestionDashboard /></ProtectedRoute>} />
-           <Route path="/admin/gating-leaks" element={<ProtectedRoute><AdminGatingLeaks /></ProtectedRoute>} />
-           <Route path="/admin/pricing" element={<ProtectedRoute><AdminPricingReconciliation /></ProtectedRoute>} />
+           <Route path="/admin/gating-leaks" element={<ProtectedRoute><DevOnly fallback={<NotFound />}><AdminGatingLeaks /></DevOnly></ProtectedRoute>} />
+           <Route path="/admin/pricing" element={<ProtectedRoute><DevOnly fallback={<NotFound />}><AdminPricingReconciliation /></DevOnly></ProtectedRoute>} />
            <Route path="/li-assessment" element={<LIAssessment />} />
            <Route path="/li-assessment/result/:id" element={<ProtectedRoute><LIAssessmentResult /></ProtectedRoute>} />
            <Route path="/governance-assessment" element={<GovernanceAssessment />} />
