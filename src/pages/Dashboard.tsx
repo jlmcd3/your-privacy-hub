@@ -98,8 +98,6 @@ function truncateToSentences(text: string | null, count = 2): string {
 /**
  * Plain-English description of when the brief was published, so readers
  * always know whether they're looking at this week's analysis or an older one.
- * Examples: "Published today", "Published yesterday", "Published 3 days ago",
- * "Published April 19 (1 week ago)", "Published March 16 (6 weeks ago)".
  */
 function describeBriefFreshness(publishedAt: string): string {
   const published = new Date(publishedAt);
@@ -114,6 +112,29 @@ function describeBriefFreshness(publishedAt: string): string {
   const weeks = Math.floor(days / 7);
   if (weeks === 1) return `Published ${dateStr} — 1 week ago`;
   return `Published ${dateStr} — ${weeks} weeks ago`;
+}
+
+/**
+ * Human-readable date range the brief covers — the seven days ending on the
+ * publication date. Replaces opaque labels like "Week 18 · 2026" with text
+ * users can act on.
+ */
+function describeBriefPeriod(publishedAt: string): string {
+  const end = new Date(publishedAt);
+  const start = new Date(end);
+  start.setDate(end.getDate() - 6);
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startFmt = start.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: sameYear ? undefined : "numeric",
+  });
+  const endFmt = end.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `${startFmt} – ${endFmt}`;
 }
 
 const Dashboard = () => {
