@@ -69,6 +69,44 @@ function matchesWatchlist(item: HorizonItem, watch: WatchItem[]): boolean {
   });
 }
 
+function HorizonCard({ item }: { item: HorizonItem }) {
+  return (
+    <article className="bg-card border border-fog rounded-2xl p-5 hover:border-silver transition-colors">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        {item.timeline_label && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded">
+            {item.timeline_label}
+          </span>
+        )}
+        {item.jurisdiction && (
+          <span className="text-[11px] font-medium text-slate">{item.jurisdiction}</span>
+        )}
+        {item.sector && <span className="text-[11px] text-slate-light">· {item.sector}</span>}
+        {item.confidence && (
+          <span className={`ml-auto text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full ${confidenceStyle(item.confidence)}`}>
+            {item.confidence} confidence
+          </span>
+        )}
+      </div>
+      <h2 className="font-display font-bold text-navy text-[18px] leading-snug mb-2">
+        {item.anticipated_development}
+      </h2>
+      {item.source_signal && (
+        <p className="text-[13px] text-slate leading-relaxed mb-2">
+          <span className="font-semibold text-navy">Source signal: </span>
+          {item.source_signal}
+        </p>
+      )}
+      {item.recommended_action && (
+        <p className="text-[13px] text-slate leading-relaxed">
+          <span className="font-semibold text-navy">Recommended action: </span>
+          {item.recommended_action}
+        </p>
+      )}
+    </article>
+  );
+}
+
 export default function Horizon() {
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
