@@ -151,8 +151,8 @@ const App = () => (
            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
            <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
            <Route path="/admin/ingestion" element={<ProtectedRoute><AdminIngestionDashboard /></ProtectedRoute>} />
-           <Route path="/admin/gating-leaks" element={<ProtectedRoute><AdminGatingLeaks /></ProtectedRoute>} />
-           <Route path="/admin/pricing" element={<ProtectedRoute><AdminPricingReconciliation /></ProtectedRoute>} />
+           <Route path="/admin/gating-leaks" element={<ProtectedRoute><DevOnly fallback={<NotFound />}><AdminGatingLeaks /></DevOnly></ProtectedRoute>} />
+           <Route path="/admin/pricing" element={<ProtectedRoute><DevOnly fallback={<NotFound />}><AdminPricingReconciliation /></DevOnly></ProtectedRoute>} />
            <Route path="/li-assessment" element={<LIAssessment />} />
            <Route path="/li-assessment/result/:id" element={<ProtectedRoute><LIAssessmentResult /></ProtectedRoute>} />
            <Route path="/governance-assessment" element={<GovernanceAssessment />} />
