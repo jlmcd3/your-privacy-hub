@@ -7,6 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import PremiumGate from "@/components/PremiumGate";
 import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 interface HorizonItem {
@@ -187,30 +188,6 @@ export default function Horizon() {
             >
               {filterMine ? "Show all signals →" : "Filter to my watchlist →"}
             </button>
-          </div>
-        )}
-
-        {!user && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-slate">
-            <Link to="/login" className="font-semibold text-navy no-underline hover:underline">
-              Sign in
-            </Link>{" "}
-            and get Intelligence to filter this feed to the jurisdictions and topics you follow.
-          </div>
-        )}
-
-        {user && !isPremium && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-slate flex flex-wrap items-center justify-between gap-3">
-            <span>
-              <span className="font-semibold text-navy">Personalize this watchlist.</span>{" "}
-              Intelligence subscribers filter Regulatory Horizon signals to the jurisdictions and topics they follow.
-            </span>
-            <Link
-              to="/subscribe"
-              className="text-[12px] font-semibold text-amber-900 no-underline hover:underline whitespace-nowrap"
-            >
-              Get Intelligence →
-            </Link>
           </div>
         )}
 
