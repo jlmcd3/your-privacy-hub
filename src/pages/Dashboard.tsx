@@ -194,6 +194,8 @@ const Dashboard = () => {
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
+  const [briefArchive, setBriefArchive] = useState<any[]>([]);
+  const [expandedBriefId, setExpandedBriefId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [genPhase, setGenPhase] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
