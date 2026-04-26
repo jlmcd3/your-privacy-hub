@@ -45,6 +45,44 @@ const About = () => {
         </div>
 
         <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Mission block */}
+          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 mb-10">
+            <p className="font-display text-[20px] md:text-[22px] text-navy leading-snug font-semibold mb-4">
+              "Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do."
+            </p>
+            <p className="text-[15px] text-slate leading-relaxed">
+              Your Privacy Hub monitors 119 regulatory authorities and 150+ jurisdictions daily, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
+            </p>
+          </div>
+
+          {/* What we cover */}
+          <div className="mb-10">
+            <h2 className="font-display text-[20px] font-bold text-navy mb-4">What we cover</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { stat: "119", label: "Regulatory authorities monitored" },
+                { stat: "150+", label: "Jurisdictions covered" },
+                { stat: "Daily", label: "Updated, enriched with regulatory context" },
+              ].map((item) => (
+                <div key={item.label} className="bg-card border border-fog rounded-xl p-5 text-center">
+                  <div className="font-display text-[28px] font-bold text-navy leading-none mb-2">{item.stat}</div>
+                  <div className="text-[13px] text-slate leading-snug">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact callout */}
+          <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 mb-10">
+            <p className="text-[15px] text-navy leading-relaxed">
+              Questions about coverage, methodology, or your subscription? Reach us at{" "}
+              <a href="mailto:hello@enduserprivacy.com" className="text-sky font-semibold hover:underline">
+                hello@enduserprivacy.com
+              </a>{" "}
+              — we respond within one business day.
+            </p>
+          </div>
+
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
               End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
