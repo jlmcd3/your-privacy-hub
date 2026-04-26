@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import NavReportButton from "@/components/admin/NavReportButton";
 import report from "@/data/gating-leak-report.json";
 
 interface Finding {
