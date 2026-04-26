@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Calendar, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 
 export default function RegistrationMyFilings() {
   const { user } = useAuth();
@@ -52,6 +53,7 @@ export default function RegistrationMyFilings() {
         <title>My Filings | Registration Manager | Your Privacy Hub</title>
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
       <PageContainer>
         <div className="py-6">
           <div className="flex items-center justify-between mb-6">

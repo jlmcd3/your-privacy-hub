@@ -17,6 +17,7 @@ import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 
 interface EnforcementRow {
   regulator: string;
@@ -455,6 +456,7 @@ const Dashboard = () => {
         <meta name="description" content="Your personalized privacy intelligence dashboard. Access your weekly digest, enforcement tracker, and regulatory updates." />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Subscription plan status */}
