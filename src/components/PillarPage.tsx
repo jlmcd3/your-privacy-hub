@@ -59,6 +59,22 @@ const PillarPage = ({
   const { isPremium } = usePremiumStatus();
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
+  const [previewOpenId, setPreviewOpenId] = useState<string | null>(null);
+
+  const trackPreviewToggle = (a: any, opened: boolean) => {
+    try {
+      (window as any).plausible?.("AI Summary Preview Toggle", {
+        props: {
+          tier,
+          pillar: title,
+          article_id: a.id,
+          opened,
+        },
+      });
+    } catch {
+      /* swallow */
+    }
+  };
 
   const tier: "anonymous" | "free" | "premium" = !user ? "anonymous" : isPremium ? "premium" : "free";
 
