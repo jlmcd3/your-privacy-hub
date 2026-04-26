@@ -61,7 +61,7 @@ const diyDefault = diyFallbackMatch ? Number(diyFallbackMatch[1]) : null;
 
 // Resolve top-level numeric constants (e.g. `const COUNSEL_REVIEW_CENTS = 39900;`)
 // so we can look up `unit_amount: COUNSEL_REVIEW_CENTS` references too.
-const constants: Record<string, number> = {};
+const constants = {};
 for (const m of REG_SRC.matchAll(/const\s+(\w+)\s*=\s*(\d+)\s*;/g)) {
   constants[m[1]] = Number(m[2]);
 }
