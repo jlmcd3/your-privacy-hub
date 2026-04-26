@@ -270,7 +270,40 @@ Deno.serve(async (req) => {
                 system: `You are a privacy regulatory analyst. Return ONLY valid JSON. If the article is not genuinely about privacy regulation, data protection law, or compliance obligations, return {"skip": true}.`,
                 messages: [{
                   role: "user",
-                  content: `Analyze: Title: ${article.title}\nDescription: ${article.description || ""}\nSource: ${article.source?.name || ""}\n\nReturn JSON with: why_it_matters, takeaways (array), compliance_impact, who_should_care, urgency (Immediate|This Quarter|Monitor), legal_weight (Binding|Enforcement|Guidance|Proposal|Commentary), source_strength, cross_jurisdiction_signal, risk_level (Low|Medium|High|Critical). Or {"skip":true} if not relevant.`,
+                  content: `Analyze this privacy/data protection article.
+Title: ${article.title}
+Description: ${article.description || ""}
+Source: ${article.source?.name || ""}
+
+STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations, return exactly: {"skip": true}
+
+STEP 2 — If relevant, return this JSON:
+{
+  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "takeaways": [
+    "Specific factual point from this article — cite regulator or law name",
+    "Specific implication, deadline, or scope if present in the article",
+    "Specific type of organization affected and what they must review or do"
+  ],
+  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
+  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+  "urgency": "Immediate | This quarter | Monitor",
+  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
+  "source_strength": "Primary regulator | Legal analysis | Media coverage",
+  "cross_jurisdiction_signal": "If this article reflects a pattern occurring across multiple regulators or jurisdictions simultaneously, describe the pattern in one sentence. If no cross-jurisdiction pattern is evident, return null.",
+  "risk_level": "Low | Medium | High | Critical",
+  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return [] if impact is narrowly jurisdictional. Be conservative."],
+  "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence, or null if not applicable.",
+  "action_items": [
+    {
+      "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
+      "action": "Specific action naming the law, article number, or regulator",
+      "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
+    }
+  ],
+  "key_date": "YYYY-MM-DD if a specific compliance deadline or effective date is stated in the article, otherwise null."
+}`,
                 }],
               }),
               signal: AbortSignal.timeout(15000),
