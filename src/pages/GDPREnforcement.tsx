@@ -71,6 +71,22 @@ const GDPREnforcement = () => {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("gdpr-framework");
   const [ukExpanded, setUkExpanded] = useState(false);
+  const { user } = useAuth();
+  const [gdprEmail, setGdprEmail] = useState("");
+  const [gdprEmailSent, setGdprEmailSent] = useState(false);
+
+  const handleGdprEmailCapture = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gdprEmail) return;
+    try {
+      await (supabase as any)
+        .from("email_signups")
+        .insert({ email: gdprEmail.toLowerCase().trim(), source: "gdpr-hero" });
+    } catch {
+      /* swallow */
+    }
+    setGdprEmailSent(true);
+  };
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const setRef = useCallback((anchor: string) => (el: HTMLDivElement | null) => {
