@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
+import UIDebugOverlay from "@/components/UIDebugOverlay";
 
 type ComparisonRow =
   | { feature: string; free: boolean; pro: boolean; isSection?: false }
