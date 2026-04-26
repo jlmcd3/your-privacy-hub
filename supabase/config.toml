@@ -97,3 +97,7 @@ verify_jwt = false
 
 [functions.send-weekly-brief]
 verify_jwt = false
+
+[functions.generate-sample-brief-translations]
+verify_jwt = false
+
