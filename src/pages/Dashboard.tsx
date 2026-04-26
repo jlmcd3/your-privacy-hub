@@ -95,6 +95,27 @@ function truncateToSentences(text: string | null, count = 2): string {
   return sentences.slice(0, count).join("").trim();
 }
 
+/**
+ * Plain-English description of when the brief was published, so readers
+ * always know whether they're looking at this week's analysis or an older one.
+ * Examples: "Published today", "Published yesterday", "Published 3 days ago",
+ * "Published April 19 (1 week ago)", "Published March 16 (6 weeks ago)".
+ */
+function describeBriefFreshness(publishedAt: string): string {
+  const published = new Date(publishedAt);
+  const now = new Date();
+  const dayMs = 1000 * 60 * 60 * 24;
+  const days = Math.floor((now.getTime() - published.getTime()) / dayMs);
+  const dateStr = published.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+
+  if (days <= 0) return `Published today, ${dateStr}`;
+  if (days === 1) return `Published yesterday, ${dateStr}`;
+  if (days < 7) return `Published ${dateStr} — ${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks === 1) return `Published ${dateStr} — 1 week ago`;
+  return `Published ${dateStr} — ${weeks} weeks ago`;
+}
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
