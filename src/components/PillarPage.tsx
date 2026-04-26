@@ -60,6 +60,24 @@ const PillarPage = ({
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
 
+  const tier: "anonymous" | "free" | "premium" = !user ? "anonymous" : isPremium ? "premium" : "free";
+
+  const trackRecentDevClick = (a: any) => {
+    try {
+      (window as any).plausible?.("Recent Dev Click", {
+        props: {
+          tier,
+          pillar: title,
+          source: a.source_name || "unknown",
+          article_id: a.id,
+          url: a.url,
+        },
+      });
+    } catch {
+      /* swallow */
+    }
+  };
+
   useEffect(() => {
     if (!updateCategory && !updateOrFilter) return;
 
@@ -184,7 +202,7 @@ const PillarPage = ({
                 {recentArticles.slice(0, 3).map((a: any) => {
                   const TitleEl: any = a.url ? "a" : "div";
                   const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
                     : {};
                   return (
                     <div key={a.id} className="py-3">
@@ -238,7 +256,7 @@ const PillarPage = ({
                 {recentArticles.slice(0, 6).map((a: any) => {
                   const TitleEl: any = a.url ? "a" : "div";
                   const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
                     : {};
                   return (
                     <div key={a.id} className="py-3 group">
@@ -292,7 +310,7 @@ const PillarPage = ({
                 {recentArticles.map((a: any) => {
                   const TitleEl: any = a.url ? "a" : "div";
                   const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
                     : {};
                   return (
                     <div key={a.id} className="py-3 group">
