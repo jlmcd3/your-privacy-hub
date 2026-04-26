@@ -688,7 +688,7 @@ const Subscribe = () => {
           </div>
 
           {/* Annual */}
-          <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border-2 border-amber-400/60 relative flex flex-col">
+          <div className="pricing-card-safe bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border-2 border-amber-400/60 relative flex flex-col">
             <div className="absolute -top-3 right-5 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
               Best Value
             </div>
