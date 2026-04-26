@@ -343,8 +343,9 @@ const SampleBrief = () => {
                 </div>
               </section>
 
-            </div>{/* end divide-y container */}
+            </div>
             )}
+          </div>{/* end white document card */}
           </div>{/* end white document card */}
 
           {/* Bottom CTA — outside the document */}
