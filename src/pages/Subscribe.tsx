@@ -786,6 +786,7 @@ const Subscribe = () => {
         </div>
       </div>
       <Footer />
+      <UIDebugOverlay label="Subscribe UI debug" />
     </div>
   );
 };
