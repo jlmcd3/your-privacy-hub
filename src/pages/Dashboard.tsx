@@ -486,13 +486,9 @@ const Dashboard = () => {
             {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
           </h1>
           {brief && (
-            <div className="flex flex-wrap items-center gap-2 mt-3 text-[13px] text-muted-foreground">
-              <span>{brief.week_label}</span>
-              <span>·</span>
-              <span>{brief.article_count} regulatory updates synthesized</span>
-              <span>·</span>
-              <span>Published {new Date(brief.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric" })}</span>
-            </div>
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              {describeBriefFreshness(brief.published_at)} · {brief.week_label} · {brief.article_count} regulatory updates synthesized
+            </p>
           )}
         </div>
 
