@@ -232,7 +232,7 @@ const Subscribe = () => {
             Select the areas most relevant to your work. Your brief covers all selected tracks every Monday.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           {[
             { icon: "🗺️", label: "US State Privacy Laws", desc: "New state laws, AG enforcement, CPPA actions, and compliance deadlines across all 50 states" },
             { icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity", desc: "DPA fines, EDPB binding decisions, cross-border enforcement, and legal precedent" },
@@ -653,7 +653,7 @@ const Subscribe = () => {
         </div>
 
         {/* Two-plan layout: Monthly + Annual */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto items-start">
           {/* Monthly */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border border-blue/40 relative flex flex-col">
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
