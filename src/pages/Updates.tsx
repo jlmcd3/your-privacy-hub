@@ -9,6 +9,7 @@ import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import ArticleDrawer from "@/components/ArticleDrawer";
+import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
@@ -100,8 +101,20 @@ const Updates = () => {
     const [activeAttention, setActiveAttention] = useState<string | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<Update | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
     const userTier: "free" | "pro" = isPremium ? "pro" : "free";
+    const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
+
+    const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
+      if (!user) {
+        setShowFilterGate(filterLabel);
+        // Auto-hide after 4 seconds
+        setTimeout(() => setShowFilterGate(null), 4000);
+      } else {
+        action();
+      }
+    };
 
     // AI summary filter state
     const [urgencyFilter, setUrgencyFilter] = useState("all");
