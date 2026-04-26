@@ -1,0 +1,242 @@
+{
+  "generatedAt": "2026-04-26T01:48:23.243Z",
+  "routesScanned": 68,
+  "filesScanned": 211,
+  "summary": {
+    "high": 22,
+    "medium": 0,
+    "info": 7
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/us-privacy-laws",
+      "component": "USPrivacyLaws",
+      "file": "src/pages/USPrivacyLaws.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/gdpr-enforcement",
+      "component": "GDPREnforcement",
+      "file": "src/pages/GDPREnforcement.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/jurisdiction/:slug",
+      "component": "JurisdictionPage",
+      "file": "src/pages/JurisdictionPage.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/regulator/:slug",
+      "component": "RegulatorPage",
+      "file": "src/pages/RegulatorPage.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/timelines",
+      "component": "Timelines",
+      "file": "src/pages/Timelines.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/compare/us-states",
+      "component": "USStateComparison",
+      "file": "src/pages/USStateComparison.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/compare/jurisdictions",
+      "component": "GlobalJurisdictionComparison",
+      "file": "src/pages/GlobalJurisdictionComparison.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/tools",
+      "component": "Tools",
+      "file": "src/pages/Tools.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/cookie-consent",
+      "component": "CookieConsent",
+      "file": "src/pages/CookieConsent.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/health-data-privacy",
+      "component": "HealthDataPrivacy",
+      "file": "src/pages/HealthDataPrivacy.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/biometric-privacy",
+      "component": "BiometricPrivacy",
+      "file": "src/pages/BiometricPrivacy.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/breach-notification",
+      "component": "BreachNotification",
+      "file": "src/pages/BreachNotification.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/cross-border-transfers",
+      "component": "CrossBorderTransfers",
+      "file": "src/pages/CrossBorderTransfers.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/signup",
+      "component": "Signup",
+      "file": "src/pages/Signup.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/login",
+      "component": "Login",
+      "file": "src/pages/Login.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/subscribe",
+      "component": "Subscribe",
+      "file": "src/pages/Subscribe.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/legitimate-interest-tracker",
+      "component": "LegitimateInterestTracker",
+      "file": "src/pages/LegitimateInterestTracker.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/admin/seed-li",
+      "component": "AdminSeedLI",
+      "file": "src/pages/AdminSeedLI.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/admin/ingestion",
+      "component": "AdminIngestionDashboard",
+      "file": "src/pages/AdminIngestionDashboard.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/li-assessment/result/:id",
+      "component": "LIAssessmentResult",
+      "file": "src/pages/LIAssessmentResult.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/governance-assessment/result/:id",
+      "component": "GovernanceAssessmentResult",
+      "file": "src/pages/GovernanceAssessmentResult.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/registration-manager",
+      "component": "RegistrationLanding",
+      "file": "src/pages/RegistrationLanding.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/registration-manager/order/:id",
+      "component": "RegistrationOrder",
+      "file": "src/pages/RegistrationOrder.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/registration-manager/documents/:id",
+      "component": "RegistrationDocuments",
+      "file": "src/pages/RegistrationDocuments.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "info",
+      "type": "protected_route_no_inner_gate",
+      "route": "/registration-manager/my-filings",
+      "component": "RegistrationMyFilings",
+      "file": "src/pages/RegistrationMyFilings.tsx",
+      "message": "Route is auth-protected but component does not differentiate free vs premium logged-in users."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/faq",
+      "component": "FAQ",
+      "file": "src/pages/FAQ.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "label_without_gate",
+      "route": "/about",
+      "component": "About",
+      "file": "src/pages/About.tsx",
+      "message": "Public route renders Pro/Premium labels but has no runtime premium check (usePremiumStatus / PremiumGate / isPremium)."
+    },
+    {
+      "severity": "high",
+      "type": "content_without_gate",
+      "component": "ProBriefPreview",
+      "file": "src/components/subscribe/ProBriefPreview.tsx",
+      "message": "Component renders premium-style content (brief/forecast/recommendation body) without a runtime gate."
+    },
+    {
+      "severity": "high",
+      "type": "content_without_gate",
+      "component": "ToolSamplePreview",
+      "file": "src/components/tools/ToolSamplePreview.tsx",
+      "message": "Component renders premium-style content (brief/forecast/recommendation body) without a runtime gate."
+    }
+  ]
+}
