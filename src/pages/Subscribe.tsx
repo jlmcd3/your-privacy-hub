@@ -14,24 +14,26 @@ type ComparisonRow =
   | { feature: string; isSection: true };
 
 const comparisonRows: ComparisonRow[] = [
-  { feature: "Daily privacy news feed",                              free: true,                  pro: true  },
+  { isSection: true, feature: "The monitoring layer" },
+  { feature: "Regulatory developments, monitored daily",          free: true,                  pro: true  },
   { feature: "Jurisdiction profiles (150+ countries)",               free: true,                  pro: true  },
   { feature: "Regulator directory (119 authorities)",                free: true,                  pro: true  },
   { feature: "Research guides (GDPR, AI Act, US laws)",              free: true,                  pro: true  },
   { feature: "Enforcement tracker — all actions",                    free: true,                  pro: true  },
   { feature: "Personalized weekly digest (your regions & topics)",   free: true,                  pro: true  },
-  { feature: "Cross-jurisdiction pattern observation",               free: true,                  pro: true  },
+
+  { isSection: true, feature: "The intelligence layer" },
+  { feature: "Cross-jurisdiction signals and pattern analysis",      free: true,                  pro: true  },
 
   { isSection: true, feature: "Intelligence Brief" },
-  { feature: "Full 8-section weekly Intelligence Brief",             free: false,                 pro: true  },
+  { feature: "Full Intelligence Brief — written for your industry and jurisdictions", free: false, pro: true },
   { feature: "Enforcement trends & pattern signals",                 free: false,                 pro: true  },
-  { feature: "Why This Matters — full article analysis",             free: false,                 pro: true  },
-  { feature: "Brief written for your industry & jurisdictions",      free: false,                 pro: true  },
+  { feature: "Per-article intelligence: regulatory theory, action items, affected sectors", free: false, pro: true },
   { feature: "Jurisdiction & subject-matter depth focus",            free: false,                 pro: true  },
   { feature: "Historical continuity across weekly issues",           free: false,                 pro: true  },
   { feature: "Priority Monday delivery",                             free: false,                 pro: true  },
 
-  { isSection: true, feature: "Assessment Tools" },
+  { isSection: true, feature: "The action layer" },
   { feature: "Sample preview of all tools",                          free: true,                  pro: true  },
   { feature: "Privacy Program Assessment Tool",                       free: "$49 per analysis",    pro: "$25 per analysis (subscriber rate)" },
   { feature: "Legitimate Interest Assessment Tool",                   free: "$79 per analysis",    pro: "$35 per analysis"   },
