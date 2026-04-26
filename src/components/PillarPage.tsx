@@ -202,7 +202,7 @@ const PillarPage = ({
                 {recentArticles.slice(0, 3).map((a: any) => {
                   const TitleEl: any = a.url ? "a" : "div";
                   const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer" }
+                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
                     : {};
                   return (
                     <div key={a.id} className="py-3">
