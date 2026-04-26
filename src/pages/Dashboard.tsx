@@ -788,13 +788,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {loading && (
-          <div className="space-y-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
-            ))}
-          </div>
-        )}
+        {loading && <BriefSkeleton />}
 
         {!loading && !brief && (
           <div className="text-center py-20">
