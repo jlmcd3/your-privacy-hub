@@ -155,7 +155,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     }),
