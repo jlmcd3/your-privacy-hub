@@ -9,6 +9,7 @@ import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import ArticleDrawer from "@/components/ArticleDrawer";
+import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
@@ -100,8 +101,20 @@ const Updates = () => {
     const [activeAttention, setActiveAttention] = useState<string | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<Update | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
     const userTier: "free" | "pro" = isPremium ? "pro" : "free";
+    const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
+
+    const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
+      if (!user) {
+        setShowFilterGate(filterLabel);
+        // Auto-hide after 4 seconds
+        setTimeout(() => setShowFilterGate(null), 4000);
+      } else {
+        action();
+      }
+    };
 
     // AI summary filter state
     const [urgencyFilter, setUrgencyFilter] = useState("all");
@@ -354,12 +367,12 @@ const Updates = () => {
                     {LOCATION_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => setActiveFilter(f.key)}
+                            onClick={() => handleGatedFilterClick(f.label, () => setActiveFilter(f.key))}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
                                     : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
+                            } ${!user ? "opacity-50 cursor-default" : ""}`}
                         >
                             {f.label}
                         </button>
@@ -372,18 +385,40 @@ const Updates = () => {
                     {TOPIC_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => setActiveFilter(f.key)}
+                            onClick={() => handleGatedFilterClick(f.label, () => setActiveFilter(f.key))}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
                                     : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
+                            } ${!user ? "opacity-50 cursor-default" : ""}`}
                         >
                             {f.label}
                         </button>
                     ))}
 
                 </div>
+
+                {/* Filter gate chip — anonymous users clicking a gated filter */}
+                {showFilterGate && !user && (
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <p className="text-[12px] text-navy flex-1">
+                            Filter by {showFilterGate.toLowerCase()} — register free to use
+                        </p>
+                        <Link
+                            to="/signup"
+                            className="text-[11px] px-3 py-1 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap no-underline"
+                        >
+                            Register free →
+                        </Link>
+                        <button
+                            onClick={() => setShowFilterGate(null)}
+                            className="text-slate-400 hover:text-slate-600 text-[16px] leading-none"
+                            aria-label="Dismiss"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
 
                 {/* Faceted Filters: Sectors + Attention Level */}
                 {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
@@ -394,12 +429,12 @@ const Updates = () => {
                             {["High", "Medium", "Low"].map((level) => (
                                 <button
                                     key={level}
-                                    onClick={() => setActiveAttention(activeAttention === level ? null : level)}
+                                    onClick={() => handleGatedFilterClick(`Attention: ${level}`, () => setActiveAttention(activeAttention === level ? null : level))}
                                     className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
                                         activeAttention === level
                                             ? level === "High" ? "bg-destructive text-destructive-foreground" : level === "Medium" ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
                                             : "bg-muted text-foreground hover:bg-muted/80"
-                                    }`}
+                                    } ${!user ? "opacity-50 cursor-default" : ""}`}
                                 >
                                     {level === "High" ? "🔴" : level === "Medium" ? "🟡" : "🟢"} {level}
                                 </button>
@@ -413,12 +448,12 @@ const Updates = () => {
                                 {availableSectors.slice(0, 8).map(([sector, count]) => (
                                     <button
                                         key={sector}
-                                        onClick={() => toggleSector(sector)}
+                                        onClick={() => handleGatedFilterClick(`Sector: ${sector}`, () => toggleSector(sector))}
                                         className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
                                             activeSectors.includes(sector)
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-foreground hover:bg-muted/80"
-                                        }`}
+                                        } ${!user ? "opacity-50 cursor-default" : ""}`}
                                     >
                                         {sector} <span className="opacity-60">({count})</span>
                                     </button>
@@ -442,8 +477,12 @@ const Updates = () => {
                     </div>
                     <select
                         value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="px-3 py-2 border border-border rounded-lg text-sm bg-background"
+                        onChange={(e) => {
+                            const next = e.target.value;
+                            handleGatedFilterClick("Date range", () => setDateRange(next));
+                        }}
+                        disabled={!user}
+                        className={`px-3 py-2 border border-border rounded-lg text-sm bg-background ${!user ? "opacity-50 cursor-default" : ""}`}
                     >
                         {DATE_RANGES.map((d) => (
                             <option key={d.key} value={d.key}>{d.label}</option>
@@ -469,29 +508,44 @@ const Updates = () => {
                 {/* Newsfeed + slide-in drawer */}
                 <div className="relative overflow-hidden">
                     <div className={`transition-all duration-200 ${drawerOpen ? "pr-[360px]" : ""}`}>
-                        <NewsfeedList
-                            articles={filtered}
-                            isLoading={loading || loadingMore}
-                            hasMore={hasMore}
-                            onLoadMore={handleLoadMore}
-                            renderArticle={(article, _i, isPremiumCard) => (
-                                <div
-                                    key={article.id}
-                                    onClick={() => {
-                                        setSelectedArticle(article as unknown as Update);
-                                        setDrawerOpen(true);
-                                    }}
-                                    className="cursor-pointer relative group"
-                                >
-                                    <ArticleCard
-                                        item={{...article, source_url: article.url} as unknown as ArticleItem}
-                                        variant='full'
-                                        isPremium={isPremiumCard}
-                                    />
-                                    <ChevronRight className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                </div>
-                            )}
-                        />
+                        {user && isPremium ? (
+                            /* Intelligence subscribers: full paginated experience with drawer */
+                            <NewsfeedList
+                                articles={filtered}
+                                isLoading={loading || loadingMore}
+                                hasMore={hasMore}
+                                onLoadMore={handleLoadMore}
+                                renderArticle={(article, _i, isPremiumCard) => (
+                                    <div
+                                        key={article.id}
+                                        onClick={() => {
+                                            setSelectedArticle(article as unknown as Update);
+                                            setDrawerOpen(true);
+                                        }}
+                                        className="cursor-pointer relative group"
+                                    >
+                                        <ArticleCard
+                                            item={{...article, source_url: article.url} as unknown as ArticleItem}
+                                            variant='full'
+                                            isPremium={isPremiumCard}
+                                        />
+                                        <ChevronRight className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    </div>
+                                )}
+                            />
+                        ) : (
+                            /* Anonymous + free registered: TieredFeed */
+                            <TieredFeed
+                                articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
+                                paginated={true}
+                                previewCount={3}
+                                seeAllHref="/updates"
+                                showSeeAll={false}
+                                hasMore={hasMore}
+                                onLoadMore={handleLoadMore}
+                                isLoadingMore={loadingMore}
+                            />
+                        )}
                     </div>
 
                     <ArticleDrawer

@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import NewsfeedList from "@/components/NewsfeedList";
-import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
-import { Link } from "react-router-dom";
+import { type ArticleItem } from "@/components/ArticleCard";
+import { TieredFeed } from "@/components/TieredFeed";
 import { Search, X } from "lucide-react";
 
 interface Update {
@@ -163,9 +162,9 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("id,title,summary,url,category,regulator,published_at,source_name,source_domain,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
+          .select("id,title,summary,url,source_name,source_url,source_domain,image_url,published_at,category,regulator,is_premium,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
           .order("published_at", { ascending: false })
-          .limit(50);
+          .limit(20);
 
         if (!error && data && data.length > 0) {
           setUpdates(data as Update[]);
@@ -257,10 +256,11 @@ const LatestUpdates = () => {
     return result;
   }, [visibleUpdates, activeLocations, activeTopics, searchTerm]);
 
-  // Anonymous limit
-  const FREE_LIMIT = 15;
-  const showPaywall = !user && filtered.length > FREE_LIMIT;
-  const displayArticles = !user ? filtered.slice(0, FREE_LIMIT) : filtered;
+  // Map updates → ArticleItem (ensure source_url is set so newsfeed cards link out)
+  const articlesForFeed: ArticleItem[] = useMemo(
+    () => filtered.map(u => ({ ...u, source_url: (u as any).source_url || u.url } as unknown as ArticleItem)),
+    [filtered]
+  );
 
   return (
     <section className="pt-5 pb-10 md:pt-8 md:pb-16 bg-paper py-0">
@@ -336,52 +336,21 @@ const LatestUpdates = () => {
           <div className="px-4 md:px-6 py-4">
             {loading
               ? <div className="gap-3 flex flex-col">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>
-              : displayArticles.length === 0
+              : articlesForFeed.length === 0
                 ? (
                   <p className="text-center text-sm text-slate py-8">
                     No updates found for this filter.
                   </p>
                 )
                 : (
-                  <>
-                    <NewsfeedList
-                      articles={displayArticles}
-                      renderArticle={(u, _i, isPremium) => (
-                        <ArticleCard
-                          key={u.id}
-                          item={{...u, source_url: u.url} as unknown as ArticleItem}
-                          variant='full'
-                          isPremium={isPremium}
-                        />
-                      )}
-                    />
-
-                    {/* Paywall for anonymous users */}
-                    {showPaywall && (
-                      <div className="mt-6 bg-gradient-to-br from-navy to-steel rounded-2xl p-8 text-center">
-                        <h3 className="font-display font-bold text-white text-[20px] mb-2">
-                          Continue reading with a free account
-                        </h3>
-                        <p className="text-blue-200 text-[14px] mb-6 max-w-md mx-auto">
-                          Free accounts get the most recent 3 weeks of analyzed privacy updates. Pro subscribers unlock the full archive.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Link
-                            to="/signup"
-                            className="bg-white text-navy font-bold text-[14px] py-3 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
-                          >
-                            Create free account
-                          </Link>
-                          <Link
-                            to="/subscribe"
-                            className="bg-amber-500 text-white font-bold text-[14px] py-3 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
-                          >
-                            Get full intelligence
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                  <TieredFeed
+                    articles={articlesForFeed}
+                    paginated={false}
+                    newsfeedCap={12}
+                    previewCount={3}
+                    seeAllHref="/updates"
+                    showSeeAll={true}
+                  />
                 )
             }
           </div>
