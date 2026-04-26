@@ -1353,12 +1353,23 @@ Deno.serve(async (req) => {
           }
         }
 
-        const { error } = await supabase
+        // Use .select() so PostgREST returns the inserted row(s). With
+        // ignoreDuplicates, a URL conflict returns an empty array (no error),
+        // letting us distinguish real inserts from silent no-ops.
+        const { data: upserted, error } = await supabase
           .from("updates")
-          .upsert(row, { onConflict: "url", ignoreDuplicates: true });
+          .upsert(row, { onConflict: "url", ignoreDuplicates: true })
+          .select("id");
 
-        if (error) results.skipped++;
-        else {
+        if (error) {
+          results.skipped++;
+        } else if (!upserted || upserted.length === 0) {
+          // Duplicate URL — silently ignored by Postgres. Don't count as inserted.
+          results.skipped_existing++;
+          existingUrls.add(link);
+          // Roll back the summary credit since the row didn't actually persist.
+          if (row.ai_summary) results.summaries_generated = Math.max(0, results.summaries_generated - 1);
+        } else {
           results.inserted++;
           existingUrls.add(link);
         }
