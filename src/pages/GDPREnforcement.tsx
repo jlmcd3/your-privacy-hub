@@ -147,6 +147,42 @@ const GDPREnforcement = () => {
           </p>
           <div className="text-[11px] text-slate-light mt-4">Last updated: March 8, 2026</div>
 
+          {/* Stat bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 max-w-[700px]">
+            {GDPR_HERO_STATS.map((stat, idx) => (
+              <div key={idx} className="bg-white/10 rounded-lg px-4 py-3 text-center">
+                <p className="font-display text-[22px] text-white font-bold leading-none mb-1">{stat.value}</p>
+                <p className="text-[11px] text-slate-light leading-snug">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Email capture — anonymous only */}
+          {!user && (
+            <div className="mt-4 max-w-[460px]">
+              {gdprEmailSent ? (
+                <p className="text-[12px] text-slate-light">You're subscribed — alerts will arrive Monday morning.</p>
+              ) : (
+                <form onSubmit={handleGdprEmailCapture} className="flex gap-2">
+                  <input
+                    type="email"
+                    value={gdprEmail}
+                    onChange={(e) => setGdprEmail(e.target.value)}
+                    placeholder="Get GDPR enforcement alerts"
+                    className="flex-1 text-[12px] px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder:text-slate-light focus:outline-none focus:border-white/40"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="text-[12px] px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors whitespace-nowrap"
+                  >
+                    Get alerts →
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
             {TAB_ITEMS.map((tab) => (
