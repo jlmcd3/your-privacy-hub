@@ -110,6 +110,7 @@ const Toggle = ({
 
 export default function BriefPreferences() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromSubscribe = searchParams.get("from") === "subscribe";
   const [prefs, setPrefs] = useState({ industries: [] as string[], jurisdictions: [] as string[], topics: [] as string[], format: "full" });
