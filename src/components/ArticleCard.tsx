@@ -196,14 +196,18 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
   const urgency = item.ai_summary?.urgency;
   const weight = item.ai_summary?.legal_weight;
   const enriched = isEnriched(item);
+  // Only premium subscribers see enriched-derived content (urgency, legal weight,
+  // attention level, sectors, "why it matters", and the analysis accordion).
+  // Non-premium users get the basic article card with a single upgrade nudge.
+  const showEnrichment = enriched && isPremium;
 
   return (
     <div
-      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${enriched ? 'px-4 rounded-lg my-1' : ''}`}
-      style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${showEnrichment ? 'px-4 rounded-lg my-1' : ''}`}
+      style={showEnrichment ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Intelligence badge top-right */}
-      {enriched && (
+      {/* Intelligence badge top-right — premium only */}
+      {showEnrichment && (
         <div className="absolute top-2 right-2">
           <IntelligenceBadge />
         </div>
