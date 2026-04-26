@@ -261,6 +261,27 @@ export type Database = {
           },
         ]
       }
+      email_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       email_subscribers: {
         Row: {
           confirmed: boolean | null
