@@ -843,15 +843,15 @@ const Dashboard = () => {
                   </section>
 
                   {/* All other sections */}
-                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="U.S. State Analysis" content={brief.us_states} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🌍" title="Global Developments" content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🤖" title="AI Governance" content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="👁️" title="Biometric Data" content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="🏛️" title="Privacy Litigation" content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
-                  <SectionBlock icon="📊" title="Enforcement Trends" content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🇺🇸" title="U.S. Federal Analysis" subtitle="Federal agency moves, Congressional bills, and what they mean for your program." content={brief.us_federal} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="U.S. State Analysis" subtitle="State legislatures and attorneys general — new laws, amendments, and enforcement." content={brief.us_states} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🇪🇺" title="EU & UK Analysis" subtitle="EDPB, member-state DPAs, and the UK ICO — guidance, enforcement, and rulemaking." content={brief.eu_uk} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🌍" title="Global Developments" subtitle="Privacy moves outside the US and EU — APAC, LATAM, Middle East, and Africa." content={brief.global_developments} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🤖" title="AI Governance" subtitle="Where AI regulation meets data privacy — training data, automated decisions, and biometrics." content={brief.ai_governance} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📡" title="AdTech & Advertising Privacy" subtitle="Cookies, consent, behavioral targeting, and commercial surveillance enforcement." content={brief.adtech_advertising} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="👁️" title="Biometric Data" subtitle="Face, voice, and biometric processing rules — BIPA, GDPR Art. 9, and parallels worldwide." content={brief.biometric_data} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="🏛️" title="Privacy Litigation" subtitle="Class actions, settlements, and court rulings shaping how privacy laws are applied." content={brief.privacy_litigation} sourceMap={brief.source_map ?? {}} />
+                  <SectionBlock icon="📊" title="Enforcement Trends" subtitle="The pattern across this week's actions — what regulators are signaling next." content={brief.enforcement_trends} sourceMap={brief.source_map ?? {}} />
 
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (
