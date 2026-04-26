@@ -38,6 +38,7 @@ export default function IRPlaybookResult() {
       <Helmet><title>Your Breach Response Playbook | Your Privacy Hub</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
         {loading ? (
           <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
         ) : !row ? (

@@ -59,6 +59,7 @@ const GovernanceAssessmentResult = () => {
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <BackLink to="/dashboard/reports" label="Back to My Reports" />
         {purchased && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.
