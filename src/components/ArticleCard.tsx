@@ -374,11 +374,136 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
   );
 };
 
+// — NEWSFEED variant (lightweight outbound link card for anonymous users) ——
+const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
+  const articleUrl = item.source_url || (item as any).url || '#';
+  return (
+    <a
+      href={articleUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex gap-3 py-3 border-b border-fog hover:bg-slate-50/50 transition-colors no-underline"
+    >
+      {item.image_url ? (
+        <img
+          src={item.image_url}
+          alt=""
+          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[20px]">
+          📰
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          {item.source_name && (
+            <span className="text-[10px] text-slate-500 font-medium">{item.source_name}</span>
+          )}
+          {item.published_at && (
+            <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+          )}
+          {item.category && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${categoryClass(item.category)}`}>
+              {categoryLabel(item.category)}
+            </span>
+          )}
+        </div>
+        <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          {normalizeTitle(item.title)}
+        </p>
+        {item.summary && (
+          <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+        )}
+      </div>
+      <ExternalLink className="w-3.5 h-3.5 text-slate-300 flex-shrink-0 mt-1 group-hover:text-slate-500 transition-colors" />
+    </a>
+  );
+};
+
+// — PREVIEW variant (anonymous teaser of full enrichment) ——
+const PreviewCard = ({ item }: { item: ArticleItem }) => {
+  const s = item.ai_summary;
+  const urgency = s?.urgency;
+  const urgencyLabel = urgency === 'immediate' || urgency === 'Immediate' ? 'High urgency'
+    : urgency === 'this-quarter' || urgency === 'This Quarter' ? 'Medium urgency'
+    : urgency ? 'Monitor' : null;
+  const urgencyClass = urgency === 'immediate' || urgency === 'Immediate'
+    ? 'bg-red-100 text-red-800 border border-red-200'
+    : urgency === 'this-quarter' || urgency === 'This Quarter'
+    ? 'bg-amber-100 text-amber-800 border border-amber-200'
+    : 'bg-green-100 text-green-800 border border-green-200';
+
+  return (
+    <div className="rounded-xl border border-sky-200/60 bg-white overflow-hidden mb-4">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 pt-3 pb-2 bg-sky-50/60 border-b border-sky-100 flex-wrap">
+        <span className="text-[9px] font-bold tracking-widest uppercase text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">
+          Intelligence preview
+        </span>
+        {urgencyLabel && (
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${urgencyClass}`}>
+            {urgencyLabel}
+          </span>
+        )}
+        <span className="text-[10px] text-slate ml-auto">{item.source_name}</span>
+        {item.published_at && (
+          <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+        )}
+      </div>
+
+      <div className="px-4 py-3">
+        <p className="text-[14px] font-semibold text-navy leading-snug mb-3">{normalizeTitle(item.title)}</p>
+
+        {s?.why_it_matters && (
+          <div className="border-l-4 border-sky-500 bg-sky-50 px-3 py-2 rounded-r-lg mb-3">
+            <p className="text-[10px] font-bold tracking-wider uppercase text-sky-700 mb-1">Why it matters</p>
+            <p className="text-[12px] text-sky-900 leading-relaxed">{stripHtml(s.why_it_matters)}</p>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-4 mb-3">
+          {s?.legal_weight && (
+            <div>
+              <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Legal weight</p>
+              <p className="text-[11px] font-medium text-navy">{s.legal_weight}</p>
+            </div>
+          )}
+          {item.affected_sectors && item.affected_sectors.length > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
+              <div className="flex gap-1 flex-wrap">
+                {item.affected_sectors.slice(0, 3).map((sec: string, i: number) => (
+                  <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-slate-100 pt-3 flex items-center gap-3">
+          <p className="text-[12px] text-slate flex-1">
+            Register free to see analysis like this on every update.
+          </p>
+          <Link
+            to="/signup"
+            className="shrink-0 text-[11px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap"
+          >
+            Register free →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // — MAIN EXPORT ——————————————————————————————————
 interface ArticleCardProps {
   item: ArticleItem;
   variant?: ArticleCardVariant;
   isPremium?: boolean;
+  onOpenDrawer?: (item: ArticleItem) => void;
 }
 
 export const ArticleCard = ({ item, variant = 'full', isPremium = false }: ArticleCardProps) => {
@@ -386,6 +511,8 @@ export const ArticleCard = ({ item, variant = 'full', isPremium = false }: Artic
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
     case 'enforcement': return <EnforcementCard item={item} />;
+    case 'newsfeed':    return <NewsfeedCard item={item} />;
+    case 'preview':     return <PreviewCard item={item} />;
     default:            return <FullCard item={item} isPremium={isPremium} />;
   }
 };
