@@ -14,10 +14,10 @@ export default function SearchFirstHero() {
           {/* Left: text content */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] mb-3">
-              Privacy intelligence, already done.
+              Global privacy law, tracked daily.
             </h1>
             <p className="text-blue-200/80 text-[14px] md:text-[16px] mb-8">
-              The regulatory landscape, monitored and analyzed — so you can focus on the work that requires your judgment.
+              119 regulatory authorities. 150+ jurisdictions. Action intelligence on every development — and the compliance tools to act on it.
             </p>
             <div className="flex gap-3 justify-center lg:justify-start flex-wrap mb-8">
               {!user && (
