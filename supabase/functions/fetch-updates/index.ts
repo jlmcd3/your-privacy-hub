@@ -1315,6 +1315,22 @@ Deno.serve(async (req) => {
               if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
                 row.affected_jurisdictions = aiSummary.affected_jurisdictions;
               }
+              // Extract new top-level enrichment fields into dedicated columns
+              if (typeof aiSummary.regulatory_theory === "string" && aiSummary.regulatory_theory.trim()) {
+                row.regulatory_theory = aiSummary.regulatory_theory;
+              }
+              if (Array.isArray(aiSummary.action_items) && aiSummary.action_items.length > 0) {
+                row.action_items = aiSummary.action_items;
+              }
+              if (typeof aiSummary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date)) {
+                row.key_date = aiSummary.key_date;
+              }
+              if (aiSummary.entities && typeof aiSummary.entities === "object") {
+                row.entities = aiSummary.entities;
+              }
+              if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
+                row.defense_considerations = aiSummary.defense_considerations;
+              }
               results.summaries_generated++;
             }
           } catch (enrichErr: any) {
