@@ -152,6 +152,13 @@ const SampleBrief = () => {
             </div>
 
             {/* Document sections */}
+            {translatedContent !== null ? (
+              <div
+                dir={contentDir}
+                className="px-8 py-6 prose prose-sm max-w-none text-slate-700"
+                dangerouslySetInnerHTML={{ __html: translatedContent }}
+              />
+            ) : (
             <div className="px-8 py-2 divide-y divide-slate-100">
 
               {/* Section 1 — Executive Summary */}
