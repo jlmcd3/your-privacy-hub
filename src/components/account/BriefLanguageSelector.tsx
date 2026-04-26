@@ -93,7 +93,7 @@ export default function BriefLanguageSelector() {
         value={language}
         onChange={handleChange}
         disabled={!loaded}
-        className="w-full bg-paper border border-fog rounded-lg px-3 py-2.5 text-[13px] text-navy focus:outline-none focus:ring-2 focus:ring-blue/30 focus:border-blue cursor-pointer disabled:opacity-50"
+        className="w-full sm:w-auto sm:min-w-[260px] bg-paper border border-fog rounded-lg px-3 py-2.5 text-[13px] text-navy focus:outline-none focus:ring-2 focus:ring-blue/30 focus:border-blue cursor-pointer disabled:opacity-50"
       >
         {LANGUAGES.map((l) => (
           <option key={l.code} value={l.code}>
