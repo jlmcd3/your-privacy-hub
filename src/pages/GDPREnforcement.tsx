@@ -315,31 +315,6 @@ const GDPREnforcement = () => {
           </Link>
         </div>
 
-        {/* ── Recent Developments ── */}
-        {recentArticles.length > 0 && (
-          <div ref={setRef("gdpr-recent")} id="gdpr-recent" className="mt-12 mb-8 scroll-mt-24">
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-display text-xl text-navy">Recent Developments</h2>
-              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
-            </div>
-            <div className="divide-y divide-fog">
-              {recentArticles.map((a: any) => (
-                <ArticleCard
-                  key={a.id}
-                  item={{
-                    id: a.id,
-                    title: a.title,
-                    summary: a.summary,
-                    source_name: a.source_name,
-                    published_at: a.published_at,
-                    source_url: a.url,
-                  } as ArticleItem}
-                  variant="full"
-                />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Related Resources — styled cards */}
         <div className="mt-12 pt-8 border-t border-fog">
