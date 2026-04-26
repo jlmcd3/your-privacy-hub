@@ -35,6 +35,7 @@ import Updates from "./pages/Updates.tsx";
 import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import DevOnly from "./components/DevOnly.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
