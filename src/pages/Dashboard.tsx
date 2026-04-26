@@ -95,6 +95,27 @@ function truncateToSentences(text: string | null, count = 2): string {
   return sentences.slice(0, count).join("").trim();
 }
 
+/**
+ * Plain-English description of when the brief was published, so readers
+ * always know whether they're looking at this week's analysis or an older one.
+ * Examples: "Published today", "Published yesterday", "Published 3 days ago",
+ * "Published April 19 (1 week ago)", "Published March 16 (6 weeks ago)".
+ */
+function describeBriefFreshness(publishedAt: string): string {
+  const published = new Date(publishedAt);
+  const now = new Date();
+  const dayMs = 1000 * 60 * 60 * 24;
+  const days = Math.floor((now.getTime() - published.getTime()) / dayMs);
+  const dateStr = published.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+
+  if (days <= 0) return `Published today, ${dateStr}`;
+  if (days === 1) return `Published yesterday, ${dateStr}`;
+  if (days < 7) return `Published ${dateStr} — ${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks === 1) return `Published ${dateStr} — 1 week ago`;
+  return `Published ${dateStr} — ${weeks} weeks ago`;
+}
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -465,13 +486,9 @@ const Dashboard = () => {
             {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
           </h1>
           {brief && (
-            <div className="flex flex-wrap items-center gap-2 mt-3 text-[13px] text-muted-foreground">
-              <span>{brief.week_label}</span>
-              <span>·</span>
-              <span>{brief.article_count} regulatory updates synthesized</span>
-              <span>·</span>
-              <span>Published {new Date(brief.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric" })}</span>
-            </div>
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              {describeBriefFreshness(brief.published_at)} · {brief.week_label} · {brief.article_count} regulatory updates synthesized
+            </p>
           )}
         </div>
 
@@ -721,19 +738,20 @@ const Dashboard = () => {
 
                 {/* Document header */}
                 <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
                       ⭐ Your Privacy Hub Intelligence Brief
                     </span>
-                    <div className="flex items-center gap-2 text-[11px] text-blue-300">
-                      <span>{brief.week_label}</span>
-                      <span>·</span>
-                      <span>{brief.article_count} updates reviewed</span>
-                    </div>
+                    <span className="text-[11px] text-blue-300">
+                      {brief.week_label} · {brief.article_count} updates reviewed
+                    </span>
                   </div>
                   <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
                     {brief.headline}
                   </h2>
+                  <p className="mt-2 text-[12px] text-blue-200">
+                    {describeBriefFreshness(brief.published_at)}
+                  </p>
                 </div>
 
                 {/* Section content */}
