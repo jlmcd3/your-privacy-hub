@@ -220,6 +220,8 @@ const Dashboard = () => {
       const { data, error } = await supabase.functions.invoke("generate-brief-on-demand");
       if (!error && data?.brief) {
         setCustomBrief(data.brief);
+        // Move any prior "current" brief into the archive
+        setBriefArchive(prev => (customBrief ? [customBrief, ...prev] : prev));
       }
     } catch (e) {
       console.error("Brief generation failed:", e);
