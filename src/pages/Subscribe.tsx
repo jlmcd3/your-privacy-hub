@@ -525,7 +525,7 @@ const Subscribe = () => {
             <h3 className="font-display font-bold text-navy text-[16px] text-center mb-5">
               Same story. Different brief.
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               {/* Standard */}
               <div className="bg-card border border-fog rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-slate mb-3">
