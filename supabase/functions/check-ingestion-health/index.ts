@@ -193,9 +193,11 @@ Deno.serve(async (req) => {
         continue;
       }
       const ok = await sendAlertEmail(alertEmail, alert.subject, alert.body);
-      if (ok) {
+      if (ok === true) {
         await recordAlertSent(alert.key, { subject: alert.subject });
         sent.push(alert.key);
+      } else if (ok === "skipped") {
+        skipped.push(`${alert.key} (no transport)`);
       }
     }
 
@@ -205,6 +207,7 @@ Deno.serve(async (req) => {
         alerts_found: all.length,
         sent,
         throttled: skipped,
+        transport: Deno.env.get("RESEND_API_KEY") ? "resend" : "none",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
