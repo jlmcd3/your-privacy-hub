@@ -85,8 +85,8 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Professional — $29/mo or $290/yr | EndUserPrivacy</title>
-        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool. $29/month or $290/year." />
+        <title>Intelligence — $39/mo or $390/yr | EndUserPrivacy</title>
+        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool. $39/month or $390/year." />
       </Helmet>
       <Navbar />
 
@@ -94,7 +94,7 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Professional is $29/month.
+            The library is free.<br />Professional is $39/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed mb-8">
             Everything you can browse stays free. Free accounts also include a personalized
@@ -112,7 +112,7 @@ const Subscribe = () => {
                 billingInterval === "month" ? "bg-white text-navy" : "text-white/70 hover:text-white"
               }`}
             >
-              Monthly · $29
+              Monthly · $39
             </button>
             <button
               type="button"
@@ -121,7 +121,7 @@ const Subscribe = () => {
                 billingInterval === "year" ? "bg-white text-navy" : "text-white/70 hover:text-white"
               }`}
             >
-              Yearly · $290 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">save $58</span>
+              Yearly · $390 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">Save $78</span>
             </button>
           </div>
           <div>
@@ -130,7 +130,7 @@ const Subscribe = () => {
               disabled={!!loading}
               className="bg-white text-navy font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all"
             >
-              {loading ? "Redirecting…" : `Get Professional — ${billingInterval === "year" ? "$290/year" : "$29/month"} →`}
+              {loading ? "Redirecting…" : `Get full intelligence — ${billingInterval === "year" ? "$390/year" : "$39/month"} →`}
             </button>
             {error && <p className="text-red-300 text-[12px] mt-3">{error}</p>}
           </div>
@@ -141,7 +141,7 @@ const Subscribe = () => {
       <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
         <div className="max-w-[720px] mx-auto text-center">
           <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $29/month or $290/year.
+            🎁 Founding offer: First 25 subscribers get Professional free for one year, then $39/month or $390/year.
           </p>
         </div>
       </div>
@@ -265,7 +265,7 @@ const Subscribe = () => {
           })}
         </div>
         <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
-          Each track is included in your $29/month Professional subscription. Select as many as you need — your Intelligence brief synthesizes all selected tracks into one weekly brief.
+          Each track is included in your $39/month Intelligence subscription. Select as many as you need — your Intelligence brief synthesizes all selected tracks into one weekly brief.
         </p>
         <div className="text-center mt-6">
           <button
@@ -273,7 +273,7 @@ const Subscribe = () => {
             disabled={!!loading}
             className="bg-navy text-white font-bold text-[14px] py-3 px-10 rounded-xl hover:opacity-90 transition-all"
           >
-            {loading ? "Redirecting…" : "Get Professional — all 10 tracks included →"}
+            {loading ? "Redirecting…" : "Get full intelligence — all 10 tracks included →"}
           </button>
         </div>
       </div>
@@ -285,7 +285,7 @@ const Subscribe = () => {
             What does the Intelligence Brief look like?
           </h2>
           <p className="text-slate text-sm">
-            Professional subscribers receive this 8-section analysis every Monday.
+            Intelligence subscribers receive this 8-section analysis every Monday.
             Here is a representative sample from Week 11, 2026.
           </p>
         </div>
@@ -350,7 +350,7 @@ const Subscribe = () => {
           <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-6 border border-amber-400/20">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-2.5 py-0.5">
-                ⭐ Professional Brief Preview
+                ⭐ Intelligence Brief Preview
               </span>
               <span className="text-[10px] text-blue-200 uppercase tracking-wider">
                 Your Personalized Brief — Healthcare in EU & UK
@@ -468,7 +468,7 @@ const Subscribe = () => {
                       Free
                     </th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[160px]">
-                      Professional ($29/mo or $290/yr)
+                      Intelligence ($39/mo or $390/yr)
                     </th>
                   </tr>
                 </thead>
@@ -545,7 +545,7 @@ const Subscribe = () => {
               {/* Pro — Healthcare */}
               <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-3">
-                  ⭐ Professional brief — Healthcare sector
+                  ⭐ Intelligence brief — Healthcare sector
                 </div>
                 <p className="text-[12px] font-semibold text-white mb-2 leading-snug">
                   ICO children's data ruling: direct implications for pediatric health platforms
@@ -590,7 +590,7 @@ const Subscribe = () => {
 
             {/* Pro */}
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6">
-              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Professional — $29/month</p>
+              <p className="font-display text-[18px] text-white font-bold mb-1">⭐ Intelligence — $39/month</p>
               <p className="text-[12px] text-sky mb-4">Intelligence. Written for your world.</p>
               <ul className="space-y-2.5">
                 {[
@@ -606,7 +606,7 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-amber-400 font-semibold mt-4">$29/month →</p>
+              <p className="text-[13px] text-amber-400 font-semibold mt-4">$39/month →</p>
             </div>
           </div>
         </div>
@@ -629,7 +629,7 @@ const Subscribe = () => {
               </thead>
               <tbody>
                 {[
-                  ["Price", "$29/month or $290/year", "$300–$3,500+/year", "$550+/year"],
+                  ["Price", "$39/month or $390/year", "$300–$3,500+/year", "$550+/year"],
                   ["Format", "Weekly AI intelligence brief", "Research database", "Membership + events"],
                   ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                   ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
@@ -654,10 +654,10 @@ const Subscribe = () => {
           {/* Monthly */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border border-blue/40 relative flex flex-col">
             <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-              ⭐ Professional Monthly
+              ⭐ Intelligence Monthly
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-4">
-              $29<span className="text-lg font-normal text-blue-200">/month</span>
+              $39<span className="text-lg font-normal text-blue-200">/month</span>
             </div>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
@@ -689,13 +689,13 @@ const Subscribe = () => {
               Best Value
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
-              ⭐ Professional Annual
+              ⭐ Intelligence Annual
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              $290<span className="text-lg font-normal text-blue-200">/year</span>
+              $390<span className="text-lg font-normal text-blue-200">/year</span>
             </div>
             <p className="text-blue-200 text-[12px] mb-4">
-              ~$24.17/month — save $58 vs monthly
+              ~$24.17/month — Save $78 vs monthly
             </p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {[
@@ -726,7 +726,7 @@ const Subscribe = () => {
         <div className="max-w-3xl mx-auto mt-6">
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-center">
             <p className="text-[13px] text-amber-800">
-              🎁 <strong>Founding offer:</strong> First 25 subscribers get Professional free for one year, then $29/month or $290/year.
+              🎁 <strong>Founding offer:</strong> First 25 subscribers get Professional free for one year, then $39/month or $390/year.
             </p>
           </div>
         </div>

@@ -49,7 +49,7 @@ const Signup = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Create Account | EndUserPrivacy</title>
-        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Professional Intelligence Briefs from $29/month." />
+        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Professional Intelligence Briefs from $39/month." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
@@ -65,7 +65,7 @@ const Signup = () => {
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
               'Weekly digest — free',
-              'Personalized analysis for $29/month',
+              'Personalized analysis for $39/month',
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
@@ -81,8 +81,8 @@ const Signup = () => {
             <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Create Account</h1>
             <p className="text-sm text-slate text-center mb-7">
               {redirect.includes("subscribe") || redirect.includes("success")
-                ? "Create your account to complete your Professional subscription"
-                : "Join EndUserPrivacy — free to browse, Professional from $29/month"}
+                ? "Create your account to complete your Intelligence subscription"
+                : "Join EndUserPrivacy — free to browse, Professional from $39/month"}
             </p>
 
             {message && (

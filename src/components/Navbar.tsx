@@ -254,7 +254,7 @@ const Navbar = () => {
                   to="/subscribe"
                   className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
                 >
-                  ⭐ Go Professional
+                  ⭐ Get Intelligence
                 </Link>
               )}
               {isPremium ? (
@@ -382,7 +382,7 @@ const Navbar = () => {
                     className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
-                    ⭐ Go Professional
+                    ⭐ Get Intelligence
                   </Link>
                 )}
                 <Link

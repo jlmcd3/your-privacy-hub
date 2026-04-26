@@ -120,12 +120,12 @@ const TOOLS: ToolDef[] = [
     name: "Your Breach Response Playbook",
     tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
-    subscriberPrice: "Included with Professional",
+    subscriberPrice: "Included with Intelligence",
     standalonePrice: "$59",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
       "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
-      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Professional subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
+      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Intelligence subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
     ],
     sampleSections: [
       { label: "Immediate actions (0–2 hours)", content: "1. Assemble incident response team: IR Lead, DPO, Legal Counsel, IT Security. 2. Preserve all evidence — do not delete or modify logs. 3. Isolate affected systems from the network. 4. Document discovery time (UTC) and the name of the person who discovered the incident." },
@@ -139,12 +139,12 @@ const TOOLS: ToolDef[] = [
     name: "Biometric Privacy Compliance Checker",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
-    subscriberPrice: "Included with Professional",
+    subscriberPrice: "Included with Intelligence",
     standalonePrice: "$49",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks. The relevant laws are not always obvious until an organisation is already mid-implementation.",
       "The Biometric Privacy Compliance Checker produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population, intended to support internal risk assessment and board-level conversations, not to constitute legal advice.",
-      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free EndUserPrivacy account is required to run any analysis. Multi-jurisdiction assessments are included with Professional subscriptions.",
+      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free EndUserPrivacy account is required to run any analysis. Multi-jurisdiction assessments are included with Intelligence subscriptions.",
     ],
     sampleSections: [
       { label: "Illinois (BIPA) – applies: Yes", content: "Key requirement: Written release from each individual before collecting or using biometric identifiers. Release must specifically describe the purpose and duration of collection. Oral consent is not sufficient." },
@@ -180,8 +180,8 @@ const PRICING_GRID: [string, string][] = [
   ["Legitimate Interest Assessment Tool", "$79 standalone → $35 subscriber rate"],
   ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
   ["Your Custom DPA", "$99 standalone → $49 subscriber rate"],
-  ["Your Breach Response Playbook", "$59 → Included with Professional"],
-  ["Biometric Privacy Compliance Checker", "$49 → Included with Professional"],
+  ["Your Breach Response Playbook", "$59 → Included with Intelligence"],
+  ["Biometric Privacy Compliance Checker", "$49 → Included with Intelligence"],
   ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
   ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
 ];
@@ -220,7 +220,7 @@ export default function Tools() {
               to="/subscribe"
               className="text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline"
             >
-              Subscribe — from $29/month →
+              Subscribe — from $39/month →
             </Link>
             <a
               href="#tools"
@@ -301,10 +301,10 @@ export default function Tools() {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
-            Every tool. Subscriber rates. $29/month.
+            Every tool. Subscriber rates. $39/month.
           </h2>
           <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
-            Professional subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and the Biometric Privacy Compliance Checker included at no additional cost.
+            Intelligence subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and the Biometric Privacy Compliance Checker included at no additional cost.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[560px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
@@ -318,10 +318,10 @@ export default function Tools() {
             to="/subscribe"
             className="inline-block text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline"
           >
-            Start your Professional subscription →
+            Start your Intelligence subscription →
           </Link>
           <p className="text-blue-200/60 text-[12px] mt-4">
-            Monthly at $29 · Annual at $290 · Cancel any time
+            Monthly at $39 · Annual at $390 · Cancel any time
           </p>
         </div>
       </div>

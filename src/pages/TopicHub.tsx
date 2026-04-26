@@ -254,18 +254,18 @@ const TopicHub = () => {
 
           {/* Premium CTA */}
           <div className="border border-border rounded-xl p-5 bg-card">
-            <p className="text-xs font-semibold text-primary mb-2">⭐ Professional Intelligence</p>
+            <p className="text-xs font-semibold text-primary mb-2">⭐ Intelligence Intelligence</p>
             <p className="text-sm font-bold text-foreground mb-2">
               Get {meta.name} updates in your weekly brief
             </p>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-              Professional subscribers receive structured weekly intelligence with AI analysis across all topics.
+              Intelligence subscribers receive structured weekly intelligence with AI analysis across all topics.
             </p>
             <Link
               to="/subscribe"
               className="block text-center text-xs font-semibold text-primary-foreground bg-primary rounded-lg py-2 hover:opacity-90 transition-opacity"
             >
-              View Professional Plans →
+              View Intelligence Plans →
             </Link>
           </div>
         </div>

@@ -1,7 +1,7 @@
 /**
  * ADVERTISING POLICY — EndUserPrivacy.com FRD v2.1 §8.3
  *
- * 1. Ads are shown to ALL users including Professional subscribers.
+ * 1. Ads are shown to ALL users including Intelligence subscribers.
  * 2. Ads served here MUST be contextual and non-behavioural.
  *    No user browsing data from this platform may be used for
  *    ad targeting or shared with ad networks.

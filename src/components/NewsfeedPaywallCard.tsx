@@ -13,14 +13,14 @@ export default function NewsfeedPaywallCard() {
           Continue reading with Professional
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">
-          Full archive access, advanced search, and your weekly analyst brief written for your industry. $29/month.
+          Full archive access, advanced search, and your weekly analyst brief written for your industry. $39/month.
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Link
             to="/subscribe"
             className="bg-gradient-to-br from-steel to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all"
           >
-            Get Professional — $29/mo →
+            Get full intelligence — $39/mo →
           </Link>
           <Link
             to="/signup"

@@ -251,7 +251,7 @@ export default function ProBriefPreview() {
                 document.getElementById("pro-plan-card")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              Get Professional →
+              Get full intelligence →
             </a>
           </div>
         </div>

@@ -230,12 +230,12 @@ export default function ToolSamplePreview({
             </Button>
             {showStandaloneCompare && (
               <p className="text-[11px] text-amber-300 mt-3">
-                ⭐ Professional subscriber rate · Standalone price ${standalonePrice}
+                ⭐ Intelligence subscriber rate · Standalone price ${standalonePrice}
               </p>
             )}
             {showSubscriberTeaser && (
               <p className="text-[11px] text-amber-300 mt-3">
-                Professional subscribers pay only ${subscriberPrice} —{" "}
+                Intelligence subscribers pay only ${subscriberPrice} —{" "}
                 <a href="/subscribe" className="underline hover:text-amber-200">see plans</a>
               </p>
             )}

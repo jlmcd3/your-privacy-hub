@@ -93,7 +93,7 @@ const Index = () => {
                 </Link>
                 <div className="border-t border-white/10 pt-3">
                   <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
-                    ⭐ Professional — $29/month
+                    ⭐ Intelligence — $39/month
                   </p>
                   <p className="text-[11px] text-blue-200 leading-snug mb-2">
                     Re-written for your industry and jurisdictions.

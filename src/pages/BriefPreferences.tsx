@@ -283,7 +283,7 @@ export default function BriefPreferences() {
           {isPremium === false && (
             <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
-                Intelligence requires Professional ($29/month).
+                Intelligence requires Intelligence ($39/month).
                 Preferences are saved and will activate once you subscribe.
               </p>
               <Link

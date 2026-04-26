@@ -602,16 +602,16 @@ const JurisdictionPage = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Professional Intelligence</div>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
           <p className="text-[13px] text-slate-light mb-2 max-w-[500px] mx-auto">
-            Professional subscribers receive the weekly Intelligence Brief covering all global developments.
+            Intelligence subscribers receive the weekly Intelligence Brief covering all global developments.
           </p>
           <p className="text-[12px] text-sky mb-5 max-w-[500px] mx-auto">
-            ✦ Professional subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
+            ✦ Intelligence subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
-            Get Professional — $29/month →
+            Get full intelligence — $39/month →
           </Link>
           <p className="mt-3 text-slate-light text-[12px]">
             Not sure yet?{" "}

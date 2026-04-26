@@ -57,7 +57,7 @@ export default function BiometricChecker() {
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — Included with Professional"
+      ? "Analyse — Included with Intelligence"
       : "Analyse — $49";
 
   return (
@@ -114,11 +114,11 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-[12px] text-muted-foreground mb-3">A free EndUserPrivacy account is required to run any analysis. Professional subscribers receive this tool included at no additional charge.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">A free EndUserPrivacy account is required to run any analysis. Intelligence subscribers receive this tool included at no additional charge.</p>
               ) : access.isPremium ? (
-                <p className="text-[12px] text-muted-foreground mb-3">Included with your Professional subscription.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Included with your Intelligence subscription.</p>
               ) : (
-                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Professional ($29/month).</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Intelligence ($39/month).</p>
               )}
               <div className="flex gap-3 flex-wrap">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
