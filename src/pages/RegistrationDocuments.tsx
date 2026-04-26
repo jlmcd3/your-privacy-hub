@@ -84,7 +84,7 @@ export default function RegistrationDocuments() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Registration Documents | EndUserPrivacy</title>
+        <title>Registration Documents | Your Privacy Hub</title>
       </Helmet>
       <Navbar />
       <PageContainer>

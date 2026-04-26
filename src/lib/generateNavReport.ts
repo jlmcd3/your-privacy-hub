@@ -234,7 +234,7 @@ export async function generateNavReport(): Promise<{ filename: string; version: 
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({ text: "EndUserPrivacy — Nav_Report", bold: true, size: 40 }),
+        new TextRun({ text: "Your Privacy Hub — Nav_Report", bold: true, size: 40 }),
       ],
     }),
     new Paragraph({
@@ -334,7 +334,7 @@ export async function generateNavReport(): Promise<{ filename: string; version: 
 
   // ----- Build doc -----
   const doc = new Document({
-    creator: "EndUserPrivacy Admin",
+    creator: "Your Privacy Hub Admin",
     title: `Nav_Report v${version}`,
     styles: {
       default: { document: { run: { font: "Arial", size: 22 } } },
@@ -393,7 +393,7 @@ export async function generateNavReport(): Promise<{ filename: string; version: 
   });
 
   const blob = await Packer.toBlob(doc);
-  const filename = `EndUserPrivacy_Site_Inventory_Audit_v${version}.docx`;
+  const filename = `Your Privacy Hub_Site_Inventory_Audit_v${version}.docx`;
   saveAs(blob, filename);
   return { filename, version };
 }

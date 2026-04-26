@@ -50,7 +50,7 @@ export default function BiometricPrivacyPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Biometric Privacy Laws: BIPA, State Laws & GDPR | EndUserPrivacy</title>
+        <title>Biometric Privacy Laws: BIPA, State Laws & GDPR | Your Privacy Hub</title>
         <meta name="description" content="Comprehensive guide to biometric privacy laws including Illinois BIPA, Texas CUBI, state comprehensive privacy laws, GDPR Article 9, and workplace biometric compliance." />
         <meta property="og:title" content="Biometric Privacy Laws: BIPA, State Laws & GDPR" />
         <meta property="og:description" content="Complete biometric privacy compliance guide covering BIPA litigation, state laws, and EU regulation." />
@@ -60,7 +60,7 @@ export default function BiometricPrivacyPage() {
           "@type": "Article",
           "headline": "Biometric Privacy Laws: BIPA, State Laws & GDPR",
           "description": "Comprehensive guide to biometric privacy laws for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "EndUserPrivacy" },
+          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

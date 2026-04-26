@@ -1,11 +1,13 @@
 /**
- * ADVERTISING POLICY — EndUserPrivacy.com FRD v2.1 §8.3
+ * ADVERTISING POLICY — yourprivacyhub.com FRD v2.1 §8.3
  *
- * 1. Ads are shown to ALL users including Intelligence subscribers.
+ * 1. Ads are shown to free and unregistered users only. Intelligence subscribers see no ads.
  * 2. All ads served here MUST be contextual and non-behavioural.
  *    No user browsing data from this platform may be used for
  *    ad targeting or shared with ad networks.
  */
+
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 interface InFeedAdProps {
   adSlot?: string;
@@ -14,6 +16,9 @@ interface InFeedAdProps {
 }
 
 export default function InFeedAd({ adSlot, googleAdClient, googleAdSlot }: InFeedAdProps) {
+  const { isPremium } = usePremiumStatus();
+  if (isPremium) return null;
+
   return (
     <div
       className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-3"

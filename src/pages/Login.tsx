@@ -41,15 +41,15 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
-        <title>Log In | EndUserPrivacy</title>
-        <meta name="description" content="Sign in to your EndUserPrivacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
+        <title>Log In | Your Privacy Hub</title>
+        <meta name="description" content="Sign in to your Your Privacy Hub account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
 
         {/* Left panel — hidden on mobile */}
         <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-navy to-steel flex-col justify-center px-12 py-16">
-          <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">EndUserPrivacy</div>
+          <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">Your Privacy Hub</div>
           <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6">
             Global privacy law, tracked daily.
           </h2>
@@ -79,7 +79,7 @@ const Login = () => {
                 ? "Sign in to access your Intelligence Brief"
                 : redirect.includes("account")
                 ? "Sign in to manage your account"
-                : "Welcome back to EndUserPrivacy"}
+                : "Welcome back to Your Privacy Hub"}
             </p>
 
             {error && (

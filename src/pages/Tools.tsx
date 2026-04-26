@@ -144,7 +144,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks. The relevant laws are not always obvious until an organisation is already mid-implementation.",
       "The Biometric Privacy Compliance Checker produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population, intended to support internal risk assessment and board-level conversations, not to constitute legal advice.",
-      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free EndUserPrivacy account is required to run any analysis. Multi-jurisdiction assessments are included with Intelligence subscriptions.",
+      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free Your Privacy Hub account is required to run any analysis. Multi-jurisdiction assessments are included with Intelligence subscriptions.",
     ],
     sampleSections: [
       { label: "Illinois (BIPA) – applies: Yes", content: "Key requirement: Written release from each individual before collecting or using biometric identifiers. Release must specifically describe the purpose and duration of collection. Oral consent is not sufficient." },
@@ -193,7 +193,7 @@ export default function Tools() {
   return (
     <>
       <Helmet>
-        <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
+        <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | Your Privacy Hub</title>
         <meta
           name="description"
           content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber rates from $25 with Intelligence."

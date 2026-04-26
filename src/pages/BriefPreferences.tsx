@@ -177,7 +177,7 @@ export default function BriefPreferences() {
 
   return (
     <>
-      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Intelligence</title></Helmet>
+      <Helmet><title>Configure Your Intelligence Brief | Your Privacy Hub Intelligence</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (

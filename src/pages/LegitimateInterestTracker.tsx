@@ -90,7 +90,7 @@ const LegitimateInterestTracker = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Legitimate Interest Tracker — GDPR & UK GDPR Article 6(1)(f) | EndUserPrivacy</title>
+        <title>Legitimate Interest Tracker — GDPR & UK GDPR Article 6(1)(f) | Your Privacy Hub</title>
         <meta name="description" content="Track what EU and UK data protection authorities have accepted, rejected, and conditioned under GDPR and UK GDPR legitimate interest. Updated weekly from regulatory decisions and guidance." />
       </Helmet>
       <Navbar />
@@ -263,7 +263,7 @@ const LegitimateInterestTracker = () => {
 
         {/* Data sourcing note */}
         <div className="bg-muted/50 rounded-xl p-5 mb-10 text-[12px] text-muted-foreground leading-relaxed">
-          This tracker compiles positions drawn from EDPB guidelines and opinions, ICO guidance and enforcement decisions, national DPA enforcement decisions and guidance across EU member states, and regulatory commentary surfaced through the EndUserPrivacy article feed. Each entry links to the primary source document where available. Positions reflect the regulatory record as of the date shown and may evolve as new decisions are issued. This is informational only and does not constitute legal advice.
+          This tracker compiles positions drawn from EDPB guidelines and opinions, ICO guidance and enforcement decisions, national DPA enforcement decisions and guidance across EU member states, and regulatory commentary surfaced through the Your Privacy Hub article feed. Each entry links to the primary source document where available. Positions reflect the regulatory record as of the date shown and may evolve as new decisions are issued. This is informational only and does not constitute legal advice.
         </div>
 
         {/* Premium upsell */}

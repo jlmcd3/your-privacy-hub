@@ -320,7 +320,7 @@ const JurisdictionPage = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{jurisdiction.name} Privacy Law & Regulatory Updates | EndUserPrivacy</title>
+        <title>{jurisdiction.name} Privacy Law & Regulatory Updates | Your Privacy Hub</title>
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
       <Navbar />

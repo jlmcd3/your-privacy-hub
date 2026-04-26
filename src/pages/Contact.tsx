@@ -6,8 +6,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Contact | EndUserPrivacy</title>
-        <meta name="description" content="Contact EndUserPrivacy for general inquiries, subscription questions, or data and privacy questions." />
+        <title>Contact | Your Privacy Hub</title>
+        <meta name="description" content="Contact Your Privacy Hub for general inquiries, subscription questions, or data and privacy questions." />
       </Helmet>
       <Navbar />
       <main className="flex-1">
@@ -31,10 +31,10 @@ const Contact = () => {
               Our team typically responds within 24 hours.
             </p>
             <a
-              href="mailto:hello@enduserprivacy.com"
+              href="mailto:hello@yourprivacyhub.com"
               className="inline-block px-6 py-3 bg-navy text-white font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
             >
-              hello@enduserprivacy.com →
+              hello@yourprivacyhub.com →
             </a>
           </div>
         </section>

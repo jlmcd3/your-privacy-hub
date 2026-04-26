@@ -104,9 +104,9 @@ const GDPREnforcement = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>GDPR & UK Privacy — EU & UK Data Protection Guide 2026 | EndUserPrivacy</title>
+        <title>GDPR & UK Privacy — EU & UK Data Protection Guide 2026 | Your Privacy Hub</title>
         <meta name="description" content="Track GDPR and UK GDPR enforcement decisions, DPA activity, major fines, and the UK ICO framework. Updated weekly from regulatory sources." />
-        <meta property="og:title" content="GDPR & UK Privacy | EndUserPrivacy" />
+        <meta property="og:title" content="GDPR & UK Privacy | Your Privacy Hub" />
         <meta property="og:description" content="Track GDPR and UK GDPR enforcement decisions, DPA activity, major fines, and the UK ICO framework." />
       </Helmet>
       <Navbar />

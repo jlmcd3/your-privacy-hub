@@ -50,7 +50,7 @@ export default function CrossBorderTransfersPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules | EndUserPrivacy</title>
+        <title>Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules | Your Privacy Hub</title>
         <meta name="description" content="Comprehensive guide to cross-border data transfer requirements under GDPR, Standard Contractual Clauses, EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and APAC frameworks." />
         <meta property="og:title" content="Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules" />
         <meta property="og:description" content="Complete cross-border data transfer compliance guide covering GDPR Chapter V, SCCs, and global frameworks." />
@@ -60,7 +60,7 @@ export default function CrossBorderTransfersPage() {
           "@type": "Article",
           "headline": "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           "description": "Comprehensive guide to international data transfer mechanisms for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "EndUserPrivacy" },
+          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

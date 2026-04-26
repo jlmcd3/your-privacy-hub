@@ -174,7 +174,7 @@ export default function GlobalJurisdictionComparison() {
   return (
     <>
       <Helmet>
-        <title>Compare Privacy Laws by Jurisdiction | EndUserPrivacy</title>
+        <title>Compare Privacy Laws by Jurisdiction | Your Privacy Hub</title>
         <meta name="description" content="Side-by-side comparison of global privacy laws across 10+ jurisdictions. Compare GDPR, LGPD, PIPL, CCPA and more." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">

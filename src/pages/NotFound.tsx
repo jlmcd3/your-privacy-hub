@@ -21,7 +21,7 @@ const NotFound = () => {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
-        <title>Page Not Found | EndUserPrivacy</title>
+        <title>Page Not Found | Your Privacy Hub</title>
       </Helmet>
       <Navbar />
 

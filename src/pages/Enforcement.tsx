@@ -330,8 +330,8 @@ export default function Enforcement() {
           rel="canonical"
           href={
             view === "archive"
-              ? "https://enduserprivacy.com/enforcement?view=archive"
-              : "https://enduserprivacy.com/enforcement"
+              ? "https://yourprivacyhub.com/enforcement?view=archive"
+              : "https://yourprivacyhub.com/enforcement"
           }
         />
       </Helmet>

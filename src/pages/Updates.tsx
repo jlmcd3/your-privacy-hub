@@ -291,7 +291,7 @@ const Updates = () => {
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
-                <title>Privacy Regulatory Updates | EndUserPrivacy</title>
+                <title>Privacy Regulatory Updates | Your Privacy Hub</title>
                 <meta name="description" content="Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
             <Navbar />

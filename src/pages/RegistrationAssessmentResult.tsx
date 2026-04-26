@@ -190,7 +190,7 @@ export default function RegistrationAssessmentResult() {
   if (!emailUnlocked && jurisdictions.length > 0) {
     return (
       <>
-        <Helmet><title>Your Registration Map — EndUserPrivacy</title></Helmet>
+        <Helmet><title>Your Registration Map — Your Privacy Hub</title></Helmet>
         <Navbar />
         <main>
           <PageContainer>
@@ -237,7 +237,7 @@ export default function RegistrationAssessmentResult() {
   return (
     <>
       <Helmet>
-        <title>Your Registration Map — EndUserPrivacy</title>
+        <title>Your Registration Map — Your Privacy Hub</title>
         <meta name="description" content="Your jurisdiction-by-jurisdiction privacy registration map with required DPO appointments, DPA filings, AI Act registrations, and renewal timelines." />
       </Helmet>
       <Navbar />

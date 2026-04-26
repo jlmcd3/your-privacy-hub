@@ -46,7 +46,7 @@ export default function HealthDataPrivacyPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Health Data Privacy: HIPAA, FTC Health Breach Rule, and State Laws | EndUserPrivacy</title>
+        <title>Health Data Privacy: HIPAA, FTC Health Breach Rule, and State Laws | Your Privacy Hub</title>
         <meta name="description" content="Comprehensive guide to health data privacy covering HIPAA enforcement, FTC Health Breach Notification Rule, Washington MHMDA, state consumer health data laws, and AI in healthcare." />
         <meta property="og:title" content="Health Data Privacy: HIPAA, FTC Health Breach Rule, and State Laws" />
         <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/health-data-privacy" />
@@ -55,7 +55,7 @@ export default function HealthDataPrivacyPage() {
           "@type": "Article",
           "headline": "Health Data Privacy: HIPAA, FTC Health Breach Rule, and State Laws",
           "description": "Comprehensive health data privacy guide for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "EndUserPrivacy" },
+          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

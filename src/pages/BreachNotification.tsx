@@ -50,7 +50,7 @@ export default function BreachNotificationPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Data Breach Notification Requirements by Jurisdiction | EndUserPrivacy</title>
+        <title>Data Breach Notification Requirements by Jurisdiction | Your Privacy Hub</title>
         <meta name="description" content="Comprehensive guide to data breach notification laws covering GDPR 72-hour rule, all 50 U.S. state laws, HIPAA, SEC rules, and international requirements across 20+ jurisdictions." />
         <meta property="og:title" content="Data Breach Notification Requirements by Jurisdiction" />
         <meta property="og:description" content="Complete data breach notification compliance guide covering GDPR, U.S. states, and global requirements." />
@@ -60,7 +60,7 @@ export default function BreachNotificationPage() {
           "@type": "Article",
           "headline": "Data Breach Notification Requirements by Jurisdiction",
           "description": "Comprehensive guide to global data breach notification obligations for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "EndUserPrivacy" },
+          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

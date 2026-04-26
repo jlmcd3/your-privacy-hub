@@ -8,20 +8,20 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[280px_1fr_1fr_1fr_1fr] gap-8 lg:gap-12 mb-12">
           <div>
             <div className="flex items-center gap-2.5 mb-3">
-              <img src="/logo.png" alt="EndUserPrivacy" className="h-7 w-auto" />
-              <span className="font-display font-bold text-white text-[15px]">EndUserPrivacy</span>
+              <img src="/logo.png" alt="Your Privacy Hub" className="h-7 w-auto" />
+              <span className="font-display font-bold text-white text-[15px]">Your Privacy Hub</span>
             </div>
             <p className="text-[13px] leading-relaxed mb-5">
               Global privacy regulatory intelligence for professionals. Monitoring 119 authorities across 150+ jurisdictions, automatically.
             </p>
             <div className="flex gap-2">
-              <a href="https://www.linkedin.com/company/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="https://www.linkedin.com/company/yourprivacyhub" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 in
               </a>
-              <a href="https://x.com/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="https://x.com/yourprivacyhub" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 𝕏
               </a>
-              <a href="mailto:contact@enduserprivacy.com" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="mailto:contact@yourprivacyhub.com" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 <Mail className="w-3.5 h-3.5" />
               </a>
             </div>
@@ -65,14 +65,14 @@ const Footer = () => {
             <Link to="/about" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">About</Link>
             <Link to="/subscribe" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Intelligence Plan</Link>
             <Link to="/horizon" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Forecast Intelligence</Link>
-            <Link to="/enforcement-tracker" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
+            <Link to="/enforcement" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
             <Link to="/faq" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">FAQ</Link>
             <Link to="/sample-brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Weekly Brief</Link>
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-6 border-t border-navy-light text-[12px]">
-          <div>© 2026 EndUserPrivacy · enduserprivacy.com</div>
+          <div>© 2026 Your Privacy Hub · yourprivacyhub.com</div>
           <div className="flex gap-4 items-center flex-wrap justify-center">
             <Link to="/terms" className="text-slate-light hover:text-silver no-underline">Terms</Link>
             <span className="hidden md:inline text-navy-light">·</span>

@@ -50,7 +50,7 @@ export default function Account() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>My Account | EndUserPrivacy</title>
+        <title>My Account | Your Privacy Hub</title>
       </Helmet>
       <Navbar />
 
@@ -128,7 +128,7 @@ export default function Account() {
               <div className="flex justify-between items-center py-2.5">
                 <span className="text-[13px] text-slate">Cancel subscription</span>
                 <a
-                  href="mailto:support@enduserprivacy.com?subject=Cancel%20my%20subscription"
+                  href="mailto:support@yourprivacyhub.com?subject=Cancel%20my%20subscription"
                   className="text-[13px] text-slate hover:text-warn no-underline"
                 >
                   Contact us to cancel
