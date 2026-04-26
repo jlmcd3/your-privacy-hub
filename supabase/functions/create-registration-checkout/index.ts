@@ -140,12 +140,6 @@ serve(async (req) => {
     }
     const totalCents = unitAmount * quantity;
 
-    // Use service role for the order insert so RLS doesn't block
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
     const { data: order, error: orderErr } = await adminClient
       .from("registration_orders")
       .insert({
