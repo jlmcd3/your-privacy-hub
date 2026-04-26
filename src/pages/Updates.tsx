@@ -367,12 +367,12 @@ const Updates = () => {
                     {LOCATION_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => setActiveFilter(f.key)}
+                            onClick={() => handleGatedFilterClick(f.label, () => setActiveFilter(f.key))}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
                                     : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
+                            } ${!user ? "opacity-50 cursor-default" : ""}`}
                         >
                             {f.label}
                         </button>
@@ -385,18 +385,40 @@ const Updates = () => {
                     {TOPIC_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => setActiveFilter(f.key)}
+                            onClick={() => handleGatedFilterClick(f.label, () => setActiveFilter(f.key))}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
                                     : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
+                            } ${!user ? "opacity-50 cursor-default" : ""}`}
                         >
                             {f.label}
                         </button>
                     ))}
 
                 </div>
+
+                {/* Filter gate chip — anonymous users clicking a gated filter */}
+                {showFilterGate && !user && (
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <p className="text-[12px] text-navy flex-1">
+                            Filter by {showFilterGate.toLowerCase()} — register free to use
+                        </p>
+                        <Link
+                            to="/signup"
+                            className="text-[11px] px-3 py-1 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap no-underline"
+                        >
+                            Register free →
+                        </Link>
+                        <button
+                            onClick={() => setShowFilterGate(null)}
+                            className="text-slate-400 hover:text-slate-600 text-[16px] leading-none"
+                            aria-label="Dismiss"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
 
                 {/* Faceted Filters: Sectors + Attention Level */}
                 {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
