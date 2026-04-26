@@ -62,7 +62,7 @@ const Index = () => {
 
           {/* === RIGHT SIDEBAR === */}
           <aside className="hidden lg:flex flex-col gap-6">
-            {/* Sticky desktop rail ad — shown to all users (Professional included) */}
+            {/* Sticky desktop rail ad — shown to all users (Intelligence included) */}
             <StickyRailAd
               adSlot={AD_SLOTS.home_sidebar_rail.id}
               googleAdClient={GOOGLE_AD_CLIENT}
@@ -79,7 +79,7 @@ const Index = () => {
                   ⭐ Weekly Intelligence Brief
                 </div>
                 <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                  Every Monday. Professional. 8-section analysis.
+                  Every Monday. Intelligence. 8-section analysis.
                 </p>
                 <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
                   Enforcement table · trend signals · action items ·
@@ -93,7 +93,7 @@ const Index = () => {
                 </Link>
                 <div className="border-t border-white/10 pt-3">
                   <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
-                    ⭐ Professional — $29/month
+                    ⭐ Intelligence — $39/month
                   </p>
                   <p className="text-[11px] text-blue-200 leading-snug mb-2">
                     Re-written for your industry and jurisdictions.
@@ -102,7 +102,7 @@ const Index = () => {
                     to="/subscribe"
                     className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
                   >
-                    Get Intelligence →
+                    Get full intelligence →
                   </Link>
                 </div>
               </div>
@@ -132,14 +132,6 @@ const Index = () => {
       />
       <EmailSignup variant="strip" />
 
-      <div className="h-px bg-fog" />
-      <AdBanner
-        variant="inline"
-        adSlot={AD_SLOTS.home_mid_inline.id}
-        googleAdClient={GOOGLE_AD_CLIENT}
-        googleAdSlot={AD_SLOTS.home_mid_inline.googleAdSlot}
-        className="py-4 bg-paper"
-      />
       <div className="h-px bg-fog" />
       <WeeklyBriefTeaser />
       <div className="py-12"><ToolkitSection /></div>

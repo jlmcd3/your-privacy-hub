@@ -48,7 +48,7 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
-          { icon: "📋", label: "Your free intelligence brief", href: "/subscribe" },
+          { icon: "📄", label: "Sample Intelligence Brief", href: "/sample-brief", badge: "FREE", badgeGreen: true },
           { icon: "📰", label: "Browse updates", badge: "FREE", badgeGreen: true, href: "/updates" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
@@ -58,7 +58,7 @@ const navItems: NavItem[] = [
         ],
       },
       {
-        header: "Professional Tools",
+        header: "Intelligence Tools",
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
           { icon: "🛰️", label: "Enforcement Forecast Intelligence", badge: "PRO", href: "/horizon" },
@@ -254,12 +254,12 @@ const Navbar = () => {
                   to="/subscribe"
                   className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
                 >
-                  ⭐ Go Professional
+                  ⭐ Get Intelligence
                 </Link>
               )}
               {isPremium ? (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-700 text-purple-100">
-                  Pro
+                  Intelligence
                 </span>
               ) : (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
@@ -382,7 +382,7 @@ const Navbar = () => {
                     className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
-                    ⭐ Go Professional
+                    ⭐ Get Intelligence
                   </Link>
                 )}
                 <Link

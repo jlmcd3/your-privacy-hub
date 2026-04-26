@@ -7,6 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import PremiumGate from "@/components/PremiumGate";
 import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 interface HorizonItem {
@@ -68,6 +69,44 @@ function matchesWatchlist(item: HorizonItem, watch: WatchItem[]): boolean {
   });
 }
 
+function HorizonCard({ item }: { item: HorizonItem }) {
+  return (
+    <article className="bg-card border border-fog rounded-2xl p-5 hover:border-silver transition-colors">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        {item.timeline_label && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded">
+            {item.timeline_label}
+          </span>
+        )}
+        {item.jurisdiction && (
+          <span className="text-[11px] font-medium text-slate">{item.jurisdiction}</span>
+        )}
+        {item.sector && <span className="text-[11px] text-slate-light">· {item.sector}</span>}
+        {item.confidence && (
+          <span className={`ml-auto text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full ${confidenceStyle(item.confidence)}`}>
+            {item.confidence} confidence
+          </span>
+        )}
+      </div>
+      <h2 className="font-display font-bold text-navy text-[18px] leading-snug mb-2">
+        {item.anticipated_development}
+      </h2>
+      {item.source_signal && (
+        <p className="text-[13px] text-slate leading-relaxed mb-2">
+          <span className="font-semibold text-navy">Source signal: </span>
+          {item.source_signal}
+        </p>
+      )}
+      {item.recommended_action && (
+        <p className="text-[13px] text-slate leading-relaxed">
+          <span className="font-semibold text-navy">Recommended action: </span>
+          {item.recommended_action}
+        </p>
+      )}
+    </article>
+  );
+}
+
 export default function Horizon() {
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
@@ -87,7 +126,7 @@ export default function Horizon() {
         .order("week_of", { ascending: false })
         .limit(60);
 
-      // Only Professional subscribers get personalized watchlist filtering on this page
+      // Only Intelligence subscribers get personalized watchlist filtering on this page
       const watchReq = user && isPremium
         ? (supabase as any)
             .from("user_watchlist")
@@ -153,7 +192,7 @@ export default function Horizon() {
               ? hasWatchlist
                 ? " Filtered to the jurisdictions and topics you follow."
                 : " Add jurisdictions and topics to your watchlist on your dashboard to personalize this view."
-              : " Professional subscribers can filter this feed to the jurisdictions and topics they follow."}
+              : " Intelligence subscribers can filter this feed to the jurisdictions and topics they follow."}
           </p>
         </div>
       </header>
@@ -187,30 +226,6 @@ export default function Horizon() {
             >
               {filterMine ? "Show all signals →" : "Filter to my watchlist →"}
             </button>
-          </div>
-        )}
-
-        {!user && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-slate">
-            <Link to="/login" className="font-semibold text-navy no-underline hover:underline">
-              Sign in
-            </Link>{" "}
-            and upgrade to Professional to filter this feed to the jurisdictions and topics you follow.
-          </div>
-        )}
-
-        {user && !isPremium && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-slate flex flex-wrap items-center justify-between gap-3">
-            <span>
-              <span className="font-semibold text-navy">Personalize this watchlist.</span>{" "}
-              Professional subscribers filter Regulatory Horizon signals to the jurisdictions and topics they follow.
-            </span>
-            <Link
-              to="/subscribe"
-              className="text-[12px] font-semibold text-amber-900 no-underline hover:underline whitespace-nowrap"
-            >
-              Upgrade to Professional →
-            </Link>
           </div>
         )}
 
@@ -261,53 +276,23 @@ export default function Horizon() {
               Browse latest regulatory updates →
             </Link>
           </div>
-        ) : (
+        ) : isPremium ? (
           <div className="grid gap-4">
             {visibleItems.map((item) => (
-              <article
-                key={item.id}
-                className="bg-card border border-fog rounded-2xl p-5 hover:border-silver transition-colors"
-              >
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  {item.timeline_label && (
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded">
-                      {item.timeline_label}
-                    </span>
-                  )}
-                  {item.jurisdiction && (
-                    <span className="text-[11px] font-medium text-slate">
-                      {item.jurisdiction}
-                    </span>
-                  )}
-                  {item.sector && (
-                    <span className="text-[11px] text-slate-light">· {item.sector}</span>
-                  )}
-                  {item.confidence && (
-                    <span
-                      className={`ml-auto text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full ${confidenceStyle(item.confidence)}`}
-                    >
-                      {item.confidence} confidence
-                    </span>
-                  )}
-                </div>
-                <h2 className="font-display font-bold text-navy text-[18px] leading-snug mb-2">
-                  {item.anticipated_development}
-                </h2>
-                {item.source_signal && (
-                  <p className="text-[13px] text-slate leading-relaxed mb-2">
-                    <span className="font-semibold text-navy">Source signal: </span>
-                    {item.source_signal}
-                  </p>
-                )}
-                {item.recommended_action && (
-                  <p className="text-[13px] text-slate leading-relaxed">
-                    <span className="font-semibold text-navy">Recommended action: </span>
-                    {item.recommended_action}
-                  </p>
-                )}
-              </article>
+              <HorizonCard key={item.id} item={item} />
             ))}
           </div>
+        ) : (
+          <PremiumGate
+            message="Enforcement forecast intelligence is included in the Intelligence plan — forward-looking signals, source analysis, and recommended actions across every active regulatory signal."
+            blur={true}
+          >
+            <div className="grid gap-4">
+              {visibleItems.slice(0, 2).map((item) => (
+                <HorizonCard key={item.id} item={item} />
+              ))}
+            </div>
+          </PremiumGate>
         )}
 
         <div className="mt-10">

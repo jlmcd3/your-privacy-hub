@@ -57,18 +57,18 @@ export default function BiometricChecker() {
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — Included with Professional"
+      ? "Analyse — Included with Intelligence"
       : "Analyse — $49";
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Checker | EndUserPrivacy</title>
-        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Professional." /></Helmet>
+        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Intelligence." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Checker</h1>
-          <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Professional.</p>
+          <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Intelligence.</p>
         </header>
 
         {phase === "result" && result ? (
@@ -114,11 +114,11 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-[12px] text-muted-foreground mb-3">A free EndUserPrivacy account is required to run any analysis. Professional subscribers receive this tool included at no additional charge.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">A free EndUserPrivacy account is required to run any analysis. Intelligence subscribers receive this tool included at no additional charge.</p>
               ) : access.isPremium ? (
-                <p className="text-[12px] text-muted-foreground mb-3">Included with your Professional subscription.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Included with your Intelligence subscription.</p>
               ) : (
-                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Professional ($29/month).</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Intelligence ($39/month).</p>
               )}
               <div className="flex gap-3 flex-wrap">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}

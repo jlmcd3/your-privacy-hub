@@ -82,7 +82,7 @@ const GlossaryTerm = () => {
             <p className="text-sm font-bold text-foreground mb-2">Get weekly updates on regulatory changes</p>
             <p className="text-xs text-muted-foreground mb-4">Stay informed on how these terms apply to emerging enforcement actions and guidance.</p>
             <Link to="/subscribe" className="inline-block px-5 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-opacity no-underline">
-              View Professional Plans →
+              View Intelligence Plans →
             </Link>
           </div>
         )}

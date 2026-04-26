@@ -277,7 +277,7 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
             {!isPremium && (
               <div className="mt-1.5">
                 <p className="text-[11px] text-muted-foreground leading-snug mb-1">
-                  You're reading the preview. Professional subscribers receive the full analysis on every update.
+                  You're reading the preview. Intelligence subscribers receive the full analysis on every update.
                 </p>
                 <Link
                   to="/subscribe"
@@ -285,7 +285,7 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
                   className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors no-underline"
                 >
                   <Lock className="w-2.5 h-2.5" />
-                  Read the full analysis — Professional $29/mo →
+                  Read the full analysis — Intelligence $39/mo →
                 </Link>
               </div>
             )}

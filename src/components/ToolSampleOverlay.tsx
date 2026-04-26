@@ -56,15 +56,15 @@ export default function ToolSampleOverlay({
           </button>
           {showSubscriberDiscount && (
             <p className="text-[11px] text-muted-foreground">
-              Professional subscribers pay ${subscriberPrice} per document.{" "}
+              Intelligence subscribers pay ${subscriberPrice} per document.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
-                See what's included in Professional →
+                See what's included in Intelligence →
               </Link>
             </p>
           )}
           {showFreeForSubscribers && !isFreeForUser && (
             <p className="text-[11px] text-muted-foreground">
-              Included with a Professional subscription.{" "}
+              Included with a Intelligence subscription.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
                 See plans →
               </Link>

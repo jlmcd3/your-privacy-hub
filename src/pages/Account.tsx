@@ -71,7 +71,7 @@ export default function Account() {
               <span className="text-[13px] text-slate">Plan</span>
               {isPremium ? (
                 <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
-                  ⭐ {subscriptionTier === "grandfathered_premium" ? "Professional (Legacy)" : "Professional"}{" "}
+                  ⭐ {subscriptionTier === "grandfathered_premium" ? "Intelligence (Legacy)" : "Intelligence"}{" "}
                   {subscriptionInterval === "year" ? "(Annual)" : "(Monthly)"}
                 </span>
               ) : (
@@ -145,12 +145,12 @@ export default function Account() {
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
-              Upgrade to Professional
+              Get Intelligence
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
               Full archive, your weekly brief re-written for your industry and
               jurisdictions, watchlists, and subscriber pricing on every assessment tool
-              . $29/month or $290/year (save 17%).
+              . $39/month or $390/year (save 17%).
             </p>
             <Link
               to="/subscribe"

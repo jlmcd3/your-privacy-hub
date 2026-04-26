@@ -27,7 +27,7 @@ const MODES = [
   {
     icon: "🧠",
     label: "Get Intelligence",
-    desc: "Weekly brief written for your industry & jurisdictions — $29/month",
+    desc: "Weekly brief written for your industry & jurisdictions — $39/month",
     href: "/subscribe",
     cta: "See Plans →",
     premium: true,

@@ -249,21 +249,21 @@ const Dashboard = () => {
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
               <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
-                ⭐ Upgrade to Professional
+                ⭐ Get Intelligence
               </div>
               <h3 className="font-display font-bold text-white text-[18px] mb-2">
                 This brief, re-analyzed for your practice
               </h3>
               <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
-                Your weekly digest tells you what happened. Professional tells you what it means
-                for your industry, what your priorities are, and what to do about it. $29/month.
+                Your weekly digest tells you what happened. Intelligence tells you what it means
+                for your industry, what your priorities are, and what to do about it. $39/month.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/subscribe"
                   className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
-                  Get Professional — $29/month →
+                  Get full intelligence — $39/month →
                 </Link>
               </div>
             </div>
@@ -327,8 +327,8 @@ const Dashboard = () => {
               )}
 
               <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
-                <p className="text-[13px] text-slate">Get Professional for analysis, priorities, and action items.</p>
-                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get Professional →</Link>
+                <p className="text-[13px] text-slate">Get full intelligence for analysis, priorities, and action items.</p>
+                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
               </div>
             </div>
           )}
@@ -352,7 +352,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="font-display font-bold text-foreground text-[16px]">
-                {subscriptionInterval === "year" ? "⭐ Professional Annual" : "⭐ Professional Monthly"}
+                {subscriptionInterval === "year" ? "⭐ Intelligence Annual" : "⭐ Intelligence Monthly"}
               </span>
               {subscriptionInterval === "year" && (
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">

@@ -115,7 +115,7 @@ export default function ArticleDrawer({ article, isOpen, onClose, userTier }: Ar
               >
                 {t.label}
                 {t.key === "analyzed" && (
-                  <span className="text-[9px] bg-purple-700 text-purple-100 px-1 rounded font-semibold">PRO</span>
+                  <span className="text-[9px] bg-purple-700 text-purple-100 px-1 rounded font-semibold">Intelligence</span>
                 )}
               </button>
             ))}
@@ -236,16 +236,16 @@ export default function ArticleDrawer({ article, isOpen, onClose, userTier }: Ar
                     <div className="bg-white border border-gray-200 rounded-xl shadow-md p-5 max-w-[280px]">
                       <Lock size={20} className="mx-auto mb-2 text-purple-700" />
                       <h3 className="text-[14px] font-semibold text-gray-900 mb-1">
-                        Full analysis — Pro feature
+                        This is where monitoring becomes intelligence.
                       </h3>
                       <p className="text-[12px] text-gray-600 mb-3 leading-relaxed">
-                        Regulatory theory, cross-jurisdiction signals, and action intelligence on every update.
+                        Regulatory theory, cross-jurisdiction signals, and action intelligence on every update — included in the Intelligence plan.
                       </p>
                       <Link
                         to="/subscribe"
                         className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
                       >
-                        See Pro plan
+                        Get full intelligence →
                       </Link>
                     </div>
                   </div>

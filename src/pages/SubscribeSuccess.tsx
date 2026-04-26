@@ -56,7 +56,7 @@ export default function SubscribeSuccess() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Welcome to Professional | EndUserPrivacy</title>
+        <title>Welcome to Intelligence | EndUserPrivacy</title>
       </Helmet>
       <Navbar />
 
@@ -71,7 +71,7 @@ export default function SubscribeSuccess() {
             ⭐ Payment Confirmed
           </div>
           <h1 className="font-display font-bold text-navy text-[28px] md:text-[34px] mb-3 leading-tight">
-            Welcome to Professional.
+            Welcome to Intelligence.
           </h1>
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
             Your personal analyst is now active. Every Monday morning, you'll receive
@@ -111,7 +111,7 @@ export default function SubscribeSuccess() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
           <p className="text-amber-800 text-[13px] font-medium">
             🎁 You're one of the first 25 subscribers — your first year is free.
-            Your $29/month (or $290/year) billing begins in 12 months.
+            Your $39/month (or $390/year) billing begins in 12 months.
           </p>
         </div>
 

@@ -290,9 +290,9 @@ const USPrivacyLaws = () => {
 
         {/* Premium CTA (bottom — kept) */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Professional Intelligence</div>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on U.S. Privacy Laws</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Professional subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
+          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             Unlock Weekly Intelligence →
           </Link>

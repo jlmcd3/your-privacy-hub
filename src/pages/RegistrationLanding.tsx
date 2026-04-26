@@ -221,7 +221,7 @@ export default function RegistrationLanding() {
             </div>
           </div>
           <p className="text-center text-xs text-slate-light mt-4">
-            Professional subscribers get 20% off all DIY packages and $75 off the Counsel-Ready Pack. You always submit your own filings.
+            Intelligence subscribers get 20% off all DIY packages and $75 off the Counsel-Ready Pack. You always submit your own filings.
           </p>
         </section>
 

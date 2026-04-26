@@ -376,7 +376,7 @@ const LatestUpdates = () => {
                             to="/subscribe"
                             className="bg-amber-500 text-white font-bold text-[14px] py-3 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                           >
-                            Get Professional
+                            Get full intelligence
                           </Link>
                         </div>
                       </div>

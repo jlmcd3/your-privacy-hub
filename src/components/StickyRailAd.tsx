@@ -1,7 +1,7 @@
 /**
  * ADVERTISING POLICY — EndUserPrivacy.com FRD v2.1 §8.3
  *
- * 1. Ads are shown to ALL users including Professional subscribers.
+ * 1. Ads are shown to ALL users including Intelligence subscribers.
  * 2. Ads served here MUST be contextual and non-behavioural.
  *    No user browsing data from this platform may be used for
  *    ad targeting or shared with ad networks.
@@ -17,6 +17,8 @@ interface StickyRailAdProps {
   topOffset?: number; // px; default 96
 }
 
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+
 export default function StickyRailAd({
   adSlot,
   googleAdClient,
@@ -24,6 +26,8 @@ export default function StickyRailAd({
   className = "",
   topOffset = 96,
 }: StickyRailAdProps) {
+  const { isPremium } = usePremiumStatus();
+  if (isPremium) return null;
   return (
     <div className={`hidden lg:block ${className}`}>
       <div

@@ -69,7 +69,7 @@ export default function AuthGateModal({
         </div>
 
         <p className="text-[11px] text-slate-light text-center mt-4">
-          Professional subscribers receive subscriber pricing on every tool.
+          Intelligence subscribers receive subscriber pricing on every tool.
         </p>
       </div>
     </div>
