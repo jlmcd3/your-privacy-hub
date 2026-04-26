@@ -569,7 +569,7 @@ const Subscribe = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto items-start">
             {/* Free */}
             <div className="bg-fog border border-silver rounded-2xl p-6">
               <p className="font-display text-[18px] text-navy font-bold mb-1">Free — Always</p>
