@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,6 +27,7 @@ const SAMPLE = `1. PARTIES AND RECITALS
 
 export default function DPAGenerator() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const access = useToolAccess({ standalonePrice: 69, subscriberPrice: 39 });
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -52,8 +53,10 @@ export default function DPAGenerator() {
   const handleGenerate = async () => {
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("generate-dpa", { body: form });
-    if (error || !data?.dpa_text) { setResult("Generation failed. Please try again."); }
-    else setResult(data.dpa_text);
+    if (error || !data?.dpa_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
+    setResult(data.dpa_text);
+    // If the edge function returned a saved row id, hop to the persistent result page so the user can return later.
+    if (data?.id) { navigate(`/dpa-generator/result/${data.id}`); return; }
     setPhase("result");
   };
 
