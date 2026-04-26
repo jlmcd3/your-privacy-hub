@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     }
 
     const { error } = await supabase
-      .from("email_subscribers")
+      .from("email_signups")
       .insert({ email: email.toLowerCase().trim(), confirmed: false, source: "website" });
 
     if (error) {
