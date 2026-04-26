@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T01:54:15.172Z",
+  "generatedAt": "2026-04-26T01:54:58.009Z",
   "server_truth": {
     "tools": [
       {
@@ -55,8 +55,8 @@
         }
       ],
       "diy_unlimited_cents": null,
-      "counsel_review_cents": null,
-      "renewal_per_jurisdiction_cents": null
+      "counsel_review_cents": 39900,
+      "renewal_per_jurisdiction_cents": 7900
     }
   },
   "rows": [
@@ -173,13 +173,13 @@
     },
     {
       "product": "Registration DIY — up to 7 jurisdictions",
-      "server_standalone": "—",
+      "server_standalone": "$275",
       "server_subscriber": "—",
       "ui_prices_seen": [
         "$275",
         "$499"
       ],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true
     },
     {
@@ -198,7 +198,7 @@
     },
     {
       "product": "Registration Counsel-Ready Pack",
-      "server_standalone": "—",
+      "server_standalone": "$399",
       "server_subscriber": "—",
       "ui_prices_seen": [
         "$75",
@@ -208,31 +208,22 @@
         "$275",
         "$499"
       ],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true
     },
     {
       "product": "Registration Annual Renewal Monitoring (per jurisdiction)",
-      "server_standalone": "—",
+      "server_standalone": "$79",
       "server_subscriber": "—",
       "ui_prices_seen": [
         "$75",
         "$79"
       ],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true
     }
   ],
   "findings": [
-    {
-      "severity": "high",
-      "product": "Registration DIY — up to 7 jurisdictions",
-      "issue": "UI markets $275 but server charges —.",
-      "ui_prices_seen": [
-        "$275",
-        "$499"
-      ]
-    },
     {
       "severity": "high",
       "product": "Registration DIY — unlimited",
@@ -244,32 +235,10 @@
         "$499",
         "$399"
       ]
-    },
-    {
-      "severity": "high",
-      "product": "Registration Counsel-Ready Pack",
-      "issue": "UI markets $399 but server charges —.",
-      "ui_prices_seen": [
-        "$75",
-        "$59",
-        "$399",
-        "$149",
-        "$275",
-        "$499"
-      ]
-    },
-    {
-      "severity": "high",
-      "product": "Registration Annual Renewal Monitoring (per jurisdiction)",
-      "issue": "UI markets $79 but server charges —.",
-      "ui_prices_seen": [
-        "$75",
-        "$79"
-      ]
     }
   ],
   "summary": {
     "products_checked": 12,
-    "mismatches": 4
+    "mismatches": 1
   }
 }
