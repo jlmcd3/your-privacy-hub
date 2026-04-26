@@ -171,13 +171,13 @@ export default function BriefPreferences() {
     setSaving(false);
     setSaved(true);
     if (!isPremium) {
-      toast("Preferences saved! They'll activate when you upgrade to Professional.");
+      toast("Preferences saved! They'll activate when you get Intelligence.");
     }
   };
 
   return (
     <>
-      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Professional</title></Helmet>
+      <Helmet><title>Configure Your Intelligence Brief | EndUserPrivacy Intelligence</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
@@ -189,7 +189,7 @@ export default function BriefPreferences() {
           )}
           <div className="mb-8">
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
-              <span>⭐</span> Professional
+              <span>⭐</span> Intelligence
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">
               Configure your Intelligence Brief
@@ -290,7 +290,7 @@ export default function BriefPreferences() {
                 to="/subscribe"
                 className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Upgrade to Professional →
+                Get Intelligence →
               </Link>
             </div>
           )}

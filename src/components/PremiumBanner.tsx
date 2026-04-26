@@ -23,10 +23,10 @@ const PremiumBanner = () => {
               ⭐ Intelligence Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The library is free.<br />Professional intelligence is $39/month.
+              The library is free.<br />Intelligence is $39/month.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
-              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Professional adds the full Intelligence Brief, watchlists, the complete enforcement archive, and subscriber rates on every assessment tool — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
+              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Intelligence adds the full Intelligence Brief, watchlists, the complete enforcement archive, and subscriber rates on every assessment tool — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (

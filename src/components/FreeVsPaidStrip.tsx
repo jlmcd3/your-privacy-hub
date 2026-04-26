@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Thin strip below navbar: free library on the left, Professional value on the right.
+ * Thin strip below navbar: free library on the left, Intelligence value on the right.
  * Only shown to logged-out users and free-tier logged-in users.
  */
 export default function FreeVsPaidStrip() {

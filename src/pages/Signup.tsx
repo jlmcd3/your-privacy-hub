@@ -49,7 +49,7 @@ const Signup = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Create Account | EndUserPrivacy</title>
-        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Professional Intelligence Briefs from $39/month." />
+        <meta name="description" content="Create a free EndUserPrivacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from $39/month." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
@@ -82,7 +82,7 @@ const Signup = () => {
             <p className="text-sm text-slate text-center mb-7">
               {redirect.includes("subscribe") || redirect.includes("success")
                 ? "Create your account to complete your Intelligence subscription"
-                : "Join EndUserPrivacy — free to browse, Professional from $39/month"}
+                : "Join EndUserPrivacy — free to browse, Intelligence from $39/month"}
             </p>
 
             {message && (

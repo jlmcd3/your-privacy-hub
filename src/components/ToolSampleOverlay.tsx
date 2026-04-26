@@ -58,7 +58,7 @@ export default function ToolSampleOverlay({
             <p className="text-[11px] text-muted-foreground">
               Intelligence subscribers pay ${subscriberPrice} per document.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
-                See what's included in Professional →
+                See what's included in Intelligence →
               </Link>
             </p>
           )}

@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | EndUserPrivacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber rates from $25 with Professional."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber rates from $25 with Intelligence."
         />
       </Helmet>
       <Navbar />

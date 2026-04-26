@@ -36,7 +36,7 @@ const EnforcementTracker = () => {
               <h3 className="font-display text-lg text-white">Recent Enforcement Actions</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">✓ Free preview</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⭐ Full database with Professional</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⭐ Full database with Intelligence</span>
               </div>
             </div>
             <div className="relative w-full sm:w-auto">
@@ -75,7 +75,7 @@ const EnforcementTracker = () => {
             </table>
           </div>
           <div className="p-5 md:p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
-            <p className="text-slate text-[13px] mb-3">Full searchable enforcement database available with Professional</p>
+            <p className="text-slate text-[13px] mb-3">Full searchable enforcement database available with Intelligence</p>
             <button onClick={() => navigate("/subscribe")} className="inline-block px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
               Upgrade for Full Access →
             </button>

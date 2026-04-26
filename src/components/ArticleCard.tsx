@@ -285,7 +285,7 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
                   className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors no-underline"
                 >
                   <Lock className="w-2.5 h-2.5" />
-                  Read the full analysis — Professional $39/mo →
+                  Read the full analysis — Intelligence $39/mo →
                 </Link>
               </div>
             )}

@@ -249,7 +249,7 @@ const Dashboard = () => {
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
               <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
-                ⭐ Upgrade to Professional
+                ⭐ Get Intelligence
               </div>
               <h3 className="font-display font-bold text-white text-[18px] mb-2">
                 This brief, re-analyzed for your practice

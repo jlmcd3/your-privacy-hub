@@ -306,7 +306,7 @@ const SampleBrief = () => {
               Receive this analysis every Monday morning.
             </h3>
             <p className="text-blue-200 text-[14px] mb-5 max-w-[500px] mx-auto">
-              This is the Professional Intelligence Brief. Free accounts include a personalized weekly digest filtered to your regions and topics. Get full intelligence for the full brief, re-analyzed for your industry and jurisdiction — $39/month.
+              This is the Intelligence Brief. Free accounts include a personalized weekly digest filtered to your regions and topics. Get full intelligence for the full brief, re-analyzed for your industry and jurisdiction — $39/month.
             </p>
             <div className="text-center">
               <Link

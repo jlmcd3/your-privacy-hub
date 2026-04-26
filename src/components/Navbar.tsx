@@ -58,7 +58,7 @@ const navItems: NavItem[] = [
         ],
       },
       {
-        header: "Professional Tools",
+        header: "Intelligence Tools",
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
           { icon: "🛰️", label: "Enforcement Forecast Intelligence", badge: "PRO", href: "/horizon" },

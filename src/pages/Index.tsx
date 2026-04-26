@@ -62,7 +62,7 @@ const Index = () => {
 
           {/* === RIGHT SIDEBAR === */}
           <aside className="hidden lg:flex flex-col gap-6">
-            {/* Sticky desktop rail ad — shown to all users (Professional included) */}
+            {/* Sticky desktop rail ad — shown to all users (Intelligence included) */}
             <StickyRailAd
               adSlot={AD_SLOTS.home_sidebar_rail.id}
               googleAdClient={GOOGLE_AD_CLIENT}
@@ -79,7 +79,7 @@ const Index = () => {
                   ⭐ Weekly Intelligence Brief
                 </div>
                 <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                  Every Monday. Professional. 8-section analysis.
+                  Every Monday. Intelligence. 8-section analysis.
                 </p>
                 <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
                   Enforcement table · trend signals · action items ·

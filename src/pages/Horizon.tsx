@@ -195,7 +195,7 @@ export default function Horizon() {
             <Link to="/login" className="font-semibold text-navy no-underline hover:underline">
               Sign in
             </Link>{" "}
-            and upgrade to Professional to filter this feed to the jurisdictions and topics you follow.
+            and get Intelligence to filter this feed to the jurisdictions and topics you follow.
           </div>
         )}
 
@@ -209,7 +209,7 @@ export default function Horizon() {
               to="/subscribe"
               className="text-[12px] font-semibold text-amber-900 no-underline hover:underline whitespace-nowrap"
             >
-              Upgrade to Professional →
+              Get Intelligence →
             </Link>
           </div>
         )}

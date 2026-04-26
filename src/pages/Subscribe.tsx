@@ -86,7 +86,7 @@ const Subscribe = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Intelligence — $39/mo or $390/yr | EndUserPrivacy</title>
-        <meta name="description" content="Professional unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool. $39/month or $390/year." />
+        <meta name="description" content="Intelligence unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool. $39/month or $390/year." />
       </Helmet>
       <Navbar />
 
@@ -94,11 +94,11 @@ const Subscribe = () => {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[720px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
-            The library is free.<br />Professional is $39/month.
+            The library is free.<br />Intelligence is $39/month.
           </h1>
           <p className="text-[15px] md:text-base text-slate-light max-w-[600px] mx-auto leading-relaxed mb-8">
             Everything you can browse stays free. Free accounts also include a personalized
-            weekly digest. Professional adds the full Intelligence Brief, the complete
+            weekly digest. Intelligence adds the full Intelligence Brief, the complete
             enforcement archive, watchlists, and subscriber rates on every assessment tool —
             re-analyzed for your industry and jurisdictions every Monday.
           </p>

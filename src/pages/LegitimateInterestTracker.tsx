@@ -269,7 +269,7 @@ const LegitimateInterestTracker = () => {
         {/* Premium upsell */}
         <div className="bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Go deeper with Professional</h3>
+          <h3 className="font-display text-xl text-white mb-3">Go deeper with Intelligence</h3>
           <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
             Get full intelligence for weekly analysis of enforcement trends, sector-specific LI risk assessments, and action items tailored to your industry and jurisdictions.
           </p>
