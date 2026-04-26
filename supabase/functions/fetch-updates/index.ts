@@ -1239,12 +1239,12 @@ Deno.serve(async (req) => {
 
   try {
 
-  // Pre-fetch URLs that already have AI summaries to avoid redundant API calls
+  // Pre-fetch all existing URLs so duplicate RSS items do not spend time on
+  // image extraction / AI enrichment and do not get counted as new inserts.
   const { data: existingRows } = await supabase
     .from("updates")
-    .select("url")
-    .not("ai_summary", "is", null);
-  const existingUrlsWithSummary = new Set((existingRows || []).map((r: { url: string }) => r.url));
+    .select("url");
+  const existingUrls = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
   for (const source of RSS_SOURCES) {
     try {
@@ -1263,6 +1263,7 @@ Deno.serve(async (req) => {
         const pubDate = extractTag(item, "pubDate") || extractTag(item, "published") || extractTag(item, "dc:date");
 
         if (!title || !link || !link.startsWith("http")) continue;
+        if (existingUrls.has(link)) { results.skipped_existing++; continue; }
 
         // Translate non-English content to English before processing
         if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
@@ -1305,8 +1306,8 @@ Deno.serve(async (req) => {
           direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
         };
 
-        // Generate AI summary only if key available AND article doesn't already have one
-        if (anthropicKey && !existingUrlsWithSummary.has(link)) {
+        // Generate AI summary only for new articles; existing URLs are skipped above.
+        if (anthropicKey) {
           try {
             const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey);
             if (aiSummary) {
@@ -1347,7 +1348,10 @@ Deno.serve(async (req) => {
           .upsert(row, { onConflict: "url", ignoreDuplicates: true });
 
         if (error) results.skipped++;
-        else results.inserted++;
+        else {
+          results.inserted++;
+          existingUrls.add(link);
+        }
 
         // Prevent Anthropic API rate limiting — small delay between AI calls
         if (anthropicKey) {
@@ -1381,7 +1385,7 @@ Deno.serve(async (req) => {
     enriched: results.summaries_generated,
     enrichmentFailed429: results.enrichment_failed_429,
     enrichmentFailedOther: results.enrichment_failed_other,
-    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length },
+    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing },
   });
 
   return new Response(JSON.stringify(results), {
