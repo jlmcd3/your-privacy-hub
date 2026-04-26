@@ -282,19 +282,8 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
             </p>
           </div>
         )}
-        {/* Free registered: single tasteful upgrade nudge when enrichment exists but is gated */}
-        {enriched && !isPremium && (
-          <div className="mt-2">
-            <Link
-              to="/subscribe"
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors no-underline"
-            >
-              <Lock className="w-2.5 h-2.5" />
-              Intelligence analysis available — $39/mo →
-            </Link>
-          </div>
-        )}
+        {/* Note: enrichment upgrade nudge is rendered once at the feed level by
+            TieredFeed for free registered users, to avoid per-card clutter. */}
         {/* Enrichment accordion — premium only */}
         {showEnrichment && <EnrichmentAccordion item={item} isPremium={isPremium} />}
       </div>
