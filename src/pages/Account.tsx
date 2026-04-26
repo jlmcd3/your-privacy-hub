@@ -7,6 +7,7 @@ import { Check, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
+import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 
 export default function Account() {
   const { user } = useAuth();
@@ -160,6 +161,9 @@ export default function Account() {
             </Link>
           </div>
         )}
+
+        {/* Weekly Brief Language (Intelligence subscribers only) */}
+        <BriefLanguageSelector />
 
         {/* Quick links */}
         <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
