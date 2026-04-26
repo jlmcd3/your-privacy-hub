@@ -55,7 +55,7 @@ const diyLadder = [...REG_SRC.matchAll(/<=\s*(\d+)\)\s*return\s+(\d+)/g)].map(
   (x) => ({ jurisdictions_max: Number(x[1]), cents: Number(x[2]) })
 );
 const diyFallbackMatch = REG_SRC.match(
-  /function\s+diyPriceCents[\s\S]*?return\s+(\d+);\s*\n\s*\}/
+  /function\s+diyPriceCents[\s\S]*?\n\s*return\s+(\d+)\s*;[^\n]*\n\s*\}/
 );
 const diyDefault = diyFallbackMatch ? Number(diyFallbackMatch[1]) : null;
 
