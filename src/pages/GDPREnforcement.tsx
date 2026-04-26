@@ -7,6 +7,14 @@ import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { useAuth } from "@/hooks/useAuth";
+
+const GDPR_HERO_STATS = [
+  { value: "€4.5B+", label: "GDPR fines issued" },
+  { value: "45+", label: "DPAs active" },
+  { value: "Top 5", label: "DPAs by fine volume" },
+  { value: "Art. 83", label: "penalty framework" },
+];
 
 const SECTIONS = [
   {
