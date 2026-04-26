@@ -1,8 +1,10 @@
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import SampleBriefLanguageToggle from "@/components/brief/SampleBriefLanguageToggle";
 
 const enforcementRows = [
   { reg: "ICO (UK)", jur: "UK", co: "TikTok Ltd", viol: "Children's data without parental consent", fine: "£12.7M", date: "Mar 3, 2026", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2023/04/ico-fines-tiktok-12-7-million-for-misusing-childrens-data/" },
