@@ -183,6 +183,7 @@ export default function BriefPreferences() {
     <>
       <Helmet><title>Configure Your Intelligence Brief | Your Privacy Hub Intelligence</title></Helmet>
       <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
             <div className="mb-8 bg-gradient-to-r from-navy to-steel rounded-2xl p-5 text-white">
