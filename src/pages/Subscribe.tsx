@@ -771,10 +771,12 @@ const Subscribe = () => {
           </p>
         )}
 
-        {/* Footer note */}
-        <p className="text-center text-[12px] text-slate-light mt-8">
-          Cancel anytime · Secure checkout via Stripe · Questions? Contact us
-        </p>
+        {/* Trust strip */}
+        <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground py-3 border-t border-border mt-8">
+          <span>✓ Cancel anytime</span>
+          <span>✓ Secure payment via Stripe</span>
+          <span>✓ No ads for Intelligence subscribers</span>
+        </div>
       </div>
       <Footer />
     </div>
