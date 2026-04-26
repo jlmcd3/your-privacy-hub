@@ -587,7 +587,7 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-[13px] text-accent font-semibold mt-4">Always free →</p>
+              <Link to="/signup" className="inline-block mt-4 text-[13px] font-semibold text-accent hover:underline no-underline">Start monitoring free →</Link>
             </div>
 
             {/* Pro */}
