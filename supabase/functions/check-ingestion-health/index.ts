@@ -127,46 +127,43 @@ async function checkNoRecentSuccess(): Promise<Alert[]> {
   return alerts;
 }
 
-async function sendAlertEmail(to: string, subject: string, body: string): Promise<boolean> {
+async function sendAlertEmail(to: string, subject: string, body: string): Promise<boolean | "skipped"> {
   const html = `
     <h2 style="font-family:Arial,sans-serif;color:#0a2540">${subject.replace(/^\[[^\]]+\]\s*/, "")}</h2>
     <pre style="font-family:Menlo,Consolas,monospace;font-size:13px;background:#f6f8fa;padding:14px;border-radius:8px;white-space:pre-wrap">${body}</pre>
     <p style="font-family:Arial,sans-serif;font-size:12px;color:#666">Sent by check-ingestion-health · ${new Date().toISOString()}</p>
   `;
 
-  // Try Lovable Email first (consistent with send-registration-delivery-email).
-  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-  if (lovableKey) {
-    try {
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
-        body: { to, subject, html, purpose: "transactional" },
-      });
-      if (!error) return true;
-      console.warn("Lovable email failed:", error.message);
-    } catch (e) {
-      console.warn("Lovable email threw:", (e as Error).message);
-    }
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    // No transport configured yet — log the alert so it's visible in function
+    // logs, and return "skipped" so we don't burn the throttle window.
+    console.warn("[alert:skipped — RESEND_API_KEY not set]", subject, "\n", body);
+    return "skipped";
   }
 
-  // Fallback: Resend, if configured.
-  const resendKey = Deno.env.get("RESEND_API_KEY");
-  if (resendKey) {
+  // Resend can send from onboarding@resend.dev without domain verification.
+  // Once a verified sender is configured at Resend, swap FROM_ADDRESS via secret.
+  const from = Deno.env.get("ALERT_FROM_ADDRESS")
+    || "EndUserPrivacy Alerts <onboarding@resend.dev>";
+
+  try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
-      body: JSON.stringify({
-        from: "EndUserPrivacy Alerts <notify@enduserprivacy.com>",
-        to: [to],
-        subject,
-        html,
-      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({ from, to: [to], subject, html }),
     });
     if (r.ok) return true;
-    console.error("Resend failed:", r.status, await r.text());
+    const txt = await r.text();
+    console.error("Resend send failed:", r.status, txt);
+    return false;
+  } catch (e) {
+    console.error("Resend send threw:", (e as Error).message);
+    return false;
   }
-
-  console.error("No email provider available; alert NOT sent:", subject);
-  return false;
 }
 
 Deno.serve(async (req) => {
@@ -196,9 +193,11 @@ Deno.serve(async (req) => {
         continue;
       }
       const ok = await sendAlertEmail(alertEmail, alert.subject, alert.body);
-      if (ok) {
+      if (ok === true) {
         await recordAlertSent(alert.key, { subject: alert.subject });
         sent.push(alert.key);
+      } else if (ok === "skipped") {
+        skipped.push(`${alert.key} (no transport)`);
       }
     }
 
@@ -208,6 +207,7 @@ Deno.serve(async (req) => {
         alerts_found: all.length,
         sent,
         throttled: skipped,
+        transport: Deno.env.get("RESEND_API_KEY") ? "resend" : "none",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
