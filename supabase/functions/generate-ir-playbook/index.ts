@@ -182,6 +182,18 @@ Output ONLY the playbook. No preamble or commentary.`;
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 5000,
+        system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
+
+Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided.
+
+QUALITY STANDARDS:
+1. Every notification deadline must state the specific hour count from discovery, the legal basis, and the regulator or affected-individual recipient.
+2. Every threshold test must state the specific legal standard for this jurisdiction (e.g. "likely to result in a risk to the rights and freedoms of natural persons" — GDPR Art. 33).
+3. Notification templates must be immediately usable — mark all placeholder fields as [TO BE COMPLETED: description].
+4. Where enforcement context shows regulators have penalised specific omissions (late notification, vague disclosure, missing categories), incorporate concrete steps that close those gaps.
+5. DPA portal URLs: use only URLs provided in the prompt. Do not fabricate or recall URLs from training.
+
+Output ONLY the playbook. No preamble or commentary.`,
         messages: [{ role: "user", content: prompt }],
       }),
     });

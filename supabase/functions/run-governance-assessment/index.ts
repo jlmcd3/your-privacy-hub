@@ -87,8 +87,23 @@ Health or special category data processed: ${intake.special_category_data ? "Yes
 
     const domainResults: Record<string, any> = {};
 
+    const sector = (intake.sector || "").toLowerCase();
+    const dataTypes: string[] = Array.isArray(intake.data_types) ? intake.data_types : [];
+    const jurisdictionsLower: string[] = (intake.jurisdictions || []).map((j: string) => String(j).toLowerCase());
+    const needsHigherQuality =
+      intake.eu_uk_data ||
+      intake.special_category_data ||
+      sector === "healthcare" ||
+      sector === "financial_services" || sector === "finance" ||
+      dataTypes.some((t: string) =>
+        ["biometric", "health", "financial", "genetic", "children"].includes(String(t).toLowerCase())
+      ) ||
+      jurisdictionsLower.some((j: string) =>
+        ["us-federal", "california", "new-york"].includes(j)
+      );
+
     for (const domain of DOMAIN_DEFINITIONS) {
-      const model = domain.escalate && (intake.eu_uk_data || intake.special_category_data)
+      const model = (domain.escalate && needsHigherQuality)
         ? "claude-sonnet-4-6"
         : "claude-haiku-4-5-20251001";
 

@@ -63,7 +63,7 @@ async function scoreArticleRelevance(
     return `[${i}] [${attention}] ${a.title} | ${a.category} | Sectors: ${sectors || "N/A"} | ${a.summary?.substring(0, 120) || ""}`;
   }).join("\n");
 
-  const prompt = `Score each article's relevance (0-10) to this subscriber profile. Give +2 bonus for High attention_level articles. Give +1 for articles whose affected_sectors overlap with the subscriber's industries.
+  const prompt = `Score each article's relevance (0-10) to this subscriber profile.
 
 Industries: ${prefs.industries.join(", ")}
 Jurisdictions: ${prefs.jurisdictions.join(", ")}
@@ -71,6 +71,15 @@ Topics: ${prefs.topics.join(", ")}
 
 Articles:
 ${articleSummaries}
+
+Score adjustments (apply in addition to base relevance score):
++3 for articles where legal_weight is "Binding" or "Enforcement" — these create immediate compliance obligations regardless of topic match
++2 for High attention_level articles
++2 for articles where urgency is "Immediate" and the subscriber's jurisdiction appears in affected_jurisdictions
++1 for articles whose affected_sectors overlap with the subscriber's industries
+-1 for articles where legal_weight is "Commentary" and the same underlying regulatory development was covered in the prior week's brief (these add no new compliance obligation)
+
+Cap all scores at 10. Floor all scores at 0.
 
 Return JSON array of objects: [{"index": 0, "score": 7}, ...]. Only the JSON array, nothing else.`;
 
@@ -81,6 +90,20 @@ Return JSON array of objects: [{"index": 0, "score": 7}, ...]. Only the JSON arr
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 2000,
+        system: `You are a precision relevance scoring engine for a personalized privacy intelligence brief. Each subscriber has an industry, jurisdiction, and topic profile. Your job is to score how directly each candidate article should appear in their personalized brief.
+
+Return ONLY a valid JSON array of score objects. No preamble, no explanation.
+
+SCORING PRINCIPLES:
+- Base relevance (0-10): how directly does this article affect organizations in the subscriber's industries, jurisdictions, and topic areas
+- Binding and Enforcement articles: add +3 regardless of topic relevance — these create immediate compliance obligations
+- High attention_level articles: add +2
+- Immediate urgency articles where the subscriber's jurisdiction is in affected_jurisdictions: add +2
+- Articles whose affected_sectors overlap with the subscriber's industries: add +1
+- Commentary articles covering the same topic as last week's brief: subtract 1 to avoid duplication
+- Score 0: genuinely irrelevant to this profile
+- Score 10: directly and urgently affects this subscriber's exact industry and primary jurisdiction
+- Cap scores at 10, floor at 0`,
         messages: [{ role: "user", content: prompt }],
       }),
       signal: AbortSignal.timeout(20000),
@@ -487,9 +510,21 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           body: JSON.stringify({
             model: "claude-haiku-4-5-20251001",
             max_tokens: 500,
+            system: `You are a quality reviewer for personalized compliance action items. Your task: rate each action item for specificity and compliance value.
+
+Return ONLY valid JSON. No preamble, no explanation.
+
+SPECIFICITY CRITERIA:
+- Score 5: Names the specific law/article number AND the specific action AND the specific deadline or trigger. Example: "Review Article 6(1)(f) LIA documentation against EDPB Guidelines 1/2024 standard before Q3 board meeting (DPO)."
+- Score 4: Names the specific law and action but lacks deadline or trigger.
+- Score 3: Names the law category and action but uses a generic law reference. Example: "Review GDPR consent records" (which GDPR article? which records?).
+- Score 2: Names the general action without law reference. Example: "Update your consent mechanisms."
+- Score 1: Generic. Example: "Review your privacy practices." These should always fail.
+
+pass: true only if overall score is 3.5 or above.`,
             messages: [{
               role: "user",
-              content: `Review these action items for a ${industryList} compliance professional. Are they specific enough (naming laws, deadlines, consequences)? Rate each 1-5 for specificity. Return JSON: {"scores": [{"action": "...", "specificity": 4}], "overall": 4, "pass": true}
+              content: `Review these action items for a ${industryList} compliance professional. Rate each 1-5 for specificity per the criteria. Return JSON: {"scores": [{"action": "...", "specificity": 4}], "overall": 4, "pass": true}
 
 Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
             }],
