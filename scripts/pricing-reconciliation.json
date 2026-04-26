@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T01:54:58.009Z",
+  "generatedAt": "2026-04-26T01:55:12.200Z",
   "server_truth": {
     "tools": [
       {
@@ -54,7 +54,7 @@
           "cents": 27500
         }
       ],
-      "diy_unlimited_cents": null,
+      "diy_unlimited_cents": 49900,
       "counsel_review_cents": 39900,
       "renewal_per_jurisdiction_cents": 7900
     }
@@ -184,7 +184,7 @@
     },
     {
       "product": "Registration DIY — unlimited",
-      "server_standalone": "—",
+      "server_standalone": "$499",
       "server_subscriber": "—",
       "ui_prices_seen": [
         "$59",
@@ -193,7 +193,7 @@
         "$499",
         "$399"
       ],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true
     },
     {
@@ -223,22 +223,9 @@
       "subscriber_match": true
     }
   ],
-  "findings": [
-    {
-      "severity": "high",
-      "product": "Registration DIY — unlimited",
-      "issue": "UI markets $499 but server charges —.",
-      "ui_prices_seen": [
-        "$59",
-        "$149",
-        "$275",
-        "$499",
-        "$399"
-      ]
-    }
-  ],
+  "findings": [],
   "summary": {
     "products_checked": 12,
-    "mismatches": 1
+    "mismatches": 0
   }
 }
