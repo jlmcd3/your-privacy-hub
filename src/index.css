@@ -256,3 +256,38 @@
   font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
                     "Android Emoji", "EmojiSymbols", sans-serif;
 }
+
+/*
+ * Pricing card contrast safeguard.
+ *
+ * The /subscribe pricing cards use a fixed dark navy gradient with
+ * near-white text. This utility guarantees the dark surface and the
+ * light text always travel together, so neither system dark-mode
+ * preferences nor a future light-card restyle can leave white text
+ * on a white background.
+ *
+ * - Forces a dark background even if a parent strips it.
+ * - Forces light text + bright accents on every descendant.
+ * - Honors forced-colors (Windows High Contrast) by deferring to system colors.
+ */
+.pricing-card-safe {
+  /* Lock the surface — never inherit a light background. */
+  background-color: hsl(var(--navy));
+  color: #ffffff;
+  color-scheme: dark;
+}
+.pricing-card-safe * {
+  /* Anything that inherits color stays readable on the dark surface. */
+  color: inherit;
+}
+/* If the gradient ever fails to paint (e.g. CSS load order issue), the
+   fallback solid navy above keeps text visible instead of white-on-white. */
+@media (forced-colors: active) {
+  .pricing-card-safe,
+  .pricing-card-safe * {
+    background-color: Canvas !important;
+    color: CanvasText !important;
+    border-color: CanvasText !important;
+  }
+}
+
