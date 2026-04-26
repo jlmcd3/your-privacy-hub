@@ -1697,6 +1697,7 @@ export type Database = {
       }
       updates: {
         Row: {
+          action_items: Json | null
           affected_jurisdictions: string[] | null
           affected_sectors: string[] | null
           ai_summary: Json | null
@@ -1704,8 +1705,10 @@ export type Database = {
           attention_level: string | null
           category: string
           created_at: string
+          defense_considerations: string | null
           direct_jurisdictions: string[] | null
           enrichment_version: number | null
+          entities: Json | null
           id: string
           image_url: string | null
           is_premium: boolean
@@ -1725,6 +1728,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          action_items?: Json | null
           affected_jurisdictions?: string[] | null
           affected_sectors?: string[] | null
           ai_summary?: Json | null
@@ -1732,8 +1736,10 @@ export type Database = {
           attention_level?: string | null
           category?: string
           created_at?: string
+          defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
           enrichment_version?: number | null
+          entities?: Json | null
           id?: string
           image_url?: string | null
           is_premium?: boolean
@@ -1753,6 +1759,7 @@ export type Database = {
           url: string
         }
         Update: {
+          action_items?: Json | null
           affected_jurisdictions?: string[] | null
           affected_sectors?: string[] | null
           ai_summary?: Json | null
@@ -1760,8 +1767,10 @@ export type Database = {
           attention_level?: string | null
           category?: string
           created_at?: string
+          defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
           enrichment_version?: number | null
+          entities?: Json | null
           id?: string
           image_url?: string | null
           is_premium?: boolean

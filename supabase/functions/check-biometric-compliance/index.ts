@@ -169,7 +169,7 @@ Output ONLY the compliance assessment. No preamble.`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-sonnet-4-6",
         max_tokens: 4000,
         messages: [{ role: "user", content: prompt }],
       }),

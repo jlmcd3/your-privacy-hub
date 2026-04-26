@@ -5,7 +5,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const LI_EXTRACTION_PROMPT = `You are a GDPR legal analyst. Review the following article and determine whether it documents any regulatory position on the use of legitimate interests (Article 6(1)(f) GDPR or the equivalent UK GDPR provision) as a legal basis for data processing. For each regulatory position found, extract a structured JSON object with these fields:
+const LI_SYSTEM_PROMPT = `You are a GDPR legal analyst. Review the provided article and determine whether it documents any regulatory position on the use of legitimate interests (Article 6(1)(f) GDPR or the equivalent UK GDPR provision) as a legal basis for data processing. For each regulatory position found, extract a structured JSON object with these fields:
 - processing_activity (string): The specific data processing activity being assessed
 - outcome (string): One of exactly: accepted | conditional | rejected | contested
 - signal_type (string): One of exactly: Enforcement Decision | Official Guidance | Regulatory Statement | Early Warning | Complaint Dismissed
@@ -13,9 +13,19 @@ const LI_EXTRACTION_PROMPT = `You are a GDPR legal analyst. Review the following
 - jurisdiction (string): The jurisdiction (e.g. France, EU, United Kingdom)
 - case_reference (string or null): Case name, opinion number, or guidance title if stated
 - summary (string): One factual sentence describing the regulatory position
-- confidence (string): One of: high | medium | low
+- confidence (string): Classify based on the nature of the source: high = the article documents an enforcement decision, final consent order, or official published guidance with an explicit stated position on the LI use case | medium = the article documents a regulatory statement, supervisory authority report, formal complaint outcome, or early warning signal with a discernible but non-binding LI position | low = the LI position is inferred from indirect reference, media interpretation, a partial quote from a regulatory official, or a preliminary or consultative document
 - source_url (string or null): Set to null in almost all cases. Only populate this field if a full, complete URL beginning with https:// appears verbatim and explicitly in the article text provided to you. Do not construct, infer, guess, or approximate any URL. Do not use your training knowledge to produce a URL for a document. If you are not copying a URL character-for-character from the text, return null.
-If the article contains multiple findings, return an array of objects. If no legitimate interest findings are present, return an empty array. Return only valid JSON with no preamble or explanation.`;
+
+If the article contains multiple findings, return an array of objects. If no legitimate interest findings are present, return an empty array.
+
+QUALITY STANDARDS:
+- confidence "high": enforcement decision, consent order, or official published guidance with an explicit LI ruling
+- confidence "medium": regulatory statement, formal complaint outcome, or early warning with a clear but non-binding LI position
+- confidence "low": inferred from indirect reference, media interpretation, or partial quote from a regulatory official
+
+Do not construct, guess, or approximate URLs. The source_url field must be either a URL copied verbatim from the article text or null.
+
+Return ONLY valid JSON — no preamble, no explanation.`;
 
 async function callClaude(article: { title: string; summary: string | null }) {
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
@@ -31,9 +41,10 @@ async function callClaude(article: { title: string; summary: string | null }) {
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 2000,
+      system: LI_SYSTEM_PROMPT,
       messages: [{
         role: "user",
-        content: `${LI_EXTRACTION_PROMPT}\n\nTitle: ${article.title}\nSummary: ${article.summary || "No summary."}`,
+        content: `Title: ${article.title}\nSummary: ${article.summary || "No summary."}`,
       }],
     }),
   });

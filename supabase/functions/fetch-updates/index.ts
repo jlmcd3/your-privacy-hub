@@ -926,17 +926,27 @@ async function generateAISummary(
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
-        system: `You are a privacy regulatory analyst at a leading intelligence firm.
-Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers.
+        system: `You are a privacy regulatory intelligence analyst processing articles for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
 
-Rules:
-(1) Always name the specific regulator AND jurisdiction AND regulation where present.
-(2) Never write generic advice — every sentence must be specific to this article.
-(3) Return ONLY valid JSON — no preamble, no markdown, no explanation.
-(4) Be precise about legal weight: distinguish binding regulatory decisions from
-    guidance, proposals, and commentary. This distinction matters enormously to
-    legal professionals.
-(5) The why_it_matters field must add analytical insight beyond what the title states. Never begin by restating or paraphrasing the title. Explain specifically why this development is significant for compliance practitioners.`,
+Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation. Return {"skip": true} for non-privacy articles, or the full enrichment object for privacy articles.
+
+QUALITY STANDARDS:
+1. Every field must name specific regulators, laws, jurisdictions, or organizations. No generic statements.
+2. If information is not present in the article, return null — do not infer or fabricate.
+3. Legal weight hierarchy: Binding > Enforcement > Guidance > Proposal > Commentary. Assign the highest applicable category.
+4. For affected_jurisdictions: include only jurisdictions where this development creates a direct compliance obligation or material enforcement risk. EU-wide EDPB guidance → 'eu' only, not individual member states, unless the ruling names them specifically.
+5. For regulatory_theory: name the underlying legal doctrine in plain English terms that a practicing attorney would recognize.
+
+DOMAIN COVERAGE:
+AdTech: IAB TCF, GDPR consent for tracking cookies, DPA cookie enforcement (CNIL, ICO, APD Belgium), FTC commercial surveillance, Google Privacy Sandbox, COPPA in ad environments, DSA advertising transparency, RTB data flows and special category data, data clean rooms, identity resolution.
+Healthcare: HIPAA Privacy and Security Rules, HITECH, GDPR Article 9 special category health data, EDPB health data guidance, FDA digital health, state health privacy laws (Washington My Health MY Data, Nevada, Connecticut, Montana, Oregon, Texas consumer health data laws).
+AI governance: EU AI Act prohibited practices, high-risk systems and GPAI obligations, GDPR Article 22 automated decision-making, FTC AI enforcement, NIST AI RMF, algorithmic accountability, AI training data and scraping, biometric data in AI systems.
+Financial services: GLBA Privacy and Safeguards Rules, CFPB Section 1033, DORA, SEC cybersecurity disclosure rules, NY DFS Part 500, PCI DSS.
+Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysis — treat as Commentary legal weight.
+Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
+Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
+Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
+Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.`,
         messages: [
           {
             role: "user",
@@ -946,16 +956,13 @@ Title: ${title}
 Description: ${summary || "No description available."}
 Source: ${sourceName || "Unknown"}
 
-STEP 1 — RELEVANCE CHECK:
-If this article is NOT genuinely about privacy regulation, data protection law,
-regulatory enforcement, or compliance obligations (e.g. it is about general
-business pricing, non-privacy topics, or entertainment), return exactly:
-{"skip": true}
+STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations, return exactly: {"skip": true}
+
+Articles that ARE relevant and must NOT be skipped include: AdTech, advertising privacy, consent management, cookie compliance, tracking technologies — AI governance, AI regulation, EU AI Act, automated decision-making — Healthcare privacy (HIPAA, HITECH, state health data laws) — Financial privacy (GLBA, CFPB, SEC cybersecurity disclosure) — Data broker regulation, biometric data laws, children's privacy (COPPA, FERPA, KOSA) — Civil society analysis of privacy developments from organizations such as EFF, EPIC, or Privacy International — Law firm commentary on regulatory developments — Cross-border data transfer mechanisms (SCCs, BCRs, adequacy decisions) — Employment privacy and HR data processing — General business pricing, entertainment, non-privacy technology, sports, and lifestyle topics are the primary exclusions.
 
 STEP 2 — If relevant, return this JSON:
 {
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction
-    AND explain the specific legal significance. No generic statements.",
+  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
 
   "takeaways": [
     "Specific factual point from this article — cite regulator or law name",
@@ -963,74 +970,47 @@ STEP 2 — If relevant, return this JSON:
     "Specific type of organization affected and what they must review or do"
   ],
 
-  "compliance_impact": "One sentence naming the specific organization type affected
-    and the specific action required under the specific law. If no clear action
-    exists, write: Monitor — no immediate compliance action required.",
+  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
 
-  "who_should_care": "The single most specific audience:
-    DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
 
-  "urgency": "Immediate | This quarter | Monitor — choose based on whether article
-    contains enforcement action, binding deadline, or new binding guidance",
+  "urgency": "Immediate | This quarter | Monitor",
 
-  "legal_weight": "Classify this article's regulatory significance:
-    Binding — final regulatory decision, court ruling, or adopted regulation with
-      immediate legal force (EDPB final opinion, DPA enforcement decision, enacted
-      statute, court judgment)
-    Enforcement — active enforcement action: fine, investigation, consent order,
-      or lawsuit filed
-    Guidance — official guidance, recommendation, or opinion that is not yet binding
-      (draft EDPB guidelines, ICO blog, FTC workshop proceedings, agency FAQ)
-    Proposal — draft regulation, proposed rulemaking, public consultation, or
-      legislative bill not yet enacted
-    Commentary — analysis, reporting, or opinion from non-regulatory sources
-      (law firm blog, trade press, academic commentary)",
+  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
 
-  "source_strength": "Classify the article's source type:
-    Primary regulator — content directly from the regulatory authority itself
-      (EDPB publication, ICO press release, FTC enforcement notice, state AG filing)
-    Legal analysis — analysis by practicing privacy lawyers or legal publications
-      (Hunton, Fieldfisher, Linklaters, Bird & Bird, Law360, JD Supra)
-    Media coverage — news or trade press reporting on regulatory developments
-      (Reuters, IAPP news, AdExchanger, Digiday)",
+  "source_strength": "Primary regulator | Legal analysis | Media coverage",
 
-  "cross_jurisdiction_signal": "If this article reflects a pattern occurring across
-    multiple regulators or jurisdictions simultaneously, describe the pattern in
-    one sentence. Examples:
-    'Cookie consent enforcement coordinating across CNIL, ICO, and APD Belgium'
-    'Children's privacy enforcement wave: ICO, FTC, and Texas AG acting in parallel'
-    If no cross-jurisdiction pattern is evident, return null.",
+  "cross_jurisdiction_signal": "If this article reflects a pattern occurring across multiple regulators or jurisdictions simultaneously, describe the pattern in one sentence. If no cross-jurisdiction pattern is evident, return null.",
 
-  "risk_level": "Low | Medium | High | Critical — how urgently does this require
-    compliance action? Low = monitoring only, Medium = review within quarter,
-    High = review within weeks, Critical = immediate legal exposure",
+  "risk_level": "Low | Medium | High | Critical",
 
-  "affected_jurisdictions": [
-    "Array of jurisdiction slugs whose compliance obligations are materially",
-    "affected by this development, even if not the direct subject.",
-    "Use these exact slug values:",
-    "'eu', 'united-kingdom', 'us-federal', 'california', 'texas',",
-    "'new-york', 'france', 'germany', 'italy', 'spain', 'ireland',",
-    "'netherlands', 'poland', 'belgium', 'denmark', 'sweden', 'norway',",
-    "'australia', 'canada', 'brazil', 'singapore', 'japan', 'south-korea'",
-    "Return empty array [] if impact is narrowly jurisdictional.",
-    "Think beyond the direct parties. An EDPB decision binds all EU member states.",
-    "A new FTC enforcement theory affects every US-facing company.",
-    "A California AG action directly affects only California but often signals",
-    "what other state AGs will pursue. Be specific and conservative — only include",
-    "jurisdictions with real compliance implications, not tangential mentions."
+  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return [] if impact is narrowly jurisdictional. Be conservative."],
+
+  "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
+
+  "regulatory_theory": "The legal doctrine or principle underlying this development. Write one sentence in plain English naming the doctrine. Examples: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary analytics', 'Data minimisation enforcement against over-collection at point of collection'. If no clear legal doctrine applies, return null.",
+
+  "action_items": [
+    {
+      "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
+      "action": "Specific action — must name the specific law, article number, or regulator. No generic actions. Example: 'Review Article 6(1)(f) LIA documentation against the EDPB Guidelines 1/2024 standard' not 'Review your privacy practices'.",
+      "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
+    }
   ],
 
-  "precedent_novelty": "Classify: new_theory | confirms_existing | reverses_prior | routine.
-    new_theory: introduces a legal theory or interpretation not previously established
-      (e.g., first time legitimate interest denied for behavioral ads).
-    confirms_existing: consistent with prior decisions and established practice.
-    reverses_prior: contradicts or narrows a prior position.
-    routine: standard enforcement action, no novel legal reasoning.
-    Focus on whether the legal reasoning is new. A record-breaking fine is not
-    novel if the theory is established. A small fine for a new type of violation
-    is novel. Default to 'routine' when uncertain."
-}`,
+  "key_date": "If this article references a specific compliance deadline, effective date, enforcement start date, or public comment deadline, return it as YYYY-MM-DD. If the article references a deadline without a specific date (e.g. 'expected Q3 2026'), return null. Do not infer or estimate dates not explicitly stated in the article.",
+
+  "entities": {
+    "regulators": ["Array of regulatory authority names mentioned, using official abbreviated form. Examples: ICO, EDPB, CNIL, FTC, BfDI, ANPD, PDPC. Empty array if none."],
+    "companies": ["Array of company or organization names that are the subject of regulatory action or guidance. Examples: Meta Platforms, TikTok, Clearview AI. Empty array if none."],
+    "laws": ["Array of specific law or regulation names with article numbers where applicable. Examples: GDPR Art. 6(1)(f), UK GDPR Art. 22, CCPA §1798.120, BIPA 740 ILCS 14/. Empty array if none."],
+    "case_references": ["Array of specific case names, decision references, or guidance document identifiers. Examples: C-597/19 Planet49, CNIL decision SAN-2022-018, EDPB Guidelines 1/2024. Empty array if none."]
+  },
+
+  "defense_considerations": "For articles where legal_weight is 'Binding' or 'Enforcement' only: In one sentence, state the strongest distinguishing factor or defense consideration that an organization facing this same theory could raise. Focus on factual distinctions (scale, sector, data type, prior notice), not procedural technicalities. Examples: 'Organizations with documented legitimate interest assessments predating this ruling may be distinguishable on the adequacy of their balancing record', 'This ruling turned on the absence of any consent mechanism — organizations using layered consent may have stronger standing'. Return null for Guidance, Proposal, and Commentary articles."
+}
+
+Generate 1–3 action_items entries. Do not generate an action_items entry that says only "monitor" or "review your practices" — every action must name a specific law or regulator. If no specific action applies, return an empty array []. For entities: populate only from content explicitly present in the article. Do not use training knowledge to add entities not named in the article text.`,
           },
         ],
       }),
@@ -1334,6 +1314,22 @@ Deno.serve(async (req) => {
               // Extract affected_jurisdictions from AI response into dedicated column
               if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
                 row.affected_jurisdictions = aiSummary.affected_jurisdictions;
+              }
+              // Extract new top-level enrichment fields into dedicated columns
+              if (typeof aiSummary.regulatory_theory === "string" && aiSummary.regulatory_theory.trim()) {
+                row.regulatory_theory = aiSummary.regulatory_theory;
+              }
+              if (Array.isArray(aiSummary.action_items) && aiSummary.action_items.length > 0) {
+                row.action_items = aiSummary.action_items;
+              }
+              if (typeof aiSummary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date)) {
+                row.key_date = aiSummary.key_date;
+              }
+              if (aiSummary.entities && typeof aiSummary.entities === "object") {
+                row.entities = aiSummary.entities;
+              }
+              if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
+                row.defense_considerations = aiSummary.defense_considerations;
               }
               results.summaries_generated++;
             }
