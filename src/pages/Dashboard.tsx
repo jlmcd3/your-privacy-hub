@@ -504,11 +504,19 @@ const Dashboard = () => {
             📋 Weekly Intelligence Brief
           </p>
           <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
-            {loading ? "Loading this week's brief..." : brief?.headline ?? "No brief available yet"}
+            {loading
+              ? "Loading your latest brief…"
+              : brief?.headline ?? "Your next brief is on the way"}
           </h1>
-          {brief && (
+          {!loading && brief && (
             <p className="mt-3 text-[13px] text-muted-foreground">
-              {describeBriefFreshness(brief.published_at)} · {brief.week_label} · {brief.article_count} regulatory updates synthesized
+              Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
+            </p>
+          )}
+          {!loading && !brief && (
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              We publish a new Intelligence Brief every Monday morning. Your first
+              brief will appear here as soon as it's ready — no action needed.
             </p>
           )}
         </div>
