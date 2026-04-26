@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, Lock } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import PremiumGate from "@/components/PremiumGate";
 
@@ -196,14 +196,18 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
   const urgency = item.ai_summary?.urgency;
   const weight = item.ai_summary?.legal_weight;
   const enriched = isEnriched(item);
+  // Only premium subscribers see enriched-derived content (urgency, legal weight,
+  // attention level, sectors, "why it matters", and the analysis accordion).
+  // Non-premium users get the basic article card with a single upgrade nudge.
+  const showEnrichment = enriched && isPremium;
 
   return (
     <div
-      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${enriched ? 'px-4 rounded-lg my-1' : ''}`}
-      style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${showEnrichment ? 'px-4 rounded-lg my-1' : ''}`}
+      style={showEnrichment ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Intelligence badge top-right */}
-      {enriched && (
+      {/* Intelligence badge top-right — premium only */}
+      {showEnrichment && (
         <div className="absolute top-2 right-2">
           <IntelligenceBadge />
         </div>
@@ -217,8 +221,8 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
           </span>
         )}
       </div>
-      <div className="flex-1 min-w-0 pr-20">
-        {/* Metadata row */}
+      <div className={`flex-1 min-w-0 ${showEnrichment ? 'pr-20' : ''}`}>
+        {/* Metadata row — base info always shown; enrichment-derived badges premium-only */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {item.source_name && (
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
@@ -231,24 +235,24 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
               {categoryLabel(item.category)}
             </span>
           )}
-          {urgency && URGENCY_COLORS[urgency] && (
+          {showEnrichment && urgency && URGENCY_COLORS[urgency] && (
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${URGENCY_COLORS[urgency]}`}>
               {urgency}
             </span>
           )}
-          {weight && WEIGHT_COLORS[weight] && (
+          {showEnrichment && weight && WEIGHT_COLORS[weight] && (
             <span className={`font-mono-code text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
               {weight}
             </span>
           )}
-          {item.attention_level && ATTENTION_COLORS[item.attention_level] && (
+          {showEnrichment && item.attention_level && ATTENTION_COLORS[item.attention_level] && (
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${ATTENTION_COLORS[item.attention_level]}`}>
               {item.attention_level === 'High' ? '🔴' : item.attention_level === 'Medium' ? '🟡' : '🟢'} {item.attention_level}
             </span>
           )}
         </div>
-        {/* Sector tags */}
-        {item.affected_sectors && item.affected_sectors.length > 0 && (
+        {/* Sector tags — enrichment-derived, premium-only */}
+        {showEnrichment && item.affected_sectors && item.affected_sectors.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-1">
             {item.affected_sectors.slice(0, 4).map((sector) => (
               <span key={sector} className="text-[10px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded">
@@ -265,36 +269,23 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
-        {/* Summary */}
+        {/* Summary — base content, always shown */}
         {item.summary && (
           <p className="text-[13px] text-slate leading-relaxed line-clamp-3">{stripHtml(item.summary)}</p>
         )}
-        {/* Why it matters */}
-        {item.ai_summary?.why_it_matters && (
+        {/* Why it matters — premium only (full text) */}
+        {showEnrichment && item.ai_summary?.why_it_matters && (
           <div className="mt-1">
-            <p className={`text-[13px] text-emerald-700 leading-relaxed italic ${isPremium ? '' : 'line-clamp-2'}`}>
+            <p className="text-[13px] text-emerald-700 leading-relaxed italic">
               <span className="font-semibold not-italic">Why it matters:</span>{' '}
               {stripHtml(item.ai_summary.why_it_matters)}
             </p>
-            {!isPremium && (
-              <div className="mt-1.5">
-                <p className="text-[11px] text-muted-foreground leading-snug mb-1">
-                  You're reading the preview. Intelligence subscribers receive the full analysis on every update.
-                </p>
-                <Link
-                  to="/subscribe"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors no-underline"
-                >
-                  <Lock className="w-2.5 h-2.5" />
-                  Read the full analysis — Intelligence $39/mo →
-                </Link>
-              </div>
-            )}
           </div>
         )}
-        {/* Enrichment accordion */}
-        {enriched && <EnrichmentAccordion item={item} isPremium={isPremium} />}
+        {/* Note: enrichment upgrade nudge is rendered once at the feed level by
+            TieredFeed for free registered users, to avoid per-card clutter. */}
+        {/* Enrichment accordion — premium only */}
+        {showEnrichment && <EnrichmentAccordion item={item} isPremium={isPremium} />}
       </div>
       {/* External link */}
       {item.source_url && (
