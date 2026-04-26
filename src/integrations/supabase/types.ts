@@ -263,22 +263,31 @@ export type Database = {
       }
       email_signups: {
         Row: {
+          confirmed: boolean | null
           created_at: string
           email: string
           id: string
           source: string | null
+          subscribed_at: string | null
+          unsubscribed_at: string | null
         }
         Insert: {
+          confirmed?: boolean | null
           created_at?: string
           email: string
           id?: string
           source?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
         }
         Update: {
+          confirmed?: boolean | null
           created_at?: string
           email?: string
           id?: string
           source?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
         }
         Relationships: []
       }
