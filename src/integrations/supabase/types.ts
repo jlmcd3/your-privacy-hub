@@ -1650,6 +1650,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sample_brief_translations: {
+        Row: {
+          created_at: string
+          id: string
+          language_code: string
+          translated_content: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language_code: string
+          translated_content: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language_code?: string
+          translated_content?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sponsorships: {
         Row: {
           active: boolean | null
