@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import NavReportButton from "@/components/admin/NavReportButton";
 import report from "@/data/pricing-reconciliation.json";
 
 interface Row {
@@ -32,20 +33,23 @@ export default function AdminPricingReconciliation() {
       </Helmet>
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-navy">Pricing Reconciliation</h1>
-          <p className="text-sm text-slate mt-1">
-            Cross-references marketed prices in UI files against the amounts
-            actually charged by Stripe edge functions. Re-run with{" "}
-            <code className="bg-fog px-1.5 py-0.5 rounded text-[12px]">
-              node scripts/scan-pricing.mjs
-            </code>
-            .
-          </p>
-          <p className="text-[12px] text-slate mt-2">
-            Last run: {new Date(report.generatedAt).toLocaleString()} ·{" "}
-            {report.summary.products_checked} products checked
-          </p>
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-navy">Pricing Reconciliation</h1>
+            <p className="text-sm text-slate mt-1">
+              Cross-references marketed prices in UI files against the amounts
+              actually charged by Stripe edge functions. Re-run with{" "}
+              <code className="bg-fog px-1.5 py-0.5 rounded text-[12px]">
+                node scripts/scan-pricing.mjs
+              </code>
+              .
+            </p>
+            <p className="text-[12px] text-slate mt-2">
+              Last run: {new Date(report.generatedAt).toLocaleString()} ·{" "}
+              {report.summary.products_checked} products checked
+            </p>
+          </div>
+          <NavReportButton />
         </header>
 
         <div
