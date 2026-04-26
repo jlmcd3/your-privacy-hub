@@ -1234,7 +1234,9 @@ Deno.serve(async (req) => {
   // and writes via service_role. Rate-limited by cron schedule.
 
   const run = await startRun(supabase, "fetch-updates", { sources: RSS_SOURCES.length });
-  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, errors: [] as string[] };
+  const startedMs = Date.now();
+  const maxRuntimeMs = 240_000;
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, stopped_due_to_time_budget: false, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
   try {
@@ -1247,6 +1249,10 @@ Deno.serve(async (req) => {
   const existingUrls = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
   for (const source of RSS_SOURCES) {
+    if (Date.now() - startedMs > maxRuntimeMs) {
+      results.stopped_due_to_time_budget = true;
+      break;
+    }
     try {
       const res = await fetch(source.url, {
         signal: AbortSignal.timeout(12000),
@@ -1257,6 +1263,10 @@ Deno.serve(async (req) => {
       const items = extractAllItems(xml).slice(0, 10);
 
       for (const item of items) {
+        if (Date.now() - startedMs > maxRuntimeMs) {
+          results.stopped_due_to_time_budget = true;
+          break;
+        }
         let title = stripHtml(extractTag(item, "title"));
         const link = extractLink(item);
         let description = cleanRssBoilerplate(stripHtml(extractTag(item, "description") || extractTag(item, "summary") || extractTag(item, "content")));
@@ -1385,7 +1395,8 @@ Deno.serve(async (req) => {
     enriched: results.summaries_generated,
     enrichmentFailed429: results.enrichment_failed_429,
     enrichmentFailedOther: results.enrichment_failed_other,
-    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing },
+    status: results.stopped_due_to_time_budget ? "partial" : undefined,
+    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
   });
 
   return new Response(JSON.stringify(results), {
