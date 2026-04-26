@@ -7,6 +7,14 @@ import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { useAuth } from "@/hooks/useAuth";
+
+const GDPR_HERO_STATS = [
+  { value: "€4.5B+", label: "GDPR fines issued" },
+  { value: "45+", label: "DPAs active" },
+  { value: "Top 5", label: "DPAs by fine volume" },
+  { value: "Art. 83", label: "penalty framework" },
+];
 
 const SECTIONS = [
   {
@@ -63,6 +71,22 @@ const GDPREnforcement = () => {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("gdpr-framework");
   const [ukExpanded, setUkExpanded] = useState(false);
+  const { user } = useAuth();
+  const [gdprEmail, setGdprEmail] = useState("");
+  const [gdprEmailSent, setGdprEmailSent] = useState(false);
+
+  const handleGdprEmailCapture = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gdprEmail) return;
+    try {
+      await (supabase as any)
+        .from("email_signups")
+        .insert({ email: gdprEmail.toLowerCase().trim(), source: "gdpr-hero" });
+    } catch {
+      /* swallow */
+    }
+    setGdprEmailSent(true);
+  };
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const setRef = useCallback((anchor: string) => (el: HTMLDivElement | null) => {
@@ -123,6 +147,42 @@ const GDPREnforcement = () => {
           </p>
           <div className="text-[11px] text-slate-light mt-4">Last updated: March 8, 2026</div>
 
+          {/* Stat bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 max-w-[700px]">
+            {GDPR_HERO_STATS.map((stat, idx) => (
+              <div key={idx} className="bg-white/10 rounded-lg px-4 py-3 text-center">
+                <p className="font-display text-[22px] text-white font-bold leading-none mb-1">{stat.value}</p>
+                <p className="text-[11px] text-slate-light leading-snug">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Email capture — anonymous only */}
+          {!user && (
+            <div className="mt-4 max-w-[460px]">
+              {gdprEmailSent ? (
+                <p className="text-[12px] text-slate-light">You're subscribed — alerts will arrive Monday morning.</p>
+              ) : (
+                <form onSubmit={handleGdprEmailCapture} className="flex gap-2">
+                  <input
+                    type="email"
+                    value={gdprEmail}
+                    onChange={(e) => setGdprEmail(e.target.value)}
+                    placeholder="Get GDPR enforcement alerts"
+                    className="flex-1 text-[12px] px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder:text-slate-light focus:outline-none focus:border-white/40"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="text-[12px] px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors whitespace-nowrap"
+                  >
+                    Get alerts →
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
             {TAB_ITEMS.map((tab) => (
@@ -141,6 +201,32 @@ const GDPREnforcement = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Recent Developments — moved above the fold ── */}
+      {recentArticles.length > 0 && (
+        <div ref={setRef("gdpr-recent")} id="gdpr-recent" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 scroll-mt-24">
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="font-display text-base text-navy">Recent developments</h2>
+            <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">Live</span>
+          </div>
+          <div className="divide-y divide-fog">
+            {recentArticles.map((a: any) => (
+              <ArticleCard
+                key={a.id}
+                item={{
+                  id: a.id,
+                  title: a.title,
+                  summary: a.summary,
+                  source_name: a.source_name,
+                  published_at: a.published_at,
+                  source_url: a.url,
+                } as ArticleItem}
+                variant="full"
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
 
@@ -255,31 +341,6 @@ const GDPREnforcement = () => {
           </Link>
         </div>
 
-        {/* ── Recent Developments ── */}
-        {recentArticles.length > 0 && (
-          <div ref={setRef("gdpr-recent")} id="gdpr-recent" className="mt-12 mb-8 scroll-mt-24">
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-display text-xl text-navy">Recent Developments</h2>
-              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
-            </div>
-            <div className="divide-y divide-fog">
-              {recentArticles.map((a: any) => (
-                <ArticleCard
-                  key={a.id}
-                  item={{
-                    id: a.id,
-                    title: a.title,
-                    summary: a.summary,
-                    source_name: a.source_name,
-                    published_at: a.published_at,
-                    source_url: a.url,
-                  } as ArticleItem}
-                  variant="full"
-                />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Related Resources — styled cards */}
         <div className="mt-12 pt-8 border-t border-fog">
