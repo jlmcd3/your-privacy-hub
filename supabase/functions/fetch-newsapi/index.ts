@@ -187,12 +187,12 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Pre-fetch URLs that already have AI summaries to skip redundant calls
+  // Pre-fetch all existing URLs so duplicate NewsAPI results do not spend time
+  // on AI enrichment and do not get counted as new inserts.
   const { data: existingRows } = await supabase
     .from("updates")
-    .select("url")
-    .not("ai_summary", "is", null);
-  const existingUrlsWithSummary = new Set((existingRows || []).map((r: { url: string }) => r.url));
+    .select("url");
+  const existingUrls = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
   // 25 queries x 2 runs/day = 50 requests/day (free tier limit: 100/day)
   // Original 18 queries are preserved; 7 new queries added below.
@@ -236,6 +236,7 @@ Deno.serve(async (req) => {
 
       for (const article of json.articles || []) {
         if (!article.title || !article.url || article.title === "[Removed]") continue;
+        if (existingUrls.has(article.url)) { results.skipped_existing++; continue; }
         if (!isRelevant(article.title, article.description || "")) { results.skipped++; continue; }
 
         const domain = new URL(article.url).hostname.replace("www.", "");
@@ -255,7 +256,7 @@ Deno.serve(async (req) => {
           is_premium: false,
         };
 
-        if (anthropicKey && !existingUrlsWithSummary.has(article.url)) {
+        if (anthropicKey) {
           try {
             const aiRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
               method: "POST",
@@ -338,8 +339,10 @@ STEP 2 — If relevant, return this JSON:
         const { error } = await supabase
           .from("updates")
           .upsert(row, { onConflict: "url", ignoreDuplicates: true });
-        if (!error) results.inserted++;
-        else results.skipped++;
+        if (!error) {
+          results.inserted++;
+          existingUrls.add(article.url);
+        } else results.skipped++;
       }
     } catch (e: any) {
       results.errors.push(`NewsAPI [${q}]: ${e.message}`);
@@ -350,7 +353,7 @@ STEP 2 — If relevant, return this JSON:
     inserted: results.inserted,
     skipped: results.skipped,
     enriched: results.summaries_generated,
-    metadata: { errors: results.errors.slice(0, 10) },
+    metadata: { errors: results.errors.slice(0, 10), skipped_existing: results.skipped_existing },
   });
 
   return new Response(JSON.stringify(results), {
