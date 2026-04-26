@@ -294,10 +294,22 @@ const Dashboard = () => {
               </div>
 
               {!freeDigest && (
-                <div className="px-6 py-12 text-center">
-                  <p className="text-[32px] mb-3">📅</p>
-                  <p className="font-display font-bold text-navy text-[18px] mb-2">First digest arrives Monday</p>
-                  <p className="text-slate text-[14px] max-w-sm mx-auto">Your personalized digest is generated every Monday morning from the previous week's regulatory activity in your selected regions and topics.</p>
+                <div className="px-6 py-10">
+                  <div className="rounded-xl border border-border p-8 text-center max-w-lg mx-auto">
+                    <div className="text-3xl mb-3">📋</div>
+                    <h3 className="font-semibold text-base mb-2">Your first digest is on its way</h3>
+                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                      Your personalized digest will arrive Monday morning. While you wait, explore the feed and tools below.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                      <Link to="/updates" className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity no-underline">
+                        Browse updates →
+                      </Link>
+                      <Link to="/subscribe" className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors no-underline">
+                        Get the full Intelligence Brief
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -366,7 +378,7 @@ const Dashboard = () => {
           </div>
           {subscriptionInterval === "year" && (
             <p className="text-[12px] text-muted-foreground mb-4">
-              Annual plan — saving $60/year vs monthly billing.
+              Annual plan — saving $78/year vs monthly billing.
             </p>
           )}
 
