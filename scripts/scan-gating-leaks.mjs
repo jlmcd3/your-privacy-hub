@@ -57,20 +57,59 @@ const componentFile = (name) =>
   allFiles.find((f) => f.endsWith(`/${name}.tsx`) || f.endsWith(`/${name}.ts`));
 
 // ---------- 2. Detect premium signals in component files ----------
-const PREMIUM_LABEL_RE =
-  /(Professional|Premium|⭐\s*Pro|"Pro"|>\s*Pro\s*<|Paid\s+only|\$29\s*\/\s*mo|\$29\s*per\s*month)/i;
+//
+// We treat as a "premium label" only language that PROMISES gated content:
+//   - badges that mark a feature as Pro/Professional/Premium-only
+//   - copy that says "subscribers only", "paid only", "upgrade to view"
+// We deliberately exclude pure CTAs ("See Plans", "$29/mo", "Subscribe") which
+// appear on marketing pages and are NOT leaks.
+const PREMIUM_LABEL_RE = new RegExp(
+  [
+    "Professional\\s+(only|members|subscribers|tier|plan)",
+    "Premium\\s+(only|members|subscribers|content|feature)",
+    "Pro\\s+(only|members|subscribers|feature|access)",
+    "Subscribers?\\s+only",
+    "Paid\\s+(only|subscribers|members)",
+    "Upgrade\\s+to\\s+(view|see|unlock|access)",
+    "Locked\\s+for\\s+free",
+    // Visual gate badges
+    "⭐\\s*(Pro|Professional|Premium)",
+    "🔒\\s*(Pro|Professional|Premium)",
+  ].join("|"),
+  "i"
+);
+
 const RUNTIME_GATE_RE =
-  /(usePremiumStatus|PremiumGate|isPremium|is_premium|is_pro|<NewsfeedPaywallCard|AuthGateModal)/;
-const FREE_FLAG_RE = /(FREE_LIMIT|free\s+users?|anonymous)/i;
+  /(usePremiumStatus|PremiumGate|isPremium|is_premium|is_pro|NewsfeedPaywallCard|AuthGateModal|ToolSampleOverlay)/;
+
+const FREE_FLAG_RE = /(FREE_LIMIT|free\s+users?|free\s+tier)/i;
+
+// Marketing pages where Pro labels are expected and not leaks.
+const MARKETING_ROUTES = new Set([
+  "/subscribe",
+  "/signup",
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/check-email",
+  "/about",
+  "/contact",
+  "/faq",
+  "/terms",
+  "/privacy-policy",
+  "/get-intelligence",
+  "/sample-brief",
+]);
 
 function analyzeFile(file) {
   const src = read(file);
+  const labelMatches = src.match(new RegExp(PREMIUM_LABEL_RE, "gi")) || [];
   return {
     file: rel(file),
-    hasPremiumLabel: PREMIUM_LABEL_RE.test(src),
+    hasPremiumLabel: labelMatches.length > 0,
     hasRuntimeGate: RUNTIME_GATE_RE.test(src),
     mentionsFree: FREE_FLAG_RE.test(src),
-    premiumLabelSnippets: (src.match(PREMIUM_LABEL_RE.source.replace(/^\(|\)$/g, "") ? new RegExp(PREMIUM_LABEL_RE, "gi") : PREMIUM_LABEL_RE) || []).slice(0, 3),
+    premiumLabelSnippets: labelMatches.slice(0, 5),
   };
 }
 
