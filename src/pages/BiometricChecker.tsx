@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -17,6 +17,7 @@ const COUNTS = ["Fewer than 500","500-5,000","5,000-50,000","50,000-500,000","Mo
 
 export default function BiometricChecker() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   // No more anonymous free tier — every analysis requires a signed-in account.
   const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
   const [form, setForm] = useState({
@@ -36,9 +37,14 @@ export default function BiometricChecker() {
 
   const handleGenerate = async () => {
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: form });
-    if (error || !data?.assessment_text) setResult({ assessment_text: "Generation failed. Please try again.", bipa_risk: null, jurisdictions_analysed: [] });
-    else setResult(data);
+    const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: { ...form, user_id: access.user?.id } });
+    if (error || !data?.assessment_text) {
+      setResult({ assessment_text: "Generation failed. Please try again.", bipa_risk: null, jurisdictions_analysed: [] });
+      setPhase("result");
+      return;
+    }
+    setResult(data);
+    if (data?.id) { navigate(`/biometric-checker/result/${data.id}`); return; }
     setPhase("result");
   };
 

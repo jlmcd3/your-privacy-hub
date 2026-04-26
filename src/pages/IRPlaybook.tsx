@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -25,6 +25,7 @@ const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
 
 export default function IRPlaybook() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const access = useToolAccess({ standalonePrice: 39, subscriberPrice: null });
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
@@ -46,8 +47,10 @@ export default function IRPlaybook() {
 
   const handleGenerate = async () => {
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: form });
-    setResult(error || !data?.playbook_text ? "Generation failed. Please try again." : data.playbook_text);
+    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id } });
+    if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
+    setResult(data.playbook_text);
+    if (data?.id) { navigate(`/ir-playbook/result/${data.id}`); return; }
     setPhase("result");
   };
 

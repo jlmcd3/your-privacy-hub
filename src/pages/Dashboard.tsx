@@ -16,6 +16,7 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
+import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
 
 interface EnforcementRow {
   regulator: string;
@@ -915,6 +916,7 @@ const Dashboard = () => {
           </>
         )}
 
+        <RecentReportsCard />
         <PremiumToolsSection isPremium={isPremium} />
       </div>
 
