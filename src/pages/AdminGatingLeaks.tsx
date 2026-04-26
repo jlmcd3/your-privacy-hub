@@ -41,20 +41,23 @@ export default function AdminGatingLeaks() {
       </Helmet>
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-navy">Gating Leak Scanner</h1>
-          <p className="text-sm text-slate mt-1">
-            Cross-references route protection against user-visible Pro/Premium
-            labels. Re-run with{" "}
-            <code className="bg-fog px-1.5 py-0.5 rounded text-[12px]">
-              node scripts/scan-gating-leaks.mjs
-            </code>
-            .
-          </p>
-          <p className="text-[12px] text-slate mt-2">
-            Last run: {new Date(report.generatedAt).toLocaleString()} ·{" "}
-            {report.routesScanned} routes · {report.filesScanned} files
-          </p>
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-navy">Gating Leak Scanner</h1>
+            <p className="text-sm text-slate mt-1">
+              Cross-references route protection against user-visible Pro/Premium
+              labels. Re-run with{" "}
+              <code className="bg-fog px-1.5 py-0.5 rounded text-[12px]">
+                node scripts/scan-gating-leaks.mjs
+              </code>
+              .
+            </p>
+            <p className="text-[12px] text-slate mt-2">
+              Last run: {new Date(report.generatedAt).toLocaleString()} ·{" "}
+              {report.routesScanned} routes · {report.filesScanned} files
+            </p>
+          </div>
+          <NavReportButton />
         </header>
 
         <div className="grid grid-cols-3 gap-3 mb-8">
