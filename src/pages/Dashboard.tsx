@@ -14,7 +14,8 @@ import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
 interface EnforcementRow {
   regulator: string;
