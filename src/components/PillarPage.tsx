@@ -60,6 +60,24 @@ const PillarPage = ({
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
 
+  const tier: "anonymous" | "free" | "premium" = !user ? "anonymous" : isPremium ? "premium" : "free";
+
+  const trackRecentDevClick = (a: any) => {
+    try {
+      (window as any).plausible?.("Recent Dev Click", {
+        props: {
+          tier,
+          pillar: title,
+          source: a.source_name || "unknown",
+          article_id: a.id,
+          url: a.url,
+        },
+      });
+    } catch {
+      /* swallow */
+    }
+  };
+
   useEffect(() => {
     if (!updateCategory && !updateOrFilter) return;
 
