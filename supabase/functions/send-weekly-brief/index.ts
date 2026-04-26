@@ -206,14 +206,17 @@ Deno.serve(async (req) => {
     by_language: {} as Record<string, { count: number; fallback: boolean; from_cache: boolean }>,
   };
 
-  for (const [lang, emails] of byLang) {
-    const { content, fallback, fromCache } = await translateForLanguage(briefDate, lang, englishHtml);
+  // Step 4: translate all required languages in parallel, then send
+  const translationEntries = await Promise.all(
+    [...byLang.entries()].map(async ([lang, emails]) => {
+      const result = await translateForLanguage(briefDate, lang, englishHtml);
+      return { lang, emails, ...result };
+    })
+  );
+
+  for (const { lang, emails, content, fallback, fromCache } of translationEntries) {
     stats.by_language[lang] = { count: emails.length, fallback, from_cache: fromCache };
-
-    // Subject stays in English for now (translator targets body content);
-    // safe choice that avoids subject-line surprises in fallback case.
     const subject = englishSubject;
-
     for (const to of emails) {
       try {
         const res = await sendEmail({
@@ -234,6 +237,7 @@ Deno.serve(async (req) => {
         console.error(`[send-weekly-brief] send failed for ${to}:`, (e as Error).message);
       }
     }
+  }
   }
 
   console.log("[send-weekly-brief] done", stats);
