@@ -429,12 +429,12 @@ const Updates = () => {
                             {["High", "Medium", "Low"].map((level) => (
                                 <button
                                     key={level}
-                                    onClick={() => setActiveAttention(activeAttention === level ? null : level)}
+                                    onClick={() => handleGatedFilterClick(`Attention: ${level}`, () => setActiveAttention(activeAttention === level ? null : level))}
                                     className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
                                         activeAttention === level
                                             ? level === "High" ? "bg-destructive text-destructive-foreground" : level === "Medium" ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
                                             : "bg-muted text-foreground hover:bg-muted/80"
-                                    }`}
+                                    } ${!user ? "opacity-50 cursor-default" : ""}`}
                                 >
                                     {level === "High" ? "🔴" : level === "Medium" ? "🟡" : "🟢"} {level}
                                 </button>
@@ -448,12 +448,12 @@ const Updates = () => {
                                 {availableSectors.slice(0, 8).map(([sector, count]) => (
                                     <button
                                         key={sector}
-                                        onClick={() => toggleSector(sector)}
+                                        onClick={() => handleGatedFilterClick(`Sector: ${sector}`, () => toggleSector(sector))}
                                         className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
                                             activeSectors.includes(sector)
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-foreground hover:bg-muted/80"
-                                        }`}
+                                        } ${!user ? "opacity-50 cursor-default" : ""}`}
                                     >
                                         {sector} <span className="opacity-60">({count})</span>
                                     </button>
@@ -477,8 +477,12 @@ const Updates = () => {
                     </div>
                     <select
                         value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="px-3 py-2 border border-border rounded-lg text-sm bg-background"
+                        onChange={(e) => {
+                            const next = e.target.value;
+                            handleGatedFilterClick("Date range", () => setDateRange(next));
+                        }}
+                        disabled={!user}
+                        className={`px-3 py-2 border border-border rounded-lg text-sm bg-background ${!user ? "opacity-50 cursor-default" : ""}`}
                     >
                         {DATE_RANGES.map((d) => (
                             <option key={d.key} value={d.key}>{d.label}</option>
