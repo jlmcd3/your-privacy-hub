@@ -128,7 +128,7 @@ const DPIAFramework = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>{`Impact Assessment Builder — from $${pricing.subscriberPrice ?? ""} | EndUserPrivacy`}</title></Helmet>
+      <Helmet><title>{`Impact Assessment Builder — from $${pricing.subscriberPrice ?? ""} | Your Privacy Hub`}</title></Helmet>
       <Navbar />
 
       <header className="bg-slate-900 text-white py-12">

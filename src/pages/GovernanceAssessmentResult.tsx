@@ -55,7 +55,7 @@ const GovernanceAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Privacy Program Assessment Tool | EndUserPrivacy</title></Helmet>
+      <Helmet><title>Privacy Program Assessment Tool | Your Privacy Hub</title></Helmet>
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">

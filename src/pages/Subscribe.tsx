@@ -87,7 +87,7 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Intelligence — $39/mo or $390/yr | EndUserPrivacy</title>
+        <title>Intelligence — $39/mo or $390/yr | Your Privacy Hub</title>
         <meta name="description" content="Intelligence unlocks the weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool. $39/month or $390/year." />
       </Helmet>
       <Navbar />
@@ -624,7 +624,7 @@ const Subscribe = () => {
               <thead>
                 <tr className="bg-fog">
                   <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">EndUserPrivacy</th>
+                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">Your Privacy Hub</th>
                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust)</th>
                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP</th>
                 </tr>

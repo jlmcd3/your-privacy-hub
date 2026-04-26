@@ -68,7 +68,7 @@ export default function DPAGenerator() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Your Custom DPA | EndUserPrivacy</title>
+      <Helmet><title>Your Custom DPA | Your Privacy Hub</title>
         <meta name="description" content="Generate your custom GDPR Article 28-compliant Data Protection Agreement, calibrated to live enforcement precedents." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">

@@ -49,7 +49,7 @@ export default function RegistrationMyFilings() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>My Filings | Registration Manager | EndUserPrivacy</title>
+        <title>My Filings | Registration Manager | Your Privacy Hub</title>
       </Helmet>
       <Navbar />
       <PageContainer>

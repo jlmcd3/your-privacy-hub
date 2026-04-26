@@ -28,7 +28,7 @@ const Glossary = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Privacy Law Glossary 2026 — GDPR, CCPA &amp; Data Protection Terms | EndUserPrivacy</title>
+        <title>Privacy Law Glossary 2026 — GDPR, CCPA &amp; Data Protection Terms | Your Privacy Hub</title>
         <meta name="description" content="Plain-English definitions of key privacy and data protection terms. GDPR, CCPA, AI Act, biometric data, data subject rights, and 80+ more terms with legal citations." />
       </Helmet>
       <Navbar />

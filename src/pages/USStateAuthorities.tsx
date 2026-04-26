@@ -33,7 +33,7 @@ const USStateAuthorities = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>U.S. State Privacy Authorities Directory | EndUserPrivacy</title>
+        <title>U.S. State Privacy Authorities Directory | Your Privacy Hub</title>
         <meta name="description" content="Complete directory of privacy regulatory authorities across all 50 U.S. states. Statute names, enforcement status, websites, and complaint portals." />
       </Helmet>
       <Navbar />

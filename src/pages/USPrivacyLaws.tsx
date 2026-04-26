@@ -90,9 +90,9 @@ const USPrivacyLaws = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>U.S. Privacy Laws — Federal & State Privacy Guide 2026 | EndUserPrivacy</title>
+        <title>U.S. Privacy Laws — Federal & State Privacy Guide 2026 | Your Privacy Hub</title>
         <meta name="description" content="A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states." />
-        <meta property="og:title" content="U.S. Privacy Laws | EndUserPrivacy" />
+        <meta property="og:title" content="U.S. Privacy Laws | Your Privacy Hub" />
         <meta property="og:description" content="Federal & state privacy law guide covering FTC authority, HIPAA, COPPA, and all 50 state privacy statutes." />
       </Helmet>
       <Navbar />

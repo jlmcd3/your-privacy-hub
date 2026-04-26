@@ -206,7 +206,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Helmet>
-          <title>Intelligence Dashboard | EndUserPrivacy</title>
+          <title>Intelligence Dashboard | Your Privacy Hub</title>
           <meta name="description" content="Your personalized privacy intelligence dashboard." />
         </Helmet>
         <Navbar />
@@ -241,7 +241,7 @@ const Dashboard = () => {
           </div>
         )}
         <Helmet>
-          <title>Intelligence Dashboard | EndUserPrivacy</title>
+          <title>Intelligence Dashboard | Your Privacy Hub</title>
         </Helmet>
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -353,7 +353,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Intelligence Dashboard | EndUserPrivacy</title>
+        <title>Intelligence Dashboard | Your Privacy Hub</title>
         <meta name="description" content="Your personalized privacy intelligence dashboard. Access your weekly digest, enforcement tracker, and regulatory updates." />
       </Helmet>
       <Navbar />
@@ -723,7 +723,7 @@ const Dashboard = () => {
                 <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
-                      ⭐ EndUserPrivacy Intelligence Brief
+                      ⭐ Your Privacy Hub Intelligence Brief
                     </span>
                     <div className="flex items-center gap-2 text-[11px] text-blue-300">
                       <span>{brief.week_label}</span>
