@@ -102,17 +102,40 @@ serve(async (req) => {
     }
 
     const cfg = PRICING[tier as keyof typeof PRICING];
-    // Pricing rules:
-    //   diy            -> tiered flat fee based on jurisdiction count (qty 1)
-    //   counsel_review -> flat $299 (qty 1)
-    //   renewal        -> $199/yr × N jurisdictions
+
+    // Look up subscriber status for promotional discounts.
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("is_premium, is_pro")
+      .eq("id", user.id)
+      .single();
+    const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
+
+    // Pricing rules (must match src/pages/RegistrationLanding.tsx + Tools.tsx):
+    //   diy            -> tiered flat fee by jurisdiction count, 20% off for subscribers
+    //   counsel_review -> flat $399, -$75 for subscribers
+    //   renewal        -> $79/yr × N jurisdictions (no subscriber discount)
     let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
     let productName: string = cfg.name;
     if (tier === "diy") {
       unitAmount = diyPriceCents(codes.length);
       productName = diyPriceLabel(codes.length);
+      if (isSubscriber) {
+        unitAmount = Math.round(unitAmount * 0.8); // 20% off
+        productName = `${productName} — Professional 20% off`;
+      }
+    } else if (tier === "counsel_review" && isSubscriber) {
+      unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
+      productName = `${productName} — Professional $75 off`;
     } else if (cfg.per_jurisdiction) {
+      quantity = Math.max(1, codes.length);
+    }
+    if (cfg.per_jurisdiction && tier !== "diy") {
       quantity = Math.max(1, codes.length);
     }
     const totalCents = unitAmount * quantity;
