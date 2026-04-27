@@ -52,6 +52,9 @@ verify_jwt = false
 [functions.create-checkout-session]
 verify_jwt = false
 
+[functions.create-portal-session]
+verify_jwt = false
+
 [functions.purchase-report-credits]
 verify_jwt = false
 
