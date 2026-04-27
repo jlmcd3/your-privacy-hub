@@ -1,5 +1,5 @@
 /**
- * SponsorshipBanner — yourprivacyhub.com FRD v2.1 §8.4
+ * SponsorshipBanner — enduserprivacy.com FRD v2.1 §8.4
  *
  * Renders an active sponsorship row from the public.sponsorships table
  * for a given placement. Uses a simple "Sponsored by · LOGO · Sponsor Name"

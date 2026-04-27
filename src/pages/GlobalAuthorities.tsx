@@ -25,7 +25,7 @@ const GlobalAuthorities = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Global Privacy Authority Directory — 119+ DPAs | Your Privacy Hub</title>
+        <title>Global Privacy Authority Directory — 119+ DPAs | End User Privacy</title>
         <meta name="description" content="Directory of 119+ data protection authorities worldwide. Find DPA names, legislation, websites, and complaint portals organized by region." />
       </Helmet>
       <Navbar />

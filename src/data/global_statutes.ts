@@ -34,10 +34,10 @@ export const GLOBAL_STATUTES: Record<string, StatuteEntry> = {
   "united-kingdom:childrenRules":    { cite: "DPA 2018 s.9 — Child's consent",                    url: "https://www.legislation.gov.uk/ukpga/2018/12/section/9" },
 
   // ── UNITED STATES (FTC / sector laws — federal + CCPA as reference) ─
-  "united-states:breachNotif":       { cite: "No federal law — varies by state",                  url: "https://yourprivacyhub.com/compare/us-states" },
-  "united-states:rightAccess":       { cite: "No federal law — see US state laws",                url: "https://yourprivacyhub.com/compare/us-states" },
-  "united-states:rightErasure":      { cite: "No federal law — see US state laws",                url: "https://yourprivacyhub.com/compare/us-states" },
-  "united-states:rightPortability":  { cite: "No federal law — see US state laws",                url: "https://yourprivacyhub.com/compare/us-states" },
+  "united-states:breachNotif":       { cite: "No federal law — varies by state",                  url: "https://enduserprivacy.com/compare/us-states" },
+  "united-states:rightAccess":       { cite: "No federal law — see US state laws",                url: "https://enduserprivacy.com/compare/us-states" },
+  "united-states:rightErasure":      { cite: "No federal law — see US state laws",                url: "https://enduserprivacy.com/compare/us-states" },
+  "united-states:rightPortability":  { cite: "No federal law — see US state laws",                url: "https://enduserprivacy.com/compare/us-states" },
   "united-states:gdprAdequacy":      { cite: "EU-US Data Privacy Framework (2023)",               url: "https://www.dataprivacyframework.gov/" },
   "united-states:childrenRules":     { cite: "COPPA, 15 U.S.C. §§ 6501–6506",                    url: "https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa" },
 

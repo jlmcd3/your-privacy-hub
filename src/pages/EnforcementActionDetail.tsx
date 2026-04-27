@@ -169,7 +169,7 @@ export default function EnforcementActionDetail() {
       <Helmet>
         <title>{title} — {action.regulator} | Enforcement Intelligence</title>
         <meta name="description" content={desc} />
-        <link rel="canonical" href={`https://yourprivacyhub.com/enforcement-intelligence/${action.id}`} />
+        <link rel="canonical" href={`https://enduserprivacy.com/enforcement-intelligence/${action.id}`} />
       </Helmet>
       <Navbar />
 

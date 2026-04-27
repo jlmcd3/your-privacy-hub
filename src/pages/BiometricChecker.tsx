@@ -68,7 +68,7 @@ export default function BiometricChecker() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Biometric Privacy Compliance Checker | Your Privacy Hub</title>
+      <Helmet><title>Biometric Privacy Compliance Checker | End User Privacy</title>
         <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Intelligence." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -120,7 +120,7 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-[12px] text-muted-foreground mb-3">A free Your Privacy Hub account is required to run any analysis. Intelligence subscribers receive this tool included at no additional charge.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Intelligence subscribers receive this tool included at no additional charge.</p>
               ) : access.isPremium ? (
                 <p className="text-[12px] text-muted-foreground mb-3">Included with your Intelligence subscription.</p>
               ) : (
@@ -142,7 +142,7 @@ export default function BiometricChecker() {
         open={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         heading="Create a free account to run your analysis"
-        body="A free Your Privacy Hub account is required to use this tool. Creating one takes under a minute."
+        body="A free End User Privacy account is required to use this tool. Creating one takes under a minute."
         redirectTo="/biometric-checker"
       />
       <Footer />

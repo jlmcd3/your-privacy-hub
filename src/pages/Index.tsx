@@ -27,7 +27,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Global Privacy Law, Tracked Daily | Your Privacy Hub</title>
+        <title>Global Privacy Law, Tracked Daily | End User Privacy</title>
         <meta name="description" content="Privacy regulatory intelligence for professionals. Tracking 119 authorities across 150+ jurisdictions — enforcement actions, new legislation, and regulatory guidance, updated daily." />
       </Helmet>
 

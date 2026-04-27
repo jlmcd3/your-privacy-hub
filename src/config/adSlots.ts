@@ -1,5 +1,5 @@
 /**
- * Centralized Ad Slot Configuration — yourprivacyhub.com FRD v2.1 §8.3
+ * Centralized Ad Slot Configuration — enduserprivacy.com FRD v2.1 §8.3
  *
  * Defines every contextual ad slot served on the platform.
  * Slot IDs are stable strings used for analytics + DOM data attributes.

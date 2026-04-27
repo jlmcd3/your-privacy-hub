@@ -50,7 +50,7 @@ export default function RegistrationMyFilings() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>My Filings | Registration Manager | Your Privacy Hub</title>
+        <title>My Filings | Registration Manager | End User Privacy</title>
       </Helmet>
       <Navbar />
       <DashboardSubnav />

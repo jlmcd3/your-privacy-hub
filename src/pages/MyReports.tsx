@@ -139,7 +139,7 @@ export default function MyReports() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>My Reports | Your Privacy Hub</title>
+        <title>My Reports | End User Privacy</title>
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
       <Navbar />

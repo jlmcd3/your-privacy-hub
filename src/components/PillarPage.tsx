@@ -131,9 +131,9 @@ const PillarPage = ({
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{title} — Privacy Law Guide 2026 | Your Privacy Hub</title>
+        <title>{title} — Privacy Law Guide 2026 | End User Privacy</title>
         <meta name="description" content={subtitle} />
-        <meta property="og:title" content={`${title} | Your Privacy Hub`} />
+        <meta property="og:title" content={`${title} | End User Privacy`} />
         <meta property="og:description" content={subtitle} />
       </Helmet>
       <Navbar />

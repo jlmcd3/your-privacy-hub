@@ -160,7 +160,7 @@ const TopicHub = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{meta.name} — Privacy Topic Intelligence | Your Privacy Hub</title>
+        <title>{meta.name} — Privacy Topic Intelligence | End User Privacy</title>
         <meta name="description" content={meta.description.substring(0, 155) + "…"} />
       </Helmet>
       <Navbar />

@@ -178,13 +178,13 @@ const UpdateDetail = () => {
     <div className="min-h-screen bg-background">
       {article && (
         <Helmet>
-          <title>{article.title} | Your Privacy Hub</title>
+          <title>{article.title} | End User Privacy</title>
           <meta name="description" content={metaDesc} />
         </Helmet>
       )}
       {!article && !loading && (
         <Helmet>
-          <title>Article Not Found | Your Privacy Hub</title>
+          <title>Article Not Found | End User Privacy</title>
         </Helmet>
       )}
       <Navbar />

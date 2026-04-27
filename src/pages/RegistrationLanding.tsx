@@ -47,12 +47,12 @@ export default function RegistrationLanding() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Privacy Registration Manager — DPO, RoPA, AI Act Filings | Your Privacy Hub</title>
+        <title>Privacy Registration Manager — DPO, RoPA, AI Act Filings | End User Privacy</title>
         <meta
           name="description"
           content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
         />
-        <link rel="canonical" href="https://yourprivacyhub.com/registration-manager" />
+        <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
 
       <Navbar />

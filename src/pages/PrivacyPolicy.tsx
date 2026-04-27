@@ -6,20 +6,20 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Privacy Policy | Your Privacy Hub</title>
-        <meta name="description" content="How Your Privacy Hub collects, uses, and safeguards your information. Our commitment to data protection and transparency." />
+        <title>Privacy Policy | End User Privacy</title>
+        <meta name="description" content="How End User Privacy collects, uses, and safeguards your information. Our commitment to data protection and transparency." />
       </Helmet>
       <Navbar />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8">Privacy Policy</h1>
         <div className="prose prose-sm max-w-none text-foreground/90 space-y-4">
           <p>
-            yourprivacyhub.com is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information.
+            enduserprivacy.com is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information.
           </p>
           <p>
             For questions, contact{" "}
-            <a href="mailto:hello@yourprivacyhub.com" className="text-primary hover:underline">
-              hello@yourprivacyhub.com
+            <a href="mailto:hello@enduserprivacy.com" className="text-primary hover:underline">
+              hello@enduserprivacy.com
             </a>.
           </p>
           <p>Full policy coming soon.</p>

@@ -38,7 +38,7 @@ export default function BiometricPrivacyPage() {
           "@type": "Article",
           "headline": "Biometric Privacy Laws: BIPA, State Laws & GDPR",
           "description": "Comprehensive guide to biometric privacy laws for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

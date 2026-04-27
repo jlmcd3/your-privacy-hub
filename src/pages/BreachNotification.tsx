@@ -38,7 +38,7 @@ export default function BreachNotificationPage() {
           "@type": "Article",
           "headline": "Data Breach Notification Requirements by Jurisdiction",
           "description": "Comprehensive guide to global data breach notification obligations for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

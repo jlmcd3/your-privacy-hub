@@ -38,7 +38,7 @@ export default function CrossBorderTransfersPage() {
           "@type": "Article",
           "headline": "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           "description": "Comprehensive guide to international data transfer mechanisms for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

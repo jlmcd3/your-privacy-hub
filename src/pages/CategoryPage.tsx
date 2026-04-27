@@ -132,7 +132,7 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{meta.title} Updates | Your Privacy Hub</title>
+        <title>{meta.title} Updates | End User Privacy</title>
         <meta name="description" content={meta.description.substring(0, 155) + "…"} />
       </Helmet>
       <Navbar />

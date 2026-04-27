@@ -166,7 +166,7 @@ const GetIntelligence = () => {
     <div className="min-h-screen bg-paper">
       <Navbar />
       <Helmet>
-        <title>Get Your Privacy Intelligence | Your Privacy Hub</title>
+        <title>Get Your Privacy Intelligence | End User Privacy</title>
         <meta name="description" content="Personalized privacy intelligence for your jurisdiction and practice. Built from 67 regulatory sources. Takes 60 seconds." />
       </Helmet>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -424,7 +424,7 @@ const GetIntelligence = () => {
                               ✓ Your preview is on its way.
                             </p>
                             <p className="text-[12px] text-slate">
-                              Check your inbox for intelligence@yourprivacyhub.com
+                              Check your inbox for intelligence@enduserprivacy.com
                             </p>
                           </div>
                           <Link to={subscribeUrl}

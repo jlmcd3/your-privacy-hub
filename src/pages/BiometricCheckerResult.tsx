@@ -38,7 +38,7 @@ export default function BiometricCheckerResult() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Biometric Compliance Assessment | Your Privacy Hub</title></Helmet>
+      <Helmet><title>Biometric Compliance Assessment | End User Privacy</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
