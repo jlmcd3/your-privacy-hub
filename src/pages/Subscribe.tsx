@@ -176,11 +176,11 @@ const Subscribe = () => {
           </div>
           <div>
             <button
-              onClick={handleSubscribe}
+              onClick={heroOnClick}
               disabled={!!loading}
               className="bg-white text-navy font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all"
             >
-              {loading ? "Redirecting…" : `Get full intelligence — ${billingInterval === "year" ? "$390/year" : "$39/month"} →`}
+              {heroCtaLabel}
             </button>
             {error && <p className="text-red-300 text-[12px] mt-3">{error}</p>}
           </div>
