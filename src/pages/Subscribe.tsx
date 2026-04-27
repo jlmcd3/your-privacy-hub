@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
@@ -47,6 +48,7 @@ const comparisonRows: ComparisonRow[] = [
 
 const Subscribe = () => {
   const { user } = useAuth();
+  const { isPremium } = usePremiumStatus();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -59,10 +61,31 @@ const Subscribe = () => {
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) => setSelectedTracks(prev => prev.includes(label) ? prev.filter(t => t !== label) : [...prev, label]);
 
+  const openPortal = async (key: string) => {
+    setLoading(key);
+    setError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("create-portal-session", {
+        body: { return_url: `${window.location.origin}/account` },
+      });
+      if (fnError) { setError(fnError.message || "Could not open billing portal"); setLoading(null); return; }
+      if (data?.url) { window.open(data.url, "_blank"); setLoading(null); }
+      else if (data?.error) { setError(data.error); setLoading(null); }
+      else { setError("Could not open billing portal"); setLoading(null); }
+    } catch (e: any) {
+      setError(e.message || "Could not open billing portal");
+      setLoading(null);
+    }
+  };
+
   const startCheckout = async (interval: "month" | "year" = billingInterval) => {
     if (!user) {
       navigate(`/signup?redirect=/subscribe`);
       return;
+    }
+    if (isPremium) {
+      // Already subscribed — open the portal instead of attempting a duplicate checkout.
+      return openPortal(interval);
     }
     setLoading(interval);
     setError(null);
@@ -76,6 +99,12 @@ const Subscribe = () => {
         { body }
       );
       if (fnError) { setError(fnError.message || "Something went wrong"); setLoading(null); return; }
+      if (data?.already_subscribed && data?.url) {
+        // Backend detected an active subscription and returned a portal URL.
+        window.open(data.url, "_blank");
+        setLoading(null);
+        return;
+      }
       if (data?.url) { window.location.href = data.url; }
       else if (data?.error) { setError(data.error); setLoading(null); }
     } catch (e: any) {
@@ -85,6 +114,23 @@ const Subscribe = () => {
   };
 
   const handleSubscribe = () => startCheckout(billingInterval);
+  const handleManage = () => openPortal("manage");
+
+  // CTA label helpers — when already subscribed, swap to "Manage subscription".
+  const heroCtaLabel = isPremium
+    ? (loading ? "Opening portal…" : "Manage subscription")
+    : (loading ? "Redirecting…" : `Get full intelligence — ${billingInterval === "year" ? "$390/year" : "$39/month"} →`);
+  const tracksCtaLabel = isPremium
+    ? (loading ? "Opening portal…" : "Manage subscription")
+    : (loading ? "Redirecting…" : "Get full intelligence — all 10 tracks included →");
+  const monthlyCtaLabel = isPremium
+    ? (loading === "month" ? "Opening portal…" : "Manage subscription")
+    : (loading === "month" ? "Redirecting…" : "Start Monthly Plan");
+  const yearlyCtaLabel = isPremium
+    ? (loading === "year" ? "Opening portal…" : "Manage subscription")
+    : (loading === "year" ? "Redirecting…" : "Start Annual Plan");
+  const heroOnClick = isPremium ? handleManage : handleSubscribe;
+  const tracksOnClick = isPremium ? handleManage : handleSubscribe;
 
   return (
     <div className="min-h-screen bg-paper">
