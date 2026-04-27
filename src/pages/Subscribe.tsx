@@ -729,7 +729,7 @@ const Subscribe = () => {
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-white text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "month" ? "Redirecting…" : "Start Monthly Plan"}
+              {monthlyCtaLabel}
             </button>
           </div>
 
@@ -767,7 +767,7 @@ const Subscribe = () => {
               disabled={loading !== null}
               className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none bg-amber-400 text-navy shadow-eup-md hover:opacity-90 disabled:opacity-50"
             >
-              {loading === "year" ? "Redirecting…" : "Start Annual Plan"}
+              {yearlyCtaLabel}
             </button>
           </div>
         </div>
