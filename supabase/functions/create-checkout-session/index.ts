@@ -70,6 +70,47 @@ serve(async (req) => {
     let mode: "subscription" | "payment" = "subscription";
     const metadata: Record<string, string> = { user_id: user.id };
 
+    // Guard: if this is a SUBSCRIPTION request and the user is already a
+    // premium subscriber, route them to the Stripe Billing Portal instead
+    // of attempting to create a duplicate subscription (Stripe would reject
+    // it with "Customer already has an active subscription to this price").
+    if (!tool_slug) {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("is_premium, is_pro, stripe_customer_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      const alreadySubscribed = existing?.is_premium === true || existing?.is_pro === true;
+      if (alreadySubscribed && existing?.stripe_customer_id) {
+        try {
+          const env = detectEnv();
+          const stripe = createStripeClient(env);
+          const origin = req.headers.get("origin") || "http://localhost:5173";
+          const portal = await stripe.billingPortal.sessions.create({
+            customer: existing.stripe_customer_id as string,
+            return_url: `${origin}/account`,
+          });
+          return new Response(
+            JSON.stringify({
+              url: portal.url,
+              already_subscribed: true,
+              message: "You already have an active subscription. Opening your billing portal.",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        } catch (portalErr) {
+          console.error("portal fallback failed:", portalErr);
+          return new Response(
+            JSON.stringify({
+              error: "You already have an active subscription. Please use Manage subscription to make changes.",
+              already_subscribed: true,
+            }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
     if (tool_slug) {
       const lookups = TOOL_LOOKUPS[tool_slug];
       if (!lookups) {
