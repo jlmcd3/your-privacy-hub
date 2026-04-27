@@ -319,11 +319,11 @@ const Subscribe = () => {
         </p>
         <div className="text-center mt-6">
           <button
-            onClick={handleSubscribe}
+            onClick={tracksOnClick}
             disabled={!!loading}
             className="bg-navy text-white font-bold text-[14px] py-3 px-10 rounded-xl hover:opacity-90 transition-all"
           >
-            {loading ? "Redirecting…" : "Get full intelligence — all 10 tracks included →"}
+            {tracksCtaLabel}
           </button>
         </div>
       </div>
