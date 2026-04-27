@@ -9,7 +9,7 @@ export default function CheckEmail() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Check Your Email | Your Privacy Hub</title></Helmet>
+      <Helmet><title>Check Your Email | End User Privacy</title></Helmet>
       <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8 text-center">

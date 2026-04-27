@@ -56,7 +56,7 @@ export default function SubscribeSuccess() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Welcome to Intelligence | Your Privacy Hub</title>
+        <title>Welcome to Intelligence | End User Privacy</title>
       </Helmet>
       <Navbar />
 

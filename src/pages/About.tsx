@@ -6,18 +6,18 @@ const About = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>About Your Privacy Hub | Privacy Regulatory Intelligence Platform</title>
-        <meta name="description" content="Your Privacy Hub monitors 119 regulatory authorities daily and delivers weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
+        <title>About End User Privacy | Privacy Regulatory Intelligence Platform</title>
+        <meta name="description" content="End User Privacy monitors 119 regulatory authorities daily and delivers weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
       </Helmet>
       <Navbar />
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
             <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
-              ABOUT YOUR PRIVACY HUB
+              ABOUT END USER PRIVACY
             </span>
             <h1 className="font-display text-[32px] md:text-[40px] font-extrabold text-white leading-tight mb-4">
-              About Your Privacy Hub
+              About End User Privacy
             </h1>
             <p className="text-slate-light text-[15px] max-w-[520px] mx-auto">
               Monitoring 119 regulatory authorities across 150+ jurisdictions, updated daily.
@@ -54,7 +54,7 @@ const About = () => {
               “Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do.”
             </blockquote>
             <p className="text-[15px] text-slate leading-relaxed">
-              Your Privacy Hub monitors 119 regulatory authorities and 150+ jurisdictions daily, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
+              End User Privacy monitors 119 regulatory authorities and 150+ jurisdictions daily, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
             </p>
           </div>
 
@@ -87,10 +87,10 @@ const About = () => {
             <p className="text-[15px] text-navy leading-relaxed">
               Questions about coverage, methodology, or your subscription? Reach us at{" "}
               <a
-                href="mailto:hello@yourprivacyhub.com"
+                href="mailto:hello@enduserprivacy.com"
                 className="text-sky font-semibold hover:underline"
               >
-                hello@yourprivacyhub.com
+                hello@enduserprivacy.com
               </a>{" "}
               — we respond within one business day.
             </p>
@@ -98,13 +98,13 @@ const About = () => {
 
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
-              Your Privacy Hub monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
+              End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
             </p>
             <p>
               Our platform ingests, filters, and summarizes primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.
             </p>
             <p>
-              Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, Your Privacy Hub gives you the intelligence you need in one place.
+              Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, End User Privacy gives you the intelligence you need in one place.
             </p>
             <h2 className="font-display text-[20px] font-bold text-navy pt-4">Our Mission</h2>
             <p>
@@ -136,8 +136,8 @@ const About = () => {
             <h2 className="font-display text-[20px] font-bold text-navy pt-4">Contact</h2>
             <p>
               Have questions or feedback? Reach us at{" "}
-              <a href="mailto:hello@yourprivacyhub.com" className="text-sky hover:underline">
-                hello@yourprivacyhub.com
+              <a href="mailto:hello@enduserprivacy.com" className="text-sky hover:underline">
+                hello@enduserprivacy.com
               </a>
             </p>
           </div>
@@ -152,7 +152,7 @@ const About = () => {
                 <thead>
                   <tr className="bg-fog">
                     <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">Your Privacy Hub</th>
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">End User Privacy</th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP Membership — $550+/yr</th>
                   </tr>

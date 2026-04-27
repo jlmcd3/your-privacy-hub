@@ -61,7 +61,7 @@ const TimelineDetail = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{meta.title} | Your Privacy Hub</title>
+        <title>{meta.title} | End User Privacy</title>
         <meta name="description" content={meta.description} />
       </Helmet>
       <Navbar />

@@ -6,8 +6,8 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Terms of Service | Your Privacy Hub</title>
-        <meta name="description" content="Terms of service for yourprivacyhub.com including copyright, acceptable use, subscriptions, and limitation of liability." />
+        <title>Terms of Service | End User Privacy</title>
+        <meta name="description" content="Terms of service for enduserprivacy.com including copyright, acceptable use, subscriptions, and limitation of liability." />
       </Helmet>
       <Navbar />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
@@ -18,14 +18,14 @@ const Terms = () => {
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground">1. Copyright Notice</h2>
             <p>
-              All content published on yourprivacyhub.com — including but not limited to articles, analyses,
+              All content published on enduserprivacy.com — including but not limited to articles, analyses,
               summaries, commentary, data compilations, graphics, logos, and software — is the exclusive
-              property of Your Privacy Hub and is protected by United States and international copyright laws.
+              property of End User Privacy and is protected by United States and international copyright laws.
             </p>
             <p>
-              © {new Date().getFullYear()} Your Privacy Hub. All rights reserved. No portion of this site may
+              © {new Date().getFullYear()} End User Privacy. All rights reserved. No portion of this site may
               be reproduced, duplicated, copied, sold, resold, or otherwise exploited for any commercial
-              purpose without express written consent from Your Privacy Hub.
+              purpose without express written consent from End User Privacy.
             </p>
           </section>
 
@@ -91,7 +91,7 @@ const Terms = () => {
           <section>
             <h2 className="font-display text-xl font-semibold text-foreground">5. Enforcement</h2>
             <p>
-              Your Privacy Hub actively monitors for unauthorized use of its content. We reserve the right to
+              End User Privacy actively monitors for unauthorized use of its content. We reserve the right to
               pursue all available legal remedies against any person or entity that violates these Terms,
               including injunctive relief, actual damages, and recovery of attorneys' fees.
             </p>
@@ -101,8 +101,8 @@ const Terms = () => {
             <h2 className="font-display text-xl font-semibold text-foreground">6. Contact</h2>
             <p>
               For licensing inquiries or to request permission to use our content, please contact us at{" "}
-              <a href="mailto:legal@yourprivacyhub.com" className="text-primary hover:underline">
-                legal@yourprivacyhub.com
+              <a href="mailto:legal@enduserprivacy.com" className="text-primary hover:underline">
+                legal@enduserprivacy.com
               </a>.
             </p>
           </section>

@@ -90,7 +90,7 @@ export default function RegistrationOrder() {
   return (
     <>
       <Helmet>
-        <title>Registration Order — Your Privacy Hub</title>
+        <title>Registration Order — End User Privacy</title>
       </Helmet>
       <Navbar />
       <main>

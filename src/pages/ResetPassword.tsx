@@ -48,7 +48,7 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Set New Password | Your Privacy Hub</title></Helmet>
+      <Helmet><title>Set New Password | End User Privacy</title></Helmet>
       <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
@@ -80,7 +80,7 @@ export default function ResetPassword() {
                 Set New Password
               </h1>
               <p className="text-sm text-slate text-center mb-7">
-                Choose a strong password for your Your Privacy Hub account.
+                Choose a strong password for your End User Privacy account.
               </p>
               {error && (
                 <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">

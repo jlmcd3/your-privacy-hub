@@ -46,7 +46,7 @@ export default function CookieConsentPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Cookie Consent Requirements by Jurisdiction | Your Privacy Hub</title>
+        <title>Cookie Consent Requirements by Jurisdiction | End User Privacy</title>
         <meta name="description" content="Comprehensive guide to cookie consent requirements under GDPR, ePrivacy, CCPA/CPRA, and U.S. state privacy laws. Enforcement examples, best practices, and compliance checklists." />
         <meta property="og:title" content="Cookie Consent Requirements by Jurisdiction" />
         <meta property="og:description" content="Complete cookie consent compliance guide covering GDPR, ePrivacy, and U.S. state laws." />
@@ -56,7 +56,7 @@ export default function CookieConsentPage() {
           "@type": "Article",
           "headline": "Cookie Consent Requirements by Jurisdiction",
           "description": "Comprehensive guide to global cookie consent requirements for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

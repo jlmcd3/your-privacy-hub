@@ -65,7 +65,7 @@ const SampleBrief = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-800">
       <Helmet>
-        <title>Sample Intelligence Brief | Your Privacy Hub</title>
+        <title>Sample Intelligence Brief | End User Privacy</title>
         <meta name="description" content="See a full sample of the weekly Privacy Intelligence Brief — 8 sections covering US Federal, US States, EU & UK, global developments, enforcement table, and trend signals." />
       </Helmet>
       <Navbar />
@@ -124,7 +124,7 @@ const SampleBrief = () => {
             <div className="bg-gradient-to-r from-navy to-steel px-8 py-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
-                  ⭐ Your Privacy Hub Intelligence Brief
+                  ⭐ End User Privacy Intelligence Brief
                 </span>
                 <span className="text-[11px] text-blue-300">Sample Edition</span>
               </div>

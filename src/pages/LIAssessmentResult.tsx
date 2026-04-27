@@ -75,7 +75,7 @@ const LIAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Legitimate Interest Assessment Tool | Your Privacy Hub</title></Helmet>
+      <Helmet><title>Legitimate Interest Assessment Tool | End User Privacy</title></Helmet>
       <Navbar />
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />

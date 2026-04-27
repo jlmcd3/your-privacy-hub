@@ -31,7 +31,7 @@ const GlossaryTerm = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{term.term} — Privacy Law Definition | Your Privacy Hub</title>
+        <title>{term.term} — Privacy Law Definition | End User Privacy</title>
         <meta name="description" content={`What does "${term.term}" mean in privacy law? Plain-English definition, related regulations (${term.regulations.join(", ")}), and linked terms.`} />
       </Helmet>
       <Navbar />

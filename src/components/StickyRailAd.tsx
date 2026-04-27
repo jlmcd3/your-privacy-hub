@@ -1,5 +1,5 @@
 /**
- * ADVERTISING POLICY — yourprivacyhub.com FRD v2.1 §8.3
+ * ADVERTISING POLICY — enduserprivacy.com FRD v2.1 §8.3
  *
  * 1. Ads are shown to ALL users including Intelligence subscribers.
  * 2. Ads served here MUST be contextual and non-behavioural.

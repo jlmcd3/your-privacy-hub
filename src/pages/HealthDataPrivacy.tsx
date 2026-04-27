@@ -30,7 +30,7 @@ export default function HealthDataPrivacyPage() {
           "@type": "Article",
           "headline": "Health Data Privacy: HIPAA, FTC Health Breach Rule, and State Laws",
           "description": "Comprehensive health data privacy guide for privacy professionals.",
-          "publisher": { "@type": "Organization", "name": "Your Privacy Hub" },
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
           "datePublished": "2026-03-24",
         })}</script>
       </Helmet>

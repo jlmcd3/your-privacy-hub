@@ -36,7 +36,7 @@ export default function IRPlaybookResult() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Your Breach Response Playbook | Your Privacy Hub</title></Helmet>
+      <Helmet><title>Your Breach Response Playbook | End User Privacy</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
