@@ -64,7 +64,7 @@ export default function ToolSampleOverlay({
           )}
           {showFreeForSubscribers && !isFreeForUser && (
             <p className="text-[11px] text-muted-foreground">
-              Included with a Intelligence subscription.{" "}
+              Included with an Intelligence subscription.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
                 See plans →
               </Link>
