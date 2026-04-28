@@ -727,7 +727,7 @@ const Subscribe = () => {
             <button
               onClick={() => startCheckout("month")}
               disabled={loading !== null}
-              className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none shadow-eup-md hover:opacity-90 disabled:opacity-50 bg-slate-50 text-navy"
+              className="w-full py-3.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer border-none shadow-eup-md bg-slate-50 opacity-100 text-navy"
             >
               {monthlyCtaLabel}
             </button>
