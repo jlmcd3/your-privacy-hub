@@ -130,10 +130,10 @@ serve(async (req) => {
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else {
       // Resolve interval-aware plan key. If caller passes interval=year, prefer yearly.
-      const requestedKey = interval === "year" ? "professional_yearly" : plan || "professional_monthly";
-      lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.professional_monthly;
-      metadata.subscription_tier = "professional";
-      metadata.subscription_interval = lookupKey === "professional_yearly_v2" ? "year" : "month";
+      const requestedKey = interval === "year" ? "intelligence_yearly" : plan || "intelligence_monthly";
+      lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
+      metadata.subscription_tier = "intelligence";
+      metadata.subscription_interval = lookupKey === "intelligence_yearly_v2" ? "year" : "month";
     }
 
     const env = detectEnv();
