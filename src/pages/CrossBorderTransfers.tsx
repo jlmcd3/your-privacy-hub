@@ -32,7 +32,7 @@ export default function CrossBorderTransfersPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/cross-border-transfers" />
+        <link rel="canonical" href="https://enduserprivacy.com/cross-border-transfers" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",

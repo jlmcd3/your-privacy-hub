@@ -30,7 +30,7 @@ function renderEmail(args: {
   order_id: string;
   filing_reference?: string | null;
 }): string {
-  const url = `https://privacy-guardian-v3.lovable.app/registration-manager/order/${args.order_id}`;
+  const url = `https://enduserprivacy.com/registration-manager/order/${args.order_id}`;
   return `<!doctype html><html><body style="font-family:system-ui,-apple-system,sans-serif;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
   <h2 style="margin:0 0 16px">Registration renewal due in ${args.days_until} days</h2>
   <p>Your data protection registration in <strong>${args.jurisdiction_code}</strong> expires on <strong>${new Date(args.expires_at).toDateString()}</strong>.</p>

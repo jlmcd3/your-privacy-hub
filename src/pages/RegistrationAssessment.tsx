@@ -151,7 +151,7 @@ export default function RegistrationAssessment() {
       <Helmet>
         <title>DPA & AI Act Registration Assessment — End User Privacy</title>
         <meta name="description" content="Free assessment that maps your organization to required DPA registrations, DPO appointments, EU representative obligations, and EU AI Act filings across 50+ jurisdictions." />
-        <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/registration-manager" />
+        <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
       <Navbar />
       <main>
