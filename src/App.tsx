@@ -90,109 +90,248 @@ const queryClient = new QueryClient();
 
 function CategoryRedirect() {
   const { slug } = useParams<{ slug: string }>();
-  return <Navigate to={`/updates?topic=${slug ?? ''}`} replace />;
+  return <Navigate to={`/updates?topic=${slug ?? ""}`} replace />;
 }
 
 function TopicRedirect() {
   const { slug } = useParams<{ slug: string }>();
-  return <Navigate to={`/updates?topic=${slug ?? ''}`} replace />;
+  return <Navigate to={`/updates?topic=${slug ?? ""}`} replace />;
 }
 
 const App = () => (
   <HelmetProvider>
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <ScrollToTopButton />
-        <PaymentTestModeBanner />
-        <BlankScreenDiagnostic />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
-          <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
-          <Route path="/enforcement" element={<Enforcement />} />
-          <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
-          <Route path="/enforcement-tracker" element={<Navigate to="/enforcement" replace />} />
-          <Route path="/enforcement-intelligence" element={<Navigate to="/enforcement" replace />} />
-          <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
-          <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
-          <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
-          <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
-          <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
-          <Route path="/ai-privacy-regulations" element={<AIPrivacyRegulations />} />
-          <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
-          <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
-          <Route path="/jurisdictions" element={<JurisdictionsHub />} />
-          <Route path="/regulator/:slug" element={<RegulatorPage />} />
-          <Route path="/category/:slug" element={<CategoryRedirect />} />
-          <Route path="/topics/:slug" element={<TopicRedirect />} />
-          <Route path="/glossary" element={<Glossary />} />
-          <Route path="/glossary/:slug" element={<GlossaryTerm />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/timelines" element={<Timelines />} />
-          <Route path="/timelines/:slug" element={<TimelineDetail />} />
-          <Route path="/compare/us-states" element={<USStateComparison />} />
-          <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
-          <Route path="/legislation-tracker" element={<LegislationTracker />} />
-          <Route path="/tools" element={<Tools />} />
-          <Route path="/cookie-consent" element={<CookieConsent />} />
-          <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
-          <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
-          <Route path="/breach-notification" element={<BreachNotification />} />
-          <Route path="/cross-border-transfers" element={<CrossBorderTransfers />} />
-          <Route path="/brief-preferences" element={<ProtectedRoute><BriefPreferences /></ProtectedRoute>} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/check-email" element={<CheckEmail />} />
-          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-          <Route path="/subscribe" element={<Subscribe />} />
-          <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/reports" element={<ProtectedRoute><MyReports /></ProtectedRoute>} />
-          <Route path="/dpa-generator/result/:id" element={<ProtectedRoute><DPAResult /></ProtectedRoute>} />
-          <Route path="/ir-playbook/result/:id" element={<ProtectedRoute><IRPlaybookResult /></ProtectedRoute>} />
-          <Route path="/biometric-checker/result/:id" element={<ProtectedRoute><BiometricCheckerResult /></ProtectedRoute>} />
-           <Route path="/get-intelligence" element={<GetIntelligence />} />
-           <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
-           <Route path="/admin/seed-li" element={<ProtectedRoute><AdminSeedLI /></ProtectedRoute>} />
-           <Route path="/admin/ingestion" element={<ProtectedRoute><AdminIngestionDashboard /></ProtectedRoute>} />
-           <Route path="/admin/email-signups" element={<ProtectedRoute><AdminEmailSignups /></ProtectedRoute>} />
-           <Route path="/admin/gating-leaks" element={<ProtectedRoute><DevOnly fallback={<NotFound />}><AdminGatingLeaks /></DevOnly></ProtectedRoute>} />
-           <Route path="/admin/pricing" element={<ProtectedRoute><DevOnly fallback={<NotFound />}><AdminPricingReconciliation /></DevOnly></ProtectedRoute>} />
-           <Route path="/li-assessment" element={<LIAssessment />} />
-           <Route path="/li-assessment/result/:id" element={<ProtectedRoute><LIAssessmentResult /></ProtectedRoute>} />
-           <Route path="/governance-assessment" element={<GovernanceAssessment />} />
-           <Route path="/governance-assessment/result/:id" element={<ProtectedRoute><GovernanceAssessmentResult /></ProtectedRoute>} />
-           <Route path="/dpia-framework" element={<DPIAFramework />} />
-           <Route path="/dpia-framework/result/:id" element={<ProtectedRoute><DPIAFrameworkResult /></ProtectedRoute>} />
-           <Route path="/dpa-generator" element={<DPAGenerator />} />
-           <Route path="/ir-playbook" element={<IRPlaybook />} />
-           <Route path="/biometric-checker" element={<BiometricChecker />} />
-           <Route path="/horizon" element={<Horizon />} />
-           <Route path="/registration-manager" element={<RegistrationLanding />} />
-           <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
-           <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
-           <Route path="/registration-manager/order/:id" element={<ProtectedRoute><RegistrationOrder /></ProtectedRoute>} />
-           <Route path="/registration-manager/documents/:id" element={<ProtectedRoute><RegistrationDocuments /></ProtectedRoute>} />
-           <Route path="/registration-manager/my-filings" element={<ProtectedRoute><RegistrationMyFilings /></ProtectedRoute>} />
-           <Route path="/updates" element={<Updates />} />
-           <Route path="/updates/:id" element={<UpdateDetail />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/sample-brief" element={<SampleBrief />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <ScrollToTopButton />
+          <PaymentTestModeBanner />
+          <BlankScreenDiagnostic />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
+            <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
+            <Route path="/enforcement" element={<Enforcement />} />
+            <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
+            <Route path="/enforcement-tracker" element={<Navigate to="/enforcement" replace />} />
+            <Route path="/enforcement-intelligence" element={<Navigate to="/enforcement" replace />} />
+            <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
+            <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
+            <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
+            <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
+            <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
+            <Route path="/ai-privacy-regulations" element={<AIPrivacyRegulations />} />
+            <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
+            <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
+            <Route path="/jurisdictions" element={<JurisdictionsHub />} />
+            <Route path="/regulator/:slug" element={<RegulatorPage />} />
+            <Route path="/category/:slug" element={<CategoryRedirect />} />
+            <Route path="/topics/:slug" element={<TopicRedirect />} />
+            <Route path="/glossary" element={<Glossary />} />
+            <Route path="/glossary/:slug" element={<GlossaryTerm />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/timelines" element={<Timelines />} />
+            <Route path="/timelines/:slug" element={<TimelineDetail />} />
+            <Route path="/compare/us-states" element={<USStateComparison />} />
+            <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
+            <Route path="/legislation-tracker" element={<LegislationTracker />} />
+            <Route path="/tools" element={<Tools />} />
+            <Route path="/cookie-consent" element={<CookieConsent />} />
+            <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
+            <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
+            <Route path="/breach-notification" element={<BreachNotification />} />
+            <Route path="/cross-border-transfers" element={<CrossBorderTransfers />} />
+            <Route
+              path="/brief-preferences"
+              element={
+                <ProtectedRoute>
+                  <BriefPreferences />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/check-email" element={<CheckEmail />} />
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute>
+                  <Account />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/subscribe" element={<Subscribe />} />
+            <Route
+              path="/subscribe/success"
+              element={
+                <ProtectedRoute>
+                  <SubscribeSuccess />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/reports"
+              element={
+                <ProtectedRoute>
+                  <MyReports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dpa-generator/result/:id"
+              element={
+                <ProtectedRoute>
+                  <DPAResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ir-playbook/result/:id"
+              element={
+                <ProtectedRoute>
+                  <IRPlaybookResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/biometric-checker/result/:id"
+              element={
+                <ProtectedRoute>
+                  <BiometricCheckerResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/get-intelligence" element={<GetIntelligence />} />
+            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
+            <Route
+              path="/admin/seed-li"
+              element={
+                <ProtectedRoute>
+                  <AdminSeedLI />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/ingestion"
+              element={
+                <ProtectedRoute>
+                  <AdminIngestionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/email-signups"
+              element={
+                <ProtectedRoute>
+                  <AdminEmailSignups />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/gating-leaks"
+              element={
+                <ProtectedRoute>
+                  <DevOnly fallback={<NotFound />}>
+                    <AdminGatingLeaks />
+                  </DevOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/pricing"
+              element={
+                <ProtectedRoute>
+                  <DevOnly fallback={<NotFound />}>
+                    <AdminPricingReconciliation />
+                  </DevOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/li-assessment" element={<LIAssessment />} />
+            <Route
+              path="/li-assessment/result/:id"
+              element={
+                <ProtectedRoute>
+                  <LIAssessmentResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/governance-assessment" element={<GovernanceAssessment />} />
+            <Route
+              path="/governance-assessment/result/:id"
+              element={
+                <ProtectedRoute>
+                  <GovernanceAssessmentResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/dpia-framework" element={<DPIAFramework />} />
+            <Route
+              path="/dpia-framework/result/:id"
+              element={
+                <ProtectedRoute>
+                  <DPIAFrameworkResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/dpa-generator" element={<DPAGenerator />} />
+            <Route path="/ir-playbook" element={<IRPlaybook />} />
+            <Route path="/biometric-checker" element={<BiometricChecker />} />
+            <Route path="/horizon" element={<Horizon />} />
+            <Route path="/registration-manager" element={<RegistrationLanding />} />
+            <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
+            <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
+            <Route
+              path="/registration-manager/order/:id"
+              element={
+                <ProtectedRoute>
+                  <RegistrationOrder />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/registration-manager/documents/:id"
+              element={
+                <ProtectedRoute>
+                  <RegistrationDocuments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/registration-manager/my-filings"
+              element={
+                <ProtectedRoute>
+                  <RegistrationMyFilings />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/updates" element={<Updates />} />
+            <Route path="/updates/:id" element={<UpdateDetail />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/laws" element={<Navigate to="/gdpr-enforcement" replace />} />
+            <Route path="/assessments" element={<Navigate to="/tools" replace />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/sample-brief" element={<SampleBrief />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 
