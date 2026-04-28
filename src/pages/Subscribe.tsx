@@ -103,7 +103,7 @@ const Subscribe = () => {
     setError(null);
     try {
       const body = {
-        plan: interval === "year" ? "professional_yearly" : "professional_monthly",
+        plan: interval === "year" ? "intelligence_yearly" : "intelligence_monthly",
         interval,
       };
       const { data, error: fnError } = await supabase.functions.invoke("create-checkout-session", { body });
