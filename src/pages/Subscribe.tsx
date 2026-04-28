@@ -171,7 +171,7 @@ const Subscribe = () => {
                 billingInterval === "year" ? "bg-white text-navy" : "text-white/70 hover:text-white"
               }`}
             >
-              Yearly · $390 <span className="text-[10px] uppercase tracking-wider ml-1 text-amber-500">Save $78</span>
+              Yearly · $390 <span className={`text-[10px] uppercase tracking-wider ml-1 font-bold ${billingInterval === "year" ? "text-amber-700" : "text-amber-300"}`}>Save $78</span>
             </button>
           </div>
           <div>
