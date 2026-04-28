@@ -272,7 +272,7 @@ const Subscribe = () => {
         </div>
       )}
 
-      {/* Interactive Pro Brief Preview */}
+      {/* Interactive Intelligence Brief Preview */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
         {/* Social proof bar */}
         <div className="max-w-3xl mx-auto mb-8 text-center">
