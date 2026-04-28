@@ -32,7 +32,7 @@ export default function BiometricPrivacyPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/biometric-privacy" />
+        <link rel="canonical" href="https://enduserprivacy.com/biometric-privacy" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",

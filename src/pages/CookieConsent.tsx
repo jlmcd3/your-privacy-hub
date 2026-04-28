@@ -50,7 +50,7 @@ export default function CookieConsentPage() {
         <meta name="description" content="Comprehensive guide to cookie consent requirements under GDPR, ePrivacy, CCPA/CPRA, and U.S. state privacy laws. Enforcement examples, best practices, and compliance checklists." />
         <meta property="og:title" content="Cookie Consent Requirements by Jurisdiction" />
         <meta property="og:description" content="Complete cookie consent compliance guide covering GDPR, ePrivacy, and U.S. state laws." />
-        <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/cookie-consent" />
+        <link rel="canonical" href="https://enduserprivacy.com/cookie-consent" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",

@@ -32,7 +32,7 @@ export default function BreachNotificationPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://privacy-guardian-v3.lovable.app/breach-notification" />
+        <link rel="canonical" href="https://enduserprivacy.com/breach-notification" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
