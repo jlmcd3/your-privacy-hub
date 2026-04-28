@@ -9,9 +9,9 @@ const corsHeaders = {
 };
 
 // Subscription plans → human-readable lookup keys
-// Professional = the new $19/mo or $190/yr tier (full archive, weekly brief,
-// watchlists, 2 tool credits/month). Legacy "premium_monthly" lookup key is
-// kept as a fallback for any in-flight links.
+// Professional = the $39/mo or $390/yr tier (full archive, weekly brief,
+// watchlists, subscriber rates on every tool). Legacy "premium_monthly"
+// lookup key is kept as a fallback for any in-flight links.
 const PLAN_LOOKUPS: Record<string, string> = {
   professional_monthly: "professional_monthly_v2",
   professional_yearly: "professional_yearly_v2",

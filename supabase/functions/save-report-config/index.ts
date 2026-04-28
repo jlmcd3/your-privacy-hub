@@ -57,7 +57,7 @@ serve(async (req) => {
               "Built from this week's developments across 67 regulatory sources.",
               "",
               "Unlock the full analysis — compliance implications, enforcement",
-              "patterns, and action items — for $20/month.",
+              "patterns, and action items — for $39/month.",
               "",
               "Get My Report → https://enduserprivacy.com/get-intelligence",
               "",
