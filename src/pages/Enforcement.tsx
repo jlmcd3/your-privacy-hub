@@ -10,13 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import EnforcementStats from "@/components/enforcement/EnforcementStats";
 import InFeedAd from "@/components/InFeedAd";
@@ -43,15 +37,31 @@ interface Row {
 const PAGE_SIZE = 25;
 
 const DATA_CATEGORIES = [
-  "health", "children", "employment", "behavioral", "financial",
-  "communications", "location", "biometric", "other",
+  "health",
+  "children",
+  "employment",
+  "behavioral",
+  "financial",
+  "communications",
+  "location",
+  "biometric",
+  "other",
 ];
 
 const VIOLATION_TYPES = [
-  "unlawful processing", "insufficient legal basis", "security failure",
-  "transparency", "SAR failure", "children's data", "data minimization",
-  "retention", "breach notification", "DPO failure", "DPIA missing",
-  "data transfer", "cookie consent",
+  "unlawful processing",
+  "insufficient legal basis",
+  "security failure",
+  "transparency",
+  "SAR failure",
+  "children's data",
+  "data minimization",
+  "retention",
+  "breach notification",
+  "DPO failure",
+  "DPIA missing",
+  "data transfer",
+  "cookie consent",
 ];
 
 const SIGNIFICANCE = [
@@ -97,10 +107,9 @@ export default function Enforcement() {
   const [rows, setRows] = useState<Row[]>([]);
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [archiveError, setArchiveError] = useState<
-    | { kind: "auth" | "premium" | "other"; message: string }
-    | null
-  >(null);
+  const [archiveError, setArchiveError] = useState<{ kind: "auth" | "premium" | "other"; message: string } | null>(
+    null,
+  );
   const [retryNonce, setRetryNonce] = useState(0);
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
@@ -118,11 +127,7 @@ export default function Enforcement() {
         const k = String(r.jurisdiction).trim();
         if (k) counts.set(k, (counts.get(k) ?? 0) + 1);
       });
-      setJurisdictions(
-        [...counts.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .map(([k]) => k)
-      );
+      setJurisdictions([...counts.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k));
 
       const { data: sdata } = await supabase
         .from("enforcement_actions")
@@ -155,47 +160,38 @@ export default function Enforcement() {
           return;
         }
 
-        const { data, error } = await supabase.functions.invoke(
-          "get-enforcement-archive",
-          {
-            body: {
-              q,
-              jurisdiction,
-              sector,
-              data_category: dataCat,
-              violation,
-              significance,
-              page,
-              pageSize: PAGE_SIZE,
-              includeRecent: true, // archive view = full history
-            },
-          }
-        );
+        const { data, error } = await supabase.functions.invoke("get-enforcement-archive", {
+          body: {
+            q,
+            jurisdiction,
+            sector,
+            data_category: dataCat,
+            violation,
+            significance,
+            page,
+            pageSize: PAGE_SIZE,
+            includeRecent: true, // archive view = full history
+          },
+        });
 
         if (cancelled) return;
         if (error || !data) {
           // FunctionsHttpError exposes .context.response with the HTTP status
-          const status: number | undefined =
-            (error as any)?.context?.response?.status ??
-            (error as any)?.status;
+          const status: number | undefined = (error as any)?.context?.response?.status ?? (error as any)?.status;
           if (status === 401) {
-            const msg =
-              "Your session has expired. Please sign in again to access the archive.";
+            const msg = "Your session has expired. Please sign in again to access the archive.";
             setArchiveError({ kind: "auth", message: msg });
             toast.error("Sign-in required", {
               description: msg,
               action: {
                 label: "Sign in",
                 onClick: () => {
-                  window.location.href = `/login?redirect=${encodeURIComponent(
-                    "/enforcement?view=archive"
-                  )}`;
+                  window.location.href = `/login?redirect=${encodeURIComponent("/enforcement?view=archive")}`;
                 },
               },
             });
           } else if (status === 403) {
-            const msg =
-              "A Premium subscription is required to search the full historical archive.";
+            const msg = "An Intelligence subscription is required to search the full historical archive.";
             setArchiveError({ kind: "premium", message: msg });
             toast.error("Premium required", {
               description: msg,
@@ -207,9 +203,7 @@ export default function Enforcement() {
               },
             });
           } else {
-            const msg =
-              error?.message ??
-              "Unable to load the archive right now. Please try again.";
+            const msg = error?.message ?? "Unable to load the archive right now. Please try again.";
             setArchiveError({ kind: "other", message: msg });
             toast.error("Couldn't load the archive", {
               description: msg,
@@ -234,20 +228,17 @@ export default function Enforcement() {
         .from("enforcement_actions")
         .select(
           "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law",
-          { count: "exact" }
+          { count: "exact" },
         );
 
       if (jurisdiction !== "all") query = query.eq("jurisdiction", jurisdiction);
       if (sector !== "all") query = query.eq("industry_sector", sector);
       if (dataCat !== "all") query = query.contains("data_categories", [dataCat]);
       if (violation !== "all") query = query.contains("violation_types", [violation]);
-      if (significance !== "any")
-        query = query.gte("precedent_significance", parseInt(significance));
+      if (significance !== "any") query = query.gte("precedent_significance", parseInt(significance));
       if (q.trim()) {
         const like = `%${q.trim()}%`;
-        query = query.or(
-          `subject.ilike.${like},violation.ilike.${like},key_compliance_failure.ilike.${like}`
-        );
+        query = query.or(`subject.ilike.${like},violation.ilike.${like},key_compliance_failure.ilike.${like}`);
       }
 
       query = query
@@ -266,24 +257,11 @@ export default function Enforcement() {
     return () => {
       cancelled = true;
     };
-  }, [
-    view,
-    q,
-    jurisdiction,
-    sector,
-    dataCat,
-    violation,
-    significance,
-    page,
-    isPremium,
-    authLoading,
-    retryNonce,
-  ]);
+  }, [view, q, jurisdiction, sector, dataCat, violation, significance, page, isPremium, authLoading, retryNonce]);
 
   const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(params);
-    if (!value || value === "all" || value === "any" || value === "")
-      next.delete(key);
+    if (!value || value === "all" || value === "any" || value === "") next.delete(key);
     else next.set(key, value);
     if (key !== "page") next.delete("page");
     setParams(next, { replace: true });
@@ -342,43 +320,42 @@ export default function Enforcement() {
           <h1 className="font-serif text-4xl md:text-5xl mb-3">
             {view === "archive" ? "Enforcement Tracker — Full Archive" : "Enforcement Tracker"}
           </h1>
-          {view === "recent" && (() => {
-            const PUBLIC_WINDOW_DAYS = 60;
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - PUBLIC_WINDOW_DAYS);
-            const cutoffLabel = cutoff.toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            });
-            return (
-              <div
-                className="mb-3 inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground"
-                data-testid="enforcement-window-indicator"
-                data-window-days={PUBLIC_WINDOW_DAYS}
-                data-cutoff-date={cutoff.toISOString().slice(0, 10)}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-                <span>
-                  Window: <strong className="text-foreground">{PUBLIC_WINDOW_DAYS} days</strong>
-                  {" · "}
-                  Showing actions on or after{" "}
-                  <strong className="text-foreground">{cutoffLabel}</strong>
-                </span>
-              </div>
-            );
-          })()}
+          {view === "recent" &&
+            (() => {
+              const PUBLIC_WINDOW_DAYS = 60;
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - PUBLIC_WINDOW_DAYS);
+              const cutoffLabel = cutoff.toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              });
+              return (
+                <div
+                  className="mb-3 inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground"
+                  data-testid="enforcement-window-indicator"
+                  data-window-days={PUBLIC_WINDOW_DAYS}
+                  data-cutoff-date={cutoff.toISOString().slice(0, 10)}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  <span>
+                    Window: <strong className="text-foreground">{PUBLIC_WINDOW_DAYS} days</strong>
+                    {" · "}
+                    Showing actions on or after <strong className="text-foreground">{cutoffLabel}</strong>
+                  </span>
+                </div>
+              );
+            })()}
           <p className="text-muted-foreground max-w-3xl">
             {view === "recent" ? (
               <>
-                Search the last <strong>60 days</strong> of enriched privacy enforcement actions —
-                free for everyone. Filter by jurisdiction, sector, data category, violation type,
-                and precedent significance.
+                Search the last <strong>60 days</strong> of enriched privacy enforcement actions — free for everyone.
+                Filter by jurisdiction, sector, data category, violation type, and precedent significance.
               </>
             ) : (
               <>
-                Full historical archive of enriched privacy enforcement actions. Search across
-                3,700+ decisions worldwide.
+                Full historical archive of enriched privacy enforcement actions. Search across 3,700+ decisions
+                worldwide.
               </>
             )}
           </p>
@@ -427,9 +404,9 @@ export default function Enforcement() {
                   <h2 className="font-semibold text-base">Premium archive</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Search 3,700+ historical enforcement actions with full intelligence —
-                  significance ratings, key compliance failures, violation taxonomies, and
-                  preventive measures. Recent 60 days remain free for everyone.
+                  Search 3,700+ historical enforcement actions with full intelligence — significance ratings, key
+                  compliance failures, violation taxonomies, and preventive measures. Recent 60 days remain free for
+                  everyone.
                 </p>
               </div>
               <Link to="/subscribe" className="shrink-0">
@@ -441,9 +418,7 @@ export default function Enforcement() {
 
         {/* Stats — recompute based on current view's data via the same filter shape */}
         {view === "recent" && (
-          <EnforcementStats
-            filters={{ q, jurisdiction, sector, dataCat, violation, significance }}
-          />
+          <EnforcementStats filters={{ q, jurisdiction, sector, dataCat, violation, significance }} />
         )}
 
         {/* Filters */}
@@ -459,18 +434,14 @@ export default function Enforcement() {
                 placeholder="Search subject, violation, or key failure…"
                 defaultValue={q}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter")
-                    setParam("q", (e.target as HTMLInputElement).value);
+                  if (e.key === "Enter") setParam("q", (e.target as HTMLInputElement).value);
                 }}
                 className="pl-9"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              <Select
-                value={jurisdiction}
-                onValueChange={(v) => setParam("jurisdiction", v)}
-              >
+              <Select value={jurisdiction} onValueChange={(v) => setParam("jurisdiction", v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Jurisdiction" />
                 </SelectTrigger>
@@ -498,10 +469,7 @@ export default function Enforcement() {
                 </SelectContent>
               </Select>
 
-              <Select
-                value={dataCat}
-                onValueChange={(v) => setParam("data_category", v)}
-              >
+              <Select value={dataCat} onValueChange={(v) => setParam("data_category", v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Data category" />
                 </SelectTrigger>
@@ -515,10 +483,7 @@ export default function Enforcement() {
                 </SelectContent>
               </Select>
 
-              <Select
-                value={violation}
-                onValueChange={(v) => setParam("violation", v)}
-              >
+              <Select value={violation} onValueChange={(v) => setParam("violation", v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Violation type" />
                 </SelectTrigger>
@@ -532,10 +497,7 @@ export default function Enforcement() {
                 </SelectContent>
               </Select>
 
-              <Select
-                value={significance}
-                onValueChange={(v) => setParam("significance", v)}
-              >
+              <Select value={significance} onValueChange={(v) => setParam("significance", v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Significance" />
                 </SelectTrigger>
@@ -553,16 +515,9 @@ export default function Enforcement() {
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-xs text-muted-foreground">Active:</span>
                 {activeFilters.map((f) => (
-                  <Badge
-                    key={f.key}
-                    variant="secondary"
-                    className="gap-1 capitalize"
-                  >
+                  <Badge key={f.key} variant="secondary" className="gap-1 capitalize">
                     {f.label}
-                    <button
-                      onClick={() => setParam(f.key, "")}
-                      className="hover:text-destructive"
-                    >
+                    <button onClick={() => setParam(f.key, "")} className="hover:text-destructive">
                       <X className="w-3 h-3" />
                     </button>
                   </Badge>
@@ -589,11 +544,8 @@ export default function Enforcement() {
             {loading
               ? "Loading…"
               : view === "archive" && !isPremium
-              ? "Premium subscription required to view the archive."
-              : `${count.toLocaleString()} actions • Page ${page + 1} of ${Math.max(
-                  1,
-                  totalPages
-                )}`}
+                ? "Premium subscription required to view the archive."
+                : `${count.toLocaleString()} actions • Page ${page + 1} of ${Math.max(1, totalPages)}`}
           </span>
           {view === "recent" && !loading && count > 0 && (
             <Link
@@ -615,8 +567,8 @@ export default function Enforcement() {
               archiveError.kind === "premium"
                 ? "border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/10"
                 : archiveError.kind === "auth"
-                ? "border-primary/40 bg-primary/5"
-                : "border-destructive/40 bg-destructive/5"
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-destructive/40 bg-destructive/5"
             }`}
           >
             <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -633,8 +585,8 @@ export default function Enforcement() {
                     {archiveError.kind === "premium"
                       ? "Premium required"
                       : archiveError.kind === "auth"
-                      ? "Sign-in required"
-                      : "Couldn't load the archive"}
+                        ? "Sign-in required"
+                        : "Couldn't load the archive"}
                   </p>
                   <p className="text-muted-foreground">{archiveError.message}</p>
                 </div>
@@ -646,20 +598,12 @@ export default function Enforcement() {
                   </Link>
                 )}
                 {archiveError.kind === "auth" && (
-                  <Link
-                    to={`/login?redirect=${encodeURIComponent(
-                      "/enforcement?view=archive"
-                    )}`}
-                  >
+                  <Link to={`/login?redirect=${encodeURIComponent("/enforcement?view=archive")}`}>
                     <Button size="sm">Sign in</Button>
                   </Link>
                 )}
                 {archiveError.kind === "other" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setRetryNonce((n) => n + 1)}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => setRetryNonce((n) => n + 1)}>
                     <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                     Try again
                   </Button>
@@ -671,9 +615,7 @@ export default function Enforcement() {
 
         <div className="space-y-3">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
-            ))
+            Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)
           ) : view === "archive" && !isPremium ? null : rows.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
@@ -681,10 +623,7 @@ export default function Enforcement() {
                 {view === "recent" && " in the last 60 days"}.
                 {view === "recent" && (
                   <div className="mt-3">
-                    <button
-                      onClick={() => switchView("archive")}
-                      className="text-primary hover:underline text-sm"
-                    >
+                    <button onClick={() => switchView("archive")} className="text-primary hover:underline text-sm">
                       Try the full archive →
                     </button>
                   </div>
@@ -693,27 +632,19 @@ export default function Enforcement() {
             </Card>
           ) : (
             rows.map((r) => (
-              <Link
-                key={r.id}
-                to={`/enforcement/${r.id}`}
-                className="block group"
-              >
+              <Link key={r.id} to={`/enforcement/${r.id}`} className="block group">
                 <Card className="transition hover:border-primary/40 hover:shadow-sm">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                          <span className="font-medium text-foreground">
-                            {r.jurisdiction}
-                          </span>
+                          <span className="font-medium text-foreground">{r.jurisdiction}</span>
                           <span>•</span>
                           <span>{r.regulator}</span>
                           {r.decision_date && (
                             <>
                               <span>•</span>
-                              <span>
-                                {new Date(r.decision_date).toLocaleDateString()}
-                              </span>
+                              <span>{new Date(r.decision_date).toLocaleDateString()}</span>
                             </>
                           )}
                         </div>
@@ -722,42 +653,28 @@ export default function Enforcement() {
                         </h3>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-mono font-semibold">
-                          {formatEur(r.fine_eur_equivalent ?? r.fine_eur)}
-                        </div>
+                        <div className="font-mono font-semibold">{formatEur(r.fine_eur_equivalent ?? r.fine_eur)}</div>
                         <Stars n={r.precedent_significance} />
                       </div>
                     </div>
 
                     {r.key_compliance_failure && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {r.key_compliance_failure}
-                      </p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{r.key_compliance_failure}</p>
                     )}
 
                     <div className="flex flex-wrap gap-1.5">
                       {r.industry_sector && (
-                        <Badge
-                          variant="outline"
-                          className="capitalize text-xs"
-                        >
+                        <Badge variant="outline" className="capitalize text-xs">
                           {r.industry_sector}
                         </Badge>
                       )}
                       {(r.violation_types ?? []).slice(0, 3).map((v) => (
-                        <Badge
-                          key={v}
-                          variant="secondary"
-                          className="capitalize text-xs"
-                        >
+                        <Badge key={v} variant="secondary" className="capitalize text-xs">
                           {v}
                         </Badge>
                       ))}
                       {(r.data_categories ?? []).slice(0, 3).map((c) => (
-                        <Badge
-                          key={c}
-                          className="capitalize text-xs bg-primary/10 text-primary hover:bg-primary/20"
-                        >
+                        <Badge key={c} className="capitalize text-xs bg-primary/10 text-primary hover:bg-primary/20">
                           {c}
                         </Badge>
                       ))}
@@ -772,11 +689,7 @@ export default function Enforcement() {
         {/* Pagination */}
         {totalPages > 1 && !(view === "archive" && !isPremium) && (
           <div className="flex items-center justify-between mt-6">
-            <Button
-              variant="outline"
-              disabled={page === 0}
-              onClick={() => setParam("page", String(page - 1))}
-            >
+            <Button variant="outline" disabled={page === 0} onClick={() => setParam("page", String(page - 1))}>
               ← Previous
             </Button>
             <span className="text-sm text-muted-foreground">
