@@ -9,19 +9,19 @@ const corsHeaders = {
 };
 
 // Subscription plans → human-readable lookup keys
-// Professional = the $39/mo or $390/yr tier (full archive, weekly brief,
+// Intelligence = the $39/mo or $390/yr tier (full archive, weekly brief,
 // watchlists, subscriber rates on every tool). Legacy "premium_monthly"
 // lookup key is kept as a fallback for any in-flight links.
 const PLAN_LOOKUPS: Record<string, string> = {
-  professional_monthly: "professional_monthly_v2",
-  professional_yearly: "professional_yearly_v2",
+  intelligence_monthly: "intelligence_monthly_v2",
+  intelligence_yearly: "intelligence_yearly_v2",
   // Legacy aliases — all map to the new monthly Professional price.
-  pro: "professional_monthly_v2",
-  premium: "professional_monthly_v2",
-  standard: "professional_monthly_v2",
-  monthly: "professional_monthly_v2",
-  yearly: "professional_yearly_v2",
-  annual: "professional_yearly_v2",
+  pro: "intelligence_monthly_v2",
+  premium: "intelligence_monthly_v2",
+  standard: "intelligence_monthly_v2",
+  monthly: "intelligence_monthly_v2",
+  yearly: "intelligence_yearly_v2",
+  annual: "intelligence_yearly_v2",
 };
 
 // Tool one-time purchases via tool_slug
@@ -50,9 +50,12 @@ serve(async (req) => {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -96,7 +99,7 @@ serve(async (req) => {
               already_subscribed: true,
               message: "You already have an active subscription. Opening your billing portal.",
             }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
         } catch (portalErr) {
           console.error("portal fallback failed:", portalErr);
@@ -105,7 +108,7 @@ serve(async (req) => {
               error: "You already have an active subscription. Please use Manage subscription to make changes.",
               already_subscribed: true,
             }),
-            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
         }
       }
@@ -119,11 +122,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_premium")
-        .eq("id", user.id)
-        .single();
+      const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).single();
       const isSubscriber = !!profile?.is_premium;
       lookupKey = isSubscriber ? lookups.subscriber : lookups.standalone;
       mode = "payment";
@@ -131,9 +130,7 @@ serve(async (req) => {
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else {
       // Resolve interval-aware plan key. If caller passes interval=year, prefer yearly.
-      const requestedKey = interval === "year"
-        ? "professional_yearly"
-        : (plan || "professional_monthly");
+      const requestedKey = interval === "year" ? "professional_yearly" : plan || "professional_monthly";
       lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.professional_monthly;
       metadata.subscription_tier = "professional";
       metadata.subscription_interval = lookupKey === "professional_yearly_v2" ? "year" : "month";
@@ -143,10 +140,10 @@ serve(async (req) => {
     const stripe = createStripeClient(env);
     const stripePrice = await resolvePriceId(stripe, lookupKey!);
     if (!stripePrice) {
-      return new Response(
-        JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
