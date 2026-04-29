@@ -550,23 +550,30 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Awaiting first brief — prospective messaging */}
+        {/* Awaiting first personalized brief — prospective messaging.
+            Shown above the general weekly brief so subscribers know their
+            customized version is still pending. */}
         {!customBrief && (
-          <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-8 mb-8 text-center">
-            <p className="text-4xl mb-3">📬</p>
-            <h3 className="font-display font-bold text-foreground text-[20px] mb-2">
-              Your first personalized brief arrives Monday
-            </h3>
-            <p className="text-muted-foreground text-[14px] mb-5 max-w-md mx-auto">
-              Briefs are generated weekly from your saved preferences. Update your preferences any time —
-              changes take effect with the next Monday brief.
-            </p>
-            <Link
-              to="/brief-preferences"
-              className="inline-block text-primary font-medium text-[14px] py-3 px-6 rounded-xl border border-border no-underline hover:bg-muted transition-all"
-            >
-              Review your preferences →
-            </Link>
+          <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">
+            <div className="flex items-start gap-4">
+              <p className="text-3xl">📬</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display font-bold text-foreground text-[18px] mb-1">
+                  Your personalized brief arrives next Monday
+                </h3>
+                <p className="text-muted-foreground text-[13px] mb-3 leading-relaxed">
+                  In the meantime, the general Weekly Intelligence Brief below covers this week's
+                  developments across every jurisdiction and topic. Your personalized version
+                  will customize and analyze the same material for your priorities and responsibilities.
+                </p>
+                <Link
+                  to="/brief-preferences"
+                  className="inline-block text-primary font-semibold text-[13px] no-underline hover:underline"
+                >
+                  Review your preferences →
+                </Link>
+              </div>
+            </div>
           </div>
         )}
 
