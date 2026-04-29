@@ -174,7 +174,7 @@ const Login = () => {
 
             <div className="flex items-center justify-between mt-6 text-[13px]">
               <Link
-                to={`/signup?redirect=${encodeURIComponent(redirect)}`}
+                to={safeRedirect ? `/signup?redirect=${encodeURIComponent(safeRedirect)}` : "/signup"}
                 className="text-blue font-medium hover:underline no-underline"
               >
                 Create account
