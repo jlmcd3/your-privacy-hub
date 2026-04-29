@@ -241,6 +241,15 @@ const PillarPage = ({
               <span className="md:hidden text-slate text-[10px] group-open:rotate-180 transition-transform">▼</span>
             </summary>
             <nav className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+              {recentArticles.length > 0 && (
+                <a
+                  href="#recent-developments"
+                  className="text-[13px] text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                >
+                  <span className="text-slate">→</span>
+                  <span>Recent developments <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-teal-600/15 text-teal-700 align-middle">Live</span></span>
+                </a>
+              )}
               {sections.map((sec, i) => {
                 const slug = sec.heading
                   .toLowerCase()
@@ -292,7 +301,7 @@ const PillarPage = ({
 
         {/* Recent Developments — proves the page is live after the Weekly Intelligence CTA */}
         {recentArticles.length > 0 && (
-          <div className="mb-10">
+          <div id="recent-developments" className="scroll-mt-24 mb-10">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-display text-base text-navy">Recent developments</h2>
               <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
