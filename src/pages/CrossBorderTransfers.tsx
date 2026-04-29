@@ -53,7 +53,7 @@ export default function CrossBorderTransfersPage() {
           { label: "🌍 Jurisdictions Map", href: "/jurisdictions" },
           { label: "⚖️ GDPR Enforcement", href: "/gdpr-enforcement" },
           { label: "📜 Global Privacy Laws", href: "/global-privacy-laws" },
-          { label: "⭐ Intelligence Plan — $20/month", href: "/subscribe" },
+          { label: "⭐ Intelligence Plan — $39/month", href: "/subscribe" },
         ]}
         intelligenceLabel="What changed in cross-border transfers this week"
         updateOrFilter="title.ilike.%transfer%,title.ilike.%cross-border%,title.ilike.%adequacy%,title.ilike.%SCCs%,topic_tags.cs.{cross-border}"

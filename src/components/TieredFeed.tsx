@@ -183,7 +183,7 @@ export function TieredFeed({
             to="/subscribe"
             className="text-[12px] px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
           >
-            Intelligence plan — $20/month
+            Intelligence plan — $39/month
           </Link>
         </div>
       </div>
