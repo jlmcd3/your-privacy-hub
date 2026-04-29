@@ -163,12 +163,13 @@ const Updates = () => {
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
 
-    // Pre-filter from ?region= or ?topic= query param
+    // Sync active pill with ?region= / ?topic= query param (resets to "all" when cleared)
     useEffect(() => {
         const region = searchParams.get("region");
         const topic = searchParams.get("topic");
         if (topic) setActiveFilter(topic);
         else if (region) setActiveFilter(region);
+        else setActiveFilter("all");
     }, [searchParams]);
 
     const topicFilter = searchParams.get("topic");
