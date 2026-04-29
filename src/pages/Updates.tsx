@@ -582,7 +582,7 @@ const Updates = () => {
                             <TieredFeed
                                 articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
                                 paginated={true}
-                                previewCount={3}
+                                previewCount={1}
                                 seeAllHref="/updates"
                                 showSeeAll={false}
                                 hasMore={hasMore}
