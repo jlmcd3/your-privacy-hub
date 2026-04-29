@@ -76,9 +76,12 @@ const TOOLS: Record<
   },
 };
 
-// Derive sandbox vs live from which gateway key is configured. Sandbox is
-// always configured first; live appears after the user claims the account.
-function detectEnv(): StripeEnv {
+// Resolve the Stripe environment. Always prefer the explicit value the
+// client sends (derived from the publishable token prefix), so test cards
+// from the preview never land in live mode.
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
