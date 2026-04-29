@@ -301,7 +301,7 @@ const PillarPage = ({
 
         {/* Recent Developments — proves the page is live after the Weekly Intelligence CTA */}
         {recentArticles.length > 0 && (
-          <div className="mb-10">
+          <div id="recent-developments" className="scroll-mt-24 mb-10">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-display text-base text-navy">Recent developments</h2>
               <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
