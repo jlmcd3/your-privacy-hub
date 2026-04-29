@@ -962,7 +962,16 @@ Articles that ARE relevant and must NOT be skipped include: AdTech, advertising 
 
 STEP 2 — If relevant, return this JSON:
 {
+  "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what's at stake for organizations subject to it. Designed to be read at a glance in a feed. No generic phrasing.",
+
   "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+
+  "related_signals": [
+    {
+      "label": "Short pattern/precedent observation — e.g. '3rd CCPA enforcement action this quarter', 'Mirrors EDPB binding decision 02/2026', 'Aligns with FTC Rite Aid order'.",
+      "kind": "pattern | precedent | trend"
+    }
+  ],
 
   "takeaways": [
     "Specific factual point from this article — cite regulator or law name",
@@ -1329,6 +1338,14 @@ Deno.serve(async (req) => {
               // Extract new top-level enrichment fields into dedicated columns
               if (typeof aiSummary.regulatory_theory === "string" && aiSummary.regulatory_theory.trim()) {
                 row.regulatory_theory = aiSummary.regulatory_theory;
+              }
+              if (typeof aiSummary.why_it_matters_short === "string" && aiSummary.why_it_matters_short.trim()) {
+                row.why_it_matters_short = aiSummary.why_it_matters_short.trim();
+              }
+              if (Array.isArray(aiSummary.related_signals) && aiSummary.related_signals.length > 0) {
+                row.related_signals = aiSummary.related_signals
+                  .filter((s: any) => s && typeof s.label === "string" && s.label.trim())
+                  .slice(0, 4);
               }
               if (Array.isArray(aiSummary.action_items) && aiSummary.action_items.length > 0) {
                 row.action_items = aiSummary.action_items;
