@@ -141,7 +141,6 @@ serve(async (req) => {
       metadata.subscription_interval = lookupKey === "intelligence_yearly_v2" ? "year" : "month";
     }
 
-    const env = detectEnv();
     const stripe = createStripeClient(env);
     const stripePrice = await resolvePriceId(stripe, lookupKey!);
     if (!stripePrice) {
