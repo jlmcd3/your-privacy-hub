@@ -125,7 +125,7 @@ export default function BiometricChecker() {
               ) : access.isPremium ? (
                 <p className="text-[12px] text-muted-foreground mb-3">Included with your Intelligence subscription.</p>
               ) : (
-                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Intelligence ($39/month).</p>
+                <p className="text-[12px] text-muted-foreground mb-3">{`Analysis is $49 — or included with Intelligence (${INTELLIGENCE_PRICING.monthly()}).`}</p>
               )}
               <div className="flex gap-3 flex-wrap">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
