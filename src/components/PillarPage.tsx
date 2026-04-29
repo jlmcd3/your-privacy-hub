@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Lock, ExternalLink } from "lucide-react";
+import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { TieredFeed } from "@/components/TieredFeed";
+import type { ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
