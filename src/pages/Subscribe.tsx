@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/env";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
@@ -106,6 +107,7 @@ const Subscribe = () => {
       const body = {
         plan: interval === "year" ? "intelligence_yearly" : "intelligence_monthly",
         interval,
+        environment: getStripeEnvironment(),
       };
       const { data, error: fnError } = await supabase.functions.invoke("create-checkout-session", { body });
       if (fnError) {

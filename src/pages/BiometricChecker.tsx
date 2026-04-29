@@ -9,6 +9,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { getStripeEnvironment } from "@/lib/env";
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
@@ -56,7 +57,7 @@ export default function BiometricChecker() {
     if (access.isPremium) { handleGenerate(); return; }
     // 3. Free account holders pay $49 to run
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "biometric_checker", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/biometric-checker" },
+      body: { tool_type: "biometric_checker", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/biometric-checker", environment: getStripeEnvironment() },
     });
     if (data?.url) window.location.href = data.url;
   };

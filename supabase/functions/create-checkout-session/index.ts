@@ -31,7 +31,11 @@ const TOOL_LOOKUPS: Record<string, { standalone: string; subscriber: string }> =
   dpia_builder: { standalone: "dpia_standalone_v2", subscriber: "dpia_subscriber_v2" },
 };
 
-function detectEnv(): StripeEnv {
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  // Fallback: prefer sandbox when its key exists. Live key alone is not
+  // enough to assume live mode — the client is the source of truth.
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
@@ -63,11 +67,13 @@ serve(async (req) => {
       });
     }
 
-    const { plan, tool_slug, interval } = (await req.json().catch(() => ({}))) as {
+    const { plan, tool_slug, interval, environment } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
       interval?: "month" | "year";
+      environment?: string;
     };
+    const env = detectEnv(environment);
 
     let lookupKey: string | undefined;
     let mode: "subscription" | "payment" = "subscription";
@@ -86,7 +92,6 @@ serve(async (req) => {
       const alreadySubscribed = existing?.is_premium === true || existing?.is_pro === true;
       if (alreadySubscribed && existing?.stripe_customer_id) {
         try {
-          const env = detectEnv();
           const stripe = createStripeClient(env);
           const origin = req.headers.get("origin") || "http://localhost:5173";
           const portal = await stripe.billingPortal.sessions.create({
@@ -136,7 +141,6 @@ serve(async (req) => {
       metadata.subscription_interval = lookupKey === "intelligence_yearly_v2" ? "year" : "month";
     }
 
-    const env = detectEnv();
     const stripe = createStripeClient(env);
     const stripePrice = await resolvePriceId(stripe, lookupKey!);
     if (!stripePrice) {

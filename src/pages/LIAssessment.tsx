@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/env";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -106,6 +107,7 @@ const LIAssessment = () => {
             alternatives_considered: alternatives || null,
           },
           return_url: window.location.origin,
+          environment: getStripeEnvironment(),
         },
       });
       if (error || !data?.url) throw error ?? new Error("Checkout failed");

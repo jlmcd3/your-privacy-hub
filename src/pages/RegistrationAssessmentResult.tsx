@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/env";
 import { toast } from "sonner";
 import { Copy, Loader2, Mail } from "lucide-react";
 
@@ -114,6 +115,7 @@ export default function RegistrationAssessmentResult() {
               contact_email: assessment?.email || user.email,
               intake: assessment?.intake_data,
             },
+            environment: getStripeEnvironment(),
           },
         }
       );

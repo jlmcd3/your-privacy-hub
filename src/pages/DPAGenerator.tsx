@@ -9,6 +9,7 @@ import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/env";
 
 const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
@@ -64,7 +65,7 @@ export default function DPAGenerator() {
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "dpa_generator", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/dpa-generator" },
+      body: { tool_type: "dpa_generator", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/dpa-generator", environment: getStripeEnvironment() },
     });
     if (data?.url) window.location.href = data.url;
   };

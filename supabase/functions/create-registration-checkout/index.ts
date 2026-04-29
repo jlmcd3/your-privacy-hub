@@ -29,7 +29,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-function detectEnv(): StripeEnv {
+// Resolve the Stripe environment. Always prefer the explicit value the
+// client sends (derived from the publishable token prefix), so test cards
+// from the preview never land in live mode.
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
@@ -86,7 +91,7 @@ serve(async (req) => {
     const raw = await req.json();
     // Backwards-compat: map legacy tier name
     const tier = raw.tier === "done_for_you" ? "counsel_review" : raw.tier;
-    const { jurisdictions, assessment_id, organization_snapshot } = raw;
+    const { jurisdictions, assessment_id, organization_snapshot, environment } = raw;
     if (!tier || !PRICING[tier as keyof typeof PRICING]) {
       return new Response(JSON.stringify({ error: "Invalid tier" }), {
         status: 400,
@@ -156,7 +161,7 @@ serve(async (req) => {
       .single();
     if (orderErr || !order) throw orderErr || new Error("Failed to create order");
 
-    const env = detectEnv();
+    const env = detectEnv(environment);
     const stripe = createStripeClient(env);
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
