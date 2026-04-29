@@ -106,6 +106,7 @@ const Subscribe = () => {
       const body = {
         plan: interval === "year" ? "intelligence_yearly" : "intelligence_monthly",
         interval,
+        environment: getStripeEnvironment(),
       };
       const { data, error: fnError } = await supabase.functions.invoke("create-checkout-session", { body });
       if (fnError) {
