@@ -21,10 +21,14 @@ export interface ArticleItem {
   enrichment_version?: number | null;
   image_url?: string | null;
   is_premium?: boolean;
+  why_it_matters_short?: string | null;
+  related_signals?: Array<{ label?: string; kind?: string }> | null;
+  action_items?: Array<{ role?: string; action?: string; timeframe?: string }> | null;
   ai_summary?: {
     urgency?: string | null;
     legal_weight?: string | null;
     why_it_matters?: string | null;
+    why_it_matters_short?: string | null;
     compliance_impact?: string | null;
     risk_level?: string | null;
     skipped?: boolean;
