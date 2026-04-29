@@ -316,17 +316,19 @@ const Updates = () => {
                             <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">All updates</Link>
                             <span className="text-[11px] text-white/60">›</span>
                             <span className="text-[11px] text-white">
-                                {topicFilter
-                                    ? topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-                                    : regionFilter?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                {formatFilterLabel(topicFilter || regionFilter || '')}
                             </span>
                         </div>
                     )}
                     <h1 className="font-display text-[28px] md:text-[36px] tracking-tight text-white mb-3">
-                        Processed updates
+                        {regionFilter
+                            ? formatFilterLabel(regionFilter)
+                            : topicFilter
+                                ? formatFilterLabel(topicFilter)
+                                : 'Privacy Regulatory Updates'}
                     </h1>
                     <p className="text-[15px] text-white/70 max-w-2xl mx-auto">
-                        {updates.length} processed this week · refreshed daily
+                        {freshnessLine(updates)}
                     </p>
                 </div>
             </section>
@@ -338,14 +340,14 @@ const Updates = () => {
                             <Link to="/updates" className="hover:text-foreground no-underline">All updates</Link>
                             <span>›</span>
                             <span className="text-foreground/80">
-                                {topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                {formatFilterLabel(topicFilter)}
                             </span>
                         </div>
                         <h2 className="text-[15px] font-medium text-foreground m-0">
-                            {topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                            {formatFilterLabel(topicFilter)}
                         </h2>
                         <p className="text-[11px] text-muted-foreground m-0">
-                            {filtered.length} updates · refreshed daily
+                            {filtered.length} updates in view
                         </p>
                     </div>
                 )}
