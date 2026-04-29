@@ -272,6 +272,15 @@ const Navbar = () => {
               >
                 Account
               </Link>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/");
+                }}
+                className="text-[12px] font-medium text-slate hover:text-navy bg-transparent border-none cursor-pointer transition-colors"
+              >
+                Sign Out
+              </button>
             </>
           ) : (
             <>
