@@ -147,6 +147,7 @@ const GovernanceAssessment = () => {
           user_id: user.id,
           intake_data: buildIntake(),
           return_url: window.location.origin,
+          environment: getStripeEnvironment(),
         },
       });
       if (error || !data?.url) throw error ?? new Error("Checkout failed");
