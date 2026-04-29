@@ -401,6 +401,16 @@ const Navbar = () => {
                 >
                   Account
                 </Link>
+                <button
+                  onClick={async () => {
+                    setMobileOpen(false);
+                    await supabase.auth.signOut();
+                    navigate("/");
+                  }}
+                  className="w-full text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
+                >
+                  Sign Out
+                </button>
               </>
             ) : (
               <>
