@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const About = () => {
   return (
@@ -108,7 +109,7 @@ const About = () => {
             </p>
             <h2 className="font-display text-[20px] font-bold text-navy pt-4">Our Mission</h2>
             <p>
-              To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn't require expensive enterprise subscriptions or hours of manual research.
+              To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn`t require expensive enterprise subscriptions or hours of manual research.
             </p>
 
             {/* Free Tools section */}
@@ -159,7 +160,7 @@ const About = () => {
                 </thead>
                 <tbody>
                   {[
-                    ["Price", "$39/month (Pro)", "$300–$3,500+/year", "$550+/year"],
+                    ["Price", `${INTELLIGENCE_PRICING.monthly()} (Pro)`, "$300–$3,500+/year", "$550+/year"],
                     ["Format", "Weekly intelligence brief", "Research database", "Membership + events"],
                     ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                     ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],

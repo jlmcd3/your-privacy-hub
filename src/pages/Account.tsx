@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 export default function Account() {
   const { user } = useAuth();
@@ -153,7 +154,7 @@ export default function Account() {
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
               Full archive, your weekly brief re-written for your industry and
               jurisdictions, watchlists, and subscriber pricing on every assessment tool
-              . $39/month or $390/year (save 17%).
+              . {`${INTELLIGENCE_PRICING.combined()}`} (save 17%).
             </p>
             <Link
               to="/subscribe"

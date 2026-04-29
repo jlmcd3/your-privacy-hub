@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface BriefPreview {
   week_label: string;
@@ -104,7 +105,7 @@ const WeeklyBriefTeaser = () => {
           <div className="px-6 md:px-8 py-5 bg-white/[0.03] flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <p className="text-[12px] font-bold text-amber-400 uppercase tracking-wider mb-1">
-                ⭐ Intelligence — $39/month
+                ⭐ Intelligence — {`${INTELLIGENCE_PRICING.monthly()}`}
               </p>
               <p className="text-[13px] text-slate-light leading-snug">
                 The full Intelligence Brief, re-analyzed every Monday for your industry,

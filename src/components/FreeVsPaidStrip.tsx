@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 /**
  * Thin strip below navbar: free library on the left, Intelligence value on the right.
@@ -21,7 +22,7 @@ export default function FreeVsPaidStrip() {
       .then(({ data }) => setIsPremium(data?.is_premium ?? false));
   }, [user]);
 
-  // Don't show while loading, or if user is premium
+  // Don`t show while loading, or if user is premium
   if (authLoading || isPremium === null || isPremium) return null;
 
   return (
@@ -29,10 +30,10 @@ export default function FreeVsPaidStrip() {
       <p className="text-[11px] text-muted-foreground">
         📚 Free to browse · Free weekly digest included{" "}
         <span className="text-border mx-1.5">·</span>
-        <span className="text-amber-600 font-semibold">⭐ Intelligence $39/mo — full archive, watchlists, <span className="underline">subscriber rates on every tool</span></span>
+        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, `}<span className="underline">subscriber rates on every tool</span></span>
         <span className="text-border mx-1.5">·</span>
         <Link to="/subscribe" className="text-primary font-semibold no-underline hover:underline">
-          See what's included →
+          See what`s included →
         </Link>
       </p>
     </div>

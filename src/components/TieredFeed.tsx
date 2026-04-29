@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface TieredFeedProps {
   articles: ArticleItem[];
@@ -183,7 +184,7 @@ export function TieredFeed({
             to="/subscribe"
             className="text-[12px] px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
           >
-            Intelligence plan — $39/month
+            Intelligence plan — {INTELLIGENCE_PRICING.monthly()}
           </Link>
         </div>
       </div>

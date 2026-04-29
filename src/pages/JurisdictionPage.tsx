@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
@@ -611,7 +612,7 @@ const JurisdictionPage = () => {
             ✦ Intelligence subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
-            Get full intelligence — $39/month →
+            Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
           </Link>
           <p className="mt-3 text-slate-light text-[12px]">
             Not sure yet?{" "}

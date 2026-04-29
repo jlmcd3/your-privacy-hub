@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -49,7 +50,7 @@ const Signup = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Create Account | End User Privacy</title>
-        <meta name="description" content="Create a free End User Privacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from $39/month." />
+        <meta name="description" content={`Create a free End User Privacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
@@ -65,7 +66,7 @@ const Signup = () => {
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
               'Weekly digest — free',
-              'Personalized analysis for $39/month',
+              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
@@ -82,7 +83,7 @@ const Signup = () => {
             <p className="text-sm text-slate text-center mb-7">
               {redirect.includes("subscribe") || redirect.includes("success")
                 ? "Create your account to complete your Intelligence subscription"
-                : "Join End User Privacy — free to browse, Intelligence from $39/month"}
+                : `Join End User Privacy — free to browse, Intelligence from ${INTELLIGENCE_PRICING.monthly()}`}
             </p>
 
             {message && (

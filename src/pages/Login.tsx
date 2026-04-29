@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -58,7 +59,7 @@ const Login = () => {
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
               'Weekly digest — free',
-              'Personalized analysis for $39/month',
+              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>

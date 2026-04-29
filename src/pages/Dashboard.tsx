@@ -18,6 +18,7 @@ import { ExternalLink, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface EnforcementRow {
   regulator: string;
@@ -355,14 +356,14 @@ const Dashboard = () => {
               </h3>
               <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
                 Your weekly digest tells you what happened. Intelligence tells you what it means
-                for your industry, what your priorities are, and what to do about it. $39/month.
+                for your industry, what your priorities are, and what to do about it. {`${INTELLIGENCE_PRICING.monthly()}`}.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/subscribe"
                   className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
-                  Get full intelligence — $39/month →
+                  Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
                 </Link>
               </div>
             </div>

@@ -31,6 +31,7 @@ import {
 import { saveAs } from "file-saver";
 import gatingReport from "@/data/gating-leak-report.json";
 import pricingReport from "@/data/pricing-reconciliation.json";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const VERSION_KEY = "nav_report_next_version";
 
@@ -265,7 +266,7 @@ export async function generateNavReport(): Promise<{ filename: string; version: 
   // ----- §2 Content Access Tiers -----
   children.push(
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("2. Content Access Tiers")] }),
-    p("Matrix of features vs. user tier. (a) Anonymous, (b) Free registered, (c) Professional ($39/mo or $390/yr).", {
+    p(`Matrix of features vs. user tier. (a) Anonymous, (b) Free registered, (c) Professional (${INTELLIGENCE_PRICING.monthlyShort()} or ${INTELLIGENCE_PRICING.yearlyShort()}).`, {
       size: 20,
       color: "666666",
     }),

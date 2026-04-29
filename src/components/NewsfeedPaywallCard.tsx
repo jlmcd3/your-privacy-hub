@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 export default function NewsfeedPaywallCard() {
   const { isPremium, isLoading } = usePremiumStatus();
@@ -13,14 +14,14 @@ export default function NewsfeedPaywallCard() {
           Continue reading with Intelligence
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">
-          Full archive access, advanced search, and your weekly analyst brief written for your industry. $39/month.
+          Full archive access, advanced search, and your weekly analyst brief written for your industry. {`${INTELLIGENCE_PRICING.monthly()}`}.
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Link
             to="/subscribe"
             className="bg-gradient-to-br from-steel to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all"
           >
-            Get full intelligence — $39/mo →
+            Get full intelligence — {`${INTELLIGENCE_PRICING.monthlyShort()}`} →
           </Link>
           <Link
             to="/signup"

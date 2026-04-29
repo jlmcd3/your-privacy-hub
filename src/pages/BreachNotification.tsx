@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import PillarPage from "@/components/PillarPage";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const SECTIONS = [
   {
@@ -53,7 +54,7 @@ export default function BreachNotificationPage() {
           { label: "📊 Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "🏥 Health Data Privacy", href: "/health-data-privacy" },
           { label: "🌍 Jurisdictions Map", href: "/jurisdictions" },
-          { label: "⭐ Intelligence Plan — $39/month", href: "/subscribe" },
+          { label: `⭐ Intelligence Plan — ${INTELLIGENCE_PRICING.monthly()}`, href: "/subscribe" },
         ]}
         intelligenceLabel="What changed in breach notification this week"
         updateOrFilter="title.ilike.%breach%,title.ilike.%notification%,title.ilike.%incident%,topic_tags.cs.{data-breach}"
