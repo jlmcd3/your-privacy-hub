@@ -65,7 +65,7 @@ export default function DPAGenerator() {
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "dpa_generator", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/dpa-generator" },
+      body: { tool_type: "dpa_generator", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/dpa-generator", environment: getStripeEnvironment() },
     });
     if (data?.url) window.location.href = data.url;
   };
