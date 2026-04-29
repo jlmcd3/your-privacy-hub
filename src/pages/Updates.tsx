@@ -408,9 +408,9 @@ const Updates = () => {
                 <Link
                   to="/get-intelligence"
                   aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
-                  className="group block bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
+                  className="group block bg-sky/10 hover:bg-sky/20 border border-sky/30 hover:border-sky/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
                 >
-                  <p className="text-[13px] font-semibold m-0 text-navy group-hover:text-blue-700 transition-colors">
+                  <p className="text-[13px] font-semibold m-0 text-navy group-hover:text-blue transition-colors">
                     Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
                   </p>
                 </Link>
