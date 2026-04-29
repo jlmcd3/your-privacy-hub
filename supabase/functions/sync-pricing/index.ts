@@ -24,8 +24,14 @@
  * intentionally registry-driven — no per-product code lives here.
  */
 
-import { corsHeaders } from "../_shared/cors.ts";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 // ---------------------------------------------------------------------------
 //  Registry snapshot — keep in sync with src/config/pricing.ts
