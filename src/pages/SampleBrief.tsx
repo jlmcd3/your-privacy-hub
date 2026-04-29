@@ -288,7 +288,7 @@ const SampleBrief = () => {
                     <span className="text-[9px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
                       ⭐ Pro version — Healthcare sector
                     </span>
-                    <span className="text-[11px] text-slate-400">Same developments. Re-analyzed for your world.</span>
+                    <span className="text-[11px] text-slate-400">Same developments. Customized and analyzed for your priorities and responsibilities.</span>
                   </div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700/70 mb-2">
                     EU & UK — Healthcare Analysis
