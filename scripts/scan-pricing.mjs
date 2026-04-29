@@ -16,9 +16,40 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { join } from "node:path";
 
 const ROOT = process.cwd();
+
+// ---------- 0. Hardcoded subscription price guard ----------
+// The pricing registry (src/config/pricing.ts) is the single source of truth
+// for the Intelligence subscription. Any hardcoded "$39" / "$390" string
+// outside that file is a drift risk. This check fails the scanner if found.
+const SUBSCRIPTION_PATTERNS = [
+  "\\$39\\/month", "\\$39\\/mo\\b", "\\$390\\/year", "\\$390\\/yr\\b",
+];
+const ALLOWED_FILES = new Set([
+  "src/config/pricing.ts",
+  "src/data/pricing-reconciliation.json",
+  "scripts/pricing-reconciliation.json",
+  "scripts/scan-pricing.mjs",
+  // Tools.tsx and RegistrationLanding.tsx market product-specific (non-subscription)
+  // prices that include $39/$390 as comparison context — handled by reconciliation below.
+]);
+const hardcodedHits = [];
+try {
+  const raw = execSync(
+    `rg -n "${SUBSCRIPTION_PATTERNS.join("|")}" src 2>/dev/null || true`,
+    { encoding: "utf8" }
+  );
+  for (const line of raw.trim().split("\n").filter(Boolean)) {
+    const [file] = line.split(":");
+    if (ALLOWED_FILES.has(file)) continue;
+    hardcodedHits.push(line);
+  }
+} catch {
+  // rg not available in some environments — skip silently.
+}
 
 // ---------- 1. Server-side truth ----------
 // We parse the edge function source for `unit_amount`, `fallback_*_cents`, and
