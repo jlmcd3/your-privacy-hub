@@ -53,7 +53,7 @@ export default function BiometricPrivacyPage() {
           { label: "📊 Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "🇺🇸 U.S. State Privacy Laws", href: "/us-state-privacy-laws" },
           { label: "🤖 AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { label: "⭐ Subscribe — $39/month", href: "/subscribe" },
+          { label: "⭐ Intelligence Plan — $20/month", href: "/subscribe" },
         ]}
         intelligenceLabel="What changed in biometric privacy this week"
         updateOrFilter="title.ilike.%biometric%,title.ilike.%facial recognition%,title.ilike.%BIPA%,topic_tags.cs.{biometric}"
