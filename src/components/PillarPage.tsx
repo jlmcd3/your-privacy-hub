@@ -104,7 +104,12 @@ const PillarPage = ({
         .order("published_at", { ascending: false })
         .limit(8);
 
-      if (data) setRecentArticles(data);
+      if (data) {
+        // Map db `url` → ArticleItem `source_url` expected by ArticleCard.
+        setRecentArticles(
+          (data as any[]).map((a) => ({ ...a, source_url: a.url })) as ArticleItem[]
+        );
+      }
     }
 
     load();
