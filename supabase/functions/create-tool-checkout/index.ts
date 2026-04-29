@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
         ? tool.fallback_subscriber_cents
         : tool.fallback_standalone_cents;
 
-    const env = detectEnv();
+    const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
     // Resolve the human-readable price ID to Stripe's internal price ID.
