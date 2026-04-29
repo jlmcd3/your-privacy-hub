@@ -550,53 +550,47 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Generate Brief Now CTA for Pro users with no custom brief */}
-        {!customBrief && !generating && (
+        {/* Awaiting first brief — prospective messaging */}
+        {!customBrief && (
           <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-8 mb-8 text-center">
-            <p className="text-4xl mb-3">🧠</p>
+            <p className="text-4xl mb-3">📬</p>
             <h3 className="font-display font-bold text-foreground text-[20px] mb-2">
-              Your personalized brief is ready to generate
+              Your first personalized brief arrives Monday
             </h3>
             <p className="text-muted-foreground text-[14px] mb-5 max-w-md mx-auto">
-              You've set your preferences. Your Intelligence brief is ready to generate. This takes about 30 seconds.
+              Briefs are generated weekly from your saved preferences. Update your preferences any time —
+              changes take effect with the next Monday brief.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button
-                onClick={generateBriefNow}
-                className="bg-gradient-to-br from-navy to-blue text-white font-bold text-[14px] py-3 px-8 rounded-xl hover:opacity-90 transition-all cursor-pointer border-none"
-              >
-                Generate My Brief Now →
-              </button>
-              <Link
-                to="/brief-preferences"
-                className="text-primary font-medium text-[14px] py-3 px-6 rounded-xl border border-border no-underline hover:bg-muted transition-all"
-              >
-                Edit preferences first
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Generating spinner */}
-        {generating && (
-          <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-8 mb-8 text-center">
-            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-foreground font-semibold text-[15px] mb-1">
-              {GEN_PHASES[genPhase]}
-            </p>
-            <p className="text-muted-foreground text-[13px]">This usually takes 20-40 seconds.</p>
+            <Link
+              to="/brief-preferences"
+              className="inline-block text-primary font-medium text-[14px] py-3 px-6 rounded-xl border border-border no-underline hover:bg-muted transition-all"
+            >
+              Review your preferences →
+            </Link>
           </div>
         )}
 
         {/* Custom brief for Pro users — most recent, expanded */}
         {customBrief && (
-          <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8">
-            <CustomBriefDocument
-              customBrief={customBrief}
-              sourceMap={brief?.source_map ?? {}}
-              showEditPreferencesLink
-            />
-          </div>
+          <>
+            <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-3">
+              <CustomBriefDocument
+                customBrief={customBrief}
+                sourceMap={brief?.source_map ?? {}}
+              />
+            </div>
+            <div className="mb-8 flex items-center justify-between gap-3 flex-wrap px-1">
+              <p className="text-[12px] text-muted-foreground">
+                Want to change focus for your next brief?
+              </p>
+              <Link
+                to="/brief-preferences"
+                className="text-[12px] font-semibold text-primary hover:underline no-underline"
+              >
+                Update preferences for next Monday →
+              </Link>
+            </div>
+          </>
         )}
 
         {/* Archive of older personalized briefs — collapsible */}
