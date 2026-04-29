@@ -58,7 +58,7 @@ const PillarPage = ({
 }: PillarPageProps) => {
   const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   const { user } = useAuth();
-  const { isPremium } = usePremiumStatus();
+  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
 
@@ -238,7 +238,35 @@ const PillarPage = ({
           </details>
         )}
 
-        {/* Recent Developments — proves the page is live before any CTA */}
+        {/* "What changed this week" CTA — hidden for premium users (they already get it). */}
+        {!premiumLoading && !isPremium && (
+          <div className="rounded-xl border border-sky/20 overflow-hidden shadow-eup-sm mb-10 bg-card">
+            <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
+                  ⭐ Weekly Intelligence
+                </div>
+                <h3 className="font-display text-[16px] md:text-[18px] text-white leading-snug">
+                  {intelligenceLabel || "What changed in this area this week"}
+                </h3>
+              </div>
+              <Lock className="w-4 h-4 text-sky/60 shrink-0 mt-1" />
+            </div>
+            <div className="p-5 md:p-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+              <p className="text-[13px] text-navy leading-relaxed font-medium">
+                {midPageCtaMessage || "Intelligence subscribers get full analysis on every development in this area."}
+              </p>
+              <Link
+                to="/subscribe"
+                className="inline-flex w-full sm:w-auto items-center justify-center text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
+              >
+                Get full intelligence →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Developments — proves the page is live after the Weekly Intelligence CTA */}
         {recentArticles.length > 0 && (
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-4">
@@ -254,46 +282,6 @@ const PillarPage = ({
                 seeAllHref="/updates"
                 showSeeAll={true}
               />
-            </div>
-          </div>
-        )}
-
-        {/* "What changed this week" CTA — hidden for premium users (they already get it). */}
-        {!isPremium && (
-          <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm mb-10">
-            <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
-                  ⭐ Weekly Intelligence
-                </div>
-                <h3 className="font-display text-[14px] text-white">
-                  {intelligenceLabel || "What changed in this area this week"}
-                </h3>
-              </div>
-              <Lock className="w-4 h-4 text-sky/50 shrink-0" />
-            </div>
-            <div className="relative bg-card px-5 py-4">
-              <div className="space-y-2 blur-[3px] select-none pointer-events-none">
-                <div className="h-2.5 bg-navy/10 rounded w-full" />
-                <div className="h-2.5 bg-navy/10 rounded w-4/5" />
-                <div className="h-2.5 bg-navy/10 rounded w-3/4" />
-                <div className="h-2.5 bg-navy/10 rounded w-full mt-2" />
-                <div className="h-2.5 bg-navy/10 rounded w-2/3" />
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] px-4">
-                <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-                  <Lock className="w-4 h-4 text-navy/40 shrink-0" />
-                  <span className="text-[12px] text-navy font-medium">
-                    {midPageCtaMessage || "Intelligence subscribers get full analysis on every development in this area."}
-                  </span>
-                  <Link
-                    to="/subscribe"
-                    className="text-[11px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
-                  >
-                    Get full intelligence →
-                  </Link>
-                </div>
-              </div>
             </div>
           </div>
         )}
