@@ -377,8 +377,8 @@ export default function BriefPreferences() {
           {isPremium === false && (
             <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
-                Intelligence requires Intelligence ({`${INTELLIGENCE_PRICING.monthly()}`}). Preferences are saved and will activate once you
-                subscribe.
+                Intelligence requires a subscription ({`${INTELLIGENCE_PRICING.monthly()}`}). Preferences are saved and
+                will activate once you subscribe.
               </p>
               <Link
                 to="/subscribe"
