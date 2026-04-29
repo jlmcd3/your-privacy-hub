@@ -373,12 +373,10 @@ const Updates = () => {
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
                 {topicFilter && (
                     <div className="mb-3">
-                        <div className="flex items-center gap-1.5 mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">{lastIngestionLabel(updates)}</Link>
-                            <span>›</span>
-                            <span className="text-foreground/80">
-                                {formatFilterLabel(topicFilter)}
-                            </span>
+                        <div className="flex items-center mb-1 text-[11px] text-muted-foreground">
+                            <Link to="/updates" className="hover:text-foreground no-underline">
+                                ← {lastIngestionLabel(updates)}
+                            </Link>
                         </div>
                         <h2 className="text-[15px] font-medium text-foreground m-0">
                             {formatFilterLabel(topicFilter)}
