@@ -160,7 +160,7 @@ const About = () => {
                 </thead>
                 <tbody>
                   {[
-                    ["Price", "${INTELLIGENCE_PRICING.monthly()} (Pro)", "$300–$3,500+/year", "$550+/year"],
+                    ["Price", `${INTELLIGENCE_PRICING.monthly()} (Pro)`, "$300–$3,500+/year", "$550+/year"],
                     ["Format", "Weekly intelligence brief", "Research database", "Membership + events"],
                     ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                     ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
@@ -188,4 +188,3 @@ const About = () => {
 };
 
 export default About;
-`
