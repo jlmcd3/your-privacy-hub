@@ -47,3 +47,18 @@ export function isDevHost(): boolean {
 export function isProductionHost(): boolean {
   return typeof window !== "undefined" && !isDevHost();
 }
+
+/**
+ * Stripe environment for THIS browser session — derived from the
+ * publishable token bundled at build time. `pk_test_…` → "sandbox",
+ * `pk_live_…` → "live". Pass this to every checkout edge function call so
+ * the server creates the session in the matching Stripe environment;
+ * otherwise the server defaults to live and rejects test cards.
+ */
+export type StripeEnvironment = "sandbox" | "live";
+
+export function getStripeEnvironment(): StripeEnvironment {
+  const token = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
+  return token?.startsWith("pk_test_") ? "sandbox" : "live";
+}
+
