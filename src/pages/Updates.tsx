@@ -85,9 +85,7 @@ function formatDate(iso: string): string {
     });
 }
 
-// Slug → label map lives in src/lib/filterLabels.ts so the brief header
-// and other surfaces can render the same human-readable names.
-import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
+// Slug → label map lives in src/lib/filterLabels.ts (imported above).
 
 function relativeFromNow(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
