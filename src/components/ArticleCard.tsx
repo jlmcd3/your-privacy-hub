@@ -78,19 +78,9 @@ const categoryClass = (cat?: string | null) =>
 const categoryLabel = (cat?: string | null) =>
   CATEGORY_LABELS[cat || ''] || cat || '';
 
-// Urgency badge colors
-const URGENCY_COLORS: Record<string, string> = {
-  'Immediate': 'bg-red-500 text-white',
-  'This Quarter': 'bg-amber-500 text-white',
-  'Monitor': 'bg-slate-400 text-white',
-};
+// (URGENCY_COLORS / ATTENTION_COLORS removed — Attention badge dropped from
+// surface cards; urgency now appears only inside the paid Intelligence Card.)
 
-// Attention level badge colors
-const ATTENTION_COLORS: Record<string, string> = {
-  'High': 'bg-red-100 text-red-800 border border-red-200',
-  'Medium': 'bg-amber-100 text-amber-800 border border-amber-200',
-  'Low': 'bg-green-100 text-green-800 border border-green-200',
-};
 
 // Legal weight badge colors
 const WEIGHT_COLORS: Record<string, string> = {
