@@ -99,6 +99,46 @@ export default function AdminIngestionDashboard() {
       });
   }, [isAdmin]);
 
+  // Load articles for moderation
+  const loadArticles = async () => {
+    setArticlesLoading(true);
+    let q = (supabase as any)
+      .from("updates")
+      .select("id,title,source_name,category,published_at,is_hidden")
+      .order("published_at", { ascending: false })
+      .limit(100);
+    if (!showHidden) q = q.eq("is_hidden", false);
+    if (articleSearch.trim()) q = q.ilike("title", `%${articleSearch.trim()}%`);
+    const { data } = await q;
+    setArticles((data as ArticleRow[]) || []);
+    setArticlesLoading(false);
+  };
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    loadArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, showHidden]);
+
+  const toggleHidden = async (article: ArticleRow) => {
+    setTogglingId(article.id);
+    const newValue = !article.is_hidden;
+    const { data, error } = await supabase.functions.invoke(
+      "admin-toggle-update-hidden",
+      { body: { id: article.id, is_hidden: newValue } },
+    );
+    setTogglingId(null);
+    if (error || (data as any)?.error) {
+      alert(`Failed to update: ${error?.message || (data as any)?.error}`);
+      return;
+    }
+    setArticles((prev) =>
+      showHidden
+        ? prev.map((a) => (a.id === article.id ? { ...a, is_hidden: newValue } : a))
+        : prev.filter((a) => a.id !== article.id),
+    );
+  };
+
   if (authLoading || isAdmin === null) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   }
