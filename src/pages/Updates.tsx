@@ -317,7 +317,7 @@ const Updates = () => {
             const sectors = u.affected_sectors || [];
             if (!activeSectors.some(s => sectors.includes(s))) return false;
         }
-        if (activeAttention && u.attention_level !== activeAttention) return false;
+        // (Attention filter removed)
         if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
         if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
         if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
@@ -330,7 +330,7 @@ const Updates = () => {
         );
     };
 
-    const hasActiveFilters = activeSectors.length > 0 || activeAttention || urgencyFilter !== "all" || legalWeightFilter !== "all" || crossJurisdictionOnly;
+    const hasActiveFilters = activeSectors.length > 0 || urgencyFilter !== "all" || legalWeightFilter !== "all" || crossJurisdictionOnly;
 
     const clearAllFilters = () => {
         setActiveSectors([]);
