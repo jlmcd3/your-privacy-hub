@@ -84,29 +84,9 @@ function formatDate(iso: string): string {
     });
 }
 
-// Map slug → display label, preserving correct capitalization (U.S., EU & UK, etc.)
-const FILTER_LABELS: Record<string, string> = {
-  'us-federal': 'U.S. Federal',
-  'us-states': 'U.S. States',
-  'eu-uk': 'EU & UK',
-  'global': 'Global',
-  'enforcement': 'Enforcement',
-  'ai-privacy': 'AI & Privacy',
-  'adtech': 'AdTech & Advertising',
-  'health-hipaa': 'Health & HIPAA',
-  'children-privacy': "Children's Privacy",
-  'data-breaches': 'Data Breaches',
-  'cross-border': 'Cross-Border Transfers',
-  'biometric-data': 'Biometric Data',
-  'employee-privacy': 'Employee Privacy',
-  'cookie-consent': 'Cookie Consent',
-};
-
-function formatFilterLabel(slug: string): string {
-  if (!slug) return '';
-  if (FILTER_LABELS[slug]) return FILTER_LABELS[slug];
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
+// Slug → label map lives in src/lib/filterLabels.ts so the brief header
+// and other surfaces can render the same human-readable names.
+import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
 
 function relativeFromNow(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
