@@ -45,7 +45,7 @@ export default function HealthDataPrivacyPage() {
           { label: "📊 Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "🔓 Breach Notification", href: "/breach-notification" },
           { label: "📅 Compliance Calendar", href: "/calendar" },
-          { label: "⭐ Subscribe — $39/month", href: "/subscribe" },
+          { label: "⭐ Intelligence Plan — $20/month", href: "/subscribe" },
         ]}
         intelligenceLabel="What changed in health data privacy this week"
         updateOrFilter="title.ilike.%HIPAA%,title.ilike.%health data%,title.ilike.%health breach%,topic_tags.cs.{health-data}"

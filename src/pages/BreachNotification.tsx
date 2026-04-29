@@ -53,7 +53,7 @@ export default function BreachNotificationPage() {
           { label: "📊 Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "🏥 Health Data Privacy", href: "/health-data-privacy" },
           { label: "🌍 Jurisdictions Map", href: "/jurisdictions" },
-          { label: "⭐ Subscribe — $39/month", href: "/subscribe" },
+          { label: "⭐ Intelligence Plan — $20/month", href: "/subscribe" },
         ]}
         intelligenceLabel="What changed in breach notification this week"
         updateOrFilter="title.ilike.%breach%,title.ilike.%notification%,title.ilike.%incident%,topic_tags.cs.{data-breach}"
