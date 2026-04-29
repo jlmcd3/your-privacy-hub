@@ -334,7 +334,7 @@ const Updates = () => {
 
     const clearAllFilters = () => {
         setActiveSectors([]);
-        setActiveAttention(null);
+        // (activeAttention removed)
         setUrgencyFilter("all");
         setLegalWeightFilter("all");
         setCrossJurisdictionOnly(false);
