@@ -1780,6 +1780,7 @@ export type Database = {
           entities: Json | null
           id: string
           image_url: string | null
+          is_hidden: boolean
           is_premium: boolean
           key_date: string | null
           li_processed: boolean | null
@@ -1813,6 +1814,7 @@ export type Database = {
           entities?: Json | null
           id?: string
           image_url?: string | null
+          is_hidden?: boolean
           is_premium?: boolean
           key_date?: string | null
           li_processed?: boolean | null
@@ -1846,6 +1848,7 @@ export type Database = {
           entities?: Json | null
           id?: string
           image_url?: string | null
+          is_hidden?: boolean
           is_premium?: boolean
           key_date?: string | null
           li_processed?: boolean | null
