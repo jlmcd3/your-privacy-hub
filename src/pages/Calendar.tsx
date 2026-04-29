@@ -60,6 +60,7 @@ const Calendar = () => {
     supabase
       .from("updates")
       .select("title, key_date, category, summary, url, attention_level, direct_jurisdictions")
+      .eq("is_hidden", false)
       .not("key_date", "is", null)
       .order("key_date", { ascending: true })
       .limit(100)

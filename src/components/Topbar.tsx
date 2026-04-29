@@ -29,6 +29,7 @@ const Topbar = () => {
     supabase
       .from("updates")
       .select("published_at")
+      .eq("is_hidden", false)
       .order("published_at", { ascending: false })
       .limit(1)
       .then(({ data }) => {

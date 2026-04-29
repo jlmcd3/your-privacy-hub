@@ -93,10 +93,12 @@ const GetIntelligence = () => {
 
     let enQ = supabase.from("updates")
       .select("id,title,source_name,published_at,attention_level,affected_sectors,regulatory_theory")
+      .eq("is_hidden", false)
       .eq("category", "Enforcement")
       .order("published_at", { ascending: false }).limit(3);
     let upQ = supabase.from("updates")
       .select("id,title,source_name,published_at,attention_level,affected_sectors,regulatory_theory")
+      .eq("is_hidden", false)
       .neq("category", "Enforcement")
       .order("published_at", { ascending: false }).limit(2);
     if (topicLabels.length > 0) {

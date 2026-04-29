@@ -122,6 +122,7 @@ const UpdateDetail = () => {
         "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors"
       )
       .eq("id", id)
+      .eq("is_hidden", false)
       .single()
       .then(({ data, error }: any) => {
         if (error || !data) {
@@ -140,6 +141,7 @@ const UpdateDetail = () => {
     (supabase as any)
       .from("updates")
       .select("id, title, source_name, published_at")
+      .eq("is_hidden", false)
       .overlaps("topic_tags", article.topic_tags)
       .neq("id", article.id)
       .order("published_at", { ascending: false })

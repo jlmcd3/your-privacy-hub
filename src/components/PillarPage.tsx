@@ -95,7 +95,8 @@ const PillarPage = ({
     async function load() {
       let query = (supabase as any)
         .from("updates")
-        .select("id,title,summary,url,source_name,published_at,ai_summary");
+        .select("id,title,summary,url,source_name,published_at,ai_summary")
+        .eq("is_hidden", false);
 
       if (updateCategory) query = query.eq("category", updateCategory);
       if (updateOrFilter) query = query.or(updateOrFilter);

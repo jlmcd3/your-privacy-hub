@@ -191,6 +191,7 @@ const JurisdictionPage = () => {
       // Tier 1: enriched-direct (last 90d)
       const directQ = (supabase as any)
         .from("updates").select(select)
+        .eq("is_hidden", false)
         .contains("direct_jurisdictions", [name])
         .gte("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
@@ -199,6 +200,7 @@ const JurisdictionPage = () => {
       // Tier 2: enriched-affected only (last 90d)
       const affectedQ = (supabase as any)
         .from("updates").select(select)
+        .eq("is_hidden", false)
         .contains("affected_jurisdictions", [name])
         .gte("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
@@ -207,6 +209,7 @@ const JurisdictionPage = () => {
       // Keyword fallback pool (for unenriched + archive). Scoped to category bucket.
       const kwPoolQ = (supabase as any)
         .from("updates").select(select)
+        .eq("is_hidden", false)
         .eq("category", derivedCategory)
         .order("published_at", { ascending: false })
         .limit(120);
@@ -253,6 +256,7 @@ const JurisdictionPage = () => {
       // Also consider direct-enriched older items as archive (separate small fetch)
       const { data: oldDirect } = await (supabase as any)
         .from("updates").select(select)
+        .eq("is_hidden", false)
         .contains("direct_jurisdictions", [name])
         .lt("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })

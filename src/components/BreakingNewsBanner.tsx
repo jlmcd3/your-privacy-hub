@@ -10,6 +10,7 @@ const BreakingNewsBanner = () => {
     supabase
       .from("updates")
       .select("title, url, published_at")
+      .eq("is_hidden", false)
       .eq("category", "enforcement")
       .order("published_at", { ascending: false })
       .limit(1)

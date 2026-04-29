@@ -79,6 +79,7 @@ const RegulatorPage = () => {
     supabase
       .from("updates")
       .select("id, title, summary, url, source_name, published_at, category, ai_summary")
+      .eq("is_hidden", false)
       .or(orQuery)
       .order("published_at", { ascending: false })
       .limit(5)

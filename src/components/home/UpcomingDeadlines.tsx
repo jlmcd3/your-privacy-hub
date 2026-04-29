@@ -27,6 +27,7 @@ export default function UpcomingDeadlines() {
     supabase
       .from("updates")
       .select("title, key_date, category, attention_level, direct_jurisdictions")
+      .eq("is_hidden", false)
       .not("key_date", "is", null)
       .gte("key_date", now)
       .order("key_date", { ascending: true })
