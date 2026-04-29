@@ -48,13 +48,12 @@ const navItems: NavItem[] = [
       {
         header: "Free Tools",
         items: [
-          { icon: "📄", label: "Sample Intelligence Brief", href: "/sample-brief", badge: "FREE", badgeGreen: true },
-          { icon: "📰", label: "Browse updates", badge: "FREE", badgeGreen: true, href: "/updates" },
-          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
-          { icon: "🗺️", label: "Interactive Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
-          { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
+          { icon: "🗺️", label: "Interactive Global Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
           { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
           { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
+          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
+          { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
+          { icon: "📄", label: "Sample Intelligence Brief", href: "/sample-brief", badge: "FREE", badgeGreen: true },
         ],
       },
       {
