@@ -59,7 +59,7 @@ export default function IRPlaybook() {
     if (access.isPremium) { setPhase("form"); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "ir_playbook", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/ir-playbook" },
+      body: { tool_type: "ir_playbook", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/ir-playbook", environment: getStripeEnvironment() },
     });
     if (data?.url) window.location.href = data.url;
   };
