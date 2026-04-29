@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { type ArticleItem } from "@/components/ArticleCard";
 import { TieredFeed } from "@/components/TieredFeed";
-import { Search, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface Update {
   id: string;
@@ -140,9 +141,6 @@ const LatestUpdates = () => {
   const { user } = useAuth();
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeLocations, setActiveLocations] = useState<Set<string>>(new Set());
-  const [activeTopics, setActiveTopics] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState("");
   const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
@@ -180,32 +178,6 @@ const LatestUpdates = () => {
     load();
   }, []);
 
-  const toggleLocation = (key: string) => {
-    setActiveLocations((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
-  const toggleTopic = (key: string) => {
-    setActiveTopics((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
-  const hasActiveFilters = activeLocations.size > 0 || activeTopics.size > 0 || searchTerm.length > 0;
-
-  const clearAll = () => {
-    setActiveLocations(new Set());
-    setActiveTopics(new Set());
-    setSearchTerm("");
-  };
-
   // Tiered access: Pro = unlimited, logged in = 21 days, anonymous = 15 articles
   const now = new Date();
   const twentyOneDaysAgo = new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000);
@@ -216,45 +188,7 @@ const LatestUpdates = () => {
     visibleUpdates = visibleUpdates.filter(u => new Date(u.published_at) >= twentyOneDaysAgo);
   }
 
-  const filtered = useMemo(() => {
-    let result = visibleUpdates;
-
-    // Location filter (OR within group)
-    if (activeLocations.size > 0) {
-      result = result.filter((u) => activeLocations.has(u.category));
-    }
-
-    // Topic filter (OR within group)
-    if (activeTopics.size > 0) {
-      result = result.filter((u) => {
-        if (activeTopics.has(u.category)) return true;
-        if (u.topic_tags?.some((t) => activeTopics.has(t))) return true;
-        return false;
-      });
-    }
-
-    // Search
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter((u) => {
-        const fields = [
-          u.title,
-          u.summary,
-          u.regulator,
-          u.source_name,
-          u.category,
-          u.regulatory_theory,
-          u.related_development,
-          u.attention_level,
-          ...(u.topic_tags || []),
-          ...(u.affected_sectors || []),
-        ];
-        return fields.some((f) => f?.toLowerCase().includes(q));
-      });
-    }
-
-    return result;
-  }, [visibleUpdates, activeLocations, activeTopics, searchTerm]);
+  const filtered = useMemo(() => visibleUpdates, [visibleUpdates]);
 
   // Map updates → ArticleItem (ensure source_url is set so newsfeed cards link out)
   const articlesForFeed: ArticleItem[] = useMemo(
@@ -268,68 +202,48 @@ const LatestUpdates = () => {
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
-                  Latest Privacy Updates
-                </h2>
-                <p className="text-[12px] text-slate-light">
-                  Updated daily and analyzed for key takeaways.{" "}
+            <div>
+              <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
+                Latest Privacy Updates
+              </h2>
+              <p className="text-[12px] text-slate-light">
+                Updated daily and analyzed for key takeaways.{" "}
+              </p>
+            </div>
+
+            {/* Single CTA: filter your feed by region & topic → /updates */}
+            <Link
+              to="/updates"
+              className="group block rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/15 hover:border-white/25 transition-all px-3 py-3 no-underline"
+            >
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <p className="text-[12px] font-semibold text-white">
+                  Select your article feed by region and subject matter
                 </p>
+                <span className="flex items-center gap-1 text-[11px] font-medium text-sky group-hover:text-white whitespace-nowrap transition-colors">
+                  Open feed <ArrowRight className="w-3 h-3" />
+                </span>
               </div>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearAll}
-                  className="text-[11px] text-sky hover:text-white bg-white/10 border border-white/15 rounded-full px-3 py-1 cursor-pointer transition-colors flex items-center gap-1"
-                >
-                  <X className="w-3 h-3" /> Clear filters
-                </button>
-              )}
-            </div>
-
-            {/* Search bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-4 h-4" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Find the latest news on jurisdictions, privacy topics, and enforcement actions."
-                className="w-full py-2 pl-10 pr-4 text-[13px] rounded-lg bg-white/10 border border-white/15 text-white placeholder:text-white/40 outline-none focus:border-white/30 transition-colors"
-              />
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-2 flex-wrap items-center">
-              {LOCATION_FILTERS.map((f) => (
-                <span
-                  key={f.key}
-                  onClick={() => toggleLocation(f.key)}
-                  className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
-                    activeLocations.has(f.key)
-                      ? "bg-white/15 text-white border-white/20 font-semibold"
-                      : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  {f.label}
-                </span>
-              ))}
-              <span className="w-px h-5 bg-white/20 mx-1" />
-              {TOPIC_FILTERS.map((f) => (
-                <span
-                  key={f.key}
-                  onClick={() => toggleTopic(f.key)}
-                  className={`px-3 py-1.5 text-[12px] font-medium rounded-full border transition-all cursor-pointer ${
-                    activeTopics.has(f.key)
-                      ? "bg-white/15 text-white border-white/20 font-semibold"
-                      : "bg-white/[0.05] text-slate-light border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  {f.label}
-                </span>
-              ))}
-              <a href="/updates" className="text-[12px] font-medium text-sky hover:text-white transition-colors no-underline whitespace-nowrap ml-2">View all →</a>
-            </div>
+              <div className="flex gap-1.5 flex-wrap items-center">
+                {LOCATION_FILTERS.map((f) => (
+                  <span
+                    key={f.key}
+                    className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
+                  >
+                    {f.label}
+                  </span>
+                ))}
+                <span className="w-px h-4 bg-white/20 mx-0.5" />
+                {TOPIC_FILTERS.map((f) => (
+                  <span
+                    key={f.key}
+                    className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
+                  >
+                    {f.label}
+                  </span>
+                ))}
+              </div>
+            </Link>
           </div>
 
           {/* Cards */}
