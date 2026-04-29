@@ -83,7 +83,7 @@ const Index = () => {
                 </p>
                 <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
                   Enforcement table · trend signals · action items ·
-                  regional analysis. Re-analyzed for your industry.
+                  regional analysis. Customized and analyzed for your priorities and responsibilities.
                 </p>
                 <Link
                   to="/sample-brief"
@@ -96,7 +96,7 @@ const Index = () => {
                     ⭐ Intelligence — $39/month
                   </p>
                   <p className="text-[11px] text-blue-200 leading-snug mb-2">
-                    Re-written for your industry and jurisdictions.
+                    Customized and analyzed for your priorities and responsibilities.
                   </p>
                   <Link
                     to="/subscribe"

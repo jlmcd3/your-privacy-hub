@@ -408,7 +408,7 @@ const Updates = () => {
                 <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 mb-4
                   flex items-center justify-between flex-wrap gap-3">
                   <p className="text-[13px] text-navy font-medium">
-                    Turn this week's updates into a report for your jurisdiction
+                    Get this week's privacy intelligence — customized and analyzed for your priorities and responsibilities
                   </p>
                   <Link to="/get-intelligence"
                     className="text-[13px] font-bold text-blue hover:text-navy no-underline">
