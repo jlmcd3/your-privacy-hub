@@ -1,8 +1,11 @@
-// Admin-only: verifies STRIPE_SANDBOX_API_KEY (and optionally LIVE) by
+// Admin-only: verifies STRIPE_SANDBOX_API_KEY / STRIPE_LIVE_API_KEY by
 // calling stripe.accounts.retrieve() through the connector gateway.
 // Returns non-sensitive account info so an admin can confirm the key
 // points at the expected Stripe account. Never returns the key itself.
+//
+// Auth: requires a logged-in user with the 'admin' role in user_roles.
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
@@ -16,12 +19,39 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Admin auth via shared admin token
-  const adminToken = Deno.env.get("ADMIN_SECRET_TOKEN");
-  const auth = req.headers.get("authorization") || "";
-  if (!adminToken || auth !== `Bearer ${adminToken}`) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  // Verify caller is a logged-in admin
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "Not authenticated" }), {
       status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } },
+  );
+  const { data: { user }, error: userErr } = await userClient.auth.getUser();
+  if (userErr || !user) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  const { data: roleRow } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!roleRow) {
+    return new Response(JSON.stringify({ error: "Admins only" }), {
+      status: 403,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
@@ -38,8 +68,7 @@ Deno.serve(async (req) => {
   try {
     const stripe = createStripeClient(envParam);
     const account = await stripe.accounts.retrieve();
-    // Also fetch a tiny piece of data to confirm read access works.
-    const prices = await stripe.prices.list({ limit: 3, active: true });
+    const prices = await stripe.prices.list({ limit: 5, active: true });
 
     return new Response(
       JSON.stringify({
@@ -54,7 +83,6 @@ Deno.serve(async (req) => {
           charges_enabled: account.charges_enabled,
           payouts_enabled: account.payouts_enabled,
           details_submitted: account.details_submitted,
-          livemode_account: !account.id?.startsWith("acct_") ? null : undefined,
         },
         sample_prices: prices.data.map((p) => ({
           id: p.id,
