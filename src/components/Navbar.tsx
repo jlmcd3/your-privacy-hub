@@ -272,6 +272,15 @@ const Navbar = () => {
               >
                 Account
               </Link>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/");
+                }}
+                className="text-[12px] font-medium text-slate hover:text-navy bg-transparent border-none cursor-pointer transition-colors"
+              >
+                Sign Out
+              </button>
             </>
           ) : (
             <>
@@ -392,6 +401,16 @@ const Navbar = () => {
                 >
                   Account
                 </Link>
+                <button
+                  onClick={async () => {
+                    setMobileOpen(false);
+                    await supabase.auth.signOut();
+                    navigate("/");
+                  }}
+                  className="w-full text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
+                >
+                  Sign Out
+                </button>
               </>
             ) : (
               <>
