@@ -376,7 +376,7 @@ const Updates = () => {
                 {topicFilter && (
                     <div className="mb-3">
                         <div className="flex items-center gap-1.5 mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">All updates</Link>
+                            <Link to="/updates" className="hover:text-foreground no-underline">{lastIngestionLabel(updates)}</Link>
                             <span>›</span>
                             <span className="text-foreground/80">
                                 {formatFilterLabel(topicFilter)}
