@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
+import { INTELLIGENCE_PRICING, formatPrice, getPrice } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 
