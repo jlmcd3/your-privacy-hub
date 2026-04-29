@@ -417,18 +417,20 @@ const Updates = () => {
                 </div>
                 {/* Enrichment stats strip */}
 
-                {/* Filters bar — two-group layout */}
+                {/* Filters bar — two-group layout. Region + topic are open to all
+                    visitors (matches the homepage CTA promise). Sectors and date
+                    range remain gated to anon users below. */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                     {/* Location filters */}
                     {LOCATION_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => handleGatedFilterClick(f.label, () => selectFilter(f.key))}
+                            onClick={() => selectFilter(f.key)}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
                                     : "bg-muted text-foreground hover:bg-muted/80"
-                            } ${!user ? "opacity-50 cursor-default" : ""}`}
+                            }`}
                         >
                             {f.label}
                         </button>
@@ -441,12 +443,12 @@ const Updates = () => {
                     {TOPIC_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => handleGatedFilterClick(f.label, () => selectFilter(f.key))}
+                            onClick={() => selectFilter(f.key)}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
                                     : "bg-muted text-foreground hover:bg-muted/80"
-                            } ${!user ? "opacity-50 cursor-default" : ""}`}
+                            }`}
                         >
                             {f.label}
                         </button>
@@ -454,11 +456,11 @@ const Updates = () => {
 
                 </div>
 
-                {/* Filter gate chip — anonymous users clicking a gated filter */}
+                {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
                         <p className="text-[12px] text-navy flex-1">
-                            Filter by {showFilterGate.toLowerCase()} — register free to use
+                            Register free to filter by your industry and date range
                         </p>
                         <Link
                             to="/signup"
