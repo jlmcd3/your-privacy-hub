@@ -355,6 +355,11 @@ const Updates = () => {
         setActiveFilter("all");
         setSearchTerm("");
         setDateRange("all");
+        // Clear region/topic from URL too so history stays consistent
+        const next = new URLSearchParams(searchParams);
+        next.delete("region");
+        next.delete("topic");
+        setSearchParams(next);
     };
 
     return (
