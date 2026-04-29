@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T01:55:12.200Z",
+  "generatedAt": "2026-04-29T08:07:32.586Z",
   "server_truth": {
     "tools": [
       {
@@ -34,7 +34,7 @@
       },
       {
         "key": "biometric_checker",
-        "name": "Biometric Privacy Compliance Assessment",
+        "name": "Biometric Privacy Compliance Checker",
         "standalone_cents": 4900,
         "subscriber_cents": 0
       }
@@ -130,19 +130,11 @@
       "subscriber_match": true
     },
     {
-      "product": "Biometric Privacy Compliance Assessment",
+      "product": "Biometric Privacy Compliance Checker",
       "server_standalone": "$49",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$149",
-        "$25",
-        "$275",
-        "$399",
-        "$49",
-        "$499",
-        "$59"
-      ],
-      "standalone_match": true,
+      "ui_prices_seen": [],
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
@@ -223,9 +215,16 @@
       "subscriber_match": true
     }
   ],
-  "findings": [],
+  "findings": [
+    {
+      "severity": "high",
+      "product": "Biometric Privacy Compliance Checker",
+      "issue": "Server charges $49 standalone, but UI never shows that price.",
+      "ui_prices_seen": []
+    }
+  ],
   "summary": {
     "products_checked": 12,
-    "mismatches": 0
+    "mismatches": 1
   }
 }
