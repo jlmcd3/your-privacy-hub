@@ -407,14 +407,11 @@ const Updates = () => {
                 )}
                 <Link
                   to="/get-intelligence"
-                  aria-label="Get this week's privacy intelligence — customized and analyzed for your priorities and responsibilities"
+                  aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
                   className="group block bg-blue-50 hover:bg-blue-100/80 border border-blue-200 hover:border-blue-300 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
                 >
-                  <p className="text-[13px] text-navy font-medium m-0">
-                    Get this week's privacy intelligence — customized and analyzed for your priorities and responsibilities
-                  </p>
-                  <p className="text-[13px] font-bold text-blue group-hover:text-navy m-0 mt-1 transition-colors">
-                    Get Your Privacy Intelligence →
+                  <p className="text-[13px] text-navy font-medium m-0 group-hover:text-blue transition-colors">
+                    Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
                   </p>
                 </Link>
                 {/* Enrichment stats strip */}
