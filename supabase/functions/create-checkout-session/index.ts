@@ -92,7 +92,6 @@ serve(async (req) => {
       const alreadySubscribed = existing?.is_premium === true || existing?.is_pro === true;
       if (alreadySubscribed && existing?.stripe_customer_id) {
         try {
-          const env = detectEnv();
           const stripe = createStripeClient(env);
           const origin = req.headers.get("origin") || "http://localhost:5173";
           const portal = await stripe.billingPortal.sessions.create({
