@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
-import PremiumGate from "@/components/PremiumGate";
+
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
@@ -21,10 +21,14 @@ export interface ArticleItem {
   enrichment_version?: number | null;
   image_url?: string | null;
   is_premium?: boolean;
+  why_it_matters_short?: string | null;
+  related_signals?: Array<{ label?: string; kind?: string }> | null;
+  action_items?: Array<{ role?: string; action?: string; timeframe?: string }> | null;
   ai_summary?: {
     urgency?: string | null;
     legal_weight?: string | null;
     why_it_matters?: string | null;
+    why_it_matters_short?: string | null;
     compliance_impact?: string | null;
     risk_level?: string | null;
     skipped?: boolean;
@@ -74,19 +78,9 @@ const categoryClass = (cat?: string | null) =>
 const categoryLabel = (cat?: string | null) =>
   CATEGORY_LABELS[cat || ''] || cat || '';
 
-// Urgency badge colors
-const URGENCY_COLORS: Record<string, string> = {
-  'Immediate': 'bg-red-500 text-white',
-  'This Quarter': 'bg-amber-500 text-white',
-  'Monitor': 'bg-slate-400 text-white',
-};
+// (URGENCY_COLORS / ATTENTION_COLORS removed — Attention badge dropped from
+// surface cards; urgency now appears only inside the paid Intelligence Card.)
 
-// Attention level badge colors
-const ATTENTION_COLORS: Record<string, string> = {
-  'High': 'bg-red-100 text-red-800 border border-red-200',
-  'Medium': 'bg-amber-100 text-amber-800 border border-amber-200',
-  'Low': 'bg-green-100 text-green-800 border border-green-200',
-};
 
 // Legal weight badge colors
 const WEIGHT_COLORS: Record<string, string> = {
@@ -116,47 +110,134 @@ const IntelligenceBadge = () => (
   </span>
 );
 
-// — Enrichment detail accordion —
-const EnrichmentAccordion = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
+// — Intelligence Card (paid-only, expandable, collapsed by default) —
+const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const [open, setOpen] = useState(false);
   const s = item.ai_summary;
-  if (!s) return null;
 
-  const details = [
-    s.compliance_impact && { label: 'Compliance Impact', value: s.compliance_impact },
-    s.risk_level && { label: 'Risk Level', value: s.risk_level },
-    s.urgency && { label: 'Urgency', value: s.urgency },
-    s.legal_weight && { label: 'Legal Weight', value: s.legal_weight },
-    item.regulatory_theory && { label: 'Regulatory Theory', value: item.regulatory_theory },
-    item.related_development && { label: 'Related Development', value: item.related_development },
-  ].filter(Boolean) as { label: string; value: string }[];
+  const fullWhy = s?.why_it_matters;
+  const compliance = s?.compliance_impact;
+  const actionItems = (item as any).action_items as Array<{ role?: string; action?: string; timeframe?: string }> | undefined;
+  const signals = (item as any).related_signals as Array<{ label?: string; kind?: string }> | undefined;
+  const regTheory = item.regulatory_theory;
+  const related = item.related_development;
+  const urgency = s?.urgency;
+  const weight = s?.legal_weight;
 
-  // Only show accordion if there's detail beyond what's already visible
-  if (details.length === 0) return null;
+  const hasContent = fullWhy || compliance || (actionItems && actionItems.length > 0)
+    || (signals && signals.length > 0) || regTheory || related;
+  if (!hasContent) return null;
 
   return (
-    <div className="mt-2">
+    <div className="mt-3 rounded-lg border" style={{ borderColor: '#C8D5F0', background: '#F7F9FF' }}>
       <button
+        type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }}
-        className="flex items-center gap-1 text-[12px] font-semibold hover:underline transition-colors"
-        style={{ color: '#4A6FA5' }}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-white/60 rounded-t-lg transition-colors"
+        aria-expanded={open}
       >
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
-        {open ? 'Hide details' : 'View analysis'}
+        <span className="flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5" style={{ color: '#4A6FA5' }} />
+          <span className="text-[12px] font-bold" style={{ color: '#4A6FA5' }}>
+            Intelligence Card
+          </span>
+          <span className="text-[11px] text-slate">
+            — connect the dots, compliance impact, action items
+          </span>
+        </span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: '#4A6FA5' }} />
       </button>
-      {open && !isPremium && (
-        <div className="mt-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-          <PremiumGate message="Full compliance analysis is a Premium feature." blur={false} />
-        </div>
-      )}
-      {open && isPremium && (
-        <div className="mt-2 pl-3 border-l-2 space-y-1.5" style={{ borderColor: '#4A6FA5' }}>
-          {details.map((d) => (
-            <div key={d.label}>
-              <span className="text-[11px] font-bold text-navy">{d.label}:</span>{' '}
-              <span className="text-[12px] text-slate">{d.value}</span>
+
+      {open && (
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t" style={{ borderColor: '#E0E8F5' }}>
+          {/* Connect the dots — related signals */}
+          {signals && signals.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Connect the dots
+              </p>
+              <ul className="space-y-1">
+                {signals.map((sig, i) => (
+                  <li key={i} className="text-[12px] text-navy flex gap-1.5">
+                    <span className="text-slate-400 flex-shrink-0">•</span>
+                    <span>{sig.label}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          ))}
+          )}
+
+          {/* Compliance impact */}
+          {compliance && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Compliance Impact
+              </p>
+              <p className="text-[12px] text-navy leading-relaxed">{compliance}</p>
+            </div>
+          )}
+
+          {/* Action items */}
+          {actionItems && actionItems.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Action Items
+              </p>
+              <ul className="space-y-1.5">
+                {actionItems.map((a, i) => (
+                  <li key={i} className="text-[12px] text-navy">
+                    {a.role && <span className="font-semibold">{a.role}: </span>}
+                    {a.action}
+                    {a.timeframe && <span className="text-slate-500"> · {a.timeframe}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Full analysis */}
+          {fullWhy && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Full Analysis
+              </p>
+              <p className="text-[12px] text-navy leading-relaxed">{stripHtml(fullWhy)}</p>
+            </div>
+          )}
+
+          {/* Regulatory theory + related */}
+          {(regTheory || related) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: '#E0E8F5' }}>
+              {regTheory && (
+                <div className="text-[11px]">
+                  <span className="font-bold text-navy">Regulatory theory: </span>
+                  <span className="text-slate">{regTheory}</span>
+                </div>
+              )}
+              {related && (
+                <div className="text-[11px]">
+                  <span className="font-bold text-navy">Related: </span>
+                  <span className="text-slate">{related}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Meta footer */}
+          {(urgency || weight) && (
+            <div className="flex gap-3 pt-1">
+              {urgency && (
+                <span className="text-[10px] text-slate">
+                  Urgency: <span className="font-semibold text-navy">{urgency}</span>
+                </span>
+              )}
+              {weight && (
+                <span className="text-[10px] text-slate">
+                  Legal weight: <span className="font-semibold text-navy">{weight}</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -193,26 +274,18 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
 
 // — FULL variant ——————————————————————————————————
 const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
-  const urgency = item.ai_summary?.urgency;
-  const weight = item.ai_summary?.legal_weight;
   const enriched = isEnriched(item);
-  // Only premium subscribers see enriched-derived content (urgency, legal weight,
-  // attention level, sectors, "why it matters", and the analysis accordion).
-  // Non-premium users get the basic article card with a single upgrade nudge.
-  const showEnrichment = enriched && isPremium;
+  const weight = item.ai_summary?.legal_weight;
+  const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
+  // Both registered tiers see the short why-it-matters; paid tier additionally
+  // gets the expandable Intelligence Card. Anonymous users use the newsfeed variant.
+  const accentBackground = enriched && isPremium;
 
   return (
     <div
-      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${showEnrichment ? 'px-4 rounded-lg my-1' : ''}`}
-      style={showEnrichment ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
+      style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Intelligence badge top-right — premium only */}
-      {showEnrichment && (
-        <div className="absolute top-2 right-2">
-          <IntelligenceBadge />
-        </div>
-      )}
-
       {/* Source logo placeholder */}
       <div className="w-10 h-10 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
         {item.source_name && (
@@ -221,8 +294,8 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
           </span>
         )}
       </div>
-      <div className={`flex-1 min-w-0 ${showEnrichment ? 'pr-20' : ''}`}>
-        {/* Metadata row — base info always shown; enrichment-derived badges premium-only */}
+      <div className="flex-1 min-w-0">
+        {/* Metadata row — base info always shown; legal weight badge if enriched */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {item.source_name && (
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
@@ -235,35 +308,12 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
               {categoryLabel(item.category)}
             </span>
           )}
-          {showEnrichment && urgency && URGENCY_COLORS[urgency] && (
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${URGENCY_COLORS[urgency]}`}>
-              {urgency}
-            </span>
-          )}
-          {showEnrichment && weight && WEIGHT_COLORS[weight] && (
+          {enriched && weight && WEIGHT_COLORS[weight] && (
             <span className={`font-mono-code text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
               {weight}
             </span>
           )}
-          {showEnrichment && item.attention_level && ATTENTION_COLORS[item.attention_level] && (
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${ATTENTION_COLORS[item.attention_level]}`}>
-              {item.attention_level === 'High' ? '🔴' : item.attention_level === 'Medium' ? '🟡' : '🟢'} {item.attention_level}
-            </span>
-          )}
         </div>
-        {/* Sector tags — enrichment-derived, premium-only */}
-        {showEnrichment && item.affected_sectors && item.affected_sectors.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-1">
-            {item.affected_sectors.slice(0, 4).map((sector) => (
-              <span key={sector} className="text-[10px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded">
-                {sector}
-              </span>
-            ))}
-            {item.affected_sectors.length > 4 && (
-              <span className="text-[10px] text-slate-light">+{item.affected_sectors.length - 4}</span>
-            )}
-          </div>
-        )}
         {/* Title */}
         <Link to={`/updates/${item.id}`}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
@@ -273,19 +323,18 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
         {item.summary && (
           <p className="text-[13px] text-slate leading-relaxed line-clamp-3">{stripHtml(item.summary)}</p>
         )}
-        {/* Why it matters — premium only (full text) */}
-        {showEnrichment && item.ai_summary?.why_it_matters && (
-          <div className="mt-1">
-            <p className="text-[13px] text-emerald-700 leading-relaxed italic">
-              <span className="font-semibold not-italic">Why it matters:</span>{' '}
-              {stripHtml(item.ai_summary.why_it_matters)}
-            </p>
+        {/* Why it matters (short) — both registered tiers */}
+        {shortWhy && (
+          <div className="mt-2 flex gap-2 items-start">
+            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
+              Why it matters
+            </span>
+            <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
           </div>
         )}
-        {/* Note: enrichment upgrade nudge is rendered once at the feed level by
-            TieredFeed for free registered users, to avoid per-card clutter. */}
-        {/* Enrichment accordion — premium only */}
-        {showEnrichment && <EnrichmentAccordion item={item} isPremium={isPremium} />}
+        {/* Intelligence Card — paid only, collapsed by default */}
+        {isPremium && <IntelligenceCard item={item} />}
       </div>
       {/* External link */}
       {item.source_url && (

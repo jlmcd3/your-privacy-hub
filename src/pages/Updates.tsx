@@ -84,6 +84,49 @@ function formatDate(iso: string): string {
     });
 }
 
+// Map slug → display label, preserving correct capitalization (U.S., EU & UK, etc.)
+const FILTER_LABELS: Record<string, string> = {
+  'us-federal': 'U.S. Federal',
+  'us-states': 'U.S. States',
+  'eu-uk': 'EU & UK',
+  'global': 'Global',
+  'enforcement': 'Enforcement',
+  'ai-privacy': 'AI & Privacy',
+  'adtech': 'AdTech & Advertising',
+  'health-hipaa': 'Health & HIPAA',
+  'children-privacy': "Children's Privacy",
+  'data-breaches': 'Data Breaches',
+  'cross-border': 'Cross-Border Transfers',
+  'biometric-data': 'Biometric Data',
+  'employee-privacy': 'Employee Privacy',
+  'cookie-consent': 'Cookie Consent',
+};
+
+function formatFilterLabel(slug: string): string {
+  if (!slug) return '';
+  if (FILTER_LABELS[slug]) return FILTER_LABELS[slug];
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function relativeFromNow(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function freshnessLine(items: Update[]): string {
+  if (items.length === 0) return 'Loading latest analysis…';
+  const latest = items[0]?.published_at;
+  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (!latest) return `Analysis through ${today}`;
+  return `Latest update: ${relativeFromNow(latest)} · Analysis through ${today}`;
+}
+
+
 const Updates = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [updates, setUpdates] = useState<Update[]>([]);
@@ -98,7 +141,7 @@ const Updates = () => {
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
-    const [activeAttention, setActiveAttention] = useState<string | null>(null);
+    // (Attention filter state removed — Attention badge no longer surfaced)
     const [selectedArticle, setSelectedArticle] = useState<Update | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuth();
@@ -274,7 +317,7 @@ const Updates = () => {
             const sectors = u.affected_sectors || [];
             if (!activeSectors.some(s => sectors.includes(s))) return false;
         }
-        if (activeAttention && u.attention_level !== activeAttention) return false;
+        // (Attention filter removed)
         if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
         if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
         if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
@@ -287,11 +330,11 @@ const Updates = () => {
         );
     };
 
-    const hasActiveFilters = activeSectors.length > 0 || activeAttention || urgencyFilter !== "all" || legalWeightFilter !== "all" || crossJurisdictionOnly;
+    const hasActiveFilters = activeSectors.length > 0 || urgencyFilter !== "all" || legalWeightFilter !== "all" || crossJurisdictionOnly;
 
     const clearAllFilters = () => {
         setActiveSectors([]);
-        setActiveAttention(null);
+        // (activeAttention removed)
         setUrgencyFilter("all");
         setLegalWeightFilter("all");
         setCrossJurisdictionOnly(false);
@@ -316,17 +359,19 @@ const Updates = () => {
                             <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">All updates</Link>
                             <span className="text-[11px] text-white/60">›</span>
                             <span className="text-[11px] text-white">
-                                {topicFilter
-                                    ? topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-                                    : regionFilter?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                {formatFilterLabel(topicFilter || regionFilter || '')}
                             </span>
                         </div>
                     )}
                     <h1 className="font-display text-[28px] md:text-[36px] tracking-tight text-white mb-3">
-                        Processed updates
+                        {regionFilter
+                            ? formatFilterLabel(regionFilter)
+                            : topicFilter
+                                ? formatFilterLabel(topicFilter)
+                                : 'Privacy Regulatory Updates'}
                     </h1>
                     <p className="text-[15px] text-white/70 max-w-2xl mx-auto">
-                        {updates.length} processed this week · refreshed daily
+                        {freshnessLine(updates)}
                     </p>
                 </div>
             </section>
@@ -338,14 +383,14 @@ const Updates = () => {
                             <Link to="/updates" className="hover:text-foreground no-underline">All updates</Link>
                             <span>›</span>
                             <span className="text-foreground/80">
-                                {topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                {formatFilterLabel(topicFilter)}
                             </span>
                         </div>
                         <h2 className="text-[15px] font-medium text-foreground m-0">
-                            {topicFilter.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                            {formatFilterLabel(topicFilter)}
                         </h2>
                         <p className="text-[11px] text-muted-foreground m-0">
-                            {filtered.length} updates · refreshed daily
+                            {filtered.length} updates in view
                         </p>
                     </div>
                 )}
@@ -421,45 +466,32 @@ const Updates = () => {
                 )}
 
                 {/* Faceted Filters: Sectors + Attention Level */}
-                {(availableSectors.length > 0 || updates.some(u => u.attention_level)) && (
+                {availableSectors.length > 0 && (
                     <div className="flex flex-col gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
-                        {/* Attention level row */}
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Attention:</span>
-                            {["High", "Medium", "Low"].map((level) => (
+                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
+                            {availableSectors.slice(0, 8).map(([sector, count]) => (
                                 <button
-                                    key={level}
-                                    onClick={() => handleGatedFilterClick(`Attention: ${level}`, () => setActiveAttention(activeAttention === level ? null : level))}
+                                    key={sector}
+                                    onClick={() => handleGatedFilterClick(`Sector: ${sector}`, () => toggleSector(sector))}
                                     className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                                        activeAttention === level
-                                            ? level === "High" ? "bg-destructive text-destructive-foreground" : level === "Medium" ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+                                        activeSectors.includes(sector)
+                                            ? "bg-primary text-primary-foreground"
                                             : "bg-muted text-foreground hover:bg-muted/80"
                                     } ${!user ? "opacity-50 cursor-default" : ""}`}
                                 >
-                                    {level === "High" ? "🔴" : level === "Medium" ? "🟡" : "🟢"} {level}
+                                    {sector} <span className="opacity-60">({count})</span>
                                 </button>
                             ))}
+                            {activeSectors.length > 0 && (
+                                <button
+                                    onClick={() => setActiveSectors([])}
+                                    className="text-[11px] text-muted-foreground hover:text-foreground ml-1"
+                                >
+                                    Clear sectors
+                                </button>
+                            )}
                         </div>
-
-                        {/* Sectors row */}
-                        {availableSectors.length > 0 && (
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
-                                {availableSectors.slice(0, 8).map(([sector, count]) => (
-                                    <button
-                                        key={sector}
-                                        onClick={() => handleGatedFilterClick(`Sector: ${sector}`, () => toggleSector(sector))}
-                                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                                            activeSectors.includes(sector)
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-muted text-foreground hover:bg-muted/80"
-                                        } ${!user ? "opacity-50 cursor-default" : ""}`}
-                                    >
-                                        {sector} <span className="opacity-60">({count})</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 )}
 

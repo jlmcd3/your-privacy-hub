@@ -1788,6 +1788,7 @@ export type Database = {
           regulator: string | null
           regulatory_theory: string | null
           related_development: string | null
+          related_signals: Json | null
           source_domain: string | null
           source_name: string | null
           source_note: string | null
@@ -1795,6 +1796,7 @@ export type Database = {
           title: string
           topic_tags: string[] | null
           url: string
+          why_it_matters_short: string | null
         }
         Insert: {
           action_items?: Json | null
@@ -1819,6 +1821,7 @@ export type Database = {
           regulator?: string | null
           regulatory_theory?: string | null
           related_development?: string | null
+          related_signals?: Json | null
           source_domain?: string | null
           source_name?: string | null
           source_note?: string | null
@@ -1826,6 +1829,7 @@ export type Database = {
           title: string
           topic_tags?: string[] | null
           url: string
+          why_it_matters_short?: string | null
         }
         Update: {
           action_items?: Json | null
@@ -1850,6 +1854,7 @@ export type Database = {
           regulator?: string | null
           regulatory_theory?: string | null
           related_development?: string | null
+          related_signals?: Json | null
           source_domain?: string | null
           source_name?: string | null
           source_note?: string | null
@@ -1857,6 +1862,7 @@ export type Database = {
           title?: string
           topic_tags?: string[] | null
           url?: string
+          why_it_matters_short?: string | null
         }
         Relationships: []
       }
