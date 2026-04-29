@@ -148,6 +148,19 @@ const Updates = () => {
     const userTier: "free" | "pro" = isPremium ? "pro" : "free";
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
+    // Write the selected pill into the URL (region/topic) so back/forward stays in sync.
+    // Uses push (not replace) so each pill click is its own history entry.
+    const selectFilter = useCallback((key: string) => {
+        const next = new URLSearchParams(searchParams);
+        next.delete("region");
+        next.delete("topic");
+        if (key && key !== "all") {
+            const isLocation = LOCATION_FILTERS.some(f => f.key === key);
+            next.set(isLocation ? "region" : "topic", key);
+        }
+        setSearchParams(next);
+    }, [searchParams, setSearchParams]);
+
     const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
       if (!user) {
         setShowFilterGate(filterLabel);
