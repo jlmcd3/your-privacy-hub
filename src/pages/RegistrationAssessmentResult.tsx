@@ -115,6 +115,7 @@ export default function RegistrationAssessmentResult() {
               contact_email: assessment?.email || user.email,
               intake: assessment?.intake_data,
             },
+            environment: getStripeEnvironment(),
           },
         }
       );
