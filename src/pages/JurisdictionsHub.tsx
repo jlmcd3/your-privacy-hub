@@ -101,6 +101,7 @@ export default function JurisdictionsHub() {
       const { data } = await supabase
         .from("updates")
         .select("title, direct_jurisdictions, published_at")
+        .eq("is_hidden", false)
         .not("direct_jurisdictions", "is", null)
         .order("published_at", { ascending: false })
         .limit(40);

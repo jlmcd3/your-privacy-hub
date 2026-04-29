@@ -113,6 +113,7 @@ const GDPREnforcement = () => {
       const { data } = await (supabase as any)
         .from("updates")
         .select("id,title,summary,url,source_name,image_url,published_at")
+        .eq("is_hidden", false)
         .eq("category", "eu-uk")
         .order("published_at", { ascending: false })
         .limit(6);

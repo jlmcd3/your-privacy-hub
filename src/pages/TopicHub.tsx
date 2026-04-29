@@ -103,6 +103,7 @@ const TopicHub = () => {
       const { data: tagData } = await supabase
         .from("updates")
         .select("*")
+        .eq("is_hidden", false)
         .contains("topic_tags", [slug!])
         .order("published_at", { ascending: false })
         .limit(30);
@@ -128,6 +129,7 @@ const TopicHub = () => {
         const { data: kwData } = await supabase
           .from("updates")
           .select("*")
+          .eq("is_hidden", false)
           .or(orQuery)
           .order("published_at", { ascending: false })
           .limit(30);

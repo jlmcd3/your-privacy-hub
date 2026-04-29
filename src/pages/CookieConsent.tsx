@@ -38,6 +38,7 @@ export default function CookieConsentPage() {
     supabase
       .from("updates")
       .select("id, title, published_at, source_name, url")
+      .eq("is_hidden", false)
       .or("title.ilike.%cookie%,title.ilike.%consent%,title.ilike.%CMP%,topic_tags.cs.{adtech-consent}")
       .order("published_at", { ascending: false })
       .limit(6)

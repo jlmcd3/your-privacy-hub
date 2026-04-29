@@ -105,6 +105,7 @@ const CategoryPage = () => {
       const { data } = await supabase
         .from("updates")
         .select("*")
+        .eq("is_hidden", false)
         .eq("category", slug!)
         .order("published_at", { ascending: false })
         .limit(50);

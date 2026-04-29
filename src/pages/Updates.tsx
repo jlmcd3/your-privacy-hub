@@ -180,6 +180,7 @@ const Updates = () => {
         return supabase
             .from("updates")
             .select("*")
+            .eq("is_hidden", false)
             .order("published_at", { ascending: false })
             .range(offset, offset + PAGE_SIZE - 1);
     }, []);
