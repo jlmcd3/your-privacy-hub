@@ -278,10 +278,16 @@ export default function BriefPreferences() {
               <span>⭐</span> Intelligence
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">Configure your Intelligence Brief</h1>
-            <p className="text-slate text-[14px] mb-8 max-w-lg">
+            <p className="text-slate text-[14px] mb-3 max-w-lg">
               Your Intelligence brief is created specifically for your regulatory environment. The more context you
               provide, the more precisely it speaks to your actual compliance obligations.
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 max-w-lg">
+              <p className="text-[12px] text-navy leading-snug">
+                <span className="font-semibold">These preferences apply to your next scheduled brief.</span>{" "}
+                Already-published briefs in your archive remain unchanged.
+              </p>
+            </div>
           </div>
 
           {/* Role */}
@@ -342,25 +348,6 @@ export default function BriefPreferences() {
             </div>
           </div>
 
-          {/* Topics */}
-          <div className="mb-8">
-            <h2 className="font-bold text-navy text-[15px] mb-1">Your report tracks</h2>
-            <p className="text-slate text-xs mb-4">
-              Choose the topic tracks your Intelligence brief will cover every week. Select multiple for a combined
-              brief.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {TOPICS.map((t) => (
-                <Toggle
-                  key={t.id}
-                  {...t}
-                  selected={prefs.topics.includes(t.id)}
-                  onToggle={(id) => toggle("topics", id)}
-                />
-              ))}
-            </div>
-          </div>
-
           {/* Brief format */}
           <div className="mb-8">
             <h2 className="font-bold text-navy text-[15px] mb-1">Your brief format</h2>
@@ -411,7 +398,7 @@ export default function BriefPreferences() {
             >
               {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
             </button>
-            <p className="text-slate text-xs">Your Intelligence Brief's focus updates with the next Monday brief.</p>
+            <p className="text-slate text-xs">Saved preferences take effect with the next Monday brief.</p>
           </div>
         </main>
         <Footer />
