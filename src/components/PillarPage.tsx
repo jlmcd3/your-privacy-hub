@@ -198,89 +198,131 @@ const PillarPage = ({
         </div>
       </div>
 
-      {/* Recent Developments — uses the shared TieredFeed for consistency with the main newsfeed */}
-      {recentArticles.length > 0 && (
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="font-display text-base text-navy">Recent developments</h2>
-            <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
-              Live
-            </span>
-          </div>
-          <div onClickCapture={handleFeedClick}>
-            <TieredFeed
-              articles={recentArticles}
-              previewCount={1}
-              seeAllHref="/updates"
-              showSeeAll={true}
-            />
-          </div>
-        </div>
-      )}
-
       <AdBanner variant="leaderboard" adSlot={`eup-pillar-top`} className="py-3" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-        <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
+        {/* Intro */}
+        <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-6">
           <p className="text-[15px] text-navy leading-relaxed">{intro}</p>
         </div>
 
-        <div className="space-y-8">
-          {sections.map((sec, i) => (
-            <React.Fragment key={i}>
+        {/* On this page — jump-link TOC. Collapsible on mobile, expanded on md+. */}
+        {sections.length > 1 && (
+          <details
+            open
+            className="mb-8 rounded-xl border border-fog bg-card md:open:block group"
+          >
+            <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-navy md:cursor-default">
+              <span>On this page</span>
+              <span className="md:hidden text-slate text-[10px] group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <nav className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+              {sections.map((sec, i) => {
+                const slug = sec.heading
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s-]/g, "")
+                  .trim()
+                  .replace(/\s+/g, "-");
+                return (
+                  <a
+                    key={i}
+                    href={`#${slug}`}
+                    className="text-[13px] text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                  >
+                    <span className="text-slate">→</span>
+                    <span>{sec.heading}</span>
+                  </a>
+                );
+              })}
+            </nav>
+          </details>
+        )}
+
+        {/* Recent Developments — proves the page is live before any CTA */}
+        {recentArticles.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="font-display text-base text-navy">Recent developments</h2>
+              <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
+                Live
+              </span>
+            </div>
+            <div onClickCapture={handleFeedClick}>
+              <TieredFeed
+                articles={recentArticles}
+                previewCount={1}
+                seeAllHref="/updates"
+                showSeeAll={true}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* "What changed this week" CTA — hidden for premium users (they already get it). */}
+        {!isPremium && (
+          <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm mb-10">
+            <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
               <div>
-                <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
-                <div
-                  className="text-[14px] text-slate leading-relaxed whitespace-pre-line"
-                  dangerouslySetInnerHTML={{
-                    __html: sec.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-navy font-semibold">$1</strong>'),
-                  }}
-                />
+                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
+                  ⭐ Weekly Intelligence
+                </div>
+                <h3 className="font-display text-[14px] text-white">
+                  {intelligenceLabel || "What changed in this area this week"}
+                </h3>
               </div>
-              {i === Math.floor(sections.length / 2) - 1 && (
-                <>
+              <Lock className="w-4 h-4 text-sky/50 shrink-0" />
+            </div>
+            <div className="relative bg-card px-5 py-4">
+              <div className="space-y-2 blur-[3px] select-none pointer-events-none">
+                <div className="h-2.5 bg-navy/10 rounded w-full" />
+                <div className="h-2.5 bg-navy/10 rounded w-4/5" />
+                <div className="h-2.5 bg-navy/10 rounded w-3/4" />
+                <div className="h-2.5 bg-navy/10 rounded w-full mt-2" />
+                <div className="h-2.5 bg-navy/10 rounded w-2/3" />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px] px-4">
+                <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                  <Lock className="w-4 h-4 text-navy/40 shrink-0" />
+                  <span className="text-[12px] text-navy font-medium">
+                    {midPageCtaMessage || "Intelligence subscribers get full analysis on every development in this area."}
+                  </span>
+                  <Link
+                    to="/subscribe"
+                    className="text-[11px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
+                  >
+                    Get full intelligence →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Deep sections */}
+        <div className="space-y-8">
+          {sections.map((sec, i) => {
+            const slug = sec.heading
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, "")
+              .trim()
+              .replace(/\s+/g, "-");
+            return (
+              <React.Fragment key={i}>
+                <div id={slug} className="scroll-mt-24">
+                  <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+                  <div
+                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line"
+                    dangerouslySetInnerHTML={{
+                      __html: sec.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-navy font-semibold">$1</strong>'),
+                    }}
+                  />
+                </div>
+                {i === Math.floor(sections.length / 2) - 1 && (
                   <AdBanner variant="inline" adSlot={`eup-pillar-mid`} className="py-4" />
-                  {/* Mid-content premium teaser */}
-                  <div className="rounded-2xl border border-sky/20 overflow-hidden shadow-eup-sm my-2">
-                    <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
-                      <div>
-                        <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
-                          ⭐ Weekly Intelligence
-                        </div>
-                        <h3 className="font-display text-[14px] text-white">
-                          {intelligenceLabel || "What changed in this area this week"}
-                        </h3>
-                      </div>
-                      <Lock className="w-4 h-4 text-sky/50 shrink-0" />
-                    </div>
-                    <div className="relative bg-card px-5 py-4">
-                      <div className="space-y-2 blur-[3px] select-none pointer-events-none">
-                        <div className="h-2.5 bg-navy/10 rounded w-full" />
-                        <div className="h-2.5 bg-navy/10 rounded w-4/5" />
-                        <div className="h-2.5 bg-navy/10 rounded w-3/4" />
-                        <div className="h-2.5 bg-navy/10 rounded w-full mt-2" />
-                        <div className="h-2.5 bg-navy/10 rounded w-2/3" />
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-                        <div className="flex items-center gap-3">
-                          <Lock className="w-4 h-4 text-navy/40 shrink-0" />
-                          <span className="text-[12px] text-navy font-medium">
-                            {midPageCtaMessage || "Intelligence subscribers get full analysis on every development in this area."}
-                          </span>
-                          <Link
-                            to="/subscribe"
-                            className="text-[11px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
-                          >
-                            Get full intelligence →
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </React.Fragment>
-          ))}
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
 
         {/* Bottom tool CTA */}
@@ -330,20 +372,22 @@ const PillarPage = ({
 
         <AdBanner variant="leaderboard" adSlot={`eup-pillar-bottom`} className="py-6" />
 
-        {/* Premium CTA */}
-        <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on {title}</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
-            Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
-          </p>
-          <Link
-            to="/subscribe"
-            className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
-          >
-            Get full intelligence →
-          </Link>
-        </div>
+        {/* Premium CTA — hidden for premium users */}
+        {!isPremium && (
+          <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
+            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
+            <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on {title}</h3>
+            <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
+              Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
+            </p>
+            <Link
+              to="/subscribe"
+              className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
+            >
+              Get full intelligence →
+            </Link>
+          </div>
+        )}
       </div>
       <Footer />
     </div>
