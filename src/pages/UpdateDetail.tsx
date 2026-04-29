@@ -289,7 +289,7 @@ const UpdateDetail = () => {
               <section aria-labelledby="section-briefed" className="mb-8">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Briefed</span>
-                  <span className="text-[10px] text-muted-foreground/60">AI summary &amp; takeaways</span>
+                  <span className="text-[10px] text-muted-foreground/60">Summary &amp; takeaways</span>
                 </div>
                 <hr className="border-border mb-4" />
 
