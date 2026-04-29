@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
@@ -6,30 +5,40 @@ import type { SourceMap } from "@/components/brief/CitedText";
 interface Props {
   customBrief: any;
   sourceMap: SourceMap;
+  /** @deprecated Briefs are immutable. Edit preferences from the dashboard or /brief-preferences. */
   showEditPreferencesLink?: boolean;
 }
 
 /**
- * Renders a personalized "custom_briefs" document with the same layout
- * used historically inline in the dashboard. Extracted so multiple briefs
- * (current + archived) can be rendered without duplicating markup.
+ * Renders a personalized "custom_briefs" document. Briefs are immutable
+ * artifacts — there is no edit affordance inside the document itself.
+ * Preferences changes apply to future briefs only.
  */
-export default function CustomBriefDocument({ customBrief, sourceMap, showEditPreferencesLink = false }: Props) {
+export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
   if (!customBrief) return null;
   const sections = customBrief.custom_sections ?? {};
+  const snapshot = customBrief.preferences_snapshot ?? null;
+  const snapshotChips: string[] = [];
+  if (snapshot && typeof snapshot === "object") {
+    const inds = Array.isArray(snapshot.industries) ? snapshot.industries : [];
+    const juris = Array.isArray(snapshot.jurisdictions) ? snapshot.jurisdictions : [];
+    if (inds.length) snapshotChips.push(`${inds.length} industr${inds.length === 1 ? "y" : "ies"}`);
+    if (juris.length) snapshotChips.push(`${juris.length} jurisdiction${juris.length === 1 ? "" : "s"}`);
+    if (snapshot.role) snapshotChips.push(String(snapshot.role).replace(/_/g, " "));
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Document header */}
       <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
             ⭐ Your Personalized Brief — {customBrief.week_label}
           </span>
-          {showEditPreferencesLink && (
-            <Link to="/brief-preferences" className="text-[11px] text-blue-300 hover:text-white no-underline">
-              Edit preferences →
-            </Link>
+          {snapshotChips.length > 0 && (
+            <span className="text-[10px] text-blue-200/80" title="Preferences in effect when this brief was generated">
+              Built for: {snapshotChips.join(" · ")}
+            </span>
           )}
         </div>
         {sections.opening_headline && (
