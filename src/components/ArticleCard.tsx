@@ -286,14 +286,23 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
       className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
       style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Source logo placeholder */}
-      <div className="w-10 h-10 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
-        {item.source_name && (
-          <span className="text-[9px] font-bold text-slate uppercase text-center leading-tight px-1">
-            {item.source_name.split('.')[0].slice(0,6)}
-          </span>
-        )}
-      </div>
+      {/* Article thumbnail (or source-name placeholder) */}
+      {item.image_url ? (
+        <img
+          src={item.image_url}
+          alt=""
+          className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
+          {item.source_name && (
+            <span className="text-[9px] font-bold text-slate uppercase text-center leading-tight px-1">
+              {item.source_name.split('.')[0].slice(0,6)}
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         {/* Metadata row — base info always shown; legal weight badge if enriched */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
@@ -494,7 +503,17 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
       </div>
 
       <div className="px-4 py-3">
-        <p className="text-[14px] font-semibold text-navy leading-snug mb-3">{normalizeTitle(item.title)}</p>
+        <div className="flex gap-3 mb-3">
+          {item.image_url && (
+            <img
+              src={item.image_url}
+              alt=""
+              className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
+          <p className="text-[14px] font-semibold text-navy leading-snug flex-1">{normalizeTitle(item.title)}</p>
+        </div>
 
         {s?.why_it_matters && (
           <div className="border-l-4 border-sky-500 bg-sky-50 px-3 py-2 rounded-r-lg mb-3">
@@ -503,24 +522,16 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
           </div>
         )}
 
-        <div className="flex flex-wrap gap-4 mb-3">
-          {s?.legal_weight && (
-            <div>
-              <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Legal weight</p>
-              <p className="text-[11px] font-medium text-navy">{s.legal_weight}</p>
+        {item.affected_sectors && item.affected_sectors.length > 0 && (
+          <div className="mb-3">
+            <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
+            <div className="flex gap-1 flex-wrap">
+              {item.affected_sectors.slice(0, 3).map((sec: string, i: number) => (
+                <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
+              ))}
             </div>
-          )}
-          {item.affected_sectors && item.affected_sectors.length > 0 && (
-            <div>
-              <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
-              <div className="flex gap-1 flex-wrap">
-                {item.affected_sectors.slice(0, 3).map((sec: string, i: number) => (
-                  <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="border-t border-slate-100 pt-3 flex items-center gap-3">
           <p className="text-[12px] text-slate flex-1">
