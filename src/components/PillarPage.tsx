@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Lock, ExternalLink } from "lucide-react";
+import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { TieredFeed } from "@/components/TieredFeed";
+import type { ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
@@ -54,39 +56,32 @@ const PillarPage = ({
   toolCta,
   midPageCtaMessage,
 }: PillarPageProps) => {
-  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
-  const [previewOpenId, setPreviewOpenId] = useState<string | null>(null);
-
-  const trackPreviewToggle = (a: any, opened: boolean) => {
-    try {
-      (window as any).plausible?.("AI Summary Preview Toggle", {
-        props: {
-          tier,
-          pillar: title,
-          article_id: a.id,
-          opened,
-        },
-      });
-    } catch {
-      /* swallow */
-    }
-  };
 
   const tier: "anonymous" | "free" | "premium" = !user ? "anonymous" : isPremium ? "premium" : "free";
 
-  const trackRecentDevClick = (a: any) => {
+  // Fire the legacy "Recent Dev Click" Plausible event from a delegated handler
+  // on the feed container, so we don't lose analytics signal after switching to
+  // the centralized TieredFeed/ArticleCard rendering.
+  const handleFeedClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    const anchor = target?.closest?.("a[href^='http']") as HTMLAnchorElement | null;
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") || "";
+    const match = recentArticles.find((a: any) => a.url === href || a.source_url === href);
+    if (!match) return;
     try {
       (window as any).plausible?.("Recent Dev Click", {
         props: {
           tier,
           pillar: title,
-          source: a.source_name || "unknown",
-          article_id: a.id,
-          url: a.url,
+          source: (match as any).source_name || "unknown",
+          article_id: match.id,
+          url: href,
         },
       });
     } catch {
@@ -109,7 +104,12 @@ const PillarPage = ({
         .order("published_at", { ascending: false })
         .limit(8);
 
-      if (data) setRecentArticles(data);
+      if (data) {
+        // Map db `url` → ArticleItem `source_url` expected by ArticleCard.
+        setRecentArticles(
+          (data as any[]).map((a) => ({ ...a, source_url: a.url })) as ArticleItem[]
+        );
+      }
     }
 
     load();
@@ -198,7 +198,7 @@ const PillarPage = ({
         </div>
       </div>
 
-      {/* Recent Developments — moved above the fold, tier-aware */}
+      {/* Recent Developments — uses the shared TieredFeed for consistency with the main newsfeed */}
       {recentArticles.length > 0 && (
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="flex items-center gap-2 mb-4">
@@ -206,226 +206,15 @@ const PillarPage = ({
             <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
               Live
             </span>
-            <span className="text-[11px] text-slate ml-auto">
-              {user ? (isPremium ? "Showing all updates" : "Free account") : `Showing 3 of ${recentArticles.length}`}
-            </span>
           </div>
-
-          {/* Anonymous tier */}
-          {!user && (
-            <>
-              <div className="divide-y divide-fog">
-                {recentArticles.slice(0, 3).map((a: any) => {
-                  const TitleEl: any = a.url ? "a" : "div";
-                  const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
-                    : {};
-                  return (
-                    <div key={a.id} className="py-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        {a.source_name && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
-                        )}
-                        {a.published_at && (
-                          <span className="text-[10px] text-slate">
-                            {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                          </span>
-                        )}
-                      </div>
-                      <TitleEl
-                        {...titleProps}
-                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 no-underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
-                      >
-                        <span>{a.title}</span>
-                        {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
-                      </TitleEl>
-                      {a.ai_summary?.why_it_matters && (
-                        <div className="mt-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const opening = previewOpenId !== a.id;
-                              setPreviewOpenId(opening ? a.id : null);
-                              trackPreviewToggle(a, opening);
-                            }}
-                            aria-expanded={previewOpenId === a.id}
-                            className="text-[11px] font-semibold text-sky-700 hover:text-sky-900 inline-flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer"
-                          >
-                            {previewOpenId === a.id ? "Hide AI summary preview" : "Preview AI summary"}
-                          </button>
-                          {previewOpenId === a.id && (
-                            <div className="relative mt-2 rounded-lg border border-fog overflow-hidden">
-                              <div
-                                className="select-none pointer-events-none p-3 bg-slate-50 text-[12px] text-slate leading-relaxed"
-                                style={{ filter: "blur(4px)" }}
-                                aria-hidden
-                              >
-                                {a.ai_summary.why_it_matters}
-                              </div>
-                              <div className="absolute inset-0 flex items-center justify-center bg-white/55 backdrop-blur-[1px]">
-                                <div className="text-center px-3 py-2">
-                                  <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-1.5">
-                                    <Lock className="w-3 h-3" /> Sign in to read
-                                  </div>
-                                  <div className="flex gap-2 justify-center">
-                                    <Link
-                                      to="/login"
-                                      className="text-[11px] px-3 py-1 rounded-md bg-navy text-white font-medium no-underline hover:bg-navy-mid transition-colors"
-                                    >
-                                      Sign in
-                                    </Link>
-                                    <Link
-                                      to="/signup"
-                                      className="text-[11px] px-3 py-1 rounded-md border border-fog bg-white text-navy font-medium no-underline hover:bg-slate-50 transition-colors"
-                                    >
-                                      Create free account
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-4 p-4 border border-dashed border-fog rounded-xl text-center bg-slate-50">
-                <p className="text-[12px] text-slate mb-3">
-                  {Math.max(0, recentArticles.length - 3)} more updates — plus analysis on each
-                </p>
-                <div className="flex gap-2 justify-center flex-wrap">
-                  <Link
-                    to="/signup"
-                    className="text-[12px] px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors no-underline"
-                  >
-                    Create free account
-                  </Link>
-                  <Link
-                    to="/subscribe"
-                    className="text-[12px] px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-slate-50 transition-colors no-underline"
-                  >
-                    Intelligence plan — $39/month
-                  </Link>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Free registered tier */}
-          {user && !isPremium && (
-            <>
-              <div className="divide-y divide-fog">
-                {recentArticles.slice(0, 6).map((a: any) => {
-                  const TitleEl: any = a.url ? "a" : "div";
-                  const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
-                    : {};
-                  return (
-                    <div key={a.id} className="py-3 group">
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        {a.source_name && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
-                        )}
-                        {a.published_at && (
-                          <span className="text-[10px] text-slate">
-                            {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                          </span>
-                        )}
-                      </div>
-                      <TitleEl
-                        {...titleProps}
-                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 mb-1 no-underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
-                      >
-                        <span>{a.title}</span>
-                        {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
-                      </TitleEl>
-                      {a.summary && (
-                        <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{a.summary}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-3 text-right">
-                <Link to="/updates" className="text-[12px] text-sky-700 hover:underline">
-                  See all updates →
-                </Link>
-              </div>
-              <div className="mt-4 p-3 rounded-lg bg-sky-50 border border-sky-200/60 flex items-center gap-3">
-                <p className="text-[12px] text-navy flex-1">
-                  Intelligence subscribers see analysis — regulatory theory, cross-jurisdiction signals, and action items — on every update.
-                </p>
-                <Link
-                  to="/subscribe"
-                  className="text-[11px] px-3 py-1.5 rounded-lg bg-navy text-white font-medium whitespace-nowrap hover:bg-navy-mid transition-colors shrink-0 no-underline"
-                >
-                  Get Intelligence →
-                </Link>
-              </div>
-            </>
-          )}
-
-          {/* Intelligence subscriber tier */}
-          {user && isPremium && (
-            <>
-              <div className="divide-y divide-fog">
-                {recentArticles.map((a: any) => {
-                  const TitleEl: any = a.url ? "a" : "div";
-                  const titleProps = a.url
-                    ? { href: a.url, target: "_blank", rel: "noopener noreferrer", onClick: () => trackRecentDevClick(a) }
-                    : {};
-                  return (
-                    <div key={a.id} className="py-3 group">
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        {a.ai_summary?.urgency && (
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded font-medium ${
-                              a.ai_summary.urgency === "immediate"
-                                ? "bg-red-100 text-red-800"
-                                : a.ai_summary.urgency === "this-quarter"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-green-100 text-green-800"
-                            }`}
-                          >
-                            {a.ai_summary.urgency === "immediate"
-                              ? "High urgency"
-                              : a.ai_summary.urgency === "this-quarter"
-                              ? "Medium urgency"
-                              : "Monitor"}
-                          </span>
-                        )}
-                        {a.source_name && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">{a.source_name}</span>
-                        )}
-                        {a.published_at && (
-                          <span className="text-[10px] text-slate">
-                            {new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                          </span>
-                        )}
-                      </div>
-                      <TitleEl
-                        {...titleProps}
-                        className={`text-[13px] font-medium text-navy leading-snug inline-flex items-start gap-1.5 mb-1 no-underline rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${a.url ? "hover:text-sky-700 hover:underline cursor-pointer" : ""}`}
-                      >
-                        <span>{a.title}</span>
-                        {a.url && <ExternalLink className="w-3 h-3 mt-0.5 shrink-0 text-slate" />}
-                      </TitleEl>
-                      {a.ai_summary?.why_it_matters && (
-                        <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{a.ai_summary.why_it_matters}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-3 text-right">
-                <Link to="/updates" className="text-[12px] text-sky-700 hover:underline">
-                  See all updates →
-                </Link>
-              </div>
-            </>
-          )}
+          <div onClickCapture={handleFeedClick}>
+            <TieredFeed
+              articles={recentArticles}
+              previewCount={1}
+              seeAllHref="/updates"
+              showSeeAll={true}
+            />
+          </div>
         </div>
       )}
 
