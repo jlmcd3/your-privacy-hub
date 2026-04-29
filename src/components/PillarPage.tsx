@@ -337,24 +337,6 @@ const PillarPage = ({
           })}
         </div>
 
-        {/* Bottom tool CTA */}
-        {toolCta && (
-          <div className="mt-12">
-            <div className="rounded-xl border border-sky/20 bg-gradient-to-br from-navy to-navy-mid px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="flex-1">
-                <p className="text-[10px] font-bold tracking-widest uppercase text-sky-300 mb-1">Intelligence plan tool</p>
-                <h3 className="font-display text-[16px] text-white mb-1">{toolCta.heading}</h3>
-                <p className="text-[13px] text-slate-light leading-relaxed">{toolCta.description}</p>
-              </div>
-              <Link
-                to={toolCta.link}
-                className="shrink-0 text-[12px] px-5 py-2.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap no-underline"
-              >
-                {toolCta.linkLabel}
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Related links */}
         <div className="mt-12 pt-8 border-t border-fog">
