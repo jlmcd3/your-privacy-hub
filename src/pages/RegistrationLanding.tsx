@@ -39,7 +39,7 @@ const FAQS = [
   },
   {
     q: "Can I get reminders before renewals are due?",
-    a: "Yes. Annual renewal monitoring is available at $79 per jurisdiction per year — reminders 60/30/7 days before expiry, plus a regenerated filing pack. You can opt in or out at any time from your filing dashboard.",
+    a: "Yes. Annual renewal monitoring is available at $79 per jurisdiction per year — reminders 60/30/7 days before expiry, plus a regenerated filing pack. You can opt in or out at any time from your filing dashboard, but you must provide an accurate filing date for our tracking to be of use to you.",
   },
 ];
 
