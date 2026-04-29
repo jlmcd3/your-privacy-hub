@@ -80,7 +80,7 @@ export default function CookieConsentPage() {
               <h2 className="font-display text-[20px] text-foreground mb-3">{s.title}</h2>
               <div
                 className="text-[14px] text-muted-foreground leading-relaxed whitespace-pre-line prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: s.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>') }}
+                dangerouslySetInnerHTML={{ __html: s.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>`) }}
               />
             </section>
           ))}
@@ -120,7 +120,7 @@ export default function CookieConsentPage() {
             </Link>
             <Link to="/subscribe" className="p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 no-underline transition-all">
               <p className="text-[13px] font-semibold text-foreground">⭐ Get weekly analyst coverage</p>
-              <p className="text-[11px] text-muted-foreground">AdTech & Consent track — __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__</p>
+              <p className="text-[11px] text-muted-foreground">AdTech & Consent track — ${INTELLIGENCE_PRICING.monthly()}</p>
             </Link>
           </div>
         </section>
@@ -130,3 +130,4 @@ export default function CookieConsentPage() {
     </div>
   );
 }
+`

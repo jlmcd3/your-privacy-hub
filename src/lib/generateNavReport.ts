@@ -266,7 +266,7 @@ export async function generateNavReport(): Promise<{ filename: string; version: 
   // ----- §2 Content Access Tiers -----
   children.push(
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("2. Content Access Tiers")] }),
-    p("Matrix of features vs. user tier. (a) Anonymous, (b) Free registered, (c) Professional (__PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort____or___INTELLIGENCE_PRICING_yearlyShort_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort____or___INTELLIGENCE_PRICING_yearlyShort_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__ or __PRICE_TODO___INTELLIGENCE_PRICING_yearlyShort_____$390/yr__END____END____END__).", {
+    p(`Matrix of features vs. user tier. (a) Anonymous, (b) Free registered, (c) Professional (${INTELLIGENCE_PRICING.monthlyShort()} or ${INTELLIGENCE_PRICING.yearlyShort()}).`, {
       size: 20,
       color: "666666",
     }),

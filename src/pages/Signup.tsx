@@ -50,7 +50,7 @@ const Signup = () => {
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Create Account | End User Privacy</title>
-        <meta name="description" content="Create a free End User Privacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__." />
+        <meta name="description" content=`Create a free End User Privacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from ${INTELLIGENCE_PRICING.monthly()}.` />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
@@ -66,7 +66,7 @@ const Signup = () => {
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
               'Weekly digest — free',
-              'Personalized analysis for __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__',
+              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
@@ -83,7 +83,7 @@ const Signup = () => {
             <p className="text-sm text-slate text-center mb-7">
               {redirect.includes("subscribe") || redirect.includes("success")
                 ? "Create your account to complete your Intelligence subscription"
-                : "Join End User Privacy — free to browse, Intelligence from __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__"}
+                : `Join End User Privacy — free to browse, Intelligence from ${INTELLIGENCE_PRICING.monthly()}`}
             </p>
 
             {message && (

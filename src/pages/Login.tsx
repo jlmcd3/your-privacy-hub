@@ -59,7 +59,7 @@ const Login = () => {
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
               'Weekly digest — free',
-              'Personalized analysis for __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__',
+              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>

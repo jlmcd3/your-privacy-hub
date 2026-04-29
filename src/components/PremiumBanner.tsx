@@ -53,7 +53,7 @@ const PremiumBanner = () => {
               <sup className="text-[18px] md:text-[22px] align-super">$</sup>29
             </div>
             <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
-            <div className="text-[11px] text-white/70 mb-2">or __PRICE_TODO___INTELLIGENCE_PRICING_yearly_____$390/year__END__ — Save $78</div>
+            <div className="text-[11px] text-white/70 mb-2">or $390/year — Save $78</div>
             <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">
               First 25 subscribers: free for 1 year
             </div>
