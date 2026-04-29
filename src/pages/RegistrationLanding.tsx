@@ -34,8 +34,8 @@ const FAQS = [
     a: "DIY tiers ($59 for 1 jurisdiction, $149 for up to 3, $275 for up to 7, $499 for unlimited) generate the documents and a filing checklist. The Counsel-Ready Pack ($399 flat) adds enhanced jurisdiction notes, a pre-filing walkthrough, and a structured handoff document so your privacy counsel can review and submit faster. You still file the documents yourself.",
   },
   {
-    q: "Do you handle EU AI Act registrations?",
-    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, and we offer a discounted bundle ($599) when you prepare 3+ systems together. You submit the filings.",
+    q: "Do you create EU AI Act registration documents?",
+    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, and we offer a discounted bundle ($599) when you prepare 3+ systems together. You review any filings with your counsel and you or they submit the filings — we do not do any filings for you.",
   },
   {
     q: "Can I get reminders before renewals are due?",
