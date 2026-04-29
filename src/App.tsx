@@ -60,6 +60,7 @@ import GetIntelligence from "./pages/GetIntelligence.tsx";
 import LegitimateInterestTracker from "./pages/LegitimateInterestTracker.tsx";
 import AdminSeedLI from "./pages/AdminSeedLI.tsx";
 import AdminIngestionDashboard from "./pages/AdminIngestionDashboard.tsx";
+import AdminArticles from "./pages/AdminArticles.tsx";
 import AdminEmailSignups from "./pages/AdminEmailSignups.tsx";
 import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
@@ -228,6 +229,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminIngestionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/articles"
+              element={
+                <ProtectedRoute>
+                  <AdminArticles />
                 </ProtectedRoute>
               }
             />

@@ -179,12 +179,20 @@ export default function AdminIngestionDashboard() {
       <Helmet><title>Ingestion Dashboard — Admin</title></Helmet>
       <Navbar />
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">Admin</p>
-          <h1 className="font-display text-[28px] text-foreground">Ingestion Run Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Telemetry for cron-driven news ingestion and enrichment jobs. Showing last 200 runs.
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">Admin</p>
+            <h1 className="font-display text-[28px] text-foreground">Ingestion Run Dashboard</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Telemetry for cron-driven news ingestion and enrichment jobs. Showing last 200 runs.
+            </p>
+          </div>
+          <Link
+            to="/admin/articles"
+            className="shrink-0 inline-flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-colors"
+          >
+            Article Moderation →
+          </Link>
         </div>
 
         {/* Per-job summary cards */}
