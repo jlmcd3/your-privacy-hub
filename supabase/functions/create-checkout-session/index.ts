@@ -13,8 +13,8 @@ const corsHeaders = {
 // watchlists, subscriber rates on every tool). Legacy "premium_monthly"
 // lookup key is kept as a fallback for any in-flight links.
 const PLAN_LOOKUPS: Record<string, string> = {
-  intelligence_monthly: "intelligence_monthly_v2",
-  intelligence_yearly: "intelligence_yearly_v2",
+  intelligence_monthly: "intelligence_monthly",
+  intelligence_yearly: "intelligence_yearly",
   // Legacy aliases — all map to the new monthly Professional price.
   pro: "intelligence_monthly_v2",
   premium: "intelligence_monthly_v2",
