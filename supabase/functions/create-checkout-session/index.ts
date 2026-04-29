@@ -67,11 +67,13 @@ serve(async (req) => {
       });
     }
 
-    const { plan, tool_slug, interval } = (await req.json().catch(() => ({}))) as {
+    const { plan, tool_slug, interval, environment } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
       interval?: "month" | "year";
+      environment?: string;
     };
+    const env = detectEnv(environment);
 
     let lookupKey: string | undefined;
     let mode: "subscription" | "payment" = "subscription";
