@@ -118,12 +118,11 @@ function relativeFromNow(iso: string): string {
   return `${days}d ago`;
 }
 
-function freshnessLine(items: Update[]): string {
-  if (items.length === 0) return 'Loading latest analysis…';
+function lastIngestionLabel(items: Update[]): string {
   const latest = items[0]?.published_at;
-  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  if (!latest) return `Analysis through ${today}`;
-  return `Latest update: ${relativeFromNow(latest)} · Analysis through ${today}`;
+  if (!latest) return 'All updates';
+  const d = new Date(latest).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `All updates through ${d}`;
 }
 
 
@@ -352,27 +351,24 @@ const Updates = () => {
             </Helmet>
             <Navbar />
 
-            <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-14 px-4 md:px-8">
+            <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-6 px-4 md:px-8">
                 <div className="max-w-[1280px] mx-auto text-center">
                     {(topicFilter || regionFilter) && (
                         <div className="flex items-center justify-center gap-1.5 mb-1">
-                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">All updates</Link>
+                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">{lastIngestionLabel(updates)}</Link>
                             <span className="text-[11px] text-white/60">›</span>
                             <span className="text-[11px] text-white">
                                 {formatFilterLabel(topicFilter || regionFilter || '')}
                             </span>
                         </div>
                     )}
-                    <h1 className="font-display text-[28px] md:text-[36px] tracking-tight text-white mb-3">
+                    <h1 className="font-display text-[24px] md:text-[30px] tracking-tight text-white m-0">
                         {regionFilter
                             ? formatFilterLabel(regionFilter)
                             : topicFilter
                                 ? formatFilterLabel(topicFilter)
-                                : 'Privacy Regulatory Updates'}
+                                : lastIngestionLabel(updates)}
                     </h1>
-                    <p className="text-[15px] text-white/70 max-w-2xl mx-auto">
-                        {freshnessLine(updates)}
-                    </p>
                 </div>
             </section>
 
@@ -380,7 +376,7 @@ const Updates = () => {
                 {topicFilter && (
                     <div className="mb-3">
                         <div className="flex items-center gap-1.5 mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">All updates</Link>
+                            <Link to="/updates" className="hover:text-foreground no-underline">{lastIngestionLabel(updates)}</Link>
                             <span>›</span>
                             <span className="text-foreground/80">
                                 {formatFilterLabel(topicFilter)}
