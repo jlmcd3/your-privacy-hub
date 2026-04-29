@@ -295,4 +295,14 @@ if (findings.length) {
   }
 }
 
-process.exit(findings.length > 0 ? 1 : 0);
+if (hardcodedHits.length) {
+  console.log("\n--- HARDCODED SUBSCRIPTION PRICES (must use src/config/pricing.ts) ---");
+  for (const h of hardcodedHits) console.log("  " + h);
+  console.log(
+    `\n${hardcodedHits.length} hardcoded subscription price(s) found outside the registry.`
+  );
+  console.log("Use INTELLIGENCE_PRICING / formatPrice() / getPrice() from @/config/pricing.");
+}
+
+process.exit(findings.length > 0 || hardcodedHits.length > 0 ? 1 : 0);
+
