@@ -118,12 +118,11 @@ function relativeFromNow(iso: string): string {
   return `${days}d ago`;
 }
 
-function freshnessLine(items: Update[]): string {
-  if (items.length === 0) return 'Loading latest analysis…';
+function lastIngestionLabel(items: Update[]): string {
   const latest = items[0]?.published_at;
-  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  if (!latest) return `Analysis through ${today}`;
-  return `Latest update: ${relativeFromNow(latest)} · Analysis through ${today}`;
+  if (!latest) return 'All updates';
+  const d = new Date(latest).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `All updates through ${d}`;
 }
 
 
