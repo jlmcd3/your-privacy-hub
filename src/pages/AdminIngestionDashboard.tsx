@@ -48,6 +48,15 @@ function formatTime(iso: string | null): string {
   });
 }
 
+interface ArticleRow {
+  id: string;
+  title: string;
+  source_name: string | null;
+  category: string | null;
+  published_at: string;
+  is_hidden: boolean;
+}
+
 export default function AdminIngestionDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -55,6 +64,13 @@ export default function AdminIngestionDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Article moderation state
+  const [articles, setArticles] = useState<ArticleRow[]>([]);
+  const [articleSearch, setArticleSearch] = useState("");
+  const [articlesLoading, setArticlesLoading] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   // Check admin role
   useEffect(() => {
