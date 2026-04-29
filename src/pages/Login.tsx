@@ -19,14 +19,23 @@ const Login = () => {
   };
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/account";
+  const redirectParam = searchParams.get("redirect");
+
+  // Only honor same-origin, in-app paths; ignore /login itself
+  const safeRedirect =
+    redirectParam &&
+    redirectParam.startsWith("/") &&
+    !redirectParam.startsWith("//") &&
+    !redirectParam.startsWith("/login")
+      ? redirectParam
+      : null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
@@ -34,9 +43,30 @@ const Login = () => {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      navigate(redirect);
+      return;
     }
+
+    if (safeRedirect) {
+      navigate(safeRedirect);
+      return;
+    }
+
+    // Smart default: premium → /dashboard, free → /updates
+    let destination = "/updates";
+    try {
+      const userId = signInData.user?.id;
+      if (userId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_premium")
+          .eq("id", userId)
+          .maybeSingle();
+        if (profile?.is_premium) destination = "/dashboard";
+      }
+    } catch {
+      // fall through to /updates default
+    }
+    navigate(destination);
   };
 
   return (
@@ -74,11 +104,11 @@ const Login = () => {
           <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
             <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Sign In</h1>
             <p className="text-sm text-slate text-center mb-7">
-              {redirect.includes("subscribe")
+              {safeRedirect?.includes("subscribe")
                 ? "Sign in to complete your subscription"
-                : redirect.includes("dashboard")
+                : safeRedirect?.includes("dashboard")
                 ? "Sign in to access your Intelligence Brief"
-                : redirect.includes("account")
+                : safeRedirect?.includes("account")
                 ? "Sign in to manage your account"
                 : "Welcome back to End User Privacy"}
             </p>
@@ -144,7 +174,7 @@ const Login = () => {
 
             <div className="flex items-center justify-between mt-6 text-[13px]">
               <Link
-                to={`/signup?redirect=${encodeURIComponent(redirect)}`}
+                to={safeRedirect ? `/signup?redirect=${encodeURIComponent(safeRedirect)}` : "/signup"}
                 className="text-blue font-medium hover:underline no-underline"
               >
                 Create account
