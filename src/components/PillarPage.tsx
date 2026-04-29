@@ -56,39 +56,32 @@ const PillarPage = ({
   toolCta,
   midPageCtaMessage,
 }: PillarPageProps) => {
-  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureSent, setCaptureSent] = useState(false);
-  const [previewOpenId, setPreviewOpenId] = useState<string | null>(null);
-
-  const trackPreviewToggle = (a: any, opened: boolean) => {
-    try {
-      (window as any).plausible?.("AI Summary Preview Toggle", {
-        props: {
-          tier,
-          pillar: title,
-          article_id: a.id,
-          opened,
-        },
-      });
-    } catch {
-      /* swallow */
-    }
-  };
 
   const tier: "anonymous" | "free" | "premium" = !user ? "anonymous" : isPremium ? "premium" : "free";
 
-  const trackRecentDevClick = (a: any) => {
+  // Fire the legacy "Recent Dev Click" Plausible event from a delegated handler
+  // on the feed container, so we don't lose analytics signal after switching to
+  // the centralized TieredFeed/ArticleCard rendering.
+  const handleFeedClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    const anchor = target?.closest?.("a[href^='http']") as HTMLAnchorElement | null;
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") || "";
+    const match = recentArticles.find((a: any) => a.url === href || a.source_url === href);
+    if (!match) return;
     try {
       (window as any).plausible?.("Recent Dev Click", {
         props: {
           tier,
           pillar: title,
-          source: a.source_name || "unknown",
-          article_id: a.id,
-          url: a.url,
+          source: (match as any).source_name || "unknown",
+          article_id: match.id,
+          url: href,
         },
       });
     } catch {
