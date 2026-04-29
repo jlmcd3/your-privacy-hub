@@ -1,6 +1,7 @@
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
+import { formatFilterLabel } from "@/lib/filterLabels";
 
 interface Props {
   customBrief: any;
@@ -9,23 +10,38 @@ interface Props {
   showEditPreferencesLink?: boolean;
 }
 
+/** Pretty-print a slug list, capping the visible count so the header stays tidy. */
+function summarizeList(values: unknown, max = 4): { visible: string[]; extra: number } {
+  const arr = Array.isArray(values) ? values.filter(Boolean).map(String) : [];
+  const labels = arr.map(formatFilterLabel);
+  return {
+    visible: labels.slice(0, max),
+    extra: Math.max(0, labels.length - max),
+  };
+}
+
 /**
  * Renders a personalized "custom_briefs" document. Briefs are immutable
  * artifacts — there is no edit affordance inside the document itself.
- * Preferences changes apply to future briefs only.
+ * The header surfaces the actual preferences (industries / jurisdictions /
+ * topics / role) the brief was generated for, so subscribers can tell at a
+ * glance which of their criteria shaped this week's analysis.
  */
 export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
   if (!customBrief) return null;
   const sections = customBrief.custom_sections ?? {};
   const snapshot = customBrief.preferences_snapshot ?? null;
-  const snapshotChips: string[] = [];
-  if (snapshot && typeof snapshot === "object") {
-    const inds = Array.isArray(snapshot.industries) ? snapshot.industries : [];
-    const juris = Array.isArray(snapshot.jurisdictions) ? snapshot.jurisdictions : [];
-    if (inds.length) snapshotChips.push(`${inds.length} industr${inds.length === 1 ? "y" : "ies"}`);
-    if (juris.length) snapshotChips.push(`${juris.length} jurisdiction${juris.length === 1 ? "" : "s"}`);
-    if (snapshot.role) snapshotChips.push(String(snapshot.role).replace(/_/g, " "));
-  }
+
+  const industries = snapshot ? summarizeList(snapshot.industries) : { visible: [], extra: 0 };
+  const jurisdictions = snapshot ? summarizeList(snapshot.jurisdictions) : { visible: [], extra: 0 };
+  const topics = snapshot ? summarizeList(snapshot.topics) : { visible: [], extra: 0 };
+  const role = snapshot?.role ? String(snapshot.role).replace(/_/g, " ") : null;
+
+  const criteriaGroups: Array<{ label: string; visible: string[]; extra: number }> = [
+    { label: "Industries", ...industries },
+    { label: "Jurisdictions", ...jurisdictions },
+    { label: "Topics", ...topics },
+  ].filter(g => g.visible.length > 0);
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -35,9 +51,9 @@ export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
           <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
             ⭐ Your Personalized Brief — {customBrief.week_label}
           </span>
-          {snapshotChips.length > 0 && (
-            <span className="text-[10px] text-blue-200/80" title="Preferences in effect when this brief was generated">
-              Built for: {snapshotChips.join(" · ")}
+          {role && (
+            <span className="text-[10px] text-blue-200/80 capitalize" title="Role this brief was tailored for">
+              For: {role}
             </span>
           )}
         </div>
@@ -45,6 +61,35 @@ export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
           <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
             {sections.opening_headline}
           </h2>
+        )}
+        {criteriaGroups.length > 0 && (
+          <div
+            className="mt-4 pt-3 border-t border-white/10 space-y-1.5"
+            title="Preferences in effect when this brief was generated"
+          >
+            {criteriaGroups.map(group => (
+              <div key={group.label} className="flex items-start gap-2 flex-wrap">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400/90 mt-0.5">
+                  {group.label}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.visible.map(item => (
+                    <span
+                      key={item}
+                      className="text-[10px] text-white bg-white/10 border border-white/15 px-2 py-0.5 rounded-full"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                  {group.extra > 0 && (
+                    <span className="text-[10px] text-blue-200/80 px-1 py-0.5">
+                      +{group.extra} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
