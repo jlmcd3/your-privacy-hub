@@ -84,6 +84,49 @@ function formatDate(iso: string): string {
     });
 }
 
+// Map slug → display label, preserving correct capitalization (U.S., EU & UK, etc.)
+const FILTER_LABELS: Record<string, string> = {
+  'us-federal': 'U.S. Federal',
+  'us-states': 'U.S. States',
+  'eu-uk': 'EU & UK',
+  'global': 'Global',
+  'enforcement': 'Enforcement',
+  'ai-privacy': 'AI & Privacy',
+  'adtech': 'AdTech & Advertising',
+  'health-hipaa': 'Health & HIPAA',
+  'children-privacy': "Children's Privacy",
+  'data-breaches': 'Data Breaches',
+  'cross-border': 'Cross-Border Transfers',
+  'biometric-data': 'Biometric Data',
+  'employee-privacy': 'Employee Privacy',
+  'cookie-consent': 'Cookie Consent',
+};
+
+function formatFilterLabel(slug: string): string {
+  if (!slug) return '';
+  if (FILTER_LABELS[slug]) return FILTER_LABELS[slug];
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function relativeFromNow(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function freshnessLine(items: Update[]): string {
+  if (items.length === 0) return 'Loading latest analysis…';
+  const latest = items[0]?.published_at;
+  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (!latest) return `Analysis through ${today}`;
+  return `Latest update: ${relativeFromNow(latest)} · Analysis through ${today}`;
+}
+
+
 const Updates = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [updates, setUpdates] = useState<Update[]>([]);
