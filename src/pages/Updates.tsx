@@ -405,16 +405,18 @@ const Updates = () => {
                         </p>
                     </div>
                 )}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 mb-4
-                  flex items-center justify-between flex-wrap gap-3">
-                  <p className="text-[13px] text-navy font-medium">
+                <Link
+                  to="/get-intelligence"
+                  aria-label="Get this week's privacy intelligence — customized and analyzed for your priorities and responsibilities"
+                  className="group block bg-blue-50 hover:bg-blue-100/80 border border-blue-200 hover:border-blue-300 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
+                >
+                  <p className="text-[13px] text-navy font-medium m-0">
                     Get this week's privacy intelligence — customized and analyzed for your priorities and responsibilities
                   </p>
-                  <Link to="/get-intelligence"
-                    className="text-[13px] font-bold text-blue hover:text-navy no-underline">
+                  <p className="text-[13px] font-bold text-blue group-hover:text-navy m-0 mt-1 transition-colors">
                     Get Your Privacy Intelligence →
-                  </Link>
-                </div>
+                  </p>
+                </Link>
                 {/* Enrichment stats strip */}
 
                 {/* Filters bar — two-group layout. Region + topic are open to all
