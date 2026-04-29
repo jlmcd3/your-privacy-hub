@@ -328,9 +328,9 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
-        {/* Summary — base content, always shown */}
+        {/* Summary — first ~2 lines, always shown for all tiers */}
         {item.summary && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-3">{stripHtml(item.summary)}</p>
+          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
         )}
         {/* Why it matters (short) — both registered tiers */}
         {shortWhy && (
@@ -512,7 +512,12 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
-          <p className="text-[14px] font-semibold text-navy leading-snug flex-1">{normalizeTitle(item.title)}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
+            {item.summary && (
+              <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+            )}
+          </div>
         </div>
 
         {s?.why_it_matters && (
@@ -533,8 +538,18 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
           </div>
         )}
 
-        <div className="border-t border-slate-100 pt-3 flex items-center gap-3">
-          <p className="text-[12px] text-slate flex-1">
+        <div className="border-t border-slate-100 pt-3 flex items-center gap-3 flex-wrap">
+          {item.source_url && (
+            <a
+              href={item.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-medium text-sky-700 hover:text-sky-900 inline-flex items-center gap-1 no-underline"
+            >
+              Read at {item.source_name || 'source'} <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+          <p className="text-[12px] text-slate flex-1 min-w-[140px]">
             Register free to see analysis like this on every update.
           </p>
           <Link
