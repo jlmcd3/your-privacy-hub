@@ -436,7 +436,7 @@ const Updates = () => {
                     {TOPIC_FILTERS.map((f) => (
                         <button
                             key={f.key}
-                            onClick={() => handleGatedFilterClick(f.label, () => setActiveFilter(f.key))}
+                            onClick={() => handleGatedFilterClick(f.label, () => selectFilter(f.key))}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 activeFilter === f.key
                                     ? "bg-navy text-white"
