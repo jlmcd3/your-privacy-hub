@@ -500,6 +500,17 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
         {item.published_at && (
           <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
         )}
+        {item.source_url && (
+          <a
+            href={item.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-light hover:text-sky-700 transition-colors"
+            aria-label="Open source article"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
       </div>
 
       <div className="px-4 py-3">
@@ -538,18 +549,8 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
           </div>
         )}
 
-        <div className="border-t border-slate-100 pt-3 flex items-center gap-3 flex-wrap">
-          {item.source_url && (
-            <a
-              href={item.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] font-medium text-sky-700 hover:text-sky-900 inline-flex items-center gap-1 no-underline"
-            >
-              Read at {item.source_name || 'source'} <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-          <p className="text-[12px] text-slate flex-1 min-w-[140px]">
+        <div className="border-t border-slate-100 pt-3 flex items-center gap-3">
+          <p className="text-[12px] text-slate flex-1">
             Register free to see analysis like this on every update.
           </p>
           <Link
