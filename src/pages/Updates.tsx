@@ -12,6 +12,7 @@ import ArticleDrawer from "@/components/ArticleDrawer";
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
 
 interface Update {
     id: string;
