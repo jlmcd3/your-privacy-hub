@@ -206,6 +206,30 @@ const PillarPage = ({
           <p className="text-[15px] text-navy leading-relaxed">{intro}</p>
         </div>
 
+        {/* Assessment CTA — shown to all users when this pillar has an associated tool/assessment.
+            Placed below the intro card (context first) and above the TOC (high visibility). */}
+        {toolCta && (
+          <div className="mb-8 rounded-xl border border-teal-600/30 bg-gradient-to-br from-teal-50 to-card overflow-hidden shadow-eup-sm">
+            <div className="px-5 py-4 md:px-6 md:py-5 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+              <div>
+                <div className="text-[10px] font-bold tracking-widest uppercase text-teal-700 mb-1.5">
+                  ✓ Assessment tool
+                </div>
+                <h3 className="font-display text-[16px] md:text-[18px] text-navy leading-snug mb-1">
+                  {toolCta.heading}
+                </h3>
+                <p className="text-[13px] text-slate leading-relaxed">{toolCta.description}</p>
+              </div>
+              <Link
+                to={toolCta.link}
+                className="inline-flex w-full md:w-auto items-center justify-center text-[13px] font-semibold text-white bg-teal-600 hover:bg-teal-500 px-5 py-2.5 rounded-lg no-underline transition-colors whitespace-nowrap"
+              >
+                {toolCta.linkLabel}
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* On this page — jump-link TOC. Collapsible on mobile, expanded on md+. */}
         {sections.length > 1 && (
           <details
