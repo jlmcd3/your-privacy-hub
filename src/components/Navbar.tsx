@@ -50,6 +50,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: "🗺️", label: "Interactive Global Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions" },
           { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states" },
+          { icon: "📰", label: "Privacy Newsfeed", badge: "FREE", badgeGreen: true, href: "/updates?region=all" },
           { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
