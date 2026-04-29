@@ -66,7 +66,7 @@ export default function BiometricPrivacyPage() {
         emailCaptureText="Get biometric compliance alerts as laws change"
         midPageCtaMessage="Intelligence subscribers see the full state-by-state biometric law comparison — BIPA, Texas CUBI, Washington MY Health MY Data, and all emerging state laws."
         toolCta={{
-          heading: "Biometric Compliance Checker",
+          heading: "Biometric Compliance Assessment",
           description: "Covers BIPA, Texas, Washington, and GDPR biometric requirements in a single structured assessment. Included with Intelligence — no extra cost.",
           link: "/biometric-checker",
           linkLabel: "Run the checker →",

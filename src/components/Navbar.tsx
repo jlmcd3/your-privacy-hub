@@ -66,7 +66,7 @@ const navItems: NavItem[] = [
           { icon: "⚖️", label: "Legitimate Interest Assessment", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Privacy Program Assessment", badge: "PRO", href: "/governance-assessment" },
           { icon: "📑", label: "Data Protection Impact Assessment", badge: "PRO", href: "/dpia-framework" },
-          { icon: "👁️", label: "Biometric Compliance Checker", badge: "PRO", href: "/biometric-checker" },
+          { icon: "👁️", label: "Biometric Compliance Assessment", badge: "PRO", href: "/biometric-checker" },
           { icon: "📂", label: "Your Registration Filings", badge: "PRO", href: "/registration-manager" },
           { icon: "📝", label: "Your Custom DPA", badge: "PRO", href: "/dpa-generator" },
           { icon: "🚨", label: "Your Breach Response Playbook", badge: "PRO", href: "/ir-playbook" },

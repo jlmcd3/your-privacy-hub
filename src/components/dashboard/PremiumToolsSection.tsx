@@ -64,7 +64,7 @@ const TOOLS = [
   },
   {
     icon: "🫆",
-    title: "Biometric Privacy Compliance Checker",
+    title: "Biometric Privacy Compliance Assessment",
     description:
       "Check biometric processing (face, fingerprint, voice, iris) against BIPA, GDPR Art. 9, and global biometric laws. Free account required; included with Intelligence.",
     cta: "View Sample & Purchase",
