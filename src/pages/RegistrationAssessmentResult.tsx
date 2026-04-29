@@ -120,7 +120,19 @@ export default function RegistrationAssessmentResult() {
         }
       );
       if (error) throw error;
-      window.location.href = data.url;
+      if (!data?.url) throw new Error("No checkout URL returned");
+      // Stripe Checkout refuses to render in iframes (X-Frame-Options: DENY),
+      // and the Lovable preview is an iframe — so open in a new tab/top window.
+      const opened = window.open(data.url, "_blank");
+      if (!opened) {
+        // Popup blocked — fall back to top-level navigation so the redirect
+        // escapes the preview iframe instead of rendering a blank page.
+        if (window.top && window.top !== window.self) {
+          window.top.location.href = data.url;
+        } else {
+          window.location.href = data.url;
+        }
+      }
     } catch (e: any) {
       toast.error(e.message || "Checkout failed");
     } finally {
