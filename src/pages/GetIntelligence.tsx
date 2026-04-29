@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 type Step = 1 | 2 | 3 | "preview";
 
@@ -376,7 +377,7 @@ const GetIntelligence = () => {
                               Get My Report →
                             </Link>
                             <span className="text-[12px] text-slate">
-                              $39/month · cancel anytime
+                              {`${INTELLIGENCE_PRICING.monthly()}`} · cancel anytime
                             </span>
                             <button type="button" onClick={() => setShowEmailCapture(true)}
                               className="text-blue text-[13px] font-semibold hover:text-navy">

@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import PillarPage from "@/components/PillarPage";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const SECTIONS = [
   {
@@ -45,7 +46,7 @@ export default function HealthDataPrivacyPage() {
           { label: "📊 Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "🔓 Breach Notification", href: "/breach-notification" },
           { label: "📅 Compliance Calendar", href: "/calendar" },
-          { label: "⭐ Intelligence Plan — $39/month", href: "/subscribe" },
+          { label: "⭐ Intelligence Plan — __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__", href: "/subscribe" },
         ]}
         intelligenceLabel="What changed in health data privacy this week"
         updateOrFilter="title.ilike.%HIPAA%,title.ilike.%health data%,title.ilike.%health breach%,topic_tags.cs.{health-data}"

@@ -8,6 +8,7 @@ import ToolDisclaimer from "@/components/ToolDisclaimer";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
@@ -124,7 +125,7 @@ export default function BiometricChecker() {
               ) : access.isPremium ? (
                 <p className="text-[12px] text-muted-foreground mb-3">Included with your Intelligence subscription.</p>
               ) : (
-                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Intelligence ($39/month).</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Analysis is $49 — or included with Intelligence (__PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__).</p>
               )}
               <div className="flex gap-3 flex-wrap">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}

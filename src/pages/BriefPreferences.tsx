@@ -6,6 +6,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const ROLES = [
   { id: "general_counsel", label: "General Counsel / CLO", icon: "⚖️" },
@@ -389,7 +390,7 @@ export default function BriefPreferences() {
           {isPremium === false && (
             <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
-                Intelligence requires Intelligence ($39/month). Preferences are saved and will activate once you
+                Intelligence requires Intelligence ({`${INTELLIGENCE_PRICING.monthly()}`}). Preferences are saved and will activate once you
                 subscribe.
               </p>
               <Link

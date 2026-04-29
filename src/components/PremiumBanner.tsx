@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const features = [
   "Know what changed before your next board meeting",
@@ -23,7 +24,7 @@ const PremiumBanner = () => {
               ⭐ Intelligence Intelligence
             </div>
             <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
-              The library is free.<br />Intelligence is $39/month.
+              The library is free.<br />Intelligence is {`${INTELLIGENCE_PRICING.monthly()}`}.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
               Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Intelligence adds the full Intelligence Brief, watchlists, the complete enforcement archive, and subscriber rates on every assessment tool — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
@@ -52,7 +53,7 @@ const PremiumBanner = () => {
               <sup className="text-[18px] md:text-[22px] align-super">$</sup>29
             </div>
             <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
-            <div className="text-[11px] text-white/70 mb-2">or $390/year — Save $78</div>
+            <div className="text-[11px] text-white/70 mb-2">or __PRICE_TODO___INTELLIGENCE_PRICING_yearly_____$390/year__END__ — Save $78</div>
             <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">
               First 25 subscribers: free for 1 year
             </div>

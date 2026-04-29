@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 export default function SubscribeSuccess() {
   const { user } = useAuth();
@@ -111,7 +112,7 @@ export default function SubscribeSuccess() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
           <p className="text-amber-800 text-[13px] font-medium">
             🎁 You're one of the first 25 subscribers — your first year is free.
-            Your $39/month (or $390/year) billing begins in 12 months.
+            Your {`${INTELLIGENCE_PRICING.monthly()} (or ${INTELLIGENCE_PRICING.yearly()})`} billing begins in 12 months.
           </p>
         </div>
 

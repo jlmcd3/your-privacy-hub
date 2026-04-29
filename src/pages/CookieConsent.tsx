@@ -6,6 +6,7 @@ import AdBanner from "@/components/AdBanner";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const SECTIONS = [
   {
@@ -119,7 +120,7 @@ export default function CookieConsentPage() {
             </Link>
             <Link to="/subscribe" className="p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 no-underline transition-all">
               <p className="text-[13px] font-semibold text-foreground">⭐ Get weekly analyst coverage</p>
-              <p className="text-[11px] text-muted-foreground">AdTech & Consent track — $39/month</p>
+              <p className="text-[11px] text-muted-foreground">AdTech & Consent track — __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__</p>
             </Link>
           </div>
         </section>

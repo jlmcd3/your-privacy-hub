@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const About = () => {
   return (
@@ -159,7 +160,7 @@ const About = () => {
                 </thead>
                 <tbody>
                   {[
-                    ["Price", "$39/month (Pro)", "$300–$3,500+/year", "$550+/year"],
+                    ["Price", "__PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__ (Pro)", "$300–$3,500+/year", "$550+/year"],
                     ["Format", "Weekly intelligence brief", "Research database", "Membership + events"],
                     ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
                     ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],

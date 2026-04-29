@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import SampleBriefLanguageToggle from "@/components/brief/SampleBriefLanguageToggle";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const enforcementRows = [
   {
@@ -328,7 +329,7 @@ const SampleBrief = () => {
                       className="text-[12px] font-bold text-white bg-amber-500 hover:bg-amber-400
                     px-4 py-1.5 rounded-lg no-underline transition-all"
                     >
-                      Get your customized Intelligence brief — $39/month →
+                      Get your customized Intelligence brief — {`${INTELLIGENCE_PRICING.monthly()}`} →
                     </Link>
                   </div>
                 </div>
@@ -479,14 +480,14 @@ const SampleBrief = () => {
             <p className="text-blue-200 text-[14px] mb-5 max-w-[500px] mx-auto">
               This is the Intelligence Brief. Free accounts include a personalized weekly digest filtered to your
               regions and topics. Get full intelligence for the full brief, re-analyzed for your industry and
-              jurisdiction — $39/month.
+              jurisdiction — {`${INTELLIGENCE_PRICING.monthly()}`}.
             </p>
             <div className="text-center">
               <Link
                 to="/subscribe"
                 className="inline-block bg-white text-navy font-bold text-[14px] py-3 px-10 rounded-xl no-underline hover:opacity-90 transition-all"
               >
-                Get full intelligence — $39/month →
+                Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
               </Link>
               <p className="text-blue-300 text-[12px] mt-3">
                 First 25 subscribers get the first year free · Cancel anytime

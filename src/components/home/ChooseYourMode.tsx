@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const MODES = [
   {
@@ -27,7 +28,7 @@ const MODES = [
   {
     icon: "🧠",
     label: "Get Intelligence",
-    desc: "Weekly brief written for your industry & jurisdictions — $39/month",
+    desc: "Weekly brief written for your industry & jurisdictions — __PRICE_TODO___INTELLIGENCE_PRICING_monthly_______PRICE_TODO___INTELLIGENCE_PRICING_monthlyShort_____$39/mo__END__nth__END__",
     href: "/subscribe",
     cta: "See Plans →",
     premium: true,

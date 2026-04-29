@@ -20,6 +20,7 @@ import ProToolsBanner from "@/components/home/ProToolsBanner";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const Index = () => {
   const { isPremium } = usePremiumStatus();
@@ -93,7 +94,7 @@ const Index = () => {
                 </Link>
                 <div className="border-t border-white/10 pt-3">
                   <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
-                    ⭐ Intelligence — $39/month
+                    ⭐ Intelligence — {`${INTELLIGENCE_PRICING.monthly()}`}
                   </p>
                   <p className="text-[11px] text-blue-200 leading-snug mb-2">
                     Customized and analyzed for your priorities and responsibilities.
