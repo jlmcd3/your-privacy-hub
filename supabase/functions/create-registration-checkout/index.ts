@@ -161,7 +161,7 @@ serve(async (req) => {
       .single();
     if (orderErr || !order) throw orderErr || new Error("Failed to create order");
 
-    const env = detectEnv();
+    const env = detectEnv(environment);
     const stripe = createStripeClient(env);
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
