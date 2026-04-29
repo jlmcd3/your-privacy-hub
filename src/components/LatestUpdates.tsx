@@ -261,7 +261,7 @@ const LatestUpdates = () => {
                     articles={articlesForFeed}
                     paginated={false}
                     newsfeedCap={12}
-                    previewCount={3}
+                    previewCount={1}
                     seeAllHref="/updates"
                     showSeeAll={true}
                   />
