@@ -57,7 +57,7 @@ export default function BiometricChecker() {
     if (access.isPremium) { handleGenerate(); return; }
     // 3. Free account holders pay $49 to run
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "biometric_checker", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/biometric-checker" },
+      body: { tool_type: "biometric_checker", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/biometric-checker", environment: getStripeEnvironment() },
     });
     if (data?.url) window.location.href = data.url;
   };
