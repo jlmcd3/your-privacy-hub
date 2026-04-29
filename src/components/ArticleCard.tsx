@@ -116,47 +116,134 @@ const IntelligenceBadge = () => (
   </span>
 );
 
-// — Enrichment detail accordion —
-const EnrichmentAccordion = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
+// — Intelligence Card (paid-only, expandable, collapsed by default) —
+const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const [open, setOpen] = useState(false);
   const s = item.ai_summary;
-  if (!s) return null;
 
-  const details = [
-    s.compliance_impact && { label: 'Compliance Impact', value: s.compliance_impact },
-    s.risk_level && { label: 'Risk Level', value: s.risk_level },
-    s.urgency && { label: 'Urgency', value: s.urgency },
-    s.legal_weight && { label: 'Legal Weight', value: s.legal_weight },
-    item.regulatory_theory && { label: 'Regulatory Theory', value: item.regulatory_theory },
-    item.related_development && { label: 'Related Development', value: item.related_development },
-  ].filter(Boolean) as { label: string; value: string }[];
+  const fullWhy = s?.why_it_matters;
+  const compliance = s?.compliance_impact;
+  const actionItems = (item as any).action_items as Array<{ role?: string; action?: string; timeframe?: string }> | undefined;
+  const signals = (item as any).related_signals as Array<{ label?: string; kind?: string }> | undefined;
+  const regTheory = item.regulatory_theory;
+  const related = item.related_development;
+  const urgency = s?.urgency;
+  const weight = s?.legal_weight;
 
-  // Only show accordion if there's detail beyond what's already visible
-  if (details.length === 0) return null;
+  const hasContent = fullWhy || compliance || (actionItems && actionItems.length > 0)
+    || (signals && signals.length > 0) || regTheory || related;
+  if (!hasContent) return null;
 
   return (
-    <div className="mt-2">
+    <div className="mt-3 rounded-lg border" style={{ borderColor: '#C8D5F0', background: '#F7F9FF' }}>
       <button
+        type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }}
-        className="flex items-center gap-1 text-[12px] font-semibold hover:underline transition-colors"
-        style={{ color: '#4A6FA5' }}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-white/60 rounded-t-lg transition-colors"
+        aria-expanded={open}
       >
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
-        {open ? 'Hide details' : 'View analysis'}
+        <span className="flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5" style={{ color: '#4A6FA5' }} />
+          <span className="text-[12px] font-bold" style={{ color: '#4A6FA5' }}>
+            Intelligence Card
+          </span>
+          <span className="text-[11px] text-slate">
+            — connect the dots, compliance impact, action items
+          </span>
+        </span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: '#4A6FA5' }} />
       </button>
-      {open && !isPremium && (
-        <div className="mt-2" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-          <PremiumGate message="Full compliance analysis is a Premium feature." blur={false} />
-        </div>
-      )}
-      {open && isPremium && (
-        <div className="mt-2 pl-3 border-l-2 space-y-1.5" style={{ borderColor: '#4A6FA5' }}>
-          {details.map((d) => (
-            <div key={d.label}>
-              <span className="text-[11px] font-bold text-navy">{d.label}:</span>{' '}
-              <span className="text-[12px] text-slate">{d.value}</span>
+
+      {open && (
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t" style={{ borderColor: '#E0E8F5' }}>
+          {/* Connect the dots — related signals */}
+          {signals && signals.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Connect the dots
+              </p>
+              <ul className="space-y-1">
+                {signals.map((sig, i) => (
+                  <li key={i} className="text-[12px] text-navy flex gap-1.5">
+                    <span className="text-slate-400 flex-shrink-0">•</span>
+                    <span>{sig.label}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          ))}
+          )}
+
+          {/* Compliance impact */}
+          {compliance && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Compliance Impact
+              </p>
+              <p className="text-[12px] text-navy leading-relaxed">{compliance}</p>
+            </div>
+          )}
+
+          {/* Action items */}
+          {actionItems && actionItems.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Action Items
+              </p>
+              <ul className="space-y-1.5">
+                {actionItems.map((a, i) => (
+                  <li key={i} className="text-[12px] text-navy">
+                    {a.role && <span className="font-semibold">{a.role}: </span>}
+                    {a.action}
+                    {a.timeframe && <span className="text-slate-500"> · {a.timeframe}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Full analysis */}
+          {fullWhy && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+                Full Analysis
+              </p>
+              <p className="text-[12px] text-navy leading-relaxed">{stripHtml(fullWhy)}</p>
+            </div>
+          )}
+
+          {/* Regulatory theory + related */}
+          {(regTheory || related) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: '#E0E8F5' }}>
+              {regTheory && (
+                <div className="text-[11px]">
+                  <span className="font-bold text-navy">Regulatory theory: </span>
+                  <span className="text-slate">{regTheory}</span>
+                </div>
+              )}
+              {related && (
+                <div className="text-[11px]">
+                  <span className="font-bold text-navy">Related: </span>
+                  <span className="text-slate">{related}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Meta footer */}
+          {(urgency || weight) && (
+            <div className="flex gap-3 pt-1">
+              {urgency && (
+                <span className="text-[10px] text-slate">
+                  Urgency: <span className="font-semibold text-navy">{urgency}</span>
+                </span>
+              )}
+              {weight && (
+                <span className="text-[10px] text-slate">
+                  Legal weight: <span className="font-semibold text-navy">{weight}</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
