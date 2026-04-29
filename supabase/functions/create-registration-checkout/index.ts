@@ -29,7 +29,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-function detectEnv(): StripeEnv {
+// Resolve the Stripe environment. Always prefer the explicit value the
+// client sends (derived from the publishable token prefix), so test cards
+// from the preview never land in live mode.
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
