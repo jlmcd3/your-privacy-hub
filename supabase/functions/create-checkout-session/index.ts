@@ -31,7 +31,11 @@ const TOOL_LOOKUPS: Record<string, { standalone: string; subscriber: string }> =
   dpia_builder: { standalone: "dpia_standalone_v2", subscriber: "dpia_subscriber_v2" },
 };
 
-function detectEnv(): StripeEnv {
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  // Fallback: prefer sandbox when its key exists. Live key alone is not
+  // enough to assume live mode — the client is the source of truth.
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
