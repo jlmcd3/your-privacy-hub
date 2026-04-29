@@ -354,12 +354,10 @@ const Updates = () => {
             <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-6 px-4 md:px-8">
                 <div className="max-w-[1280px] mx-auto text-center">
                     {(topicFilter || regionFilter) && (
-                        <div className="flex items-center justify-center gap-1.5 mb-1">
-                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">{lastIngestionLabel(updates)}</Link>
-                            <span className="text-[11px] text-white/60">›</span>
-                            <span className="text-[11px] text-white">
-                                {formatFilterLabel(topicFilter || regionFilter || '')}
-                            </span>
+                        <div className="flex items-center justify-center mb-1">
+                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">
+                                ← {lastIngestionLabel(updates)}
+                            </Link>
                         </div>
                     )}
                     <h1 className="font-display text-[24px] md:text-[30px] tracking-tight text-white m-0">
@@ -375,12 +373,10 @@ const Updates = () => {
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
                 {topicFilter && (
                     <div className="mb-3">
-                        <div className="flex items-center gap-1.5 mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">{lastIngestionLabel(updates)}</Link>
-                            <span>›</span>
-                            <span className="text-foreground/80">
-                                {formatFilterLabel(topicFilter)}
-                            </span>
+                        <div className="flex items-center mb-1 text-[11px] text-muted-foreground">
+                            <Link to="/updates" className="hover:text-foreground no-underline">
+                                ← {lastIngestionLabel(updates)}
+                            </Link>
                         </div>
                         <h2 className="text-[15px] font-medium text-foreground m-0">
                             {formatFilterLabel(topicFilter)}
