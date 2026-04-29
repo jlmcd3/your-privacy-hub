@@ -546,7 +546,7 @@ const Dashboard = () => {
                 to="/biometric-checker"
                 className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
               >
-                <p className="text-[12px] font-semibold text-foreground">Biometric Checker</p>
+                <p className="text-[12px] font-semibold text-foreground">Biometric Assessment</p>
                 <p className="text-[12px] text-foreground">
                   <span className="font-bold">Included free</span>
                 </p>

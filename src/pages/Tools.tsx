@@ -136,14 +136,14 @@ const TOOLS: ToolDef[] = [
   {
     slug: "biometric-checker",
     icon: "👉",
-    name: "Biometric Privacy Compliance Checker",
+    name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
     subscriberPrice: "Included with Intelligence",
     standalonePrice: "$49",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks. The relevant laws are not always obvious until an organisation is already mid-implementation.",
-      "The Biometric Privacy Compliance Checker produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population, intended to support internal risk assessment and board-level conversations, not to constitute legal advice.",
+      "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population, intended to support internal risk assessment and board-level conversations, not to constitute legal advice.",
       "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free End User Privacy account is required to run any analysis. Multi-jurisdiction assessments are included with Intelligence subscriptions.",
     ],
     sampleSections: [
@@ -181,7 +181,7 @@ const PRICING_GRID: [string, string][] = [
   ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
   ["Your Custom DPA", "$99 standalone → $49 subscriber rate"],
   ["Your Breach Response Playbook", "$59 → Included with Intelligence"],
-  ["Biometric Privacy Compliance Checker", "$49 → Included with Intelligence"],
+  ["Biometric Privacy Compliance Assessment", "$49 → Included with Intelligence"],
   ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
   ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
 ];
@@ -196,7 +196,7 @@ export default function Tools() {
         <title>Assessment Tools — Enforcement-Calibrated Compliance Documents | End User Privacy</title>
         <meta
           name="description"
-          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Checker. Subscriber rates from $25 with Intelligence."
+          content="Six compliance assessment tools built on 3,500+ enforcement decisions. Privacy Program Assessment Tool, Legitimate Interest Assessment Tool, Impact Assessment Builder, Your Custom DPA, Your Breach Response Playbook, Biometric Compliance Assessment. Subscriber rates from $25 with Intelligence."
         />
       </Helmet>
       <Navbar />
@@ -304,7 +304,7 @@ export default function Tools() {
             Every tool. Subscriber rates. $39/month.
           </h2>
           <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
-            Intelligence subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and the Biometric Privacy Compliance Checker included at no additional cost.
+            Intelligence subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and the Biometric Privacy Compliance Assessment included at no additional cost.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[560px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (

@@ -34,7 +34,7 @@
       },
       {
         "key": "biometric_checker",
-        "name": "Biometric Privacy Compliance Checker",
+        "name": "Biometric Privacy Compliance Assessment",
         "standalone_cents": 4900,
         "subscriber_cents": 0
       }
@@ -130,7 +130,7 @@
       "subscriber_match": true
     },
     {
-      "product": "Biometric Privacy Compliance Checker",
+      "product": "Biometric Privacy Compliance Assessment",
       "server_standalone": "$49",
       "server_subscriber": "—",
       "ui_prices_seen": [

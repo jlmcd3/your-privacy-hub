@@ -43,7 +43,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Impact Assessment Builder", free: "$99 per document", pro: "$49 per document" },
   { feature: "Your Custom DPA", free: "$99 per document", pro: "$49 per document" },
   { feature: "Your Breach Response Playbook", free: "$59 per playbook", pro: "Included" },
-  { feature: "Biometric Privacy Compliance Checker", free: "$49 per assessment", pro: "Included" },
+  { feature: "Biometric Privacy Compliance Assessment", free: "$49 per assessment", pro: "Included" },
 ];
 
 const Subscribe = () => {
@@ -927,7 +927,7 @@ const Subscribe = () => {
                   ["Impact Assessment Builder", "$99", "$49"],
                   ["Your Custom DPA", "$99", "$49"],
                   ["Your Breach Response Playbook", "$59", "Included"],
-                  ["Biometric Privacy Compliance Checker", "$49", "Included"],
+                  ["Biometric Privacy Compliance Assessment", "$49", "Included"],
                 ].map(([tool, std, sub]) => (
                   <tr key={tool} className="border-t border-fog">
                     <td className="px-5 py-3 text-navy font-medium">{tool}</td>
