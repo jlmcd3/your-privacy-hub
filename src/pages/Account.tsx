@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 
 export default function Account() {
   const { user } = useAuth();
@@ -54,6 +55,7 @@ export default function Account() {
         <title>My Account | End User Privacy</title>
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
