@@ -343,6 +343,99 @@ export default function AdminIngestionDashboard() {
           <code className="font-mono"> ingest-gdprhub</code>, <code className="font-mono">enrich-enforcement</code>.
           Other ingestion functions can be retrofitted using <code className="font-mono">supabase/functions/_shared/run-logger.ts</code>.
         </p>
+
+        {/* Article moderation */}
+        <section className="mt-12">
+          <div className="mb-4">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">Article moderation</p>
+            <h2 className="font-display text-[22px] text-foreground">Hide articles from feeds</h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              Hidden articles will not appear on /updates, the homepage, pillar pages, or article drawers. They remain in the database.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <input
+              type="text"
+              value={articleSearch}
+              onChange={(e) => setArticleSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") loadArticles(); }}
+              placeholder="Search article titles…"
+              className="flex-1 min-w-[240px] px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+            />
+            <button
+              onClick={loadArticles}
+              className="px-3 py-2 rounded-lg bg-foreground text-background text-xs font-semibold hover:opacity-90"
+            >
+              Search
+            </button>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showHidden}
+                onChange={(e) => setShowHidden(e.target.checked)}
+                className="rounded border-border"
+              />
+              Show hidden articles
+            </label>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40">
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 font-semibold">Title</th>
+                    <th className="px-4 py-3 font-semibold">Source</th>
+                    <th className="px-4 py-3 font-semibold">Category</th>
+                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Published</th>
+                    <th className="px-4 py-3 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {articlesLoading && (
+                    <tr><td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">Loading articles…</td></tr>
+                  )}
+                  {!articlesLoading && articles.length === 0 && (
+                    <tr><td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">No articles found.</td></tr>
+                  )}
+                  {articles.map((a) => (
+                    <tr key={a.id} className="hover:bg-muted/30">
+                      <td className="px-4 py-3 text-[13px] text-foreground max-w-[420px]">
+                        <div className="line-clamp-2">{a.title}</div>
+                        {a.is_hidden && (
+                          <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-destructive/10 text-destructive border border-destructive/30">
+                            Hidden
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-[12px] text-muted-foreground">{a.source_name || "—"}</td>
+                      <td className="px-4 py-3 text-[12px] text-muted-foreground font-mono">{a.category || "—"}</td>
+                      <td className="px-4 py-3 text-[12px] text-muted-foreground whitespace-nowrap">{formatTime(a.published_at)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => toggleHidden(a)}
+                          disabled={togglingId === a.id}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all disabled:opacity-50 ${
+                            a.is_hidden
+                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20"
+                              : "bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20"
+                          }`}
+                        >
+                          {togglingId === a.id ? "…" : a.is_hidden ? "Unhide" : "Hide"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-3">
+            Showing up to 100 most recent {showHidden ? "articles (including hidden)" : "visible articles"}. Use search to find older articles by title.
+          </p>
+        </section>
+
       </main>
       <Footer />
     </div>
