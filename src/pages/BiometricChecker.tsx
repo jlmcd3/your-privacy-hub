@@ -133,7 +133,8 @@ export default function BiometricChecker() {
               ) : (
                 <p className="text-[12px] text-muted-foreground mb-3">{`Analysis is $49 — or included with Intelligence (${INTELLIGENCE_PRICING.monthly()}).`}</p>
               )}
-              <div className="flex gap-3 flex-wrap">
+              <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+              <div className="flex gap-3 flex-wrap mt-4">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
                   className="bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
                   {ctaLabel}</button>
