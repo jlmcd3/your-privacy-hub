@@ -177,9 +177,9 @@ const LIAssessment = () => {
         </div>
       </div>
 
-      <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* WHY YOU NEED THIS */}
-        <section>
+        <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
           <h2 className="font-display text-2xl md:text-3xl text-navy mb-4">
             Legitimate interest must be documented, not assumed
@@ -198,7 +198,7 @@ const LIAssessment = () => {
         </section>
 
         {/* HOW IT WORKS */}
-        <section>
+        <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
           <h2 className="font-display text-2xl text-navy mb-5">Three steps — and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">
@@ -245,7 +245,7 @@ const LIAssessment = () => {
         </section>
 
         {/* INTAKE FORM */}
-        <section>
+        <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Step 01 · Free intake</div>
           <h2 className="font-display text-2xl text-navy mb-5">Tell us about the processing</h2>
           <form
