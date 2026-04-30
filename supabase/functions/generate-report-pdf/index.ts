@@ -707,6 +707,9 @@ Deno.serve(async (req) => {
         li_assessment: "Legitimate Interest Assessment",
         governance_assessment: "Data Governance Readiness Assessment",
         dpia_framework: "DPIA Framework",
+        biometric_checker: "Biometric Compliance Assessment",
+        ir_playbook: "Breach Response Playbook",
+        dpa_generator: "Custom DPA",
       };
       emailSent = await sendEmail({
         toEmail: user_email,
