@@ -85,6 +85,25 @@ export default {
         sans: ["'DM Sans'", "system-ui", "sans-serif"],
         mono: ["'DM Mono'", "ui-monospace", "monospace"],
       },
+      // Site-wide bold de-amplification (~15%). Each Tailwind font-weight
+      // utility is mapped one notch lighter so previously "too heavy" text
+      // reads cleaner without touching individual components:
+      //   font-semibold  600 → 500
+      //   font-bold      700 → 600
+      //   font-extrabold 800 → 700
+      //   font-black     900 → 800
+      // Lighter weights are unchanged.
+      fontWeight: {
+        thin: "100",
+        extralight: "200",
+        light: "300",
+        normal: "400",
+        medium: "500",
+        semibold: "500",
+        bold: "600",
+        extrabold: "700",
+        black: "800",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
