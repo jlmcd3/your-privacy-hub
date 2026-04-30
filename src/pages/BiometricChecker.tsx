@@ -8,10 +8,10 @@ import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
+import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
-import { getStripeEnvironment } from "@/lib/env";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
@@ -33,6 +33,7 @@ export default function BiometricChecker() {
   const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -60,11 +61,8 @@ export default function BiometricChecker() {
     if (!access.user) { setAuthModalOpen(true); return; }
     // 2. Subscribers run free
     if (access.isPremium) { handleGenerate(); return; }
-    // 3. Free account holders pay $49 to run
-    const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "biometric_checker", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/biometric-checker", environment: getStripeEnvironment() },
-    });
-    if (data?.url) window.location.href = data.url;
+    // 3. Free account holders pay $49 to run — embedded checkout
+    setCheckoutOpen(true);
   };
 
   const ctaLabel = !access.user
@@ -152,6 +150,17 @@ export default function BiometricChecker() {
         heading="Create a free account to run your analysis"
         body="A free End User Privacy account is required to use this tool. Creating one takes under a minute."
         redirectTo="/biometric-checker"
+      />
+      <ToolCheckoutModal
+        open={checkoutOpen}
+        toolType="biometric_checker"
+        userId={access.user?.id}
+        intakeData={form}
+        onClose={() => setCheckoutOpen(false)}
+        onComplete={(id) => {
+          setCheckoutOpen(false);
+          if (id) navigate(`/biometric-checker/result/${id}?purchased=true`);
+        }}
       />
       <Footer />
     </div>
