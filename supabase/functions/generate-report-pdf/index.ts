@@ -19,36 +19,51 @@ const corsHeaders = {
 // ─────────────────────────────────────────────────────────────────────────
 async function generatePDF(
   html: string,
-  _title: string
+  title: string
 ): Promise<Uint8Array | null> {
-  const pdfApiKey = Deno.env.get("PDF_SERVICE_API_KEY");
+  // PDFShift (https://pdfshift.io) — HTTP Basic auth with username "api"
+  // and the API key as the password. Accepts inline HTML in `source`.
+  const pdfApiKey =
+    Deno.env.get("PDFSHIFT_API_KEY") ||
+    Deno.env.get("PDF_SERVICE_API_KEY"); // legacy fallback
+
   if (!pdfApiKey) {
-    console.error("PDF_SERVICE_API_KEY not set in Supabase secrets.");
+    console.error("PDFSHIFT_API_KEY not set in Supabase secrets.");
     return null;
   }
 
   try {
-    // ── PDF SERVICE CALL ─────────────────────────────────────────────────
-    // Replace everything between these comments with the actual service call.
-    // The call must ultimately produce pdfBytes: Uint8Array.
-    //
-    // Generic pattern for an HTML-to-PDF REST API:
-    // const response = await fetch("https://[PDF_SERVICE_ENDPOINT]", {
-    //   method: "POST",
-    //   headers: {
-    //     "Authorization": `[AUTH_SCHEME] ${pdfApiKey}`,
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ source: html, landscape: false }),
-    //   signal: AbortSignal.timeout(30000),
-    // });
-    // if (!response.ok) throw new Error(`PDF service error: ${response.status}`);
-    // const pdfBytes = new Uint8Array(await response.arrayBuffer());
-    // return pdfBytes;
-    // ── END PDF SERVICE CALL ─────────────────────────────────────────────
+    const response = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
+      method: "POST",
+      headers: {
+        Authorization: "Basic " + btoa(`api:${pdfApiKey}`),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        source: html,
+        landscape: false,
+        format: "Letter",
+        margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+        use_print: false,
+        sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
+        // Embed a small footer with the EndUserPrivacy mark + page numbers.
+        footer: {
+          source:
+            '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+            `<span>${title.replace(/</g, "&lt;")}</span>` +
+            '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
+            "</div>",
+          spacing: 4,
+        },
+      }),
+      signal: AbortSignal.timeout(45000),
+    });
 
-    void html;
-    throw new Error("PDF_SERVICE_NOT_CONFIGURED");
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      throw new Error(`PDFShift error ${response.status}: ${errBody.slice(0, 300)}`);
+    }
+    return new Uint8Array(await response.arrayBuffer());
   } catch (e) {
     console.error("generatePDF failed:", e);
     return null;
