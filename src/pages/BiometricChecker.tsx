@@ -32,6 +32,7 @@ export default function BiometricChecker() {
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
   const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
