@@ -272,10 +272,10 @@ Deno.serve(async (req) => {
     .or('ai_summary.is.null,enrichment_version.lt.3');
 
   let updated = 0,
-    skipped = 0;
+    skipped = 0,
+    deferred = 0;
 
   for (const article of articles ?? []) {
-    // Pre-filter: skip breach announcements that aren't about regulation
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
@@ -285,21 +285,20 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    const aiSummary = await generateAISummary(
+    const result = await generateAISummary(
       article.title,
       article.summary,
       article.source_name,
       anthropicKey
     );
-    if (aiSummary) {
+
+    if (result.kind === "ok") {
+      const aiSummary = result.data as Record<string, any>;
       const updatePayload: Record<string, any> = {
         ai_summary: aiSummary,
         enrichment_version: 3,
       };
-      if (
-        Array.isArray(aiSummary.affected_jurisdictions) &&
-        aiSummary.affected_jurisdictions.length > 0
-      ) {
+      if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
         updatePayload.affected_jurisdictions = aiSummary.affected_jurisdictions;
       }
       if (typeof aiSummary.regulatory_theory === "string" && aiSummary.regulatory_theory.trim()) {
@@ -317,17 +316,21 @@ Deno.serve(async (req) => {
       if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
         updatePayload.defense_considerations = aiSummary.defense_considerations;
       }
-      await supabase
-        .from("updates")
-        .update(updatePayload)
-        .eq("id", article.id);
+      await supabase.from("updates").update(updatePayload).eq("id", article.id);
       updated++;
-    } else {
+    } else if (result.kind === "model_skip" || result.kind === "permanent_error") {
+      // Genuine skip — mark so we don't retry forever
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true }, enrichment_version: 3 })
+        .update({
+          ai_summary: { skipped: true, reason: result.kind, detail: result.detail },
+          enrichment_version: 3,
+        })
         .eq("id", article.id);
       skipped++;
+    } else {
+      // transient_error — leave article alone so next run can retry
+      deferred++;
     }
     await new Promise((r) => setTimeout(r, 500));
   }
@@ -338,6 +341,7 @@ Deno.serve(async (req) => {
       processed: articles?.length,
       updated,
       skipped,
+      deferred,
       remaining: Math.max(0, (count ?? 0) - (articles?.length ?? 0)),
     }),
     { headers: { "Content-Type": "application/json" } }
