@@ -1755,6 +1755,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tool_acknowledgments: {
+        Row: {
+          acknowledged_at: string
+          created_at: string
+          id: string
+          report_id: string | null
+          session_id: string | null
+          tool_type: string
+          user_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          report_id?: string | null
+          session_id?: string | null
+          tool_type: string
+          user_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          report_id?: string | null
+          session_id?: string | null
+          tool_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       translation_glossary: {
         Row: {
           authority: string | null
