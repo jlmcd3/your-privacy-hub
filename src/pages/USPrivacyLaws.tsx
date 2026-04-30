@@ -32,7 +32,7 @@ const TAB_ITEMS = [
 ];
 
 const USPrivacyLaws = () => {
-  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   const [authSearch, setAuthSearch] = useState("");
   const [authStatusFilter, setAuthStatusFilter] = useState("All");
   const [authorityExpanded, setAuthorityExpanded] = useState(false);
