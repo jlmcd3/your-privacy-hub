@@ -158,16 +158,24 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode,
       line_items: [{ price: stripePrice.id, quantity: 1 }],
-      success_url: `${origin}${successPath}`,
-      cancel_url: `${origin}${cancelPath}`,
       customer_email: user.email!,
       metadata,
       ...(mode === "subscription" && { subscription_data: { metadata } }),
+      ...(embedded
+        ? {
+            ui_mode: "embedded",
+            return_url: `${origin}/subscribe?success=true&session_id={CHECKOUT_SESSION_ID}`,
+          }
+        : {
+            success_url: `${origin}${successPath}`,
+            cancel_url: `${origin}${cancelPath}`,
+          }),
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify(embedded ? { client_secret: session.client_secret } : { url: session.url }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
     console.error("create-checkout-session error:", err);
     return new Response(JSON.stringify({ error: (err as Error).message || "Internal error" }), {
