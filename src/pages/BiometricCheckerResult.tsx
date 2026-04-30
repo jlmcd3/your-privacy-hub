@@ -19,6 +19,7 @@ export default function BiometricCheckerResult() {
   const { id } = useParams();
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translation, setTranslation] = useState<{ lang: string; text: string } | null>(null);
 
   useEffect(() => {
     if (!id) return;
