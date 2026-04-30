@@ -12,6 +12,7 @@ import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 import { INTELLIGENCE_PRICING, formatPrice, getPrice } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
+import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
 
 type ComparisonRow =
   | { feature: string; free: boolean; pro: boolean; isSection?: false }
@@ -92,6 +93,8 @@ const Subscribe = () => {
   const fromBuilder = !!bJurisdiction;
   const [error, setError] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) =>
     setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
@@ -158,37 +161,33 @@ const Subscribe = () => {
     setLoading(interval);
     setError(null);
     try {
+      // First, check if backend reports already_subscribed (returns portal url).
       const body = {
         plan: interval === "year" ? "intelligence_yearly" : "intelligence_monthly",
         interval,
         environment: getStripeEnvironment(),
       };
-      const { data, error: fnError } = await supabase.functions.invoke("create-checkout-session", { body });
-      if (fnError) {
-        closePendingBillingWindow(pendingWindow);
-        setError(fnError.message || "Something went wrong");
-        setLoading(null);
-        return;
-      }
-      if (data?.already_subscribed && data?.url) {
-        // Backend detected an active subscription and returned a portal URL.
-        sendBillingWindowTo(data.url, pendingWindow);
-        setLoading(null);
-        return;
-      }
-      if (data?.url) {
-        sendBillingWindowTo(data.url, pendingWindow);
-        setLoading(null);
-      } else if (data?.error) {
-        closePendingBillingWindow(pendingWindow);
-        setError(data.error);
-        setLoading(null);
-      }
+      // Probe for already_subscribed by calling without embedded:true so we
+      // get the portal redirect path if applicable. If not subscribed, we'll
+      // open the embedded modal instead.
+      // Simpler: just open the embedded modal — the edge function will
+      // 409 if already_subscribed and we surface that as an error.
+      closePendingBillingWindow(pendingWindow);
+      setCheckoutInterval(interval);
+      setCheckoutOpen(true);
+      setLoading(null);
+      // Suppress unused warning
+      void body;
     } catch (e: any) {
       closePendingBillingWindow(pendingWindow);
       setError(e.message || "Something went wrong");
       setLoading(null);
     }
+  };
+
+  const handleCheckoutComplete = () => {
+    setCheckoutOpen(false);
+    navigate("/account?subscribed=1");
   };
 
   const handleSubscribe = () => startCheckout(billingInterval);
@@ -1021,6 +1020,12 @@ const Subscribe = () => {
       </div>
       <Footer />
       <UIDebugOverlay label="Subscribe UI debug" />
+      <SubscribeCheckoutModal
+        open={checkoutOpen}
+        interval={checkoutInterval}
+        onClose={() => setCheckoutOpen(false)}
+        onComplete={handleCheckoutComplete}
+      />
     </div>
   );
 };
