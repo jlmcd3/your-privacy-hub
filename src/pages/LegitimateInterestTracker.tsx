@@ -25,6 +25,20 @@ const signalStyle = (type: string) => {
   return "";
 };
 
+const outcomeStripe: Record<string, string> = {
+  accepted: "bg-green-600",
+  conditional: "bg-amber-500",
+  rejected: "bg-red-600",
+  contested: "bg-slate-400",
+};
+
+const outcomeAccent: Record<string, string> = {
+  accepted: "text-green-700",
+  conditional: "text-amber-700",
+  rejected: "text-red-700",
+  contested: "text-slate-600",
+};
+
 const SourceCell = ({ sourceUrl, caseReference }: { sourceUrl: string | null; caseReference: string | null }) => {
   if (sourceUrl && caseReference) {
     return (
