@@ -1020,6 +1020,12 @@ const Subscribe = () => {
       </div>
       <Footer />
       <UIDebugOverlay label="Subscribe UI debug" />
+      <SubscribeCheckoutModal
+        open={checkoutOpen}
+        interval={checkoutInterval}
+        onClose={() => setCheckoutOpen(false)}
+        onComplete={handleCheckoutComplete}
+      />
     </div>
   );
 };
