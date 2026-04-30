@@ -153,7 +153,10 @@ Deno.serve(async (req) => {
       throw new Error("Failed to create assessment record");
     }
 
-    const origin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
+    const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
+    // Stripe requires absolute URLs for return_url / success_url / cancel_url.
+    // Fall back to production domain so server-to-server callers don't break.
+    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
 
     const lineItem = stripePrice
       ? { price: stripePrice.id, quantity: 1 }
