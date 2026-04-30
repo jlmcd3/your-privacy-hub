@@ -1650,6 +1650,48 @@ export type Database = {
         }
         Relationships: []
       }
+      report_translations: {
+        Row: {
+          content_hash: string
+          created_at: string
+          id: string
+          model: string | null
+          report_id: string
+          report_type: string
+          source_lang: string
+          target_lang: string
+          translated_content: Json
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          report_id: string
+          report_type: string
+          source_lang?: string
+          target_lang: string
+          translated_content: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          report_id?: string
+          report_type?: string
+          source_lang?: string
+          target_lang?: string
+          translated_content?: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sample_brief_translations: {
         Row: {
           created_at: string
@@ -1710,6 +1752,45 @@ export type Database = {
           placement?: string | null
           sponsor_name?: string
           starts_at?: string | null
+        }
+        Relationships: []
+      }
+      translation_glossary: {
+        Row: {
+          authority: string | null
+          created_at: string
+          domain: string
+          id: string
+          notes: string | null
+          source_lang: string
+          source_term: string
+          target_lang: string
+          target_term: string
+          updated_at: string
+        }
+        Insert: {
+          authority?: string | null
+          created_at?: string
+          domain?: string
+          id?: string
+          notes?: string | null
+          source_lang?: string
+          source_term: string
+          target_lang: string
+          target_term: string
+          updated_at?: string
+        }
+        Update: {
+          authority?: string | null
+          created_at?: string
+          domain?: string
+          id?: string
+          notes?: string | null
+          source_lang?: string
+          source_term?: string
+          target_lang?: string
+          target_term?: string
+          updated_at?: string
         }
         Relationships: []
       }
