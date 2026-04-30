@@ -221,9 +221,9 @@ const LIAssessment = () => {
                 desc: "A structured analysis of purpose, necessity and balancing, plus a documentation pack and PDF you can hand to counsel.",
                 why: "Article 5(2) accountability requires you to demonstrate compliance, not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when they open an investigation.",
               },
-            ].map((step, i) => (
-              <Fragment key={step.n}>
-                <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
+            ].flatMap((step, i, arr) => {
+              const card = (
+                <div key={`card-${step.n}`} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
                   <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
                   <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
                   <p className="text-[13px] text-slate leading-relaxed mb-3">{step.desc}</p>
@@ -232,9 +232,13 @@ const LIAssessment = () => {
                     <p className="text-[12px] text-navy leading-relaxed">{step.why}</p>
                   </div>
                 </div>
-                {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
-              </Fragment>
-            ))}
+              );
+              if (i === arr.length - 1) return [card];
+              return [
+                card,
+                <span key={`arrow-${step.n}`} className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>,
+              ];
+            })}
           </div>
 
           <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-[12px] text-amber-900 max-w-[70ch]">
