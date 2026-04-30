@@ -201,7 +201,7 @@ const LIAssessment = () => {
         <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
           <h2 className="font-display text-2xl text-navy mb-5">Three steps — and why each one matters</h2>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
                 n: "01",
@@ -236,7 +236,10 @@ const LIAssessment = () => {
               if (i === arr.length - 1) return [card];
               return [
                 card,
-                <span key={`arrow-${step.n}`} className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>,
+                <span key={`arrow-${step.n}`} className="flex md:flex items-center justify-center text-navy/30 text-2xl md:text-2xl" aria-hidden>
+                  <span className="md:hidden">↓</span>
+                  <span className="hidden md:inline">→</span>
+                </span>,
               ];
             })}
           </div>
@@ -254,7 +257,7 @@ const LIAssessment = () => {
           <h2 className="font-display text-2xl text-navy mb-5">Tell us about the processing</h2>
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
-            className="bg-card border border-fog rounded-2xl p-6 md:p-8 shadow-eup-sm space-y-6"
+            className="bg-card border border-fog rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
           >
             <div>
               <Label htmlFor="desc" className="text-[13px] font-semibold text-navy">What processing are you considering? *</Label>
@@ -303,7 +306,7 @@ const LIAssessment = () => {
         {preview && (
           <section id="preview-signal">
             <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Preliminary signal</div>
-            <div className="bg-card border-t-4 border-navy rounded-2xl p-6 md:p-8 shadow-eup-sm space-y-6">
+            <div className="bg-card border-t-4 border-navy rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Use case</div>
@@ -351,7 +354,7 @@ const LIAssessment = () => {
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-fog">
                 <button
                   onClick={handleContinue}
-                  className="px-6 py-3 rounded-md bg-navy text-white font-semibold hover:bg-navy-mid transition-colors"
+                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-navy text-white font-semibold hover:bg-navy-mid transition-colors"
                 >
                   Continue to full assessment — ${pricing.price}
                 </button>
