@@ -30,10 +30,25 @@ async function fetchWithRetry(
     await throttle();
     const res = await fetch(url, init);
     if (res.status === 429 && attempt < maxRetries) {
+      // User-initiated calls share Anthropic quota with backfill. On 429, back off
+      // aggressively (min 60s, honor retry-after) so user calls always get the runway.
       const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
-      // Honor server retry-after; otherwise exp backoff capped at 60s
-      const backoff = Math.min(60000, Math.max(retryAfter * 1000, 2000 * Math.pow(2, attempt)));
-      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      const backoff = Math.min(
+        300000, // hard cap 5 min
+        Math.max(
+          60000,                             // floor: 60s — long enough to clear a per-minute window
+          retryAfter * 1000,                 // honor Anthropic's hint
+          5000 * Math.pow(2, attempt)        // exp backoff: 5s, 10s, 20s, 40s, 80s
+        )
+      );
+      console.warn(`Anthropic 429 — yielding to user traffic; backing off ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    if ((res.status === 529 || res.status === 503) && attempt < maxRetries) {
+      // Anthropic overloaded — same yield-to-user logic
+      const backoff = Math.min(120000, 10000 * Math.pow(2, attempt));
+      console.warn(`Anthropic ${res.status} overloaded — backing off ${backoff}ms`);
       await new Promise(r => setTimeout(r, backoff));
       continue;
     }
