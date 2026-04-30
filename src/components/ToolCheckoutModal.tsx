@@ -1,9 +1,10 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
+import { waitForAssessmentPaid } from "@/lib/checkoutConfirmation";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -22,15 +23,10 @@ interface Props {
   userId?: string;
   intakeData?: Record<string, unknown>;
   onClose: () => void;
-  /** Called when Stripe confirms the payment completed. */
+  /** Called only after backend confirms the purchase row was written. */
   onComplete?: (assessmentId: string) => void;
 }
 
-/**
- * Embedded Stripe checkout for one-time tool purchases.
- * Mirrors SubscribeCheckoutModal — keeps the user on-site instead of
- * redirecting to checkout.stripe.com.
- */
 export default function ToolCheckoutModal({
   open,
   toolType,
@@ -39,7 +35,9 @@ export default function ToolCheckoutModal({
   onClose,
   onComplete,
 }: Props) {
-  let lastAssessmentId = "";
+  const lastAssessmentIdRef = useRef<string>("");
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const fetchClientSecret = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
@@ -55,20 +53,39 @@ export default function ToolCheckoutModal({
     if (error || !data?.client_secret) {
       throw new Error(error?.message || data?.error || "Failed to create checkout session");
     }
-    lastAssessmentId = data.assessment_id;
+    lastAssessmentIdRef.current = data.assessment_id;
     return data.client_secret as string;
   }, [toolType, userId, intakeData]);
+
+  const confirmAndComplete = useCallback(async () => {
+    const id = lastAssessmentIdRef.current;
+    if (!id) {
+      onComplete?.("");
+      return;
+    }
+    setConfirming(true);
+    setConfirmError(null);
+    const ok = await waitForAssessmentPaid(id, { timeoutMs: 30_000, intervalMs: 1_500 });
+    setConfirming(false);
+    if (ok) {
+      onComplete?.(id);
+    } else {
+      setConfirmError(
+        "Payment received, but your purchase hasn't finalized yet. It usually takes a few seconds — you can continue to your result and we'll keep working in the background."
+      );
+    }
+  }, [onComplete]);
 
   useEffect(() => {
     if (!open) return;
     const handler = (event: MessageEvent) => {
       if (typeof event.data === "object" && event.data?.type === "stripe-embedded-checkout-complete") {
-        onComplete?.(lastAssessmentId);
+        void confirmAndComplete();
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [open, onComplete]);
+  }, [open, confirmAndComplete]);
 
   if (!open) return null;
 
@@ -83,10 +100,28 @@ export default function ToolCheckoutModal({
           <X className="w-4 h-4" />
         </button>
         <div className="p-2 sm:p-4">
-          {stripePromise ? (
+          {confirming ? (
+            <div className="p-10 text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-[14px] font-semibold text-navy mb-1">Confirming your purchase…</p>
+              <p className="text-[12px] text-muted-foreground">
+                Payment received. Finalizing — this usually takes a few seconds.
+              </p>
+            </div>
+          ) : confirmError ? (
+            <div className="p-8 text-center">
+              <p className="text-[13px] text-amber-700 mb-4">{confirmError}</p>
+              <button
+                onClick={() => onComplete?.(lastAssessmentIdRef.current)}
+                className="bg-navy text-white text-[13px] font-semibold px-5 py-2 rounded-lg"
+              >
+                Continue
+              </button>
+            </div>
+          ) : stripePromise ? (
             <EmbeddedCheckoutProvider
               stripe={stripePromise}
-              options={{ fetchClientSecret, onComplete: () => onComplete?.(lastAssessmentId) }}
+              options={{ fetchClientSecret, onComplete: () => void confirmAndComplete() }}
             >
               <EmbeddedCheckout />
             </EmbeddedCheckoutProvider>
