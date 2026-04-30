@@ -934,19 +934,24 @@ export type Database = {
       li_assessments: {
         Row: {
           alternatives_considered: string | null
+          balancing_details: Json | null
           created_at: string | null
           data_categories: string[] | null
           id: string
           is_subscriber_credit: boolean | null
           jurisdictions: string[] | null
+          necessity_details: Json | null
           pdf_url: string | null
+          preview_signal: Json | null
           processing_description: string
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
+          purpose_details: Json | null
           relationship_type: string | null
           report_data: Json | null
           report_version: number | null
           sector: string | null
+          stage: string
           stated_purpose: string | null
           status: string
           stripe_payment_intent_id: string | null
@@ -955,19 +960,24 @@ export type Database = {
         }
         Insert: {
           alternatives_considered?: string | null
+          balancing_details?: Json | null
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          necessity_details?: Json | null
           pdf_url?: string | null
+          preview_signal?: Json | null
           processing_description: string
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
+          purpose_details?: Json | null
           relationship_type?: string | null
           report_data?: Json | null
           report_version?: number | null
           sector?: string | null
+          stage?: string
           stated_purpose?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
@@ -976,19 +986,24 @@ export type Database = {
         }
         Update: {
           alternatives_considered?: string | null
+          balancing_details?: Json | null
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          necessity_details?: Json | null
           pdf_url?: string | null
+          preview_signal?: Json | null
           processing_description?: string
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
+          purpose_details?: Json | null
           relationship_type?: string | null
           report_data?: Json | null
           report_version?: number | null
           sector?: string | null
+          stage?: string
           stated_purpose?: string | null
           status?: string
           stripe_payment_intent_id?: string | null

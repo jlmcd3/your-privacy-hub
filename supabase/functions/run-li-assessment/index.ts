@@ -144,22 +144,45 @@ Return JSON:
         ).join("\n")
       : "No closely analogous precedents found in tracked database. Analysis proceeds on regulatory principles.";
 
-    // ── STAGE 2: Three-part test analysis ──
-    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment framework. Your analysis is precise, cites specific regulatory standards, and is grounded in the precedent database provided. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.`;
+    // ── STAGE 2: Three-part test analysis (EDPB Guidelines 1/2024 grounded) ──
+    const purposeDetails = (assessment as any).purpose_details || {};
+    const necessityDetails = (assessment as any).necessity_details || {};
+    const balancingDetails = (assessment as any).balancing_details || {};
+
+    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.`;
 
     const analysisText = await callAnthropic(
       "claude-sonnet-4-6",
       analysisSystem,
       `Conduct a three-part legitimate interest assessment for the following proposed processing.
 
-PROPOSED PROCESSING:
+PROPOSED PROCESSING (Stage A):
 Description: ${assessment.processing_description}
 Data categories: ${(assessment.data_categories || []).join(", ")}
 Relationship with data subjects: ${assessment.relationship_type || "not specified"}
 Jurisdictions: ${(assessment.jurisdictions || []).join(", ")}
 Sector: ${assessment.sector || "not specified"}
-Stated purpose: ${assessment.stated_purpose || "not specified"}
-Alternatives considered: ${assessment.alternatives_considered || "not specified"}
+
+STAGE B — PURPOSE FACTS:
+Whose interest: ${purposeDetails.interest_holder || "not specified"}
+Type of interest: ${purposeDetails.interest_type || "not specified"}
+Stated purpose to data subjects: ${assessment.stated_purpose || "not specified"}
+Statutory restrictions noted: ${balancingDetails.statutory_restrictions || "none noted"}
+
+STAGE B — NECESSITY FACTS:
+Alternatives considered: ${necessityDetails.alternatives || assessment.alternatives_considered || "not specified"}
+Why consent not used: ${necessityDetails.why_consent_not_used || "not addressed"}
+Data minimisation steps: ${necessityDetails.data_minimised || "not specified"}
+Pseudonymisation/aggregation options: ${necessityDetails.pseudonymisation_options || "not addressed"}
+
+STAGE B — BALANCING FACTS:
+Reasonable expectation: ${balancingDetails.reasonable_expectation || "not specified"}
+Vulnerable subjects involved: ${(balancingDetails.vulnerable_subjects || []).join(", ") || "none indicated"}
+Worst-case harm: ${balancingDetails.potential_harm || "not specified"}
+Safeguards in place: ${(balancingDetails.safeguards || []).join(", ") || "none specified"}
+Opt-out mechanism: ${balancingDetails.opt_out_mechanism || "not specified"}
+Special category data flag: ${balancingDetails.special_category_data ? "YES — Article 9 condition required in addition" : "no"}
+Employment-context safeguards: ${balancingDetails.employment_safeguards || "not applicable / not addressed"}
 
 PRECEDENT DATABASE (tracked regulatory decisions):
 ${precedentContext}
@@ -167,36 +190,41 @@ ${precedentContext}
 ENFORCEMENT PRECEDENTS (recent regulator fines/decisions, cite by code [E1]–[E5]):
 ${enforcementContextStr}
 
-Return JSON with this exact structure:
+Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIFIC facts above — do not generalise. Return JSON with this exact structure:
 {
   "purpose_test": {
     "verdict": "passes | fails | uncertain",
-    "analysis": "2-3 sentences: Is this a legitimate interest? Is it specific and present? Name the applicable regulatory standard.",
-    "risk_factors": ["list any factors that weaken the purpose test"],
-    "supporting_factors": ["list any factors that strengthen the purpose test"]
+    "analysis": "3-4 sentences testing whether the named interest holder has a lawful, specific, present interest. Address any statutory restrictions noted. Cite the applicable standard.",
+    "risk_factors": ["factors weakening the purpose test, drawn from the facts above"],
+    "supporting_factors": ["factors strengthening it, drawn from the facts above"],
+    "open_questions": ["facts the user did not provide that would affect this verdict"]
   },
   "necessity_test": {
     "verdict": "passes | fails | uncertain",
-    "analysis": "2-3 sentences: Is processing necessary to achieve the purpose? Could a less privacy-invasive approach achieve the same result? Name alternatives if relevant.",
-    "risk_factors": ["list any factors that weaken the necessity test"],
-    "supporting_factors": ["list any factors that strengthen the necessity test"]
+    "analysis": "3-4 sentences. Test whether the processing is the LEAST intrusive way to achieve the stated purpose, given the alternatives the user considered, the data minimisation they described, and any pseudonymisation potential.",
+    "risk_factors": ["factors weakening necessity, e.g. overly broad data, weak alternatives analysis"],
+    "supporting_factors": ["factors strengthening necessity"],
+    "open_questions": ["facts that would affect this verdict"]
   },
   "balancing_test": {
     "verdict": "likely_passes | likely_fails | uncertain",
-    "analysis": "3-4 sentences: Do data subjects' interests and rights override the legitimate interest? Consider nature of data, reasonable expectations, relationship, potential harm, ability to object.",
-    "risk_factors": ["list factors that tip balance toward data subjects"],
-    "supporting_factors": ["list factors that support the organisation's interest"],
-    "special_category_flag": true or false
+    "analysis": "4-5 sentences applying the EDPB four-factor balancing: (1) reasonable expectations, (2) nature of the relationship, (3) potential impact and severity, (4) safeguards including opt-out. Address vulnerable subjects if any.",
+    "risk_factors": ["factors tipping the balance toward data subjects"],
+    "supporting_factors": ["factors supporting the controller's interest"],
+    "open_questions": ["facts that would affect this verdict"],
+    "special_category_flag": ${balancingDetails.special_category_data ? "true" : "false"},
+    "vulnerable_subject_flag": ${(balancingDetails.vulnerable_subjects || []).filter((v: string) => v && v !== "None").length > 0 ? "true" : "false"}
   },
   "overall_assessment": {
     "argument_strength": "strong | moderate | weak | insufficient",
-    "strength_basis": "One sentence explaining why this strength rating. Reference the most analogous precedent.",
-    "closest_accepted_precedent": "Name the most analogous accepted precedent from the database, or null if none",
-    "closest_rejected_precedent": "Name the most analogous rejected precedent from the database, or null if none",
-    "key_distinguishing_factors": ["factors that distinguish this case from the precedents"]
+    "strength_basis": "One sentence explaining why this rating, referencing the strongest analogous precedent.",
+    "closest_accepted_precedent": "Name from the database, or null",
+    "closest_rejected_precedent": "Name from the database, or null",
+    "key_distinguishing_factors": ["factors distinguishing this case from precedents"],
+    "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
   }
 }`,
-      3000
+      3500
     );
 
     let analysis: any = {};
