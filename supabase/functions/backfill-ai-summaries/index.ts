@@ -77,7 +77,7 @@ async function generateAISummary(
   summary: string | null,
   sourceName: string | null,
   apiKey: string
-): Promise<Record<string, unknown> | null> {
+): Promise<EnrichResult> {
   try {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
