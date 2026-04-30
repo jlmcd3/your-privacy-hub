@@ -92,6 +92,8 @@ const Subscribe = () => {
   const fromBuilder = !!bJurisdiction;
   const [error, setError] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const toggleTrack = (label: string) =>
     setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
