@@ -88,7 +88,7 @@ export default function ReportShell({
 
         {children}
 
-        <ToolDisclaimer />
+        <ToolDisclaimer addition={disclaimerAddition} />
 
         <div className="pt-2">
           <Link
