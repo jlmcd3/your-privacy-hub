@@ -6,12 +6,12 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
+import ReportShell from "@/components/ReportShell";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
@@ -37,6 +37,35 @@ export default function BiometricCheckerResult() {
   const text = row?.analysis_text || report?.assessment_text;
   const bipaRisk = report?.bipa_risk;
 
+  const meta = row && (
+    <>
+      Generated {new Date(row.created_at).toLocaleDateString()}
+      {(row.jurisdictions || []).length > 0 && ` · ${(row.jurisdictions || []).join(", ")}`}
+    </>
+  );
+
+  const actions = row && (
+    <>
+      {row.pdf_url && (
+        <a href={row.pdf_url} target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg no-underline transition-colors">
+          ↓ Download PDF
+        </a>
+      )}
+      {text && <CopyButton text={text} />}
+    </>
+  );
+
+  const callout = bipaRisk && (
+    <div className="border-l-4 border-[hsl(var(--warn))] bg-[hsl(var(--warn)/0.06)] rounded-r-md px-4 py-3">
+      <h3 className="text-[13px] font-semibold text-[hsl(var(--warn))] mb-1">⚠️ BIPA Litigation Risk Estimate</h3>
+      <p className="text-[13px] text-foreground">
+        Low end: <span className="font-medium text-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
+      </p>
+      {bipaRisk.note && <p className="text-[11px] text-muted-foreground mt-1">{bipaRisk.note}</p>}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Compliance Assessment | End User Privacy</title></Helmet>
@@ -56,41 +85,14 @@ export default function BiometricCheckerResult() {
             <p className="text-foreground">Your assessment is being generated.</p>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h1 className="font-display font-bold text-navy text-[18px]">Biometric Compliance Assessment</h1>
-              <div className="flex gap-2">
-                {row.pdf_url && (
-                  <a href={row.pdf_url} target="_blank" rel="noopener noreferrer"
-                     className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 no-underline">
-                    ↓ Download PDF
-                  </a>
-                )}
-                {text && <CopyButton text={text} />}
-              </div>
-            </div>
-            <p className="text-[12px] text-muted-foreground">
-              Generated {new Date(row.created_at).toLocaleDateString()}
-              {(row.jurisdictions || []).length > 0 && ` · ${(row.jurisdictions || []).join(", ")}`}
-            </p>
-
-            {bipaRisk && (
-              <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
-                <h3 className="font-display font-bold text-amber-900 text-[14px] mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
-                <p className="text-[13px] text-amber-900">
-                  Low end: <strong>${bipaRisk.lowEnd?.toLocaleString()}</strong> · High end: <strong>${bipaRisk.highEnd?.toLocaleString()}</strong>
-                </p>
-                {bipaRisk.note && <p className="text-[11px] text-amber-800 mt-1">{bipaRisk.note}</p>}
-              </div>
-            )}
-
+          <ReportShell
+            title="Biometric Compliance Assessment"
+            meta={meta}
+            actions={actions}
+            callout={callout}
+          >
             <AssessmentReport text={text || ""} />
-
-            <ToolDisclaimer />
-            <div className="pt-2">
-              <Button asChild variant="outline"><Link to="/dashboard/reports">← Back to My Reports</Link></Button>
-            </div>
-          </div>
+          </ReportShell>
         )}
       </main>
       <Footer />
