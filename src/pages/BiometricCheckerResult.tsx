@@ -37,7 +37,8 @@ export default function BiometricCheckerResult() {
   }, [id]);
 
   const report = row?.report_data || {};
-  const text = row?.analysis_text || report?.assessment_text;
+  const sourceText = row?.analysis_text || report?.assessment_text;
+  const text = translation?.text ?? sourceText;
   const bipaRisk = report?.bipa_risk;
 
   const meta = row && (
