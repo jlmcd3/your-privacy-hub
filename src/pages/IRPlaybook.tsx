@@ -86,7 +86,7 @@ export default function IRPlaybook() {
             <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-[18px]">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
             <p className="text-[12px] text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
-            <ToolDisclaimer />
+            <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
