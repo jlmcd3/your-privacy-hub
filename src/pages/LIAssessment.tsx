@@ -335,6 +335,11 @@ const LIAssessment = () => {
                             <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(p.outcome)}`}>
                               {p.outcome}
                             </span>
+                            {p.case_reference && (
+                              <span className="text-[11px] text-muted-foreground truncate flex-shrink-0">
+                                {p.case_reference}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </article>
