@@ -231,7 +231,7 @@ const LegitimateInterestTracker = () => {
               {filtered.map((e, idx) => (
                 <Fragment key={e.id}>
                   <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
-                    <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[e.outcome] || outcomeStripe.contested}`} aria-hidden />
+                    <div className={`w-1.5 flex-shrink-0 ${stripeFor(e.outcome)}`} aria-hidden />
                     <div className="p-5 flex-1 min-w-0">
                       <h3 className="font-display text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
                       <div className="flex flex-wrap gap-1.5 mb-3">
@@ -241,7 +241,7 @@ const LegitimateInterestTracker = () => {
                       <p className="text-[13px] text-slate leading-relaxed mb-4">{e.summary}</p>
                       <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${outcomeAccent[e.outcome] || outcomeAccent.contested}`}>{e.outcome}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(e.outcome)}`}>{e.outcome}</span>
                           <span className="text-muted-foreground/40">·</span>
                           <span className={`text-[11px] text-muted-foreground truncate ${signalStyle(e.signal_type)}`}>{e.signal_type}</span>
                         </div>
