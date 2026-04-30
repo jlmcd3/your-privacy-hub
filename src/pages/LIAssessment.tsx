@@ -321,27 +321,24 @@ const LIAssessment = () => {
                     Most analogous regulator decisions ({preview.precedents_matched} matched)
                   </h3>
                   <div className="space-y-5">
-                    {preview.precedents.map((p, i) => {
-                      const key = (p.outcome || "contested").toLowerCase();
-                      return (
-                        <article key={i} className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
-                          <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[key] ?? outcomeStripe.contested}`} aria-hidden />
-                          <div className="p-5 flex-1 min-w-0">
-                            <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
-                              <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
-                            </div>
-                            <p className="text-[13px] text-slate leading-relaxed mb-4">{p.summary}</p>
-                            <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
-                              <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${outcomeAccent[key] ?? outcomeAccent.contested}`}>
-                                {p.outcome}
-                              </span>
-                            </div>
+                    {preview.precedents.map((p, i) => (
+                      <article key={i} className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
+                        <div className={`w-1.5 flex-shrink-0 ${stripeFor(p.outcome)}`} aria-hidden />
+                        <div className="p-5 flex-1 min-w-0">
+                          <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
                           </div>
-                        </article>
-                      );
-                    })}
+                          <p className="text-[13px] text-slate leading-relaxed mb-4">{p.summary}</p>
+                          <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(p.outcome)}`}>
+                              {p.outcome}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 </div>
               ) : (
