@@ -26,6 +26,8 @@ export interface ReportShellProps {
   backHref?: string;
   /** Footer "Back" label */
   backLabel?: string;
+  /** Optional tool-specific tail sentence appended to the bottom ToolDisclaimer */
+  disclaimerAddition?: string;
 }
 
 export default function ReportShell({
