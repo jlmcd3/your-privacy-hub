@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
+import AssessmentReport from "@/components/AssessmentReport";
 
 export default function IRPlaybookResult() {
   const { id } = useParams();
@@ -70,11 +71,7 @@ export default function IRPlaybookResult() {
               Generated {new Date(row.created_at).toLocaleDateString()}
               {(intake.jurisdictions || []).length > 0 && ` · ${(intake.jurisdictions || []).join(", ")}`}
             </p>
-            {row.playbook_text ? (
-              <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{row.playbook_text}</pre>
-            ) : (
-              <p className="text-slate text-sm">No playbook content available.</p>
-            )}
+            <AssessmentReport text={row.playbook_text || ""} sectionChipLabel={null} />
             <p className="text-[12px] text-muted-foreground mt-4">
               This playbook and its documentation checklist contribute to your Article 33(5) accountability record.
             </p>

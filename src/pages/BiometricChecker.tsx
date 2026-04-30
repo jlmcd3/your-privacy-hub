@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import AuthGateModal from "@/components/AuthGateModal";
+import AssessmentReport from "@/components/AssessmentReport";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
@@ -89,7 +90,7 @@ export default function BiometricChecker() {
                 <p className="text-[11px] text-amber-800 mt-1">{result.bipa_risk.note}</p>
               </div>
             )}
-            <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result.assessment_text}</pre>
+            <AssessmentReport text={result.assessment_text} />
             <p className="text-[11px] text-muted-foreground">Assessment reflects laws and enforcement as of {new Date().toLocaleDateString()}.</p>
             <ToolDisclaimer />
           </div>
