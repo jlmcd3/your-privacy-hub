@@ -122,21 +122,68 @@ const LegitimateInterestTracker = () => {
       </div>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Intro */}
-        <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
-          <p className="text-[14px] text-navy leading-relaxed">
-            Under GDPR Article 6(1)(f) and the equivalent provision of the UK GDPR, organizations may process personal data without consent if they have a legitimate interest that is not overridden by the individual's rights and freedoms. Establishing this requires a three-part assessment: the interest must be lawful, specific, and present; the processing must be necessary to achieve it; and a balancing test must confirm the individual's interests do not take precedence. Data protection authorities across the EU and UK have issued enforcement decisions, official guidance, and public statements that define which processing activities are likely to pass or fail this test. This tracker compiles those positions in one place, updated weekly.
+        {/* Intro + 3-Part Test */}
+        <div className="mb-10">
+          <p className="text-[14px] text-navy leading-relaxed mb-6 max-w-[70ch]">
+            Under GDPR Article 6(1)(f) and the equivalent provision of the UK GDPR, organizations may rely on legitimate interest as a lawful basis for processing — but only if they can satisfy a <strong>three-part test</strong>. This tracker compiles enforcement decisions and official guidance from EU and UK data protection authorities showing which processing activities pass or fail that test.
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">
+            {[
+              { n: "01", title: "Purpose", desc: "The interest must be lawful, specific, and present — not vague or speculative." },
+              { n: "02", title: "Necessity", desc: "Processing must be strictly required; no less intrusive means could achieve the same purpose." },
+              { n: "03", title: "Balancing", desc: "The individual's rights, freedoms, and reasonable expectations must not override the interest." },
+            ].map((step, i) => (
+              <Fragment key={step.n}>
+                <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md">
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
+                  <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
+                  <p className="text-[13px] text-slate leading-relaxed">{step.desc}</p>
+                </div>
+                {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
+              </Fragment>
+            ))}
+          </div>
         </div>
 
         {/* Trend summary */}
         {trendSummary && (
-          <div className="bg-sky/5 border-l-4 border-[hsl(var(--navy))] rounded-xl p-5 mb-8">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-navy mb-2">Recent Trends</div>
-            <p className="text-[13px] text-slate leading-relaxed">{trendSummary.summary}</p>
-            <p className="text-[11px] text-muted-foreground mt-2">
-              Updated {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-            </p>
+          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 shadow-eup-sm mb-10">
+            <div className="flex items-baseline justify-between mb-5">
+              <div>
+                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Recent Enforcement Trends</div>
+                <h3 className="font-display text-xl text-navy">Where authorities are landing this period</h3>
+              </div>
+              <span className="text-[11px] text-muted-foreground">
+                {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              </span>
+            </div>
+            <p className="text-[13px] text-slate leading-relaxed mb-6">{trendSummary.summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-5 border-t border-fog">
+              <div className="border-l-2 border-green-600 pl-4">
+                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-green-700">Broadly Accepted</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Fraud prevention", "Network security", "Cybersecurity threat sharing", "IT incident response"].map(t => (
+                    <span key={t} className="bg-green-50 text-green-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="border-l-2 border-red-600 pl-4">
+                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-red-700">Consistently Rejected</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Behavioral advertising", "Cross-site tracking", "Large-scale scraping", "Location profiling", "Third-party data sales"].map(t => (
+                    <span key={t} className="bg-red-50 text-red-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="border-l-2 border-amber-500 pl-4">
+                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-amber-700">Contested / Unsettled</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["AI model training", "Child-directed analytics", "Credit reporting"].map(t => (
+                    <span key={t} className="bg-amber-50 text-amber-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
