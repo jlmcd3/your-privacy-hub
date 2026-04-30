@@ -6,37 +6,18 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InFeedAd from "@/components/InFeedAd";
 import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
+import {
+  LI_OUTCOME_ORDER,
+  stripeFor,
+  accentFor,
+} from "@/lib/li-outcome-palette";
 
-const OUTCOME_ORDER = ["accepted", "conditional", "rejected", "contested"];
-
-const outcomeBadge = (outcome: string) => {
-  const styles: Record<string, string> = {
-    accepted: "bg-green-100 text-green-800",
-    conditional: "bg-amber-100 text-amber-800",
-    rejected: "bg-red-100 text-red-800",
-    contested: "bg-muted text-muted-foreground",
-  };
-  return styles[outcome] || styles.contested;
-};
+const OUTCOME_ORDER = LI_OUTCOME_ORDER;
 
 const signalStyle = (type: string) => {
   if (type === "Enforcement Decision" || type === "Official Guidance") return "font-bold";
   if (type === "Early Warning") return "italic";
   return "";
-};
-
-const outcomeStripe: Record<string, string> = {
-  accepted: "bg-green-600",
-  conditional: "bg-amber-500",
-  rejected: "bg-red-600",
-  contested: "bg-slate-400",
-};
-
-const outcomeAccent: Record<string, string> = {
-  accepted: "text-green-700",
-  conditional: "text-amber-700",
-  rejected: "text-red-700",
-  contested: "text-slate-600",
 };
 
 const SourceCell = ({ sourceUrl, caseReference }: { sourceUrl: string | null; caseReference: string | null }) => {
@@ -250,7 +231,7 @@ const LegitimateInterestTracker = () => {
               {filtered.map((e, idx) => (
                 <Fragment key={e.id}>
                   <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
-                    <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[e.outcome] || outcomeStripe.contested}`} aria-hidden />
+                    <div className={`w-1.5 flex-shrink-0 ${stripeFor(e.outcome)}`} aria-hidden />
                     <div className="p-5 flex-1 min-w-0">
                       <h3 className="font-display text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
                       <div className="flex flex-wrap gap-1.5 mb-3">
@@ -260,7 +241,7 @@ const LegitimateInterestTracker = () => {
                       <p className="text-[13px] text-slate leading-relaxed mb-4">{e.summary}</p>
                       <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${outcomeAccent[e.outcome] || outcomeAccent.contested}`}>{e.outcome}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(e.outcome)}`}>{e.outcome}</span>
                           <span className="text-muted-foreground/40">·</span>
                           <span className={`text-[11px] text-muted-foreground truncate ${signalStyle(e.signal_type)}`}>{e.signal_type}</span>
                         </div>

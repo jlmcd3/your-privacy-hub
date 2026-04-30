@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
+import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -68,22 +69,7 @@ const STRENGTH_STYLE: Record<string, string> = {
   "High Risk": "bg-red-100 text-red-900 border-red-300",
 };
 
-// Aligned with /li-tracker palette
-const outcomeStripe: Record<string, string> = {
-  accepted: "bg-green-600",
-  conditional: "bg-amber-500",
-  rejected: "bg-red-600",
-  contested: "bg-slate-400",
-};
-
-const outcomeAccent: Record<string, string> = {
-  accepted: "text-green-700",
-  conditional: "text-amber-700",
-  rejected: "text-red-700",
-  contested: "text-slate-600",
-};
-
-// outcomeBadge removed — Tracker pattern uses outcomeAccent in footer instead of pill badges
+// Outcome palette (stripe/accent) lives in @/lib/li-outcome-palette and is shared with /li-tracker
 
 const LIAssessment = () => {
   const { user } = useAuth();
@@ -335,27 +321,24 @@ const LIAssessment = () => {
                     Most analogous regulator decisions ({preview.precedents_matched} matched)
                   </h3>
                   <div className="space-y-5">
-                    {preview.precedents.map((p, i) => {
-                      const key = (p.outcome || "contested").toLowerCase();
-                      return (
-                        <article key={i} className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
-                          <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[key] ?? outcomeStripe.contested}`} aria-hidden />
-                          <div className="p-5 flex-1 min-w-0">
-                            <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
-                              <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
-                            </div>
-                            <p className="text-[13px] text-slate leading-relaxed mb-4">{p.summary}</p>
-                            <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
-                              <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${outcomeAccent[key] ?? outcomeAccent.contested}`}>
-                                {p.outcome}
-                              </span>
-                            </div>
+                    {preview.precedents.map((p, i) => (
+                      <article key={i} className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
+                        <div className={`w-1.5 flex-shrink-0 ${stripeFor(p.outcome)}`} aria-hidden />
+                        <div className="p-5 flex-1 min-w-0">
+                          <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
                           </div>
-                        </article>
-                      );
-                    })}
+                          <p className="text-[13px] text-slate leading-relaxed mb-4">{p.summary}</p>
+                          <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(p.outcome)}`}>
+                              {p.outcome}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 </div>
               ) : (
