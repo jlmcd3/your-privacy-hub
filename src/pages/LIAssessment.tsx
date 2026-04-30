@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
+import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -68,22 +69,7 @@ const STRENGTH_STYLE: Record<string, string> = {
   "High Risk": "bg-red-100 text-red-900 border-red-300",
 };
 
-// Aligned with /li-tracker palette
-const outcomeStripe: Record<string, string> = {
-  accepted: "bg-green-600",
-  conditional: "bg-amber-500",
-  rejected: "bg-red-600",
-  contested: "bg-slate-400",
-};
-
-const outcomeAccent: Record<string, string> = {
-  accepted: "text-green-700",
-  conditional: "text-amber-700",
-  rejected: "text-red-700",
-  contested: "text-slate-600",
-};
-
-// outcomeBadge removed — Tracker pattern uses outcomeAccent in footer instead of pill badges
+// Outcome palette (stripe/accent) lives in @/lib/li-outcome-palette and is shared with /li-tracker
 
 const LIAssessment = () => {
   const { user } = useAuth();
