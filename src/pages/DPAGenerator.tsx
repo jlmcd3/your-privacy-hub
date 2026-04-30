@@ -8,9 +8,9 @@ import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
+import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/env";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
 const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
@@ -46,6 +46,7 @@ export default function DPAGenerator() {
   const [result, setResult] = useState<string>("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -68,10 +69,7 @@ export default function DPAGenerator() {
     logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
-    const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "dpa_generator", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/dpa-generator", environment: getStripeEnvironment() },
-    });
-    if (data?.url) window.location.href = data.url;
+    setCheckoutOpen(true);
   };
 
   return (
@@ -135,6 +133,17 @@ export default function DPAGenerator() {
           </ToolSampleOverlay>
         )}
       </main>
+      <ToolCheckoutModal
+        open={checkoutOpen}
+        toolType="dpa_generator"
+        userId={access.user?.id}
+        intakeData={form}
+        onClose={() => setCheckoutOpen(false)}
+        onComplete={(id) => {
+          setCheckoutOpen(false);
+          if (id) navigate(`/dpa-generator/result/${id}?purchased=true`);
+        }}
+      />
       <Footer />
     </div>
   );
