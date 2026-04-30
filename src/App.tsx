@@ -65,6 +65,7 @@ import AdminEmailSignups from "./pages/AdminEmailSignups.tsx";
 import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
+import LIAssessmentIntake from "./pages/LIAssessmentIntake.tsx";
 import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";
 import GovernanceAssessment from "./pages/GovernanceAssessment.tsx";
 import GovernanceAssessmentResult from "./pages/GovernanceAssessmentResult.tsx";
@@ -269,6 +270,7 @@ const App = () => (
               }
             />
             <Route path="/li-assessment" element={<LIAssessment />} />
+            <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />
             <Route
               path="/li-assessment/result/:id"
               element={
