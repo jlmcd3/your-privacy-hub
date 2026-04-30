@@ -71,6 +71,12 @@ function parseBlocks(body: string): Block[] {
       continue;
     }
 
+    // Markdown-style horizontal rule — already separated visually by cards.
+    if (/^[-*_]{3,}$/.test(line)) {
+      i++;
+      continue;
+    }
+
     // Sub-heading line
     const sh = subheadRe.exec(line);
     if (sh) {
