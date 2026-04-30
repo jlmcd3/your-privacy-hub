@@ -25,6 +25,20 @@ const signalStyle = (type: string) => {
   return "";
 };
 
+const outcomeStripe: Record<string, string> = {
+  accepted: "bg-green-600",
+  conditional: "bg-amber-500",
+  rejected: "bg-red-600",
+  contested: "bg-slate-400",
+};
+
+const outcomeAccent: Record<string, string> = {
+  accepted: "text-green-700",
+  conditional: "text-amber-700",
+  rejected: "text-red-700",
+  contested: "text-slate-600",
+};
+
 const SourceCell = ({ sourceUrl, caseReference }: { sourceUrl: string | null; caseReference: string | null }) => {
   if (sourceUrl && caseReference) {
     return (
@@ -108,21 +122,68 @@ const LegitimateInterestTracker = () => {
       </div>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Intro */}
-        <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
-          <p className="text-[14px] text-navy leading-relaxed">
-            Under GDPR Article 6(1)(f) and the equivalent provision of the UK GDPR, organizations may process personal data without consent if they have a legitimate interest that is not overridden by the individual's rights and freedoms. Establishing this requires a three-part assessment: the interest must be lawful, specific, and present; the processing must be necessary to achieve it; and a balancing test must confirm the individual's interests do not take precedence. Data protection authorities across the EU and UK have issued enforcement decisions, official guidance, and public statements that define which processing activities are likely to pass or fail this test. This tracker compiles those positions in one place, updated weekly.
+        {/* Intro + 3-Part Test */}
+        <div className="mb-10">
+          <p className="text-[14px] text-navy leading-relaxed mb-6 max-w-[70ch]">
+            Under GDPR Article 6(1)(f) and the equivalent provision of the UK GDPR, organizations may rely on legitimate interest as a lawful basis for processing — but only if they can satisfy a <strong>three-part test</strong>. This tracker compiles enforcement decisions and official guidance from EU and UK data protection authorities showing which processing activities pass or fail that test.
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">
+            {[
+              { n: "01", title: "Purpose", desc: "The interest must be lawful, specific, and present — not vague or speculative." },
+              { n: "02", title: "Necessity", desc: "Processing must be strictly required; no less intrusive means could achieve the same purpose." },
+              { n: "03", title: "Balancing", desc: "The individual's rights, freedoms, and reasonable expectations must not override the interest." },
+            ].map((step, i) => (
+              <Fragment key={step.n}>
+                <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md">
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
+                  <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
+                  <p className="text-[13px] text-slate leading-relaxed">{step.desc}</p>
+                </div>
+                {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
+              </Fragment>
+            ))}
+          </div>
         </div>
 
         {/* Trend summary */}
         {trendSummary && (
-          <div className="bg-sky/5 border-l-4 border-[hsl(var(--navy))] rounded-xl p-5 mb-8">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-navy mb-2">Recent Trends</div>
-            <p className="text-[13px] text-slate leading-relaxed">{trendSummary.summary}</p>
-            <p className="text-[11px] text-muted-foreground mt-2">
-              Updated {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-            </p>
+          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 shadow-eup-sm mb-10">
+            <div className="flex items-baseline justify-between mb-5">
+              <div>
+                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Recent Enforcement Trends</div>
+                <h3 className="font-display text-xl text-navy">Where authorities are landing this period</h3>
+              </div>
+              <span className="text-[11px] text-muted-foreground">
+                {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              </span>
+            </div>
+            <p className="text-[13px] text-slate leading-relaxed mb-6">{trendSummary.summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-5 border-t border-fog">
+              <div className="border-l-2 border-green-600 pl-4">
+                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-green-700">Broadly Accepted</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Fraud prevention", "Network security", "Cybersecurity threat sharing", "IT incident response"].map(t => (
+                    <span key={t} className="bg-green-50 text-green-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="border-l-2 border-red-600 pl-4">
+                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-red-700">Consistently Rejected</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Behavioral advertising", "Cross-site tracking", "Large-scale scraping", "Location profiling", "Third-party data sales"].map(t => (
+                    <span key={t} className="bg-red-50 text-red-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="border-l-2 border-amber-500 pl-4">
+                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-amber-700">Contested / Unsettled</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["AI model training", "Child-directed analytics", "Credit reporting"].map(t => (
+                    <span key={t} className="bg-amber-50 text-amber-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -184,76 +245,39 @@ const LegitimateInterestTracker = () => {
           </div>
         ) : (
           <>
-            {/* Desktop table */}
-            <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-10">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead className="bg-muted">
-                    <tr>
-                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Source"].map(h => (
-                        <th key={h} className="px-3 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((e, idx) => (
-                      <Fragment key={e.id}>
-                        <tr className="hover:bg-muted/50 transition-colors">
-                          <td className="px-3 pt-3 pb-2 text-[13px] font-medium text-foreground">{e.processing_activity}</td>
-                          <td className="px-3 pt-3 pb-2">
-                            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                          </td>
-                          <td className={`px-3 pt-3 pb-2 text-[12px] ${signalStyle(e.signal_type)}`}>{e.signal_type}</td>
-                          <td className="px-3 pt-3 pb-2 text-[12px] text-foreground">{e.dpa_source}</td>
-                          <td className="px-3 pt-3 pb-2 text-[12px] text-foreground">{e.jurisdiction}</td>
-                          <td className="px-3 pt-3 pb-2 text-[11px] text-muted-foreground max-w-[140px]">
-                            <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-muted/50 transition-colors">
-                          <td colSpan={6} className="px-3 pt-0 pb-3 text-[12px] text-muted-foreground leading-relaxed border-b border-border">
-                            {e.summary}
-                          </td>
-                        </tr>
-                        {(idx + 1) % 8 === 0 && idx !== filtered.length - 1 && (
-                          <tr>
-                            <td colSpan={6} className="px-3 py-2 border-b border-border bg-muted/20">
-                              <InFeedAd
-                                adSlot={`li_tracker_infeed_${Math.floor(idx / 8)}`}
-                                googleAdClient={GOOGLE_AD_CLIENT}
-                                googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                              />
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Mobile cards */}
-            <div className="md:hidden space-y-3 mb-10">
+            {/* Enforcement decision card grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
               {filtered.map((e, idx) => (
                 <Fragment key={e.id}>
-                  <div className="bg-card border border-border rounded-xl p-4">
-                    <p className="font-bold text-[14px] text-foreground mb-2">{e.processing_activity}</p>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                      <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
+                  <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
+                    <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[e.outcome] || outcomeStripe.contested}`} aria-hidden />
+                    <div className="p-5 flex-1 min-w-0">
+                      <h3 className="font-display text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
+                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>
+                      </div>
+                      <p className="text-[13px] text-slate leading-relaxed mb-4">{e.summary}</p>
+                      <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${outcomeAccent[e.outcome] || outcomeAccent.contested}`}>{e.outcome}</span>
+                          <span className="text-muted-foreground/40">·</span>
+                          <span className={`text-[11px] text-muted-foreground truncate ${signalStyle(e.signal_type)}`}>{e.signal_type}</span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground flex-shrink-0">
+                          <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
-                    <div className="text-[11px] text-muted-foreground">
-                      <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
-                    </div>
-                  </div>
+                  </article>
                   {(idx + 1) % 6 === 0 && idx !== filtered.length - 1 && (
-                    <InFeedAd
-                      adSlot={`li_tracker_infeed_m_${Math.floor(idx / 6)}`}
-                      googleAdClient={GOOGLE_AD_CLIENT}
-                      googleAdSlot={getAdSlot("feed_infeed_3").googleAdSlot}
-                    />
+                    <div className="md:col-span-2">
+                      <InFeedAd
+                        adSlot={`li_tracker_infeed_${Math.floor(idx / 6)}`}
+                        googleAdClient={GOOGLE_AD_CLIENT}
+                        googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
+                      />
+                    </div>
                   )}
                 </Fragment>
               ))}
