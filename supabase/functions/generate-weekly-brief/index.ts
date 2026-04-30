@@ -320,7 +320,7 @@ STRICT ACCURACY RULES — violations invalidate this brief:
 Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these fields:
 
 {
-  "headline": "25-35 word headline capturing the single most significant development this week. Must name specific regulators or regulations. Not generic.",
+  "headline": "20-30 word READER-CENTRIC headline. Lead with what the privacy practitioner now needs to do, decide, prepare for, or watch — NOT a news recap. Frame around the reader's obligations, programs, risk posture, or roadmap. The triggering regulator/regulation should appear as the CAUSE clause, not the subject. BAD: 'EDPB Publishes Scientific Research Guidelines.' GOOD: 'Tighten consent and pseudonymization in your research programs before EDPB's new guidelines take effect.' Use second person ('your', 'you') or imperative voice. Name the specific reader concern (program, control, deadline, exposure) first; name the regulator/instrument second as the driver. Must still be specific — name the actual regulator or regulation that creates the obligation.",
 
   "executive_summary": "4-5 paragraphs of authoritative executive synthesis. ~400 words. Use [ref:N] citations throughout. Include a SECTOR IMPACT paragraph naming the most-affected industries this week with specific compliance implications. End with a WHAT TO IGNORE THIS WEEK section: 1-2 sentences identifying a high-profile item that is less significant than it appears and why.",
 
