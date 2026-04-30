@@ -67,11 +67,12 @@ serve(async (req) => {
       });
     }
 
-    const { plan, tool_slug, interval, environment } = (await req.json().catch(() => ({}))) as {
+    const { plan, tool_slug, interval, environment, embedded } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
       interval?: "month" | "year";
       environment?: string;
+      embedded?: boolean;
     };
     const env = detectEnv(environment);
 
