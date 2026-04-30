@@ -306,12 +306,239 @@ Signature: ______________________
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// FREE-FORM ASSESSMENT TEXT BUILDER (Biometric, IR Playbook, DPA)
+// Mirrors the on-screen ReportShell + AssessmentReport styling.
+// ─────────────────────────────────────────────────────────────────────────
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function renderInlineHtml(text: string): string {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((p) => {
+    const m = /^\*\*([^*]+)\*\*$/.exec(p);
+    if (m) return `<strong style="font-weight:500;color:#1a1916;">${escHtml(m[1])}</strong>`;
+    return escHtml(p);
+  }).join("");
+}
+
+type TextBlock =
+  | { type: "subhead"; text: string; trailing?: string }
+  | { type: "para"; text: string }
+  | { type: "ol"; items: string[] }
+  | { type: "ul"; items: string[] };
+
+function parseTextBlocks(body: string): TextBlock[] {
+  const lines = body.replace(/\r\n/g, "\n").split("\n");
+  const blocks: TextBlock[] = [];
+  const subheadRe = /^\*\*([^*]+?):\*\*\s*(.*)$/;
+  const numberedRe = /^(\d+)\.\s+(.*)$/;
+  const bulletRe = /^[-•]\s+(.*)$/;
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) { i++; continue; }
+    if (/^[-*_]{3,}$/.test(line)) { i++; continue; }
+    const sh = subheadRe.exec(line);
+    if (sh) {
+      blocks.push({ type: "subhead", text: sh[1].trim(), trailing: sh[2] ? sh[2].trim() : undefined });
+      i++; continue;
+    }
+    if (numberedRe.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length) {
+        const cur = lines[i].trim();
+        const m = numberedRe.exec(cur);
+        if (m) { items.push(m[2]); i++; }
+        else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0) {
+          items[items.length - 1] += " " + cur; i++;
+        } else break;
+      }
+      blocks.push({ type: "ol", items });
+      continue;
+    }
+    if (bulletRe.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length) {
+        const cur = lines[i].trim();
+        const m = bulletRe.exec(cur);
+        if (m) { items.push(m[1]); i++; }
+        else if (cur && !subheadRe.test(cur) && !numberedRe.test(cur) && items.length > 0) {
+          items[items.length - 1] += " " + cur; i++;
+        } else break;
+      }
+      blocks.push({ type: "ul", items });
+      continue;
+    }
+    blocks.push({ type: "para", text: line });
+    i++;
+  }
+  return blocks;
+}
+
+function blocksToHtml(blocks: TextBlock[]): string {
+  return blocks.map((b) => {
+    if (b.type === "subhead") {
+      return `<div class="subhead"><h4>${escHtml(b.text)}</h4><div class="rule"></div>${
+        b.trailing ? `<p class="sub-trailing">${renderInlineHtml(b.trailing)}</p>` : ""
+      }</div>`;
+    }
+    if (b.type === "para") return `<p class="body-p">${renderInlineHtml(b.text)}</p>`;
+    if (b.type === "ol") {
+      return `<ol class="num-list">${b.items.map((it, j) =>
+        `<li><span class="num">${j + 1}</span><span class="li-body">${renderInlineHtml(it)}</span></li>`).join("")}</ol>`;
+    }
+    return `<ul class="dot-list">${b.items.map((it) =>
+      `<li><span class="dot"></span><span class="li-body">${renderInlineHtml(it)}</span></li>`).join("")}</ul>`;
+  }).join("\n");
+}
+
+function splitTextSections(text: string): Array<{ heading: string | null; body: string }> {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const out: Array<{ heading: string | null; body: string }> = [];
+  let cur: { heading: string | null; body: string } = { heading: null, body: "" };
+  for (const line of lines) {
+    const m = /^###\s+(.+)$/.exec(line);
+    if (m) {
+      if (cur.heading || cur.body.trim()) out.push(cur);
+      cur = { heading: m[1].trim(), body: "" };
+    } else { cur.body += (cur.body ? "\n" : "") + line; }
+  }
+  if (cur.heading || cur.body.trim()) out.push(cur);
+  return out;
+}
+
+function splitHeading(h: string): { jurisdiction: string; statute?: string } {
+  const m = /^(.+?)\s+[—–-]\s+(.+)$/.exec(h);
+  if (m) return { jurisdiction: m[1].trim(), statute: m[2].trim() };
+  return { jurisdiction: h };
+}
+
+interface TextReportOpts {
+  title: string;
+  metaLine?: string;
+  text: string;
+  showJurisdictionChip?: boolean;
+  callout?: { kind: "warn" | "muted"; title?: string; html: string };
+}
+
+function buildTextReportHTML(opts: TextReportOpts): string {
+  const sections = splitTextSections(opts.text || "");
+  const hasJurisdictions = sections.some((s) => s.heading);
+  const showChip = opts.showJurisdictionChip ?? true;
+
+  const sectionsHtml = sections.map((sec) => {
+    const blocks = parseTextBlocks(sec.body);
+    if (!sec.heading) return `<div class="preamble">${blocksToHtml(blocks)}</div>`;
+    const { jurisdiction, statute } = splitHeading(sec.heading);
+    return `<article class="jcard">
+      <div class="rail"></div>
+      <header class="jhead">
+        ${hasJurisdictions && showChip ? `<span class="chip">Jurisdiction</span>` : ""}
+        <h3>${escHtml(jurisdiction)}</h3>
+        ${statute ? `<p class="statute">${escHtml(statute)}</p>` : ""}
+      </header>
+      <div class="jbody">${blocksToHtml(blocks)}</div>
+    </article>`;
+  }).join("\n");
+
+  const calloutHtml = opts.callout
+    ? `<div class="callout callout-${opts.callout.kind}">
+        ${opts.callout.title ? `<div class="callout-title">${escHtml(opts.callout.title)}</div>` : ""}
+        <div>${opts.callout.html}</div></div>`
+    : "";
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(opts.title)}</title>
+<style>
+  :root {
+    --navy:#0f172a; --navy-ink:#1a1916; --paper:#faf8f3; --card:#ffffff;
+    --border:#e6e3da; --steel:#94a3b8; --silver:#eef0f2; --slate:#5c5a54;
+    --gold:#c0911f; --gold-soft:#fbf3df; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#1a5276;
+  }
+  * { box-sizing: border-box; }
+  body { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:var(--navy-ink);
+    background:var(--paper); font-size:12px; line-height:1.55; margin:0;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .header { background:var(--navy); color:#fff; padding:22px 26px 24px; }
+  .header .logo-tile { display:inline-block; background:#fff; border-radius:6px; padding:5px 10px;
+    margin-bottom:12px; font-family:'Georgia','Times New Roman',serif; font-size:13px;
+    font-weight:700; color:var(--navy); letter-spacing:0.02em; }
+  .header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.14em; color:#93c5fd; margin:0 0 4px; }
+  .header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0;
+    line-height:1.25; font-weight:700; }
+  .header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+  .body { padding:22px 26px 26px; }
+  .disclaimer { border-left:4px solid var(--gold); background:var(--gold-soft);
+    border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .disclaimer .kw { font-weight:600; color:var(--navy); }
+  .callout { border-left:4px solid var(--warn); background:var(--warn-soft);
+    border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin-bottom:16px; }
+  .callout-muted { border-left-color:var(--steel); background:#f5f6f7; color:var(--slate); font-style:italic; }
+  .callout-title { font-weight:600; color:var(--warn); margin-bottom:4px; font-size:12px; }
+  .callout-muted .callout-title { color:var(--slate); }
+  .preamble { padding:0 2px 6px; }
+  .jcard { position:relative; border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; margin-bottom:16px; background:#fff; page-break-inside:avoid; }
+  .jcard .rail { position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--steel); }
+  .jhead { padding:14px 18px 10px 22px; border-bottom:1px solid var(--border);
+    background:linear-gradient(135deg,var(--paper),#fff); }
+  .chip { display:inline-block; font-size:9px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.08em; color:var(--slate); background:var(--silver);
+    padding:2px 8px; border-radius:999px; margin-bottom:6px; }
+  .jhead h3 { margin:0; font-family:'Georgia','Times New Roman',serif; font-weight:700;
+    color:var(--navy); font-size:16px; line-height:1.25; }
+  .jhead .statute { margin:4px 0 0; font-family:'Courier New',monospace; font-size:10px;
+    color:var(--slate); text-transform:uppercase; letter-spacing:0.04em; }
+  .jbody { padding:14px 18px 16px 22px; }
+  .subhead { margin-top:12px; }
+  .subhead h4 { font-size:11.5px; font-weight:600; text-transform:uppercase;
+    color:var(--navy); letter-spacing:0.02em; margin:0; }
+  .subhead .rule { margin-top:4px; height:2px; width:36px; background:var(--steel); border-radius:2px; }
+  .subhead .sub-trailing { margin-top:6px; }
+  p.body-p, .sub-trailing, .li-body { font-size:12px; line-height:1.6; color:var(--navy-ink); margin:0 0 8px; }
+  ol.num-list, ul.dot-list { list-style:none; padding:0; margin:8px 0 4px; }
+  ol.num-list li, ul.dot-list li { display:flex; gap:10px; align-items:flex-start;
+    margin-bottom:7px; page-break-inside:avoid; }
+  ol.num-list .num { flex:0 0 auto; width:18px; height:18px; border-radius:999px;
+    background:var(--navy); color:#fff; font-size:10px; font-weight:600;
+    display:inline-flex; align-items:center; justify-content:center; margin-top:1px; }
+  ul.dot-list .dot { flex:0 0 auto; width:6px; height:6px; border-radius:999px;
+    background:var(--accent); margin-top:8px; }
+  .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border);
+    font-size:10px; color:var(--slate); text-align:center; }
+</style></head>
+<body><div class="shell">
+  <header class="header">
+    <span class="logo-tile">enduserprivacy.com</span>
+    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <h1>${escHtml(opts.title)}</h1>
+    ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
+  </header>
+  <div class="body">
+    <div class="disclaimer"><span class="kw">Not legal advice.</span>
+      This document is a compliance framework generated for informational purposes only.
+      It does not create an attorney-client relationship. Always consult qualified legal
+      counsel for advice specific to your situation.</div>
+    ${calloutHtml}
+    ${sectionsHtml}
+    <div class="footer">EndUserPrivacy.com · Generated ${new Date().toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}</div>
+  </div>
+</div></body></html>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // FILENAME HELPERS
 // ─────────────────────────────────────────────────────────────────────────
 const TOOL_LABELS: Record<string, string> = {
   li_assessment: "LI-Assessment",
   governance_assessment: "Governance-Assessment",
   dpia_framework: "DPIA-Framework",
+  biometric_checker: "Biometric-Compliance",
+  ir_playbook: "Breach-Response-Playbook",
+  dpa_generator: "Custom-DPA",
 };
 
 function makeAttachmentName(toolType: string, generatedAt: string): string {
@@ -324,6 +551,9 @@ function makeEmailSubject(toolType: string): string {
     li_assessment: "Legitimate Interest Assessment",
     governance_assessment: "Data Governance Readiness Assessment",
     dpia_framework: "DPIA Framework",
+    biometric_checker: "Biometric Compliance Assessment",
+    ir_playbook: "Breach Response Playbook",
+    dpa_generator: "Custom DPA",
   };
   return `Your ${labels[toolType] || "Report"} is ready — EndUserPrivacy.com`;
 }
