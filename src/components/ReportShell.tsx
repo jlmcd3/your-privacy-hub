@@ -38,6 +38,7 @@ export default function ReportShell({
   callout,
   backHref = "/dashboard/reports",
   backLabel = "← Back to My Reports",
+  disclaimerAddition,
 }: ReportShellProps) {
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
