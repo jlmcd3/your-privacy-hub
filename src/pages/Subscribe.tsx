@@ -12,6 +12,7 @@ import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 import { INTELLIGENCE_PRICING, formatPrice, getPrice } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
+import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
 
 type ComparisonRow =
   | { feature: string; free: boolean; pro: boolean; isSection?: false }
