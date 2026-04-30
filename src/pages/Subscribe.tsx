@@ -18,6 +18,38 @@ type ComparisonRow =
   | { feature: string; free: string; pro: string; isSection?: false }
   | { feature: string; isSection: true };
 
+const openPendingBillingWindow = () => {
+  const pendingWindow = window.open("", "_blank");
+  if (pendingWindow) {
+    try {
+      pendingWindow.opener = null;
+      pendingWindow.document.title = "Opening billing…";
+      pendingWindow.document.body.textContent = "Opening billing…";
+    } catch {
+      // The blank tab is only a popup-blocker-safe placeholder.
+    }
+  }
+  return pendingWindow;
+};
+
+const sendBillingWindowTo = (url: string, pendingWindow?: Window | null) => {
+  if (pendingWindow && !pendingWindow.closed) {
+    try {
+      pendingWindow.location.href = url;
+      return true;
+    } catch {
+      // Fall back to opening a fresh tab below.
+    }
+  }
+  return !!window.open(url, "_blank", "noopener,noreferrer");
+};
+
+const closePendingBillingWindow = (pendingWindow?: Window | null) => {
+  if (pendingWindow && !pendingWindow.closed) {
+    pendingWindow.close();
+  }
+};
+
 const comparisonRows: ComparisonRow[] = [
   { isSection: true, feature: "The monitoring layer" },
   { feature: "Regulatory developments, monitored daily", free: true, pro: true },
