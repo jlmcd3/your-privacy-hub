@@ -36,7 +36,9 @@ function renderInline(text: string, keyPrefix = "i"): ReactNode[] {
       parts.push(text.slice(lastIndex, match.index));
     }
     parts.push(
-      <strong key={`${keyPrefix}-${n++}`} className="font-semibold text-navy">
+      // Use medium weight (500) so emphasized phrases remain readable
+      // without the letterforms bleeding into each other.
+      <strong key={`${keyPrefix}-${n++}`} className="font-medium text-foreground">
         {match[1]}
       </strong>
     );
@@ -180,7 +182,8 @@ function BlockList({ blocks }: { blocks: Block[] }) {
         if (b.type === "subhead") {
           return (
             <div key={idx} className="pt-2">
-              <h4 className="font-display text-[15px] font-semibold text-navy tracking-tight">
+              {/* DM Sans medium reads cleaner than DM Serif Display bold at this size */}
+              <h4 className="text-[14px] font-semibold text-navy tracking-tight uppercase">
                 {b.text}
               </h4>
               <div className="mt-1 h-[2px] w-10 bg-[hsl(var(--steel))] rounded-full" />
