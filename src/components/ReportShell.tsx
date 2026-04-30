@@ -41,26 +41,26 @@ export default function ReportShell({
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Navy header band — matches site header convention */}
       <header className="bg-slate-900 text-white px-6 py-6 sm:px-8 sm:py-7">
+        {/* Logo row — sits above title for clear product attribution */}
+        <Link to="/" className="inline-block mb-4">
+          <img
+            src="/logo.png"
+            alt="End User Privacy"
+            className="h-9 w-auto brightness-0 invert opacity-90"
+          />
+        </Link>
+
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-4 min-w-0">
-            <Link to="/" className="flex-shrink-0">
-              <img
-                src="/logo.png"
-                alt="End User Privacy"
-                className="h-10 w-10 rounded bg-white/5 p-0.5"
-              />
-            </Link>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sky">
-                End User Privacy · Compliance Tool
-              </p>
-              <h1 className="font-display text-[22px] sm:text-[26px] leading-tight text-white mt-0.5">
-                {title}
-              </h1>
-              {meta && (
-                <p className="text-[12px] text-slate-300 mt-1.5">{meta}</p>
-              )}
-            </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sky">
+              Compliance Tool · Customised Analysis
+            </p>
+            <h1 className="font-display text-[22px] sm:text-[26px] leading-tight text-white mt-1">
+              {title}
+            </h1>
+            {meta && (
+              <p className="text-[12px] text-slate-300 mt-1.5">{meta}</p>
+            )}
           </div>
           {actions && (
             <div className="flex gap-2 flex-wrap items-center">{actions}</div>
