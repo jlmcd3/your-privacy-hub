@@ -1,0 +1,1 @@
+UPDATE public.updates SET ai_summary = '{"skipped": true, "reason": "non_editorial", "detail": "job_posting"}'::jsonb, enrichment_version = 3 WHERE id = 'a32c68f7-9ed9-4f0e-8b2d-4bf651d08abb';
