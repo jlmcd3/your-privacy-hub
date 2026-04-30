@@ -155,7 +155,10 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       console.error(`Anthropic non-OK ${res.status}: ${body.slice(0, 500)}`);
-      return null;
+      // 4xx (except 429) = permanent for this request shape; 5xx/429 = transient (retry later)
+      const transient = res.status === 429 || res.status >= 500 ||
+        body.includes("usage limit") || body.includes("rate_limit");
+      return { kind: transient ? "transient_error" : "permanent_error", detail: `${res.status}` };
     }
     const data = await res.json();
     if (data.stop_reason === "max_tokens") {
@@ -164,7 +167,7 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
     const text: string = data.content?.[0]?.text ?? "";
     if (!text) {
       console.error("Anthropic returned empty content");
-      return null;
+      return { kind: "transient_error", detail: "empty_content" };
     }
 
     // Strip markdown code fences if present
@@ -173,20 +176,18 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
       .replace(/```\s*/g, "")
       .trim();
 
-    // Find first { and last } to isolate JSON
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");
     if (start === -1 || end === -1 || end <= start) {
       console.error(`No JSON object boundaries found. Raw text: ${text.slice(0, 300)}`);
-      return null;
+      return { kind: "permanent_error", detail: "no_json_boundaries" };
     }
     cleaned = cleaned.substring(start, end + 1);
 
     let parsed: any;
     try {
       parsed = JSON.parse(cleaned);
-    } catch (e) {
-      // attempt minor repair: trailing commas, control chars
+    } catch (_e) {
       const repaired = cleaned
         .replace(/,\s*}/g, "}")
         .replace(/,\s*]/g, "]")
@@ -195,15 +196,24 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
         parsed = JSON.parse(repaired);
       } catch (e2) {
         console.error(`JSON.parse failed: ${(e2 as Error).message}. Snippet: ${cleaned.slice(0, 300)}…${cleaned.slice(-200)}`);
-        return null;
+        return { kind: "permanent_error", detail: "json_parse_failed" };
       }
     }
-    return parsed.skip ? null : parsed;
+    if (parsed.skip) return { kind: "model_skip", detail: parsed.skip_reason || "model_declined" };
+    return { kind: "ok", data: parsed };
   } catch (err) {
-    console.error(`generateAISummary threw: ${(err as Error).message}`);
-    return null;
+    const msg = (err as Error).message;
+    console.error(`generateAISummary threw: ${msg}`);
+    const transient = msg.includes("timeout") || msg.includes("network") || msg.includes("fetch");
+    return { kind: transient ? "transient_error" : "permanent_error", detail: msg };
   }
 }
+
+type EnrichResult =
+  | { kind: "ok"; data: Record<string, unknown> }
+  | { kind: "model_skip"; detail: string }
+  | { kind: "permanent_error"; detail: string }
+  | { kind: "transient_error"; detail: string };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS")
