@@ -172,6 +172,17 @@ const DPIAFramework = () => {
         </form>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
+        <ToolCheckoutModal
+          open={checkoutOpen}
+          toolType="dpia_framework"
+          userId={user?.id}
+          intakeData={buildIntake()}
+          onClose={() => setCheckoutOpen(false)}
+          onComplete={(id) => {
+            setCheckoutOpen(false);
+            if (id) navigate(`/dpia-framework/result/${id}?purchased=true`);
+          }}
+        />
         <ToolSamplePreview
           toolType="dpia"
           toolName="Impact Assessment Builder"
