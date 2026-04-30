@@ -96,7 +96,7 @@ const Subscribe = () => {
   const toggleTrack = (label: string) =>
     setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
 
-  const openPortal = async (key: string) => {
+  const openPortal = async (key: string, pendingWindow: Window | null = openPendingBillingWindow()) => {
     setLoading(key);
     setError(null);
     try {
@@ -104,7 +104,7 @@ const Subscribe = () => {
         body: { return_url: `${window.location.origin}/account` },
       });
       if (!fnError && data?.url) {
-        window.open(data.url, "_blank");
+        sendBillingWindowTo(data.url, pendingWindow);
         setLoading(null);
         return;
       }
@@ -113,19 +113,25 @@ const Subscribe = () => {
       if (data?.no_billing_account) {
         const interval: "month" | "year" = key === "year" ? "year" : "month";
         setLoading(null);
-        await startCheckout(interval);
+        await startCheckout(interval, pendingWindow);
         return;
       }
+      closePendingBillingWindow(pendingWindow);
       setError((data?.error as string) || fnError?.message || "Could not open billing portal");
       setLoading(null);
     } catch (e: any) {
+      closePendingBillingWindow(pendingWindow);
       setError(e.message || "Could not open billing portal");
       setLoading(null);
     }
   };
 
-  const startCheckout = async (interval: "month" | "year" = billingInterval) => {
+  const startCheckout = async (
+    interval: "month" | "year" = billingInterval,
+    pendingWindow: Window | null = openPendingBillingWindow()
+  ) => {
     if (!user) {
+      closePendingBillingWindow(pendingWindow);
       navigate(`/signup?redirect=/subscribe`);
       return;
     }
@@ -140,7 +146,7 @@ const Subscribe = () => {
           body: { return_url: `${window.location.origin}/account` },
         });
         if (!fnError && data?.url) {
-          window.open(data.url, "_blank");
+          sendBillingWindowTo(data.url, pendingWindow);
           setLoading(null);
           return;
         }
@@ -159,23 +165,27 @@ const Subscribe = () => {
       };
       const { data, error: fnError } = await supabase.functions.invoke("create-checkout-session", { body });
       if (fnError) {
+        closePendingBillingWindow(pendingWindow);
         setError(fnError.message || "Something went wrong");
         setLoading(null);
         return;
       }
       if (data?.already_subscribed && data?.url) {
         // Backend detected an active subscription and returned a portal URL.
-        window.open(data.url, "_blank");
+        sendBillingWindowTo(data.url, pendingWindow);
         setLoading(null);
         return;
       }
       if (data?.url) {
-        window.location.href = data.url;
+        sendBillingWindowTo(data.url, pendingWindow);
+        setLoading(null);
       } else if (data?.error) {
+        closePendingBillingWindow(pendingWindow);
         setError(data.error);
         setLoading(null);
       }
     } catch (e: any) {
+      closePendingBillingWindow(pendingWindow);
       setError(e.message || "Something went wrong");
       setLoading(null);
     }
