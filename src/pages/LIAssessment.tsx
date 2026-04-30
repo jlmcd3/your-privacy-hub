@@ -167,8 +167,9 @@ const LIAssessment = () => {
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Legitimate Interest Assessment</h1>
           <p className="text-slate-300 text-lg">
-            Get an instant, precedent-backed signal on whether your proposed processing is likely to qualify for
-            legitimate interest under GDPR Article 6(1)(f) — then optionally continue to a full three-part test.
+            Get an instant indication whether your proposed processing could qualify for legitimate interest under
+            GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've
+            tracked. Again, we cannot provide legal advice, but we can provide actionable Intelligence.
           </p>
         </div>
       </header>
