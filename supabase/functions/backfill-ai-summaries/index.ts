@@ -88,8 +88,8 @@ async function generateAISummary(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 1200,
-        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown, no explanation. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
+        max_tokens: 4096,
+        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown fences, no explanation. Your entire response must start with { and end with }. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
             role: "user",
@@ -149,17 +149,58 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
           },
         ],
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(30000),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`Anthropic non-OK ${res.status}: ${body.slice(0, 500)}`);
+      return null;
+    }
     const data = await res.json();
-    const text = data.content?.[0]?.text;
-    const match = text?.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    const parsed = JSON.parse(match[0]);
+    if (data.stop_reason === "max_tokens") {
+      console.error(`Anthropic response truncated (max_tokens) for "${title.slice(0, 80)}"`);
+    }
+    const text: string = data.content?.[0]?.text ?? "";
+    if (!text) {
+      console.error("Anthropic returned empty content");
+      return null;
+    }
+
+    // Strip markdown code fences if present
+    let cleaned = text
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+
+    // Find first { and last } to isolate JSON
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start === -1 || end === -1 || end <= start) {
+      console.error(`No JSON object boundaries found. Raw text: ${text.slice(0, 300)}`);
+      return null;
+    }
+    cleaned = cleaned.substring(start, end + 1);
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      // attempt minor repair: trailing commas, control chars
+      const repaired = cleaned
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]")
+        .replace(/[\x00-\x1F\x7F]/g, "");
+      try {
+        parsed = JSON.parse(repaired);
+      } catch (e2) {
+        console.error(`JSON.parse failed: ${(e2 as Error).message}. Snippet: ${cleaned.slice(0, 300)}…${cleaned.slice(-200)}`);
+        return null;
+      }
+    }
     return parsed.skip ? null : parsed;
-  } catch {
+  } catch (err) {
+    console.error(`generateAISummary threw: ${(err as Error).message}`);
     return null;
   }
 }
