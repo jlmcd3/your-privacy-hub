@@ -12,6 +12,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
@@ -46,12 +47,12 @@ export default function BiometricCheckerResult() {
 
   const actions = row && (
     <>
-      {row.pdf_url && (
-        <a href={row.pdf_url} target="_blank" rel="noopener noreferrer"
-           className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg no-underline transition-colors">
-          ↓ Download PDF
-        </a>
-      )}
+      <PDFDownloadButton
+        toolType="biometric_checker"
+        assessmentId={row.id}
+        pdfUrl={row.pdf_url}
+        onGenerated={(url) => setRow({ ...row, pdf_url: url })}
+      />
       {text && <CopyButton text={text} />}
     </>
   );
