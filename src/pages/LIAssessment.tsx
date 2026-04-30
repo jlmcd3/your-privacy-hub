@@ -181,7 +181,7 @@ const LIAssessment = () => {
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
-          <h2 className="font-display text-2xl md:text-3xl text-navy mb-4">
+          <h2 className="font-display text-xl md:text-2xl text-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
           <p className="text-[14px] text-navy leading-relaxed mb-4 max-w-[70ch]">
@@ -200,7 +200,7 @@ const LIAssessment = () => {
         {/* HOW IT WORKS */}
         <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
-          <h2 className="font-display text-2xl text-navy mb-5">Three steps — and why each one matters</h2>
+          <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
@@ -254,7 +254,7 @@ const LIAssessment = () => {
         {/* INTAKE FORM */}
         <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Step 01 · Free intake</div>
-          <h2 className="font-display text-2xl text-navy mb-5">Tell us about the processing</h2>
+          <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Tell us about the processing</h2>
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
             className="bg-card border border-fog rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
@@ -310,7 +310,7 @@ const LIAssessment = () => {
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Use case</div>
-                  <h2 className="font-display text-2xl text-navy">{preview.use_case_label}</h2>
+                  <h2 className="font-display text-xl md:text-2xl text-navy leading-snug">{preview.use_case_label}</h2>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border text-[12px] font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
                   {preview.strength.rating}
