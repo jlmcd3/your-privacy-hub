@@ -91,6 +91,22 @@ function isBreachAnnouncement(title: string, summary: string | null): boolean {
   return !isRegulatory;
 }
 
+// Non-editorial organizational noise (job postings, events, RFPs) — never worth analyzing
+const NON_EDITORIAL_PATTERNS = [
+  /\b(internship|intern\s+(program|opportunity|position)|apprenticeship)\b/i,
+  /\b(we[''']re\s+hiring|now\s+hiring|join\s+(our|the)\s+team|career\s+opportunit|job\s+(opening|vacancy|posting)|vacancy|vacancies)\b/i,
+  /\b(open\s+position|positions?\s+available|recruiting\s+for|apply\s+(now|today|by))\b/i,
+  /\b(call\s+for\s+(papers|proposals|nominations|speakers|applications)|cfp\b|request\s+for\s+(proposals?|tender|quotation)|rfp\b|rft\b|rfq\b)\b/i,
+  /\b(save\s+the\s+date|register\s+(now|today)\s+for|webinar\s+invitation|event\s+registration|tickets?\s+on\s+sale)\b/i,
+  /\b(annual\s+report|membership\s+(renewal|drive)|board\s+(election|elections|nomination))\b/i,
+  /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
+];
+
+function isNonEditorial(title: string, summary: string | null): boolean {
+  const text = title + " " + (summary || "");
+  return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
+}
+
 async function generateAISummary(
   title: string,
   summary: string | null,
@@ -299,6 +315,15 @@ Deno.serve(async (req) => {
     deferred = 0;
 
   for (const article of articles ?? []) {
+    if (isNonEditorial(article.title, article.summary)) {
+      await supabase
+        .from("updates")
+        .update({ ai_summary: { skipped: true, reason: "non_editorial" }, enrichment_version: 3 })
+        .eq("id", article.id);
+      skipped++;
+      continue;
+    }
+
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")

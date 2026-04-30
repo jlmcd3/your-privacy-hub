@@ -835,9 +835,28 @@ const REGULATORY_OVERRIDE_PATTERNS = [
   /\b(gdpr|ccpa|cpra|tdpsa|vcdpa|ctdpa|coppa|hipaa|lgpd|pipl|pdpa|dpdp|ai act|duaa)\s+(enforcement|compliance|violation|fine|amendment|update)\b/i,
 ];
 
+// Patterns indicating non-editorial organizational noise (jobs, events, RFPs, admin)
+const NON_EDITORIAL_PATTERNS = [
+  /\b(internship|intern\s+(program|opportunity|position)|apprenticeship)\b/i,
+  /\b(we[''']re\s+hiring|now\s+hiring|join\s+(our|the)\s+team|career\s+opportunit|job\s+(opening|vacancy|posting)|vacancy|vacancies)\b/i,
+  /\b(open\s+position|positions?\s+available|recruiting\s+for|apply\s+(now|today|by))\b/i,
+  /\b(call\s+for\s+(papers|proposals|nominations|speakers|applications)|cfp\b|request\s+for\s+(proposals?|tender|quotation)|rfp\b|rft\b|rfq\b)\b/i,
+  /\b(save\s+the\s+date|register\s+(now|today)\s+for|webinar\s+invitation|event\s+registration|tickets?\s+on\s+sale)\b/i,
+  /\b(annual\s+report|membership\s+(renewal|drive)|board\s+(election|elections|nomination))\b/i,
+  /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
+];
+
+function isNonEditorial(title: string, description: string): boolean {
+  const text = title + " " + (description || "");
+  return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
+}
+
 function isRelevant(title: string, description: string): boolean {
   const text = (title + " " + (description || "")).toLowerCase();
   const titleLower = title.toLowerCase();
+
+  // Drop non-editorial organizational noise (job postings, events, RFPs)
+  if (isNonEditorial(title, description)) return false;
 
   // Check for breach announcements first — these are NOT regulatory content
   const isBreach = BREACH_ANNOUNCEMENT_PATTERNS.some(p => p.test(title + " " + (description || "")));
