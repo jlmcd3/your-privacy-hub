@@ -13,11 +13,13 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import TranslateReportButton from "@/components/TranslateReportButton";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translation, setTranslation] = useState<{ lang: string; text: string } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -35,7 +37,8 @@ export default function BiometricCheckerResult() {
   }, [id]);
 
   const report = row?.report_data || {};
-  const text = row?.analysis_text || report?.assessment_text;
+  const sourceText = row?.analysis_text || report?.assessment_text;
+  const text = translation?.text ?? sourceText;
   const bipaRisk = report?.bipa_risk;
 
   const meta = row && (
@@ -47,6 +50,16 @@ export default function BiometricCheckerResult() {
 
   const actions = row && (
     <>
+      <TranslateReportButton
+        reportType="biometric"
+        reportId={row.id}
+        onTranslated={(translated: any, lang) => {
+          // Edge function returns { report_data, analysis_text? }
+          const t = translated?.analysis_text || translated?.report_data?.assessment_text || "";
+          if (t) setTranslation({ lang, text: t });
+        }}
+        onReverted={() => setTranslation(null)}
+      />
       <PDFDownloadButton
         toolType="biometric_checker"
         assessmentId={row.id}
