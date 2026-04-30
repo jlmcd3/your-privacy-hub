@@ -68,11 +68,26 @@ const STRENGTH_STYLE: Record<string, string> = {
   "High Risk": "bg-red-100 text-red-900 border-red-300",
 };
 
-const OUTCOME_STYLE: Record<string, string> = {
-  accepted: "bg-green-50 text-green-800 border-green-200",
-  conditional: "bg-amber-50 text-amber-800 border-amber-200",
-  rejected: "bg-red-50 text-red-800 border-red-200",
-  contested: "bg-slate-50 text-slate-800 border-slate-200",
+// Aligned with /li-tracker palette
+const outcomeStripe: Record<string, string> = {
+  accepted: "bg-green-600",
+  conditional: "bg-amber-500",
+  rejected: "bg-red-600",
+  contested: "bg-slate-400",
+};
+
+const outcomeAccent: Record<string, string> = {
+  accepted: "text-green-700",
+  conditional: "text-amber-700",
+  rejected: "text-red-700",
+  contested: "text-slate-600",
+};
+
+const outcomeBadge: Record<string, string> = {
+  accepted: "bg-green-100 text-green-800",
+  conditional: "bg-amber-100 text-amber-800",
+  rejected: "bg-red-100 text-red-800",
+  contested: "bg-muted text-muted-foreground",
 };
 
 const LIAssessment = () => {
@@ -325,16 +340,24 @@ const LIAssessment = () => {
                     Most analogous regulator decisions ({preview.precedents_matched} matched)
                   </h3>
                   <div className="space-y-2">
-                    {preview.precedents.map((p, i) => (
-                      <div key={i} className={`border rounded-lg p-4 ${OUTCOME_STYLE[p.outcome] ?? OUTCOME_STYLE.contested}`}>
-                        <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-                          <span className="text-[10px] font-bold uppercase tracking-widest">{p.outcome}</span>
-                          <span className="text-[11px]">{p.dpa_source} · {p.jurisdiction}</span>
+                    {preview.precedents.map((p, i) => {
+                      const key = (p.outcome || "contested").toLowerCase();
+                      return (
+                        <div key={i} className="flex border border-fog rounded-lg overflow-hidden bg-card">
+                          <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[key] ?? outcomeStripe.contested}`} aria-hidden />
+                          <div className="flex-1 p-4">
+                            <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                              <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${outcomeBadge[key] ?? outcomeBadge.contested}`}>
+                                {p.outcome}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">{p.dpa_source} · {p.jurisdiction}</span>
+                            </div>
+                            <div className={`font-display text-[15px] ${outcomeAccent[key] ?? outcomeAccent.contested}`}>{p.processing_activity}</div>
+                            <p className="text-[13px] text-slate mt-1 leading-relaxed">{p.summary}</p>
+                          </div>
                         </div>
-                        <div className="font-display text-[15px] text-navy">{p.processing_activity}</div>
-                        <p className="text-[13px] text-slate mt-1 leading-relaxed">{p.summary}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
