@@ -83,12 +83,7 @@ const outcomeAccent: Record<string, string> = {
   contested: "text-slate-600",
 };
 
-const outcomeBadge: Record<string, string> = {
-  accepted: "bg-green-100 text-green-800",
-  conditional: "bg-amber-100 text-amber-800",
-  rejected: "bg-red-100 text-red-800",
-  contested: "bg-muted text-muted-foreground",
-};
+// outcomeBadge removed — Tracker pattern uses outcomeAccent in footer instead of pill badges
 
 const LIAssessment = () => {
   const { user } = useAuth();
