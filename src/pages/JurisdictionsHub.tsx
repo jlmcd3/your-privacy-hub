@@ -169,33 +169,37 @@ export default function JurisdictionsHub() {
 
         <main className="flex-1">
           {/* Page header */}
-          <div className="bg-navy text-white py-10 px-4">
+          <div className="bg-navy text-white py-6 md:py-7 px-4">
             <div className="max-w-[1280px] mx-auto">
-              <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-3">
-                <span>🌐</span> Jurisdictions
-              </div>
-              <h1 className="font-display font-bold text-3xl md:text-4xl text-white mb-3">
-                Global Privacy Law Map
-              </h1>
-              <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
-                160+ jurisdictions tracked. Click any country on the map to explore its
-                privacy law, regulator, consumer rights, and recent enforcement actions.
-                Switch to Grid view to browse or filter by region.
-              </p>
-
-              <div className="flex gap-6 mt-6 flex-wrap">
-                {statCards.map((stat) => (
-                  <div key={stat.label} className="flex items-center gap-2.5">
-                    <div
-                      className="w-4 h-4 rounded flex-shrink-0"
-                      style={{ background: stat.color }}
-                    />
-                    <div>
-                      <div className="font-bold text-white text-lg leading-none">{stat.num}</div>
-                      <div className="text-blue-300 text-[11px] mt-0.5">{stat.label}</div>
-                    </div>
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                <div>
+                  <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
+                    <span>🌐</span> Jurisdictions
                   </div>
-                ))}
+                  <h1 className="font-display font-bold text-3xl md:text-4xl text-white mb-2">
+                    Global Privacy Law Map
+                  </h1>
+                  <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
+                    160+ jurisdictions tracked. Click any country on the map to explore its
+                    privacy law, regulator, consumer rights, and recent enforcement actions.
+                    Switch to Grid view to browse or filter by region.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-7 gap-y-4 lg:min-w-[440px]">
+                  {statCards.map((stat) => (
+                    <div key={stat.label} className="flex items-center gap-2.5">
+                      <div
+                        className="w-4 h-4 rounded flex-shrink-0"
+                        style={{ background: stat.color }}
+                      />
+                      <div>
+                        <div className="font-bold text-white text-lg leading-none">{stat.num}</div>
+                        <div className="text-blue-300 text-[11px] mt-0.5">{stat.label}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
