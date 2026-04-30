@@ -98,8 +98,24 @@ const Subscribe = () => {
       return;
     }
     if (isPremium) {
-      // Already subscribed — open the portal instead of attempting a duplicate checkout.
-      return openPortal(interval);
+      // Already subscribed — try to open the portal. If the user has no
+      // Stripe billing account on file (e.g. legacy/grandfathered access
+      // granted manually), fall through to checkout below.
+      setLoading(interval);
+      setError(null);
+      try {
+        const { data, error: fnError } = await supabase.functions.invoke("create-portal-session", {
+          body: { return_url: `${window.location.origin}/account` },
+        });
+        if (!fnError && data?.url) {
+          window.open(data.url, "_blank");
+          setLoading(null);
+          return;
+        }
+        // No billing account → continue to checkout to create one.
+      } catch {
+        // ignore and fall through to checkout
+      }
     }
     setLoading(interval);
     setError(null);
