@@ -8,9 +8,9 @@ import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
+import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/env";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
@@ -40,6 +40,7 @@ export default function IRPlaybook() {
   const [result, setResult] = useState("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");
@@ -63,10 +64,7 @@ export default function IRPlaybook() {
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     if (access.isPremium) { setPhase("form"); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
-    const { data } = await supabase.functions.invoke("create-tool-checkout", {
-      body: { tool_type: "ir_playbook", user_id: access.user?.id, intake_data: form, return_url: window.location.origin + "/ir-playbook", environment: getStripeEnvironment() },
-    });
-    if (data?.url) window.location.href = data.url;
+    setCheckoutOpen(true);
   };
 
   return (
@@ -135,6 +133,17 @@ export default function IRPlaybook() {
           </ToolSampleOverlay>
         )}
       </main>
+      <ToolCheckoutModal
+        open={checkoutOpen}
+        toolType="ir_playbook"
+        userId={access.user?.id}
+        intakeData={form}
+        onClose={() => setCheckoutOpen(false)}
+        onComplete={(id) => {
+          setCheckoutOpen(false);
+          if (id) navigate(`/ir-playbook/result/${id}?purchased=true`);
+        }}
+      />
       <Footer />
     </div>
   );
