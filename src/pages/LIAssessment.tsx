@@ -222,8 +222,8 @@ const LIAssessment = () => {
                 why: "Article 5(2) accountability requires you to demonstrate compliance, not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when they open an investigation.",
               },
             ].map((step, i) => (
-              <>
-                <div key={step.n} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
+              <Fragment key={step.n}>
+                <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
                   <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
                   <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
                   <p className="text-[13px] text-slate leading-relaxed mb-3">{step.desc}</p>
@@ -233,7 +233,7 @@ const LIAssessment = () => {
                   </div>
                 </div>
                 {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
-              </>
+              </Fragment>
             ))}
           </div>
 
