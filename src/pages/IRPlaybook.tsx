@@ -50,6 +50,7 @@ export default function IRPlaybook() {
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
 
   const handleGenerate = async () => {
+    logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id } });
     if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
@@ -59,6 +60,7 @@ export default function IRPlaybook() {
   };
 
   const handlePurchase = async () => {
+    logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     if (access.isPremium) { setPhase("form"); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
