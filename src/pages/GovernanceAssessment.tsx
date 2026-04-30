@@ -8,11 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/env";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -57,6 +57,7 @@ const GovernanceAssessment = () => {
   const [step, setStep] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Step 1
   const [sector, setSector] = useState("");
@@ -139,27 +140,19 @@ const GovernanceAssessment = () => {
 
   const handlePurchase = async () => {
     if (!user) { setAuthGateOpen(true); return; }
-    setPurchasing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-        body: {
-          tool_type: "governance_assessment",
-          user_id: user.id,
-          intake_data: buildIntake(),
-          return_url: window.location.origin,
-          environment: getStripeEnvironment(),
-        },
-      });
-      if (error || !data?.url) throw error ?? new Error("Checkout failed");
-      window.location.href = data.url;
-    } catch (err: any) {
-      const msg = err?.message?.includes("stripe_not_configured") || err?.context?.status === 503
-        ? "Payments are not yet configured. Please check back soon."
-        : err.message ?? "Try again.";
-      toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
-      setPurchasing(false);
+    if (!pricing.stripeConfigured) {
+      toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
+      return;
     }
+    setCheckoutOpen(true);
   };
+
+  const intakeForCheckout = useMemo(() => buildIntake(), [
+    sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
+    specialCategory, specialCategoriesList, privacyPolicy, acceptableUse,
+    dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
+    dpaStatus, transferStatus, showDpoQ, showStep5,
+  ]);
 
   const summaryStep = step === totalSteps;
 
@@ -336,6 +329,17 @@ const GovernanceAssessment = () => {
         </div>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/governance-assessment" />
+        <ToolCheckoutModal
+          open={checkoutOpen}
+          toolType="governance_assessment"
+          userId={user?.id}
+          intakeData={intakeForCheckout}
+          onClose={() => setCheckoutOpen(false)}
+          onComplete={(id) => {
+            setCheckoutOpen(false);
+            if (id) navigate(`/governance-assessment/result/${id}?purchased=true`);
+          }}
+        />
         <ToolSamplePreview
           toolType="healthcheck"
           toolName="Privacy Program Assessment Tool"

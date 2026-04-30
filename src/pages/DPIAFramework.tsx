@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/env";
 import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
@@ -58,6 +58,7 @@ const DPIAFramework = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Pre-populate from governance assessment if ?source= present
   useEffect(() => {
@@ -106,26 +107,11 @@ const DPIAFramework = () => {
     const err = validate();
     if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
     if (!user) { setAuthGateOpen(true); return; }
-    setPurchasing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-        body: {
-          tool_type: "dpia_framework",
-          user_id: user.id,
-          intake_data: buildIntake(),
-          return_url: window.location.origin,
-          environment: getStripeEnvironment(),
-        },
-      });
-      if (error || !data?.url) throw error ?? new Error("Checkout failed");
-      window.location.href = data.url;
-    } catch (err: any) {
-      const msg = err?.message?.includes("stripe_not_configured") || err?.context?.status === 503
-        ? "Payments are not yet configured. Please check back soon."
-        : err.message ?? "Try again.";
-      toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
-      setPurchasing(false);
+    if (!pricing.stripeConfigured) {
+      toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
+      return;
     }
+    setCheckoutOpen(true);
   };
 
   return (
@@ -186,6 +172,17 @@ const DPIAFramework = () => {
         </form>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
+        <ToolCheckoutModal
+          open={checkoutOpen}
+          toolType="dpia_framework"
+          userId={user?.id}
+          intakeData={buildIntake()}
+          onClose={() => setCheckoutOpen(false)}
+          onComplete={(id) => {
+            setCheckoutOpen(false);
+            if (id) navigate(`/dpia-framework/result/${id}?purchased=true`);
+          }}
+        />
         <ToolSamplePreview
           toolType="dpia"
           toolName="Impact Assessment Builder"

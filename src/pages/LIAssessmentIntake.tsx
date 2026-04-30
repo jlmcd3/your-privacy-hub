@@ -7,10 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/env";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
@@ -55,6 +55,8 @@ const LIAssessmentIntake = () => {
   const [loading, setLoading] = useState(true);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [intakeForCheckout, setIntakeForCheckout] = useState<Record<string, unknown> | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
 
   // Purpose
@@ -139,60 +141,42 @@ const LIAssessmentIntake = () => {
       setAuthGateOpen(true);
       return;
     }
-    setPurchasing(true);
-    try {
-      // Log the acknowledgment regardless of checkbox state
-      logToolAcknowledgment("li_assessment", user.id, row.id);
+    // Log the acknowledgment regardless of checkbox state
+    logToolAcknowledgment("li_assessment", user.id, row.id);
 
-      const intake_data: Record<string, unknown> = {
-        // Stage A (re-sent so checkout has full picture)
-        processing_description: row.processing_description,
-        data_categories: row.data_categories,
-        relationship_type: row.relationship_type,
-        jurisdictions: row.jurisdictions,
-        // Stage B
-        stated_purpose: statedPurpose,
-        alternatives_considered: alternatives,
-        purpose_details: { interest_holder: interestHolder, interest_type: interestType },
-        necessity_details: {
-          alternatives,
-          why_consent_not_used: whyConsentNotUsed,
-          data_minimised: dataMinimised,
-          pseudonymisation_options: showAnalyticsBranch ? pseudonymisationOptions : null,
-        },
-        balancing_details: {
-          reasonable_expectation: reasonableExpectation,
-          vulnerable_subjects: vulnerableSubjects,
-          potential_harm: potentialHarm,
-          safeguards,
-          opt_out_mechanism: optOutMechanism,
-          special_category_data: hasSpecialCategory,
-          statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
-          employment_safeguards: showEmploymentBranch ? employmentSafeguards : null,
-        },
-        stage: "submitted",
-        // Tie back to the preview row for analytics
-        preview_assessment_id: row.id,
-      };
+    const intake_data: Record<string, unknown> = {
+      // Stage A (re-sent so checkout has full picture)
+      processing_description: row.processing_description,
+      data_categories: row.data_categories,
+      relationship_type: row.relationship_type,
+      jurisdictions: row.jurisdictions,
+      // Stage B
+      stated_purpose: statedPurpose,
+      alternatives_considered: alternatives,
+      purpose_details: { interest_holder: interestHolder, interest_type: interestType },
+      necessity_details: {
+        alternatives,
+        why_consent_not_used: whyConsentNotUsed,
+        data_minimised: dataMinimised,
+        pseudonymisation_options: showAnalyticsBranch ? pseudonymisationOptions : null,
+      },
+      balancing_details: {
+        reasonable_expectation: reasonableExpectation,
+        vulnerable_subjects: vulnerableSubjects,
+        potential_harm: potentialHarm,
+        safeguards,
+        opt_out_mechanism: optOutMechanism,
+        special_category_data: hasSpecialCategory,
+        statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
+        employment_safeguards: showEmploymentBranch ? employmentSafeguards : null,
+      },
+      stage: "submitted",
+      // Tie back to the preview row for analytics
+      preview_assessment_id: row.id,
+    };
 
-      const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
-        body: {
-          tool_type: "li_assessment",
-          user_id: user.id,
-          intake_data,
-          return_url: window.location.origin,
-          environment: getStripeEnvironment(),
-        },
-      });
-      if (error || !data?.url) throw error ?? new Error("Checkout failed");
-      window.location.href = data.url;
-    } catch (e: any) {
-      const msg = e?.message?.includes("stripe_not_configured") || e?.context?.status === 503
-        ? "Payments are not yet configured. Please check back soon."
-        : e.message ?? "Try again.";
-      toast({ title: "Checkout unavailable", description: msg, variant: "destructive" });
-      setPurchasing(false);
-    }
+    setIntakeForCheckout(intake_data);
+    setCheckoutOpen(true);
   };
 
   return (
@@ -404,6 +388,17 @@ const LIAssessmentIntake = () => {
         </section>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={`/li-assessment/intake/${row.id}`} />
+        <ToolCheckoutModal
+          open={checkoutOpen}
+          toolType="li_assessment"
+          userId={user?.id}
+          intakeData={intakeForCheckout ?? {}}
+          onClose={() => setCheckoutOpen(false)}
+          onComplete={(id) => {
+            setCheckoutOpen(false);
+            if (id) navigate(`/li-assessment/result/${id}?purchased=true`);
+          }}
+        />
       </main>
 
       <Footer />
