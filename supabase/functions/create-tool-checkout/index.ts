@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, user_id, intake_data, return_url, environment } = await req.json();
+    const { tool_type, user_id, intake_data, return_url, environment, embedded } = await req.json();
     const tool = TOOLS[tool_type];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Invalid tool type" }), {
@@ -167,22 +167,34 @@ Deno.serve(async (req) => {
           quantity: 1,
         };
 
+    const toolPath = tool_type.replace(/_/g, "-");
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [lineItem as any],
       mode: "payment",
-      success_url: `${origin}/${tool_type.replace(/_/g, "-")}/result/${record.id}?purchased=true`,
-      cancel_url: `${origin}/${tool_type.replace(/_/g, "-")}`,
       metadata: {
         tool_type,
         assessment_id: record.id,
         user_id: user_id || "",
         tier: isSubscriber ? "subscriber" : "standalone",
       },
+      ...(embedded
+        ? {
+            ui_mode: "embedded",
+            return_url: `${origin}/${toolPath}/result/${record.id}?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
+          }
+        : {
+            success_url: `${origin}/${toolPath}/result/${record.id}?purchased=true`,
+            cancel_url: `${origin}/${toolPath}`,
+          }),
     });
 
     return new Response(
-      JSON.stringify({ url: session.url, assessment_id: record.id }),
+      JSON.stringify(
+        embedded
+          ? { client_secret: session.client_secret, assessment_id: record.id }
+          : { url: session.url, assessment_id: record.id },
+      ),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
