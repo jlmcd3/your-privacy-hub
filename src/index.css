@@ -291,3 +291,17 @@
   }
 }
 
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Site-wide bold de-amplification (~15%)
+   Native semantic-bold elements (<b>, <strong>, <th>, <dt>) and any
+   third-party CSS using `font-weight: bold` would otherwise resolve to 700
+   (or "bolder"). Pull them down one notch to match the Tailwind override
+   in tailwind.config.ts so the website's heaviness is consistent.
+   ───────────────────────────────────────────────────────────────────────── */
+b,
+strong,
+th,
+dt {
+  font-weight: 600;
+}
