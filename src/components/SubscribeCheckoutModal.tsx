@@ -1,9 +1,11 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
+import { useAuth } from "@/hooks/useAuth";
+import { waitForSubscriptionActive } from "@/lib/checkoutConfirmation";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -16,6 +18,10 @@ interface Props {
 }
 
 export default function SubscribeCheckoutModal({ open, interval, onClose, onComplete }: Props) {
+  const { user } = useAuth();
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
   const fetchClientSecret = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: {
@@ -31,18 +37,36 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
     return data.client_secret as string;
   }, [interval]);
 
-  // Listen for Stripe's completion message and trigger redirect.
+  const confirmAndComplete = useCallback(async () => {
+    if (!user) {
+      // No user context — fall back to immediate completion.
+      onComplete();
+      return;
+    }
+    setConfirming(true);
+    setConfirmError(null);
+    const ok = await waitForSubscriptionActive(user.id, { timeoutMs: 30_000, intervalMs: 1_500 });
+    setConfirming(false);
+    if (ok) {
+      onComplete();
+    } else {
+      setConfirmError(
+        "Payment received, but your subscription hasn't activated yet. It usually takes a few seconds — please check your account in a moment."
+      );
+    }
+  }, [user, onComplete]);
+
+  // Listen for Stripe's completion message and trigger backend confirmation.
   useEffect(() => {
     if (!open) return;
     const handler = (event: MessageEvent) => {
-      // Stripe posts messages from checkout.stripe.com
       if (typeof event.data === "object" && event.data?.type === "stripe-embedded-checkout-complete") {
-        onComplete();
+        void confirmAndComplete();
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [open, onComplete]);
+  }, [open, confirmAndComplete]);
 
   if (!open) return null;
 
@@ -57,8 +81,29 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
           <X className="w-4 h-4" />
         </button>
         <div className="p-2 sm:p-4">
-          {stripePromise ? (
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret, onComplete }}>
+          {confirming ? (
+            <div className="p-10 text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-[14px] font-semibold text-navy mb-1">Confirming your subscription…</p>
+              <p className="text-[12px] text-muted-foreground">
+                Payment received. Activating your account — this usually takes a few seconds.
+              </p>
+            </div>
+          ) : confirmError ? (
+            <div className="p-8 text-center">
+              <p className="text-[13px] text-amber-700 mb-4">{confirmError}</p>
+              <button
+                onClick={onComplete}
+                className="bg-navy text-white text-[13px] font-semibold px-5 py-2 rounded-lg"
+              >
+                Go to your account
+              </button>
+            </div>
+          ) : stripePromise ? (
+            <EmbeddedCheckoutProvider
+              stripe={stripePromise}
+              options={{ fetchClientSecret, onComplete: () => void confirmAndComplete() }}
+            >
               <EmbeddedCheckout />
             </EmbeddedCheckoutProvider>
           ) : (
