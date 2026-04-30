@@ -315,6 +315,15 @@ Deno.serve(async (req) => {
     deferred = 0;
 
   for (const article of articles ?? []) {
+    if (isNonEditorial(article.title, article.summary)) {
+      await supabase
+        .from("updates")
+        .update({ ai_summary: { skipped: true, reason: "non_editorial" }, enrichment_version: 3 })
+        .eq("id", article.id);
+      skipped++;
+      continue;
+    }
+
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
