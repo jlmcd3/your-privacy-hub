@@ -6,7 +6,10 @@ const supabase = createClient(
 );
 
 // ── Throttle & Retry helpers ───────────────────────────────────────
-const AI_CALL_DELAY_MS = 500;
+// Pace calls to stay well under Anthropic Tier-1/2 RPM, ITPM and OTPM limits.
+// At ~4s spacing we make ~15 requests/min — safely below 50 RPM Tier-1 ceiling,
+// and (with max_tokens=2500 below) ~37,500 reserved OTPM, well under Tier-2's 16k+ headroom over a minute.
+const AI_CALL_DELAY_MS = 4000;
 let lastAiCallTime = 0;
 
 async function throttle() {
@@ -21,15 +24,31 @@ async function throttle() {
 async function fetchWithRetry(
   url: string,
   init: RequestInit,
-  maxRetries = 3
+  maxRetries = 5
 ): Promise<Response> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     await throttle();
     const res = await fetch(url, init);
     if (res.status === 429 && attempt < maxRetries) {
+      // User-initiated calls share Anthropic quota with backfill. On 429, back off
+      // aggressively (min 60s, honor retry-after) so user calls always get the runway.
       const retryAfter = parseInt(res.headers.get("retry-after") || "0", 10);
-      const backoff = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
-      console.warn(`Anthropic 429 — retrying in ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      const backoff = Math.min(
+        300000, // hard cap 5 min
+        Math.max(
+          60000,                             // floor: 60s — long enough to clear a per-minute window
+          retryAfter * 1000,                 // honor Anthropic's hint
+          5000 * Math.pow(2, attempt)        // exp backoff: 5s, 10s, 20s, 40s, 80s
+        )
+      );
+      console.warn(`Anthropic 429 — yielding to user traffic; backing off ${backoff}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, backoff));
+      continue;
+    }
+    if ((res.status === 529 || res.status === 503) && attempt < maxRetries) {
+      // Anthropic overloaded — same yield-to-user logic
+      const backoff = Math.min(120000, 10000 * Math.pow(2, attempt));
+      console.warn(`Anthropic ${res.status} overloaded — backing off ${backoff}ms`);
       await new Promise(r => setTimeout(r, backoff));
       continue;
     }
@@ -88,7 +107,9 @@ async function generateAISummary(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 8192,
+        // 2500 is comfortably above the ~1.5–2k tokens our enrichment JSON actually uses,
+        // and keeps reserved OTPM low so we don't trip Anthropic's per-minute output ceiling.
+        max_tokens: 2500,
         system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown fences, no explanation. Your entire response must start with { and end with }. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
@@ -254,8 +275,10 @@ Deno.serve(async (req) => {
     );
 
   const url = new URL(req.url);
+  // Default 10 per invocation: at ~4s/call this fits comfortably in a single edge function run
+  // and keeps each batch's reserved OTPM well below Anthropic's per-minute ceiling.
   const batchSize = Math.min(
-    parseInt(url.searchParams.get("batch") || "20"),
+    parseInt(url.searchParams.get("batch") || "10"),
     100
   );
 
@@ -332,7 +355,7 @@ Deno.serve(async (req) => {
       // transient_error — leave article alone so next run can retry
       deferred++;
     }
-    await new Promise((r) => setTimeout(r, 500));
+    // throttle() inside fetchWithRetry already enforces AI_CALL_DELAY_MS spacing
   }
 
   return new Response(
