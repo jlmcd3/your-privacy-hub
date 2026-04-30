@@ -55,6 +55,7 @@ export default function BiometricChecker() {
   };
 
   const handleAnalyse = async () => {
+    logToolAcknowledgment("biometric_checker", access.user?.id ?? null);
     // 1. Require login for everyone
     if (!access.user) { setAuthModalOpen(true); return; }
     // 2. Subscribers run free
