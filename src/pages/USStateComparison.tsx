@@ -60,18 +60,6 @@ const USStateComparison = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        <div className="mb-6">
-          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showAll}
-              onChange={(e) => setShowAll(e.target.checked)}
-              className="rounded"
-            />
-            Include pending laws
-          </label>
-        </div>
-
         {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-[13px] text-amber-900 leading-snug">
