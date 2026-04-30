@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
+import AssessmentReport from "@/components/AssessmentReport";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
@@ -83,11 +84,8 @@ export default function BiometricCheckerResult() {
               </div>
             )}
 
-            {text ? (
-              <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{text}</pre>
-            ) : (
-              <p className="text-slate text-sm">No assessment content available.</p>
-            )}
+            <AssessmentReport text={text || ""} />
+
             <ToolDisclaimer />
             <div className="pt-2">
               <Button asChild variant="outline"><Link to="/dashboard/reports">← Back to My Reports</Link></Button>
