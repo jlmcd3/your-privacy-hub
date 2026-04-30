@@ -39,6 +39,7 @@ export default function IRPlaybook() {
   });
   const [result, setResult] = useState("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");
