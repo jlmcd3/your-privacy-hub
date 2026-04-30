@@ -153,199 +153,213 @@ const LIAssessment = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-paper">
       <Helmet>
         <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
-        <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest, with regulator precedents. Optional full three-part test from $35." />
+        <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest, with regulator precedents. Optional full three-part test." />
       </Helmet>
       <Navbar />
 
-      <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 mb-3">
+      {/* Header — matches LI Tracker */}
+      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
+        <div className="max-w-[860px] mx-auto">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             Free preliminary signal · No account required
-          </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Legitimate Interest Assessment</h1>
-          <p className="text-slate-300 text-lg">
+          </div>
+          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
+            Legitimate Interest Assessment
+          </h1>
+          <p className="text-sm md:text-base text-slate-light max-w-[700px] leading-relaxed">
             Get an instant indication whether your proposed processing could qualify for legitimate interest under
             GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've
             tracked. Again, we cannot provide legal advice, but we can provide actionable Intelligence.
           </p>
         </div>
-      </header>
+      </div>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <section className="bg-card border rounded-lg p-6 space-y-5">
-          <div>
-            <h2 className="text-2xl font-serif mb-2">Why you need this</h2>
-            <p className="text-foreground leading-relaxed">
-              Legitimate interest is the most flexible — and most contested — legal basis under GDPR Article 6(1)(f).
-              Regulators don't accept it on assertion: if challenged, you must produce a written record showing you
-              tested your processing against a three-part test (purpose, necessity, balancing) <em>before</em> you
-              relied on it. Recent fines from the CNIL, ICO, Garante and others have hit organisations that either
-              skipped this record entirely or produced one that was generic, undated, or didn't address the specific
-              facts of the processing. This tool produces that record — grounded in tracked regulator decisions so
-              your reasoning lines up with how DPAs actually decide these cases.
-            </p>
+      <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+        {/* WHY YOU NEED THIS */}
+        <section>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
+          <h2 className="font-display text-2xl md:text-3xl text-navy mb-4">
+            Legitimate interest must be documented, not assumed
+          </h2>
+          <p className="text-[14px] text-navy leading-relaxed mb-4 max-w-[70ch]">
+            Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR. Regulators don't
+            accept it on assertion: if challenged, you must produce a written record showing you tested your processing
+            against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
+          </p>
+          <p className="text-[14px] text-navy leading-relaxed max-w-[70ch]">
+            Recent fines from the CNIL, ICO, Garante and others have hit organisations that either skipped this record
+            entirely or produced one that was generic, undated, or didn't address the specific facts of the processing.
+            This tool produces that record — grounded in tracked regulator decisions so your reasoning lines up with how
+            DPAs actually decide these cases.
+          </p>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
+          <h2 className="font-display text-2xl text-navy mb-5">Three steps — and why each one matters</h2>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">
+            {[
+              {
+                n: "01",
+                title: "Free preliminary signal",
+                desc: "You describe the processing in plain language. We classify the use case and surface the most analogous regulator decisions.",
+                why: "Some use cases — behavioural advertising, employee monitoring, special category data — almost never survive the balancing test. Knowing this upfront, for free, saves you the cost of a full assessment that was always going to fail.",
+              },
+              {
+                n: "02",
+                title: "Adaptive intake",
+                desc: "We ask only the questions that matter for your facts: whose interest, what alternatives you considered, what data subjects would reasonably expect, what safeguards are in place.",
+                why: "The EDPB's 2024 guidelines list the specific factors regulators weigh. A defensible record has to address them by name — generic 'we considered the impact' language is routinely rejected on enforcement.",
+              },
+              {
+                n: "03",
+                title: "Three-part test report",
+                desc: "A structured analysis of purpose, necessity and balancing, plus a documentation pack and PDF you can hand to counsel.",
+                why: "Article 5(2) accountability requires you to demonstrate compliance, not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when they open an investigation.",
+              },
+            ].map((step, i) => (
+              <>
+                <div key={step.n} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
+                  <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
+                  <p className="text-[13px] text-slate leading-relaxed mb-3">{step.desc}</p>
+                  <div className="mt-auto pt-3 border-t border-fog">
+                    <div className="text-[10px] font-bold tracking-widest uppercase text-amber-700 mb-1">Why</div>
+                    <p className="text-[12px] text-navy leading-relaxed">{step.why}</p>
+                  </div>
+                </div>
+                {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
+              </>
+            ))}
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-3">How it works — and why each step matters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="border-l-2 border-primary pl-3">
-                <div className="font-semibold">Step 1 — Free preliminary signal</div>
-                <div className="text-muted-foreground mt-1">
-                  You describe the processing in plain language. We classify the use case and surface the most
-                  analogous regulator decisions.
-                </div>
-                <div className="text-xs text-foreground mt-2">
-                  <strong>Why:</strong> Some use cases (behavioural advertising, employee monitoring, special category
-                  data) almost never survive the balancing test. Knowing this upfront — for free — saves you the cost
-                  of a full assessment that was always going to fail.
-                </div>
-              </div>
-              <div className="border-l-2 border-primary/60 pl-3">
-                <div className="font-semibold">Step 2 — Adaptive intake</div>
-                <div className="text-muted-foreground mt-1">
-                  We ask only the questions that matter for your facts: whose interest, what alternatives you
-                  considered, what data subjects would reasonably expect, what safeguards are in place.
-                </div>
-                <div className="text-xs text-foreground mt-2">
-                  <strong>Why:</strong> The EDPB's 2024 guidelines list the specific factors regulators weigh. A
-                  defensible record has to address them by name — generic "we considered the impact" language is
-                  routinely rejected on enforcement.
-                </div>
-              </div>
-              <div className="border-l-2 border-primary/40 pl-3">
-                <div className="font-semibold">Step 3 — Three-part test report</div>
-                <div className="text-muted-foreground mt-1">
-                  A structured analysis of purpose, necessity and balancing, plus a documentation pack and PDF you can
-                  hand to counsel.
-                </div>
-                <div className="text-xs text-foreground mt-2">
-                  <strong>Why:</strong> Article 5(2) accountability requires you to <em>demonstrate</em> compliance,
-                  not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when
-                  they open an investigation.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-xs text-amber-900">
-            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked
-            regulatory decisions. Your final legitimate interest determination should be reviewed and signed off by
-            qualified counsel before you rely on it operationally.
+          <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-[12px] text-amber-900 max-w-[70ch]">
+            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory
+            decisions. Your final legitimate interest determination should be reviewed and signed off by qualified
+            counsel before you rely on it operationally.
           </div>
         </section>
 
-
-        <form
-          onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
-          className="bg-card border rounded-lg p-6 space-y-6"
-        >
-          <div>
-            <Label htmlFor="desc" className="text-base">What processing are you considering? *</Label>
-            <Textarea
-              id="desc"
-              value={processingDescription}
-              onChange={(e) => setProcessingDescription(e.target.value)}
-              placeholder="e.g. Send personalised product recommendations to existing customers based on their purchase history."
-              className="mt-2 min-h-24"
-            />
-            <p className="text-xs text-muted-foreground mt-1">A sentence or two is enough. More detail produces a sharper signal.</p>
-          </div>
-
-          <div>
-            <Label className="text-base">Data categories involved *</Label>
-            <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
-          </div>
-
-          <div>
-            <Label htmlFor="rel" className="text-base">Your relationship with data subjects *</Label>
-            <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
-              <option value="">Select…</option>
-              {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <Label className="text-base">Jurisdictions where this processing applies *</Label>
-            <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
-          </div>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full sm:w-auto px-6 py-3 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-60"
-            >
-              {loading ? "Analysing precedents…" : "Get my preliminary signal — Free"}
-            </button>
-            <p className="text-xs text-muted-foreground mt-2">Free, instant, no account or card required.</p>
-          </div>
-        </form>
-
-        {preview && (
-          <section id="preview-signal" className="bg-card border-2 border-primary/30 rounded-lg p-6 space-y-5">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">Preliminary signal</div>
-                <h2 className="text-2xl font-serif mt-1">{preview.use_case_label}</h2>
-              </div>
-              <span className={`px-4 py-1.5 rounded-full border text-sm font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
-                {preview.strength.rating}
-              </span>
+        {/* INTAKE FORM */}
+        <section>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Step 01 · Free intake</div>
+          <h2 className="font-display text-2xl text-navy mb-5">Tell us about the processing</h2>
+          <form
+            onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
+            className="bg-card border border-fog rounded-2xl p-6 md:p-8 shadow-eup-sm space-y-6"
+          >
+            <div>
+              <Label htmlFor="desc" className="text-[13px] font-semibold text-navy">What processing are you considering? *</Label>
+              <Textarea
+                id="desc"
+                value={processingDescription}
+                onChange={(e) => setProcessingDescription(e.target.value)}
+                placeholder="e.g. Send personalised product recommendations to existing customers based on their purchase history."
+                className="mt-2 min-h-24 border-fog"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">A sentence or two is enough. More detail produces a sharper signal.</p>
             </div>
 
-            <p className="text-foreground">{preview.strength.rationale}</p>
-
-            {preview.precedents.length > 0 ? (
-              <div>
-                <h3 className="font-semibold mb-3 text-sm uppercase tracking-wider text-muted-foreground">
-                  Most analogous regulator decisions ({preview.precedents_matched} matched)
-                </h3>
-                <div className="space-y-2">
-                  {preview.precedents.map((p, i) => (
-                    <div key={i} className={`border rounded-lg p-4 ${OUTCOME_STYLE[p.outcome] ?? OUTCOME_STYLE.contested}`}>
-                      <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-                        <span className="text-xs font-semibold uppercase tracking-wider">{p.outcome}</span>
-                        <span className="text-xs">{p.dpa_source} · {p.jurisdiction}</span>
-                      </div>
-                      <div className="font-medium">{p.processing_activity}</div>
-                      <p className="text-sm mt-1 opacity-90">{p.summary}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">
-                No directly analogous regulator decisions in the tracked database for this use case. The full assessment
-                will analyse your facts on first principles and surface adjacent precedents.
-              </p>
-            )}
-
-            <div className="bg-slate-50 border-l-4 border-slate-300 rounded p-4 text-sm text-slate-700">
-              <strong>What's next.</strong> The preliminary signal cannot tell you whether <em>your specific facts</em> pass the
-              necessity and balancing tests — that requires the deeper questions on safeguards, reasonable expectations,
-              data minimisation, and harm severity. Continue to the full assessment to capture those facts and produce a
-              report you can review with counsel.
+            <div>
+              <Label className="text-[13px] font-semibold text-navy">Data categories involved *</Label>
+              <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div>
+              <Label htmlFor="rel" className="text-[13px] font-semibold text-navy">Your relationship with data subjects *</Label>
+              <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-fog bg-background text-[13px]">
+                <option value="">Select…</option>
+                {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <Label className="text-[13px] font-semibold text-navy">Jurisdictions where this processing applies *</Label>
+              <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
+            </div>
+
+            <div className="pt-2 border-t border-fog">
               <button
-                onClick={handleContinue}
-                className="px-6 py-3 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto px-6 py-3 rounded-md bg-navy text-white font-semibold hover:bg-navy-mid disabled:opacity-60 transition-colors"
               >
-                Continue to full assessment — ${pricing.price}
+                {loading ? "Analysing precedents…" : "Get my preliminary signal — Free"}
               </button>
-              {pricing.isSubscriber && pricing.standalonePrice > pricing.price && (
-                <span className="text-xs text-muted-foreground">
-                  Subscriber rate · standalone ${pricing.standalonePrice}
-                </span>
-              )}
+              <p className="text-[11px] text-muted-foreground mt-2">Free, instant, no account or card required.</p>
             </div>
+          </form>
+        </section>
 
-            <p className="text-xs text-muted-foreground italic">{preview.disclaimer}</p>
+        {/* PREVIEW SIGNAL */}
+        {preview && (
+          <section id="preview-signal">
+            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Preliminary signal</div>
+            <div className="bg-card border-t-4 border-navy rounded-2xl p-6 md:p-8 shadow-eup-sm space-y-6">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Use case</div>
+                  <h2 className="font-display text-2xl text-navy">{preview.use_case_label}</h2>
+                </div>
+                <span className={`px-4 py-1.5 rounded-full border text-[12px] font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
+                  {preview.strength.rating}
+                </span>
+              </div>
+
+              <p className="text-[14px] text-navy leading-relaxed">{preview.strength.rationale}</p>
+
+              {preview.precedents.length > 0 ? (
+                <div className="pt-5 border-t border-fog">
+                  <h3 className="text-[10px] font-bold tracking-widest uppercase text-sky mb-3">
+                    Most analogous regulator decisions ({preview.precedents_matched} matched)
+                  </h3>
+                  <div className="space-y-2">
+                    {preview.precedents.map((p, i) => (
+                      <div key={i} className={`border rounded-lg p-4 ${OUTCOME_STYLE[p.outcome] ?? OUTCOME_STYLE.contested}`}>
+                        <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                          <span className="text-[10px] font-bold uppercase tracking-widest">{p.outcome}</span>
+                          <span className="text-[11px]">{p.dpa_source} · {p.jurisdiction}</span>
+                        </div>
+                        <div className="font-display text-[15px] text-navy">{p.processing_activity}</div>
+                        <p className="text-[13px] text-slate mt-1 leading-relaxed">{p.summary}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[13px] text-muted-foreground italic">
+                  No directly analogous regulator decisions in the tracked database for this use case. The full
+                  assessment will analyse your facts on first principles and surface adjacent precedents.
+                </p>
+              )}
+
+              <div className="bg-paper border-l-4 border-navy/40 rounded p-4 text-[13px] text-navy leading-relaxed">
+                <strong>What's next.</strong> The preliminary signal cannot tell you whether <em>your specific facts</em> pass the
+                necessity and balancing tests — that requires the deeper questions on safeguards, reasonable expectations,
+                data minimisation, and harm severity. Continue to the full assessment to capture those facts and produce a
+                report you can review with counsel.
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-fog">
+                <button
+                  onClick={handleContinue}
+                  className="px-6 py-3 rounded-md bg-navy text-white font-semibold hover:bg-navy-mid transition-colors"
+                >
+                  Continue to full assessment — ${pricing.price}
+                </button>
+                {pricing.isSubscriber && pricing.standalonePrice > pricing.price && (
+                  <span className="text-[11px] text-muted-foreground">
+                    Subscriber rate · standalone ${pricing.standalonePrice}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-[11px] text-muted-foreground italic">{preview.disclaimer}</p>
+            </div>
           </section>
         )}
       </main>
