@@ -74,9 +74,12 @@ serve(async (req) => {
     }
 
     if (!customerId) {
+      // Return 200 with a structured signal so the client can fall back to
+      // checkout (e.g. legacy/grandfathered users with is_premium=true but
+      // no Stripe customer yet, or users in a different Stripe environment).
       return new Response(
-        JSON.stringify({ error: "No billing account found for this user" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ no_billing_account: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
