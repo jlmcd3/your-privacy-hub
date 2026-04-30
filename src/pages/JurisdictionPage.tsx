@@ -412,39 +412,8 @@ const JurisdictionPage = () => {
 
         <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
-        {/* Recent Developments — tiered by relevance */}
+        {/* Recent Developments — tier-aware (Intelligence Cards for premium, why-it-matters for registered) */}
         {(() => {
-          const ArticleRow = ({ a, tag }: { a: any; tag?: string }) => (
-            <a
-              href={a.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex gap-3 p-3 bg-card border border-fog rounded-xl hover:border-silver transition-all no-underline group"
-            >
-              {a.image_url && (
-                <img src={a.image_url} alt="" className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-[11px] font-semibold uppercase text-slate tracking-wide mb-0.5 flex items-center gap-2 flex-wrap">
-                  <span>{a.source_domain || a.source_name}</span>
-                  {a.wasTranslated && <span className="text-[10px] text-slate/60 normal-case">🌐 Translated</span>}
-                  {tag && (
-                    <span className="text-[9px] bg-fog text-slate-light px-1.5 py-0.5 rounded-full normal-case font-normal">{tag}</span>
-                  )}
-                  <span>·</span>
-                  <span>{new Date(a.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                </div>
-                <p className="text-[13px] font-medium text-navy group-hover:text-blue transition-colors line-clamp-2 mb-0">
-                  {normalizeTitle(a.title)}
-                </p>
-                {a.summary && (
-                  <p className="text-[12px] text-slate line-clamp-3 mt-0.5 mb-0">{stripHtml(a.summary)}</p>
-                )}
-              </div>
-              <ExternalLink size={14} className="text-slate-light group-hover:text-blue transition-colors flex-shrink-0 mt-1" />
-            </a>
-          );
-
           if (devLoading) {
             return (
               <div className="mb-10">
@@ -475,9 +444,7 @@ const JurisdictionPage = () => {
                   <p className="text-sm text-slate mb-4">
                     Articles from the last 90 days that directly cover {jurisdiction.name}.
                   </p>
-                  <div className="space-y-2">
-                    {directRecent.map((a) => <ArticleRow key={a.id} a={a} />)}
-                  </div>
+                  <TieredFeed articles={directRecent as any} showSeeAll={false} />
                 </>
               ) : (
                 <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
@@ -521,8 +488,8 @@ const JurisdictionPage = () => {
                     <span className="text-slate text-sm">{showRegional ? "−" : "+"}</span>
                   </button>
                   {showRegional && (
-                    <div className="space-y-2 mt-3">
-                      {regionalRecent.map((a) => <ArticleRow key={a.id} a={a} tag="Regional" />)}
+                    <div className="mt-3">
+                      <TieredFeed articles={regionalRecent as any} showSeeAll={false} />
                     </div>
                   )}
                 </div>
@@ -543,8 +510,8 @@ const JurisdictionPage = () => {
                     <span className="text-slate text-sm">{showArchive ? "−" : "+"}</span>
                   </button>
                   {showArchive && (
-                    <div className="space-y-2 mt-3">
-                      {archive.map((a) => <ArticleRow key={a.id} a={a} tag="Archive" />)}
+                    <div className="mt-3">
+                      <TieredFeed articles={archive as any} showSeeAll={false} />
                     </div>
                   )}
                 </div>
