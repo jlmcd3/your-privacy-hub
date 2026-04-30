@@ -388,6 +388,17 @@ const LIAssessmentIntake = () => {
         </section>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={`/li-assessment/intake/${row.id}`} />
+        <ToolCheckoutModal
+          open={checkoutOpen}
+          toolType="li_assessment"
+          userId={user?.id}
+          intakeData={intakeForCheckout ?? {}}
+          onClose={() => setCheckoutOpen(false)}
+          onComplete={(id) => {
+            setCheckoutOpen(false);
+            if (id) navigate(`/li-assessment/result/${id}?purchased=true`);
+          }}
+        />
       </main>
 
       <Footer />
