@@ -171,7 +171,7 @@ export default function JurisdictionsHub() {
           {/* Page header */}
           <div className="bg-navy text-white py-6 md:py-7 px-4">
             <div className="max-w-[1280px] mx-auto">
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div>
                   <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
                     <span>🌐</span> Jurisdictions
