@@ -33,8 +33,7 @@ const STATE_FLAGS: Record<string, string> = {
 };
 
 const USStateComparison = () => {
-  const [showAll, setShowAll] = useState(false);
-  const states = comparisonData.states.filter((s) => showAll || s.status === "enacted");
+  const states = comparisonData.states.filter((s) => s.status === "enacted");
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
