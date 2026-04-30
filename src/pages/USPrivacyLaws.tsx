@@ -75,12 +75,17 @@ const USPrivacyLaws = () => {
     async function load() {
       const { data } = await (supabase as any)
         .from("updates")
-        .select("id,title,summary,url,source_name,image_url,published_at")
+        .select("*")
         .eq("is_hidden", false)
         .or("category.eq.us-federal,category.eq.us-states")
         .order("published_at", { ascending: false })
         .limit(8);
-      if (data) setRecentArticles(data);
+      if (data) {
+        // Map db `url` → ArticleItem `source_url` expected by ArticleCard.
+        setRecentArticles(
+          (data as any[]).map((a) => ({ ...a, source_url: a.url })) as ArticleItem[]
+        );
+      }
     }
     load();
   }, []);
