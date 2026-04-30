@@ -181,7 +181,7 @@ export default function JurisdictionsHub() {
                   </h1>
                   <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
                     160+ jurisdictions tracked. Click any country on the map to explore its
-                    privacy law, regulator, consumer rights, and recent enforcement actions.
+                    privacy law, regulator, and recent enforcement actions.
                     Switch to Grid view to browse or filter by region.
                   </p>
                 </div>
