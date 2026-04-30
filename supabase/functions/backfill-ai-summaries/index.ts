@@ -88,8 +88,8 @@ async function generateAISummary(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 1200,
-        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown, no explanation. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
+        max_tokens: 4096,
+        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown fences, no explanation. Your entire response must start with { and end with }. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
             role: "user",
