@@ -245,76 +245,39 @@ const LegitimateInterestTracker = () => {
           </div>
         ) : (
           <>
-            {/* Desktop table */}
-            <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-10">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead className="bg-muted">
-                    <tr>
-                      {["Processing Activity", "Outcome", "Signal Type", "Authority", "Jurisdiction", "Source"].map(h => (
-                        <th key={h} className="px-3 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((e, idx) => (
-                      <Fragment key={e.id}>
-                        <tr className="hover:bg-muted/50 transition-colors">
-                          <td className="px-3 pt-3 pb-2 text-[13px] font-medium text-foreground">{e.processing_activity}</td>
-                          <td className="px-3 pt-3 pb-2">
-                            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                          </td>
-                          <td className={`px-3 pt-3 pb-2 text-[12px] ${signalStyle(e.signal_type)}`}>{e.signal_type}</td>
-                          <td className="px-3 pt-3 pb-2 text-[12px] text-foreground">{e.dpa_source}</td>
-                          <td className="px-3 pt-3 pb-2 text-[12px] text-foreground">{e.jurisdiction}</td>
-                          <td className="px-3 pt-3 pb-2 text-[11px] text-muted-foreground max-w-[140px]">
-                            <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-muted/50 transition-colors">
-                          <td colSpan={6} className="px-3 pt-0 pb-3 text-[12px] text-muted-foreground leading-relaxed border-b border-border">
-                            {e.summary}
-                          </td>
-                        </tr>
-                        {(idx + 1) % 8 === 0 && idx !== filtered.length - 1 && (
-                          <tr>
-                            <td colSpan={6} className="px-3 py-2 border-b border-border bg-muted/20">
-                              <InFeedAd
-                                adSlot={`li_tracker_infeed_${Math.floor(idx / 8)}`}
-                                googleAdClient={GOOGLE_AD_CLIENT}
-                                googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                              />
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Mobile cards */}
-            <div className="md:hidden space-y-3 mb-10">
+            {/* Enforcement decision card grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
               {filtered.map((e, idx) => (
                 <Fragment key={e.id}>
-                  <div className="bg-card border border-border rounded-xl p-4">
-                    <p className="font-bold text-[14px] text-foreground mb-2">{e.processing_activity}</p>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${outcomeBadge(e.outcome)}`}>{e.outcome}</span>
-                      <span className={`text-[11px] text-muted-foreground ${signalStyle(e.signal_type)}`}>{e.signal_type} · {e.dpa_source}</span>
+                  <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
+                    <div className={`w-1.5 flex-shrink-0 ${outcomeStripe[e.outcome] || outcomeStripe.contested}`} aria-hidden />
+                    <div className="p-5 flex-1 min-w-0">
+                      <h3 className="font-display text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
+                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>
+                      </div>
+                      <p className="text-[13px] text-slate leading-relaxed mb-4">{e.summary}</p>
+                      <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${outcomeAccent[e.outcome] || outcomeAccent.contested}`}>{e.outcome}</span>
+                          <span className="text-muted-foreground/40">·</span>
+                          <span className={`text-[11px] text-muted-foreground truncate ${signalStyle(e.signal_type)}`}>{e.signal_type}</span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground flex-shrink-0">
+                          <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[12px] text-muted-foreground mb-1">{e.summary}</p>
-                    <div className="text-[11px] text-muted-foreground">
-                      <SourceCell sourceUrl={e.source_url} caseReference={e.case_reference} />
-                    </div>
-                  </div>
+                  </article>
                   {(idx + 1) % 6 === 0 && idx !== filtered.length - 1 && (
-                    <InFeedAd
-                      adSlot={`li_tracker_infeed_m_${Math.floor(idx / 6)}`}
-                      googleAdClient={GOOGLE_AD_CLIENT}
-                      googleAdSlot={getAdSlot("feed_infeed_3").googleAdSlot}
-                    />
+                    <div className="md:col-span-2">
+                      <InFeedAd
+                        adSlot={`li_tracker_infeed_${Math.floor(idx / 6)}`}
+                        googleAdClient={GOOGLE_AD_CLIENT}
+                        googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
+                      />
+                    </div>
                   )}
                 </Fragment>
               ))}
