@@ -65,6 +65,7 @@ export default function DPAGenerator() {
   };
 
   const handlePurchase = async () => {
+    logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
