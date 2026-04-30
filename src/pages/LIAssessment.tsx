@@ -174,22 +174,69 @@ const LIAssessment = () => {
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <section className="bg-card border rounded-lg p-6">
-          <div className="grid grid-cols-3 gap-3 text-sm">
-            <div className="border-l-2 border-primary pl-3">
-              <div className="font-semibold">Step 1 — Free</div>
-              <div className="text-muted-foreground">Tell us the basics. We classify the use case and surface analogous regulator decisions.</div>
-            </div>
-            <div className="border-l-2 border-primary/40 pl-3">
-              <div className="font-semibold">Step 2 — Paid</div>
-              <div className="text-muted-foreground">Adaptive questions on purpose, necessity and balancing — only those that actually apply to your facts.</div>
-            </div>
-            <div className="border-l-2 border-primary/20 pl-3">
-              <div className="font-semibold">Step 3 — Report</div>
-              <div className="text-muted-foreground">Three-part test analysis, documentation pack, and PDF — defensible with counsel.</div>
+        <section className="bg-card border rounded-lg p-6 space-y-5">
+          <div>
+            <h2 className="text-2xl font-serif mb-2">Why you need this</h2>
+            <p className="text-foreground leading-relaxed">
+              Legitimate interest is the most flexible — and most contested — legal basis under GDPR Article 6(1)(f).
+              Regulators don't accept it on assertion: if challenged, you must produce a written record showing you
+              tested your processing against a three-part test (purpose, necessity, balancing) <em>before</em> you
+              relied on it. Recent fines from the CNIL, ICO, Garante and others have hit organisations that either
+              skipped this record entirely or produced one that was generic, undated, or didn't address the specific
+              facts of the processing. This tool produces that record — grounded in tracked regulator decisions so
+              your reasoning lines up with how DPAs actually decide these cases.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-3">How it works — and why each step matters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="border-l-2 border-primary pl-3">
+                <div className="font-semibold">Step 1 — Free preliminary signal</div>
+                <div className="text-muted-foreground mt-1">
+                  You describe the processing in plain language. We classify the use case and surface the most
+                  analogous regulator decisions.
+                </div>
+                <div className="text-xs text-foreground mt-2">
+                  <strong>Why:</strong> Some use cases (behavioural advertising, employee monitoring, special category
+                  data) almost never survive the balancing test. Knowing this upfront — for free — saves you the cost
+                  of a full assessment that was always going to fail.
+                </div>
+              </div>
+              <div className="border-l-2 border-primary/60 pl-3">
+                <div className="font-semibold">Step 2 — Adaptive intake</div>
+                <div className="text-muted-foreground mt-1">
+                  We ask only the questions that matter for your facts: whose interest, what alternatives you
+                  considered, what data subjects would reasonably expect, what safeguards are in place.
+                </div>
+                <div className="text-xs text-foreground mt-2">
+                  <strong>Why:</strong> The EDPB's 2024 guidelines list the specific factors regulators weigh. A
+                  defensible record has to address them by name — generic "we considered the impact" language is
+                  routinely rejected on enforcement.
+                </div>
+              </div>
+              <div className="border-l-2 border-primary/40 pl-3">
+                <div className="font-semibold">Step 3 — Three-part test report</div>
+                <div className="text-muted-foreground mt-1">
+                  A structured analysis of purpose, necessity and balancing, plus a documentation pack and PDF you can
+                  hand to counsel.
+                </div>
+                <div className="text-xs text-foreground mt-2">
+                  <strong>Why:</strong> Article 5(2) accountability requires you to <em>demonstrate</em> compliance,
+                  not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when
+                  they open an investigation.
+                </div>
+              </div>
             </div>
           </div>
+
+          <div className="bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-xs text-amber-900">
+            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked
+            regulatory decisions. Your final legitimate interest determination should be reviewed and signed off by
+            qualified counsel before you rely on it operationally.
+          </div>
         </section>
+
 
         <form
           onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
