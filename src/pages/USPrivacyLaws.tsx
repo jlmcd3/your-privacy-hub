@@ -256,22 +256,12 @@ const USPrivacyLaws = () => {
               <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
             </div>
             <p className="text-[13px] text-muted-foreground leading-relaxed mb-2">Stay current with the latest federal and state privacy actions, rulemakings, and enforcement updates. This feed pulls the most recent developments so you can track what's changing across U.S. jurisdictions.</p>
-            <div className="divide-y divide-fog">
-              {recentArticles.map((a: any) => (
-                <ArticleCard
-                  key={a.id}
-                  item={{
-                    id: a.id,
-                    title: a.title,
-                    summary: a.summary,
-                    source_name: a.source_name,
-                    published_at: a.published_at,
-                    source_url: a.url,
-                  } as ArticleItem}
-                  variant="full"
-                />
-              ))}
-            </div>
+            <TieredFeed
+              articles={recentArticles}
+              previewCount={1}
+              seeAllHref="/updates"
+              showSeeAll={true}
+            />
           </div>
         )}
 
