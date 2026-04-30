@@ -26,6 +26,8 @@ export interface ReportShellProps {
   backHref?: string;
   /** Footer "Back" label */
   backLabel?: string;
+  /** Optional tool-specific tail sentence appended to the bottom ToolDisclaimer */
+  disclaimerAddition?: string;
 }
 
 export default function ReportShell({
@@ -36,6 +38,7 @@ export default function ReportShell({
   callout,
   backHref = "/dashboard/reports",
   backLabel = "← Back to My Reports",
+  disclaimerAddition,
 }: ReportShellProps) {
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -85,7 +88,7 @@ export default function ReportShell({
 
         {children}
 
-        <ToolDisclaimer />
+        <ToolDisclaimer addition={disclaimerAddition} />
 
         <div className="pt-2">
           <Link

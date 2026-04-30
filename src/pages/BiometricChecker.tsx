@@ -5,12 +5,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { getStripeEnvironment } from "@/lib/env";
+import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
@@ -30,6 +32,7 @@ export default function BiometricChecker() {
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
   const [result, setResult] = useState<{ assessment_text: string; bipa_risk: any; jurisdictions_analysed: string[] } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -52,6 +55,7 @@ export default function BiometricChecker() {
   };
 
   const handleAnalyse = async () => {
+    logToolAcknowledgment("biometric_checker", access.user?.id ?? null);
     // 1. Require login for everyone
     if (!access.user) { setAuthModalOpen(true); return; }
     // 2. Subscribers run free
@@ -129,7 +133,8 @@ export default function BiometricChecker() {
               ) : (
                 <p className="text-[12px] text-muted-foreground mb-3">{`Analysis is $49 — or included with Intelligence (${INTELLIGENCE_PRICING.monthly()}).`}</p>
               )}
-              <div className="flex gap-3 flex-wrap">
+              <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+              <div className="flex gap-3 flex-wrap mt-4">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
                   className="bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
                   {ctaLabel}</button>

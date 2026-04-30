@@ -5,11 +5,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
+import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -37,6 +39,7 @@ export default function IRPlaybook() {
   });
   const [result, setResult] = useState("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     if (access.isPremium === true) setPhase("form");
@@ -47,6 +50,7 @@ export default function IRPlaybook() {
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
 
   const handleGenerate = async () => {
+    logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id } });
     if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
@@ -56,6 +60,7 @@ export default function IRPlaybook() {
   };
 
   const handlePurchase = async () => {
+    logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     if (access.isPremium) { setPhase("form"); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
@@ -81,7 +86,7 @@ export default function IRPlaybook() {
             <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-[18px]">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
             <p className="text-[12px] text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
-            <ToolDisclaimer />
+            <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
@@ -112,6 +117,7 @@ export default function IRPlaybook() {
             <label className="block text-[13px]"><span className="font-semibold text-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organisationType} onChange={e => setForm(f => ({ ...f, organisationType: e.target.value }))}>
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
+            <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             <button onClick={handleGenerate} disabled={form.dataTypes.length === 0 || form.jurisdictions.length === 0}
               className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
               Generate playbook</button>

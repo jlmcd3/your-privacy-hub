@@ -5,11 +5,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
+import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
 const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
@@ -43,6 +45,7 @@ export default function DPAGenerator() {
   const [phase, setPhase] = useState<"sample" | "generating" | "result">("sample");
   const [result, setResult] = useState<string>("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -62,6 +65,7 @@ export default function DPAGenerator() {
   };
 
   const handlePurchase = async () => {
+    logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     const { data } = await supabase.functions.invoke("create-tool-checkout", {
@@ -91,7 +95,7 @@ export default function DPAGenerator() {
             <p className="text-[12px] text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
             <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
             <p className="text-[11px] text-muted-foreground italic mt-4">PDF download coming soon.</p>
-            <ToolDisclaimer />
+            <ToolDisclaimer addition="This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
@@ -126,6 +130,7 @@ export default function DPAGenerator() {
               </div>
               <div className="border-t border-border pt-4 mt-4 text-[12px] text-muted-foreground">Sample preview:</div>
               <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
+              <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             </div>
           </ToolSampleOverlay>
         )}
