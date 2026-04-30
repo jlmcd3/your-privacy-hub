@@ -50,6 +50,16 @@ export default function BiometricCheckerResult() {
 
   const actions = row && (
     <>
+      <TranslateReportButton
+        reportType="biometric"
+        reportId={row.id}
+        onTranslated={(translated: any, lang) => {
+          // Edge function returns { report_data, analysis_text? }
+          const t = translated?.analysis_text || translated?.report_data?.assessment_text || "";
+          if (t) setTranslation({ lang, text: t });
+        }}
+        onReverted={() => setTranslation(null)}
+      />
       <PDFDownloadButton
         toolType="biometric_checker"
         assessmentId={row.id}
