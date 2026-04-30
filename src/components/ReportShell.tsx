@@ -41,12 +41,12 @@ export default function ReportShell({
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Navy header band — matches site header convention */}
       <header className="bg-slate-900 text-white px-6 py-6 sm:px-8 sm:py-7">
-        {/* Logo row — sits above title for clear product attribution */}
-        <Link to="/" className="inline-block mb-4">
+        {/* Logo plate — keeps the brand colors readable on the navy band */}
+        <Link to="/" className="inline-block mb-4 bg-white rounded-md px-3 py-1.5 shadow-sm">
           <img
             src="/logo.png"
             alt="End User Privacy"
-            className="h-9 w-auto brightness-0 invert opacity-90"
+            className="h-7 w-auto"
           />
         </Link>
 
