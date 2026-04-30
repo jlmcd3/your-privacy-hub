@@ -186,7 +186,7 @@ const JurisdictionPage = () => {
       const allTerms = [nameLower, ...authorityTerms];
 
       const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-      const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions";
+      const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version,why_it_matters_short,related_signals,action_items,ai_summary,jurisdiction";
 
       // Tier 1: enriched-direct (last 90d)
       const directQ = (supabase as any)
