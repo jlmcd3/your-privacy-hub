@@ -592,6 +592,9 @@ Deno.serve(async (req) => {
       li_assessment: "li_assessments",
       governance_assessment: "governance_assessments",
       dpia_framework: "dpia_frameworks",
+      biometric_checker: "biometric_assessments",
+      ir_playbook: "ir_playbooks",
+      dpa_generator: "dpa_documents",
     };
     const table = tableMap[tool_type];
     if (!table) {
@@ -602,19 +605,78 @@ Deno.serve(async (req) => {
     const { data: record } = await supabase.from(table)
       .select("*").eq("id", assessment_id).single();
 
-    if (!record?.report_data) {
+    if (!record) {
+      return new Response(JSON.stringify({ error: "Record not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Tools that ship a structured report_data JSON blob
+    const structuredTools = new Set(["li_assessment", "governance_assessment", "dpia_framework"]);
+    if (structuredTools.has(tool_type) && !record.report_data) {
       return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const report = record.report_data as any;
-
     let html: string;
-    if (tool_type === "li_assessment") html = buildLIReportHTML(report, record);
-    else if (tool_type === "governance_assessment") html = buildGovernanceReportHTML(report, record);
-    else html = buildDPIAReportHTML(report, record);
+    let generatedAt: string;
 
-    const attachmentName = makeAttachmentName(tool_type, report.generated_at || new Date().toISOString());
+    if (tool_type === "li_assessment") {
+      const report = record.report_data as any;
+      html = buildLIReportHTML(report, record);
+      generatedAt = report.generated_at || record.created_at || new Date().toISOString();
+    } else if (tool_type === "governance_assessment") {
+      const report = record.report_data as any;
+      html = buildGovernanceReportHTML(report, record);
+      generatedAt = report.generated_at || record.created_at || new Date().toISOString();
+    } else if (tool_type === "dpia_framework") {
+      const report = record.report_data as any;
+      html = buildDPIAReportHTML(report, record);
+      generatedAt = report.generated_at || record.created_at || new Date().toISOString();
+    } else if (tool_type === "biometric_checker") {
+      const intake = record.intake_data || {};
+      const text = record.analysis_text || record.report_data?.assessment_text || "";
+      const bipa = record.report_data?.bipa_risk;
+      const metaLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+        ((record.jurisdictions || intake.jurisdictions || []).length
+          ? ` · ${(record.jurisdictions || intake.jurisdictions).join(", ")}` : "");
+      html = buildTextReportHTML({
+        title: "Biometric Compliance Assessment",
+        metaLine,
+        text,
+        showJurisdictionChip: true,
+        callout: bipa ? {
+          kind: "warn",
+          title: "BIPA Litigation Risk Estimate",
+          html: `Low end: <strong>$${(bipa.lowEnd || 0).toLocaleString()}</strong> · High end: <strong>$${(bipa.highEnd || 0).toLocaleString()}</strong>${bipa.note ? `<div style="margin-top:4px;font-size:10.5px;color:#5c5a54;">${escHtml(bipa.note)}</div>` : ""}`,
+        } : undefined,
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "ir_playbook") {
+      const intake = record.intake_data || {};
+      html = buildTextReportHTML({
+        title: "Your Breach Response Playbook",
+        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+          ((intake.jurisdictions || []).length ? ` · ${intake.jurisdictions.join(", ")}` : ""),
+        text: record.playbook_text || "",
+        showJurisdictionChip: false,
+        callout: {
+          kind: "muted",
+          html: "This playbook and its documentation checklist contribute to your Article 33(5) accountability record.",
+        },
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    } else { // dpa_generator
+      const intake = record.intake_data || {};
+      html = buildTextReportHTML({
+        title: `Your Custom DPA — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`,
+        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · ${intake.legalFramework || "GDPR"}`,
+        text: record.document_text || "",
+        showJurisdictionChip: false,
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    }
+
+    const attachmentName = makeAttachmentName(tool_type, generatedAt);
 
     const pdfBytes = await generatePDF(html, attachmentName.replace(".pdf", ""));
 
