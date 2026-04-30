@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
+import AssessmentReport from "@/components/AssessmentReport";
 
 export default function DPAResult() {
   const { id } = useParams();
@@ -72,11 +73,7 @@ export default function DPAResult() {
             <p className="text-[12px] text-muted-foreground mb-4">
               Generated {new Date(row.created_at).toLocaleDateString()} · {intake.legalFramework || "GDPR"}
             </p>
-            {row.document_text ? (
-              <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{row.document_text}</pre>
-            ) : (
-              <p className="text-slate text-sm">No document content available.</p>
-            )}
+            <AssessmentReport text={row.document_text || ""} sectionChipLabel={null} />
             <ToolDisclaimer />
             <div className="mt-6">
               <Button asChild variant="outline"><Link to="/dashboard/reports">← Back to My Reports</Link></Button>
