@@ -114,7 +114,11 @@ const USPrivacyLaws = () => {
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">
             A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states.
           </p>
-          <div className="text-[11px] text-slate-light mt-4">Last updated: March 10, 2026</div>
+          <div className="text-[11px] text-slate-light mt-4">
+            Last updated: {recentArticles[0]?.published_at
+              ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+              : new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          </div>
 
           {/* Functional tab navigation */}
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
