@@ -45,6 +45,7 @@ export default function DPAGenerator() {
   const [phase, setPhase] = useState<"sample" | "generating" | "result">("sample");
   const [result, setResult] = useState<string>("");
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
