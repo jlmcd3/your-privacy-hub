@@ -95,7 +95,7 @@ export default function DPAGenerator() {
             <p className="text-[12px] text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
             <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
             <p className="text-[11px] text-muted-foreground italic mt-4">PDF download coming soon.</p>
-            <ToolDisclaimer />
+            <ToolDisclaimer addition="This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
