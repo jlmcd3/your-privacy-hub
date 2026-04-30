@@ -6,37 +6,18 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InFeedAd from "@/components/InFeedAd";
 import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
+import {
+  LI_OUTCOME_ORDER,
+  stripeFor,
+  accentFor,
+} from "@/lib/li-outcome-palette";
 
-const OUTCOME_ORDER = ["accepted", "conditional", "rejected", "contested"];
-
-const outcomeBadge = (outcome: string) => {
-  const styles: Record<string, string> = {
-    accepted: "bg-green-100 text-green-800",
-    conditional: "bg-amber-100 text-amber-800",
-    rejected: "bg-red-100 text-red-800",
-    contested: "bg-muted text-muted-foreground",
-  };
-  return styles[outcome] || styles.contested;
-};
+const OUTCOME_ORDER = LI_OUTCOME_ORDER;
 
 const signalStyle = (type: string) => {
   if (type === "Enforcement Decision" || type === "Official Guidance") return "font-bold";
   if (type === "Early Warning") return "italic";
   return "";
-};
-
-const outcomeStripe: Record<string, string> = {
-  accepted: "bg-green-600",
-  conditional: "bg-amber-500",
-  rejected: "bg-red-600",
-  contested: "bg-slate-400",
-};
-
-const outcomeAccent: Record<string, string> = {
-  accepted: "text-green-700",
-  conditional: "text-amber-700",
-  rejected: "text-red-700",
-  contested: "text-slate-600",
 };
 
 const SourceCell = ({ sourceUrl, caseReference }: { sourceUrl: string | null; caseReference: string | null }) => {
