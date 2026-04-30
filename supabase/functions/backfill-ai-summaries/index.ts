@@ -77,7 +77,7 @@ async function generateAISummary(
   summary: string | null,
   sourceName: string | null,
   apiKey: string
-): Promise<Record<string, unknown> | null> {
+): Promise<EnrichResult> {
   try {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -88,7 +88,7 @@ async function generateAISummary(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown fences, no explanation. Your entire response must start with { and end with }. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
         messages: [
           {
@@ -149,13 +149,16 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
           },
         ],
       }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(120000),
     });
 
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       console.error(`Anthropic non-OK ${res.status}: ${body.slice(0, 500)}`);
-      return null;
+      // 4xx (except 429) = permanent for this request shape; 5xx/429 = transient (retry later)
+      const transient = res.status === 429 || res.status >= 500 ||
+        body.includes("usage limit") || body.includes("rate_limit");
+      return { kind: transient ? "transient_error" : "permanent_error", detail: `${res.status}` };
     }
     const data = await res.json();
     if (data.stop_reason === "max_tokens") {
@@ -164,7 +167,7 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
     const text: string = data.content?.[0]?.text ?? "";
     if (!text) {
       console.error("Anthropic returned empty content");
-      return null;
+      return { kind: "transient_error", detail: "empty_content" };
     }
 
     // Strip markdown code fences if present
@@ -173,20 +176,18 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
       .replace(/```\s*/g, "")
       .trim();
 
-    // Find first { and last } to isolate JSON
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");
     if (start === -1 || end === -1 || end <= start) {
       console.error(`No JSON object boundaries found. Raw text: ${text.slice(0, 300)}`);
-      return null;
+      return { kind: "permanent_error", detail: "no_json_boundaries" };
     }
     cleaned = cleaned.substring(start, end + 1);
 
     let parsed: any;
     try {
       parsed = JSON.parse(cleaned);
-    } catch (e) {
-      // attempt minor repair: trailing commas, control chars
+    } catch (_e) {
       const repaired = cleaned
         .replace(/,\s*}/g, "}")
         .replace(/,\s*]/g, "]")
@@ -195,15 +196,24 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
         parsed = JSON.parse(repaired);
       } catch (e2) {
         console.error(`JSON.parse failed: ${(e2 as Error).message}. Snippet: ${cleaned.slice(0, 300)}…${cleaned.slice(-200)}`);
-        return null;
+        return { kind: "permanent_error", detail: "json_parse_failed" };
       }
     }
-    return parsed.skip ? null : parsed;
+    if (parsed.skip) return { kind: "model_skip", detail: parsed.skip_reason || "model_declined" };
+    return { kind: "ok", data: parsed };
   } catch (err) {
-    console.error(`generateAISummary threw: ${(err as Error).message}`);
-    return null;
+    const msg = (err as Error).message;
+    console.error(`generateAISummary threw: ${msg}`);
+    const transient = msg.includes("timeout") || msg.includes("network") || msg.includes("fetch");
+    return { kind: transient ? "transient_error" : "permanent_error", detail: msg };
   }
 }
+
+type EnrichResult =
+  | { kind: "ok"; data: Record<string, unknown> }
+  | { kind: "model_skip"; detail: string }
+  | { kind: "permanent_error"; detail: string }
+  | { kind: "transient_error"; detail: string };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS")
@@ -262,10 +272,10 @@ Deno.serve(async (req) => {
     .or('ai_summary.is.null,enrichment_version.lt.3');
 
   let updated = 0,
-    skipped = 0;
+    skipped = 0,
+    deferred = 0;
 
   for (const article of articles ?? []) {
-    // Pre-filter: skip breach announcements that aren't about regulation
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
@@ -275,21 +285,20 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    const aiSummary = await generateAISummary(
+    const result = await generateAISummary(
       article.title,
       article.summary,
       article.source_name,
       anthropicKey
     );
-    if (aiSummary) {
+
+    if (result.kind === "ok") {
+      const aiSummary = result.data as Record<string, any>;
       const updatePayload: Record<string, any> = {
         ai_summary: aiSummary,
         enrichment_version: 3,
       };
-      if (
-        Array.isArray(aiSummary.affected_jurisdictions) &&
-        aiSummary.affected_jurisdictions.length > 0
-      ) {
+      if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
         updatePayload.affected_jurisdictions = aiSummary.affected_jurisdictions;
       }
       if (typeof aiSummary.regulatory_theory === "string" && aiSummary.regulatory_theory.trim()) {
@@ -307,17 +316,21 @@ Deno.serve(async (req) => {
       if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
         updatePayload.defense_considerations = aiSummary.defense_considerations;
       }
-      await supabase
-        .from("updates")
-        .update(updatePayload)
-        .eq("id", article.id);
+      await supabase.from("updates").update(updatePayload).eq("id", article.id);
       updated++;
-    } else {
+    } else if (result.kind === "model_skip" || result.kind === "permanent_error") {
+      // Genuine skip — mark so we don't retry forever
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true }, enrichment_version: 3 })
+        .update({
+          ai_summary: { skipped: true, reason: result.kind, detail: result.detail },
+          enrichment_version: 3,
+        })
         .eq("id", article.id);
       skipped++;
+    } else {
+      // transient_error — leave article alone so next run can retry
+      deferred++;
     }
     await new Promise((r) => setTimeout(r, 500));
   }
@@ -328,6 +341,7 @@ Deno.serve(async (req) => {
       processed: articles?.length,
       updated,
       skipped,
+      deferred,
       remaining: Math.max(0, (count ?? 0) - (articles?.length ?? 0)),
     }),
     { headers: { "Content-Type": "application/json" } }
