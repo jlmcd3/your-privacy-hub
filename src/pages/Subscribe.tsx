@@ -71,21 +71,21 @@ const Subscribe = () => {
       const { data, error: fnError } = await supabase.functions.invoke("create-portal-session", {
         body: { return_url: `${window.location.origin}/account` },
       });
-      if (fnError) {
-        setError(fnError.message || "Could not open billing portal");
+      if (!fnError && data?.url) {
+        window.open(data.url, "_blank");
         setLoading(null);
         return;
       }
-      if (data?.url) {
-        window.open(data.url, "_blank");
+      // No Stripe customer on file (legacy/manually-granted access) — start
+      // a fresh checkout instead of leaving the user with a dead button.
+      if (data?.no_billing_account) {
+        const interval: "month" | "year" = key === "year" ? "year" : "month";
         setLoading(null);
-      } else if (data?.error) {
-        setError(data.error);
-        setLoading(null);
-      } else {
-        setError("Could not open billing portal");
-        setLoading(null);
+        await startCheckout(interval);
+        return;
       }
+      setError((data?.error as string) || fnError?.message || "Could not open billing portal");
+      setLoading(null);
     } catch (e: any) {
       setError(e.message || "Could not open billing portal");
       setLoading(null);
