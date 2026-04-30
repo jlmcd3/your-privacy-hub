@@ -6,12 +6,12 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
+import ReportShell from "@/components/ReportShell";
 
 export default function IRPlaybookResult() {
   const { id } = useParams();
@@ -54,32 +54,33 @@ export default function IRPlaybookResult() {
             <p className="text-foreground">Your playbook is being generated.</p>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h1 className="font-display font-bold text-navy text-[18px]">Your Breach Response Playbook</h1>
-              <div className="flex gap-2">
+          <ReportShell
+            title="Your Breach Response Playbook"
+            meta={
+              <>
+                Generated {new Date(row.created_at).toLocaleDateString()}
+                {(intake.jurisdictions || []).length > 0 && ` · ${(intake.jurisdictions || []).join(", ")}`}
+              </>
+            }
+            actions={
+              <>
                 {row.pdf_url && (
                   <a href={row.pdf_url} target="_blank" rel="noopener noreferrer"
-                     className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 no-underline">
+                     className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg no-underline transition-colors">
                     ↓ Download PDF
                   </a>
                 )}
                 {row.playbook_text && <CopyButton text={row.playbook_text} />}
-              </div>
-            </div>
-            <p className="text-[12px] text-muted-foreground mb-4">
-              Generated {new Date(row.created_at).toLocaleDateString()}
-              {(intake.jurisdictions || []).length > 0 && ` · ${(intake.jurisdictions || []).join(", ")}`}
-            </p>
+              </>
+            }
+            callout={
+              <p className="text-[12px] text-muted-foreground italic">
+                This playbook and its documentation checklist contribute to your Article 33(5) accountability record.
+              </p>
+            }
+          >
             <AssessmentReport text={row.playbook_text || ""} sectionChipLabel={null} />
-            <p className="text-[12px] text-muted-foreground mt-4">
-              This playbook and its documentation checklist contribute to your Article 33(5) accountability record.
-            </p>
-            <ToolDisclaimer />
-            <div className="mt-6">
-              <Button asChild variant="outline"><Link to="/dashboard/reports">← Back to My Reports</Link></Button>
-            </div>
-          </div>
+          </ReportShell>
         )}
       </main>
       <Footer />
