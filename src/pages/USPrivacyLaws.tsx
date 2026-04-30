@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Lock, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
+import { TieredFeed } from "@/components/TieredFeed";
+import type { ArticleItem } from "@/components/ArticleCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -31,7 +32,7 @@ const TAB_ITEMS = [
 ];
 
 const USPrivacyLaws = () => {
-  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   const [authSearch, setAuthSearch] = useState("");
   const [authStatusFilter, setAuthStatusFilter] = useState("All");
   const [authorityExpanded, setAuthorityExpanded] = useState(false);
@@ -74,12 +75,17 @@ const USPrivacyLaws = () => {
     async function load() {
       const { data } = await (supabase as any)
         .from("updates")
-        .select("id,title,summary,url,source_name,image_url,published_at")
+        .select("*")
         .eq("is_hidden", false)
         .or("category.eq.us-federal,category.eq.us-states")
         .order("published_at", { ascending: false })
         .limit(8);
-      if (data) setRecentArticles(data);
+      if (data) {
+        // Map db `url` → ArticleItem `source_url` expected by ArticleCard.
+        setRecentArticles(
+          (data as any[]).map((a) => ({ ...a, source_url: a.url })) as ArticleItem[]
+        );
+      }
     }
     load();
   }, []);
@@ -108,7 +114,11 @@ const USPrivacyLaws = () => {
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">
             A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states.
           </p>
-          <div className="text-[11px] text-slate-light mt-4">Last updated: March 10, 2026</div>
+          <div className="text-[11px] text-slate-light mt-4">
+            Last updated: {recentArticles[0]?.published_at
+              ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+              : new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          </div>
 
           {/* Functional tab navigation */}
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
@@ -250,22 +260,12 @@ const USPrivacyLaws = () => {
               <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
             </div>
             <p className="text-[13px] text-muted-foreground leading-relaxed mb-2">Stay current with the latest federal and state privacy actions, rulemakings, and enforcement updates. This feed pulls the most recent developments so you can track what's changing across U.S. jurisdictions.</p>
-            <div className="divide-y divide-fog">
-              {recentArticles.map((a: any) => (
-                <ArticleCard
-                  key={a.id}
-                  item={{
-                    id: a.id,
-                    title: a.title,
-                    summary: a.summary,
-                    source_name: a.source_name,
-                    published_at: a.published_at,
-                    source_url: a.url,
-                  } as ArticleItem}
-                  variant="full"
-                />
-              ))}
-            </div>
+            <TieredFeed
+              articles={recentArticles}
+              previewCount={1}
+              seeAllHref="/updates"
+              showSeeAll={true}
+            />
           </div>
         )}
 
