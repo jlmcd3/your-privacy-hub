@@ -186,9 +186,9 @@ export default function JurisdictionsHub() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-7 gap-y-4 lg:min-w-[440px]">
+                <div className="flex flex-nowrap items-center gap-6 overflow-x-auto lg:min-w-[620px] lg:justify-end">
                   {statCards.map((stat) => (
-                    <div key={stat.label} className="flex items-center gap-2.5">
+                    <div key={stat.label} className="flex flex-shrink-0 items-center gap-2.5">
                       <div
                         className="w-4 h-4 rounded flex-shrink-0"
                         style={{ background: stat.color }}
