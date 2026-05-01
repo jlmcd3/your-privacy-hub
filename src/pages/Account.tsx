@@ -10,6 +10,17 @@ import WatchlistManager from "@/components/watchlist/WatchlistManager";
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Account() {
   const { user } = useAuth();
