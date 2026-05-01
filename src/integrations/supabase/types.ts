@@ -1865,6 +1865,450 @@ export type Database = {
         }
         Relationships: []
       }
+      ropa_activity_templates: {
+        Row: {
+          category: string
+          description: string
+          display_name: string
+          display_order: number
+          id: string
+          is_active: boolean
+          is_high_risk: boolean
+          is_public_facing: boolean
+          sector_tags: string[]
+          template_key: string
+        }
+        Insert: {
+          category: string
+          description: string
+          display_name: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          sector_tags?: string[]
+          template_key: string
+        }
+        Update: {
+          category?: string
+          description?: string
+          display_name?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          sector_tags?: string[]
+          template_key?: string
+        }
+        Relationships: []
+      }
+      ropa_answers: {
+        Row: {
+          activity_id: string
+          answer_value: Json
+          answered_at: string
+          id: string
+          question_key: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          activity_id: string
+          answer_value: Json
+          answered_at?: string
+          id?: string
+          question_key: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          activity_id?: string
+          answer_value?: Json
+          answered_at?: string
+          id?: string
+          question_key?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_answers_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_document_versions: {
+        Row: {
+          activities_count: number
+          change_summary: string | null
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes: number | null
+          generated_at: string
+          id: string
+          is_current: boolean
+          jurisdictions_covered: string[]
+          session_id: string
+          version_number: number
+        }
+        Insert: {
+          activities_count?: number
+          change_summary?: string | null
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes?: number | null
+          generated_at?: string
+          id?: string
+          is_current?: boolean
+          jurisdictions_covered?: string[]
+          session_id: string
+          version_number: number
+        }
+        Update: {
+          activities_count?: number
+          change_summary?: string | null
+          client_id?: string
+          document_format?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          generated_at?: string
+          id?: string
+          is_current?: boolean
+          jurisdictions_covered?: string[]
+          session_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_document_versions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_document_versions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_flags: {
+        Row: {
+          action_label: string | null
+          action_route: string | null
+          activity_id: string | null
+          consequence: string | null
+          created_at: string
+          flag_message: string
+          flag_type: string
+          id: string
+          question_key: string | null
+          resolved: boolean
+          resolved_at: string | null
+          session_id: string
+          severity: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_route?: string | null
+          activity_id?: string | null
+          consequence?: string | null
+          created_at?: string
+          flag_message: string
+          flag_type: string
+          id?: string
+          question_key?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          session_id: string
+          severity?: string
+        }
+        Update: {
+          action_label?: string | null
+          action_route?: string | null
+          activity_id?: string | null
+          consequence?: string | null
+          created_at?: string
+          flag_message?: string
+          flag_type?: string
+          id?: string
+          question_key?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          session_id?: string
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_flags_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_flags_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_jurisdiction_selections: {
+        Row: {
+          added_at: string
+          client_id: string
+          id: string
+          jurisdiction_code: string
+          jurisdiction_name: string
+          jurisdiction_region: string
+        }
+        Insert: {
+          added_at?: string
+          client_id: string
+          id?: string
+          jurisdiction_code: string
+          jurisdiction_name: string
+          jurisdiction_region: string
+        }
+        Update: {
+          added_at?: string
+          client_id?: string
+          id?: string
+          jurisdiction_code?: string
+          jurisdiction_name?: string
+          jurisdiction_region?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_jurisdiction_selections_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_processing_activities: {
+        Row: {
+          category: string
+          client_id: string
+          completion_pct: number
+          created_at: string
+          display_name: string
+          display_order: number
+          id: string
+          is_high_risk: boolean
+          is_public_facing: boolean
+          session_id: string
+          status: string
+          template_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          client_id: string
+          completion_pct?: number
+          created_at?: string
+          display_name: string
+          display_order?: number
+          id?: string
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          session_id: string
+          status?: string
+          template_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          completion_pct?: number
+          created_at?: string
+          display_name?: string
+          display_order?: number
+          id?: string
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          session_id?: string
+          status?: string
+          template_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_processing_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_processing_activities_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_refresh_cycles: {
+        Row: {
+          activities_added: number
+          activities_confirmed: number
+          activities_updated: number
+          client_id: string
+          completed_at: string | null
+          id: string
+          initiated_at: string
+          new_session_id: string | null
+          source_session_id: string
+        }
+        Insert: {
+          activities_added?: number
+          activities_confirmed?: number
+          activities_updated?: number
+          client_id: string
+          completed_at?: string | null
+          id?: string
+          initiated_at?: string
+          new_session_id?: string | null
+          source_session_id: string
+        }
+        Update: {
+          activities_added?: number
+          activities_confirmed?: number
+          activities_updated?: number
+          client_id?: string
+          completed_at?: string | null
+          id?: string
+          initiated_at?: string
+          new_session_id?: string | null
+          source_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_refresh_cycles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_refresh_cycles_new_session_id_fkey"
+            columns: ["new_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_refresh_cycles_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_sessions: {
+        Row: {
+          client_id: string
+          completed_activities: number
+          completed_at: string | null
+          created_at: string
+          generated_docx_path: string | null
+          generated_pdf_path: string | null
+          generated_xlsx_path: string | null
+          id: string
+          is_refresh: boolean
+          last_activity_at: string
+          open_flags_count: number
+          paid_at: string | null
+          parent_session_id: string | null
+          payment_confirmed: boolean
+          started_at: string
+          status: string
+          total_activities: number
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          completed_activities?: number
+          completed_at?: string | null
+          created_at?: string
+          generated_docx_path?: string | null
+          generated_pdf_path?: string | null
+          generated_xlsx_path?: string | null
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          open_flags_count?: number
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          started_at?: string
+          status?: string
+          total_activities?: number
+          updated_at?: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          completed_activities?: number
+          completed_at?: string | null
+          created_at?: string
+          generated_docx_path?: string | null
+          generated_pdf_path?: string | null
+          generated_xlsx_path?: string | null
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          open_flags_count?: number
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          started_at?: string
+          status?: string
+          total_activities?: number
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sample_brief_translations: {
         Row: {
           created_at: string
