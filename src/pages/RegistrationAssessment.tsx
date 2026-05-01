@@ -191,7 +191,7 @@ export default function RegistrationAssessment() {
                 />
               )}
               <div
-                inert={isAnon ? "" as any : undefined}
+                {...(isAnon ? { inert: "" } : {})}
                 aria-hidden={isAnon}
                 style={isAnon ? { pointerEvents: "none", userSelect: "none", opacity: 0.6 } : undefined}
               >
