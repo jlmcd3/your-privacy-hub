@@ -342,6 +342,21 @@ export default function RegistrationAssessmentResult() {
         </PageContainer>
       </main>
       <Footer />
+      <RegistrationCheckoutModal
+        open={checkoutTier !== null}
+        tier={checkoutTier ?? "diy"}
+        jurisdictions={Array.from(selected)}
+        assessmentId={assessment?.id}
+        organizationSnapshot={{
+          name: assessment?.organization_name,
+          country: assessment?.organization_country,
+          size: assessment?.organization_size,
+          industry: assessment?.industry,
+          contact_email: assessment?.email,
+          intake: assessment?.intake_data,
+        }}
+        onClose={() => setCheckoutTier(null)}
+      />
     </>
   );
 }
