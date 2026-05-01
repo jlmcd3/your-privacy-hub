@@ -519,67 +519,37 @@ const Updates = () => {
 
                 <AdBanner />
 
-                {/* Newsfeed + slide-in drawer */}
-                <div className="relative overflow-hidden">
-                    <div className={`transition-all duration-200 ${drawerOpen ? "pr-[360px]" : ""}`}>
-                        {user && isPremium ? (
-                            /* Intelligence subscribers: full paginated experience with drawer */
-                            <NewsfeedList
-                                articles={filtered}
-                                isLoading={loading || loadingMore}
-                                hasMore={hasMore}
-                                onLoadMore={handleLoadMore}
-                                renderArticle={(article, _i, isPremiumCard) => (
-                                    <div
-                                        key={article.id}
-                                        onClick={() => {
-                                            setSelectedArticle(article as unknown as Update);
-                                            setDrawerOpen(true);
-                                        }}
-                                        className="cursor-pointer relative group"
-                                    >
-                                        <ArticleCard
-                                            item={{...article, source_url: article.url} as unknown as ArticleItem}
-                                            variant='full'
-                                            isPremium={isPremiumCard}
-                                        />
-                                        <ChevronRight className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                    </div>
-                                )}
-                            />
-                        ) : (
-                            /* Anonymous + free registered: TieredFeed */
-                            <TieredFeed
-                                articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
-                                paginated={true}
-                                previewCount={1}
-                                seeAllHref="/updates"
-                                showSeeAll={false}
-                                hasMore={hasMore}
-                                onLoadMore={handleLoadMore}
-                                isLoadingMore={loadingMore}
-                            />
-                        )}
-                    </div>
-
-                    <ArticleDrawer
-                        article={selectedArticle ? {
-                            id: selectedArticle.id,
-                            title: selectedArticle.title,
-                            source: selectedArticle.source_name || selectedArticle.source_domain || "Source",
-                            published_at: selectedArticle.published_at,
-                            url: selectedArticle.url,
-                            summary: selectedArticle.summary,
-                            ai_summary: selectedArticle.ai_summary,
-                            attention_level: selectedArticle.attention_level || undefined,
-                            regulatory_theory: selectedArticle.regulatory_theory || undefined,
-                            related_development: selectedArticle.related_development || undefined,
-                            affected_sectors: selectedArticle.affected_sectors || undefined,
-                        } : null}
-                        isOpen={drawerOpen}
-                        onClose={() => setDrawerOpen(false)}
-                        userTier={userTier}
-                    />
+                {/* Newsfeed */}
+                <div>
+                    {user && isPremium ? (
+                        /* Intelligence subscribers: full paginated experience */
+                        <NewsfeedList
+                            articles={filtered}
+                            isLoading={loading || loadingMore}
+                            hasMore={hasMore}
+                            onLoadMore={handleLoadMore}
+                            renderArticle={(article, _i, isPremiumCard) => (
+                                <ArticleCard
+                                    key={article.id}
+                                    item={{...article, source_url: article.url} as unknown as ArticleItem}
+                                    variant='full'
+                                    isPremium={isPremiumCard}
+                                />
+                            )}
+                        />
+                    ) : (
+                        /* Anonymous + free registered: TieredFeed */
+                        <TieredFeed
+                            articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
+                            paginated={true}
+                            previewCount={1}
+                            seeAllHref="/updates"
+                            showSeeAll={false}
+                            hasMore={hasMore}
+                            onLoadMore={handleLoadMore}
+                            isLoadingMore={loadingMore}
+                        />
+                    )}
                 </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
