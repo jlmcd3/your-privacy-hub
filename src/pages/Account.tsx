@@ -244,9 +244,9 @@ export default function Account() {
                     type="button"
                     onClick={() => setConfirmCancelOpen(true)}
                     disabled={cancelBusy}
-                    className="text-[13px] text-blue hover:text-navy font-medium bg-transparent border-none cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                    className="text-[13px] font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer disabled:opacity-50"
                   >
-                    Cancel subscription <ChevronRight className="w-3.5 h-3.5" />
+                    Cancel auto-renewal
                   </button>
                 )}
               </div>
