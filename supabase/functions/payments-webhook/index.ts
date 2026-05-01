@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function handleCheckoutCompleted(session: any) {
+async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   const userId = session.metadata?.user_id || session.metadata?.userId;
 
   // Tool purchase
