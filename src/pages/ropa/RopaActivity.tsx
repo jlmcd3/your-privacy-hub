@@ -48,6 +48,15 @@ export default function RopaActivity() {
     [currentActivity?.template_key]
   );
 
+  // After auto-advance, move focus to first focusable element of new question
+  useEffect(() => {
+    if (!questionCardRef.current) return;
+    const focusable = questionCardRef.current.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    focusable?.focus();
+  }, [questionIndex, currentActivity?.id]);
+
   // Filter based on showIf
   const visibleQuestions = useMemo(() => {
     return questions.filter((q) => {
