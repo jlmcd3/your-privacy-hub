@@ -262,8 +262,16 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    console.error("create-registration-checkout error", e);
-    return new Response(JSON.stringify({ error: (e as Error).message || "Internal error" }), {
+    const msg = (e as Error).message || "Internal error";
+    console.error(
+      JSON.stringify({
+        scope: "registration_checkout",
+        event: "session_create_failed",
+        error: msg,
+        stack: (e as Error).stack?.split("\n").slice(0, 4).join(" | "),
+      })
+    );
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
