@@ -129,7 +129,7 @@ const UpdateDetail = () => {
     (supabase as any)
       .from("updates")
       .select(
-        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors"
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items"
       )
       .eq("id", id)
       .eq("is_hidden", false)
