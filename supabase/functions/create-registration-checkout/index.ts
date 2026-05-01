@@ -183,15 +183,20 @@ serve(async (req) => {
       ],
       customer_email: user.email!,
       metadata: {
+        // NOTE: webhook keys off `type === "registration_order"` — keep both
+        // for forward-compat with existing dashboards / queries.
+        type: "registration_order",
         product: "registration_manager",
         order_id: order.id,
         user_id: user.id,
         tier,
+        embedded: embedded ? "true" : "false",
         jurisdictions: codes.join(","),
       },
       ...(cfg.recurring && {
         subscription_data: {
           metadata: {
+            type: "registration_order",
             product: "registration_manager",
             order_id: order.id,
             user_id: user.id,
