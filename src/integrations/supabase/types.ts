@@ -1949,6 +1949,65 @@ export type Database = {
           },
         ]
       }
+      ropa_client_profiles: {
+        Row: {
+          client_id: string
+          created_at: string
+          dpo_email: string | null
+          dpo_name: string | null
+          dpo_phone: string | null
+          employee_band: string | null
+          eu_rep_email: string | null
+          eu_rep_name: string | null
+          is_controller: boolean
+          is_processor: boolean
+          legal_entity_type: string | null
+          uk_rep_email: string | null
+          uk_rep_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          dpo_email?: string | null
+          dpo_name?: string | null
+          dpo_phone?: string | null
+          employee_band?: string | null
+          eu_rep_email?: string | null
+          eu_rep_name?: string | null
+          is_controller?: boolean
+          is_processor?: boolean
+          legal_entity_type?: string | null
+          uk_rep_email?: string | null
+          uk_rep_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          dpo_email?: string | null
+          dpo_name?: string | null
+          dpo_phone?: string | null
+          employee_band?: string | null
+          eu_rep_email?: string | null
+          eu_rep_name?: string | null
+          is_controller?: boolean
+          is_processor?: boolean
+          legal_entity_type?: string | null
+          uk_rep_email?: string | null
+          uk_rep_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_client_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ropa_document_versions: {
         Row: {
           activities_count: number
