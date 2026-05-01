@@ -281,6 +281,12 @@ export default function Account() {
           </div>
         )}
 
+        {/* Multi-client management */}
+        <AccountClientsSection />
+
+        {/* Compliance documents summary */}
+        <ComplianceDocumentsSection />
+
         {/* Weekly Brief Language (Intelligence subscribers only) */}
         <BriefLanguageSelector />
 
