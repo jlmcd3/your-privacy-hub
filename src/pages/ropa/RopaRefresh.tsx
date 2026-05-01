@@ -223,10 +223,8 @@ export default function RopaRefresh() {
           <AlertTitle className="font-heading">Refresh already in progress</AlertTitle>
           <AlertDescription className="font-body text-sm flex flex-wrap items-center justify-between gap-3">
             <span>You started a refresh on this version already.</span>
-            <Button asChild size="sm">
-              <Link to={`/ropa/activities/${existingCycle.new_session_id}`}>
-                Continue refresh <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+            <Button size="sm" onClick={handleResumeExisting}>
+              Continue refresh <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </AlertDescription>
         </Alert>
