@@ -10,22 +10,40 @@ import WatchlistManager from "@/components/watchlist/WatchlistManager";
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Account() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(null);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [cancelBusy, setCancelBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
-  useEffect(() => {
+  const loadProfile = () => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("is_premium, subscription_interval, subscription_tier, role_confirmed_at")
+      .select(
+        "is_premium, subscription_interval, subscription_tier, role_confirmed_at, cancel_at_period_end, subscription_end_date"
+      )
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -34,10 +52,62 @@ export default function Account() {
           setSubscriptionInterval((data as any).subscription_interval ?? null);
           setSubscriptionTier((data as any).subscription_tier ?? null);
           setOnboardingComplete(!!(data as any).role_confirmed_at);
+          setCancelAtPeriodEnd(!!(data as any).cancel_at_period_end);
+          setSubscriptionEndDate((data as any).subscription_end_date ?? null);
         }
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const formattedEndDate = subscriptionEndDate
+    ? new Date(subscriptionEndDate).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
+
+  const handleConfirmCancel = async () => {
+    setCancelBusy(true);
+    setCancelMsg("");
+    const { data, error } = await supabase.functions.invoke("cancel-subscription", {
+      body: { resume: false },
+    });
+    setCancelBusy(false);
+    setConfirmCancelOpen(false);
+    if (error || (data as any)?.error) {
+      const msg = (data as any)?.error || error?.message || "Could not cancel subscription.";
+      toast({ title: "Cancellation failed", description: msg, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: "Subscription canceled",
+      description: formattedEndDate
+        ? `You'll keep access until ${formattedEndDate}.`
+        : "You'll keep access until the end of the current billing period.",
+    });
+    loadProfile();
+  };
+
+  const handleResume = async () => {
+    setCancelBusy(true);
+    const { data, error } = await supabase.functions.invoke("cancel-subscription", {
+      body: { resume: true },
+    });
+    setCancelBusy(false);
+    if (error || (data as any)?.error) {
+      const msg = (data as any)?.error || error?.message || "Could not resume subscription.";
+      toast({ title: "Resume failed", description: msg, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Subscription resumed", description: "Auto-renewal is back on." });
+    loadProfile();
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -137,9 +207,15 @@ export default function Account() {
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
                 <span className="text-[13px] text-slate">Status</span>
-                <span className="text-[13px] font-medium text-accent flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" /> Active
-                </span>
+                {cancelAtPeriodEnd ? (
+                  <span className="text-[13px] font-medium text-warn">
+                    Canceled — access until {formattedEndDate ?? "period end"}
+                  </span>
+                ) : (
+                  <span className="text-[13px] font-medium text-accent flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> Active
+                  </span>
+                )}
               </div>
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
                 <span className="text-[13px] text-slate">Brief preferences</span>
@@ -151,13 +227,28 @@ export default function Account() {
                 </Link>
               </div>
               <div className="flex justify-between items-center py-2.5">
-                <span className="text-[13px] text-slate">Cancel subscription</span>
-                <a
-                  href="mailto:support@enduserprivacy.com?subject=Cancel%20my%20subscription"
-                  className="text-[13px] text-slate hover:text-warn no-underline"
-                >
-                  Contact us to cancel
-                </a>
+                <span className="text-[13px] text-slate">
+                  {cancelAtPeriodEnd ? "Resume subscription" : "Cancel subscription"}
+                </span>
+                {cancelAtPeriodEnd ? (
+                  <button
+                    type="button"
+                    onClick={handleResume}
+                    disabled={cancelBusy}
+                    className="text-[13px] font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer disabled:opacity-50"
+                  >
+                    {cancelBusy ? "Working…" : "Resume auto-renewal →"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmCancelOpen(true)}
+                    disabled={cancelBusy}
+                    className="text-[13px] font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel auto-renewal
+                  </button>
+                )}
               </div>
             </div>
             {cancelMsg && (
@@ -231,6 +322,36 @@ export default function Account() {
       </div>
 
       <Footer />
+
+      <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Auto-renewal will be turned off and you won't be charged again. You'll
+              keep full access to Intelligence{" "}
+              {formattedEndDate ? (
+                <>
+                  until <strong>{formattedEndDate}</strong>.
+                </>
+              ) : (
+                <>until the end of your current billing period.</>
+              )}{" "}
+              You can resume anytime before that date.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelBusy}>Keep subscription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancel}
+              disabled={cancelBusy}
+              className="bg-warn text-white hover:bg-warn/90"
+            >
+              {cancelBusy ? "Canceling…" : "Confirm cancellation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

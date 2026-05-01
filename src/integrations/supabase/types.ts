@@ -1164,6 +1164,7 @@ export type Database = {
           ask_privacy_reset_date: string | null
           bonus_report_credits: number
           brief_role: string | null
+          cancel_at_period_end: boolean
           company_size: string | null
           created_at: string
           digest_jurisdictions: string[] | null
@@ -1183,6 +1184,7 @@ export type Database = {
           sector: string | null
           stripe_customer_id: string | null
           stripe_price_id: string | null
+          stripe_subscription_id: string | null
           subscription_end_date: string | null
           subscription_interval: string | null
           subscription_plan: string | null
@@ -1195,6 +1197,7 @@ export type Database = {
           ask_privacy_reset_date?: string | null
           bonus_report_credits?: number
           brief_role?: string | null
+          cancel_at_period_end?: boolean
           company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
@@ -1214,6 +1217,7 @@ export type Database = {
           sector?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
           subscription_end_date?: string | null
           subscription_interval?: string | null
           subscription_plan?: string | null
@@ -1226,6 +1230,7 @@ export type Database = {
           ask_privacy_reset_date?: string | null
           bonus_report_credits?: number
           brief_role?: string | null
+          cancel_at_period_end?: boolean
           company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
@@ -1245,6 +1250,7 @@ export type Database = {
           sector?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
           subscription_end_date?: string | null
           subscription_interval?: string | null
           subscription_plan?: string | null
