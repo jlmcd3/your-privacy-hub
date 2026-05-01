@@ -163,6 +163,35 @@ export default function RopaRefresh() {
     );
   }
 
+  // Phase 4: regulatory updates review
+  if (phase === "regulatory" && activeNewSessionId) {
+    return (
+      <RopaShell
+        title="Regulatory updates — RoPA Refresh"
+        heading={`Refresh v${source.version_number + 1}: Regulatory updates`}
+      >
+        <p className="font-body text-muted-foreground mb-6">
+          Before reviewing your activities, here's what's changed in your monitored
+          jurisdictions since your last RoPA was generated.
+        </p>
+        <RopaRegulatoryUpdates
+          newSessionId={activeNewSessionId}
+          clientId={source.client_id}
+          lastGeneratedDate={source.completed_at}
+          onContinue={goToActivities}
+        />
+        <div className="flex justify-between">
+          <Button variant="ghost" onClick={() => setPhase("intro")}>
+            ← Back
+          </Button>
+          <Button variant="outline" onClick={goToActivities}>
+            Skip and go to activities
+          </Button>
+        </div>
+      </RopaShell>
+    );
+  }
+
   return (
     <RopaShell
       title="Annual Refresh — RoPA Builder"
