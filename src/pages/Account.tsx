@@ -17,6 +17,7 @@ export default function Account() {
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(true);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
@@ -24,7 +25,7 @@ export default function Account() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("is_premium, subscription_interval, subscription_tier")
+      .select("is_premium, subscription_interval, subscription_tier, role_confirmed_at")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -32,6 +33,7 @@ export default function Account() {
           setIsPremium(data.is_premium);
           setSubscriptionInterval((data as any).subscription_interval ?? null);
           setSubscriptionTier((data as any).subscription_tier ?? null);
+          setOnboardingComplete(!!(data as any).role_confirmed_at);
         }
         setLoading(false);
       });
@@ -60,6 +62,25 @@ export default function Account() {
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
+
+        {!onboardingComplete && (
+          <div className="bg-gradient-to-br from-blue/10 to-sky/10 border border-blue/30 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-navy text-[14px] mb-1">
+                Personalise your intelligence feed
+              </h3>
+              <p className="text-[13px] text-slate leading-relaxed">
+                Tell us your role, jurisdiction, and sector so we can tailor your Action Brief.
+              </p>
+            </div>
+            <Link
+              to="/onboarding-profile?redirect=%2Faccount"
+              className="shrink-0 inline-block bg-gradient-to-br from-steel to-blue text-white font-semibold text-[13px] py-2.5 px-5 rounded-lg no-underline hover:opacity-90 transition-all"
+            >
+              Complete setup →
+            </Link>
+          </div>
+        )}
 
         {/* Account details */}
         <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
