@@ -49,6 +49,8 @@ export default function RopaRefresh() {
   const [source, setSource] = useState<SourceSession | null>(null);
   const [activities, setActivities] = useState<SourceActivity[]>([]);
   const [existingCycle, setExistingCycle] = useState<CycleRow | null>(null);
+  const [activeNewSessionId, setActiveNewSessionId] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"intro" | "regulatory">("intro");
 
   useEffect(() => {
     if (!sessionId) return;
