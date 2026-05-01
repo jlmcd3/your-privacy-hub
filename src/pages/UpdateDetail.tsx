@@ -409,13 +409,13 @@ const UpdateDetail = () => {
               ) : (
                 <div className="relative">
                   <div className={isPremium ? "space-y-3" : "opacity-10 pointer-events-none select-none space-y-3"}>
-                    {article.regulatory_theory && (
+                    {article.regulatory_theory && !user && (
                       <div className="border border-border rounded-lg p-3">
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
                       </div>
                     )}
-                    {article.related_development && (
+                    {article.related_development && !user && (
                       <div className="border border-border rounded-lg p-3">
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
