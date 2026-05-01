@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/env";
 import { toast } from "sonner";
 import { Copy, Loader2, Mail } from "lucide-react";
+import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 
 interface JurisdictionResult {
   code: string;
@@ -40,6 +40,7 @@ export default function RegistrationAssessmentResult() {
   const [assessment, setAssessment] = useState<any>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [checkoutTier, setCheckoutTier] = useState<RegistrationTier | null>(null);
 
   // Email gate — anonymous viewers must leave an email before seeing the report.
   // Local-only, never blocks if the assessment was created with an email or by a logged-in user.
@@ -98,46 +99,11 @@ export default function RegistrationAssessmentResult() {
       navigate(`/signup?redirect=/registration-manager/result/${encodeURIComponent(token!)}`);
       return;
     }
-    setPurchasing(tier);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "create-registration-checkout",
-        {
-          body: {
-            tier,
-            jurisdictions: Array.from(selected),
-            assessment_id: assessment?.id,
-            organization_snapshot: {
-              name: assessment?.organization_name,
-              country: assessment?.organization_country,
-              size: assessment?.organization_size,
-              industry: assessment?.industry,
-              contact_email: assessment?.email || user.email,
-              intake: assessment?.intake_data,
-            },
-            environment: getStripeEnvironment(),
-          },
-        }
-      );
-      if (error) throw error;
-      if (!data?.url) throw new Error("No checkout URL returned");
-      // Stripe Checkout refuses to render in iframes (X-Frame-Options: DENY),
-      // and the Lovable preview is an iframe — so open in a new tab/top window.
-      const opened = window.open(data.url, "_blank");
-      if (!opened) {
-        // Popup blocked — fall back to top-level navigation so the redirect
-        // escapes the preview iframe instead of rendering a blank page.
-        if (window.top && window.top !== window.self) {
-          window.top.location.href = data.url;
-        } else {
-          window.location.href = data.url;
-        }
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Checkout failed");
-    } finally {
-      setPurchasing(null);
+    if (selected.size === 0) {
+      toast.error("Select at least one jurisdiction");
+      return;
     }
+    setCheckoutTier(tier);
   }
 
   function copyShareLink() {
@@ -375,6 +341,21 @@ export default function RegistrationAssessmentResult() {
         </PageContainer>
       </main>
       <Footer />
+      <RegistrationCheckoutModal
+        open={checkoutTier !== null}
+        tier={checkoutTier ?? "diy"}
+        jurisdictions={Array.from(selected)}
+        assessmentId={assessment?.id}
+        organizationSnapshot={{
+          name: assessment?.organization_name,
+          country: assessment?.organization_country,
+          size: assessment?.organization_size,
+          industry: assessment?.industry,
+          contact_email: assessment?.email,
+          intake: assessment?.intake_data,
+        }}
+        onClose={() => setCheckoutTier(null)}
+      />
     </>
   );
 }
