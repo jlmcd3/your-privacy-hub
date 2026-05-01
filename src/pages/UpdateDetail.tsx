@@ -179,12 +179,16 @@ const UpdateDetail = () => {
   );
 
   // Analyzed tier — Pro-only deep analysis
-  const hasAnalyzed = Boolean(
-    article?.regulatory_theory ||
-      article?.related_development ||
-      article?.attention_level ||
-      (article?.affected_sectors && article.affected_sectors.length > 0)
-  );
+  // For signed-in users, regulatory_theory/related_development have moved to Briefed,
+  // so the Analyzed section only shows attention_level + affected_sectors.
+  const hasAnalyzed = user
+    ? Boolean(article?.attention_level || (article?.affected_sectors && article.affected_sectors.length > 0))
+    : Boolean(
+        article?.regulatory_theory ||
+          article?.related_development ||
+          article?.attention_level ||
+          (article?.affected_sectors && article.affected_sectors.length > 0)
+      );
 
   return (
     <div className="min-h-screen bg-background">
