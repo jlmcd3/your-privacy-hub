@@ -120,8 +120,6 @@ const Updates = () => {
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
     // (Attention filter state removed — Attention badge no longer surfaced)
-    const [selectedArticle, setSelectedArticle] = useState<Update | null>(null);
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
     const userTier: "free" | "pro" = isPremium ? "pro" : "free";
