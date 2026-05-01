@@ -7,6 +7,8 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
+import { ActionBrief } from "@/components/ActionBrief";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
 
 interface AISummary {
@@ -17,6 +19,12 @@ interface AISummary {
   urgency?: string;
   legal_weight?: string;
   risk_level?: string;
+}
+
+interface ActionItem {
+  role?: string;
+  action?: string;
+  timeframe?: string;
 }
 
 interface Update {
@@ -36,6 +44,7 @@ interface Update {
   related_development: string | null;
   attention_level: string | null;
   affected_sectors: string[] | null;
+  action_items: ActionItem[] | null;
 }
 
 interface RelatedUpdate {
@@ -108,6 +117,7 @@ const UpdateDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
+  const userProfile = useUserProfile();
   const [article, setArticle] = useState<Update | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -119,7 +129,7 @@ const UpdateDetail = () => {
     (supabase as any)
       .from("updates")
       .select(
-        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors"
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items"
       )
       .eq("id", id)
       .eq("is_hidden", false)
@@ -169,12 +179,16 @@ const UpdateDetail = () => {
   );
 
   // Analyzed tier — Pro-only deep analysis
-  const hasAnalyzed = Boolean(
-    article?.regulatory_theory ||
-      article?.related_development ||
-      article?.attention_level ||
-      (article?.affected_sectors && article.affected_sectors.length > 0)
-  );
+  // For signed-in users, regulatory_theory/related_development have moved to Briefed,
+  // so the Analyzed section only shows attention_level + affected_sectors.
+  const hasAnalyzed = user
+    ? Boolean(article?.attention_level || (article?.affected_sectors && article.affected_sectors.length > 0))
+    : Boolean(
+        article?.regulatory_theory ||
+          article?.related_development ||
+          article?.attention_level ||
+          (article?.affected_sectors && article.affected_sectors.length > 0)
+      );
 
   return (
     <div className="min-h-screen bg-background">
@@ -310,34 +324,27 @@ const UpdateDetail = () => {
                   </div>
                 )}
 
-                {/* Anon: sign-in CTA in place of takeaways/impact/etc. */}
-                {!user && (ai?.takeaways?.length || ANALYSIS_FIELDS.some(f => ai?.[f.key])) && (
-                  <div className="border border-border rounded-lg p-4 bg-muted/30 text-center">
-                    <Lock size={18} className="mx-auto mb-2 text-primary" />
-                    <p className="text-[13px] text-foreground font-semibold mb-1">
-                      Sign in free to see key takeaways
-                    </p>
-                    <p className="text-[12px] text-muted-foreground mb-3">
-                      Compliance impact, urgency and risk level are part of Intelligence (Pro).
-                    </p>
-                    <div className="flex items-center justify-center gap-2">
+                {/* Anon: show first takeaway + register-free link for the rest */}
+                {!user && ai?.takeaways && ai.takeaways.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
+                    <ul className="list-disc pl-5 space-y-1.5">
+                      <li className="text-[14px] text-muted-foreground leading-relaxed">
+                        {ai.takeaways[0]}
+                      </li>
+                    </ul>
+                    {ai.takeaways.length > 1 && (
                       <Link
                         to="/signup"
-                        className="inline-block text-[12px] font-semibold bg-primary text-primary-foreground px-3 py-1.5 rounded no-underline hover:opacity-90 transition-opacity"
+                        className="inline-block mt-3 text-[13px] font-semibold text-primary no-underline hover:underline"
                       >
-                        Create free account
+                        + {ai.takeaways.length - 1} more {ai.takeaways.length - 1 === 1 ? "takeaway" : "takeaways"} — register free →
                       </Link>
-                      <Link
-                        to="/login"
-                        className="inline-block text-[12px] font-semibold text-primary px-3 py-1.5 no-underline hover:underline"
-                      >
-                        Sign in
-                      </Link>
-                    </div>
+                    )}
                   </div>
                 )}
 
-                {/* Key takeaways — signed-in users (free + pro) */}
+                {/* Key takeaways — signed-in users (free + pro) get all */}
                 {user && ai?.takeaways && ai.takeaways.length > 0 && (
                   <div className="mb-5">
                     <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
@@ -351,38 +358,38 @@ const UpdateDetail = () => {
                   </div>
                 )}
 
-                {/* Compliance impact / urgency / legal weight / risk — Pro only */}
-                {isPremium && ANALYSIS_FIELDS.some(f => ai?.[f.key]) && (
-                  <div className="space-y-3">
-                    {ANALYSIS_FIELDS.map(({ key, label }) => {
-                      const value = ai?.[key];
-                      if (!value || typeof value !== "string") return null;
-                      return (
-                        <div key={key}>
-                          <h4 className="text-foreground font-semibold text-[13px] mb-0.5">{label}</h4>
-                          <p className="text-[14px] text-muted-foreground leading-relaxed">{value}</p>
-                        </div>
-                      );
-                    })}
+                {/* Regulatory theory & related development — unlocked for all signed-in users */}
+                {user && (article.regulatory_theory || article.related_development) && (
+                  <div className="space-y-3 mb-5">
+                    {article.regulatory_theory && (
+                      <div className="border border-border rounded-lg p-3">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
+                        <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
+                      </div>
+                    )}
+                    {article.related_development && (
+                      <div className="border border-border rounded-lg p-3">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
+                        <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Free signed-in: Pro upsell for the gated fields */}
-                {user && !isPremium && ANALYSIS_FIELDS.some(f => ai?.[f.key]) && (
-                  <div className="border border-border rounded-lg p-4 bg-muted/30 text-center mt-2">
-                    <Lock size={18} className="mx-auto mb-2 text-purple-700" />
-                    <p className="text-[13px] text-foreground font-semibold mb-1">
-                      Compliance impact, urgency &amp; risk level — Intelligence
-                    </p>
-                    <p className="text-[12px] text-muted-foreground mb-3">
-                      Upgrade to see the full Intelligence Card on every update.
-                    </p>
-                    <Link
-                      to="/subscribe"
-                      className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
-                    >
-                      See Intelligence plan
-                    </Link>
+                {/* Action Brief — signed-in users only (blurred for free, full for Pro) */}
+                {user && (ai?.compliance_impact || ai?.urgency) && (
+                  <div className="mb-2">
+                    <ActionBrief
+                      urgency={ai?.urgency ?? null}
+                      who_should_care={ai?.who_should_care ?? null}
+                      compliance_impact={ai?.compliance_impact ?? null}
+                      action_items={article.action_items ?? null}
+                      risk_level={ai?.risk_level ?? null}
+                      isPremium={isPremium}
+                      userSalutation={userProfile.action_brief_salutation}
+                      articleId={article.id}
+                      articleCategory={article.category ?? null}
+                    />
                   </div>
                 )}
               </section>
@@ -406,13 +413,13 @@ const UpdateDetail = () => {
               ) : (
                 <div className="relative">
                   <div className={isPremium ? "space-y-3" : "opacity-10 pointer-events-none select-none space-y-3"}>
-                    {article.regulatory_theory && (
+                    {article.regulatory_theory && !user && (
                       <div className="border border-border rounded-lg p-3">
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
                       </div>
                     )}
-                    {article.related_development && (
+                    {article.related_development && !user && (
                       <div className="border border-border rounded-lg p-3">
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
