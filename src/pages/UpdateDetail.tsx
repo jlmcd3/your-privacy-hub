@@ -207,6 +207,13 @@ const UpdateDetail = () => {
           (article?.affected_sectors && article.affected_sectors.length > 0)
       );
 
+  // Track when a free registered user is shown the blurred Analyzed section.
+  useEffect(() => {
+    if (!user || isPremium || !article?.id || !hasAnalyzed) return;
+    void trackEvent("analyzed_blur_seen");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isPremium, article?.id, hasAnalyzed]);
+
   return (
     <div className="min-h-screen bg-background">
       {article && (
