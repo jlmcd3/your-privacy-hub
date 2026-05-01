@@ -243,7 +243,7 @@ export default function RopaLanding() {
             </div>
 
             <p className="text-xs text-muted-foreground text-center mt-4">
-              Intelligence subscription: {INTELLIGENCE_PRICING.both()}.
+              Intelligence subscription: {INTELLIGENCE_PRICING.combined()}.
             </p>
           </div>
         </section>
