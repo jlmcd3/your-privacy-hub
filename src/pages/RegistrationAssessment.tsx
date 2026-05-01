@@ -420,9 +420,16 @@ export default function RegistrationAssessment() {
                 </div>
               </CardContent>
             </Card>
+            </div>
             <div className="mt-6">
               <RegistrationDisclaimer />
             </div>
+            <AuthGateModal
+              open={authGateOpen}
+              onClose={() => setAuthGateOpen(false)}
+              heading="Create a free account to use the Registration Manager"
+              body="The Registration Manager assessment is free, but requires an account so we can save your answers and email your results."
+            />
           </div>
         </PageContainer>
       </main>
