@@ -635,6 +635,7 @@ export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSal
     case 'enforcement': return <EnforcementCard item={item} />;
     case 'newsfeed':    return <NewsfeedCard item={item} />;
     case 'preview':     return <PreviewCard item={item} />;
+    case 'homepage':    return <HomepageCard item={item} />;
     default:            return <FullCard item={item} isPremium={isPremium} userSalutation={userSalutation} />;
   }
 };
