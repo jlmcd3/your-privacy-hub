@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { RopaRegulatoryUpdates } from "@/components/ropa/RopaRegulatoryUpdates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -197,6 +199,10 @@ export default function RopaRefresh() {
       title="Annual Refresh — RoPA Builder"
       heading={`Refresh: Version ${source.version_number}`}
     >
+      {(() => {
+        const { steps, currentIndex } = getRopaSteps("refresh");
+        return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
+      })()}
       <div className="mb-6">
         <p className="font-body text-muted-foreground">
           Confirm what's still accurate, update what changed, and add new processing

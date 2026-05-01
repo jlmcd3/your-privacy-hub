@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { toast } from "sonner";
@@ -140,6 +142,10 @@ export default function RopaActivity() {
       title={`${currentActivity.display_name} — RoPA Builder`}
       heading=""
     >
+      {(() => {
+        const { steps, currentIndex } = getRopaSteps("activity");
+        return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
+      })()}
       <div className="grid md:grid-cols-[260px_1fr] gap-6 pb-24 md:pb-0">
         {/* Sidebar (desktop) */}
         <aside
