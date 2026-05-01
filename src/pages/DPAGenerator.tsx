@@ -47,6 +47,15 @@ export default function DPAGenerator() {
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const validateForm = (): string | null => {
+    if (!form.controllerName.trim()) return "Please enter the Controller name.";
+    if (!form.processorName.trim()) return "Please enter the Processor name.";
+    if (!form.services.trim()) return "Please describe the Services to be provided.";
+    if (form.dataCategories.length === 0) return "Please select at least one data category.";
+    return null;
+  };
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
@@ -58,19 +67,27 @@ export default function DPAGenerator() {
   const handleGenerate = async () => {
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id } });
-    if (error || !data?.dpa_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
+    if (error || !data?.dpa_text) {
+      const msg = (data as any)?.error || error?.message || "Generation failed. Please try again.";
+      setResult(`Generation failed: ${msg}`);
+      setPhase("result");
+      return;
+    }
     setResult(data.dpa_text);
-    // If the edge function returned a saved row id, hop to the persistent result page so the user can return later.
     if (data?.id) { navigate(`/dpa-generator/result/${data.id}`); return; }
     setPhase("result");
   };
 
   const handlePurchase = async () => {
+    const err = validateForm();
+    if (err) { setValidationError(err); return; }
+    setValidationError(null);
     logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
     if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
   };
+
 
   return (
     <div className="min-h-screen bg-paper">
@@ -129,6 +146,11 @@ export default function DPAGenerator() {
               <div className="border-t border-border pt-4 mt-4 text-[12px] text-muted-foreground">Sample preview:</div>
               <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 text-[13px]" role="alert">
+                  {validationError}
+                </div>
+              )}
             </div>
           </ToolSampleOverlay>
         )}
