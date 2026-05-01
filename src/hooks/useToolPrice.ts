@@ -62,6 +62,8 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           li_assessment: "li_analyzer",
           governance_assessment: "healthcheck",
           dpia_framework: "dpia_builder",
+          ropa_initial: "ropa_initial",
+          ropa_refresh: "ropa_refresh",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 
