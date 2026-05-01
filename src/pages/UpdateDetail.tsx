@@ -123,6 +123,23 @@ const UpdateDetail = () => {
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState<RelatedUpdate[]>([]);
 
+  // Fire-and-forget tracking — silent on failure, never blocks UI.
+  const trackEvent = async (eventType: string) => {
+    if (!user?.id || !article?.id) return;
+    try {
+      await supabase.from("user_enrichment_events").insert({
+        user_id: user.id,
+        event_type: eventType,
+        article_id: article.id,
+        article_category: article.category ?? null,
+        user_role: userProfile.action_brief_salutation ?? null,
+      });
+    } catch {
+      /* silent */
+    }
+  };
+
+
   // Fetch article
   useEffect(() => {
     if (!id) return;
