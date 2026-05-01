@@ -6,7 +6,6 @@ import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
-import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
@@ -66,7 +65,14 @@ export default function DPAGenerator() {
 
   const handleGenerate = async () => {
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id } });
+    const timeout = new Promise<never>((_, reject) =>
+      window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
+    );
+    const response = await Promise.race([
+      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id } }),
+      timeout,
+    ]).catch((error) => ({ data: null, error }));
+    const { data, error } = response;
     if (error || !data?.dpa_text) {
       const msg = (data as any)?.error || error?.message || "Generation failed. Please try again.";
       setResult(`Generation failed: ${msg}`);
@@ -83,7 +89,7 @@ export default function DPAGenerator() {
     if (err) { setValidationError(err); return; }
     setValidationError(null);
     logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
-    if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
+    if (access.isFreeForUser) { await handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
   };
@@ -119,40 +125,41 @@ export default function DPAGenerator() {
             <p className="text-[12px] text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
           </div>
         ) : (
-          <ToolSampleOverlay
-            toolName="Your Custom DPA" priceLabel={access.priceLabel} onPurchase={handlePurchase}
-            isFreeForUser={access.isFreeForUser} isPremium={access.isPremium}
-            subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
-          >
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Step {step} of 4</div>
-              <h2 className="font-display font-bold text-navy text-[18px]">DPA Intake</h2>
-              <div className="space-y-3 text-[13px]">
-                <label className="block"><span className="font-semibold text-navy">Controller name</span>
-                  <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
-                <label className="block"><span className="font-semibold text-navy">Controller jurisdiction</span>
-                  <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
-                    {JURS.map(j => <option key={j}>{j}</option>)}</select></label>
-                <label className="block"><span className="font-semibold text-navy">Processor name</span>
-                  <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
-                <label className="block"><span className="font-semibold text-navy">Services description</span>
-                  <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
-                <fieldset><legend className="font-semibold text-navy">Data categories</legend>
-                  <div className="grid grid-cols-2 gap-1.5 mt-1">
-                    {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-[12px]">
-                      <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
-                  </div></fieldset>
-              </div>
-              <div className="border-t border-border pt-4 mt-4 text-[12px] text-muted-foreground">Sample preview:</div>
-              <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
-              <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
-              {validationError && (
-                <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 text-[13px]" role="alert">
-                  {validationError}
-                </div>
-              )}
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Step {step} of 4</div>
+            <h2 className="font-display font-bold text-navy text-[18px]">DPA Intake</h2>
+            <div className="space-y-3 text-[13px]">
+              <label className="block"><span className="font-semibold text-navy">Controller name</span>
+                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
+              <label className="block"><span className="font-semibold text-navy">Controller jurisdiction</span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
+                  {JURS.map(j => <option key={j}>{j}</option>)}</select></label>
+              <label className="block"><span className="font-semibold text-navy">Processor name</span>
+                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
+              <label className="block"><span className="font-semibold text-navy">Services description</span>
+                <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
+              <fieldset><legend className="font-semibold text-navy">Data categories</legend>
+                <div className="grid grid-cols-2 gap-1.5 mt-1">
+                  {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-[12px]">
+                    <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
+                </div></fieldset>
             </div>
-          </ToolSampleOverlay>
+            <div className="border-t border-border pt-4 mt-4 text-[12px] text-muted-foreground">Sample preview:</div>
+            <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
+            <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+            {validationError && (
+              <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-[13px]" role="alert">
+                {validationError}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handlePurchase}
+              className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all"
+            >
+              {access.priceLabel}
+            </button>
+          </div>
         )}
       </main>
       <ToolCheckoutModal

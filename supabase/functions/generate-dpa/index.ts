@@ -31,6 +31,9 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const AI_MODEL = "google/gemini-2.5-flash";
+
 interface EnforcementCtx {
   regulator?: string;
   jurisdiction?: string;
@@ -74,6 +77,8 @@ Deno.serve(async (req) => {
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
     try {
+      const enforcementController = new AbortController();
+      const enforcementTimeout = setTimeout(() => enforcementController.abort(), 8_000);
       const enforcementRes = await fetch(
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`,
         {
@@ -88,8 +93,10 @@ Deno.serve(async (req) => {
             data_categories: (body.dataCategories || []).map((c) => c.toLowerCase()),
             limit: 8,
           }),
+          signal: enforcementController.signal,
         }
       );
+      clearTimeout(enforcementTimeout);
       if (enforcementRes.ok) {
         const json = await enforcementRes.json();
         enforcement_context = json.results || json.enforcement_context || [];
@@ -113,10 +120,9 @@ Deno.serve(async (req) => {
             .join("\n\n")
         : "No specific enforcement precedents retrieved for these parameters.";
 
-    // Step 3 — Sonnet
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) {
-      return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
+    // Step 3 — Draft via Lovable AI Gateway
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -171,24 +177,29 @@ Requirements:
 - Mark any fields requiring controller/processor input as [TO BE COMPLETED: description]
 - Output ONLY the DPA document. No preamble, commentary, or explanation.`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiController = new AbortController();
+    const aiTimeout = setTimeout(() => aiController.abort(), 85_000);
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: AI_MODEL,
         max_tokens: 6000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
       }),
+      signal: aiController.signal,
     });
+    clearTimeout(aiTimeout);
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();
-      console.error("Claude error:", errText);
+      console.error("DPA AI generation failed:", aiRes.status, errText);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -196,7 +207,13 @@ Requirements:
     }
 
     const aiData = await aiRes.json();
-    const dpa_text = aiData.content?.[0]?.text ?? "";
+    const dpa_text = aiData.choices?.[0]?.message?.content ?? "";
+    if (!dpa_text.trim()) {
+      return new Response(JSON.stringify({ error: "AI generation returned an empty document" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const report_data = {
       enforcement_precedents: enforcement_context.slice(0, 5),
