@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { toast } from "sonner";
 import { Copy, Loader2, Mail } from "lucide-react";
+import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 
 interface JurisdictionResult {
   code: string;
