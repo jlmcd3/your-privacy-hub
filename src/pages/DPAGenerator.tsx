@@ -89,7 +89,7 @@ export default function DPAGenerator() {
     if (err) { setValidationError(err); return; }
     setValidationError(null);
     logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
-    if (access.isFreeForUser || access.isPremium) { await handleGenerate(); return; }
+    if (access.isFreeForUser) { await handleGenerate(); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
   };
@@ -157,7 +157,7 @@ export default function DPAGenerator() {
               onClick={handlePurchase}
               className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all"
             >
-              {access.isPremium ? "Generate Custom DPA" : access.priceLabel}
+              {access.priceLabel}
             </button>
           </div>
         )}
