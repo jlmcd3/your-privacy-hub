@@ -207,9 +207,15 @@ export default function Account() {
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
                 <span className="text-[13px] text-slate">Status</span>
-                <span className="text-[13px] font-medium text-accent flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" /> Active
-                </span>
+                {cancelAtPeriodEnd ? (
+                  <span className="text-[13px] font-medium text-warn">
+                    Canceled — access until {formattedEndDate ?? "period end"}
+                  </span>
+                ) : (
+                  <span className="text-[13px] font-medium text-accent flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> Active
+                  </span>
+                )}
               </div>
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
                 <span className="text-[13px] text-slate">Brief preferences</span>
@@ -221,13 +227,28 @@ export default function Account() {
                 </Link>
               </div>
               <div className="flex justify-between items-center py-2.5">
-                <span className="text-[13px] text-slate">Cancel subscription</span>
-                <a
-                  href="mailto:support@enduserprivacy.com?subject=Cancel%20my%20subscription"
-                  className="text-[13px] text-slate hover:text-warn no-underline"
-                >
-                  Contact us to cancel
-                </a>
+                <span className="text-[13px] text-slate">
+                  {cancelAtPeriodEnd ? "Resume subscription" : "Cancel subscription"}
+                </span>
+                {cancelAtPeriodEnd ? (
+                  <button
+                    type="button"
+                    onClick={handleResume}
+                    disabled={cancelBusy}
+                    className="text-[13px] font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer disabled:opacity-50"
+                  >
+                    {cancelBusy ? "Working…" : "Resume auto-renewal →"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmCancelOpen(true)}
+                    disabled={cancelBusy}
+                    className="text-[13px] font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel auto-renewal
+                  </button>
+                )}
               </div>
             </div>
             {cancelMsg && (
