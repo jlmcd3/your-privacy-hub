@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, X, ChevronRight } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
-import ArticleDrawer from "@/components/ArticleDrawer";
+
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -120,11 +120,9 @@ const Updates = () => {
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
     // (Attention filter state removed — Attention badge no longer surfaced)
-    const [selectedArticle, setSelectedArticle] = useState<Update | null>(null);
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
-    const userTier: "free" | "pro" = isPremium ? "pro" : "free";
+    
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
     // Write the selected pill into the URL (region/topic) so back/forward stays in sync.
@@ -167,14 +165,6 @@ const Updates = () => {
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
 
-    // Close drawer on Escape
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setDrawerOpen(false);
-        };
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, []);
 
     const buildQuery = useCallback((offset: number) => {
         return supabase
@@ -529,67 +519,37 @@ const Updates = () => {
 
                 <AdBanner />
 
-                {/* Newsfeed + slide-in drawer */}
-                <div className="relative overflow-hidden">
-                    <div className={`transition-all duration-200 ${drawerOpen ? "pr-[360px]" : ""}`}>
-                        {user && isPremium ? (
-                            /* Intelligence subscribers: full paginated experience with drawer */
-                            <NewsfeedList
-                                articles={filtered}
-                                isLoading={loading || loadingMore}
-                                hasMore={hasMore}
-                                onLoadMore={handleLoadMore}
-                                renderArticle={(article, _i, isPremiumCard) => (
-                                    <div
-                                        key={article.id}
-                                        onClick={() => {
-                                            setSelectedArticle(article as unknown as Update);
-                                            setDrawerOpen(true);
-                                        }}
-                                        className="cursor-pointer relative group"
-                                    >
-                                        <ArticleCard
-                                            item={{...article, source_url: article.url} as unknown as ArticleItem}
-                                            variant='full'
-                                            isPremium={isPremiumCard}
-                                        />
-                                        <ChevronRight className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                    </div>
-                                )}
-                            />
-                        ) : (
-                            /* Anonymous + free registered: TieredFeed */
-                            <TieredFeed
-                                articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
-                                paginated={true}
-                                previewCount={1}
-                                seeAllHref="/updates"
-                                showSeeAll={false}
-                                hasMore={hasMore}
-                                onLoadMore={handleLoadMore}
-                                isLoadingMore={loadingMore}
-                            />
-                        )}
-                    </div>
-
-                    <ArticleDrawer
-                        article={selectedArticle ? {
-                            id: selectedArticle.id,
-                            title: selectedArticle.title,
-                            source: selectedArticle.source_name || selectedArticle.source_domain || "Source",
-                            published_at: selectedArticle.published_at,
-                            url: selectedArticle.url,
-                            summary: selectedArticle.summary,
-                            ai_summary: selectedArticle.ai_summary,
-                            attention_level: selectedArticle.attention_level || undefined,
-                            regulatory_theory: selectedArticle.regulatory_theory || undefined,
-                            related_development: selectedArticle.related_development || undefined,
-                            affected_sectors: selectedArticle.affected_sectors || undefined,
-                        } : null}
-                        isOpen={drawerOpen}
-                        onClose={() => setDrawerOpen(false)}
-                        userTier={userTier}
-                    />
+                {/* Newsfeed */}
+                <div>
+                    {user && isPremium ? (
+                        /* Intelligence subscribers: full paginated experience */
+                        <NewsfeedList
+                            articles={filtered}
+                            isLoading={loading || loadingMore}
+                            hasMore={hasMore}
+                            onLoadMore={handleLoadMore}
+                            renderArticle={(article, _i, isPremiumCard) => (
+                                <ArticleCard
+                                    key={article.id}
+                                    item={{...article, source_url: article.url} as unknown as ArticleItem}
+                                    variant='full'
+                                    isPremium={isPremiumCard}
+                                />
+                            )}
+                        />
+                    ) : (
+                        /* Anonymous + free registered: TieredFeed */
+                        <TieredFeed
+                            articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
+                            paginated={true}
+                            previewCount={1}
+                            seeAllHref="/updates"
+                            showSeeAll={false}
+                            hasMore={hasMore}
+                            onLoadMore={handleLoadMore}
+                            isLoadingMore={loadingMore}
+                        />
+                    )}
                 </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
