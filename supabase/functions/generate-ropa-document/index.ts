@@ -745,6 +745,7 @@ Deno.serve(async (req: Request) => {
     { data: answerRows },
     { data: flags },
     { data: refreshRows },
+    { data: notedUpdates },
   ] = await Promise.all([
     admin.from("clients").select("*").eq("id", session.client_id).maybeSingle(),
     admin.from("ropa_client_profiles").select("*").eq("client_id", session.client_id).maybeSingle(),
@@ -770,6 +771,11 @@ Deno.serve(async (req: Request) => {
       .from("ropa_refresh_cycles")
       .select("activities_added, activities_updated, activities_confirmed")
       .eq("source_session_id", session.id),
+    admin
+      .from("ropa_noted_regulatory_updates")
+      .select("article_title, article_url, jurisdiction_code, urgency, noted_at")
+      .eq("session_id", session.id)
+      .order("noted_at", { ascending: false }),
   ]);
 
   const answersByActivity: Record<string, Record<string, unknown>> = {};
