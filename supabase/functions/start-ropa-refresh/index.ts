@@ -2,8 +2,8 @@
 // The new session inherits the client_id, version_number+1, links via parent_session_id,
 // and copies all processing activities and their answers. A ropa_refresh_cycles row is created.
 
-import { corsHeaders } from "@supabase/supabase-js/cors";
-import { createClient } from "@supabase/supabase-js";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 interface RequestBody {
   source_session_id?: string;
