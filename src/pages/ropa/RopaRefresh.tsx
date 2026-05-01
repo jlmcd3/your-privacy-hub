@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { RopaRegulatoryUpdates } from "@/components/ropa/RopaRegulatoryUpdates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
