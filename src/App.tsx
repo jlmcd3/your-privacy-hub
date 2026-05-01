@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -99,6 +99,11 @@ function CategoryRedirect() {
 function TopicRedirect() {
   const { slug } = useParams<{ slug: string }>();
   return <Navigate to={`/updates?topic=${slug ?? ""}`} replace />;
+}
+
+function PaymentReturnRedirect({ to }: { to: string }) {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
 }
 
 const App = () => (
@@ -347,6 +352,30 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/sample-brief" element={<SampleBrief />} />
+            <Route path="/ropa-initial/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/ropa/review" /></ProtectedRoute>
+            } />
+            <Route path="/ropa-refresh/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/ropa/review" /></ProtectedRoute>
+            } />
+            <Route path="/us-notice-single/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/us-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/us-notice-all-states/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/us-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-single/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-suite/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-full-international/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-refresh/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

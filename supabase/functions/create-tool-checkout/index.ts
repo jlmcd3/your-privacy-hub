@@ -74,6 +74,82 @@ const TOOLS: Record<
     fallback_standalone_cents: 4900,
     fallback_subscriber_cents: 0,
   },
+  ropa_initial: {
+    name: "RoPA Builder — Initial Generation",
+    standalone_lookup: "ropa_initial_standalone",
+    subscriber_lookup: "ropa_initial_subscriber",
+    table: "ropa_sessions",
+    fallback_standalone_cents: 7900,
+    fallback_subscriber_cents: 3500,
+  },
+  ropa_refresh: {
+    name: "RoPA Builder — Annual Refresh",
+    standalone_lookup: "ropa_refresh_standalone",
+    subscriber_lookup: "ropa_refresh_subscriber",
+    table: "ropa_sessions",
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 1500,
+  },
+  us_notice_single: {
+    name: "US Privacy Notice — Single State",
+    standalone_lookup: "us_notice_single_standalone",
+    subscriber_lookup: "us_notice_single_subscriber",
+    table: "us_notice_sessions",
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 1200,
+  },
+  us_notice_all_states: {
+    name: "US Privacy Notice — All States Suite",
+    standalone_lookup: "us_notice_all_standalone",
+    subscriber_lookup: "us_notice_all_subscriber",
+    table: "us_notice_sessions",
+    fallback_standalone_cents: 5900,
+    fallback_subscriber_cents: 2900,
+  },
+  eu_notice_single: {
+    name: "EU & Global Notice — Single Framework",
+    standalone_lookup: "eu_notice_single_standalone",
+    subscriber_lookup: "eu_notice_single_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 1900,
+  },
+  eu_notice_suite: {
+    name: "EU Notice Suite — GDPR + UK GDPR + FADP",
+    standalone_lookup: "eu_notice_suite_standalone",
+    subscriber_lookup: "eu_notice_suite_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 14900,
+    fallback_subscriber_cents: 6500,
+  },
+  eu_notice_full_international: {
+    name: "EU & Global Notice — Full International",
+    standalone_lookup: "eu_notice_intl_standalone",
+    subscriber_lookup: "eu_notice_intl_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 22900,
+    fallback_subscriber_cents: 9900,
+  },
+  eu_notice_refresh: {
+    name: "EU & Global Notice — Annual Refresh",
+    standalone_lookup: "eu_notice_refresh_standalone",
+    subscriber_lookup: "eu_notice_refresh_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 1900,
+  },
+};
+
+const SESSION_TABLES = new Set([
+  "ropa_sessions",
+  "us_notice_sessions",
+  "eu_notice_sessions",
+]);
+
+const DEFAULT_REVIEW_PATHS: Record<string, string> = {
+  ropa_sessions: "/ropa/review",
+  us_notice_sessions: "/us-notices/review",
+  eu_notice_sessions: "/eu-notices/review",
 };
 
 // Resolve the Stripe environment. Always prefer the explicit value the
@@ -89,7 +165,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, user_id, intake_data, return_url, environment, embedded } = await req.json();
+    const { tool_type, user_id, intake_data, return_url, environment, embedded, success_path } = await req.json();
     const tool = TOOLS[tool_type];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Invalid tool type" }), {
@@ -122,6 +198,70 @@ Deno.serve(async (req) => {
     const stripePrice = await resolvePriceId(stripe, lookupKey);
     const amountCents = stripePrice?.unit_amount ?? fallbackCents;
 
+    const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
+    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
+
+    const lineItemBase = stripePrice
+      ? { price: stripePrice.id, quantity: 1 }
+      : {
+          price_data: {
+            currency: "usd",
+            product_data: { name: tool.name },
+            unit_amount: amountCents,
+          },
+          quantity: 1,
+        };
+
+    // ── Session-based tools (RoPA / US Notice / EU Notice) ──
+    // The session row already exists from the Q&A flow. Do NOT insert a new
+    // row. Generation is triggered by the user from the review screen after
+    // the webhook marks payment_confirmed.
+    const isSessionTool = SESSION_TABLES.has(tool.table);
+    if (isSessionTool) {
+      const sessionId = (intake_data as any)?.session_id;
+      if (!sessionId) {
+        return new Response(
+          JSON.stringify({ error: "session_id required for this tool type" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      const defaultPath = DEFAULT_REVIEW_PATHS[tool.table] || "/account";
+      const returnPath = success_path || `${defaultPath}?payment_success=true`;
+      const joinChar = returnPath.includes("?") ? "&" : "?";
+
+      const checkoutParams: Record<string, unknown> = {
+        payment_method_types: ["card"],
+        line_items: [lineItemBase as any],
+        mode: "payment",
+        metadata: {
+          tool_type,
+          assessment_id: sessionId,
+          user_id: user_id || "",
+          tier: isSubscriber ? "subscriber" : "standalone",
+        },
+      };
+
+      if (embedded) {
+        checkoutParams.ui_mode = "embedded";
+        checkoutParams.return_url = `${origin}${returnPath}${joinChar}session_id={CHECKOUT_SESSION_ID}`;
+      } else {
+        checkoutParams.success_url = `${origin}${returnPath}`;
+        checkoutParams.cancel_url = `${origin}${defaultPath}`;
+      }
+
+      const sessionResp = await stripe.checkout.sessions.create(checkoutParams as any);
+
+      return new Response(
+        JSON.stringify(
+          embedded
+            ? { client_secret: sessionResp.client_secret, assessment_id: sessionId }
+            : { url: sessionResp.url, assessment_id: sessionId },
+        ),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Insert pending assessment record (price stored for accounting).
     let assessmentData: Record<string, unknown> = {};
     if (tool_type === "li_assessment") {
@@ -153,27 +293,10 @@ Deno.serve(async (req) => {
       throw new Error("Failed to create assessment record");
     }
 
-    const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
-    // Stripe requires absolute URLs for return_url / success_url / cancel_url.
-    // Fall back to production domain so server-to-server callers don't break.
-    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
-
-    const lineItem = stripePrice
-      ? { price: stripePrice.id, quantity: 1 }
-      : {
-          // Fallback inline price if lookup_key not yet provisioned
-          price_data: {
-            currency: "usd",
-            product_data: { name: tool.name },
-            unit_amount: amountCents,
-          },
-          quantity: 1,
-        };
-
     const toolPath = tool_type.replace(/_/g, "-");
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [lineItem as any],
+      line_items: [lineItemBase as any],
       mode: "payment",
       metadata: {
         tool_type,
