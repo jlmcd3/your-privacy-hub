@@ -12,17 +12,7 @@ interface UserRoleRow {
   label: string;
 }
 
-const SECTORS = [
-  "Technology",
-  "Financial Services",
-  "Healthcare",
-  "Legal",
-  "Retail",
-  "Manufacturing",
-  "Government",
-  "Consulting",
-  "Other",
-];
+import { SECTORS } from "@/constants/sectors";
 
 export default function OnboardingProfile() {
   const { user, loading: authLoading } = useAuth();
