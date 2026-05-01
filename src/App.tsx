@@ -34,6 +34,14 @@ import RopaReview from "./pages/ropa/RopaReview.tsx";
 import RopaDocuments from "./pages/ropa/RopaDocuments.tsx";
 import RopaRefresh from "./pages/ropa/RopaRefresh.tsx";
 import RopaLanding from "./pages/ropa/RopaLanding.tsx";
+import USNoticeHome from "./pages/us-notices/USNoticeHome.tsx";
+import USNoticeMode from "./pages/us-notices/USNoticeMode.tsx";
+import USNoticeStates from "./pages/us-notices/USNoticeStates.tsx";
+import USNoticeQuestions from "./pages/us-notices/USNoticeQuestions.tsx";
+import USNoticeReview from "./pages/us-notices/USNoticeReview.tsx";
+import USNoticeDocuments from "./pages/us-notices/USNoticeDocuments.tsx";
+import USNoticeRefresh from "./pages/us-notices/USNoticeRefresh.tsx";
+import USNoticeLanding from "./pages/us-notices/USNoticeLanding.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
@@ -342,6 +350,14 @@ const App = () => (
             <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
             <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
             <Route path="/ropa-builder" element={<RopaLanding />} />
+            <Route path="/us-notices" element={<ProtectedRoute><USNoticeHome /></ProtectedRoute>} />
+            <Route path="/us-notices/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
+            <Route path="/us-notices/states/:sessionId" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
+            <Route path="/us-notices/questions/:sessionId" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
+            <Route path="/us-notices/review/:sessionId" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
+            <Route path="/us-notices/documents" element={<ProtectedRoute><USNoticeDocuments /></ProtectedRoute>} />
+            <Route path="/us-notices/refresh/:sessionId" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/us-notice-builder" element={<USNoticeLanding />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
