@@ -199,6 +199,10 @@ export default function RopaRefresh() {
       title="Annual Refresh — RoPA Builder"
       heading={`Refresh: Version ${source.version_number}`}
     >
+      {(() => {
+        const { steps, currentIndex } = getRopaSteps("refresh");
+        return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
+      })()}
       <div className="mb-6">
         <p className="font-body text-muted-foreground">
           Confirm what's still accurate, update what changed, and add new processing
