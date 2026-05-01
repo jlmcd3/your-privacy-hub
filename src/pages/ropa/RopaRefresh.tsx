@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { RopaRegulatoryUpdates } from "@/components/ropa/RopaRegulatoryUpdates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,8 @@ export default function RopaRefresh() {
   const [source, setSource] = useState<SourceSession | null>(null);
   const [activities, setActivities] = useState<SourceActivity[]>([]);
   const [existingCycle, setExistingCycle] = useState<CycleRow | null>(null);
+  const [activeNewSessionId, setActiveNewSessionId] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"intro" | "regulatory">("intro");
 
   useEffect(() => {
     if (!sessionId) return;
@@ -107,7 +110,8 @@ export default function RopaRefresh() {
         title: "Refresh started",
         description: `Version ${data.version_number} ready for review.`,
       });
-      navigate(`/ropa/activities/${newId}`);
+      setActiveNewSessionId(newId);
+      setPhase("regulatory");
     } catch (err) {
       console.error("Start refresh failed:", err);
       toast({
@@ -118,6 +122,17 @@ export default function RopaRefresh() {
     } finally {
       setStarting(false);
     }
+  };
+
+  const handleResumeExisting = () => {
+    if (existingCycle?.new_session_id) {
+      setActiveNewSessionId(existingCycle.new_session_id);
+      setPhase("regulatory");
+    }
+  };
+
+  const goToActivities = () => {
+    if (activeNewSessionId) navigate(`/ropa/activities/${activeNewSessionId}`);
   };
 
   if (loading) {
@@ -144,6 +159,35 @@ export default function RopaRefresh() {
             .
           </AlertDescription>
         </Alert>
+      </RopaShell>
+    );
+  }
+
+  // Phase 4: regulatory updates review
+  if (phase === "regulatory" && activeNewSessionId) {
+    return (
+      <RopaShell
+        title="Regulatory updates — RoPA Refresh"
+        heading={`Refresh v${source.version_number + 1}: Regulatory updates`}
+      >
+        <p className="font-body text-muted-foreground mb-6">
+          Before reviewing your activities, here's what's changed in your monitored
+          jurisdictions since your last RoPA was generated.
+        </p>
+        <RopaRegulatoryUpdates
+          newSessionId={activeNewSessionId}
+          clientId={source.client_id}
+          lastGeneratedDate={source.completed_at}
+          onContinue={goToActivities}
+        />
+        <div className="flex justify-between">
+          <Button variant="ghost" onClick={() => setPhase("intro")}>
+            ← Back
+          </Button>
+          <Button variant="outline" onClick={goToActivities}>
+            Skip and go to activities
+          </Button>
+        </div>
       </RopaShell>
     );
   }
@@ -179,10 +223,8 @@ export default function RopaRefresh() {
           <AlertTitle className="font-heading">Refresh already in progress</AlertTitle>
           <AlertDescription className="font-body text-sm flex flex-wrap items-center justify-between gap-3">
             <span>You started a refresh on this version already.</span>
-            <Button asChild size="sm">
-              <Link to={`/ropa/activities/${existingCycle.new_session_id}`}>
-                Continue refresh <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+            <Button size="sm" onClick={handleResumeExisting}>
+              Continue refresh <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </AlertDescription>
         </Alert>
