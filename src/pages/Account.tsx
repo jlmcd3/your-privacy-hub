@@ -25,18 +25,25 @@ import { useToast } from "@/hooks/use-toast";
 export default function Account() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(true);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(null);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [cancelBusy, setCancelBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
-  useEffect(() => {
+  const loadProfile = () => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("is_premium, subscription_interval, subscription_tier, role_confirmed_at")
+      .select(
+        "is_premium, subscription_interval, subscription_tier, role_confirmed_at, cancel_at_period_end, subscription_end_date"
+      )
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -45,10 +52,62 @@ export default function Account() {
           setSubscriptionInterval((data as any).subscription_interval ?? null);
           setSubscriptionTier((data as any).subscription_tier ?? null);
           setOnboardingComplete(!!(data as any).role_confirmed_at);
+          setCancelAtPeriodEnd(!!(data as any).cancel_at_period_end);
+          setSubscriptionEndDate((data as any).subscription_end_date ?? null);
         }
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const formattedEndDate = subscriptionEndDate
+    ? new Date(subscriptionEndDate).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
+
+  const handleConfirmCancel = async () => {
+    setCancelBusy(true);
+    setCancelMsg("");
+    const { data, error } = await supabase.functions.invoke("cancel-subscription", {
+      body: { resume: false },
+    });
+    setCancelBusy(false);
+    setConfirmCancelOpen(false);
+    if (error || (data as any)?.error) {
+      const msg = (data as any)?.error || error?.message || "Could not cancel subscription.";
+      toast({ title: "Cancellation failed", description: msg, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: "Subscription canceled",
+      description: formattedEndDate
+        ? `You'll keep access until ${formattedEndDate}.`
+        : "You'll keep access until the end of the current billing period.",
+    });
+    loadProfile();
+  };
+
+  const handleResume = async () => {
+    setCancelBusy(true);
+    const { data, error } = await supabase.functions.invoke("cancel-subscription", {
+      body: { resume: true },
+    });
+    setCancelBusy(false);
+    if (error || (data as any)?.error) {
+      const msg = (data as any)?.error || error?.message || "Could not resume subscription.";
+      toast({ title: "Resume failed", description: msg, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Subscription resumed", description: "Auto-renewal is back on." });
+    loadProfile();
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
