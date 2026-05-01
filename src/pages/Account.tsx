@@ -17,6 +17,7 @@ export default function Account() {
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(true);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
 
@@ -24,7 +25,7 @@ export default function Account() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("is_premium, subscription_interval, subscription_tier")
+      .select("is_premium, subscription_interval, subscription_tier, role_confirmed_at")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -32,6 +33,7 @@ export default function Account() {
           setIsPremium(data.is_premium);
           setSubscriptionInterval((data as any).subscription_interval ?? null);
           setSubscriptionTier((data as any).subscription_tier ?? null);
+          setOnboardingComplete(!!(data as any).role_confirmed_at);
         }
         setLoading(false);
       });
