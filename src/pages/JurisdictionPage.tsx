@@ -120,6 +120,7 @@ const isLikelyNonEnglish = (text: string): boolean => {
 
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
   const staticJurisdiction = slug ? allJurisdictions[slug] : null;
   const [dbFallback, setDbFallback] = useState<any>(null);
   const [fallbackLoading, setFallbackLoading] = useState(false);
