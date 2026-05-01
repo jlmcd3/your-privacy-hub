@@ -117,6 +117,7 @@ const UpdateDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
+  const userProfile = useUserProfile();
   const [article, setArticle] = useState<Update | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
