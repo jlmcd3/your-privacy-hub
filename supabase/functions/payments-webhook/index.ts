@@ -38,12 +38,39 @@ Deno.serve(async (req) => {
         await handleCheckoutFailed(event.data.object, event.type, env);
         break;
       }
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object;
+        const item = sub.items?.data?.[0];
+        const periodEnd =
+          item?.current_period_end ?? sub.current_period_end ?? null;
+        const isActive = ["active", "trialing", "past_due"].includes(sub.status);
+        await supabase
+          .from("profiles")
+          .update({
+            stripe_subscription_id: sub.id,
+            cancel_at_period_end: !!sub.cancel_at_period_end,
+            subscription_end_date: periodEnd
+              ? new Date(periodEnd * 1000).toISOString()
+              : null,
+            // Don't flip is_premium off here — only on actual deletion. A
+            // canceled-at-period-end sub still has access until period end.
+            ...(isActive ? { is_premium: true, payment_failed: false } : {}),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_customer_id", sub.customer);
+        break;
+      }
       case "customer.subscription.deleted":
       case "subscription.canceled": {
         const sub = event.data.object;
         await supabase
           .from("profiles")
-          .update({ is_premium: false, updated_at: new Date().toISOString() })
+          .update({
+            is_premium: false,
+            cancel_at_period_end: false,
+            updated_at: new Date().toISOString(),
+          })
           .eq("stripe_customer_id", sub.customer);
         break;
       }

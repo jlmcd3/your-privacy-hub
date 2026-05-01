@@ -18,6 +18,8 @@ import {
   JURISDICTION_OPTIONS, ORG_SIZES, INDUSTRIES, rememberAssessmentToken,
 } from "@/data/registration_jurisdictions";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
+import AuthGateModal from "@/components/AuthGateModal";
+import { useAuth } from "@/hooks/useAuth";
 
 interface IntakeState {
   // Step 1
@@ -79,9 +81,21 @@ const EMPTY: IntakeState = {
 export default function RegistrationAssessment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [intake, setIntake] = useState<IntakeState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
+
+  const isAnon = !authLoading && !user;
+
+  function guardAnon(): boolean {
+    if (isAnon) {
+      setAuthGateOpen(true);
+      return true;
+    }
+    return false;
+  }
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -166,6 +180,21 @@ export default function RegistrationAssessment() {
               </p>
             </header>
 
+            <div className="relative">
+              {isAnon && (
+                <button
+                  type="button"
+                  aria-label="Create an account to use the Registration Manager"
+                  onClick={() => setAuthGateOpen(true)}
+                  onFocus={() => setAuthGateOpen(true)}
+                  className="absolute inset-0 z-20 w-full h-full bg-transparent cursor-pointer border-0 p-0 m-0"
+                />
+              )}
+              <div
+                {...(isAnon ? { inert: "" } : {})}
+                aria-hidden={isAnon}
+                style={isAnon ? { pointerEvents: "none", userSelect: "none", opacity: 0.6 } : undefined}
+              >
             <Card>
               <CardHeader>
                 <CardTitle>Step {step} of 3</CardTitle>
@@ -383,9 +412,17 @@ export default function RegistrationAssessment() {
                 </div>
               </CardContent>
             </Card>
+              </div>
+            </div>
             <div className="mt-6">
               <RegistrationDisclaimer />
             </div>
+            <AuthGateModal
+              open={authGateOpen}
+              onClose={() => setAuthGateOpen(false)}
+              heading="Create a free account to use the Registration Manager"
+              body="The Registration Manager assessment is free, but requires an account so we can save your answers and email your results."
+            />
           </div>
         </PageContainer>
       </main>

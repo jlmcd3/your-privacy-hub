@@ -38,11 +38,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to={`/login?redirect=${encodeURIComponent(from)}`} replace />;
   }
 
-  // Force onboarding before any other protected page
-  if (
-    roleConfirmed === false &&
-    location.pathname !== "/onboarding-profile"
-  ) {
+  // Force onboarding before any other protected page (Account is exempt)
+  const onboardingExempt =
+    location.pathname === "/onboarding-profile" ||
+    location.pathname === "/account";
+  if (roleConfirmed === false && !onboardingExempt) {
     const from = location.pathname + location.search;
     return <Navigate to={`/onboarding-profile?redirect=${encodeURIComponent(from)}`} replace />;
   }
