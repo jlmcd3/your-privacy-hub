@@ -88,12 +88,6 @@ export default function DPAGenerator() {
     setCheckoutOpen(true);
   };
 
-  const handlePurchase = async () => {
-    logToolAcknowledgment("dpa_generator", access.user?.id ?? null);
-    if (access.isFreeForUser || access.isPremium) { setPhase("generating"); handleGenerate(); return; }
-    if (!access.user) { setAuthGateOpen(true); return; }
-    setCheckoutOpen(true);
-  };
 
   return (
     <div className="min-h-screen bg-paper">
