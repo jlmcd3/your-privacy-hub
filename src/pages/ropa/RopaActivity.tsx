@@ -23,7 +23,7 @@ export default function RopaActivity() {
   const loadSession = useRopaStore((s) => s.loadSession);
   const saveAnswer = useRopaStore((s) => s.saveAnswer);
   const markActivityComplete = useRopaStore((s) => s.markActivityComplete);
-  const createFlag = useRopaStore((s) => s.createFlag);
+  const evaluateFlagsForAnswer = useRopaStore((s) => s.evaluateFlagsForAnswer);
 
   const [questionIndex, setQuestionIndex] = useState(0);
 
