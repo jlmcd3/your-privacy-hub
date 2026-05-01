@@ -10,6 +10,8 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   li_assessment: { standalone: 79, subscriber: 35, name: "Legitimate Interest Assessment Tool" },
   governance_assessment: { standalone: 49, subscriber: 25, name: "Privacy Program Assessment Tool" },
   dpia_framework: { standalone: 99, subscriber: 49, name: "Impact Assessment Builder" },
+  ropa_initial: { standalone: 79, subscriber: 35, name: "RoPA Builder — Initial Generation" },
+  ropa_refresh: { standalone: 35, subscriber: 15, name: "RoPA Builder — Annual Refresh" },
 };
 
 export interface ToolPricing {
@@ -60,6 +62,8 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           li_assessment: "li_analyzer",
           governance_assessment: "healthcheck",
           dpia_framework: "dpia_builder",
+          ropa_initial: "ropa_initial",
+          ropa_refresh: "ropa_refresh",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 

@@ -337,6 +337,7 @@ const App = () => (
             <Route path="/ropa/setup" element={<ProtectedRoute><RopaSetup /></ProtectedRoute>} />
             <Route path="/ropa/activities" element={<ProtectedRoute><RopaActivities /></ProtectedRoute>} />
             <Route path="/ropa/activity/:id" element={<ProtectedRoute><RopaActivity /></ProtectedRoute>} />
+            <Route path="/ropa/review/:sessionId" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
             <Route path="/ropa/review" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
             <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
             <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
