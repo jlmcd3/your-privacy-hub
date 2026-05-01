@@ -412,6 +412,7 @@ export default function RegistrationAssessment() {
                 </div>
               </CardContent>
             </Card>
+              </div>
             </div>
             <div className="mt-6">
               <RegistrationDisclaimer />
