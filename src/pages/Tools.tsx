@@ -39,7 +39,8 @@ const TOOLS: ToolDef[] = [
     slug: "healthcheck",
     icon: "🛡️",
     name: "Privacy Program Assessment Tool",
-    tagline: "A structured assessment of your privacy program across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
+    tagline:
+      "A structured assessment of your privacy program across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
     href: "/governance-assessment",
     subscriberPrice: "$25 per assessment",
     standalonePrice: "$49",
@@ -50,9 +51,21 @@ const TOOLS: ToolDef[] = [
     ],
     sampleSections: [
       { label: "Domain score", content: "Data Subject Rights Response Process – 58/100 (Needs Attention)" },
-      { label: "Key finding", content: "No documented process for verifying requester identity before releasing Subject Access Request data. Supervisory authorities in multiple jurisdictions have issued formal enforcement notices for this failure in recent cases." },
-      { label: "Recommended action", content: "Implement a written identity verification procedure before the next DSAR is received. Document the procedure and train all staff who handle incoming requests." },
-      { label: "Enforcement context", content: "Failure to verify identity before releasing personal data has been a specific enforcement focus in the healthcare and financial sectors across multiple EU and UK DPA investigations in 2023–2024." },
+      {
+        label: "Key finding",
+        content:
+          "No documented process for verifying requester identity before releasing Subject Access Request data. Supervisory authorities in multiple jurisdictions have issued formal enforcement notices for this failure in recent cases.",
+      },
+      {
+        label: "Recommended action",
+        content:
+          "Implement a written identity verification procedure before the next DSAR is received. Document the procedure and train all staff who handle incoming requests.",
+      },
+      {
+        label: "Enforcement context",
+        content:
+          "Failure to verify identity before releasing personal data has been a specific enforcement focus in the healthcare and financial sectors across multiple EU and UK DPA investigations in 2023–2024.",
+      },
     ],
   },
   {
@@ -69,10 +82,26 @@ const TOOLS: ToolDef[] = [
       "The generated document is a starting point for legal review, not a replacement for it. It is structured to be presented to your legal or privacy professional for sign-off, annotated where your specific circumstances require professional judgment, and retained as part of your Record of Processing Activities.",
     ],
     sampleSections: [
-      { label: "Purpose test", content: "Processing activity: direct marketing to existing customers. Purpose is lawful, specific, and present at the time of processing. ✓" },
-      { label: "Necessity test", content: "The processing is necessary to achieve the stated purpose. Less intrusive means — such as contextual advertising without personal profiling — were considered and would not achieve the same operational objective. ✓ with conditions noted." },
-      { label: "Balancing test finding", content: "On balance, the legitimate interest is not overridden, provided: (1) an easy opt-out mechanism is provided at every point of contact, (2) sensitive categories are excluded from the dataset, and (3) the frequency of contact is limited to fortnightly." },
-      { label: "Enforcement context", content: "Legitimate interest claims in direct marketing contexts have been rejected by multiple EU DPAs where no genuine balancing test was documented or where individuals had no meaningful opt-out. This is among the most consistently enforced gaps in LI assessments." },
+      {
+        label: "Purpose test",
+        content:
+          "Processing activity: direct marketing to existing customers. Purpose is lawful, specific, and present at the time of processing. ✓",
+      },
+      {
+        label: "Necessity test",
+        content:
+          "The processing is necessary to achieve the stated purpose. Less intrusive means — such as contextual advertising without personal profiling — were considered and would not achieve the same operational objective. ✓ with conditions noted.",
+      },
+      {
+        label: "Balancing test finding",
+        content:
+          "On balance, the legitimate interest is not overridden, provided: (1) an easy opt-out mechanism is provided at every point of contact, (2) sensitive categories are excluded from the dataset, and (3) the frequency of contact is limited to fortnightly.",
+      },
+      {
+        label: "Enforcement context",
+        content:
+          "Legitimate interest claims in direct marketing contexts have been rejected by multiple EU DPAs where no genuine balancing test was documented or where individuals had no meaningful opt-out. This is among the most consistently enforced gaps in LI assessments.",
+      },
     ],
   },
   {
@@ -89,48 +118,90 @@ const TOOLS: ToolDef[] = [
       "The output is designed to be reviewed by the appropriate privacy professional in your organisation and retained as part of your permanent accountability record. It is a professional-grade starting point — one that reflects current enforcement posture — and is intended to form the basis of a documented professional review, not to substitute for it.",
     ],
     sampleSections: [
-      { label: "Processing description", content: "AI-assisted recruitment screening tool processing CV data, employment history, and behavioural assessment responses for approximately 12,000 applicants per year." },
-      { label: "Necessity and proportionality", content: "The volume and sensitivity of processing is proportionate to the stated purpose only if human review is mandatory for all shortlisted candidates and the system is not used as the sole basis for rejection." },
-      { label: "Risk identified", content: "High — Automated decision-making without meaningful human review may constitute a violation of Article 22. Additional safeguard required: documented human review step before any decision affecting a candidate is made." },
-      { label: "Enforcement context", content: "Automated recruitment screening without documented human oversight has been the subject of formal DPA investigations in multiple EU member states. Orders to suspend processing and implement review mechanisms have been issued." },
+      {
+        label: "Processing description",
+        content:
+          "AI-assisted recruitment screening tool processing CV data, employment history, and behavioural assessment responses for approximately 12,000 applicants per year.",
+      },
+      {
+        label: "Necessity and proportionality",
+        content:
+          "The volume and sensitivity of processing is proportionate to the stated purpose only if human review is mandatory for all shortlisted candidates and the system is not used as the sole basis for rejection.",
+      },
+      {
+        label: "Risk identified",
+        content:
+          "High — Automated decision-making without meaningful human review may constitute a violation of Article 22. Additional safeguard required: documented human review step before any decision affecting a candidate is made.",
+      },
+      {
+        label: "Enforcement context",
+        content:
+          "Automated recruitment screening without documented human oversight has been the subject of formal DPA investigations in multiple EU member states. Orders to suspend processing and implement review mechanisms have been issued.",
+      },
     ],
   },
   {
     slug: "dpa-generator",
     icon: "📄",
     name: "Your Custom DPA",
-    tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
+    tagline:
+      "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
-    subscriberPrice: "$49 per document",
-    standalonePrice: "$99",
+    subscriberPrice: "$39 per document",
+    standalonePrice: "$69",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
       "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is numbered hierarchically, marks all fields requiring your specific input, and is structured for legal review before execution.",
       "This tool generates a draft legal document. It does not constitute legal advice, and the output should be reviewed by qualified legal counsel before execution. What it provides is a well-grounded, enforcement-calibrated draft that significantly reduces the time your legal team needs to spend on first principles.",
     ],
     sampleSections: [
-      { label: "Sub-processor provisions (Article 28(4))", content: "The Processor shall not engage any sub-processor without the prior specific written authorisation of the Controller. A current list of approved sub-processors is set out in Schedule 2. The Processor shall notify the Controller no fewer than 14 days before engaging any new sub-processor or replacing an existing one." },
-      { label: "Breach notification (Article 33)", content: "The Processor shall notify the Controller without undue delay and in any event within 24 hours of becoming aware of a Personal Data Breach, whether confirmed or suspected." },
-      { label: "Enforcement context applied", content: "Supervisory authorities have found that the absence of a specific sub-processor notification deadline in a DPA — as distinct from a general obligation to notify — is itself a compliance failure. This provision reflects that enforcement posture directly." },
+      {
+        label: "Sub-processor provisions (Article 28(4))",
+        content:
+          "The Processor shall not engage any sub-processor without the prior specific written authorisation of the Controller. A current list of approved sub-processors is set out in Schedule 2. The Processor shall notify the Controller no fewer than 14 days before engaging any new sub-processor or replacing an existing one.",
+      },
+      {
+        label: "Breach notification (Article 33)",
+        content:
+          "The Processor shall notify the Controller without undue delay and in any event within 24 hours of becoming aware of a Personal Data Breach, whether confirmed or suspected.",
+      },
+      {
+        label: "Enforcement context applied",
+        content:
+          "Supervisory authorities have found that the absence of a specific sub-processor notification deadline in a DPA — as distinct from a general obligation to notify — is itself a compliance failure. This provision reflects that enforcement posture directly.",
+      },
     ],
   },
   {
     slug: "ir-playbook",
     icon: "🚨",
     name: "Your Breach Response Playbook",
-    tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
+    tagline:
+      "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
     subscriberPrice: "Included with Intelligence",
-    standalonePrice: "$59",
+    standalonePrice: "$39",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
       "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
       "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Intelligence subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
     ],
     sampleSections: [
-      { label: "Immediate actions (0–2 hours)", content: "1. Assemble incident response team: IR Lead, DPO, Legal Counsel, IT Security. 2. Preserve all evidence — do not delete or modify logs. 3. Isolate affected systems from the network. 4. Document discovery time (UTC) and the name of the person who discovered the incident." },
-      { label: "Notification deadline — ICO (UK)", content: "Deadline: 72 hours from discovery (calculated from your input). Portal: ico.org.uk/make-a-complaint/data-security-and-journalism/report-a-breach/. Initial notification may be submitted with incomplete information if full details are not yet available — state this explicitly in the submission." },
-      { label: "Documentation checklist (Article 33(5))", content: "☐ Discovery time and circumstances documented. ☐ Nature of breach and data categories recorded. ☐ Approximate number of affected individuals noted. ☐ Notification decision and rationale recorded. ☐ Steps taken to contain and remediate documented." },
+      {
+        label: "Immediate actions (0–2 hours)",
+        content:
+          "1. Assemble incident response team: IR Lead, DPO, Legal Counsel, IT Security. 2. Preserve all evidence — do not delete or modify logs. 3. Isolate affected systems from the network. 4. Document discovery time (UTC) and the name of the person who discovered the incident.",
+      },
+      {
+        label: "Notification deadline — ICO (UK)",
+        content:
+          "Deadline: 72 hours from discovery (calculated from your input). Portal: ico.org.uk/make-a-complaint/data-security-and-journalism/report-a-breach/. Initial notification may be submitted with incomplete information if full details are not yet available — state this explicitly in the submission.",
+      },
+      {
+        label: "Documentation checklist (Article 33(5))",
+        content:
+          "☐ Discovery time and circumstances documented. ☐ Nature of breach and data categories recorded. ☐ Approximate number of affected individuals noted. ☐ Notification decision and rationale recorded. ☐ Steps taken to contain and remediate documented.",
+      },
     ],
   },
   {
@@ -147,17 +218,34 @@ const TOOLS: ToolDef[] = [
       "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free End User Privacy account is required to run any analysis. Multi-jurisdiction assessments are included with Intelligence subscriptions.",
     ],
     sampleSections: [
-      { label: "Illinois (BIPA) – applies: Yes", content: "Key requirement: Written release from each individual before collecting or using biometric identifiers. Release must specifically describe the purpose and duration of collection. Oral consent is not sufficient." },
-      { label: "BIPA litigation risk estimate", content: "Based on 8,000 enrolled employees: Low end (negligent violations): $8,000,000. High end (intentional violations): $40,000,000. This is a mathematical illustration of statutory exposure only — not a legal opinion or prediction of outcome." },
-      { label: "Enforcement posture — current", content: "Courts have recently expanded the definition of collection to include passive scanning. Consent obtained via embedded website terms has been successfully challenged. Class action filings targeting employers are increasing." },
-      { label: "Priority action", content: "Implement a standalone written consent process before any biometric collection begins. Retain signed consents. Establish a documented retention and destruction schedule." },
+      {
+        label: "Illinois (BIPA) – applies: Yes",
+        content:
+          "Key requirement: Written release from each individual before collecting or using biometric identifiers. Release must specifically describe the purpose and duration of collection. Oral consent is not sufficient.",
+      },
+      {
+        label: "BIPA litigation risk estimate",
+        content:
+          "Based on 8,000 enrolled employees: Low end (negligent violations): $8,000,000. High end (intentional violations): $40,000,000. This is a mathematical illustration of statutory exposure only — not a legal opinion or prediction of outcome.",
+      },
+      {
+        label: "Enforcement posture — current",
+        content:
+          "Courts have recently expanded the definition of collection to include passive scanning. Consent obtained via embedded website terms has been successfully challenged. Class action filings targeting employers are increasing.",
+      },
+      {
+        label: "Priority action",
+        content:
+          "Implement a standalone written consent process before any biometric collection begins. Retain signed consents. Establish a documented retention and destruction schedule.",
+      },
     ],
   },
   {
     slug: "registration-manager",
     icon: "🗂️",
     name: "Your Registration Filings",
-    tagline: "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
+    tagline:
+      "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
     href: "/registration-manager",
     subscriberPrice: "20% off DIY · $75 off Counsel-Ready Pack",
     standalonePrice: "Free assessment · DIY from $59 · Counsel-Ready $399",
@@ -167,10 +255,26 @@ const TOOLS: ToolDef[] = [
       "Every output is a structured document intended for review by your privacy or legal professional before submission. We do not submit filings on your behalf. Annual renewal monitoring is available so the obligation does not quietly lapse a year later.",
     ],
     sampleSections: [
-      { label: "Recommended jurisdictions (sample)", content: "Germany (BfDI / state DPA), France (CNIL), Italy (Garante), Spain (AEPD), United Kingdom (ICO), Ireland (DPC). AI Act registration: required for one EU deployment. EU representative: required (no establishment in the Union)." },
-      { label: "Filing summary — Germany", content: "DPO designation must be notified to the competent state DPA in writing. Filing language: German. Renewal: not required, but updates within 30 days of personnel change. Online filing: state-dependent." },
-      { label: "Counsel-Ready Pack deliverable", content: "Per-jurisdiction document set including: cover letter draft in local language, DPO designation form, RoPA template aligned to local DPA expectations, and AI Act registration entry where applicable — packaged with a counsel handoff brief. You submit the filings." },
-      { label: "Renewal monitoring", content: "Automated reminders at 90, 60, 30, and 7 days before each filing's renewal date, with a link to the most recent generated version of your filing for re-use." },
+      {
+        label: "Recommended jurisdictions (sample)",
+        content:
+          "Germany (BfDI / state DPA), France (CNIL), Italy (Garante), Spain (AEPD), United Kingdom (ICO), Ireland (DPC). AI Act registration: required for one EU deployment. EU representative: required (no establishment in the Union).",
+      },
+      {
+        label: "Filing summary — Germany",
+        content:
+          "DPO designation must be notified to the competent state DPA in writing. Filing language: German. Renewal: not required, but updates within 30 days of personnel change. Online filing: state-dependent.",
+      },
+      {
+        label: "Counsel-Ready Pack deliverable",
+        content:
+          "Per-jurisdiction document set including: cover letter draft in local language, DPO designation form, RoPA template aligned to local DPA expectations, and AI Act registration entry where applicable — packaged with a counsel handoff brief. You submit the filings.",
+      },
+      {
+        label: "Renewal monitoring",
+        content:
+          "Automated reminders at 90, 60, 30, and 7 days before each filing's renewal date, with a link to the most recent generated version of your filing for re-use.",
+      },
     ],
   },
 ];
@@ -179,8 +283,8 @@ const PRICING_GRID: [string, string][] = [
   ["Privacy Program Assessment Tool", "$49 standalone → $25 subscriber rate"],
   ["Legitimate Interest Assessment Tool", "$79 standalone → $35 subscriber rate"],
   ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
-  ["Your Custom DPA", "$99 standalone → $49 subscriber rate"],
-  ["Your Breach Response Playbook", "$59 → Included with Intelligence"],
+  ["Your Custom DPA", "$69 standalone → $39 subscriber rate"],
+  ["Your Breach Response Playbook", "$39 → Included with Intelligence"],
   ["Biometric Privacy Compliance Assessment", "$49 → Included with Intelligence"],
   ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
   ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
@@ -213,7 +317,9 @@ export default function Tools() {
             regulators actually enforce the law.
           </h1>
           <p className="text-blue-200 text-[16px] leading-relaxed max-w-[600px] mx-auto mb-8">
-            Every tool on this platform draws from a live database of 3,500+ enforcement decisions before producing a single word of output. That is not something a general AI prompt can replicate — and it is reflected in the depth and specificity of what you receive.
+            Every tool on this platform draws from a live database of 3,500+ enforcement decisions before producing a
+            single word of output. That is not something a general AI prompt can replicate — and it is reflected in the
+            depth and specificity of what you receive.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
@@ -238,9 +344,7 @@ export default function Tools() {
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
-              <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">
-                {d.title}
-              </h3>
+              <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">{d.title}</h3>
               <p className="text-slate text-[13px] leading-relaxed">{d.body}</p>
             </div>
           ))}
@@ -258,18 +362,14 @@ export default function Tools() {
             <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
               <div>
                 <div className="text-[28px] mb-2">{tool.icon}</div>
-                <h2 className="font-display font-bold text-navy text-[24px] mb-1">
-                  {tool.name}
-                </h2>
+                <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
                 <p className="text-slate text-[14px]">{tool.tagline}</p>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
                   ⭐ {tool.subscriberPrice}
                 </div>
-                <div className="text-[11px] text-muted-foreground">
-                  {tool.standalonePrice} without subscription
-                </div>
+                <div className="text-[11px] text-muted-foreground">{tool.standalonePrice} without subscription</div>
               </div>
             </div>
 
@@ -304,7 +404,8 @@ export default function Tools() {
             Every tool. Subscriber rates. $39/month.
           </h2>
           <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
-            Intelligence subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and the Biometric Privacy Compliance Assessment included at no additional cost.
+            Intelligence subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and
+            the Biometric Privacy Compliance Assessment included at no additional cost.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[560px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
@@ -320,9 +421,7 @@ export default function Tools() {
           >
             Start your Intelligence subscription →
           </Link>
-          <p className="text-blue-200/60 text-[12px] mt-4">
-            Monthly at $39 · Annual at $390 · Cancel any time
-          </p>
+          <p className="text-blue-200/60 text-[12px] mt-4">Monthly at $39 · Annual at $390 · Cancel any time</p>
         </div>
       </div>
 
@@ -354,26 +453,24 @@ export default function Tools() {
 
             <div className="p-6 space-y-4">
               <p className="text-[12px] text-muted-foreground italic border-b border-border pb-4">
-                This is a representative sample showing the structure and depth of a real output. Content is illustrative — your generated document will reflect your specific inputs and current enforcement intelligence.
+                This is a representative sample showing the structure and depth of a real output. Content is
+                illustrative — your generated document will reflect your specific inputs and current enforcement
+                intelligence.
               </p>
 
               {activeTool.sampleSections.map((section, i) => (
                 <div key={i} className="bg-muted/40 rounded-xl p-4 border border-border">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-                    {section.label}
-                  </p>
-                  <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">
-                    {section.content}
-                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">{section.label}</p>
+                  <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
                 </div>
               ))}
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-[11px] font-bold text-blue-800 mb-1">
-                  How the enforcement intelligence layer works
-                </p>
+                <p className="text-[11px] font-bold text-blue-800 mb-1">How the enforcement intelligence layer works</p>
                 <p className="text-[12px] text-blue-700 leading-relaxed">
-                  Before generating output, the tool reviewed enforcement decisions from a structured database of 3,500+ cases relevant to your inputs. The provisions and findings above reflect what regulators have scrutinised in practice, not only what the applicable law requires.
+                  Before generating output, the tool reviewed enforcement decisions from a structured database of 3,500+
+                  cases relevant to your inputs. The provisions and findings above reflect what regulators have
+                  scrutinised in practice, not only what the applicable law requires.
                 </p>
               </div>
 
@@ -395,7 +492,9 @@ export default function Tools() {
               </div>
 
               <p className="text-[11px] text-muted-foreground text-center leading-relaxed border-t border-border pt-4">
-                These tools produce compliance framework documents for informational purposes only. They are not legal advice and do not create an attorney-client relationship. Outputs are intended to be reviewed by a qualified privacy or legal professional before being relied upon.
+                These tools produce compliance framework documents for informational purposes only. They are not legal
+                advice and do not create an attorney-client relationship. Outputs are intended to be reviewed by a
+                qualified privacy or legal professional before being relied upon.
               </p>
             </div>
           </div>
