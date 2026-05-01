@@ -293,27 +293,10 @@ Deno.serve(async (req) => {
       throw new Error("Failed to create assessment record");
     }
 
-    const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
-    // Stripe requires absolute URLs for return_url / success_url / cancel_url.
-    // Fall back to production domain so server-to-server callers don't break.
-    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
-
-    const lineItem = stripePrice
-      ? { price: stripePrice.id, quantity: 1 }
-      : {
-          // Fallback inline price if lookup_key not yet provisioned
-          price_data: {
-            currency: "usd",
-            product_data: { name: tool.name },
-            unit_amount: amountCents,
-          },
-          quantity: 1,
-        };
-
     const toolPath = tool_type.replace(/_/g, "-");
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [lineItem as any],
+      line_items: [lineItemBase as any],
       mode: "payment",
       metadata: {
         tool_type,
