@@ -203,6 +203,9 @@ export default function RopaHome() {
                 <Button onClick={() => navigate("/ropa/setup")} size="lg">
                   <Plus className="mr-1.5 h-4 w-4" /> Start RoPA
                 </Button>
+                <p className="text-xs text-muted-foreground mt-3">
+                  From $35 (Intelligence subscriber) · $79 standalone
+                </p>
               </CardContent>
             </Card>
           )}
