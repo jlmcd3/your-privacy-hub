@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRopaStore } from "@/stores/ropaStore";
@@ -6,6 +6,7 @@ import { RopaShell } from "@/components/ropa/RopaShell";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
@@ -26,6 +27,8 @@ export default function RopaActivity() {
   const evaluateFlagsForAnswer = useRopaStore((s) => s.evaluateFlagsForAnswer);
 
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [activityNavOpen, setActivityNavOpen] = useState(false);
+  const questionCardRef = useRef<HTMLDivElement>(null);
 
   // Load activity + parent session
   useEffect(() => {
@@ -44,6 +47,15 @@ export default function RopaActivity() {
     () => getQuestionsForActivity(currentActivity?.template_key ?? null),
     [currentActivity?.template_key]
   );
+
+  // After auto-advance, move focus to first focusable element of new question
+  useEffect(() => {
+    if (!questionCardRef.current) return;
+    const focusable = questionCardRef.current.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    focusable?.focus();
+  }, [questionIndex, currentActivity?.id]);
 
   // Filter based on showIf
   const visibleQuestions = useMemo(() => {
@@ -128,38 +140,21 @@ export default function RopaActivity() {
       title={`${currentActivity.display_name} — RoPA Builder`}
       heading=""
     >
-      <div className="grid md:grid-cols-[260px_1fr] gap-6">
-        {/* Sidebar */}
+      <div className="grid md:grid-cols-[260px_1fr] gap-6 pb-24 md:pb-0">
+        {/* Sidebar (desktop) */}
         <aside
           className="hidden md:block border border-border rounded-xl p-4 bg-card h-fit"
+          role="navigation"
           aria-label="Processing activities"
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Activities
           </p>
-          <ul className="space-y-1">
-            {allActivities.map((a) => (
-              <li key={a.id}>
-                <button
-                  onClick={() => navigate(`/ropa/activity/${a.id}`)}
-                  className={`w-full text-left text-sm px-2 py-1.5 rounded ${
-                    a.id === currentActivity.id
-                      ? "bg-primary/10 border-l-2 border-primary font-semibold"
-                      : "hover:bg-muted/40"
-                  }`}
-                >
-                  <span className="mr-2">
-                    {a.status === "complete"
-                      ? "✓"
-                      : a.status === "in_progress"
-                        ? "•"
-                        : "○"}
-                  </span>
-                  {a.display_name}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <ActivityNavList
+            activities={allActivities}
+            currentActivityId={currentActivity.id}
+            onSelect={(aid) => navigate(`/ropa/activity/${aid}`)}
+          />
         </aside>
 
         {/* Question zone */}
@@ -222,7 +217,7 @@ export default function RopaActivity() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl p-6">
+          <div ref={questionCardRef} className="bg-card border border-border rounded-xl p-4 sm:p-6">
             {q.staticInfoCard && (
               <div className="mb-4 p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 rounded">
                 <p className="font-semibold text-sm">{q.staticInfoCard.title}</p>
@@ -239,7 +234,7 @@ export default function RopaActivity() {
               {q.text}
             </label>
             <details className="mb-4 text-sm">
-              <summary className="cursor-pointer text-muted-foreground">
+              <summary className="cursor-pointer text-muted-foreground min-h-[44px] flex items-center">
                 ⓘ Why we ask this
               </summary>
               <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
@@ -254,19 +249,20 @@ export default function RopaActivity() {
             {/* Flag preview if just-saved value triggers a flag */}
             <FlagPreview question={q} value={currentAnswers[q.key]} />
 
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6 pt-4 border-t border-border">
               <button
                 onClick={() =>
                   setQuestionIndex((i) => Math.max(0, i - 1))
                 }
                 disabled={questionIndex === 0}
-                className="text-sm underline text-muted-foreground disabled:opacity-30"
+                aria-label="Previous question"
+                className="order-2 sm:order-1 w-full sm:w-auto min-h-[44px] text-sm underline text-muted-foreground disabled:opacity-30"
               >
                 ← Back
               </button>
-              <div className="flex items-center gap-3">
+              <div className="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                 <span
-                  className="text-xs text-muted-foreground"
+                  className="text-xs text-muted-foreground text-center sm:text-left"
                   aria-live="polite"
                 >
                   {isSaving
@@ -282,7 +278,12 @@ export default function RopaActivity() {
                     (currentAnswers[q.key] === undefined ||
                       currentAnswers[q.key] === "")
                   }
-                  className="bg-primary text-primary-foreground font-semibold px-6 py-2 rounded-lg disabled:opacity-50"
+                  aria-label={
+                    questionIndex < visibleQuestions.length - 1
+                      ? "Next question"
+                      : "Mark activity complete"
+                  }
+                  className="w-full sm:w-auto min-h-[44px] bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-lg disabled:opacity-50"
                 >
                   {questionIndex < visibleQuestions.length - 1
                     ? "Next →"
@@ -291,10 +292,10 @@ export default function RopaActivity() {
               </div>
             </div>
 
-            <div className="mt-3 text-right">
+            <div className="mt-3 text-center sm:text-right">
               <button
                 onClick={() => navigate("/ropa/review")}
-                className="text-xs underline text-muted-foreground"
+                className="text-xs underline text-muted-foreground min-h-[44px] px-2"
               >
                 Skip this activity ›
               </button>
@@ -302,7 +303,82 @@ export default function RopaActivity() {
           </div>
         </div>
       </div>
+
+      {/* Mobile bottom pill — opens activity nav sheet */}
+      <Sheet open={activityNavOpen} onOpenChange={setActivityNavOpen}>
+        <SheetTrigger asChild>
+          <button
+            className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background shadow-lg rounded-full px-5 py-3 min-h-[44px] text-sm font-semibold flex items-center gap-2"
+            aria-label="Show all processing activities"
+          >
+            {completedCount} of {allActivities.length} complete <span aria-hidden>↑</span>
+          </button>
+        </SheetTrigger>
+        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="font-serif">Processing activities</SheetTitle>
+          </SheetHeader>
+          <nav role="navigation" aria-label="Processing activities" className="mt-4">
+            <ActivityNavList
+              activities={allActivities}
+              currentActivityId={currentActivity.id}
+              onSelect={(aid) => {
+                setActivityNavOpen(false);
+                navigate(`/ropa/activity/${aid}`);
+              }}
+            />
+          </nav>
+        </SheetContent>
+      </Sheet>
     </RopaShell>
+  );
+}
+
+function ActivityNavList({
+  activities,
+  currentActivityId,
+  onSelect,
+}: {
+  activities: { id: string; display_name: string; status: string }[];
+  currentActivityId: string;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <ul className="space-y-1">
+      {activities.map((a) => {
+        const isCurrent = a.id === currentActivityId;
+        const statusLabel =
+          a.status === "complete"
+            ? "Complete"
+            : a.status === "in_progress"
+              ? "In progress"
+              : "Not started";
+        return (
+          <li key={a.id}>
+            <button
+              onClick={() => onSelect(a.id)}
+              aria-current={isCurrent ? "step" : undefined}
+              aria-label={`${a.display_name} — ${statusLabel}`}
+              className={`w-full text-left text-sm px-2 py-2 min-h-[44px] rounded flex items-start gap-2 ${
+                isCurrent
+                  ? "bg-primary/10 border-l-2 border-primary font-semibold"
+                  : "hover:bg-muted/40"
+              }`}
+            >
+              <span aria-hidden className="mt-0.5">
+                {a.status === "complete"
+                  ? "✓"
+                  : a.status === "in_progress"
+                    ? "•"
+                    : "○"}
+              </span>
+              <span className="flex-1">{a.display_name}</span>
+              <span className="sr-only">{statusLabel}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -321,13 +397,16 @@ function QuestionInput({
     case "single_choice":
     case "lawful_basis":
       return (
-        <div className="space-y-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="space-y-2">
           {(question.options ?? []).map((opt) => (
             <button
               key={opt.value}
               onClick={() => onChange(opt.value)}
+              role="radio"
+              aria-checked={v === opt.value}
+              aria-label={opt.label}
               id={`q-${question.key}-${opt.value}`}
-              className={`w-full text-left p-3 rounded-lg border ${
+              className={`w-full text-left p-3 rounded-lg border min-h-[52px] ${
                 v === opt.value
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
@@ -346,12 +425,15 @@ function QuestionInput({
 
     case "yes_no":
       return (
-        <div className="grid grid-cols-2 gap-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="grid grid-cols-2 gap-2">
           {["yes", "no"].map((o) => (
             <button
               key={o}
               onClick={() => onChange(o)}
-              className={`p-3 rounded-lg border capitalize font-semibold ${
+              role="radio"
+              aria-checked={v === o}
+              aria-label={o}
+              className={`p-3 rounded-lg border capitalize font-semibold min-h-[52px] ${
                 v === o
                   ? "border-primary bg-primary/10"
                   : "border-border hover:bg-muted/40"
@@ -365,12 +447,15 @@ function QuestionInput({
 
     case "yes_no_unsure":
       return (
-        <div className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="grid grid-cols-3 gap-2">
           {["yes", "no", "unsure"].map((o) => (
             <button
               key={o}
               onClick={() => onChange(o)}
-              className={`p-3 rounded-lg border capitalize ${
+              role="radio"
+              aria-checked={v === o}
+              aria-label={o === "unsure" ? "Not sure" : o}
+              className={`p-3 rounded-lg border capitalize min-h-[52px] ${
                 v === o
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
@@ -384,12 +469,15 @@ function QuestionInput({
 
     case "date_or_period":
       return (
-        <div className="space-y-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="space-y-2">
           {(question.options ?? []).map((opt) => (
             <button
               key={opt.value}
               onClick={() => onChange(opt.value)}
-              className={`w-full text-left p-3 rounded-lg border ${
+              role="radio"
+              aria-checked={v === opt.value}
+              aria-label={opt.label}
+              className={`w-full text-left p-3 rounded-lg border min-h-[52px] ${
                 v === opt.value
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
@@ -407,8 +495,9 @@ function QuestionInput({
           id={`q-${question.key}`}
           value={(v as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
+          aria-label={question.text}
           rows={4}
-          className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+          className="w-full px-3 py-2 border border-border rounded-lg bg-background min-h-[88px]"
         />
       );
 
@@ -420,7 +509,8 @@ function QuestionInput({
           type="text"
           value={(v as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+          aria-label={question.text}
+          className="w-full px-3 py-2 border border-border rounded-lg bg-background min-h-[44px]"
         />
       );
   }
