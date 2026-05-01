@@ -81,9 +81,21 @@ const EMPTY: IntakeState = {
 export default function RegistrationAssessment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [intake, setIntake] = useState<IntakeState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
+
+  const isAnon = !authLoading && !user;
+
+  function guardAnon(): boolean {
+    if (isAnon) {
+      setAuthGateOpen(true);
+      return true;
+    }
+    return false;
+  }
 
   useEffect(() => {
     const token = searchParams.get("token");
