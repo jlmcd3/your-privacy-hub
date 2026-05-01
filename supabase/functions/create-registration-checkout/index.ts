@@ -219,6 +219,40 @@ serve(async (req) => {
       .update({ stripe_session_id: session.id })
       .eq("id", order.id);
 
+    // Structured server log — searchable in Edge Function logs.
+    console.log(
+      JSON.stringify({
+        scope: "registration_checkout",
+        event: "session_created",
+        env,
+        embedded: !!embedded,
+        order_id: order.id,
+        user_id: user.id,
+        tier,
+        jurisdiction_count: codes.length,
+        amount_cents: totalCents,
+        is_subscriber: isSubscriber,
+        stripe_session_id: session.id,
+        recurring: !!cfg.recurring,
+      })
+    );
+
+    // Audit log row — survives function log retention, queryable from SQL.
+    await adminClient.from("registration_audit_log").insert({
+      action: "checkout_session_created",
+      order_id: order.id,
+      user_id: user.id,
+      metadata: {
+        env,
+        embedded: !!embedded,
+        tier,
+        amount_cents: totalCents,
+        jurisdiction_count: codes.length,
+        is_subscriber: isSubscriber,
+        stripe_session_id: session.id,
+      },
+    });
+
     return new Response(
       JSON.stringify(
         embedded
