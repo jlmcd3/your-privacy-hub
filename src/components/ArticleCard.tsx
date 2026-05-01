@@ -441,48 +441,61 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
 // — NEWSFEED variant (lightweight outbound link card for anonymous users) ——
 const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
   const articleUrl = item.source_url || (item as any).url || '#';
+  const hasExternal = articleUrl && articleUrl !== '#';
   return (
-    <a
-      href={articleUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex gap-3 py-3 border-b border-fog hover:bg-slate-50/50 transition-colors no-underline"
-    >
-      {item.image_url ? (
-        <img
-          src={item.image_url}
-          alt=""
-          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-        />
-      ) : (
-        <div className="w-16 h-16 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[20px]">
-          📰
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          {item.source_name && (
-            <span className="text-[10px] text-slate-500 font-medium">{item.source_name}</span>
-          )}
-          {item.published_at && (
-            <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
-          )}
-          {item.category && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${categoryClass(item.category)}`}>
-              {categoryLabel(item.category)}
-            </span>
-          )}
-        </div>
-        <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
-          {normalizeTitle(item.title)}
-        </p>
-        {item.summary && (
-          <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+    <div className="group relative flex gap-3 py-3 border-b border-fog hover:bg-slate-50/50 transition-colors">
+      <Link
+        to={`/updates/${item.id}`}
+        className="flex gap-3 flex-1 min-w-0 no-underline"
+      >
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt=""
+            className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
+            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[20px]">
+            📰
+          </div>
         )}
-      </div>
-      <ExternalLink className="w-3.5 h-3.5 text-slate-300 flex-shrink-0 mt-1 group-hover:text-slate-500 transition-colors" />
-    </a>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            {item.source_name && (
+              <span className="text-[10px] text-slate-500 font-medium">{item.source_name}</span>
+            )}
+            {item.published_at && (
+              <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+            )}
+            {item.category && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${categoryClass(item.category)}`}>
+                {categoryLabel(item.category)}
+              </span>
+            )}
+          </div>
+          <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+            {normalizeTitle(item.title)}
+          </p>
+          {item.summary && (
+            <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+          )}
+        </div>
+      </Link>
+      {hasExternal && (
+        <a
+          href={articleUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          aria-label="Open original source in new tab"
+          title="Open original source"
+          className="flex-shrink-0 mt-1 text-slate-300 hover:text-slate-600 transition-colors"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
+    </div>
   );
 };
 
