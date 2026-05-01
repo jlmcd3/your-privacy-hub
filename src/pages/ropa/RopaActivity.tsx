@@ -74,32 +74,9 @@ export default function RopaActivity() {
     if (!q || !currentActivity || !currentSession) return;
     await saveAnswer(q.key, value as never);
 
-    // Evaluate flags
+    // Evaluate flags (auto-creates new ones, auto-resolves stale ones, dedupes)
     if (q.flagIf) {
-      for (const cond of q.flagIf) {
-        const matches =
-          cond.operator === "equals"
-            ? value === cond.value
-            : Array.isArray(value)
-              ? Array.isArray(cond.value)
-                ? cond.value.some((c) => (value as string[]).includes(c))
-                : (value as string[]).includes(cond.value as string)
-              : false;
-        if (matches) {
-          await createFlag({
-            session_id: currentSession.id,
-            activity_id: currentActivity.id,
-            flag_type: cond.flagType,
-            severity: cond.severity,
-            question_key: q.key,
-            flag_message: cond.message,
-            consequence: cond.consequence,
-            action_label: cond.actionLabel ?? null,
-            action_route: cond.actionRoute ?? null,
-            resolved: false,
-          });
-        }
-      }
+      await evaluateFlagsForAnswer(q.key, value as never, q.flagIf);
     }
   };
 
