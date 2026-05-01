@@ -129,10 +129,26 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (session.metadata?.type === "registration_order" && session.metadata?.order_id) {
     const orderId = session.metadata.order_id;
     const tier = session.metadata.tier;
+    const embedded = session.metadata.embedded === "true";
+
+    console.log(
+      JSON.stringify({
+        scope: "registration_checkout",
+        event: "payment_succeeded",
+        env,
+        embedded,
+        order_id: orderId,
+        user_id: userId || null,
+        tier,
+        amount_cents: session.amount_total || 0,
+        stripe_session_id: session.id,
+        stripe_payment_intent_id: session.payment_intent || null,
+      })
+    );
 
     // Mark order as paid. Note: we never submit filings on the user's behalf, so
     // the fulfillment status only ever moves through document generation states.
-    await supabase
+    const { error: updateErr } = await supabase
       .from("registration_orders")
       .update({
         payment_status: "paid",
@@ -143,11 +159,32 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       })
       .eq("id", orderId);
 
+    if (updateErr) {
+      console.error(
+        JSON.stringify({
+          scope: "registration_checkout",
+          event: "order_update_failed",
+          order_id: orderId,
+          error: updateErr.message,
+        })
+      );
+    }
+
     // Trigger document generation immediately for all paid one-time tiers
     if (tier === "diy" || tier === "counsel_review" || tier === "done_for_you") {
-      await supabase.functions.invoke("generate-registration-docs", {
+      const { error: invokeErr } = await supabase.functions.invoke("generate-registration-docs", {
         body: { order_id: orderId },
       });
+      if (invokeErr) {
+        console.error(
+          JSON.stringify({
+            scope: "registration_checkout",
+            event: "docs_generation_invoke_failed",
+            order_id: orderId,
+            error: invokeErr.message,
+          })
+        );
+      }
     }
 
     // Audit log
@@ -155,7 +192,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       action: "order_paid",
       order_id: orderId,
       user_id: userId || null,
-      metadata: { tier, amount_cents: session.amount_total || 0 },
+      metadata: { env, embedded, tier, amount_cents: session.amount_total || 0, stripe_session_id: session.id },
     });
     return;
   }
