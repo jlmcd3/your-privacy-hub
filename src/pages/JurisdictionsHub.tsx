@@ -47,16 +47,19 @@ function relativeDays(published: string): string {
 }
 
 
-type RecentItem = { slug: string; flag: string; name: string; update: string; days: string };
+type RecentItem = {
+  id: string;
+  slug: string;
+  flag: string;
+  name: string;
+  update: string;
+  fullTitle: string;
+  days: string;
+};
 
 export default function JurisdictionsHub() {
-  const [recentUpdates, setRecentUpdates] = useState<RecentItem[]>([
-    { slug: "france", flag: "🇫🇷", name: "France", update: "Clearview AI €20M fine", days: "2 days ago" },
-    { slug: "united-kingdom", flag: "🇬🇧", name: "United Kingdom", update: "DUAA provisions in force", days: "5 days ago" },
-    { slug: "india", flag: "🇮🇳", name: "India", update: "DPDP rules draft released", days: "1 week ago" },
-    { slug: "australia", flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
-    { slug: "united-states", flag: "🇺🇸", name: "United States", update: "FTC AI commercial practices", days: "10 days ago" },
-  ]);
+  const [recentUpdates, setRecentUpdates] = useState<RecentItem[]>([]);
+  const [recentLoading, setRecentLoading] = useState(true);
 
   const [statusCounts, setStatusCounts] = useState({
     comprehensive: 0,
@@ -89,64 +92,48 @@ export default function JurisdictionsHub() {
 
   useEffect(() => {
     (async () => {
-      // 1. Load the canonical set of jurisdiction slugs so we never render a dead link.
-      const { data: jurisdictionRows } = await supabase
-        .from("jurisdictions")
-        .select("slug");
-      const validSlugs = new Set<string>(
-        (jurisdictionRows ?? []).map((r: any) => r.slug).filter(Boolean),
-      );
-
-      // 2. Pull recent updates and map their direct_jurisdictions codes to display meta.
+      setRecentLoading(true);
       const { data } = await supabase
         .from("updates")
-        .select("title, direct_jurisdictions, published_at")
+        .select("id, title, direct_jurisdictions, published_at, ai_summary")
         .eq("is_hidden", false)
         .not("direct_jurisdictions", "is", null)
         .order("published_at", { ascending: false })
-        .limit(40);
-      if (!data) return;
+        .limit(60);
+      if (!data) {
+        setRecentLoading(false);
+        return;
+      }
 
-      const seen = new Set<string>();
+      const seenIds = new Set<string>();
       const items: RecentItem[] = [];
-      const skipped: { code: string; reason: string; title?: string }[] = [];
 
       for (const a of data as any[]) {
+        const summary = a.ai_summary;
+        if (summary && typeof summary === "object" && (summary.skipped || summary.skip)) continue;
+        if (seenIds.has(a.id)) continue;
+
         const codes: string[] = a.direct_jurisdictions ?? [];
-        for (const code of codes) {
-          const key = code?.toLowerCase?.();
-          const meta = JURISDICTION_META[key];
-          if (!meta) {
-            skipped.push({ code, reason: "no-meta-mapping", title: a.title });
-            continue;
-          }
-          // 3. Validate the resolved slug actually exists in the jurisdictions table.
-          if (validSlugs.size > 0 && !validSlugs.has(meta.slug)) {
-            skipped.push({ code, reason: `slug-not-in-db:${meta.slug}`, title: a.title });
-            continue;
-          }
-          if (seen.has(meta.slug)) continue;
-          seen.add(meta.slug);
-          items.push({
-            slug: meta.slug,
-            flag: meta.flag,
-            name: meta.name,
-            update: a.title.length > 55 ? a.title.substring(0, 52) + "…" : a.title,
-            days: relativeDays(a.published_at),
-          });
-          if (items.length >= 6) break;
-        }
+        const firstCode = codes.find((c) => JURISDICTION_META[c?.toLowerCase?.()]);
+        if (!firstCode) continue;
+        const meta = JURISDICTION_META[firstCode.toLowerCase()];
+
+        seenIds.add(a.id);
+        const title: string = a.title ?? "";
+        items.push({
+          id: a.id,
+          slug: meta.slug,
+          flag: meta.flag,
+          name: meta.name,
+          update: title.length > 55 ? title.substring(0, 52) + "…" : title,
+          fullTitle: title,
+          days: relativeDays(a.published_at),
+        });
         if (items.length >= 6) break;
       }
 
-      if (skipped.length > 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "[JurisdictionsHub] Hid Recently Updated chips with unresolved slugs:",
-          skipped,
-        );
-      }
-      if (items.length > 0) setRecentUpdates(items);
+      setRecentUpdates(items);
+      setRecentLoading(false);
     })();
   }, []);
 
@@ -216,28 +203,47 @@ export default function JurisdictionsHub() {
             </p>
           </div>
 
-          {/* Recently updated strip — dynamic */}
-          <div className="border-t border-fog bg-white">
-            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
-                🕐 Recently Updated Jurisdictions
-              </h2>
-              <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-                {recentUpdates.map((item) => (
-                  <Link
-                    key={item.slug}
-                    to={`/jurisdiction/${item.slug}`}
-                    className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all"
-                  >
-                    <span className="text-base">{item.flag}</span>
-                    <div className="font-bold text-navy mt-1">{item.name}</div>
-                    <div className="text-slate leading-snug">{item.update}</div>
-                    <div className="text-slate-light mt-0.5">{item.days}</div>
-                  </Link>
-                ))}
+          {/* Recently updated strip — dynamic. Hidden when no live data. */}
+          {(recentLoading || recentUpdates.length > 0) && (
+            <div className="border-t border-fog bg-white">
+              <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
+                  🕐 Recently Updated Jurisdictions
+                </h2>
+                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+                  {recentLoading
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 w-[220px] animate-pulse"
+                          aria-hidden="true"
+                        >
+                          <div className="h-4 w-6 bg-slate-200 rounded mb-2" />
+                          <div className="h-3 w-24 bg-slate-200 rounded mb-1.5" />
+                          <div className="h-3 w-40 bg-slate-200 rounded mb-1" />
+                          <div className="h-2.5 w-16 bg-slate-200 rounded" />
+                        </div>
+                      ))
+                    : recentUpdates.map((item) => (
+                        <Link
+                          key={item.id}
+                          to={`/updates/${item.id}`}
+                          title={item.fullTitle}
+                          aria-label={`${item.name}: ${item.fullTitle} (${item.days})`}
+                          className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
+                        >
+                          <span className="text-base" role="img" aria-label={`${item.name} flag`}>
+                            {item.flag}
+                          </span>
+                          <div className="font-bold text-navy mt-1">{item.name}</div>
+                          <div className="text-slate leading-snug">{item.update}</div>
+                          <div className="text-slate-light mt-0.5">{item.days}</div>
+                        </Link>
+                      ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
         </main>
 
