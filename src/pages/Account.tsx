@@ -322,6 +322,36 @@ export default function Account() {
       </div>
 
       <Footer />
+
+      <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Auto-renewal will be turned off and you won't be charged again. You'll
+              keep full access to Intelligence{" "}
+              {formattedEndDate ? (
+                <>
+                  until <strong>{formattedEndDate}</strong>.
+                </>
+              ) : (
+                <>until the end of your current billing period.</>
+              )}{" "}
+              You can resume anytime before that date.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelBusy}>Keep subscription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancel}
+              disabled={cancelBusy}
+              className="bg-warn text-white hover:bg-warn/90"
+            >
+              {cancelBusy ? "Canceling…" : "Confirm cancellation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
