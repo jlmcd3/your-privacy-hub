@@ -483,6 +483,7 @@ const UpdateDetail = () => {
                         </p>
                         <Link
                           to="/subscribe"
+                          onClick={() => { void trackEvent("analyzed_blur_click"); }}
                           className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
                         >
                           See Pro plan
