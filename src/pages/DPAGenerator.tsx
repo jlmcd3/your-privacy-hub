@@ -146,6 +146,11 @@ export default function DPAGenerator() {
               <div className="border-t border-border pt-4 mt-4 text-[12px] text-muted-foreground">Sample preview:</div>
               <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 text-[13px]" role="alert">
+                  {validationError}
+                </div>
+              )}
             </div>
           </ToolSampleOverlay>
         )}
