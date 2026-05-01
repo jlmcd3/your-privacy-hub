@@ -110,7 +110,8 @@ export default function RopaRefresh() {
         title: "Refresh started",
         description: `Version ${data.version_number} ready for review.`,
       });
-      navigate(`/ropa/activities/${newId}`);
+      setActiveNewSessionId(newId);
+      setPhase("regulatory");
     } catch (err) {
       console.error("Start refresh failed:", err);
       toast({
@@ -121,6 +122,17 @@ export default function RopaRefresh() {
     } finally {
       setStarting(false);
     }
+  };
+
+  const handleResumeExisting = () => {
+    if (existingCycle?.new_session_id) {
+      setActiveNewSessionId(existingCycle.new_session_id);
+      setPhase("regulatory");
+    }
+  };
+
+  const goToActivities = () => {
+    if (activeNewSessionId) navigate(`/ropa/activities/${activeNewSessionId}`);
   };
 
   if (loading) {
