@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
