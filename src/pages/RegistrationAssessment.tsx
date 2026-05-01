@@ -180,29 +180,21 @@ export default function RegistrationAssessment() {
               </p>
             </header>
 
-            <div
-              onPointerDownCapture={(e) => {
-                if (isAnon) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setAuthGateOpen(true);
-                }
-              }}
-              onKeyDownCapture={(e) => {
-                if (isAnon && e.key !== "Tab") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setAuthGateOpen(true);
-                }
-              }}
-              onFocusCapture={(e) => {
-                if (isAnon) {
-                  (e.target as HTMLElement).blur?.();
-                  setAuthGateOpen(true);
-                }
-              }}
-              aria-disabled={isAnon}
-            >
+            <div className="relative">
+              {isAnon && (
+                <button
+                  type="button"
+                  aria-label="Create an account to use the Registration Manager"
+                  onClick={() => setAuthGateOpen(true)}
+                  onFocus={() => setAuthGateOpen(true)}
+                  className="absolute inset-0 z-20 w-full h-full bg-transparent cursor-pointer border-0 p-0 m-0"
+                />
+              )}
+              <div
+                inert={isAnon ? "" as any : undefined}
+                aria-hidden={isAnon}
+                style={isAnon ? { pointerEvents: "none", userSelect: "none", opacity: 0.6 } : undefined}
+              >
             <Card>
               <CardHeader>
                 <CardTitle>Step {step} of 3</CardTitle>
