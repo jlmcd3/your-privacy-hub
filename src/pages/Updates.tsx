@@ -122,7 +122,7 @@ const Updates = () => {
     // (Attention filter state removed — Attention badge no longer surfaced)
     const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
-    const userTier: "free" | "pro" = isPremium ? "pro" : "free";
+    
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
     // Write the selected pill into the URL (region/topic) so back/forward stays in sync.
