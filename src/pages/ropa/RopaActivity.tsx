@@ -142,6 +142,10 @@ export default function RopaActivity() {
       title={`${currentActivity.display_name} — RoPA Builder`}
       heading=""
     >
+      {(() => {
+        const { steps, currentIndex } = getRopaSteps("activity");
+        return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
+      })()}
       <div className="grid md:grid-cols-[260px_1fr] gap-6 pb-24 md:pb-0">
         {/* Sidebar (desktop) */}
         <aside
