@@ -18,6 +18,8 @@ import {
   JURISDICTION_OPTIONS, ORG_SIZES, INDUSTRIES, rememberAssessmentToken,
 } from "@/data/registration_jurisdictions";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
+import AuthGateModal from "@/components/AuthGateModal";
+import { useAuth } from "@/hooks/useAuth";
 
 interface IntakeState {
   // Step 1
