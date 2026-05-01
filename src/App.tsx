@@ -332,6 +332,15 @@ const App = () => (
             <Route path="/ir-playbook" element={<IRPlaybook />} />
             <Route path="/biometric-checker" element={<BiometricChecker />} />
             <Route path="/horizon" element={<Horizon />} />
+            {/* RoPA Builder */}
+            <Route path="/ropa" element={<ProtectedRoute><RopaHome /></ProtectedRoute>} />
+            <Route path="/ropa/setup" element={<ProtectedRoute><RopaSetup /></ProtectedRoute>} />
+            <Route path="/ropa/activities" element={<ProtectedRoute><RopaActivities /></ProtectedRoute>} />
+            <Route path="/ropa/activity/:id" element={<ProtectedRoute><RopaActivity /></ProtectedRoute>} />
+            <Route path="/ropa/review" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
+            <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
+            <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
+            <Route path="/ropa-builder" element={<RopaLanding />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
