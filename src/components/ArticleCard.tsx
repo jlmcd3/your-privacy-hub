@@ -37,7 +37,7 @@ export interface ArticleItem {
 }
 
 // Variant controls the density and context of display
-export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview';
+export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview' | 'homepage';
 
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
@@ -580,6 +580,45 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
   );
 };
 
+// — HOMEPAGE variant (anonymous users — uniform internal-link card) ——
+const HomepageCard = ({ item }: { item: ArticleItem }) => {
+  const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
+  return (
+    <Link
+      to={`/updates/${item.id}`}
+      className="block group py-4 border-b border-fog last:border-0 no-underline"
+    >
+      <div className="flex flex-wrap items-center gap-1.5 mb-1">
+        {item.source_name && (
+          <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
+        )}
+        {item.published_at && (
+          <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
+        )}
+        {item.category && (
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
+            {categoryLabel(item.category)}
+          </span>
+        )}
+      </div>
+      <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
+        {normalizeTitle(item.title)}
+      </p>
+      {item.summary && (
+        <p className="text-[13px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+      )}
+      {shortWhy && (
+        <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
+            Why it matters
+          </p>
+          <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
+        </div>
+      )}
+    </Link>
+  );
+};
+
 // — MAIN EXPORT ——————————————————————————————————
 interface ArticleCardProps {
   item: ArticleItem;
@@ -596,6 +635,7 @@ export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSal
     case 'enforcement': return <EnforcementCard item={item} />;
     case 'newsfeed':    return <NewsfeedCard item={item} />;
     case 'preview':     return <PreviewCard item={item} />;
+    case 'homepage':    return <HomepageCard item={item} />;
     default:            return <FullCard item={item} isPremium={isPremium} userSalutation={userSalutation} />;
   }
 };
