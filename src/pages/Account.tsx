@@ -63,6 +63,25 @@ export default function Account() {
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
 
+        {!onboardingComplete && (
+          <div className="bg-gradient-to-br from-blue/10 to-sky/10 border border-blue/30 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-navy text-[14px] mb-1">
+                Personalise your intelligence feed
+              </h3>
+              <p className="text-[13px] text-slate leading-relaxed">
+                Tell us your role, jurisdiction, and sector so we can tailor your Action Brief.
+              </p>
+            </div>
+            <Link
+              to="/onboarding-profile?redirect=%2Faccount"
+              className="shrink-0 inline-block bg-gradient-to-br from-steel to-blue text-white font-semibold text-[13px] py-2.5 px-5 rounded-lg no-underline hover:opacity-90 transition-all"
+            >
+              Complete setup →
+            </Link>
+          </div>
+        )}
+
         {/* Account details */}
         <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
           <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
