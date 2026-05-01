@@ -50,6 +50,7 @@ import BriefPreferences from "./pages/BriefPreferences.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import CheckEmail from "./pages/CheckEmail.tsx";
+import OnboardingProfile from "./pages/OnboardingProfile.tsx";
 import Tools from "./pages/Tools.tsx";
 import CookieConsent from "./pages/CookieConsent.tsx";
 import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
@@ -158,6 +159,14 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/check-email" element={<CheckEmail />} />
+            <Route
+              path="/onboarding-profile"
+              element={
+                <ProtectedRoute>
+                  <OnboardingProfile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/account"
               element={

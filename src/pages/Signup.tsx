@@ -15,7 +15,7 @@ const Signup = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/account";
+  const redirect = searchParams.get("redirect") || "/onboarding-profile";
 
   const blockExfil = (e: React.ClipboardEvent | React.DragEvent) => {
     e.preventDefault();

@@ -40,7 +40,7 @@ export default function CheckEmail() {
           </div>
 
           <Link
-            to="/login"
+            to={`/login?redirect=${encodeURIComponent("/onboarding-profile")}`}
             className="block text-center text-[13px] text-blue hover:text-navy no-underline"
           >
             Already confirmed? Sign in →
