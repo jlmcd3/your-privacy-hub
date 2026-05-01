@@ -198,6 +198,70 @@ Deno.serve(async (req) => {
     const stripePrice = await resolvePriceId(stripe, lookupKey);
     const amountCents = stripePrice?.unit_amount ?? fallbackCents;
 
+    const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
+    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
+
+    const lineItemBase = stripePrice
+      ? { price: stripePrice.id, quantity: 1 }
+      : {
+          price_data: {
+            currency: "usd",
+            product_data: { name: tool.name },
+            unit_amount: amountCents,
+          },
+          quantity: 1,
+        };
+
+    // ── Session-based tools (RoPA / US Notice / EU Notice) ──
+    // The session row already exists from the Q&A flow. Do NOT insert a new
+    // row. Generation is triggered by the user from the review screen after
+    // the webhook marks payment_confirmed.
+    const isSessionTool = SESSION_TABLES.has(tool.table);
+    if (isSessionTool) {
+      const sessionId = (intake_data as any)?.session_id;
+      if (!sessionId) {
+        return new Response(
+          JSON.stringify({ error: "session_id required for this tool type" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      const defaultPath = DEFAULT_REVIEW_PATHS[tool.table] || "/account";
+      const returnPath = success_path || `${defaultPath}?payment_success=true`;
+      const joinChar = returnPath.includes("?") ? "&" : "?";
+
+      const checkoutParams: Record<string, unknown> = {
+        payment_method_types: ["card"],
+        line_items: [lineItemBase as any],
+        mode: "payment",
+        metadata: {
+          tool_type,
+          assessment_id: sessionId,
+          user_id: user_id || "",
+          tier: isSubscriber ? "subscriber" : "standalone",
+        },
+      };
+
+      if (embedded) {
+        checkoutParams.ui_mode = "embedded";
+        checkoutParams.return_url = `${origin}${returnPath}${joinChar}session_id={CHECKOUT_SESSION_ID}`;
+      } else {
+        checkoutParams.success_url = `${origin}${returnPath}`;
+        checkoutParams.cancel_url = `${origin}${defaultPath}`;
+      }
+
+      const sessionResp = await stripe.checkout.sessions.create(checkoutParams as any);
+
+      return new Response(
+        JSON.stringify(
+          embedded
+            ? { client_secret: sessionResp.client_secret, assessment_id: sessionId }
+            : { url: sessionResp.url, assessment_id: sessionId },
+        ),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Insert pending assessment record (price stored for accounting).
     let assessmentData: Record<string, unknown> = {};
     if (tool_type === "li_assessment") {
