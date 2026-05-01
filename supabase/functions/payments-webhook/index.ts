@@ -210,3 +210,41 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     })
     .eq("id", userId);
 }
+
+async function handleCheckoutFailed(session: any, eventType: string, env: StripeEnv) {
+  // Only act on registration orders here. Other flows can be added later.
+  if (session.metadata?.type !== "registration_order" || !session.metadata?.order_id) {
+    return;
+  }
+  const orderId = session.metadata.order_id;
+  const userId = session.metadata.user_id || null;
+  const tier = session.metadata.tier;
+  const embedded = session.metadata.embedded === "true";
+
+  console.log(
+    JSON.stringify({
+      scope: "registration_checkout",
+      event: eventType === "checkout.session.expired" ? "session_expired" : "payment_failed",
+      env,
+      embedded,
+      order_id: orderId,
+      user_id: userId,
+      tier,
+      stripe_session_id: session.id,
+    })
+  );
+
+  // Only mark canceled if still pending — never overwrite a paid order.
+  await supabase
+    .from("registration_orders")
+    .update({ payment_status: "canceled", updated_at: new Date().toISOString() })
+    .eq("id", orderId)
+    .eq("payment_status", "pending");
+
+  await supabase.from("registration_audit_log").insert({
+    action: eventType === "checkout.session.expired" ? "checkout_expired" : "checkout_payment_failed",
+    order_id: orderId,
+    user_id: userId,
+    metadata: { env, embedded, tier, stripe_session_id: session.id, event_type: eventType },
+  });
+}
