@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
+import { ActionBrief } from "@/components/ActionBrief";
 
 
 // Shared type for all article-like content across the site
@@ -273,7 +274,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
 };
 
 // — FULL variant ——————————————————————————————————
-const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: boolean }) => {
+const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { item: ArticleItem; isPremium?: boolean; userSalutation?: string }) => {
   const enriched = isEnriched(item);
   const weight = item.ai_summary?.legal_weight;
   const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
@@ -341,6 +342,20 @@ const FullCard = ({ item, isPremium = false }: { item: ArticleItem; isPremium?: 
             </span>
             <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
           </div>
+        )}
+        {/* Action Brief — both registered tiers (blurred for free, full for Pro) */}
+        {(item.ai_summary?.compliance_impact || item.ai_summary?.urgency) && (
+          <ActionBrief
+            urgency={item.ai_summary?.urgency ?? null}
+            who_should_care={(item.ai_summary as any)?.who_should_care ?? null}
+            compliance_impact={item.ai_summary?.compliance_impact ?? null}
+            action_items={item.action_items ?? null}
+            risk_level={item.ai_summary?.risk_level ?? null}
+            isPremium={isPremium}
+            userSalutation={userSalutation}
+            articleId={item.id}
+            articleCategory={item.category ?? null}
+          />
         )}
         {/* Intelligence Card — paid only, collapsed by default */}
         {isPremium && <IntelligenceCard item={item} />}
@@ -570,17 +585,18 @@ interface ArticleCardProps {
   item: ArticleItem;
   variant?: ArticleCardVariant;
   isPremium?: boolean;
+  userSalutation?: string;
   onOpenDrawer?: (item: ArticleItem) => void;
 }
 
-export const ArticleCard = ({ item, variant = 'full', isPremium = false }: ArticleCardProps) => {
+export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSalutation }: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
     case 'enforcement': return <EnforcementCard item={item} />;
     case 'newsfeed':    return <NewsfeedCard item={item} />;
     case 'preview':     return <PreviewCard item={item} />;
-    default:            return <FullCard item={item} isPremium={isPremium} />;
+    default:            return <FullCard item={item} isPremium={isPremium} userSalutation={userSalutation} />;
   }
 };
 

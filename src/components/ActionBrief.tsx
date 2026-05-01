@@ -36,7 +36,7 @@ function firstWords(text: string, n: number): string {
   return text.trim().split(/\s+/).slice(0, n).join(" ");
 }
 
-export default function ActionBrief({
+export function ActionBrief({
   urgency,
   who_should_care,
   compliance_impact,
@@ -179,3 +179,5 @@ export default function ActionBrief({
     </div>
   );
 }
+
+export default ActionBrief;
