@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { toast } from "sonner";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
