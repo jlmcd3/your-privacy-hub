@@ -101,6 +101,11 @@ function TopicRedirect() {
   return <Navigate to={`/updates?topic=${slug ?? ""}`} replace />;
 }
 
+function PaymentReturnRedirect({ to }: { to: string }) {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+}
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
