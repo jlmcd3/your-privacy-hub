@@ -125,12 +125,11 @@ export function RopaRegulatoryUpdates({ newSessionId, clientId, lastGeneratedDat
       // Also create an info flag for visibility in the review screen
       await supabase.from("ropa_flags").insert({
         session_id: newSessionId,
-        client_id: clientId,
         activity_id: null,
-        flag_type: "regulatory_update_noted",
+        flag_type: "recommendation",
         severity: "info",
         question_key: null,
-        flag_message: `Noted: ${update.title} (${update.jurisdiction_name})`,
+        flag_message: `Noted regulatory update: ${update.title} (${update.jurisdiction_name})`,
         consequence: update.action_required,
         action_label: "Open source",
         action_route: update.url,
