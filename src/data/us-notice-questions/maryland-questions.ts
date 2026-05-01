@@ -49,7 +49,7 @@ export const MARYLAND_QUESTIONS: Question[] = [
         operator: "equals",
         value: "yes",
         flagType: "high_risk_activity",
-        severity: "error",
+        severity: "warning",
         message: "Sale of sensitive data is prohibited under Maryland law.",
         consequence:
           "MODPA outright prohibits the sale of sensitive personal data. This cannot be cured with consent or an opt-out. You must stop the sale of sensitive data of Maryland residents immediately.",
@@ -69,7 +69,7 @@ export const MARYLAND_QUESTIONS: Question[] = [
         operator: "equals",
         value: "yes",
         flagType: "high_risk_activity",
-        severity: "error",
+        severity: "warning",
         message: "Targeted advertising to minors aged 13–17 is prohibited.",
         consequence:
           "Maryland prohibits targeted advertising to or sale of data of minors aged 13–17 where you know or should know the consumer's age. Stop these practices for Maryland minors.",
