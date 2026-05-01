@@ -7,6 +7,8 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { waitForSessionPaid } from "@/lib/checkoutConfirmation";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import RopaInlineFlag from "@/components/ropa/RopaInlineFlag";
 import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
