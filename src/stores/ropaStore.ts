@@ -171,9 +171,14 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
       .select("*")
       .eq("session_id", sessionId)
       .order("display_order", { ascending: true });
+    const { data: flagRows } = await SUPA.from("ropa_flags")
+      .select("*")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false });
     set({
       currentSession: session as RopaSession,
       allActivities: (activities ?? []) as RopaActivity[],
+      flags: (flagRows ?? []) as RopaFlag[],
     });
   },
 
