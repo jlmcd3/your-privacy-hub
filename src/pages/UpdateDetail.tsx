@@ -123,6 +123,23 @@ const UpdateDetail = () => {
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState<RelatedUpdate[]>([]);
 
+  // Fire-and-forget tracking — silent on failure, never blocks UI.
+  const trackEvent = async (eventType: string) => {
+    if (!user?.id || !article?.id) return;
+    try {
+      await supabase.from("user_enrichment_events").insert({
+        user_id: user.id,
+        event_type: eventType,
+        article_id: article.id,
+        article_category: article.category ?? null,
+        user_role: userProfile.action_brief_salutation ?? null,
+      });
+    } catch {
+      /* silent */
+    }
+  };
+
+
   // Fetch article
   useEffect(() => {
     if (!id) return;
@@ -189,6 +206,13 @@ const UpdateDetail = () => {
           article?.attention_level ||
           (article?.affected_sectors && article.affected_sectors.length > 0)
       );
+
+  // Track when a free registered user is shown the blurred Analyzed section.
+  useEffect(() => {
+    if (!user || isPremium || !article?.id || !hasAnalyzed) return;
+    void trackEvent("analyzed_blur_seen");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isPremium, article?.id, hasAnalyzed]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -459,6 +483,7 @@ const UpdateDetail = () => {
                         </p>
                         <Link
                           to="/subscribe"
+                          onClick={() => { void trackEvent("analyzed_blur_click"); }}
                           className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
                         >
                           See Pro plan
