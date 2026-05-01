@@ -72,6 +72,14 @@ export interface RopaFlag {
   resolved: boolean;
 }
 
+export interface FlagSummary {
+  total: number;
+  errors: number;
+  warnings: number;
+  recommendations: number;
+  unresolvedActivities: string[];
+}
+
 interface RopaStore {
   currentSession: RopaSession | null;
   allActivities: RopaActivity[];
@@ -80,6 +88,7 @@ interface RopaStore {
   currentAnswers: Record<string, JsonValue>;
   currentQuestionIndex: number;
   skippedQuestionKeys: Set<string>;
+  flags: RopaFlag[];
   isSaving: boolean;
   saveError: string | null;
   lastSavedAt: Date | null;
@@ -87,6 +96,7 @@ interface RopaStore {
 
   loadSession: (sessionId: string) => Promise<void>;
   loadActivity: (activityId: string) => Promise<void>;
+  loadFlags: () => Promise<void>;
   createSession: (clientId: string) => Promise<string>;
   saveAnswer: (questionKey: string, value: JsonValue) => Promise<void>;
   clearAnswersDownstreamOf: (questionKey: string) => Promise<void>;
@@ -97,6 +107,23 @@ interface RopaStore {
   createFlag: (
     flag: Omit<RopaFlag, "id" | "created_at"> & { created_at?: string }
   ) => Promise<void>;
+  resolveFlag: (flagId: string) => Promise<void>;
+  evaluateFlagsForAnswer: (
+    questionKey: string,
+    value: JsonValue,
+    flagIfList: Array<{
+      operator: string;
+      value: string | string[];
+      flagType: string;
+      severity: string;
+      message: string;
+      consequence: string;
+      actionLabel?: string;
+      actionRoute?: string;
+    }>
+  ) => Promise<void>;
+  runSessionLevelChecks: () => Promise<void>;
+  getFlagSummary: () => FlagSummary;
   heartbeat: () => void;
   startHeartbeat: () => void;
   clearSession: () => void;
