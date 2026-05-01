@@ -252,6 +252,15 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
+              {isMultiClient && (
+                <Link
+                  to="/clients"
+                  className="text-[12px] font-semibold text-slate hover:text-navy no-underline transition-colors flex items-center gap-1"
+                >
+                  <Building2 className="w-3.5 h-3.5" /> My Clients
+                </Link>
+              )}
+              <ClientSwitcher />
               {!isPremium && (
                 <Link
                   to="/subscribe"
