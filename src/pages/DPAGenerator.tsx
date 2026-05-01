@@ -47,6 +47,15 @@ export default function DPAGenerator() {
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const validateForm = (): string | null => {
+    if (!form.controllerName.trim()) return "Please enter the Controller name.";
+    if (!form.processorName.trim()) return "Please enter the Processor name.";
+    if (!form.services.trim()) return "Please describe the Services to be provided.";
+    if (form.dataCategories.length === 0) return "Please select at least one data category.";
+    return null;
+  };
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
