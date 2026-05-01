@@ -397,13 +397,16 @@ function QuestionInput({
     case "single_choice":
     case "lawful_basis":
       return (
-        <div className="space-y-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="space-y-2">
           {(question.options ?? []).map((opt) => (
             <button
               key={opt.value}
               onClick={() => onChange(opt.value)}
+              role="radio"
+              aria-checked={v === opt.value}
+              aria-label={opt.label}
               id={`q-${question.key}-${opt.value}`}
-              className={`w-full text-left p-3 rounded-lg border ${
+              className={`w-full text-left p-3 rounded-lg border min-h-[52px] ${
                 v === opt.value
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
@@ -422,12 +425,15 @@ function QuestionInput({
 
     case "yes_no":
       return (
-        <div className="grid grid-cols-2 gap-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="grid grid-cols-2 gap-2">
           {["yes", "no"].map((o) => (
             <button
               key={o}
               onClick={() => onChange(o)}
-              className={`p-3 rounded-lg border capitalize font-semibold ${
+              role="radio"
+              aria-checked={v === o}
+              aria-label={o}
+              className={`p-3 rounded-lg border capitalize font-semibold min-h-[52px] ${
                 v === o
                   ? "border-primary bg-primary/10"
                   : "border-border hover:bg-muted/40"
@@ -441,12 +447,15 @@ function QuestionInput({
 
     case "yes_no_unsure":
       return (
-        <div className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="grid grid-cols-3 gap-2">
           {["yes", "no", "unsure"].map((o) => (
             <button
               key={o}
               onClick={() => onChange(o)}
-              className={`p-3 rounded-lg border capitalize ${
+              role="radio"
+              aria-checked={v === o}
+              aria-label={o === "unsure" ? "Not sure" : o}
+              className={`p-3 rounded-lg border capitalize min-h-[52px] ${
                 v === o
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
@@ -460,12 +469,15 @@ function QuestionInput({
 
     case "date_or_period":
       return (
-        <div className="space-y-2">
+        <div role="radiogroup" aria-labelledby={`q-${question.key}`} className="space-y-2">
           {(question.options ?? []).map((opt) => (
             <button
               key={opt.value}
               onClick={() => onChange(opt.value)}
-              className={`w-full text-left p-3 rounded-lg border ${
+              role="radio"
+              aria-checked={v === opt.value}
+              aria-label={opt.label}
+              className={`w-full text-left p-3 rounded-lg border min-h-[52px] ${
                 v === opt.value
                   ? "border-primary bg-primary/10 font-semibold"
                   : "border-border hover:bg-muted/40"
@@ -483,8 +495,9 @@ function QuestionInput({
           id={`q-${question.key}`}
           value={(v as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
+          aria-label={question.text}
           rows={4}
-          className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+          className="w-full px-3 py-2 border border-border rounded-lg bg-background min-h-[88px]"
         />
       );
 
@@ -496,7 +509,8 @@ function QuestionInput({
           type="text"
           value={(v as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+          aria-label={question.text}
+          className="w-full px-3 py-2 border border-border rounded-lg bg-background min-h-[44px]"
         />
       );
   }
