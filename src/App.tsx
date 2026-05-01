@@ -25,6 +25,7 @@ import USStateComparison from "./pages/USStateComparison.tsx";
 import Signup from "./pages/Signup.tsx";
 import Login from "./pages/Login.tsx";
 import Account from "./pages/Account.tsx";
+import ClientsPortfolio from "./pages/ClientsPortfolio.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
@@ -177,6 +178,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Account />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute>
+                  <ClientsPortfolio />
                 </ProtectedRoute>
               }
             />
