@@ -309,20 +309,254 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
     }));
   },
 
+  async loadFlags() {
+    const session = get().currentSession;
+    if (!session) return;
+    const { data } = await SUPA.from("ropa_flags")
+      .select("*")
+      .eq("session_id", session.id)
+      .order("created_at", { ascending: false });
+    set({ flags: (data ?? []) as RopaFlag[] });
+  },
+
   async createFlag(flag) {
-    const { error } = await SUPA.from("ropa_flags").insert({
-      session_id: flag.session_id,
-      activity_id: flag.activity_id,
-      flag_type: flag.flag_type,
-      severity: flag.severity,
-      question_key: flag.question_key,
-      flag_message: flag.flag_message,
-      consequence: flag.consequence,
-      action_label: flag.action_label,
-      action_route: flag.action_route,
-      resolved: flag.resolved,
+    const sessionId = flag.session_id;
+    const existing = get().flags.find(
+      (f) =>
+        !f.resolved &&
+        f.session_id === sessionId &&
+        f.activity_id === flag.activity_id &&
+        f.question_key === flag.question_key &&
+        f.flag_type === flag.flag_type
+    );
+    if (existing) return;
+
+    const { data, error } = await SUPA.from("ropa_flags")
+      .insert({
+        session_id: flag.session_id,
+        activity_id: flag.activity_id,
+        flag_type: flag.flag_type,
+        severity: flag.severity,
+        question_key: flag.question_key,
+        flag_message: flag.flag_message,
+        consequence: flag.consequence,
+        action_label: flag.action_label,
+        action_route: flag.action_route,
+        resolved: flag.resolved,
+      })
+      .select()
+      .single();
+    if (error) {
+      set({ saveError: error.message });
+      return;
+    }
+    const newCount = (get().currentSession?.open_flags_count ?? 0) + 1;
+    await SUPA.from("ropa_sessions")
+      .update({ open_flags_count: newCount })
+      .eq("id", sessionId);
+    set((s) => ({
+      flags: [data as RopaFlag, ...s.flags],
+      currentSession: s.currentSession
+        ? { ...s.currentSession, open_flags_count: newCount }
+        : s.currentSession,
+    }));
+  },
+
+  async resolveFlag(flagId: string) {
+    const flag = get().flags.find((f) => f.id === flagId);
+    if (!flag || flag.resolved) return;
+    const { error } = await SUPA.from("ropa_flags")
+      .update({ resolved: true, resolved_at: new Date().toISOString() })
+      .eq("id", flagId);
+    if (error) {
+      set({ saveError: error.message });
+      return;
+    }
+    const newCount = Math.max(
+      0,
+      (get().currentSession?.open_flags_count ?? 1) - 1
+    );
+    await SUPA.from("ropa_sessions")
+      .update({ open_flags_count: newCount })
+      .eq("id", flag.session_id);
+    set((s) => ({
+      flags: s.flags.map((f) =>
+        f.id === flagId ? { ...f, resolved: true } : f
+      ),
+      currentSession: s.currentSession
+        ? { ...s.currentSession, open_flags_count: newCount }
+        : s.currentSession,
+    }));
+  },
+
+  async evaluateFlagsForAnswer(questionKey, value, flagIfList) {
+    const activity = get().currentActivity;
+    const session = get().currentSession;
+    if (!activity || !session) return;
+
+    const matchesCondition = (cond: { operator: string; value: string | string[] }) => {
+      if (cond.operator === "equals") return value === cond.value;
+      if (cond.operator === "contains") {
+        if (Array.isArray(value)) {
+          return Array.isArray(cond.value)
+            ? cond.value.some((c) => (value as string[]).includes(c))
+            : (value as string[]).includes(cond.value as string);
+        }
+        return false;
+      }
+      return false;
+    };
+
+    for (const cond of flagIfList) {
+      const triggered = matchesCondition(cond);
+      const existing = get().flags.find(
+        (f) =>
+          f.session_id === session.id &&
+          f.activity_id === activity.id &&
+          f.question_key === questionKey &&
+          f.flag_type === cond.flagType
+      );
+
+      if (triggered && (!existing || existing.resolved)) {
+        await get().createFlag({
+          session_id: session.id,
+          activity_id: activity.id,
+          flag_type: cond.flagType,
+          severity: cond.severity,
+          question_key: questionKey,
+          flag_message: cond.message,
+          consequence: cond.consequence,
+          action_label: cond.actionLabel ?? null,
+          action_route: cond.actionRoute ?? null,
+          resolved: false,
+        });
+      } else if (!triggered && existing && !existing.resolved) {
+        await get().resolveFlag(existing.id);
+      }
+    }
+  },
+
+  async runSessionLevelChecks() {
+    const session = get().currentSession;
+    if (!session) return;
+    const activities = get().allActivities;
+
+    const { data: answerRows } = await SUPA.from("ropa_answers")
+      .select("activity_id, question_key, answer_value")
+      .eq("session_id", session.id);
+
+    const answersByActivity: Record<string, Record<string, JsonValue>> = {};
+    for (const r of answerRows ?? []) {
+      const aid = r.activity_id as string;
+      if (!answersByActivity[aid]) answersByActivity[aid] = {};
+      answersByActivity[aid][r.question_key as string] = r.answer_value as JsonValue;
+    }
+
+    for (const a of activities) {
+      const aAnswers = answersByActivity[a.id] ?? {};
+      const procVal = aAnswers["processor_platform"];
+      const isEmpty =
+        procVal == null ||
+        (Array.isArray(procVal) && procVal.length === 0) ||
+        procVal === "";
+      if (Object.keys(aAnswers).length > 0 && isEmpty) {
+        await get().createFlag({
+          session_id: session.id,
+          activity_id: a.id,
+          flag_type: "missing_required",
+          severity: "warning",
+          question_key: "processor_platform",
+          flag_message: `Processor not documented for ${a.display_name}`,
+          consequence:
+            "GDPR Art.30 requires identifying processors used for each processing activity.",
+          action_label: null,
+          action_route: null,
+          resolved: false,
+        });
+      }
+    }
+
+    const { data: profile } = await SUPA.from("ropa_client_profiles")
+      .select("dpo_name, selected_jurisdictions")
+      .eq("client_id", session.client_id)
+      .maybeSingle();
+
+    const jurisdictions: string[] =
+      (profile?.selected_jurisdictions as string[]) ?? [];
+    if (!profile?.dpo_name && jurisdictions.includes("EU_GDPR")) {
+      await get().createFlag({
+        session_id: session.id,
+        activity_id: null,
+        flag_type: "recommendation",
+        severity: "info",
+        question_key: null,
+        flag_message:
+          "Consider whether a DPO is required under GDPR Art.37. Organisations engaged in large-scale systematic monitoring or processing of special category data on a large scale are required to appoint a DPO.",
+        consequence:
+          "Failure to designate a required DPO is a breach of GDPR Art.37.",
+        action_label: null,
+        action_route: null,
+        resolved: false,
+      });
+    }
+
+    const usPlatformDetected = Object.values(answersByActivity).some((aa) => {
+      const v = aa["processor_platform"];
+      if (!v) return false;
+      const s = JSON.stringify(v).toLowerCase();
+      return /aws|google|microsoft|hubspot|salesforce|stripe|mailchimp|zendesk|slack|atlassian|cloudflare/.test(
+        s
+      );
     });
-    if (error) set({ saveError: error.message });
+    const dpaConfirmed = Object.values(answersByActivity).some((aa) => {
+      const v = aa["dpa_in_place"] ?? aa["processor_agreement_signed"];
+      return v === "yes" || v === true;
+    });
+    if (usPlatformDetected && !dpaConfirmed) {
+      await get().createFlag({
+        session_id: session.id,
+        activity_id: null,
+        flag_type: "recommendation",
+        severity: "recommendation",
+        question_key: null,
+        flag_message:
+          "Ensure Data Processing Agreements are in place with all US-based processors. These are required under GDPR Art.28 regardless of transfer mechanism.",
+        consequence:
+          "Missing Art.28 DPAs expose the controller to direct enforcement risk.",
+        action_label: "Generate DPA",
+        action_route: "/dpa-generator",
+        resolved: false,
+      });
+    }
+  },
+
+  getFlagSummary() {
+    const open = get().flags.filter((f) => !f.resolved);
+    const errors = open.filter((f) => f.flag_type === "missing_required").length;
+    const warnings = open.filter(
+      (f) => f.severity === "warning" && f.flag_type !== "missing_required"
+    ).length;
+    const recommendations = open.filter(
+      (f) => f.flag_type === "recommendation" || f.flag_type === "cross_sell"
+    ).length;
+
+    const activityMap = new Map<string, string>();
+    get().allActivities.forEach((a) => activityMap.set(a.id, a.display_name));
+    const unresolvedActivities = Array.from(
+      new Set(
+        open
+          .map((f) => (f.activity_id ? activityMap.get(f.activity_id) : null))
+          .filter((v): v is string => Boolean(v))
+      )
+    );
+
+    return {
+      total: open.length,
+      errors,
+      warnings,
+      recommendations,
+      unresolvedActivities,
+    };
   },
 
   heartbeat() {
