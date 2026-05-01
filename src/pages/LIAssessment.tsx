@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -73,6 +74,7 @@ const STRENGTH_STYLE: Record<string, string> = {
 
 const LIAssessment = () => {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
@@ -118,6 +120,7 @@ const LIAssessment = () => {
         .from("li_assessments")
         .insert({
           user_id: user?.id ?? null,
+          client_id: clientId ?? null,
           status: "pending",
           stage: "preview",
           processing_description: processingDescription,

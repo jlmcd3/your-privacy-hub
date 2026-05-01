@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ClientSwitcher } from "@/components/clients/ClientSwitcher";
+import { useActiveClient } from "@/hooks/useActiveClient";
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
@@ -126,6 +128,7 @@ const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isMultiClient } = useActiveClient();
   const [isPremium, setIsPremium] = useState(false);
   const [briefLabel, setBriefLabel] = useState<string | null>(null);
 
@@ -249,6 +252,15 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
+              {isMultiClient && (
+                <Link
+                  to="/clients"
+                  className="text-[12px] font-semibold text-slate hover:text-navy no-underline transition-colors flex items-center gap-1"
+                >
+                  <Building2 className="w-3.5 h-3.5" /> My Clients
+                </Link>
+              )}
+              <ClientSwitcher />
               {!isPremium && (
                 <Link
                   to="/subscribe"

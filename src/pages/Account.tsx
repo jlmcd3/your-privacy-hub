@@ -9,6 +9,10 @@ import Footer from "@/components/Footer";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import {
+  AccountClientsSection,
+  ComplianceDocumentsSection,
+} from "@/components/clients/AccountClientsSection";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import {
   AlertDialog,
@@ -276,6 +280,12 @@ export default function Account() {
             </Link>
           </div>
         )}
+
+        {/* Multi-client management */}
+        <AccountClientsSection />
+
+        {/* Compliance documents summary */}
+        <ComplianceDocumentsSection />
 
         {/* Weekly Brief Language (Intelligence subscribers only) */}
         <BriefLanguageSelector />

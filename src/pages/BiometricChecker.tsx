@@ -10,6 +10,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
@@ -25,6 +26,7 @@ export default function BiometricChecker() {
   const navigate = useNavigate();
   // No more anonymous free tier — every analysis requires a signed-in account.
   const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
+  const { clientId } = useActiveClient();
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], purpose: PURPOSE[0],
     jurisdictions: [] as string[], enrolledCount: COUNTS[1],
@@ -44,7 +46,7 @@ export default function BiometricChecker() {
 
   const handleGenerate = async () => {
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: { ...form, user_id: access.user?.id } });
+    const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.assessment_text) {
       setResult({ assessment_text: "Generation failed. Please try again.", bipa_risk: null, jurisdictions_analysed: [] });
       setPhase("result");

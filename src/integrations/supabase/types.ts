@@ -53,6 +53,7 @@ export type Database = {
       biometric_assessments: {
         Row: {
           analysis_text: string | null
+          client_id: string | null
           created_at: string | null
           id: string
           intake_data: Json
@@ -70,6 +71,7 @@ export type Database = {
         }
         Insert: {
           analysis_text?: string | null
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -87,6 +89,7 @@ export type Database = {
         }
         Update: {
           analysis_text?: string | null
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -102,7 +105,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "biometric_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brief_translations: {
         Row: {
@@ -125,6 +136,39 @@ export type Database = {
           id?: string
           language_code?: string
           translated_content?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          owner_id: string
+          sector: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          owner_id?: string
+          sector?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          sector?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -180,6 +224,7 @@ export type Database = {
       }
       dpa_documents: {
         Row: {
+          client_id: string | null
           created_at: string | null
           document_text: string | null
           id: string
@@ -195,6 +240,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           document_text?: string | null
           id?: string
@@ -210,6 +256,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           document_text?: string | null
           id?: string
@@ -224,10 +271,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dpa_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dpia_frameworks: {
         Row: {
+          client_id: string | null
           created_at: string | null
           id: string
           intake_data: Json
@@ -244,6 +300,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -260,6 +317,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -276,6 +334,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "dpia_frameworks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dpia_frameworks_source_assessment_id_fkey"
             columns: ["source_assessment_id"]
@@ -579,6 +644,7 @@ export type Database = {
       }
       governance_assessments: {
         Row: {
+          client_id: string | null
           created_at: string | null
           dpia_scope: Json | null
           id: string
@@ -595,6 +661,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           dpia_scope?: Json | null
           id?: string
@@ -611,6 +678,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           dpia_scope?: Json | null
           id?: string
@@ -626,7 +694,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "governance_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       horizon_intelligence: {
         Row: {
@@ -744,6 +820,7 @@ export type Database = {
       }
       ir_playbooks: {
         Row: {
+          client_id: string | null
           created_at: string | null
           id: string
           intake_data: Json
@@ -759,6 +836,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -774,6 +852,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -788,7 +867,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ir_playbooks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jurisdiction_monitoring_log: {
         Row: {
@@ -953,6 +1040,7 @@ export type Database = {
         Row: {
           alternatives_considered: string | null
           balancing_details: Json | null
+          client_id: string | null
           created_at: string | null
           data_categories: string[] | null
           id: string
@@ -979,6 +1067,7 @@ export type Database = {
         Insert: {
           alternatives_considered?: string | null
           balancing_details?: Json | null
+          client_id?: string | null
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
@@ -1005,6 +1094,7 @@ export type Database = {
         Update: {
           alternatives_considered?: string | null
           balancing_details?: Json | null
+          client_id?: string | null
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
@@ -1028,7 +1118,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "li_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       li_tracker_entries: {
         Row: {
@@ -1289,6 +1387,7 @@ export type Database = {
       }
       registration_assessments: {
         Row: {
+          client_id: string | null
           confidence_tier: string | null
           converted_order_id: string | null
           created_at: string
@@ -1307,6 +1406,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           confidence_tier?: string | null
           converted_order_id?: string | null
           created_at?: string
@@ -1325,6 +1425,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           confidence_tier?: string | null
           converted_order_id?: string | null
           created_at?: string
@@ -1342,7 +1443,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "registration_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registration_audit_log: {
         Row: {
@@ -1496,6 +1605,7 @@ export type Database = {
         Row: {
           amount_cents: number
           assessment_id: string | null
+          client_id: string | null
           created_at: string
           currency: string
           delivery_email: string | null
@@ -1519,6 +1629,7 @@ export type Database = {
         Insert: {
           amount_cents: number
           assessment_id?: string | null
+          client_id?: string | null
           created_at?: string
           currency?: string
           delivery_email?: string | null
@@ -1542,6 +1653,7 @@ export type Database = {
         Update: {
           amount_cents?: number
           assessment_id?: string | null
+          client_id?: string | null
           created_at?: string
           currency?: string
           delivery_email?: string | null
@@ -1568,6 +1680,13 @@ export type Database = {
             columns: ["assessment_id"]
             isOneToOne: false
             referencedRelation: "registration_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registration_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -2291,6 +2410,8 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_premium: { Args: never; Returns: boolean }
+      my_client_ids: { Args: never; Returns: string[] }
+      owns_client: { Args: { _client_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

@@ -20,6 +20,7 @@ import {
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveClient } from "@/hooks/useActiveClient";
 
 interface IntakeState {
   // Step 1
@@ -82,6 +83,7 @@ export default function RegistrationAssessment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
   const [intake, setIntake] = useState<IntakeState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
@@ -148,7 +150,7 @@ export default function RegistrationAssessment() {
       };
       const { data, error } = await supabase.functions.invoke(
         "run-registration-assessment",
-        { body: { intake_data: payload, user_id: user?.id || null } }
+        { body: { intake_data: payload, user_id: user?.id || null, client_id: clientId ?? null } }
       );
       if (error) throw error;
       rememberAssessmentToken(data.shareable_token);

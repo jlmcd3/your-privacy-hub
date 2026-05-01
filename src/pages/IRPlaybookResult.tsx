@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
@@ -42,6 +43,7 @@ export default function IRPlaybookResult() {
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
+        <ClientContextBadge />
         {loading ? (
           <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
         ) : !row ? (
