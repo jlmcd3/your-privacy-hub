@@ -520,6 +520,24 @@ export type Database = {
           },
         ]
       }
+      eup_user_roles: {
+        Row: {
+          action_brief_salutation: string
+          id: string
+          label: string
+        }
+        Insert: {
+          action_brief_salutation: string
+          id: string
+          label: string
+        }
+        Update: {
+          action_brief_salutation?: string
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
       free_digests: {
         Row: {
           digest_items: Json
@@ -1146,6 +1164,7 @@ export type Database = {
           ask_privacy_reset_date: string | null
           bonus_report_credits: number
           brief_role: string | null
+          company_size: string | null
           created_at: string
           digest_jurisdictions: string[] | null
           digest_topics: string[] | null
@@ -1158,7 +1177,10 @@ export type Database = {
           onboarding_complete: boolean | null
           payment_failed: boolean
           preferred_language: string
+          primary_jurisdiction: string | null
           reports_reset_date: string | null
+          role_confirmed_at: string | null
+          sector: string | null
           stripe_customer_id: string | null
           stripe_price_id: string | null
           subscription_end_date: string | null
@@ -1166,12 +1188,14 @@ export type Database = {
           subscription_plan: string | null
           subscription_tier: string | null
           updated_at: string
+          user_role: string | null
         }
         Insert: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
           bonus_report_credits?: number
           brief_role?: string | null
+          company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
@@ -1184,7 +1208,10 @@ export type Database = {
           onboarding_complete?: boolean | null
           payment_failed?: boolean
           preferred_language?: string
+          primary_jurisdiction?: string | null
           reports_reset_date?: string | null
+          role_confirmed_at?: string | null
+          sector?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
           subscription_end_date?: string | null
@@ -1192,12 +1219,14 @@ export type Database = {
           subscription_plan?: string | null
           subscription_tier?: string | null
           updated_at?: string
+          user_role?: string | null
         }
         Update: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
           bonus_report_credits?: number
           brief_role?: string | null
+          company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
@@ -1210,7 +1239,10 @@ export type Database = {
           onboarding_complete?: boolean | null
           payment_failed?: boolean
           preferred_language?: string
+          primary_jurisdiction?: string | null
           reports_reset_date?: string | null
+          role_confirmed_at?: string | null
+          sector?: string | null
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
           subscription_end_date?: string | null
@@ -1218,6 +1250,7 @@ export type Database = {
           subscription_plan?: string | null
           subscription_tier?: string | null
           updated_at?: string
+          user_role?: string | null
         }
         Relationships: []
       }
@@ -2028,6 +2061,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_enrichment_events: {
+        Row: {
+          article_category: string | null
+          article_id: string | null
+          article_jurisdiction: string | null
+          created_at: string | null
+          event_type: string
+          id: string
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          article_category?: string | null
+          article_id?: string | null
+          article_jurisdiction?: string | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          article_category?: string | null
+          article_id?: string | null
+          article_jurisdiction?: string | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2159,7 +2225,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      free_user_upgrade_signals: {
+        Row: {
+          action_brief_views: number | null
+          events_last_7d: number | null
+          is_premium: boolean | null
+          last_engagement: string | null
+          primary_jurisdiction: string | null
+          sector: string | null
+          upgrade_cta_clicks: number | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       claim_enforcement_for_enrichment: {
