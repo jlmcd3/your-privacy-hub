@@ -146,6 +146,17 @@ const Signup = () => {
                   </button>
                 </div>
               </div>
+              <p className="text-[13px] text-navy text-center leading-snug">
+                By creating an account, you agree to our{" "}
+                <Link to="/terms" className="font-bold underline text-blue hover:text-steel">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy-policy" className="font-bold underline text-blue hover:text-steel">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
               <button
                 type="submit"
                 disabled={loading}
