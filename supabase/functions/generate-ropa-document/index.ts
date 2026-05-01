@@ -1,0 +1,953 @@
+// supabase/functions/generate-ropa-document/index.ts
+//
+// Generates a RoPA document (HTML "PDF" + optional DOCX + optional XLSX) for a
+// session, uploads each format to the private `ropa-documents` storage bucket,
+// records the result in ropa_document_versions, marks the session as
+// generated, and returns short-lived signed URLs.
+//
+// Auth: requires a valid Supabase JWT. Ownership of the underlying client is
+// enforced via the public.owns_client() SECURITY DEFINER function (called as
+// the requesting user).
+//
+// Idempotency: if a document for (session_id, document_format) already exists
+// and the file is still present in storage, the existing file is reused and a
+// fresh signed URL is returned.
+//
+// Library imports use esm.sh because npm/Node-only packages do not load in
+// Deno. PDF rendering is intentionally HTML-only — Chromium/puppeteer cannot
+// run inside Supabase edge functions.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  HeadingLevel,
+  AlignmentType,
+  WidthType,
+  BorderStyle,
+} from "https://esm.sh/docx@9.6.1";
+import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CORS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+type Format = "pdf" | "docx" | "xlsx";
+
+interface RequestBody {
+  session_id: string;
+  // Either-or:
+  format?: Format; // generate a single format
+  include_word?: boolean; // or generate PDF + (DOCX) + (XLSX)
+  include_excel?: boolean;
+  document_date?: string;
+  author_name?: string;
+  internal_reference?: string | null;
+  // Legacy nested shape from the spec
+  document_settings?: {
+    document_date?: string;
+    author_name?: string;
+    internal_reference?: string | null;
+  };
+}
+
+interface DocumentSettings {
+  documentDate: string;
+  authorName: string;
+  internalReference: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function answerToString(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (Array.isArray(value)) {
+    return value.length === 0 ? "—" : value.map((v) => answerToString(v)).join(", ");
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  if (value === "" ) return "—";
+  return String(value);
+}
+
+const LAW_NAMES: Record<string, string> = {
+  EU_GDPR: "EU General Data Protection Regulation (Regulation 2016/679)",
+  UK_GDPR: "UK GDPR / Data Protection Act 2018",
+  CH_FADP: "Swiss Federal Act on Data Protection (revFADP)",
+  US_CCPA: "California Consumer Privacy Act / CPRA",
+  US_VA: "Virginia Consumer Data Protection Act (VCDPA)",
+  US_CO: "Colorado Privacy Act (CPA)",
+  US_CT: "Connecticut Data Privacy Act (CTDPA)",
+  US_TX: "Texas Data Privacy and Security Act (TDPSA)",
+  BR_LGPD: "Brazilian General Data Protection Law (LGPD)",
+  CA_PIPEDA: "Canadian Personal Information Protection and Electronic Documents Act (PIPEDA)",
+  AU_PRIVACY: "Australian Privacy Act 1988",
+  SG_PDPA: "Singapore Personal Data Protection Act",
+  IN_DPDP: "India Digital Personal Data Protection Act 2023",
+  JP_APPI: "Japan Act on the Protection of Personal Information (APPI)",
+  KR_PIPA: "South Korea Personal Information Protection Act (PIPA)",
+};
+
+const LAWFUL_BASIS_LABELS: Record<string, string> = {
+  consent: "Consent — Art. 6(1)(a)",
+  contract: "Contract — Art. 6(1)(b)",
+  legal_obligation: "Legal obligation — Art. 6(1)(c)",
+  vital_interests: "Vital interests — Art. 6(1)(d)",
+  public_task: "Public task — Art. 6(1)(e)",
+  legitimate_interests: "Legitimate interests — Art. 6(1)(f)",
+};
+
+function lawfulBasisLabel(value: unknown): string {
+  const v = answerToString(value);
+  return LAWFUL_BASIS_LABELS[v] ?? v;
+}
+
+function readDocumentSettings(body: RequestBody): DocumentSettings {
+  const ds = body.document_settings ?? {};
+  return {
+    documentDate:
+      body.document_date ?? ds.document_date ?? new Date().toISOString().slice(0, 10),
+    authorName: body.author_name ?? ds.author_name ?? "—",
+    internalReference: body.internal_reference ?? ds.internal_reference ?? null,
+  };
+}
+
+function resolveFormatsToGenerate(body: RequestBody): Format[] {
+  if (body.format) return [body.format];
+  const formats: Format[] = ["pdf"];
+  if (body.include_word) formats.push("docx");
+  if (body.include_excel) formats.push("xlsx");
+  return formats;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Document builders
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface AssembledData {
+  session: any;
+  client: any;
+  profile: any;
+  jurisdictions: string[];
+  activities: any[];
+  // activity_id -> { question_key -> answer_value }
+  answersByActivity: Record<string, Record<string, unknown>>;
+  flags: any[];
+  refreshNotes: string[];
+  settings: DocumentSettings;
+}
+
+interface CrossBorderTransfer {
+  activity: string;
+  data: string;
+  destination: string;
+  mechanism: string;
+  basis: string;
+}
+
+function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
+  const out: CrossBorderTransfer[] = [];
+  for (const a of d.activities) {
+    const ans = d.answersByActivity[a.id] ?? {};
+    const destination =
+      ans["transfer_destination"] ??
+      ans["transfer_country"] ??
+      ans["cross_border_destination"];
+    if (!destination) continue;
+    const mechanism =
+      ans["transfer_mechanism"] ??
+      ans["transfer_safeguard"] ??
+      "Not specified";
+    const basis =
+      ans["transfer_basis"] ?? ans["transfer_lawful_basis"] ?? "—";
+    const data =
+      ans["data_categories"] ?? ans["personal_data_types"] ?? "—";
+    out.push({
+      activity: a.display_name,
+      data: answerToString(data),
+      destination: answerToString(destination),
+      mechanism: answerToString(mechanism),
+      basis: answerToString(basis),
+    });
+  }
+  return out;
+}
+
+// ── HTML (used as the "PDF") ────────────────────────────────────────────────
+
+function buildHtml(d: AssembledData): string {
+  const lawList = d.jurisdictions
+    .map((j) => `<li>${escapeHtml(LAW_NAMES[j] ?? j)}</li>`)
+    .join("");
+
+  const activitySections = d.activities
+    .map((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      return `
+        <section class="activity">
+          <h3>${escapeHtml(a.display_name)}</h3>
+          <table class="kv">
+            <tbody>
+              <tr><th>Role</th><td>${escapeHtml(answerToString(ans.role ?? (d.profile?.is_controller ? "Controller" : d.profile?.is_processor ? "Processor" : "—")))}</td></tr>
+              <tr><th>Category</th><td>${escapeHtml(a.category)}</td></tr>
+              <tr><th>Purpose</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>
+              <tr><th>Lawful basis</th><td>${escapeHtml(lawfulBasisLabel(ans.lawful_basis))}</td></tr>
+              <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>
+              <tr><th>Data subjects</th><td>${escapeHtml(answerToString(ans.data_subjects))}</td></tr>
+              <tr><th>Data categories</th><td>${escapeHtml(answerToString(ans.data_categories))}</td></tr>
+              <tr><th>Processors / recipients</th><td>${escapeHtml(answerToString(ans.processor_platform ?? ans.recipients))}</td></tr>
+              <tr><th>Cross-border transfers</th><td>${escapeHtml(answerToString(ans.transfer_destination ?? "None"))}${ans.transfer_mechanism ? ` (${escapeHtml(answerToString(ans.transfer_mechanism))})` : ""}</td></tr>
+              <tr><th>Retention period</th><td>${escapeHtml(answerToString(ans.retention_period))}</td></tr>
+              <tr><th>Security measures</th><td>${escapeHtml(answerToString(ans.security_measures))}</td></tr>
+              <tr><th>Access controls</th><td>${escapeHtml(answerToString(ans.access_controls))}</td></tr>
+              <tr><th>Last reviewed</th><td>${escapeHtml(d.settings.documentDate)}</td></tr>
+            </tbody>
+          </table>
+        </section>
+      `;
+    })
+    .join("");
+
+  const transfers = collectTransfers(d);
+  const transferTable = transfers.length === 0
+    ? `<p><em>No cross-border transfers recorded.</em></p>`
+    : `
+      <table class="grid">
+        <thead><tr>
+          <th>Activity</th><th>Data</th><th>Destination</th><th>Safeguard mechanism</th><th>Basis</th>
+        </tr></thead>
+        <tbody>
+          ${transfers.map((t) => `
+            <tr>
+              <td>${escapeHtml(t.activity)}</td>
+              <td>${escapeHtml(t.data)}</td>
+              <td>${escapeHtml(t.destination)}</td>
+              <td>${escapeHtml(t.mechanism)}</td>
+              <td>${escapeHtml(t.basis)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+  const flagsBySev = (sev: string) =>
+    d.flags.filter((f) =>
+      sev === "errors"
+        ? f.flag_type === "missing_required"
+        : sev === "warnings"
+          ? f.severity === "warning" && f.flag_type !== "missing_required"
+          : f.severity === "info" || f.flag_type === "recommendation" || f.flag_type === "cross_sell",
+    );
+
+  const renderFlagGroup = (label: string, items: any[]) => {
+    if (items.length === 0) return "";
+    const rows = items
+      .map((f) => `
+        <li>
+          <strong>${escapeHtml(f.flag_message)}</strong>
+          <span class="status ${f.resolved ? "resolved" : "open"}">${f.resolved ? "Noted — under review" : "Action required"}</span>
+          ${!f.resolved && f.consequence ? `<br/><em>${escapeHtml(f.consequence)}</em>` : ""}
+        </li>
+      `)
+      .join("");
+    return `<h3>${escapeHtml(label)}</h3><ul class="flags">${rows}</ul>`;
+  };
+
+  const refreshNotes = d.refreshNotes.length === 0
+    ? ""
+    : `
+      <section>
+        <h3>Regulatory Developments Noted Since Last Review</h3>
+        <ul>${d.refreshNotes.map((n) => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
+      </section>
+    `;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Records of Processing Activities — ${escapeHtml(d.client?.name ?? "")}</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; color: #1a1a1a; max-width: 880px; margin: 32px auto; padding: 0 32px; line-height: 1.5; }
+    h1 { font-size: 28px; margin-bottom: 4px; }
+    h2 { font-size: 18px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 32px; }
+    h3 { font-size: 15px; margin-top: 18px; }
+    .cover { text-align: center; padding: 48px 0; border-bottom: 2px solid #1a1a1a; }
+    .cover .meta { color: #555; font-size: 13px; margin-top: 8px; }
+    .confidential { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 16px; }
+    table.kv { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+    table.kv th { text-align: left; padding: 4px 12px 4px 0; color: #666; font-weight: 600; vertical-align: top; width: 200px; font-size: 12px; }
+    table.kv td { padding: 4px 0; font-size: 13px; }
+    table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.grid th, table.grid td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
+    table.grid th { background: #f5f5f5; }
+    .activity { page-break-inside: avoid; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px dashed #e0e0e0; }
+    ul.flags { padding-left: 20px; }
+    ul.flags li { margin-bottom: 8px; }
+    .status { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+    .status.open { background: #fde68a; color: #78350f; }
+    .status.resolved { background: #d1fae5; color: #065f46; }
+    .signature { margin-top: 32px; border-top: 1px solid #ccc; padding-top: 16px; }
+    .footer-note { font-size: 11px; color: #777; margin-top: 24px; }
+  </style>
+</head>
+<body>
+
+  <section class="cover">
+    <h1>${escapeHtml(d.client?.name ?? "")}</h1>
+    <div style="font-size: 16px; color: #555; margin-top: 4px;">Records of Processing Activities</div>
+    <div class="meta">${escapeHtml(d.settings.documentDate)}</div>
+    <div class="meta">Jurisdictions: ${escapeHtml(d.jurisdictions.join(", ") || "—")}</div>
+    <div class="meta">Author: ${escapeHtml(d.settings.authorName)} · Version ${d.session.version_number}</div>
+    ${d.settings.internalReference ? `<div class="meta">Internal reference: ${escapeHtml(d.settings.internalReference)}</div>` : ""}
+    <div class="confidential">Confidential — internal compliance record</div>
+  </section>
+
+  <h2>1. Client record</h2>
+  <table class="kv">
+    <tbody>
+      <tr><th>Role</th><td>${[d.profile?.is_controller && "Controller", d.profile?.is_processor && "Processor"].filter(Boolean).join(" + ") || "—"}</td></tr>
+      <tr><th>Legal entity</th><td>${escapeHtml(d.profile?.legal_entity_type ?? "—")}</td></tr>
+      <tr><th>Sector</th><td>${escapeHtml(d.client?.sector ?? "—")}</td></tr>
+      <tr><th>Employee band</th><td>${escapeHtml(d.profile?.employee_band ?? "—")}</td></tr>
+      <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}</td></tr>
+      <tr><th>EU representative</th><td>${escapeHtml(d.profile?.eu_rep_name ?? "—")}</td></tr>
+      <tr><th>UK representative</th><td>${escapeHtml(d.profile?.uk_rep_name ?? "—")}</td></tr>
+      <tr><th>Jurisdictions</th><td>${escapeHtml(d.jurisdictions.join(", ") || "—")}</td></tr>
+    </tbody>
+  </table>
+  <p class="footer-note">This record satisfies the requirements of:</p>
+  <ul>${lawList}</ul>
+
+  <h2>2. Processing activities</h2>
+  ${activitySections || "<p><em>No activities recorded.</em></p>"}
+
+  <h2>3. Cross-border transfer register</h2>
+  ${transferTable}
+
+  <h2>4. Flagged items (appendix)</h2>
+  ${renderFlagGroup("Errors — required fields", flagsBySev("errors"))}
+  ${renderFlagGroup("Warnings", flagsBySev("warnings"))}
+  ${renderFlagGroup("Recommendations", flagsBySev("recommendations"))}
+  ${d.flags.length === 0 ? "<p><em>No flagged items.</em></p>" : ""}
+  ${refreshNotes}
+
+  <h2>5. Controller / processor statement</h2>
+  <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
+  It constitutes our record of processing activities under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
+  We are committed to reviewing and updating this record at least annually.</p>
+  <div class="signature">
+    Signature: _____________________________ &nbsp;&nbsp; Date: _______________
+  </div>
+
+</body>
+</html>`;
+}
+
+// ── DOCX ────────────────────────────────────────────────────────────────────
+
+function p(text: string, opts: { bold?: boolean; size?: number; heading?: HeadingLevel } = {}) {
+  return new Paragraph({
+    heading: opts.heading,
+    children: [new TextRun({ text, bold: opts.bold, size: opts.size })],
+  });
+}
+
+function kvRow(label: string, value: string) {
+  return new TableRow({
+    children: [
+      new TableCell({
+        width: { size: 30, type: WidthType.PERCENTAGE },
+        children: [p(label, { bold: true, size: 20 })],
+      }),
+      new TableCell({
+        width: { size: 70, type: WidthType.PERCENTAGE },
+        children: [p(value, { size: 20 })],
+      }),
+    ],
+  });
+}
+
+async function buildDocx(d: AssembledData): Promise<Uint8Array> {
+  const sections: any[] = [];
+
+  const cover = [
+    p(d.client?.name ?? "", { heading: HeadingLevel.TITLE, bold: true }),
+    p("Records of Processing Activities", { heading: HeadingLevel.HEADING_2 }),
+    p(`Date: ${d.settings.documentDate}`),
+    p(`Jurisdictions: ${d.jurisdictions.join(", ") || "—"}`),
+    p(`Author: ${d.settings.authorName} · Version ${d.session.version_number}`),
+    ...(d.settings.internalReference
+      ? [p(`Internal reference: ${d.settings.internalReference}`)]
+      : []),
+    p("Confidential — internal compliance record.", { size: 18 }),
+    p(""),
+  ];
+
+  const clientTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      kvRow(
+        "Role",
+        [d.profile?.is_controller && "Controller", d.profile?.is_processor && "Processor"]
+          .filter(Boolean)
+          .join(" + ") || "—",
+      ),
+      kvRow("Legal entity", d.profile?.legal_entity_type ?? "—"),
+      kvRow("Sector", d.client?.sector ?? "—"),
+      kvRow("Employee band", d.profile?.employee_band ?? "—"),
+      kvRow("DPO", d.profile?.dpo_name ?? "Not designated"),
+      kvRow("EU representative", d.profile?.eu_rep_name ?? "—"),
+      kvRow("UK representative", d.profile?.uk_rep_name ?? "—"),
+      kvRow("Jurisdictions", d.jurisdictions.join(", ") || "—"),
+    ],
+  });
+
+  const lawList = d.jurisdictions.map(
+    (j) => p(`• ${LAW_NAMES[j] ?? j}`, { size: 18 }),
+  );
+
+  const activityBlocks: any[] = [];
+  for (const a of d.activities) {
+    const ans = d.answersByActivity[a.id] ?? {};
+    activityBlocks.push(p(a.display_name, { heading: HeadingLevel.HEADING_3 }));
+    activityBlocks.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          kvRow("Category", a.category),
+          kvRow("Purpose", answerToString(ans.purpose)),
+          kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
+          kvRow("Special category basis", answerToString(ans.special_category_basis)),
+          kvRow("Data subjects", answerToString(ans.data_subjects)),
+          kvRow("Data categories", answerToString(ans.data_categories)),
+          kvRow(
+            "Processors / recipients",
+            answerToString(ans.processor_platform ?? ans.recipients),
+          ),
+          kvRow(
+            "Cross-border transfers",
+            answerToString(ans.transfer_destination ?? "None"),
+          ),
+          kvRow("Retention period", answerToString(ans.retention_period)),
+          kvRow("Security measures", answerToString(ans.security_measures)),
+          kvRow("Access controls", answerToString(ans.access_controls)),
+          kvRow("Last reviewed", d.settings.documentDate),
+        ],
+      }),
+    );
+    activityBlocks.push(p(""));
+  }
+
+  const transfers = collectTransfers(d);
+  const transferRows = [
+    new TableRow({
+      tableHeader: true,
+      children: ["Activity", "Data", "Destination", "Mechanism", "Basis"].map(
+        (h) =>
+          new TableCell({ children: [p(h, { bold: true, size: 18 })] }),
+      ),
+    }),
+    ...(transfers.length === 0
+      ? [
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [p("No cross-border transfers recorded.", { size: 18 })],
+                columnSpan: 5,
+              }),
+            ],
+          }),
+        ]
+      : transfers.map(
+          (t) =>
+            new TableRow({
+              children: [t.activity, t.data, t.destination, t.mechanism, t.basis].map(
+                (v) =>
+                  new TableCell({ children: [p(v, { size: 18 })] }),
+              ),
+            }),
+        )),
+  ];
+
+  const flagBlocks: any[] = [];
+  if (d.flags.length === 0) {
+    flagBlocks.push(p("No flagged items.", { size: 18 }));
+  } else {
+    for (const f of d.flags) {
+      flagBlocks.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: `• ${f.flag_message}`, bold: true, size: 20 }),
+            new TextRun({
+              text: ` — ${f.resolved ? "Noted — under review" : "Action required"}`,
+              size: 18,
+            }),
+          ],
+        }),
+      );
+      if (!f.resolved && f.consequence) {
+        flagBlocks.push(p(`  ${f.consequence}`, { size: 18 }));
+      }
+    }
+  }
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: [
+          ...cover,
+          p("1. Client record", { heading: HeadingLevel.HEADING_2 }),
+          clientTable,
+          p("This record satisfies the requirements of:", { size: 18 }),
+          ...lawList,
+          p(""),
+          p("2. Processing activities", { heading: HeadingLevel.HEADING_2 }),
+          ...activityBlocks,
+          p("3. Cross-border transfer register", { heading: HeadingLevel.HEADING_2 }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: transferRows,
+          }),
+          p(""),
+          p("4. Flagged items (appendix)", { heading: HeadingLevel.HEADING_2 }),
+          ...flagBlocks,
+          p(""),
+          p("5. Controller / processor statement", { heading: HeadingLevel.HEADING_2 }),
+          p(
+            `This record was prepared by ${d.settings.authorName} on ${d.settings.documentDate}. It constitutes our record of processing activities under the applicable laws listed above. We are committed to reviewing and updating this record at least annually.`,
+          ),
+          p(""),
+          p("Signature: _______________________________   Date: _____________"),
+        ],
+      },
+    ],
+  });
+
+  // Packer.toBuffer returns Node Buffer in Node, ArrayBuffer/Uint8Array in
+  // Deno. Coerce to Uint8Array so we can pass it to the storage upload.
+  const out = await Packer.toBuffer(doc);
+  return out instanceof Uint8Array ? out : new Uint8Array(out as ArrayBuffer);
+}
+
+// ── XLSX ────────────────────────────────────────────────────────────────────
+
+function buildXlsx(d: AssembledData): Uint8Array {
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1 — client record
+  const clientSheet = XLSX.utils.aoa_to_sheet([
+    ["Client name", d.client?.name ?? ""],
+    [
+      "Role",
+      [d.profile?.is_controller && "Controller", d.profile?.is_processor && "Processor"]
+        .filter(Boolean)
+        .join(" + ") || "—",
+    ],
+    ["Legal entity", d.profile?.legal_entity_type ?? "—"],
+    ["Sector", d.client?.sector ?? "—"],
+    ["Employee band", d.profile?.employee_band ?? "—"],
+    ["DPO", d.profile?.dpo_name ?? "Not designated"],
+    ["EU representative", d.profile?.eu_rep_name ?? "—"],
+    ["UK representative", d.profile?.uk_rep_name ?? "—"],
+    ["Jurisdictions", d.jurisdictions.join(", ") || "—"],
+    ["Document date", d.settings.documentDate],
+    ["Author", d.settings.authorName],
+    ["Version", d.session.version_number],
+    ...(d.settings.internalReference
+      ? [["Internal reference", d.settings.internalReference]]
+      : []),
+  ]);
+  XLSX.utils.book_append_sheet(wb, clientSheet, "Client record");
+
+  // Sheet 2 — activities
+  const activityHeader = [
+    "Activity",
+    "Category",
+    "Purpose",
+    "Lawful basis",
+    "Special category basis",
+    "Data subjects",
+    "Data categories",
+    "Processors / recipients",
+    "Transfer destination",
+    "Transfer mechanism",
+    "Retention",
+    "Security measures",
+    "Access controls",
+    "Last reviewed",
+  ];
+  const activityRows = d.activities.map((a) => {
+    const ans = d.answersByActivity[a.id] ?? {};
+    return [
+      a.display_name,
+      a.category,
+      answerToString(ans.purpose),
+      lawfulBasisLabel(ans.lawful_basis),
+      answerToString(ans.special_category_basis),
+      answerToString(ans.data_subjects),
+      answerToString(ans.data_categories),
+      answerToString(ans.processor_platform ?? ans.recipients),
+      answerToString(ans.transfer_destination ?? "None"),
+      answerToString(ans.transfer_mechanism),
+      answerToString(ans.retention_period),
+      answerToString(ans.security_measures),
+      answerToString(ans.access_controls),
+      d.settings.documentDate,
+    ];
+  });
+  const activitySheet = XLSX.utils.aoa_to_sheet([activityHeader, ...activityRows]);
+  XLSX.utils.book_append_sheet(wb, activitySheet, "Activities");
+
+  // Sheet 3 — transfers
+  const transfers = collectTransfers(d);
+  const transferSheet = XLSX.utils.aoa_to_sheet([
+    ["Activity", "Data", "Destination", "Mechanism", "Basis"],
+    ...transfers.map((t) => [t.activity, t.data, t.destination, t.mechanism, t.basis]),
+  ]);
+  XLSX.utils.book_append_sheet(wb, transferSheet, "Transfers");
+
+  // Sheet 4 — flags
+  const flagSheet = XLSX.utils.aoa_to_sheet([
+    ["Severity", "Type", "Activity", "Message", "Status", "Consequence"],
+    ...d.flags.map((f) => [
+      f.severity,
+      f.flag_type,
+      d.activities.find((a) => a.id === f.activity_id)?.display_name ?? "—",
+      f.flag_message,
+      f.resolved ? "Noted — under review" : "Action required",
+      f.consequence ?? "",
+    ]),
+  ]);
+  XLSX.utils.book_append_sheet(wb, flagSheet, "Flags");
+
+  const out = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+  return new Uint8Array(out);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Handler
+// ─────────────────────────────────────────────────────────────────────────────
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
+  }
+
+  // ── Auth ──
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) {
+    return jsonResponse({ error: "Missing bearer token" }, 401);
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  // Service-role client for storage + writes (bypasses RLS).
+  const admin = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  // User-scoped client to check ownership using the requesting JWT.
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: userData, error: userErr } = await userClient.auth.getUser();
+  if (userErr || !userData?.user) {
+    return jsonResponse({ error: "Invalid token" }, 401);
+  }
+
+  // ── Body ──
+  let body: RequestBody;
+  try {
+    body = (await req.json()) as RequestBody;
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+
+  if (!body.session_id || typeof body.session_id !== "string") {
+    return jsonResponse({ error: "session_id required" }, 400);
+  }
+
+  const settings = readDocumentSettings(body);
+  const formats = resolveFormatsToGenerate(body);
+
+  // ── Load session + ownership check ──
+  const { data: session, error: sessErr } = await admin
+    .from("ropa_sessions")
+    .select("*")
+    .eq("id", body.session_id)
+    .single();
+  if (sessErr || !session) {
+    return jsonResponse({ error: "Session not found" }, 404);
+  }
+
+  // Ownership check via owns_client() — runs as the user.
+  const { data: ownerCheck, error: ownErr } = await userClient.rpc(
+    "owns_client",
+    { _client_id: session.client_id },
+  );
+  if (ownErr || ownerCheck !== true) {
+    return jsonResponse({ error: "Not authorized for this client" }, 403);
+  }
+
+  // Require payment confirmation before generating.
+  if (!session.payment_confirmed) {
+    return jsonResponse({ error: "Session is not paid" }, 402);
+  }
+
+  // ── Load supporting data in parallel ──
+  const [
+    { data: client },
+    { data: profile },
+    { data: jurisdictionRows },
+    { data: activities },
+    { data: answerRows },
+    { data: flags },
+    { data: refreshRows },
+  ] = await Promise.all([
+    admin.from("clients").select("*").eq("id", session.client_id).maybeSingle(),
+    admin.from("ropa_client_profiles").select("*").eq("client_id", session.client_id).maybeSingle(),
+    admin
+      .from("ropa_jurisdiction_selections")
+      .select("jurisdiction_code")
+      .eq("session_id", session.id),
+    admin
+      .from("ropa_processing_activities")
+      .select("*")
+      .eq("session_id", session.id)
+      .order("display_order", { ascending: true }),
+    admin
+      .from("ropa_answers")
+      .select("activity_id, question_key, answer_value")
+      .eq("session_id", session.id),
+    admin
+      .from("ropa_flags")
+      .select("*")
+      .eq("session_id", session.id)
+      .order("severity", { ascending: true }),
+    admin
+      .from("ropa_refresh_cycles")
+      .select("activities_added, activities_updated, activities_confirmed")
+      .eq("source_session_id", session.id),
+  ]);
+
+  const answersByActivity: Record<string, Record<string, unknown>> = {};
+  for (const r of answerRows ?? []) {
+    const aid = r.activity_id as string;
+    if (!answersByActivity[aid]) answersByActivity[aid] = {};
+    answersByActivity[aid][r.question_key as string] = r.answer_value;
+  }
+
+  const refreshNotes: string[] = (refreshRows ?? [])
+    .map((r: any) => {
+      const parts: string[] = [];
+      if (r.activities_added) parts.push(`${r.activities_added} added`);
+      if (r.activities_updated) parts.push(`${r.activities_updated} updated`);
+      if (r.activities_confirmed) parts.push(`${r.activities_confirmed} confirmed`);
+      return parts.length ? `Refresh cycle: ${parts.join(", ")}` : "";
+    })
+    .filter(Boolean);
+
+  const data: AssembledData = {
+    session,
+    client,
+    profile,
+    jurisdictions: (jurisdictionRows ?? []).map((j: any) => j.jurisdiction_code),
+    activities: activities ?? [],
+    answersByActivity,
+    flags: flags ?? [],
+    refreshNotes,
+    settings,
+  };
+
+  // ── Generate, upload, record ──
+  const results: Array<{
+    format: Format;
+    document_version_id: string;
+    download_url: string;
+    file_path: string;
+  }> = [];
+
+  for (const fmt of formats) {
+    // Idempotency: existing version + file in storage → reuse signed URL
+    const { data: existing } = await admin
+      .from("ropa_document_versions")
+      .select("id, file_path")
+      .eq("session_id", session.id)
+      .eq("document_format", fmt)
+      .eq("is_current", true)
+      .maybeSingle();
+
+    let filePath: string | null = null;
+    let documentVersionId: string | null = null;
+    let regenerated = false;
+
+    if (existing?.file_path) {
+      // Verify file still exists by attempting to sign it
+      const { data: signed } = await admin.storage
+        .from("ropa-documents")
+        .createSignedUrl(existing.file_path, 60 * 60);
+      if (signed?.signedUrl) {
+        filePath = existing.file_path;
+        documentVersionId = existing.id;
+      }
+    }
+
+    if (!filePath) {
+      // Build payload
+      let payload: Uint8Array;
+      let contentType: string;
+      if (fmt === "pdf") {
+        // HTML stored under .html extension (Chromium/PDF rendering not
+        // available in Deno edge functions). Browsers render this inline; the
+        // document library page should label it as "PDF (HTML)" until a true
+        // PDF renderer ships.
+        payload = new TextEncoder().encode(buildHtml(data));
+        contentType = "text/html";
+      } else if (fmt === "docx") {
+        payload = await buildDocx(data);
+        contentType =
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      } else {
+        payload = buildXlsx(data);
+        contentType =
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      }
+
+      const ext = fmt === "pdf" ? "html" : fmt;
+      filePath = `${session.client_id}/${session.id}/v${session.version_number}.${ext}`;
+
+      const { error: upErr } = await admin.storage
+        .from("ropa-documents")
+        .upload(filePath, payload, { contentType, upsert: true });
+      if (upErr) {
+        return jsonResponse(
+          { error: `Storage upload failed (${fmt}): ${upErr.message}` },
+          500,
+        );
+      }
+
+      // Upsert ropa_document_versions on (session_id, document_format)
+      const { data: upserted, error: verErr } = await admin
+        .from("ropa_document_versions")
+        .upsert(
+          {
+            session_id: session.id,
+            client_id: session.client_id,
+            version_number: session.version_number,
+            document_format: fmt,
+            file_path: filePath,
+            file_size_bytes: payload.byteLength,
+            jurisdictions_covered: data.jurisdictions,
+            activities_count: data.activities.length,
+            change_summary: existing
+              ? "Regenerated"
+              : `Generated v${session.version_number}`,
+            generated_at: new Date().toISOString(),
+            is_current: true,
+          },
+          { onConflict: "session_id,document_format" },
+        )
+        .select("id")
+        .single();
+      if (verErr || !upserted) {
+        return jsonResponse(
+          { error: `Failed to record document version: ${verErr?.message}` },
+          500,
+        );
+      }
+      documentVersionId = upserted.id;
+      regenerated = true;
+    }
+
+    // Update session generated_*_path
+    const pathColumn =
+      fmt === "pdf"
+        ? "generated_pdf_path"
+        : fmt === "docx"
+          ? "generated_docx_path"
+          : "generated_xlsx_path";
+    await admin
+      .from("ropa_sessions")
+      .update({ [pathColumn]: filePath, status: "generated", completed_at: new Date().toISOString() })
+      .eq("id", session.id);
+
+    // Issue fresh signed URL
+    const { data: signed, error: signErr } = await admin.storage
+      .from("ropa-documents")
+      .createSignedUrl(filePath, 60 * 60);
+    if (signErr || !signed?.signedUrl) {
+      return jsonResponse(
+        { error: `Signed URL failed (${fmt}): ${signErr?.message}` },
+        500,
+      );
+    }
+
+    results.push({
+      format: fmt,
+      document_version_id: documentVersionId!,
+      download_url: signed.signedUrl,
+      file_path: filePath,
+    });
+
+    void regenerated;
+  }
+
+  // Single-format spec response
+  if (formats.length === 1) {
+    return jsonResponse({
+      success: true,
+      document_version_id: results[0].document_version_id,
+      download_url: results[0].download_url,
+      file_path: results[0].file_path,
+      format: results[0].format,
+    });
+  }
+
+  // Multi-format response (used by review screen)
+  return jsonResponse({
+    success: true,
+    documents: results,
+  });
+});
