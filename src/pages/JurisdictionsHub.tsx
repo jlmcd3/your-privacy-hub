@@ -47,16 +47,19 @@ function relativeDays(published: string): string {
 }
 
 
-type RecentItem = { slug: string; flag: string; name: string; update: string; days: string };
+type RecentItem = {
+  id: string;
+  slug: string;
+  flag: string;
+  name: string;
+  update: string;
+  fullTitle: string;
+  days: string;
+};
 
 export default function JurisdictionsHub() {
-  const [recentUpdates, setRecentUpdates] = useState<RecentItem[]>([
-    { slug: "france", flag: "🇫🇷", name: "France", update: "Clearview AI €20M fine", days: "2 days ago" },
-    { slug: "united-kingdom", flag: "🇬🇧", name: "United Kingdom", update: "DUAA provisions in force", days: "5 days ago" },
-    { slug: "india", flag: "🇮🇳", name: "India", update: "DPDP rules draft released", days: "1 week ago" },
-    { slug: "australia", flag: "🇦🇺", name: "Australia", update: "Clinical Labs AUD 5.8M fine", days: "1 week ago" },
-    { slug: "united-states", flag: "🇺🇸", name: "United States", update: "FTC AI commercial practices", days: "10 days ago" },
-  ]);
+  const [recentUpdates, setRecentUpdates] = useState<RecentItem[]>([]);
+  const [recentLoading, setRecentLoading] = useState(true);
 
   const [statusCounts, setStatusCounts] = useState({
     comprehensive: 0,
