@@ -183,15 +183,20 @@ serve(async (req) => {
       ],
       customer_email: user.email!,
       metadata: {
+        // NOTE: webhook keys off `type === "registration_order"` — keep both
+        // for forward-compat with existing dashboards / queries.
+        type: "registration_order",
         product: "registration_manager",
         order_id: order.id,
         user_id: user.id,
         tier,
+        embedded: embedded ? "true" : "false",
         jurisdictions: codes.join(","),
       },
       ...(cfg.recurring && {
         subscription_data: {
           metadata: {
+            type: "registration_order",
             product: "registration_manager",
             order_id: order.id,
             user_id: user.id,
@@ -214,6 +219,40 @@ serve(async (req) => {
       .update({ stripe_session_id: session.id })
       .eq("id", order.id);
 
+    // Structured server log — searchable in Edge Function logs.
+    console.log(
+      JSON.stringify({
+        scope: "registration_checkout",
+        event: "session_created",
+        env,
+        embedded: !!embedded,
+        order_id: order.id,
+        user_id: user.id,
+        tier,
+        jurisdiction_count: codes.length,
+        amount_cents: totalCents,
+        is_subscriber: isSubscriber,
+        stripe_session_id: session.id,
+        recurring: !!cfg.recurring,
+      })
+    );
+
+    // Audit log row — survives function log retention, queryable from SQL.
+    await adminClient.from("registration_audit_log").insert({
+      action: "checkout_session_created",
+      order_id: order.id,
+      user_id: user.id,
+      metadata: {
+        env,
+        embedded: !!embedded,
+        tier,
+        amount_cents: totalCents,
+        jurisdiction_count: codes.length,
+        is_subscriber: isSubscriber,
+        stripe_session_id: session.id,
+      },
+    });
+
     return new Response(
       JSON.stringify(
         embedded
@@ -223,8 +262,16 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    console.error("create-registration-checkout error", e);
-    return new Response(JSON.stringify({ error: (e as Error).message || "Internal error" }), {
+    const msg = (e as Error).message || "Internal error";
+    console.error(
+      JSON.stringify({
+        scope: "registration_checkout",
+        event: "session_create_failed",
+        error: msg,
+        stack: (e as Error).stack?.split("\n").slice(0, 4).join(" | "),
+      })
+    );
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
