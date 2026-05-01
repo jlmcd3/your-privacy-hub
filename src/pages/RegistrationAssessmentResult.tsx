@@ -41,6 +41,7 @@ export default function RegistrationAssessmentResult() {
   const [assessment, setAssessment] = useState<any>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [checkoutTier, setCheckoutTier] = useState<RegistrationTier | null>(null);
 
   // Email gate — anonymous viewers must leave an email before seeing the report.
   // Local-only, never blocks if the assessment was created with an email or by a logged-in user.
