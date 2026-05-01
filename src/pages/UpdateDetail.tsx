@@ -21,6 +21,12 @@ interface AISummary {
   risk_level?: string;
 }
 
+interface ActionItem {
+  role?: string;
+  action?: string;
+  timeframe?: string;
+}
+
 interface Update {
   id: string;
   title: string;
@@ -38,6 +44,7 @@ interface Update {
   related_development: string | null;
   attention_level: string | null;
   affected_sectors: string[] | null;
+  action_items: ActionItem[] | null;
 }
 
 interface RelatedUpdate {
