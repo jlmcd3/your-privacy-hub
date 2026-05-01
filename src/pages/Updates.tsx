@@ -165,14 +165,6 @@ const Updates = () => {
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
 
-    // Close drawer on Escape
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setDrawerOpen(false);
-        };
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, []);
 
     const buildQuery = useCallback((offset: number) => {
         return supabase
