@@ -9,6 +9,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
@@ -31,6 +32,7 @@ export default function DPAGenerator() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const access = useToolAccess({ standalonePrice: 69, subscriberPrice: 39 });
+  const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     controllerName: "", controllerJurisdiction: "Germany",
@@ -69,7 +71,7 @@ export default function DPAGenerator() {
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id } }),
+      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } }),
       timeout,
     ]).catch((error) => ({ data: null, error }));
     const { data, error } = response;
