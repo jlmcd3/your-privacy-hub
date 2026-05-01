@@ -140,38 +140,21 @@ export default function RopaActivity() {
       title={`${currentActivity.display_name} — RoPA Builder`}
       heading=""
     >
-      <div className="grid md:grid-cols-[260px_1fr] gap-6">
-        {/* Sidebar */}
+      <div className="grid md:grid-cols-[260px_1fr] gap-6 pb-24 md:pb-0">
+        {/* Sidebar (desktop) */}
         <aside
           className="hidden md:block border border-border rounded-xl p-4 bg-card h-fit"
+          role="navigation"
           aria-label="Processing activities"
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Activities
           </p>
-          <ul className="space-y-1">
-            {allActivities.map((a) => (
-              <li key={a.id}>
-                <button
-                  onClick={() => navigate(`/ropa/activity/${a.id}`)}
-                  className={`w-full text-left text-sm px-2 py-1.5 rounded ${
-                    a.id === currentActivity.id
-                      ? "bg-primary/10 border-l-2 border-primary font-semibold"
-                      : "hover:bg-muted/40"
-                  }`}
-                >
-                  <span className="mr-2">
-                    {a.status === "complete"
-                      ? "✓"
-                      : a.status === "in_progress"
-                        ? "•"
-                        : "○"}
-                  </span>
-                  {a.display_name}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <ActivityNavList
+            activities={allActivities}
+            currentActivityId={currentActivity.id}
+            onSelect={(aid) => navigate(`/ropa/activity/${aid}`)}
+          />
         </aside>
 
         {/* Question zone */}
