@@ -32,7 +32,7 @@ const supabase = createClient(
 );
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-const AI_MODEL = "google/gemini-2.5-pro";
+const AI_MODEL = "google/gemini-2.5-flash";
 
 interface EnforcementCtx {
   regulator?: string;
@@ -77,6 +77,8 @@ Deno.serve(async (req) => {
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
     try {
+      const enforcementController = new AbortController();
+      const enforcementTimeout = setTimeout(() => enforcementController.abort(), 8_000);
       const enforcementRes = await fetch(
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`,
         {
@@ -91,8 +93,10 @@ Deno.serve(async (req) => {
             data_categories: (body.dataCategories || []).map((c) => c.toLowerCase()),
             limit: 8,
           }),
+          signal: enforcementController.signal,
         }
       );
+      clearTimeout(enforcementTimeout);
       if (enforcementRes.ok) {
         const json = await enforcementRes.json();
         enforcement_context = json.results || json.enforcement_context || [];
