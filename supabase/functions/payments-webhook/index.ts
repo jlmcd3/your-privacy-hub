@@ -30,7 +30,12 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed":
       case "transaction.completed": {
-        await handleCheckoutCompleted(event.data.object);
+        await handleCheckoutCompleted(event.data.object, env);
+        break;
+      }
+      case "checkout.session.expired":
+      case "checkout.session.async_payment_failed": {
+        await handleCheckoutFailed(event.data.object, event.type, env);
         break;
       }
       case "customer.subscription.deleted":
