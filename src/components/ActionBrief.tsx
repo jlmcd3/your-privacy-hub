@@ -51,18 +51,28 @@ export function ActionBrief({
   const navigate = useNavigate();
   const seenRef = useRef(false);
 
+  const trackEvent = async (eventType: string) => {
+    if (!user?.id) return;
+    try {
+      await supabase.from("user_enrichment_events").insert({
+        user_id: user.id,
+        event_type: eventType,
+        article_id: articleId,
+        article_category: articleCategory ?? null,
+        user_role: userSalutation ?? null,
+      });
+    } catch {
+      /* silent — tracking must never break UI */
+    }
+  };
+
   // Track impression once per mount
   useEffect(() => {
     if (!user || seenRef.current) return;
     seenRef.current = true;
-    supabase.from("user_enrichment_events").insert({
-      user_id: user.id,
-      event_type: "action_brief_seen",
-      article_id: articleId,
-      article_category: articleCategory ?? null,
-    });
-    // Note: user_role column kept null here; profile join handled server-side.
-  }, [user, articleId, articleCategory]);
+    void trackEvent("action_brief_seen");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, articleId]);
 
   const label = urgencyLabel(urgency);
 
@@ -71,14 +81,7 @@ export function ActionBrief({
     const teaser = compliance_impact ? firstWords(compliance_impact, 12) : "";
 
     const handleUpgradeClick = async () => {
-      if (user) {
-        await supabase.from("user_enrichment_events").insert({
-          user_id: user.id,
-          event_type: "action_brief_click",
-          article_id: articleId,
-          article_category: articleCategory ?? null,
-        });
-      }
+      await trackEvent("action_brief_click");
       navigate("/subscribe");
     };
 
