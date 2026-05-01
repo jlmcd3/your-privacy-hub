@@ -415,6 +415,25 @@ const JurisdictionPage = () => {
 
         <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
+        {/* Top Premium CTA — anonymous only, high-intent SEO traffic */}
+        {!user && (
+          <div className="mb-8 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-7 text-center">
+            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
+            <h3 className="font-display text-lg md:text-xl text-white mb-3">
+              Monitor {jurisdiction.name} — get weekly intelligence alerts →
+            </h3>
+            <p className="text-[13px] text-slate-light mb-4 max-w-[500px] mx-auto">
+              Tailored weekly briefs covering {jurisdiction.name} regulators, enforcement, and cross-border signals.
+            </p>
+            <Link
+              to="/subscribe"
+              className="inline-block px-5 py-2.5 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
+            >
+              Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
+            </Link>
+          </div>
+        )}
+
         {/* Recent Developments — tier-aware (Intelligence Cards for premium, why-it-matters for registered) */}
         {(() => {
           if (devLoading) {
