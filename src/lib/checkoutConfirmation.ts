@@ -64,3 +64,22 @@ export function waitForAssessmentPaid(
     return data ? true : null;
   }, opts).then((v) => v === true);
 }
+
+/**
+ * Polls a session-tool row (e.g. ropa_sessions / us_notice_sessions /
+ * eu_notice_sessions) until `payment_confirmed` flips to true.
+ */
+export function waitForSessionPaid(
+  table: "ropa_sessions" | "us_notice_sessions" | "eu_notice_sessions",
+  sessionId: string,
+  opts?: PollOptions
+): Promise<boolean> {
+  return poll(async () => {
+    const { data } = await (supabase as any)
+      .from(table)
+      .select("id, payment_confirmed")
+      .eq("id", sessionId)
+      .maybeSingle();
+    return data?.payment_confirmed === true ? true : null;
+  }, opts).then((v) => v === true);
+}
