@@ -91,7 +91,7 @@ serve(async (req) => {
     const raw = await req.json();
     // Backwards-compat: map legacy tier name
     const tier = raw.tier === "done_for_you" ? "counsel_review" : raw.tier;
-    const { jurisdictions, assessment_id, organization_snapshot, environment } = raw;
+    const { jurisdictions, assessment_id, organization_snapshot, environment, embedded, return_url } = raw;
     if (!tier || !PRICING[tier as keyof typeof PRICING]) {
       return new Response(JSON.stringify({ error: "Invalid tier" }), {
         status: 400,
