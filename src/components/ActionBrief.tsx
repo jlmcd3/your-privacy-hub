@@ -179,3 +179,5 @@ export function ActionBrief({
     </div>
   );
 }
+
+export default ActionBrief;
