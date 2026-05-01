@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRopaStore } from "@/stores/ropaStore";
@@ -6,6 +6,7 @@ import { RopaShell } from "@/components/ropa/RopaShell";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
