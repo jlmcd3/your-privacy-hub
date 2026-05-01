@@ -74,6 +74,82 @@ const TOOLS: Record<
     fallback_standalone_cents: 4900,
     fallback_subscriber_cents: 0,
   },
+  ropa_initial: {
+    name: "RoPA Builder — Initial Generation",
+    standalone_lookup: "ropa_initial_standalone",
+    subscriber_lookup: "ropa_initial_subscriber",
+    table: "ropa_sessions",
+    fallback_standalone_cents: 7900,
+    fallback_subscriber_cents: 3500,
+  },
+  ropa_refresh: {
+    name: "RoPA Builder — Annual Refresh",
+    standalone_lookup: "ropa_refresh_standalone",
+    subscriber_lookup: "ropa_refresh_subscriber",
+    table: "ropa_sessions",
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 1500,
+  },
+  us_notice_single: {
+    name: "US Privacy Notice — Single State",
+    standalone_lookup: "us_notice_single_standalone",
+    subscriber_lookup: "us_notice_single_subscriber",
+    table: "us_notice_sessions",
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 1200,
+  },
+  us_notice_all_states: {
+    name: "US Privacy Notice — All States Suite",
+    standalone_lookup: "us_notice_all_standalone",
+    subscriber_lookup: "us_notice_all_subscriber",
+    table: "us_notice_sessions",
+    fallback_standalone_cents: 5900,
+    fallback_subscriber_cents: 2900,
+  },
+  eu_notice_single: {
+    name: "EU & Global Notice — Single Framework",
+    standalone_lookup: "eu_notice_single_standalone",
+    subscriber_lookup: "eu_notice_single_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 1900,
+  },
+  eu_notice_suite: {
+    name: "EU Notice Suite — GDPR + UK GDPR + FADP",
+    standalone_lookup: "eu_notice_suite_standalone",
+    subscriber_lookup: "eu_notice_suite_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 14900,
+    fallback_subscriber_cents: 6500,
+  },
+  eu_notice_full_international: {
+    name: "EU & Global Notice — Full International",
+    standalone_lookup: "eu_notice_intl_standalone",
+    subscriber_lookup: "eu_notice_intl_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 22900,
+    fallback_subscriber_cents: 9900,
+  },
+  eu_notice_refresh: {
+    name: "EU & Global Notice — Annual Refresh",
+    standalone_lookup: "eu_notice_refresh_standalone",
+    subscriber_lookup: "eu_notice_refresh_subscriber",
+    table: "eu_notice_sessions",
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 1900,
+  },
+};
+
+const SESSION_TABLES = new Set([
+  "ropa_sessions",
+  "us_notice_sessions",
+  "eu_notice_sessions",
+]);
+
+const DEFAULT_REVIEW_PATHS: Record<string, string> = {
+  ropa_sessions: "/ropa/review",
+  us_notice_sessions: "/us-notices/review",
+  eu_notice_sessions: "/eu-notices/review",
 };
 
 // Resolve the Stripe environment. Always prefer the explicit value the
