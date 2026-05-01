@@ -227,7 +227,7 @@ export default function RopaReview() {
 
   if (loading) {
     return (
-      <RopaShell title="Review your RoPA" breadcrumb="Review">
+      <RopaShell title="Review your RoPA" heading="Review your RoPA">
         <div className="flex items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading review…
         </div>
@@ -236,7 +236,7 @@ export default function RopaReview() {
   }
 
   return (
-    <RopaShell title="Review your RoPA" breadcrumb="Review">
+    <RopaShell title="Review your RoPA" heading="Review your RoPA">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <header>
