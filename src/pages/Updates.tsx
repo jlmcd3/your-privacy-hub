@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
+import AnonymousUpdatesCard from "@/components/AnonymousUpdatesCard";
 
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
@@ -519,6 +520,29 @@ const Updates = () => {
 
                 <AdBanner />
 
+                {/* Anonymous: prominent register CTA above the article list */}
+                {!user && (
+                    <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 mb-4 text-[13px] font-medium text-navy text-center flex items-center justify-center gap-3 flex-wrap">
+                        <span>Register free to see why each update matters — analysis on every article</span>
+                        <Link
+                            to="/signup"
+                            className="text-[12px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
+                        >
+                            Register free →
+                        </Link>
+                    </div>
+                )}
+
+                {/* Free registered: subtle Pro upgrade strip */}
+                {user && !isPremium && (
+                    <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
+                        Showing analysis on every update.{" "}
+                        <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
+                            Upgrade to Pro to unlock Action Briefs →
+                        </Link>
+                    </div>
+                )}
+
                 {/* Newsfeed */}
                 <div>
                     {user && isPremium ? (
@@ -537,18 +561,33 @@ const Updates = () => {
                                 />
                             )}
                         />
-                    ) : (
-                        /* Anonymous + free registered: TieredFeed */
+                    ) : user && !isPremium ? (
+                        /* Free registered: TieredFeed (FullCard + blurred ActionBrief on every card) */
                         <TieredFeed
                             articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
                             paginated={true}
-                            previewCount={1}
                             seeAllHref="/updates"
                             showSeeAll={false}
                             hasMore={hasMore}
                             onLoadMore={handleLoadMore}
                             isLoadingMore={loadingMore}
                         />
+                    ) : (
+                        /* Anonymous: minimal internal-link news cards, no enrichment */
+                        <div>
+                            {filtered.map(a => (
+                                <AnonymousUpdatesCard key={a.id} item={a} />
+                            ))}
+                            {hasMore && (
+                                <button
+                                    onClick={handleLoadMore}
+                                    disabled={loadingMore}
+                                    className="mt-4 w-full text-[12px] px-4 py-2.5 rounded-lg border border-fog text-slate hover:bg-slate-50 transition-colors disabled:opacity-50"
+                                >
+                                    {loadingMore ? "Loading…" : "Load more updates"}
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
 
