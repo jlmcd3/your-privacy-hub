@@ -203,28 +203,47 @@ export default function JurisdictionsHub() {
             </p>
           </div>
 
-          {/* Recently updated strip — dynamic */}
-          <div className="border-t border-fog bg-white">
-            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
-                🕐 Recently Updated Jurisdictions
-              </h2>
-              <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-                {recentUpdates.map((item) => (
-                  <Link
-                    key={item.slug}
-                    to={`/jurisdiction/${item.slug}`}
-                    className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all"
-                  >
-                    <span className="text-base">{item.flag}</span>
-                    <div className="font-bold text-navy mt-1">{item.name}</div>
-                    <div className="text-slate leading-snug">{item.update}</div>
-                    <div className="text-slate-light mt-0.5">{item.days}</div>
-                  </Link>
-                ))}
+          {/* Recently updated strip — dynamic. Hidden when no live data. */}
+          {(recentLoading || recentUpdates.length > 0) && (
+            <div className="border-t border-fog bg-white">
+              <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
+                  🕐 Recently Updated Jurisdictions
+                </h2>
+                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+                  {recentLoading
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 w-[220px] animate-pulse"
+                          aria-hidden="true"
+                        >
+                          <div className="h-4 w-6 bg-slate-200 rounded mb-2" />
+                          <div className="h-3 w-24 bg-slate-200 rounded mb-1.5" />
+                          <div className="h-3 w-40 bg-slate-200 rounded mb-1" />
+                          <div className="h-2.5 w-16 bg-slate-200 rounded" />
+                        </div>
+                      ))
+                    : recentUpdates.map((item) => (
+                        <Link
+                          key={item.id}
+                          to={`/updates/${item.id}`}
+                          title={item.fullTitle}
+                          aria-label={`${item.name}: ${item.fullTitle} (${item.days})`}
+                          className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
+                        >
+                          <span className="text-base" role="img" aria-label={`${item.name} flag`}>
+                            {item.flag}
+                          </span>
+                          <div className="font-bold text-navy mt-1">{item.name}</div>
+                          <div className="text-slate leading-snug">{item.update}</div>
+                          <div className="text-slate-light mt-0.5">{item.days}</div>
+                        </Link>
+                      ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
         </main>
 
