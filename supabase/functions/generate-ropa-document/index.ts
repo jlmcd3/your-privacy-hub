@@ -785,15 +785,22 @@ Deno.serve(async (req: Request) => {
     answersByActivity[aid][r.question_key as string] = r.answer_value;
   }
 
-  const refreshNotes: string[] = (refreshRows ?? [])
-    .map((r: any) => {
-      const parts: string[] = [];
-      if (r.activities_added) parts.push(`${r.activities_added} added`);
-      if (r.activities_updated) parts.push(`${r.activities_updated} updated`);
-      if (r.activities_confirmed) parts.push(`${r.activities_confirmed} confirmed`);
-      return parts.length ? `Refresh cycle: ${parts.join(", ")}` : "";
-    })
-    .filter(Boolean);
+  const refreshNotes: string[] = [];
+
+  for (const n of (notedUpdates ?? []) as any[]) {
+    const dateStr = n.noted_at ? new Date(n.noted_at).toISOString().split("T")[0] : "";
+    refreshNotes.push(
+      `[${(n.urgency || "").toUpperCase()}] ${n.article_title} (${n.jurisdiction_code}, ${dateStr}) — ${n.article_url}`,
+    );
+  }
+
+  for (const r of (refreshRows ?? []) as any[]) {
+    const parts: string[] = [];
+    if (r.activities_added) parts.push(`${r.activities_added} added`);
+    if (r.activities_updated) parts.push(`${r.activities_updated} updated`);
+    if (r.activities_confirmed) parts.push(`${r.activities_confirmed} confirmed`);
+    if (parts.length) refreshNotes.push(`Refresh cycle: ${parts.join(", ")}`);
+  }
 
   const data: AssembledData = {
     session,
