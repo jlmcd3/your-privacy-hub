@@ -10,6 +10,7 @@ import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
@@ -30,6 +31,7 @@ export default function IRPlaybook() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const access = useToolAccess({ standalonePrice: 39, subscriberPrice: null });
+  const { clientId } = useActiveClient();
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
     discoveryDateTime: new Date().toISOString().slice(0, 16),
@@ -53,7 +55,7 @@ export default function IRPlaybook() {
   const handleGenerate = async () => {
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id } });
+    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
     setResult(data.playbook_text);
     if (data?.id) { navigate(`/ir-playbook/result/${data.id}`); return; }
