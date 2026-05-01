@@ -240,6 +240,10 @@ export default function RopaReview() {
   return (
     <RopaShell title="Review your RoPA" heading="Review your RoPA">
       <div className="max-w-4xl mx-auto space-y-6">
+        {(() => {
+          const { steps, currentIndex } = getRopaSteps("review");
+          return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
+        })()}
         {/* Header */}
         <header>
           <h1 className="text-[28px] font-serif text-navy mb-3">
