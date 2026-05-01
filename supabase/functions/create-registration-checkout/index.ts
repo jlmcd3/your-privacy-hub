@@ -163,7 +163,10 @@ serve(async (req) => {
 
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
-    const origin = req.headers.get("origin") || "http://localhost:5173";
+    const rawOrigin = return_url || req.headers.get("origin") || "";
+    const origin = /^https?:\/\//i.test(rawOrigin)
+      ? rawOrigin.replace(/\/$/, "")
+      : "https://www.enduserprivacy.com";
 
     const session = await stripe.checkout.sessions.create({
       mode: cfg.recurring ? "subscription" : "payment",
@@ -178,8 +181,6 @@ serve(async (req) => {
           quantity,
         },
       ],
-      success_url: `${origin}/registration-manager/order/${order.id}?status=success`,
-      cancel_url: `${origin}/registration-manager/order/${order.id}?status=cancelled`,
       customer_email: user.email!,
       metadata: {
         product: "registration_manager",
@@ -197,6 +198,15 @@ serve(async (req) => {
           },
         },
       }),
+      ...(embedded
+        ? {
+            ui_mode: "embedded",
+            return_url: `${origin}/registration-manager/order/${order.id}?status=success&session_id={CHECKOUT_SESSION_ID}`,
+          }
+        : {
+            success_url: `${origin}/registration-manager/order/${order.id}?status=success`,
+            cancel_url: `${origin}/registration-manager/order/${order.id}?status=cancelled`,
+          }),
     });
 
     await adminClient
@@ -204,9 +214,14 @@ serve(async (req) => {
       .update({ stripe_session_id: session.id })
       .eq("id", order.id);
 
-    return new Response(JSON.stringify({ url: session.url, order_id: order.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify(
+        embedded
+          ? { client_secret: session.client_secret, order_id: order.id }
+          : { url: session.url, order_id: order.id }
+      ),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (e) {
     console.error("create-registration-checkout error", e);
     return new Response(JSON.stringify({ error: (e as Error).message || "Internal error" }), {
