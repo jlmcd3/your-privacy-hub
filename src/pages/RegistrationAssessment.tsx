@@ -180,6 +180,29 @@ export default function RegistrationAssessment() {
               </p>
             </header>
 
+            <div
+              onPointerDownCapture={(e) => {
+                if (isAnon) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setAuthGateOpen(true);
+                }
+              }}
+              onKeyDownCapture={(e) => {
+                if (isAnon && e.key !== "Tab") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setAuthGateOpen(true);
+                }
+              }}
+              onFocusCapture={(e) => {
+                if (isAnon) {
+                  (e.target as HTMLElement).blur?.();
+                  setAuthGateOpen(true);
+                }
+              }}
+              aria-disabled={isAnon}
+            >
             <Card>
               <CardHeader>
                 <CardTitle>Step {step} of 3</CardTitle>
