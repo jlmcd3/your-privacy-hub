@@ -92,64 +92,48 @@ export default function JurisdictionsHub() {
 
   useEffect(() => {
     (async () => {
-      // 1. Load the canonical set of jurisdiction slugs so we never render a dead link.
-      const { data: jurisdictionRows } = await supabase
-        .from("jurisdictions")
-        .select("slug");
-      const validSlugs = new Set<string>(
-        (jurisdictionRows ?? []).map((r: any) => r.slug).filter(Boolean),
-      );
-
-      // 2. Pull recent updates and map their direct_jurisdictions codes to display meta.
+      setRecentLoading(true);
       const { data } = await supabase
         .from("updates")
-        .select("title, direct_jurisdictions, published_at")
+        .select("id, title, direct_jurisdictions, published_at, ai_summary")
         .eq("is_hidden", false)
         .not("direct_jurisdictions", "is", null)
         .order("published_at", { ascending: false })
-        .limit(40);
-      if (!data) return;
+        .limit(60);
+      if (!data) {
+        setRecentLoading(false);
+        return;
+      }
 
-      const seen = new Set<string>();
+      const seenIds = new Set<string>();
       const items: RecentItem[] = [];
-      const skipped: { code: string; reason: string; title?: string }[] = [];
 
       for (const a of data as any[]) {
+        const summary = a.ai_summary;
+        if (summary && typeof summary === "object" && (summary.skipped || summary.skip)) continue;
+        if (seenIds.has(a.id)) continue;
+
         const codes: string[] = a.direct_jurisdictions ?? [];
-        for (const code of codes) {
-          const key = code?.toLowerCase?.();
-          const meta = JURISDICTION_META[key];
-          if (!meta) {
-            skipped.push({ code, reason: "no-meta-mapping", title: a.title });
-            continue;
-          }
-          // 3. Validate the resolved slug actually exists in the jurisdictions table.
-          if (validSlugs.size > 0 && !validSlugs.has(meta.slug)) {
-            skipped.push({ code, reason: `slug-not-in-db:${meta.slug}`, title: a.title });
-            continue;
-          }
-          if (seen.has(meta.slug)) continue;
-          seen.add(meta.slug);
-          items.push({
-            slug: meta.slug,
-            flag: meta.flag,
-            name: meta.name,
-            update: a.title.length > 55 ? a.title.substring(0, 52) + "…" : a.title,
-            days: relativeDays(a.published_at),
-          });
-          if (items.length >= 6) break;
-        }
+        const firstCode = codes.find((c) => JURISDICTION_META[c?.toLowerCase?.()]);
+        if (!firstCode) continue;
+        const meta = JURISDICTION_META[firstCode.toLowerCase()];
+
+        seenIds.add(a.id);
+        const title: string = a.title ?? "";
+        items.push({
+          id: a.id,
+          slug: meta.slug,
+          flag: meta.flag,
+          name: meta.name,
+          update: title.length > 55 ? title.substring(0, 52) + "…" : title,
+          fullTitle: title,
+          days: relativeDays(a.published_at),
+        });
         if (items.length >= 6) break;
       }
 
-      if (skipped.length > 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "[JurisdictionsHub] Hid Recently Updated chips with unresolved slugs:",
-          skipped,
-        );
-      }
-      if (items.length > 0) setRecentUpdates(items);
+      setRecentUpdates(items);
+      setRecentLoading(false);
     })();
   }, []);
 
