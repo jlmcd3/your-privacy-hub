@@ -147,6 +147,10 @@ export default function RopaDocuments() {
 
   return (
     <RopaShell title="My RoPA Documents — End User Privacy" heading="My RoPA Documents">
+      {(() => {
+        const { steps, currentIndex } = getRopaSteps("documents");
+        return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
+      })()}
       <div className="mb-6 flex items-center justify-between">
         <p className="font-body text-muted-foreground">
           Download generated Records of Processing Activities and start refresh cycles.
