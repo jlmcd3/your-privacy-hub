@@ -27,6 +27,8 @@ export default function RopaActivity() {
   const evaluateFlagsForAnswer = useRopaStore((s) => s.evaluateFlagsForAnswer);
 
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [activityNavOpen, setActivityNavOpen] = useState(false);
+  const questionCardRef = useRef<HTMLDivElement>(null);
 
   // Load activity + parent session
   useEffect(() => {
