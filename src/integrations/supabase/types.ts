@@ -2166,6 +2166,64 @@ export type Database = {
           },
         ]
       }
+      ropa_noted_regulatory_updates: {
+        Row: {
+          article_id: string
+          article_title: string
+          article_url: string
+          client_id: string
+          id: string
+          jurisdiction_code: string
+          noted_at: string
+          session_id: string
+          urgency: string
+        }
+        Insert: {
+          article_id: string
+          article_title: string
+          article_url: string
+          client_id: string
+          id?: string
+          jurisdiction_code: string
+          noted_at?: string
+          session_id: string
+          urgency: string
+        }
+        Update: {
+          article_id?: string
+          article_title?: string
+          article_url?: string
+          client_id?: string
+          id?: string
+          jurisdiction_code?: string
+          noted_at?: string
+          session_id?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_noted_regulatory_updates_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_noted_regulatory_updates_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_noted_regulatory_updates_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ropa_processing_activities: {
         Row: {
           category: string
@@ -2280,6 +2338,48 @@ export type Database = {
           },
           {
             foreignKeyName: "ropa_refresh_cycles_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_refresh_reminders: {
+        Row: {
+          client_id: string
+          id: string
+          recipient_email: string | null
+          sent_at: string
+          source_session_id: string
+          updates_count: number
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          recipient_email?: string | null
+          sent_at?: string
+          source_session_id: string
+          updates_count?: number
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          recipient_email?: string | null
+          sent_at?: string
+          source_session_id?: string
+          updates_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_refresh_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_refresh_reminders_source_session_id_fkey"
             columns: ["source_session_id"]
             isOneToOne: false
             referencedRelation: "ropa_sessions"
