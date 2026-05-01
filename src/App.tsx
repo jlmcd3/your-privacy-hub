@@ -26,6 +26,14 @@ import Signup from "./pages/Signup.tsx";
 import Login from "./pages/Login.tsx";
 import Account from "./pages/Account.tsx";
 import ClientsPortfolio from "./pages/ClientsPortfolio.tsx";
+import RopaHome from "./pages/ropa/RopaHome.tsx";
+import RopaSetup from "./pages/ropa/RopaSetup.tsx";
+import RopaActivities from "./pages/ropa/RopaActivities.tsx";
+import RopaActivity from "./pages/ropa/RopaActivity.tsx";
+import RopaReview from "./pages/ropa/RopaReview.tsx";
+import RopaDocuments from "./pages/ropa/RopaDocuments.tsx";
+import RopaRefresh from "./pages/ropa/RopaRefresh.tsx";
+import RopaLanding from "./pages/ropa/RopaLanding.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
@@ -324,6 +332,15 @@ const App = () => (
             <Route path="/ir-playbook" element={<IRPlaybook />} />
             <Route path="/biometric-checker" element={<BiometricChecker />} />
             <Route path="/horizon" element={<Horizon />} />
+            {/* RoPA Builder */}
+            <Route path="/ropa" element={<ProtectedRoute><RopaHome /></ProtectedRoute>} />
+            <Route path="/ropa/setup" element={<ProtectedRoute><RopaSetup /></ProtectedRoute>} />
+            <Route path="/ropa/activities" element={<ProtectedRoute><RopaActivities /></ProtectedRoute>} />
+            <Route path="/ropa/activity/:id" element={<ProtectedRoute><RopaActivity /></ProtectedRoute>} />
+            <Route path="/ropa/review" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
+            <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
+            <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
+            <Route path="/ropa-builder" element={<RopaLanding />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
