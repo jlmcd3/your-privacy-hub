@@ -152,6 +152,7 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
   currentAnswers: {},
   currentQuestionIndex: 0,
   skippedQuestionKeys: new Set<string>(),
+  flags: [],
   isSaving: false,
   saveError: null,
   lastSavedAt: null,
