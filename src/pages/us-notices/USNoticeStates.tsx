@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
 
 interface StateLaw {
   state_code: string;
@@ -99,6 +100,7 @@ export default function USNoticeStates() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { verifying: verifyingClient, authorized } = useUsNoticeSessionGuard(sessionId);
 
   const [loading, setLoading] = useState(true);
   const [laws, setLaws] = useState<StateLaw[]>([]);
