@@ -333,13 +333,7 @@ export default function USNoticeDocuments() {
       {hasAny && (
         <div className="space-y-3 mb-8">
           {states.map((state) => {
-            const docs =
-              statesWithDocs.get(state.state_code) ??
-              statesWithDocs.get("__combined__") ??
-              [];
-            const stateDocs = docs.filter(
-              (d) => d.is_combined || d.state_code === state.state_code,
-            );
+            const stateDocs = statesWithDocs.get(state.state_code) ?? [];
             return (
               <Card key={state.state_code}>
                 <CardContent className="p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
