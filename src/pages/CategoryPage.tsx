@@ -191,12 +191,11 @@ const CategoryPage = () => {
                 >
                   <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
                     <img
-                      src={u.image_url || FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"]}
+                      src={u.image_url || FALLBACK_IMAGE}
                       alt=""
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          FALLBACK_IMAGES[u.category] || FALLBACK_IMAGES["global"];
+                        (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
                       }}
                     />
                   </div>
