@@ -12,6 +12,9 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   dpia_framework: { standalone: 99, subscriber: 49, name: "Impact Assessment Builder" },
   ropa_initial: { standalone: 79, subscriber: 35, name: "RoPA Builder — Initial Generation" },
   ropa_refresh: { standalone: 35, subscriber: 15, name: "RoPA Builder — Annual Refresh" },
+  us_notice_single: { standalone: 25, subscriber: 12, name: "US Privacy Notice — Single State" },
+  us_notice_all_states: { standalone: 59, subscriber: 29, name: "US Privacy Notice — All States" },
+  us_notice_refresh: { standalone: 25, subscriber: 12, name: "US Notice — Annual Refresh" },
 };
 
 export interface ToolPricing {
@@ -64,6 +67,9 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           dpia_framework: "dpia_builder",
           ropa_initial: "ropa_initial",
           ropa_refresh: "ropa_refresh",
+          us_notice_single: "us_notice_single",
+          us_notice_all_states: "us_notice_all_states",
+          us_notice_refresh: "us_notice_refresh",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 
