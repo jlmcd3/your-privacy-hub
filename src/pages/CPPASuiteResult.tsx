@@ -164,8 +164,8 @@ export default function CPPASuiteResult() {
     let timer: any;
     const fetchOnce = async () => {
       const promises: Promise<any>[] = [];
-      if (riskId) promises.push(supabase.from("cppa_assessments").select("*").eq("id", riskId).maybeSingle());
-      if (cyberId) promises.push(supabase.from("cppa_assessments").select("*").eq("id", cyberId).maybeSingle());
+      if (riskId) promises.push(Promise.resolve(supabase.from("cppa_assessments").select("*").eq("id", riskId).maybeSingle()));
+      if (cyberId) promises.push(Promise.resolve(supabase.from("cppa_assessments").select("*").eq("id", cyberId).maybeSingle()));
       const results = await Promise.all(promises);
       let idx = 0;
       if (riskId) { setRiskRow(results[idx]?.data || null); idx++; }
