@@ -3542,6 +3542,16 @@ export type Database = {
           violation: string
         }[]
       }
+      commit_eu_notice_generation: {
+        Args: {
+          _docs: Json
+          _expected_status: string[]
+          _generated_at: string
+          _new_version: number
+          _session_id: string
+        }
+        Returns: Json
+      }
       get_enforcement_action_basic: {
         Args: { _id: string }
         Returns: {
