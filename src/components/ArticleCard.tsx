@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
+import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
+// Render-time fallback for any article missing a real image. Curated photo
+// rotation is applied at ingestion time via the assign-fallback-images
+// edge function; this is the safety net so no card ever looks empty.
+const EUP_TILE = eupTile;
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
