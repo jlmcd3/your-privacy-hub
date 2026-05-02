@@ -154,10 +154,33 @@ export default function LegislationTracker() {
           <div className="space-y-4">
             {filtered.map(bill => {
               const cfg = STAGE_CONFIG[bill.stage];
+              const link = JURISDICTION_LINK_MAP[bill.jurisdiction];
+              const isoOnly = JURISDICTION_ISO_ONLY[bill.jurisdiction];
+              const iso = link?.iso2 ?? isoOnly;
+              const chipInner = (
+                <>
+                  <span className="text-base leading-none flag-emoji" aria-hidden="true">{bill.flag}</span>
+                  {iso && (
+                    <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{iso}</span>
+                  )}
+                </>
+              );
               return (
                 <div key={bill.id} className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl flex-shrink-0 flag-emoji">{bill.flag}</div>
+                    {link ? (
+                      <Link
+                        to={`/jurisdiction/${link.slug}`}
+                        aria-label={`View ${bill.jurisdiction} jurisdiction page`}
+                        className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white hover:border-navy/30 hover:shadow-eup-sm transition-all no-underline"
+                      >
+                        {chipInner}
+                      </Link>
+                    ) : (
+                      <div className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white">
+                        {chipInner}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
