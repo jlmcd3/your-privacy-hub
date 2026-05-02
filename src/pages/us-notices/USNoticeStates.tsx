@@ -305,7 +305,7 @@ export default function USNoticeStates() {
                 onToggle={() => toggle(law.state_code)}
                 autoReason={autoReasons[law.state_code]}
                 emphasized
-                tagline="Unique framework"
+                tagline="CCPA/CPRA — Unique Framework"
               />
             ))}
           </section>
