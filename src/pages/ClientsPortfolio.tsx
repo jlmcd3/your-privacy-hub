@@ -6,6 +6,8 @@ import { useActiveClient } from '@/hooks/useActiveClient';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { AddClientModal } from '@/components/clients/AddClientModal';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 interface PerClientCounts {
   clientId: string;
