@@ -193,7 +193,9 @@ export default function USNoticeDocuments() {
   const statesWithDocs = useMemo(() => {
     const byCode = new Map<string, DocumentRow[]>();
     for (const d of currentDocs) {
-      const key = d.is_combined ? "__combined__" : d.state_code ?? "__unknown__";
+      // Combined "suite" docs are surfaced separately above — skip here.
+      if (d.is_combined) continue;
+      const key = d.state_code ?? "__unknown__";
       const list = byCode.get(key) ?? [];
       list.push(d);
       byCode.set(key, list);
