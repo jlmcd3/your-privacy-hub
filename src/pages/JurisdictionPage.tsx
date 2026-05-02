@@ -11,7 +11,19 @@ import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
+import usStateComparison from "@/data/us_state_comparison.json";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
+// Map state name → comparison abbr (only states actually in /compare/us-states)
+const STATE_COMPARISON_ABBR: Record<string, string> = Object.fromEntries(
+  (usStateComparison as any).states
+    .filter((s: any) => s.status === "enacted")
+    .map((s: any) => [s.name, s.abbr])
+);
+const statuteCompareUrl = (stateName: string) => {
+  const abbr = STATE_COMPARISON_ABBR[stateName];
+  return abbr ? `/compare/us-states#${abbr}` : "/compare/us-states";
+};
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
