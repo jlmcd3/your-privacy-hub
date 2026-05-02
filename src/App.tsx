@@ -352,10 +352,16 @@ const App = () => (
             <Route path="/ropa-builder" element={<RopaLanding />} />
             <Route path="/us-notices" element={<ProtectedRoute><USNoticeHome /></ProtectedRoute>} />
             <Route path="/us-notices/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/states" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/questions" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/review" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/documents" element={<ProtectedRoute><USNoticeDocuments /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/refresh" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
+            {/* Legacy redirects (old order: step/sessionId) */}
             <Route path="/us-notices/states/:sessionId" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
             <Route path="/us-notices/questions/:sessionId" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
             <Route path="/us-notices/review/:sessionId" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
-            <Route path="/us-notices/documents" element={<ProtectedRoute><USNoticeDocuments /></ProtectedRoute>} />
             <Route path="/us-notices/refresh/:sessionId" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
             <Route path="/us-notice-builder" element={<USNoticeLanding />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />

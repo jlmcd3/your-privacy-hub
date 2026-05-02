@@ -220,7 +220,7 @@ export default function USNoticeStates() {
       return;
     }
 
-    navigate(`/us-notices/questions/${sessionId}`);
+    navigate(`/us-notices/${sessionId}/questions`);
   }
 
   return (

@@ -115,7 +115,7 @@ export default function USNoticeMode() {
       return;
     }
 
-    navigate(`/us-notices/states/${data.id}`);
+    navigate(`/us-notices/${data.id}/states`);
   }
 
   return (

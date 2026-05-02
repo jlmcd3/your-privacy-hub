@@ -209,7 +209,7 @@ export default function USNoticeRefresh() {
         .from("us_notice_sessions")
         .update({ status: "review" })
         .eq("id", newSessionId);
-      navigate(`/us-notices/review/${newSessionId}`);
+      navigate(`/us-notices/${newSessionId}/review`);
     } finally {
       setSubmitting(false);
     }
