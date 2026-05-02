@@ -226,6 +226,20 @@ export default function USNoticeStates() {
     navigate(`/us-notices/${sessionId}/questions`);
   }
 
+  if (verifyingClient) {
+    return (
+      <USNoticeShell
+        title="Select States — US Notice Builder"
+        heading="Which states do your customers live in?"
+        step="states"
+        sessionId={sessionId}
+      >
+        <Skeleton className="h-32 w-full mb-4" />
+        <Skeleton className="h-48 w-full" />
+      </USNoticeShell>
+    );
+  }
+
   return (
     <USNoticeShell
       title="Select States — US Notice Builder"
