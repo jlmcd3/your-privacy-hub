@@ -6,6 +6,8 @@ import { useActiveClient } from '@/hooks/useActiveClient';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { AddClientModal } from '@/components/clients/AddClientModal';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 interface PerClientCounts {
   clientId: string;
@@ -309,7 +311,9 @@ export default function ClientsPortfolio() {
   }
 
   return (
-    <main className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-navy">{heading}</h1>
@@ -388,6 +392,8 @@ export default function ClientsPortfolio() {
         open={showAdd}
         onClose={() => setShowAdd(false)}
       />
-    </main>
+      </main>
+      <Footer />
+    </div>
   );
 }
