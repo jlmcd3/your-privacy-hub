@@ -108,11 +108,38 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
   };
 }
 
-function CountRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0">
+function CountRow({
+  label,
+  value,
+  onClick,
+  ariaLabel,
+}: {
+  label: string;
+  value: React.ReactNode;
+  onClick?: () => void;
+  ariaLabel?: string;
+}) {
+  const content = (
+    <>
       <span className="text-slate">{label}</span>
       <span className="font-semibold text-navy tabular-nums">{value}</span>
+    </>
+  );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel ?? label}
+        className="w-full flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0 bg-transparent border-x-0 border-t-0 cursor-pointer text-left hover:bg-fog/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue/40 rounded"
+      >
+        {content}
+      </button>
+    );
+  }
+  return (
+    <div className="flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0">
+      {content}
     </div>
   );
 }
