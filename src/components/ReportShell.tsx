@@ -28,6 +28,10 @@ export interface ReportShellProps {
   backLabel?: string;
   /** Optional tool-specific tail sentence appended to the bottom ToolDisclaimer */
   disclaimerAddition?: string;
+  /** Optional override for the top disclaimer banner body (after the bold lead-in). If provided, replaces the default "compliance framework" wording. */
+  topDisclaimer?: ReactNode;
+  /** Optional override for the bold lead-in label of the top disclaimer (default: "Not legal advice."). */
+  topDisclaimerLead?: string;
 }
 
 export default function ReportShell({
@@ -39,6 +43,8 @@ export default function ReportShell({
   backHref = "/dashboard/reports",
   backLabel = "← Back to My Reports",
   disclaimerAddition,
+  topDisclaimer,
+  topDisclaimerLead = "Not legal advice.",
 }: ReportShellProps) {
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -76,11 +82,15 @@ export default function ReportShell({
         {/* Top legal disclaimer — visible, brand-aware, not alarming */}
         <div className="border-l-4 border-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.08)] rounded-r-md px-4 py-3">
           <p className="text-[12px] leading-relaxed text-foreground">
-            <span className="font-semibold text-navy">Not legal advice.</span>{" "}
-            This document is a compliance framework generated for informational
-            purposes only. It does not create an attorney-client relationship.
-            Always consult qualified legal counsel for advice specific to your
-            situation.
+            <span className="font-semibold text-navy">{topDisclaimerLead}</span>{" "}
+            {topDisclaimer ?? (
+              <>
+                This document is a compliance framework generated for informational
+                purposes only. It does not create an attorney-client relationship.
+                Always consult qualified legal counsel for advice specific to your
+                situation.
+              </>
+            )}
           </p>
         </div>
 

@@ -58,6 +58,15 @@ export default function IRPlaybookResult() {
           </div>
         ) : (
           <ReportShell
+            topDisclaimer={
+              <>
+                This is an operational incident response guide to assist during a live
+                breach event. It is not legal advice and does not constitute a formal
+                legal compliance opinion. Notification deadlines are indicative based
+                on publicly available regulatory guidance — confirm all timelines and
+                obligations with qualified legal counsel before taking action.
+              </>
+            }
             title="Your Breach Response Playbook"
             meta={
               <>
