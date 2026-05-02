@@ -188,11 +188,16 @@ export default function USNoticeHome() {
   );
   const latestCompleted = sessions.find((s) => s.status === "completed");
 
+  const heading =
+    isMultiClient && clientName
+      ? `US Privacy Notices — ${clientName}`
+      : "US Privacy Notice Builder";
+
   if (loading) {
     return (
       <USNoticeShell
         title="US Privacy Notice Builder — End User Privacy"
-        heading="US Privacy Notice Builder"
+        heading={heading}
       >
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-32 w-full" />
@@ -203,7 +208,7 @@ export default function USNoticeHome() {
   return (
     <USNoticeShell
       title="US Privacy Notice Builder — End User Privacy"
-      heading="US Privacy Notice Builder"
+      heading={heading}
     >
       <p className="text-muted-foreground mb-2 max-w-3xl">
         Build state-by-state privacy notices that match your data practices and the laws
