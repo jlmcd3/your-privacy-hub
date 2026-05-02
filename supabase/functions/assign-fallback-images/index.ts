@@ -25,30 +25,30 @@ function hashIndex(seed: string, n: number): number {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const authHeader = req.headers.get("Authorization") || "";
-  const jwt = authHeader.replace(/^Bearer\s+/i, "");
-  if (!jwt) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
-  const { data: userData } = await supabase.auth.getUser(jwt);
-  const userId = userData?.user?.id;
-  if (!userId) {
+  const adminToken = req.headers.get("x-admin-token");
+  const tokenMatches = adminToken && adminToken === Deno.env.get("ADMIN_SECRET_TOKEN");
+  let authorized = !!tokenMatches;
+  if (!authorized) {
+    const authHeader = req.headers.get("Authorization") || "";
+    const jwt = authHeader.replace(/^Bearer\s+/i, "");
+    if (jwt) {
+      const { data: userData } = await supabase.auth.getUser(jwt);
+      const userId = userData?.user?.id;
+      if (userId) {
+        const { data: hasAdmin } = await supabase.rpc("has_role", {
+          _user_id: userId, _role: "admin",
+        });
+        if (hasAdmin) authorized = true;
+      }
+    }
+  }
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-  const { data: hasAdmin } = await supabase.rpc("has_role", {
-    _user_id: userId, _role: "admin",
-  });
-  if (!hasAdmin) {
-    return new Response(JSON.stringify({ error: "forbidden" }), {
-      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
