@@ -1363,6 +1363,138 @@ export type Database = {
         }
         Relationships: []
       }
+      legislation_bills: {
+        Row: {
+          bill_name: string
+          bill_number: string | null
+          created_at: string
+          external_id: string
+          id: string
+          introduced_at: string | null
+          iso2: string | null
+          jurisdiction: string
+          jurisdiction_slug: string | null
+          key_provisions: string[] | null
+          last_changed_at: string
+          last_seen_at: string
+          matched_keywords: string[] | null
+          raw_payload: Json | null
+          region: string | null
+          source: string
+          source_last_action_at: string | null
+          source_name: string | null
+          source_url: string | null
+          stage: string
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          bill_name: string
+          bill_number?: string | null
+          created_at?: string
+          external_id: string
+          id?: string
+          introduced_at?: string | null
+          iso2?: string | null
+          jurisdiction: string
+          jurisdiction_slug?: string | null
+          key_provisions?: string[] | null
+          last_changed_at?: string
+          last_seen_at?: string
+          matched_keywords?: string[] | null
+          raw_payload?: Json | null
+          region?: string | null
+          source: string
+          source_last_action_at?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          stage: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bill_name?: string
+          bill_number?: string | null
+          created_at?: string
+          external_id?: string
+          id?: string
+          introduced_at?: string | null
+          iso2?: string | null
+          jurisdiction?: string
+          jurisdiction_slug?: string | null
+          key_provisions?: string[] | null
+          last_changed_at?: string
+          last_seen_at?: string
+          matched_keywords?: string[] | null
+          raw_payload?: Json | null
+          region?: string | null
+          source?: string
+          source_last_action_at?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          stage?: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      legislation_ingestion_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          fetched: number
+          finished_at: string | null
+          id: string
+          inserted: number
+          metadata: Json | null
+          rejected: number
+          rejected_samples: Json | null
+          source: string
+          started_at: string
+          status: string
+          unchanged: number
+          updated: number
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          fetched?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          metadata?: Json | null
+          rejected?: number
+          rejected_samples?: Json | null
+          source: string
+          started_at?: string
+          status?: string
+          unchanged?: number
+          updated?: number
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          fetched?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          metadata?: Json | null
+          rejected?: number
+          rejected_samples?: Json | null
+          source?: string
+          started_at?: string
+          status?: string
+          unchanged?: number
+          updated?: number
+        }
+        Relationships: []
+      }
       li_assessments: {
         Row: {
           alternatives_considered: string | null
