@@ -123,6 +123,13 @@ const TOOLS: Record<
     fallback_standalone_cents: 29900,
     fallback_subscriber_cents: 14900,
   },
+  dpa_generator: {
+    name: "Your Custom DPA",
+    standalone_lookup: "dpa_standalone_v2",
+    subscriber_lookup: "dpa_subscriber_v2",
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
+  },
 };
 
 function detectEnv(): StripeEnv {
