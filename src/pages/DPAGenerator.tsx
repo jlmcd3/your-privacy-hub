@@ -9,6 +9,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
