@@ -1,0 +1,110 @@
+import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EU_NOTICE_PRICING } from "@/config/pricing";
+
+const FRAMEWORKS = [
+  { code: "EU_GDPR", name: "EU GDPR", region: "EU/EEA" },
+  { code: "UK_GDPR", name: "UK GDPR", region: "United Kingdom" },
+  { code: "CH_FADP", name: "Swiss FADP", region: "Switzerland" },
+  { code: "BR_LGPD", name: "Brazil LGPD", region: "Americas" },
+  { code: "JP_APPI", name: "Japan APPI", region: "Asia-Pacific" },
+  { code: "IN_DPDPA", name: "India DPDPA", region: "Asia-Pacific" },
+  { code: "ZA_POPIA", name: "South Africa POPIA", region: "Africa" },
+  { code: "CA_PIPEDA", name: "Canada PIPEDA", region: "Americas" },
+  { code: "AU_PRIVACY", name: "Australia Privacy Act", region: "Asia-Pacific" },
+  { code: "KR_PIPA", name: "South Korea PIPA", region: "Asia-Pacific" },
+  { code: "SG_PDPA", name: "Singapore PDPA", region: "Asia-Pacific" },
+  { code: "AE_PDPL", name: "UAE PDPL", region: "Middle East" },
+];
+
+export default function EUNoticeLanding() {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
+        <meta name="description" content="Generate GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA and 4 more privacy notices in one session." />
+        <link rel="canonical" href="https://www.enduserprivacy.com/eu-global-notice-builder" />
+      </Helmet>
+      <Navbar />
+      <main className="flex-1">
+        <section className="py-16 md:py-20 border-b border-border">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+            <Badge variant="secondary" className="mb-4">12 global frameworks · One session</Badge>
+            <h1 className="font-serif text-4xl md:text-5xl mb-4 max-w-3xl">
+              EU & Global Privacy Notice Builder
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mb-6">
+              Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks — in a single guided session.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg"><Link to="/eu-notices">Get started <ArrowRight className="h-4 w-4 ml-2" /></Link></Button>
+              <Button asChild variant="outline" size="lg"><Link to="/eu-notices/mode">New notice</Link></Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              From {EU_NOTICE_PRICING.singleSubscriber()} per framework · EU Suite from {EU_NOTICE_PRICING.suiteSubscriber()} · Full international from {EU_NOTICE_PRICING.fullInternationalSubscriber()}
+            </p>
+          </div>
+        </section>
+
+        <section className="py-12">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="font-serif text-2xl mb-6">Supported frameworks</h2>
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {FRAMEWORKS.map((f) => (
+                <Card key={f.code}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      <span className="font-medium text-sm">{f.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{f.region}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 bg-muted/30 border-y border-border">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-6 md:grid-cols-3">
+              <div>
+                <Globe2 className="h-6 w-6 text-primary mb-3" />
+                <h3 className="font-medium mb-1">One session, every notice</h3>
+                <p className="text-sm text-muted-foreground">Answer questions once. Get a separate notice per framework, plus an optional combined international notice.</p>
+              </div>
+              <div>
+                <ShieldCheck className="h-6 w-6 text-primary mb-3" />
+                <h3 className="font-medium mb-1">Counsel-grade structure</h3>
+                <p className="text-sm text-muted-foreground">Structured around GDPR Art. 13/14 with framework-specific overlays for each jurisdiction.</p>
+              </div>
+              <div>
+                <Clock className="h-6 w-6 text-primary mb-3" />
+                <h3 className="font-medium mb-1">Annual refresh built in</h3>
+                <p className="text-sm text-muted-foreground">When the law changes, refresh in minutes — your prior answers carry forward.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <FileText className="h-10 w-10 mx-auto text-primary mb-4" />
+            <h2 className="font-serif text-3xl mb-3">Ready to build your global notice set?</h2>
+            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+              Pick the frameworks you operate under and we'll generate tailored privacy notices for each.
+            </p>
+            <Button asChild size="lg"><Link to="/eu-notices">Get started <ArrowRight className="h-4 w-4 ml-2" /></Link></Button>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+}

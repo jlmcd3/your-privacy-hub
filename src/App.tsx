@@ -42,6 +42,14 @@ import USNoticeReview from "./pages/us-notices/USNoticeReview.tsx";
 import USNoticeDocuments from "./pages/us-notices/USNoticeDocuments.tsx";
 import USNoticeRefresh from "./pages/us-notices/USNoticeRefresh.tsx";
 import USNoticeLanding from "./pages/us-notices/USNoticeLanding.tsx";
+import EUNoticeHome from "./pages/eu-notices/EUNoticeHome.tsx";
+import EUNoticeMode from "./pages/eu-notices/EUNoticeMode.tsx";
+import EUNoticeFrameworks from "./pages/eu-notices/EUNoticeFrameworks.tsx";
+import EUNoticeQuestions from "./pages/eu-notices/EUNoticeQuestions.tsx";
+import EUNoticeReview from "./pages/eu-notices/EUNoticeReview.tsx";
+import EUNoticeDocuments from "./pages/eu-notices/EUNoticeDocuments.tsx";
+import EUNoticeRefresh from "./pages/eu-notices/EUNoticeRefresh.tsx";
+import EUNoticeLanding from "./pages/eu-notices/EUNoticeLanding.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
@@ -364,6 +372,16 @@ const App = () => (
             <Route path="/us-notices/review/:sessionId" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
             <Route path="/us-notices/refresh/:sessionId" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
             <Route path="/us-notice-builder" element={<USNoticeLanding />} />
+            {/* EU & Global Notice Builder */}
+            <Route path="/eu-notices" element={<ProtectedRoute><EUNoticeHome /></ProtectedRoute>} />
+            <Route path="/eu-notices/mode" element={<ProtectedRoute><EUNoticeMode /></ProtectedRoute>} />
+            <Route path="/eu-notices/frameworks/:sessionId" element={<ProtectedRoute><EUNoticeFrameworks /></ProtectedRoute>} />
+            <Route path="/eu-notices/questions/:sessionId" element={<ProtectedRoute><EUNoticeQuestions /></ProtectedRoute>} />
+            <Route path="/eu-notices/review/:sessionId" element={<ProtectedRoute><EUNoticeReview /></ProtectedRoute>} />
+            <Route path="/eu-notices/review" element={<ProtectedRoute><EUNoticeReview /></ProtectedRoute>} />
+            <Route path="/eu-notices/documents" element={<ProtectedRoute><EUNoticeDocuments /></ProtectedRoute>} />
+            <Route path="/eu-notices/refresh/:sessionId" element={<ProtectedRoute><EUNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
