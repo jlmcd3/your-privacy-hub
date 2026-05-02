@@ -186,6 +186,19 @@ const JurisdictionPage = () => {
     (async () => {
       const name = jurisdiction.name;
       const nameLower = name.toLowerCase();
+      // Enrichment arrays store lowercase kebab-case slugs (e.g. "california",
+      // "united-kingdom", "us-federal"), so we must match against the slug —
+      // not the display name — for `direct_jurisdictions` / `affected_jurisdictions`.
+      const enrichmentSlug = nameLower.replace(/\s+/g, "-");
+      const ENRICHMENT_ALIASES: Record<string, string[]> = {
+        "european-union": ["eu"],
+        "united-states": ["us-federal", "us"],
+        "united-kingdom": ["uk"],
+      };
+      const aliases = ENRICHMENT_ALIASES[enrichmentSlug] ?? [];
+      const enrichmentMatchValues = Array.from(
+        new Set([enrichmentSlug, nameLower, name, ...aliases])
+      );
       const authorityTerms = jurisdiction.authorities
         .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
       const allTerms = [nameLower, ...authorityTerms];
@@ -193,11 +206,11 @@ const JurisdictionPage = () => {
       const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version,why_it_matters_short,related_signals,action_items,ai_summary";
 
-      // Tier 1: enriched-direct (last 90d)
+      // Tier 1: enriched-direct (last 90d) — match against any slug variant
       const directQ = (supabase as any)
         .from("updates").select(select)
         .eq("is_hidden", false)
-        .contains("direct_jurisdictions", [name])
+        .overlaps("direct_jurisdictions", enrichmentMatchValues)
         .gte("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
         .limit(20);
@@ -206,7 +219,7 @@ const JurisdictionPage = () => {
       const affectedQ = (supabase as any)
         .from("updates").select(select)
         .eq("is_hidden", false)
-        .contains("affected_jurisdictions", [name])
+        .overlaps("affected_jurisdictions", enrichmentMatchValues)
         .gte("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
         .limit(20);
@@ -248,8 +261,10 @@ const JurisdictionPage = () => {
         if (seen.has(a.id)) return;
         if (!matchesKeyword(a)) return;
         const ts = new Date(a.published_at).getTime();
-        const isDirectByEnrichment = a.direct_jurisdictions?.includes?.(name);
-        const isAffectedByEnrichment = a.affected_jurisdictions?.includes?.(name);
+        const matchesEnrichment = (arr: any) =>
+          Array.isArray(arr) && arr.some((v: any) => enrichmentMatchValues.includes(v));
+        const isDirectByEnrichment = matchesEnrichment(a.direct_jurisdictions);
+        const isAffectedByEnrichment = matchesEnrichment(a.affected_jurisdictions);
         if (ts >= ninetyMs) {
           if (isAffectedByEnrichment && !isDirectByEnrichment) pushUnique(regional, a);
           else pushUnique(direct, a);
@@ -262,7 +277,7 @@ const JurisdictionPage = () => {
       const { data: oldDirect } = await (supabase as any)
         .from("updates").select(select)
         .eq("is_hidden", false)
-        .contains("direct_jurisdictions", [name])
+        .overlaps("direct_jurisdictions", enrichmentMatchValues)
         .lt("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
         .limit(20);
