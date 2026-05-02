@@ -279,12 +279,7 @@ function ResultsPanel({
   onReset,
   navigate,
 }: {
-  obligationMap: ReturnType<typeof useMemo<any>> extends infer T ? any : never;
-  q2: string;
-  onReset: () => void;
-  navigate: (to: string) => void;
-}) {
-  const om = obligationMap as {
+  obligationMap: {
     inScope: boolean;
     cyberAuditRequired: boolean;
     admtRequired: boolean;
@@ -293,6 +288,10 @@ function ResultsPanel({
     riskAssessmentRequired: boolean;
     hasUnsure: boolean;
   };
+  q2: string;
+  onReset: () => void;
+  navigate: (to: string) => void;
+}) {
 
   // Out of scope, no Unsure: confidently out of scope
   if (!om.inScope && !om.hasUnsure) {
