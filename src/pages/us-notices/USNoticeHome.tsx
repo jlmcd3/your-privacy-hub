@@ -217,8 +217,8 @@ export default function USNoticeHome() {
         Maryland (MODPA), and Florida (FDBR).
       </p>
       <p className="text-sm text-muted-foreground mb-8">
-        From <span className="font-medium text-foreground">$12</span> (Intelligence subscriber) ·{" "}
-        <span className="font-medium text-foreground">$25</span> standalone per state
+        From <span className="font-medium text-foreground">{US_NOTICE_PRICING.singleSubscriber()}</span> (Intelligence subscriber) ·{" "}
+        <span className="font-medium text-foreground">{US_NOTICE_PRICING.singleStandalone()}</span> standalone per state
       </p>
 
       {/* Empty state */}
