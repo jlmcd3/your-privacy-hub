@@ -52,7 +52,15 @@ export default function MyReports() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [li, dpia, gov, dpa, ir, bio, reg] = await Promise.all([
+      // Fetch user's client ids first to scope ropa sessions
+      const { data: myClients } = await supabase
+        .from("clients")
+        .select("id, name")
+        .eq("owner_id", user.id);
+      const clientIds = (myClients || []).map((c: any) => c.id);
+      const clientNameById = new Map<string, string>((myClients || []).map((c: any) => [c.id, c.name]));
+
+      const [li, dpia, gov, dpa, ir, bio, reg, ropa] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
