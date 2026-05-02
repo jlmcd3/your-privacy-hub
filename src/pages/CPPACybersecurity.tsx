@@ -193,11 +193,15 @@ export default function CPPACybersecurity() {
           userId={user?.id}
           intakeData={intake}
           onClose={() => setCheckoutOpen(false)}
-          onComplete={(id) => {
+          onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
-            if (isSuite) {
-              navigate(`/dashboard/reports`);
+            if (isSuite && suiteCyberId) {
+              // When entered via /cppa-cybersecurity?suite=true, the risk_id is the
+              // first assessment created (stored as id) and cyber_id is suiteCyberId.
+              // NOTE: The suite entry point is /cppa-risk-assessment?suite=true, so
+              // this branch may not be reached in practice. Navigate safely.
+              navigate(`/cppa-suite/result?risk_id=${id}&cyber_id=${suiteCyberId}&purchased=true`);
             } else {
               navigate(`/cppa-cybersecurity/result/${id}?purchased=true`);
             }
