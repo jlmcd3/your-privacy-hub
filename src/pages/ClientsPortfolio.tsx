@@ -392,6 +392,8 @@ export default function ClientsPortfolio() {
         open={showAdd}
         onClose={() => setShowAdd(false)}
       />
-    </main>
+      </main>
+      <Footer />
+    </div>
   );
 }
