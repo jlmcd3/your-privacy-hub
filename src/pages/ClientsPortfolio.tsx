@@ -378,6 +378,7 @@ export default function ClientsPortfolio() {
               counts={counts[c.id] ?? null}
               loading={countsLoading && !counts[c.id]}
               onOpen={() => handleOpen(c)}
+              onOpenUsNotices={() => handleOpenUsNotices(c)}
             />
           ))}
         </div>
