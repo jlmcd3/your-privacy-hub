@@ -128,7 +128,6 @@ export default function DPAGenerator() {
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Step {step} of 4</div>
             <h2 className="font-display font-bold text-navy text-[18px]">DPA Intake</h2>
             <div className="space-y-3 text-[13px]">
               <label className="block"><span className="font-semibold text-navy">Controller name</span>
