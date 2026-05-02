@@ -446,7 +446,7 @@ export default function USNoticeStates() {
           </section>
 
           <p className="text-xs text-muted-foreground text-center mb-24">
-            Answering questions is free · Notices from $12
+            Answering questions is free · Notices from {US_NOTICE_PRICING.singleSubscriber()}
           </p>
 
           {/* Sticky bottom bar */}
