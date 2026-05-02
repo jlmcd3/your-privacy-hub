@@ -28,7 +28,6 @@ interface NavItem {
   label: string;
   href?: string;
   wide?: boolean;
-  columns?: 2 | 3;
   sections?: {
     header?: string;
     divider?: boolean;
@@ -36,10 +35,8 @@ interface NavItem {
       icon: string;
       iconImage?: string;
       label: string;
-      sublabel?: string;
       badge?: string;
       badgeGreen?: boolean;
-      badgeNew?: boolean;
       href: string;
     }[];
   }[];
