@@ -36,13 +36,17 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
   {
     key: "dpo_name",
     text: "Name of your Data Protection Officer",
+    whyWeAsk: "Required when a DPO is appointed.",
     type: "text_short",
+    isRequired: false,
     showIf: { questionKey: "dpo_details", operator: "equals", value: "yes" },
   },
   {
     key: "dpo_email",
     text: "Email address of your Data Protection Officer",
+    whyWeAsk: "Required when a DPO is appointed.",
     type: "text_short",
+    isRequired: false,
     showIf: { questionKey: "dpo_details", operator: "equals", value: "yes" },
   },
   {
