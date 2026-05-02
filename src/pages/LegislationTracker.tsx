@@ -13,21 +13,16 @@ interface Bill {
   summary: string; keyProvisions: string[];
 }
 
-// Display name -> ISO 2-letter code + jurisdiction page slug.
-// Only entries listed here will render as a link; others fall back to plain text.
-const JURISDICTION_LINK_MAP: Record<string, { iso2: string; slug: string }> = {
-  "India":          { iso2: "IN", slug: "india" },
-  "United Kingdom": { iso2: "GB", slug: "united-kingdom" },
-  "Australia":      { iso2: "AU", slug: "australia" },
-  "Chile":          { iso2: "CL", slug: "chile" },
-  "Brazil":         { iso2: "BR", slug: "brazil" },
-  "European Union": { iso2: "EU", slug: "european-union" },
-  // US Federal currently has no dedicated /jurisdiction page slug; render as plain ISO chip.
-};
-
-// Show ISO chip (no link) when no slug is known — keeps visual consistency.
-const JURISDICTION_ISO_ONLY: Record<string, string> = {
-  "US Federal": "US",
+// Display name -> ISO 2-letter code, jurisdiction page slug (optional), and SVG flag URL.
+// Only entries with a `slug` will render the chip as a link; others fall back to a non-link chip.
+const JURISDICTION_META: Record<string, { iso2: string; slug?: string; flagUrl: string }> = {
+  "India":          { iso2: "IN", slug: "india",          flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_India.svg?width=40" },
+  "United Kingdom": { iso2: "GB", slug: "united-kingdom", flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_the_United_Kingdom.svg?width=40" },
+  "Australia":      { iso2: "AU", slug: "australia",      flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Australia.svg?width=40" },
+  "Chile":          { iso2: "CL", slug: "chile",          flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Chile.svg?width=40" },
+  "Brazil":         { iso2: "BR", slug: "brazil",         flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Brazil.svg?width=40" },
+  "European Union": { iso2: "EU", slug: "european-union", flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Europe.svg?width=40" },
+  "US Federal":     { iso2: "US",                          flagUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_the_United_States.svg?width=40" },
 };
 
 const STAGE_CONFIG: Record<Stage, { label: string; color: string; bg: string; order: number }> = {
@@ -154,23 +149,26 @@ export default function LegislationTracker() {
           <div className="space-y-4">
             {filtered.map(bill => {
               const cfg = STAGE_CONFIG[bill.stage];
-              const link = JURISDICTION_LINK_MAP[bill.jurisdiction];
-              const isoOnly = JURISDICTION_ISO_ONLY[bill.jurisdiction];
-              const iso = link?.iso2 ?? isoOnly;
-              const chipInner = (
+              const meta = JURISDICTION_META[bill.jurisdiction];
+              const chipInner = meta ? (
                 <>
-                  <span className="text-base leading-none flag-emoji" aria-hidden="true">{bill.flag}</span>
-                  {iso && (
-                    <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{iso}</span>
-                  )}
+                  <img
+                    src={meta.flagUrl}
+                    alt={`${bill.jurisdiction} flag`}
+                    loading="lazy"
+                    className="w-6 h-4 object-cover rounded-[2px] shadow-sm flex-shrink-0"
+                  />
+                  <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{meta.iso2}</span>
                 </>
+              ) : (
+                <span className="text-base leading-none flag-emoji" aria-hidden="true">{bill.flag}</span>
               );
               return (
                 <div key={bill.id} className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
                   <div className="flex items-start gap-4">
-                    {link ? (
+                    {meta?.slug ? (
                       <Link
-                        to={`/jurisdiction/${link.slug}`}
+                        to={`/jurisdiction/${meta.slug}`}
                         aria-label={`View ${bill.jurisdiction} jurisdiction page`}
                         className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white hover:border-navy/30 hover:shadow-eup-sm transition-all no-underline"
                       >
