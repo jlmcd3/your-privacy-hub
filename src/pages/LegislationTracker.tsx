@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import InFeedAd from "@/components/InFeedAd";
+import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
@@ -150,7 +152,7 @@ export default function LegislationTracker() {
 
           <div className="space-y-4">
             {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
-            {!loading && filtered.map((bill) => {
+            {!loading && filtered.map((bill, idx) => {
               const cfg = STAGE_CONFIG[bill.stage] ?? STAGE_CONFIG.introduced;
               const flagUrl = bill.iso2 ? FLAG_BY_ISO[bill.iso2] : undefined;
               const chipInner = (
@@ -165,8 +167,10 @@ export default function LegislationTracker() {
                 </>
               );
               const isStale = bill.status === "stale";
+              const showAdAfter = (idx + 1) % 6 === 0 && idx !== filtered.length - 1;
               return (
-                <div key={bill.id} className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
+                <Fragment key={bill.id}>
+                <div className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
                   <div className="flex items-start gap-4">
                     {bill.jurisdiction_slug ? (
                       <Link to={`/jurisdiction/${bill.jurisdiction_slug}`}
@@ -216,6 +220,14 @@ export default function LegislationTracker() {
                     </div>
                   </div>
                 </div>
+                {showAdAfter && (
+                  <InFeedAd
+                    adSlot={`legislation_tracker_infeed_${Math.floor(idx / 6)}`}
+                    googleAdClient={GOOGLE_AD_CLIENT}
+                    googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
+                  />
+                )}
+                </Fragment>
               );
             })}
             {!loading && filtered.length === 0 && (
