@@ -385,7 +385,7 @@ export default function USNoticeStates() {
 
           {/* Sticky bottom bar */}
           <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur px-4 py-3">
-            <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-4">
+            <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm">
                 <span className="font-semibold text-foreground">{selected.size}</span>{" "}
                 <span className="text-muted-foreground">
@@ -395,11 +395,13 @@ export default function USNoticeStates() {
               <Button
                 onClick={handleContinue}
                 disabled={selected.size === 0 || submitting}
+                className="w-full sm:w-auto min-h-[44px]"
+                aria-label="Continue to questions"
               >
                 {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                 ) : (
-                  <>Continue to questions <ArrowRight className="ml-1.5 h-4 w-4" /></>
+                  <>Continue to questions <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden /></>
                 )}
               </Button>
             </div>
