@@ -132,10 +132,7 @@ Deno.serve(async (req) => {
       ? body.queries
       : DEFAULT_QUERIES;
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  const supabase = adminClient;
 
   const results = {
     queries_run: 0,
