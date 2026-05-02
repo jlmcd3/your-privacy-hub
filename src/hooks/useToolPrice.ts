@@ -67,6 +67,9 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           dpia_framework: "dpia_builder",
           ropa_initial: "ropa_initial",
           ropa_refresh: "ropa_refresh",
+          us_notice_single: "us_notice_single",
+          us_notice_all_states: "us_notice_all_states",
+          us_notice_refresh: "us_notice_refresh",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 
