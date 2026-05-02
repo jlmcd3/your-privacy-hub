@@ -401,17 +401,34 @@ export default function USNoticeStates() {
             ))}
           </section>
 
-          {/* Florida */}
+          {/* Florida — applicability gate ($1B+ revenue) */}
           <section className="mb-6">
             {grouped.florida.map((law) => (
-              <StateCard
-                key={law.state_code}
-                law={law}
-                selected={selected.has(law.state_code)}
-                onToggle={() => toggle(law.state_code)}
-                autoReason={autoReasons[law.state_code]}
-                tagline="Very narrow scope — $1B+ revenue only"
-              />
+              <div key={law.state_code}>
+                <StateCard
+                  law={law}
+                  selected={selected.has(law.state_code)}
+                  onToggle={() => toggle(law.state_code)}
+                  autoReason={autoReasons[law.state_code]}
+                  tagline="Very narrow scope — $1B+ revenue only"
+                />
+                {floridaGateAnswered === false && (
+                  <p className="text-xs text-muted-foreground italic mt-2">
+                    Florida excluded from this notice set — FDBR does not apply
+                    to your business.{" "}
+                    <button
+                      type="button"
+                      className="underline hover:text-foreground"
+                      onClick={() => {
+                        setFloridaGateAnswered(null);
+                        setFloridaGateOpen(true);
+                      }}
+                    >
+                      Reconsider
+                    </button>
+                  </p>
+                )}
+              </div>
             ))}
           </section>
 
