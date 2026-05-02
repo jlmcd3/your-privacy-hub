@@ -340,3 +340,15 @@ export const US_NOTICE_PRICING = {
   allStatesStandalone: () => getPrice("us_notice_all_standalone").displayPrice,   // "$59"
   allStatesSubscriber: () => getPrice("us_notice_all_subscriber").displayPrice,   // "$29"
 } as const;
+
+/** EU & Global Notice price helpers — derived from the registry, never hardcode. */
+export const EU_NOTICE_PRICING = {
+  singleStandalone: () => getPrice("eu_notice_single_standalone").displayPrice,                       // "$45"
+  singleSubscriber: () => getPrice("eu_notice_single_subscriber").displayPrice,                       // "$19"
+  suiteStandalone: () => getPrice("eu_notice_suite_standalone").displayPrice,                         // "$149"
+  suiteSubscriber: () => getPrice("eu_notice_suite_subscriber").displayPrice,                         // "$65"
+  fullInternationalStandalone: () => getPrice("eu_notice_full_international_standalone").displayPrice, // "$229"
+  fullInternationalSubscriber: () => getPrice("eu_notice_full_international_subscriber").displayPrice, // "$99"
+  refreshStandalone: () => getPrice("eu_notice_refresh_standalone").displayPrice,                     // "$35"
+  refreshSubscriber: () => getPrice("eu_notice_refresh_subscriber").displayPrice,                     // "$19"
+} as const;
