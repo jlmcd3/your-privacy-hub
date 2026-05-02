@@ -8,6 +8,7 @@ interface AnonymousUpdatesCardItem {
   category?: string | null;
   published_at?: string | null;
   source_name?: string | null;
+  image_url?: string | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
