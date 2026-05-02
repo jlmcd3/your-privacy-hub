@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { US_NOTICE_PRICING } from "@/config/pricing";
 import {
   Dialog,
   DialogContent,
@@ -445,7 +446,7 @@ export default function USNoticeStates() {
           </section>
 
           <p className="text-xs text-muted-foreground text-center mb-24">
-            Answering questions is free · Notices from $12
+            Answering questions is free · Notices from {US_NOTICE_PRICING.singleSubscriber()}
           </p>
 
           {/* Sticky bottom bar */}

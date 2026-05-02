@@ -121,6 +121,64 @@ export const PRICING_REGISTRY = {
     recurringInterval: "year",
     active: true,
   },
+
+  // ── US Privacy Notice — per-state ──────────────────────────────────────
+  us_notice_single_standalone: {
+    kind: "one_time",
+    lookupKey: "us_notice_single_standalone",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — Single State (Standalone)",
+    description:
+      "One state-specific US privacy notice (CCPA/CPRA, Virginia model, MODPA, or FDBR). Standalone price.",
+    amountCents: 2500,
+    currency: "usd",
+    displayPrice: "$25",
+    displaySuffix: " per state",
+    active: true,
+  },
+  us_notice_single_subscriber: {
+    kind: "addon",
+    lookupKey: "us_notice_single_subscriber",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — Single State (Intelligence subscriber)",
+    description:
+      "Subscriber rate for one state-specific US privacy notice. Requires active Intelligence subscription.",
+    amountCents: 1200,
+    currency: "usd",
+    displayPrice: "$12",
+    displaySuffix: " per state",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  us_notice_all_standalone: {
+    kind: "one_time",
+    lookupKey: "us_notice_all_standalone",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — All States Suite (Standalone)",
+    description:
+      "Complete suite covering every US state with active privacy law. Standalone price.",
+    amountCents: 5900,
+    currency: "usd",
+    displayPrice: "$59",
+    displaySuffix: " flat",
+    active: true,
+  },
+  us_notice_all_subscriber: {
+    kind: "addon",
+    lookupKey: "us_notice_all_subscriber",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — All States Suite (Intelligence subscriber)",
+    description:
+      "Subscriber rate for the all-states suite. Requires active Intelligence subscription.",
+    amountCents: 2900,
+    currency: "usd",
+    displayPrice: "$29",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
 } as const satisfies Record<string, PriceEntry>;
 
 export type PriceLookupKey = keyof typeof PRICING_REGISTRY;
@@ -160,4 +218,12 @@ export const INTELLIGENCE_PRICING = {
     `${formatPrice("intelligence_monthly")} or ${formatPrice("intelligence_yearly")}`,
   monthlyShort: () => `${getPrice("intelligence_monthly").displayPrice}/mo`,
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
+} as const;
+
+/** US Notice price helpers — derived from the registry, never hardcode. */
+export const US_NOTICE_PRICING = {
+  singleStandalone: () => getPrice("us_notice_single_standalone").displayPrice,   // "$25"
+  singleSubscriber: () => getPrice("us_notice_single_subscriber").displayPrice,   // "$12"
+  allStatesStandalone: () => getPrice("us_notice_all_standalone").displayPrice,   // "$59"
+  allStatesSubscriber: () => getPrice("us_notice_all_subscriber").displayPrice,   // "$29"
 } as const;
