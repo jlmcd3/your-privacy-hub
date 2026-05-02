@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
+import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
 interface AnonymousUpdatesCardItem {
   id: string;
