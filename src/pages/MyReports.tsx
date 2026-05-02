@@ -143,6 +143,23 @@ export default function MyReports() {
         summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
         view_path: `/registration-manager/order/${r.id}`,
       }));
+      (ropa?.data || []).forEach((r: any) => {
+        const done = r.completed_activities ?? 0;
+        const total = r.total_activities ?? 0;
+        const orgName = clientNameById.get(r.client_id) || "RoPA";
+        const summary = total > 0
+          ? `${done} of ${total} activities completed · ${orgName}`
+          : (done > 0 ? `${done} activities completed · ${orgName}` : orgName);
+        all.push({
+          id: r.id,
+          tool: "ropa",
+          tool_label: "RoPA Builder",
+          created_at: r.last_activity_at || r.updated_at || r.created_at,
+          status: "in_progress",
+          summary,
+          view_path: "/ropa/activities",
+        });
+      });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
