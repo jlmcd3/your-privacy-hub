@@ -252,12 +252,14 @@ export default function CPPARiskAssessment() {
           userId={user?.id}
           intakeData={intake}
           onClose={() => setCheckoutOpen(false)}
-          onComplete={(id) => {
+          onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
-            if (isSuite) {
-              // Suite redirect handled server-side via success URL; fall back here just in case.
-              navigate(`/dashboard/reports`);
+            if (isSuite && suiteCyberId) {
+              navigate(`/cppa-suite/result?risk_id=${id}&cyber_id=${suiteCyberId}&purchased=true`);
+            } else if (isSuite && !suiteCyberId) {
+              // cyber_id missing — fall back to risk result as a safety net
+              navigate(`/cppa-risk-assessment/result/${id}?purchased=true`);
             } else {
               navigate(`/cppa-risk-assessment/result/${id}?purchased=true`);
             }
