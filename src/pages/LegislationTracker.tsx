@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -11,6 +12,23 @@ interface Bill {
   name: string; stage: Stage; introduced?: string; lastUpdated: string;
   summary: string; keyProvisions: string[];
 }
+
+// Display name -> ISO 2-letter code + jurisdiction page slug.
+// Only entries listed here will render as a link; others fall back to plain text.
+const JURISDICTION_LINK_MAP: Record<string, { iso2: string; slug: string }> = {
+  "India":          { iso2: "IN", slug: "india" },
+  "United Kingdom": { iso2: "GB", slug: "united-kingdom" },
+  "Australia":      { iso2: "AU", slug: "australia" },
+  "Chile":          { iso2: "CL", slug: "chile" },
+  "Brazil":         { iso2: "BR", slug: "brazil" },
+  "European Union": { iso2: "EU", slug: "european-union" },
+  // US Federal currently has no dedicated /jurisdiction page slug; render as plain ISO chip.
+};
+
+// Show ISO chip (no link) when no slug is known — keeps visual consistency.
+const JURISDICTION_ISO_ONLY: Record<string, string> = {
+  "US Federal": "US",
+};
 
 const STAGE_CONFIG: Record<Stage, { label: string; color: string; bg: string; order: number }> = {
   enacted:    { label: "Enacted",     color: "#16a34a", bg: "#f0fdf4", order: 1 },
