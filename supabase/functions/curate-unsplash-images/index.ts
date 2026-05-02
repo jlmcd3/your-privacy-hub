@@ -88,31 +88,31 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Admin-only: validate caller is signed in AND has 'admin' role.
-  const authHeader = req.headers.get("Authorization") || "";
-  const jwt = authHeader.replace(/^Bearer\s+/i, "");
-  if (!jwt) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // Auth: either admin JWT (Bearer) OR x-admin-token matching ADMIN_SECRET_TOKEN.
   const adminClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
-  const { data: userData } = await adminClient.auth.getUser(jwt);
-  const userId = userData?.user?.id;
-  if (!userId) {
+  const adminToken = req.headers.get("x-admin-token");
+  const tokenMatches = adminToken && adminToken === Deno.env.get("ADMIN_SECRET_TOKEN");
+  let authorized = !!tokenMatches;
+  if (!authorized) {
+    const authHeader = req.headers.get("Authorization") || "";
+    const jwt = authHeader.replace(/^Bearer\s+/i, "");
+    if (jwt) {
+      const { data: userData } = await adminClient.auth.getUser(jwt);
+      const userId = userData?.user?.id;
+      if (userId) {
+        const { data: roleRow } = await adminClient.rpc("has_role", {
+          _user_id: userId, _role: "admin",
+        });
+        if (roleRow) authorized = true;
+      }
+    }
+  }
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-  const { data: roleRow } = await adminClient.rpc("has_role", {
-    _user_id: userId, _role: "admin",
-  });
-  if (!roleRow) {
-    return new Response(JSON.stringify({ error: "forbidden" }), {
-      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
