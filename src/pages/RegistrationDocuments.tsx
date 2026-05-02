@@ -106,6 +106,10 @@ export default function RegistrationDocuments() {
             </Button>
           </div>
 
+          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-900 dark:text-amber-200">
+            <strong>Important:</strong> These are draft documents prepared from your self-reported organisation profile and our jurisdiction database. They are not legal advice and do not constitute a completed filing. You (or your counsel) must review each document, fill in all [placeholder] fields, and submit to the relevant data protection authority. End User Privacy is not responsible for filings rejected, delayed, or otherwise affected.
+          </div>
+
           {docs.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
