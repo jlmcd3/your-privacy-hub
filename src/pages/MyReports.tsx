@@ -82,6 +82,13 @@ export default function MyReports() {
         supabase.from("registration_orders")
           .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
+        clientIds.length > 0
+          ? supabase.from("ropa_sessions")
+              .select("id, client_id, status, created_at, updated_at, last_activity_at, completed_activities, total_activities")
+              .in("client_id", clientIds)
+              .eq("status", "in_progress")
+              .order("last_activity_at", { ascending: false })
+          : Promise.resolve({ data: [] as any[] } as any),
       ]);
 
       if (cancelled) return;
