@@ -219,7 +219,7 @@ export default function USNoticeRefresh() {
 
   if (phase === "loading" || !source) {
     return (
-      <USNoticeShell title="Refresh Your Notices — US Notice Builder" heading="Annual refresh">
+      <USNoticeShell title="Refresh Your Notices — US Notice Builder" heading="Annual refresh" step="refresh" sessionId={sessionId}>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Preparing refresh…
@@ -233,7 +233,7 @@ export default function USNoticeRefresh() {
   const updatedCount = Object.values(reviewDecisions).filter((d) => d === "updated").length;
 
   return (
-    <USNoticeShell title="Refresh Your Notices — US Notice Builder" heading="Annual refresh">
+    <USNoticeShell title="Refresh Your Notices — US Notice Builder" heading="Annual refresh" step="refresh" sessionId={sessionId}>
       {/* PHASE 1 — Orientation */}
       {phase === "orientation" && (
         <div className="max-w-3xl space-y-6">

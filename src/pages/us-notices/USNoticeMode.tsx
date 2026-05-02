@@ -122,6 +122,7 @@ export default function USNoticeMode() {
     <USNoticeShell
       title="Choose Your Path — US Notice Builder"
       heading="US Privacy Notice Builder"
+      step="mode"
     >
       <p className="text-muted-foreground text-base mb-2">
         Choose how you'd like to start.

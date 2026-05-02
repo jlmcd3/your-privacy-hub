@@ -255,7 +255,7 @@ export default function USNoticeReview() {
 
   if (loading) {
     return (
-      <USNoticeShell title="Review Your Notices — End User Privacy" heading="Review your notices">
+      <USNoticeShell title="Review Your Notices — End User Privacy" heading="Review your notices" step="review" sessionId={sessionId}>
         <Skeleton className="h-24 w-full mb-6" />
         <Skeleton className="h-64 w-full" />
       </USNoticeShell>
@@ -266,6 +266,8 @@ export default function USNoticeReview() {
     <USNoticeShell
       title="Review Your Notices — End User Privacy"
       heading="Review your notices"
+      step="review"
+      sessionId={sessionId}
     >
       <p className="text-muted-foreground mb-8 max-w-3xl">
         Confirm your answers and resolve any flags before generating your state-by-state
