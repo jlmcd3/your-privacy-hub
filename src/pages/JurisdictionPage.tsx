@@ -11,19 +11,7 @@ import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
-import usStateComparison from "@/data/us_state_comparison.json";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
-
-// Map state name → comparison abbr (only states actually in /compare/us-states)
-const STATE_COMPARISON_ABBR: Record<string, string> = Object.fromEntries(
-  (usStateComparison as any).states
-    .filter((s: any) => s.status === "enacted")
-    .map((s: any) => [s.name, s.abbr])
-);
-const statuteCompareUrl = (stateName: string) => {
-  const abbr = STATE_COMPARISON_ABBR[stateName];
-  return abbr ? `/compare/us-states#${abbr}` : "/compare/us-states";
-};
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
@@ -32,7 +20,7 @@ const buildJurisdictionData = () => {
     region: string;
     flag: string;
     overview: string;
-    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_status?: string; effective_date?: string; notes?: string; stateName?: string }[];
+    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_url?: string; statute_status?: string; effective_date?: string; notes?: string; stateName?: string }[];
   }> = {};
 
   const regionFlags: Record<string, string> = {
@@ -74,6 +62,7 @@ const buildJurisdictionData = () => {
       website: s.website,
       complaint_portal: s.complaint_portal,
       legislation: s.statute_name,
+      statute_url: s.statute_url,
       statute_status: s.statute_status,
       effective_date: s.effective_date,
       notes: s.notes,
@@ -97,6 +86,7 @@ const buildJurisdictionData = () => {
         website: s.website,
         complaint_portal: s.complaint_portal,
         legislation: s.statute_name,
+        statute_url: s.statute_url,
         statute_status: s.statute_status,
         effective_date: s.effective_date,
         notes: s.notes,
@@ -400,20 +390,19 @@ const JurisdictionPage = () => {
               {auth.legislation && (
                 <div className="text-[12px] text-slate mt-1">
                   <span className="font-semibold text-navy">Statute: </span>{" "}
-                  {(() => {
-                    const stateName = (auth as any).stateName || jurisdiction.name;
-                    const abbr = STATE_COMPARISON_ABBR[stateName];
-                    return abbr ? (
-                      <Link
-                        to={statuteCompareUrl(stateName)}
-                        className="text-blue hover:underline no-underline font-medium"
-                      >
-                        {auth.legislation}
-                      </Link>
-                    ) : (
-                      <span>{auth.legislation}</span>
-                    );
-                  })()}
+                  {auth.statute_url ? (
+                    <a
+                      href={auth.statute_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue hover:underline no-underline font-medium inline-flex items-center gap-1"
+                    >
+                      {auth.legislation}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span>{auth.legislation}</span>
+                  )}
                   {(auth as any).effective_date && (
                     <span className="text-slate/70 ml-1">
                       · Effective{" "}
