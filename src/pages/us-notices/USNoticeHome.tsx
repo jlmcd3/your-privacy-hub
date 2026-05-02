@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { formatDistanceToNow } from "date-fns";
+import { US_NOTICE_PRICING } from "@/config/pricing";
 import {
   ArrowRight,
   CheckCircle2,
