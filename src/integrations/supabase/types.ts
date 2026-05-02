@@ -2972,6 +2972,42 @@ export type Database = {
           },
         ]
       }
+      us_state_law_notifications: {
+        Row: {
+          client_id: string
+          delivery_status: string
+          error: string | null
+          id: string
+          notified_at: string
+          recipient_email: string
+          resend_message_id: string | null
+          state_code: string
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          delivery_status?: string
+          error?: string | null
+          id?: string
+          notified_at?: string
+          recipient_email: string
+          resend_message_id?: string | null
+          state_code: string
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          delivery_status?: string
+          error?: string | null
+          id?: string
+          notified_at?: string
+          recipient_email?: string
+          resend_message_id?: string | null
+          state_code?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       us_state_privacy_laws: {
         Row: {
           applicability_threshold: string | null
