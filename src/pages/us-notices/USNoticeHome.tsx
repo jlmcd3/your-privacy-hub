@@ -192,10 +192,14 @@ export default function USNoticeHome() {
       title="US Privacy Notice Builder — End User Privacy"
       heading="US Privacy Notice Builder"
     >
-      <p className="text-muted-foreground mb-8 max-w-3xl">
+      <p className="text-muted-foreground mb-2 max-w-3xl">
         Build state-by-state privacy notices that match your data practices and the laws
         that apply to you — California (CCPA/CPRA), the Virginia model (16 states),
         Maryland (MODPA), and Florida (FDBR).
+      </p>
+      <p className="text-sm text-muted-foreground mb-8">
+        From <span className="font-medium text-foreground">$12</span> (Intelligence subscriber) ·{" "}
+        <span className="font-medium text-foreground">$25</span> standalone per state
       </p>
 
       {/* Empty state */}
