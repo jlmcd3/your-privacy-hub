@@ -80,20 +80,29 @@ const USStateComparison = () => {
               <thead>
                 <tr className="bg-muted">
                   <th className="px-3 py-3 text-left font-semibold text-muted-foreground sticky left-0 bg-muted z-10 min-w-[140px]">Provision</th>
-                  {states.map((s) => (
-                    <th key={s.abbr} id={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[56px] scroll-mt-24">
-                      {STATE_FLAGS[s.abbr] && (
-                        <img
-                          src={STATE_FLAGS[s.abbr]}
-                          alt={`${s.name} state flag`}
-                          className="w-7 h-auto mx-auto mb-1 rounded-[2px] shadow-sm object-cover"
-                          loading="lazy"
-                        />
-                      )}
-                      <div>{s.abbr}</div>
-                      <div className="text-[9px] font-normal text-muted-foreground">{s.law}</div>
-                    </th>
-                  ))}
+                  {states.map((s) => {
+                    const slug = s.name.toLowerCase().replace(/\s+/g, "-");
+                    return (
+                      <th key={s.abbr} id={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[56px] scroll-mt-24">
+                        <Link
+                          to={`/jurisdiction/${slug}`}
+                          aria-label={`View ${s.name} jurisdiction page`}
+                          className="block no-underline group"
+                        >
+                          {STATE_FLAGS[s.abbr] && (
+                            <img
+                              src={STATE_FLAGS[s.abbr]}
+                              alt={`${s.name} state flag`}
+                              className="w-7 h-auto mx-auto mb-1 rounded-[2px] shadow-sm object-cover group-hover:scale-110 transition-transform"
+                              loading="lazy"
+                            />
+                          )}
+                          <div className="group-hover:text-accent transition-colors">{s.abbr}</div>
+                          <div className="text-[9px] font-normal text-muted-foreground">{s.law}</div>
+                        </Link>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
