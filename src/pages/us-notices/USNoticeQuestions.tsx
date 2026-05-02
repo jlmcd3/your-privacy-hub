@@ -120,7 +120,7 @@ export default function USNoticeQuestions() {
         setLoading(false);
       }
     })();
-  }, [sessionId, navigate, toast]);
+  }, [sessionId, navigate, toast, authorized]);
 
   // Build the question set and apply showIf + jurisdictionOnly filters.
   const visibleQuestions = useMemo(() => {
