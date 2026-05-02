@@ -402,20 +402,19 @@ const JurisdictionPage = () => {
               {auth.legislation && (
                 <div className="text-[12px] text-slate mt-1">
                   <span className="font-semibold text-navy">Statute: </span>{" "}
-                  {(() => {
-                    const stateName = (auth as any).stateName || jurisdiction.name;
-                    const abbr = STATE_COMPARISON_ABBR[stateName];
-                    return abbr ? (
-                      <Link
-                        to={statuteCompareUrl(stateName)}
-                        className="text-blue hover:underline no-underline font-medium"
-                      >
-                        {auth.legislation}
-                      </Link>
-                    ) : (
-                      <span>{auth.legislation}</span>
-                    );
-                  })()}
+                  {auth.statute_url ? (
+                    <a
+                      href={auth.statute_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue hover:underline no-underline font-medium inline-flex items-center gap-1"
+                    >
+                      {auth.legislation}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span>{auth.legislation}</span>
+                  )}
                   {(auth as any).effective_date && (
                     <span className="text-slate/70 ml-1">
                       · Effective{" "}
