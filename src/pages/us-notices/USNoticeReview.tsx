@@ -217,6 +217,86 @@ export default function USNoticeReview() {
     return { triggeredFlags: flags, missingRequired: missing };
   }, [visibleQuestions, answers]);
 
+  // Computed quality checks — defensive validations on top of declarative flags.
+  // These cover cross-question consistency that can't be expressed via flagIf alone.
+  const qualityIssues = useMemo(() => {
+    const issues: { id: string; severity: "warning" | "info" | "recommendation"; message: string }[] = [];
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // 1) Privacy contact email must be a valid email address.
+    const emailKeys = ["privacy_contact_email", "contact_email", "dpo_email"];
+    for (const k of emailKeys) {
+      const v = answers[k];
+      if (typeof v === "string" && v.trim() !== "" && !EMAIL_RE.test(v.trim())) {
+        issues.push({
+          id: `email-${k}`,
+          severity: "warning",
+          message: `The contact email you entered (${v}) doesn't look like a valid email address. Update it before publishing — users rely on this to exercise their rights.`,
+        });
+        break;
+      }
+    }
+
+    // 2) Sale-vs-opt-out consistency: if you sell or share data, you must offer an opt-out mechanism.
+    const sellsData = answers["sells_personal_info"] === "yes" || answers["shares_for_targeted_ads"] === "yes";
+    const hasOptOut =
+      answers["opt_out_mechanism"] != null &&
+      answers["opt_out_mechanism"] !== "none" &&
+      answers["opt_out_mechanism"] !== "";
+    if (sellsData && !hasOptOut) {
+      issues.push({
+        id: "sale-without-optout",
+        severity: "warning",
+        message:
+          "You indicated you sell or share personal information for targeted advertising, but no opt-out mechanism is configured. CCPA, CPA, CTDPA and most Virginia-model laws require a clear, easy-to-use opt-out (e.g. a 'Do Not Sell or Share' link or GPC honoring).",
+      });
+    }
+
+    // 3) Children's data handling must be disclosed when collecting from minors.
+    const collectsFromMinors =
+      answers["collects_from_minors"] === "yes" ||
+      (Array.isArray(answers["audience_includes"]) &&
+        (answers["audience_includes"] as string[]).some((x) => x === "minors_13_16" || x === "children_under_13"));
+    const hasMinorDisclosure =
+      answers["minor_data_handling"] != null && answers["minor_data_handling"] !== "";
+    if (collectsFromMinors && !hasMinorDisclosure) {
+      issues.push({
+        id: "minor-data-undisclosed",
+        severity: "warning",
+        message:
+          "Your audience includes minors but you haven't disclosed how children's data is handled. Most state laws (and COPPA federally) require explicit consent flows and disclosure for users under 16.",
+      });
+    }
+
+    // 4) Ad-platform inconsistency: declared ad platforms but said you don't share data for ads.
+    const adPlatforms = Array.isArray(answers["ad_platforms_used"])
+      ? (answers["ad_platforms_used"] as string[])
+      : [];
+    const declaresAds = adPlatforms.length > 0 && !adPlatforms.includes("none");
+    if (declaresAds && answers["shares_for_targeted_ads"] === "no") {
+      issues.push({
+        id: "ad-platform-inconsistency",
+        severity: "info",
+        message: `You listed ad platforms (${adPlatforms.join(", ")}) but indicated you don't share data for targeted advertising. Many ad platforms automatically receive identifiers — confirm with each platform whether your usage qualifies as "sharing" under CCPA/CPRA.`,
+      });
+    }
+
+    // 5) Retention default fallback — recommend a sensible default if missing.
+    const retention = answers["data_retention_period"];
+    const retentionEmpty =
+      retention == null || retention === "" || (Array.isArray(retention) && retention.length === 0);
+    if (retentionEmpty) {
+      issues.push({
+        id: "retention-default",
+        severity: "recommendation",
+        message:
+          "No retention period specified. We'll default to 'as long as necessary for the purposes described, then deleted within 90 days.' You can customize this in your final notice.",
+      });
+    }
+
+    return issues;
+  }, [answers]);
+
   const warningCount = triggeredFlags.filter((t) => t.flag.severity === "warning").length;
   const infoCount = triggeredFlags.filter((t) => t.flag.severity === "info").length;
   const recCount = triggeredFlags.filter((t) => t.flag.severity === "recommendation").length;
