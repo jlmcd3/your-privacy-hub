@@ -119,6 +119,7 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
     text: "Which Article 9(2) ground applies to your special category processing?",
     whyWeAsk: "GDPR Art.9 requires an explicit legal basis for special category data. [GDPR Art.9(2)]",
     type: "multi_choice",
+    isRequired: false,
     options: [
       { value: "explicit_consent", label: "Explicit consent — Art.9(2)(a)" },
       { value: "employment_law", label: "Employment / social security law — Art.9(2)(b)" },
@@ -198,6 +199,7 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
     text: "What safeguards do you rely on for international transfers?",
     whyWeAsk: "Art.13(1)(f) requires disclosure of transfer safeguards. [GDPR Art.46]",
     type: "multi_choice",
+    isRequired: false,
     options: [
       { value: "adequacy", label: "Adequacy decision" },
       { value: "sccs", label: "Standard Contractual Clauses (SCCs)" },
