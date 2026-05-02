@@ -444,18 +444,13 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
         to={`/updates/${item.id}`}
         className="flex gap-3 flex-1 min-w-0 no-underline"
       >
-        {item.image_url ? (
-          <img
-            src={item.image_url}
-            alt=""
-            className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[20px]">
-            📰
-          </div>
-        )}
+        <img
+          src={item.image_url || EUP_TILE}
+          alt=""
+          loading="lazy"
+          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             {item.source_name && (
