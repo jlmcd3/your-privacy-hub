@@ -1313,7 +1313,9 @@ Deno.serve(async (req) => {
         if (!isRelevant(title, description)) { results.skipped++; continue; }
 
         const category = categorize(title, description, source.defaultCategory);
-        const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
+        // Use the article's own OG image if available; otherwise leave null and
+        // let assign-fallback-images apply the curated pool / EUP brand tile.
+        const imageUrl = (await extractOgImage(link)) || null;
 
         // Compute direct_jurisdictions from DPA source mapping
         const sourceDomain = extractDomain(link);

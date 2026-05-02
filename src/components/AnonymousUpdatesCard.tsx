@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
+import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
 interface AnonymousUpdatesCardItem {
   id: string;
@@ -50,27 +51,17 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
       to={`/updates/${item.id}`}
       className="group flex gap-4 items-start py-4 border-b border-fog last:border-0 no-underline"
     >
-      {/* Article thumbnail (or source-name placeholder) */}
-      {item.image_url ? (
-        <img
-          src={item.image_url}
-          alt=""
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
-      ) : (
-        <div className="w-16 h-16 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
-          {item.source_name && (
-            <span className="text-[9px] font-bold text-slate uppercase text-center leading-tight px-1">
-              {item.source_name.split(".")[0].slice(0, 6)}
-            </span>
-          )}
-        </div>
-      )}
+      {/* Article thumbnail — falls back to EUP brand tile when missing */}
+      <img
+        src={item.image_url || eupTile}
+        alt=""
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = eupTile;
+        }}
+      />
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {item.source_name && (

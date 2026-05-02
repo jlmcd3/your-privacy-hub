@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
+import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
+// Render-time fallback for any article missing a real image. Curated photo
+// rotation is applied at ingestion time via the assign-fallback-images
+// edge function; this is the safety net so no card ever looks empty.
+const EUP_TILE = eupTile;
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
@@ -287,23 +292,14 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
       className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
       style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Article thumbnail (or source-name placeholder) */}
-      {item.image_url ? (
-        <img
-          src={item.image_url}
-          alt=""
-          className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-        />
-      ) : (
-        <div className="w-16 h-16 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
-          {item.source_name && (
-            <span className="text-[9px] font-bold text-slate uppercase text-center leading-tight px-1">
-              {item.source_name.split('.')[0].slice(0,6)}
-            </span>
-          )}
-        </div>
-      )}
+      {/* Article thumbnail — falls back to EUP brand tile when missing */}
+      <img
+        src={item.image_url || EUP_TILE}
+        alt=""
+        loading="lazy"
+        className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+        onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+      />
       <div className="flex-1 min-w-0">
         {/* Metadata row — base info always shown; legal weight badge if enriched */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
@@ -448,18 +444,13 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
         to={`/updates/${item.id}`}
         className="flex gap-3 flex-1 min-w-0 no-underline"
       >
-        {item.image_url ? (
-          <img
-            src={item.image_url}
-            alt=""
-            className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[20px]">
-            📰
-          </div>
-        )}
+        <img
+          src={item.image_url || EUP_TILE}
+          alt=""
+          loading="lazy"
+          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             {item.source_name && (
@@ -543,14 +534,13 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
       <div className="px-4 py-3">
         <div className="flex gap-3 mb-3">
-          {item.image_url && (
-            <img
-              src={item.image_url}
-              alt=""
-              className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-          )}
+          <img
+            src={item.image_url || EUP_TILE}
+            alt=""
+            loading="lazy"
+            className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
+            onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+          />
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
@@ -602,19 +592,13 @@ const HomepageCard = ({ item }: { item: ArticleItem }) => {
       className="block group py-4 border-b border-fog last:border-0 no-underline"
     >
       <div className="flex gap-3">
-        {item.image_url ? (
-          <img
-            src={item.image_url}
-            alt=""
-            loading="lazy"
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-slate-100"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[22px]">
-            📰
-          </div>
-        )}
+        <img
+          src={item.image_url || EUP_TILE}
+          alt=""
+          loading="lazy"
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             {item.source_name && (
