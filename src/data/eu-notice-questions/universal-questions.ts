@@ -129,7 +129,7 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
     ],
     showIf: {
       questionKey: "data_categories",
-      operator: "contains_any",
+      operator: "contains",
       value: [
         "health_medical",
         "biometric",

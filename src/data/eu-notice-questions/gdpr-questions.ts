@@ -107,7 +107,7 @@ export const UKGDPR_ADDITIONS: Question[] = [
     jurisdictionOnly: ["UK_GDPR"],
     showIf: {
       questionKey: "data_categories",
-      operator: "contains_any",
+      operator: "contains",
       value: [
         "health_medical",
         "biometric",

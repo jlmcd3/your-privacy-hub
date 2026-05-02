@@ -155,7 +155,7 @@ export const DPDPA_QUESTIONS: Question[] = [
     jurisdictionOnly: ["IN_DPDPA"],
     flagIf: [
       {
-        operator: "contains_any",
+        operator: "contains",
         value: ["blanket", "pre-ticked", "implied"],
         flagType: "high_risk_activity",
         severity: "warning",
