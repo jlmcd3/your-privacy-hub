@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
@@ -43,6 +44,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: "default" | "secondar
 
 export default function USNoticeHome() {
   const { user } = useAuth();
+  const { clientId, clientName, isMultiClient } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -51,15 +53,23 @@ export default function USNoticeHome() {
 
   useEffect(() => {
     if (!user) return;
+    // Reset list immediately so the user sees a loading state when switching clients.
+    setSessions([]);
     (async () => {
       setLoading(true);
       try {
-        const { data: clients } = await supabase
-          .from("clients")
-          .select("id")
-          .eq("owner_id", user.id)
-          .eq("is_active", true);
-        const clientIds = (clients ?? []).map((c) => c.id);
+        // Determine which client(s) to scope to.
+        let clientIds: string[] = [];
+        if (clientId) {
+          clientIds = [clientId];
+        } else {
+          const { data: clients } = await supabase
+            .from("clients")
+            .select("id")
+            .eq("owner_id", user.id)
+            .eq("is_active", true);
+          clientIds = (clients ?? []).map((c) => c.id);
+        }
         if (clientIds.length === 0) {
           setSessions([]);
           return;
@@ -103,7 +113,7 @@ export default function USNoticeHome() {
         setLoading(false);
       }
     })();
-  }, [user, toast]);
+  }, [user, clientId, toast]);
 
   function resumeRoute(s: SessionRow): string {
     switch (s.status) {
