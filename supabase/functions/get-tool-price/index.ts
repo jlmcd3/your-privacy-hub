@@ -102,6 +102,27 @@ const TOOLS: Record<
     fallback_standalone_cents: 3500,
     fallback_subscriber_cents: 1900,
   },
+  cppa_risk_assessment: {
+    name: "CPPA Risk Assessment — Module 1",
+    standalone_lookup: "cppa_risk_standalone",
+    subscriber_lookup: "cppa_risk_subscriber",
+    fallback_standalone_cents: 14900,
+    fallback_subscriber_cents: 7900,
+  },
+  cppa_cybersecurity: {
+    name: "CPPA Cybersecurity Readiness — Module 2",
+    standalone_lookup: "cppa_cyber_standalone",
+    subscriber_lookup: "cppa_cyber_subscriber",
+    fallback_standalone_cents: 19900,
+    fallback_subscriber_cents: 9900,
+  },
+  cppa_suite: {
+    name: "CPPA Full Audit Suite",
+    standalone_lookup: "cppa_suite_standalone",
+    subscriber_lookup: "cppa_suite_subscriber",
+    fallback_standalone_cents: 29900,
+    fallback_subscriber_cents: 14900,
+  },
 };
 
 function detectEnv(): StripeEnv {
