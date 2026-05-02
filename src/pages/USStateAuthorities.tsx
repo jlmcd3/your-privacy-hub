@@ -8,12 +8,25 @@ import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import usStates from "@/data/us_state_privacy_authorities.json";
 
-const statusClass = (s: string | null) => {
-  if (!s) return "status-none";
-  if (s === "Enacted") return "status-enacted";
-  if (s === "Pending") return "status-pending";
-  return "status-none";
+const STATUS_STYLE: Record<string, { stripe: string; pill: string; subtitle: (d: string | null) => string }> = {
+  Enacted: {
+    stripe: "bg-emerald-600",
+    pill: "text-emerald-700 bg-emerald-600/10",
+    subtitle: (d) => (d ? `Effective ${d}` : "Enacted"),
+  },
+  Pending: {
+    stripe: "bg-amber-600",
+    pill: "text-amber-700 bg-amber-600/10",
+    subtitle: (d) => (d ? `Effective ${d}` : "Pending legislation"),
+  },
+  None: {
+    stripe: "bg-slate-400",
+    pill: "text-slate bg-slate-400/15",
+    subtitle: () => "No statute",
+  },
 };
+
+const getStatusStyle = (s: string | null) => STATUS_STYLE[s || "None"] || STATUS_STYLE.None;
 
 const USStateAuthorities = () => {
   const [searchTerm, setSearchTerm] = useState("");
