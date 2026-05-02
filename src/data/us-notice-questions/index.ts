@@ -1,7 +1,7 @@
 import type { Question } from "./types";
 import { UNIVERSAL_US_NOTICE_QUESTIONS } from "./universal-questions";
 import { CCPA_SPECIFIC_QUESTIONS } from "./ccpa-questions";
-import { VIRGINIA_MODEL_QUESTIONS } from "./virginia-model-questions";
+import { VIRGINIA_MODEL_QUESTIONS, VIRGINIA_MODEL_STATE_ADDONS } from "./virginia-model-questions";
 import { MARYLAND_QUESTIONS } from "./maryland-questions";
 import { FLORIDA_QUESTIONS } from "./florida-questions";
 import { STATE_SPECIFIC_QUESTIONS } from "./state-specific-questions";
@@ -12,6 +12,7 @@ export {
   UNIVERSAL_US_NOTICE_QUESTIONS,
   CCPA_SPECIFIC_QUESTIONS,
   VIRGINIA_MODEL_QUESTIONS,
+  VIRGINIA_MODEL_STATE_ADDONS,
   MARYLAND_QUESTIONS,
   FLORIDA_QUESTIONS,
   STATE_SPECIFIC_QUESTIONS,
@@ -68,6 +69,12 @@ export function buildQuestionSet(selectedStateCodes: string[]): Question[] {
 
   const hasVirginiaModel = [...states].some((s) => VIRGINIA_MODEL_STATES.has(s));
   if (hasVirginiaModel) out.push(...VIRGINIA_MODEL_QUESTIONS);
+
+  // Per-state Virginia-model addons (activated states with unique requirements).
+  for (const stateCode of states) {
+    const addons = VIRGINIA_MODEL_STATE_ADDONS[stateCode];
+    if (addons && addons.length > 0) out.push(...addons);
+  }
 
   if (states.has("MD")) out.push(...MARYLAND_QUESTIONS);
   if (states.has("FL")) out.push(...FLORIDA_QUESTIONS);
