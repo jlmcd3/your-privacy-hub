@@ -1,6 +1,10 @@
-// Ingest EU legislative proposals via the European Parliament's Legislative Observatory (OEIL) RSS feeds.
-// We use targeted keyword RSS searches — free, no key.
-// https://oeil.secure.europarl.europa.eu
+// Ingest EU legislation via the Publications Office Cellar SPARQL endpoint.
+// Endpoint: https://publications.europa.eu/webapi/rdf/sparql  (free, no key, official)
+// Docs: https://op.europa.eu/en/web/cellar/cellar-data
+//
+// We query for Regulations (REG), Directives (DIR), and Decisions (DEC) published since
+// 2023-01-01 whose English title contains any of our topic keywords. Cellar returns CELEX
+// identifiers which we use as a stable external_id and to build the canonical EUR-Lex URL.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import {
   startRun, finishRun, upsertBill, newRunCounts, validateBill, reject,
@@ -11,43 +15,50 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const SOURCE = "eu-parliament";
+const SOURCE = "eu-cellar";
+const SPARQL_ENDPOINT = "https://publications.europa.eu/webapi/rdf/sparql";
 
-// Search EUR-Lex for recent legislative proposals matching privacy keywords.
-// EUR-Lex Webservice has a SOAP API requiring registration — instead we use the public
-// EUR-Lex search RSS which is free and unauthenticated.
-const QUERIES = [
-  "data+protection",
-  "privacy",
-  "artificial+intelligence",
-  "biometric",
-  "cybersecurity",
+// Topic phrases we ask Cellar to filter on server-side (cheap CONTAINS) — we then
+// re-validate locally with the full TOPIC_KEYWORDS allowlist via isPrivacyRelated.
+const TITLE_FILTERS = [
+  "data protection", "privacy", "personal data",
+  "artificial intelligence", "biometric",
+  "cybersecurity", "cyber security",
+  "online safety", "data broker",
 ];
 
-function stripHtml(s: string): string {
-  return s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+// Resource types: Regulation, Directive, Decision, plus legislative proposals (COM docs).
+const RESOURCE_TYPES = ["REG", "DIR", "DEC", "PROP_REG", "PROP_DIR", "PROP_DEC"];
+
+function buildSparql(): string {
+  const titleFilter = TITLE_FILTERS
+    .map((t) => `CONTAINS(LCASE(STR(?title)), "${t}")`)
+    .join(" || ");
+  const typeValues = RESOURCE_TYPES
+    .map((t) => `<http://publications.europa.eu/resource/authority/resource-type/${t}>`)
+    .join(" ");
+  return `
+PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>
+SELECT DISTINCT ?work ?title ?date ?celex WHERE {
+  VALUES ?rtype { ${typeValues} }
+  ?work cdm:work_date_document ?date ;
+        cdm:resource_legal_id_celex ?celex ;
+        cdm:work_has_resource-type ?rtype .
+  ?expr cdm:expression_belongs_to_work ?work ;
+        cdm:expression_title ?title ;
+        cdm:expression_uses_language <http://publications.europa.eu/resource/authority/language/ENG> .
+  FILTER(?date >= "2023-01-01"^^<http://www.w3.org/2001/XMLSchema#date>)
+  FILTER(${titleFilter})
+}
+ORDER BY DESC(?date)
+LIMIT 200`.trim();
 }
 
-// Very small RSS parser sufficient for EUR-Lex feeds.
-function parseRss(xml: string): { title: string; link: string; desc: string; pubDate?: string }[] {
-  const items: { title: string; link: string; desc: string; pubDate?: string }[] = [];
-  const re = /<item>([\s\S]*?)<\/item>/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml)) !== null) {
-    const block = m[1];
-    const get = (tag: string) => {
-      const r = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i").exec(block);
-      if (!r) return "";
-      return r[1].replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "").trim();
-    };
-    items.push({
-      title: stripHtml(get("title")),
-      link: get("link"),
-      desc: stripHtml(get("description")),
-      pubDate: get("pubDate"),
-    });
-  }
-  return items;
+interface SparqlBinding {
+  work: { value: string };
+  title: { value: string };
+  date: { value: string };
+  celex: { value: string };
 }
 
 Deno.serve(async (req) => {
@@ -60,53 +71,59 @@ Deno.serve(async (req) => {
   try {
     runId = await startRun(supabase, SOURCE);
 
-    for (const q of QUERIES) {
-      const url = `https://eur-lex.europa.eu/EN/search-results-rss?DTS_DOM=ALL&DTS_SUBDOM=LEGISLATION&type=quick&qid=${Date.now()}&text=${q}&lang=en`;
-      const res = await fetch(url, { headers: { Accept: "application/rss+xml,application/xml,text/xml" } });
-      if (!res.ok) { reject(counts, undefined, `rss_${q}_http_${res.status}`); continue; }
-      const xml = await res.text();
-      const items = parseRss(xml);
-      counts.fetched += items.length;
+    const sparql = buildSparql();
+    const res = await fetch(SPARQL_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Accept": "application/sparql-results+json",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "EndUserPrivacyBot/1.0 (+https://enduserprivacy.com)",
+      },
+      body: "query=" + encodeURIComponent(sparql),
+    });
+    if (!res.ok) throw new Error(`cellar_sparql_http_${res.status}`);
+    const json = await res.json() as { results?: { bindings?: SparqlBinding[] } };
+    const bindings = json?.results?.bindings ?? [];
+    counts.fetched = bindings.length;
 
-      for (const it of items.slice(0, 50)) {
-        try {
-          const title = it.title;
-          const summary = it.desc;
-          const m = isPrivacyRelated(title, summary);
-          if (!m.match) continue;
+    for (const b of bindings) {
+      try {
+        const title = b.title?.value ?? "";
+        const celex = b.celex?.value ?? "";
+        const date = b.date?.value ?? null; // already YYYY-MM-DD
+        if (!title || !celex) { reject(counts, title, "missing_title_or_celex"); continue; }
 
-          // Extract CELEX or doc id from link as external_id.
-          const idMatch = /uri=([A-Z0-9_:%.-]+)/.exec(it.link) || /CELEX[:%3A]([A-Z0-9]+)/i.exec(it.link);
-          const externalId = idMatch ? decodeURIComponent(idMatch[1]).replace(/[^A-Z0-9._:-]/gi, "_") : it.link.slice(-64);
+        // Local re-validation with full keyword allowlist.
+        const m = isPrivacyRelated(title);
+        if (!m.match) { reject(counts, title, "no_topic_match_local"); continue; }
 
-          let pub: string | null = null;
-          if (it.pubDate) {
-            const d = new Date(it.pubDate);
-            if (!isNaN(d.getTime())) pub = d.toISOString().slice(0, 10);
-          }
+        // Determine stage from CELEX sector + descriptor.
+        // CELEX format: <sector><year><type-letter><number>. Letter R=regulation, L=directive,
+        // D=decision (all enacted). Sector 5 with type PC = legislative proposal (in progress).
+        let stage = "enacted";
+        if (/^5/.test(celex) || /PC/.test(celex)) stage = "introduced";
 
-          const bill: NormalizedBill = {
-            source: SOURCE,
-            external_id: externalId,
-            jurisdiction: "European Union",
-            iso2: "EU",
-            jurisdiction_slug: "european-union",
-            region: "Europe",
-            bill_name: title,
-            stage: normalizeStage(summary), // best-effort; EUR-Lex RSS lacks a clean stage
-            summary,
-            source_url: it.link,
-            source_name: "EUR-Lex",
-            source_last_action_at: pub,
-            matched_keywords: m.keywords,
-            raw_payload: { query: q, pubDate: it.pubDate },
-          };
-          const err = validateBill(bill);
-          if (err) { reject(counts, title, err); continue; }
-          await upsertBill(supabase, bill, counts);
-        } catch (e) {
-          reject(counts, it.title, `exception:${(e as Error).message}`);
-        }
+        const bill: NormalizedBill = {
+          source: SOURCE,
+          external_id: `celex-${celex}`,
+          jurisdiction: "European Union",
+          iso2: "EU",
+          jurisdiction_slug: "european-union",
+          region: "Europe",
+          bill_name: title,
+          stage: normalizeStage(stage),
+          summary: title,
+          source_url: `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:${celex}`,
+          source_name: "EUR-Lex (Cellar)",
+          source_last_action_at: date,
+          matched_keywords: m.keywords,
+          raw_payload: { celex, work: b.work?.value },
+        };
+        const err = validateBill(bill);
+        if (err) { reject(counts, title, err); continue; }
+        await upsertBill(supabase, bill, counts);
+      } catch (e) {
+        reject(counts, b.title?.value, `exception:${(e as Error).message}`);
       }
     }
 
