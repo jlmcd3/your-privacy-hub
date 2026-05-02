@@ -186,6 +186,11 @@ const JurisdictionPage = () => {
     (async () => {
       const name = jurisdiction.name;
       const nameLower = name.toLowerCase();
+      // Enrichment arrays store lowercase kebab-case slugs (e.g. "california",
+      // "united-kingdom", "us-federal"), so we must match against the slug —
+      // not the display name — for `direct_jurisdictions` / `affected_jurisdictions`.
+      const enrichmentSlug = nameLower.replace(/\s+/g, "-");
+      const enrichmentMatchValues = Array.from(new Set([enrichmentSlug, nameLower, name]));
       const authorityTerms = jurisdiction.authorities
         .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
       const allTerms = [nameLower, ...authorityTerms];
