@@ -12,8 +12,17 @@ import {
 } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
 
 interface StateLaw {
   state_code: string;
@@ -99,6 +108,7 @@ export default function USNoticeStates() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { verifying: verifyingClient, authorized } = useUsNoticeSessionGuard(sessionId);
 
   const [loading, setLoading] = useState(true);
   const [laws, setLaws] = useState<StateLaw[]>([]);
@@ -109,6 +119,7 @@ export default function USNoticeStates() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!authorized) return;
     let cancelled = false;
     async function load() {
       const { data, error } = await supabase
@@ -127,7 +138,7 @@ export default function USNoticeStates() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, authorized]);
 
   const showGrid = volume !== null && revenue !== null;
 
@@ -148,7 +159,16 @@ export default function USNoticeStates() {
     [grouped.virginia, selected],
   );
 
+  // Florida gate state: null = not asked, true = passed gate, false = explicitly excluded.
+  const [floridaGateAnswered, setFloridaGateAnswered] = useState<boolean | null>(null);
+  const [floridaGateOpen, setFloridaGateOpen] = useState(false);
+
   function toggle(code: string) {
+    // Florida applicability gate — $1B+ revenue threshold.
+    if (code === "FL" && !selected.has(code) && floridaGateAnswered !== true) {
+      setFloridaGateOpen(true);
+      return;
+    }
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(code)) {
@@ -163,6 +183,18 @@ export default function USNoticeStates() {
       }
       return next;
     });
+  }
+
+  function handleFloridaGate(include: boolean) {
+    setFloridaGateAnswered(include);
+    setFloridaGateOpen(false);
+    if (include) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.add("FL");
+        return next;
+      });
+    }
   }
 
   function loadObligations() {
@@ -221,6 +253,20 @@ export default function USNoticeStates() {
     }
 
     navigate(`/us-notices/${sessionId}/questions`);
+  }
+
+  if (verifyingClient) {
+    return (
+      <USNoticeShell
+        title="Select States — US Notice Builder"
+        heading="Which states do your customers live in?"
+        step="states"
+        sessionId={sessionId}
+      >
+        <Skeleton className="h-32 w-full mb-4" />
+        <Skeleton className="h-48 w-full" />
+      </USNoticeShell>
+    );
   }
 
   return (
@@ -355,17 +401,34 @@ export default function USNoticeStates() {
             ))}
           </section>
 
-          {/* Florida */}
+          {/* Florida — applicability gate ($1B+ revenue) */}
           <section className="mb-6">
             {grouped.florida.map((law) => (
-              <StateCard
-                key={law.state_code}
-                law={law}
-                selected={selected.has(law.state_code)}
-                onToggle={() => toggle(law.state_code)}
-                autoReason={autoReasons[law.state_code]}
-                tagline="Very narrow scope — $1B+ revenue only"
-              />
+              <div key={law.state_code}>
+                <StateCard
+                  law={law}
+                  selected={selected.has(law.state_code)}
+                  onToggle={() => toggle(law.state_code)}
+                  autoReason={autoReasons[law.state_code]}
+                  tagline="Very narrow scope — $1B+ revenue only"
+                />
+                {floridaGateAnswered === false && (
+                  <p className="text-xs text-muted-foreground italic mt-2">
+                    Florida excluded from this notice set — FDBR does not apply
+                    to your business.{" "}
+                    <button
+                      type="button"
+                      className="underline hover:text-foreground"
+                      onClick={() => {
+                        setFloridaGateAnswered(null);
+                        setFloridaGateOpen(true);
+                      }}
+                    >
+                      Reconsider
+                    </button>
+                  </p>
+                )}
+              </div>
             ))}
           </section>
 
@@ -410,6 +473,26 @@ export default function USNoticeStates() {
           </div>
         </>
       )}
+      <Dialog open={floridaGateOpen} onOpenChange={setFloridaGateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Does Florida's FDBR apply to you?</DialogTitle>
+            <DialogDescription className="pt-2">
+              Florida's Digital Bill of Rights applies only to controllers with
+              over <strong>$1 billion in global annual revenue</strong> AND
+              specific data processing thresholds. Does this describe your business?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => handleFloridaGate(false)}>
+              No — skip Florida
+            </Button>
+            <Button onClick={() => handleFloridaGate(true)}>
+              Yes — include Florida
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </USNoticeShell>
   );
 }

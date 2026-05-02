@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
 import {
   buildQuestionSet,
   isQuestionInScope,
@@ -62,6 +63,7 @@ export default function USNoticeQuestions() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { authorized } = useUsNoticeSessionGuard(sessionId);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,7 +73,7 @@ export default function USNoticeQuestions() {
 
   // Load session, selected states, and any existing answers.
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !authorized) return;
 
     (async () => {
       setLoading(true);
@@ -118,7 +120,7 @@ export default function USNoticeQuestions() {
         setLoading(false);
       }
     })();
-  }, [sessionId, navigate, toast]);
+  }, [sessionId, navigate, toast, authorized]);
 
   // Build the question set and apply showIf + jurisdictionOnly filters.
   const visibleQuestions = useMemo(() => {

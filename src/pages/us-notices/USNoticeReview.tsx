@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
 import {
   buildQuestionSet,
   isQuestionInScope,
@@ -112,6 +113,7 @@ export default function USNoticeReview() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { authorized } = useUsNoticeSessionGuard(sessionId);
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -119,7 +121,7 @@ export default function USNoticeReview() {
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !authorized) return;
 
     (async () => {
       setLoading(true);
@@ -166,7 +168,7 @@ export default function USNoticeReview() {
         setLoading(false);
       }
     })();
-  }, [sessionId, navigate, toast]);
+  }, [sessionId, navigate, toast, authorized]);
 
   const selectedStateCodes = useMemo(
     () => states.map((s) => s.state_code),
