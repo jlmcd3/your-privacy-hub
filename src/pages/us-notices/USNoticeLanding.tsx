@@ -26,9 +26,9 @@ const PRICING_ROWS: Array<{ feature: string; free: string; sub: string }> = [
   { feature: "Answer all questions", free: "✓", sub: "✓" },
   { feature: "Save & resume", free: "✓", sub: "✓" },
   { feature: "Pre-population from RoPA", free: "✓", sub: "✓" },
-  { feature: "Single state notice", free: "$25", sub: "$12" },
-  { feature: "All 20 states", free: "$59", sub: "$29" },
-  { feature: "Annual refresh", free: "$25", sub: "$12" },
+  { feature: "Single state notice", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber() },
+  { feature: "All 20 states", free: US_NOTICE_PRICING.allStatesStandalone(), sub: US_NOTICE_PRICING.allStatesSubscriber() },
+  { feature: "Annual refresh", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber() },
 ];
 
 const FAQ: Array<{ q: string; a: string }> = [
