@@ -1,5 +1,10 @@
 import type { Question } from "./types";
 
+const requiredText = (whyWeAsk: string): Pick<Question, "isRequired" | "whyWeAsk"> => ({
+  isRequired: false,
+  whyWeAsk,
+});
+
 /** Brazil LGPD-specific questions. */
 export const LGPD_QUESTIONS: Question[] = [
   {
@@ -7,6 +12,7 @@ export const LGPD_QUESTIONS: Question[] = [
     text: "What is your legal basis under LGPD Art.7?",
     whyWeAsk: "LGPD Art.7 requires identification of the legal basis for processing.",
     type: "multi_choice",
+    isRequired: true,
     jurisdictionOnly: ["BR_LGPD"],
     options: [
       { value: "consent", label: "Consent — Art.7(I)" },
@@ -24,6 +30,7 @@ export const LGPD_QUESTIONS: Question[] = [
   {
     key: "lgpd_sensitive_data",
     text: "Do you process sensitive personal data (dados pessoais sensíveis)?",
+    ...requiredText("LGPD Art.11 requires consent or specific basis for sensitive data."),
     type: "yes_no",
     jurisdictionOnly: ["BR_LGPD"],
     flagIf: [
@@ -40,6 +47,7 @@ export const LGPD_QUESTIONS: Question[] = [
   {
     key: "lgpd_children",
     text: "Do you process personal data of children?",
+    ...requiredText("LGPD Art.14 requires parental/guardian consent for under-12."),
     type: "yes_no",
     jurisdictionOnly: ["BR_LGPD"],
     flagIf: [
@@ -58,11 +66,13 @@ export const LGPD_QUESTIONS: Question[] = [
     text: "Name and contact details of your Encarregado (DPO)",
     whyWeAsk: "LGPD Art.41 requires all controllers to appoint an Encarregado.",
     type: "text_short",
+    isRequired: true,
     jurisdictionOnly: ["BR_LGPD"],
   },
   {
     key: "lgpd_transfer",
     text: "Do you transfer personal data outside Brazil?",
+    ...requiredText("LGPD Art.33 transfer requirements apply to international transfers."),
     type: "yes_no",
     jurisdictionOnly: ["BR_LGPD"],
     flagIf: [
@@ -79,6 +89,7 @@ export const LGPD_QUESTIONS: Question[] = [
   {
     key: "lgpd_anpd_complaint",
     text: "Confirm ANPD complaint URL (default: gov.br/anpd)",
+    ...requiredText("LGPD complaints are handled by ANPD."),
     type: "text_short",
     jurisdictionOnly: ["BR_LGPD"],
   },
@@ -91,17 +102,20 @@ export const APPI_QUESTIONS: Question[] = [
     text: "Describe the specific purposes of personal information use",
     whyWeAsk: "APPI Art.17 requires purposes to be specified to the extent possible.",
     type: "text_short",
+    isRequired: true,
     jurisdictionOnly: ["JP_APPI"],
   },
   {
     key: "appi_joint_use",
     text: "Do you share personal information with joint users?",
+    ...requiredText("Joint use is a specific APPI sharing mechanism that must be disclosed."),
     type: "yes_no",
     jurisdictionOnly: ["JP_APPI"],
   },
   {
     key: "appi_joint_details",
     text: "Describe the joint users and the categories of information shared",
+    ...requiredText("APPI requires disclosure of joint-use partners and data categories."),
     type: "text_short",
     jurisdictionOnly: ["JP_APPI"],
     showIf: { questionKey: "appi_joint_use", operator: "equals", value: "yes" },
@@ -109,6 +123,7 @@ export const APPI_QUESTIONS: Question[] = [
   {
     key: "appi_third_country_transfer",
     text: "Do you transfer personal information to third countries?",
+    ...requiredText("APPI requires consent or equivalent protection for third-country transfers."),
     type: "yes_no",
     jurisdictionOnly: ["JP_APPI"],
     flagIf: [
@@ -128,11 +143,13 @@ export const APPI_QUESTIONS: Question[] = [
     whyWeAsk:
       "APPI Art.20-2: Sensitive data (health, disability, criminal record) requires opt-in consent.",
     type: "yes_no",
+    isRequired: false,
     jurisdictionOnly: ["JP_APPI"],
   },
   {
     key: "appi_ppc_complaint",
     text: "Confirm PPC complaint URL (default: ppc.go.jp/en/)",
+    ...requiredText("APPI complaints are handled by Japan's PPC."),
     type: "text_short",
     jurisdictionOnly: ["JP_APPI"],
   },
@@ -145,12 +162,14 @@ export const DPDPA_QUESTIONS: Question[] = [
     text: "Describe the purpose(s) for which personal data is processed",
     whyWeAsk: "DPDPA Section 5 requires a clear notice stating processing purposes.",
     type: "text_long",
+    isRequired: true,
     jurisdictionOnly: ["IN_DPDPA"],
   },
   {
     key: "dpdpa_consent_mechanism",
     text:
       "How do data principals give free, specific, informed, and unambiguous consent?",
+    ...requiredText("DPDPA Section 6 prohibits blanket or pre-ticked consent."),
     type: "text_short",
     jurisdictionOnly: ["IN_DPDPA"],
     flagIf: [
@@ -169,11 +188,13 @@ export const DPDPA_QUESTIONS: Question[] = [
     text: "Name and contact of your Data Protection Officer / Grievance Officer",
     whyWeAsk: "DPDPA Section 8(9) requires appointment and contact details of a Grievance Officer.",
     type: "text_short",
+    isRequired: true,
     jurisdictionOnly: ["IN_DPDPA"],
   },
   {
     key: "dpdpa_children",
     text: "Do you process personal data of children (under 18)?",
+    ...requiredText("DPDPA Section 9 requires verifiable parental consent for under-18s."),
     type: "yes_no",
     jurisdictionOnly: ["IN_DPDPA"],
     flagIf: [
@@ -190,6 +211,7 @@ export const DPDPA_QUESTIONS: Question[] = [
   {
     key: "dpdpa_board_complaint",
     text: "Confirm Data Protection Board URL (default: meity.gov.in)",
+    ...requiredText("DPDPA complaints are handled by the Data Protection Board of India."),
     type: "text_short",
     jurisdictionOnly: ["IN_DPDPA"],
   },
@@ -203,6 +225,7 @@ export const POPIA_QUESTIONS: Question[] = [
     whyWeAsk:
       "POPIA requires registration of an Information Officer with the Information Regulator.",
     type: "text_short",
+    isRequired: true,
     jurisdictionOnly: ["ZA_POPIA"],
   },
   {
@@ -210,11 +233,13 @@ export const POPIA_QUESTIONS: Question[] = [
     text: "What is the specific purpose for which personal information is collected?",
     whyWeAsk: "POPIA Section 13 requires specific purpose limitation.",
     type: "text_short",
+    isRequired: true,
     jurisdictionOnly: ["ZA_POPIA"],
   },
   {
     key: "popia_third_parties",
     text: "Do you transfer to third parties outside South Africa?",
+    ...requiredText("POPIA Section 72 governs cross-border transfers."),
     type: "yes_no",
     jurisdictionOnly: ["ZA_POPIA"],
     flagIf: [
@@ -232,6 +257,7 @@ export const POPIA_QUESTIONS: Question[] = [
     key: "popia_special_information",
     text:
       "Do you process 'special personal information' (health, biometric, religious beliefs, etc.)?",
+    ...requiredText("POPIA Sections 26–27 govern special personal information."),
     type: "yes_no",
     jurisdictionOnly: ["ZA_POPIA"],
     flagIf: [
@@ -248,6 +274,7 @@ export const POPIA_QUESTIONS: Question[] = [
   {
     key: "popia_regulator_complaint",
     text: "Confirm Information Regulator URL (default: inforegulator.org.za)",
+    ...requiredText("POPIA complaints are handled by South Africa's Information Regulator."),
     type: "text_short",
     jurisdictionOnly: ["ZA_POPIA"],
   },

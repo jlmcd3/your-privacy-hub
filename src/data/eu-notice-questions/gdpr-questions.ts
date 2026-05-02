@@ -10,8 +10,9 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
     text:
       "If your organisation is not based in the EU/EEA, have you appointed an Article 27 EU representative?",
     whyWeAsk:
-      "GDPR Art.27 requires non-EU/EEA controllers who process EU resident data to appoint a representative. [GDPR Art.27]",
+      "GDPR Art.27 requires non-EU/EEA controllers who process EU resident data to appoint a representative.",
     type: "yes_no_unsure",
+    isRequired: false,
     flagIf: [
       {
         operator: "equals",
@@ -29,6 +30,7 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
       "If your organisation is not based in the UK, have you appointed a UK GDPR representative under Section 27 DPA 2018?",
     whyWeAsk: "UK GDPR Section 27 DPA 2018 mirrors the EU Art.27 requirement.",
     type: "yes_no_unsure",
+    isRequired: false,
     jurisdictionOnly: ["UK_GDPR"],
     flagIf: [
       {
@@ -47,6 +49,7 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
     whyWeAsk:
       "Notices for organisations with mandatory DPOs must identify the DPO contact. [GDPR Art.37]",
     type: "single_choice",
+    isRequired: false,
     options: [
       { value: "mandatory_public_authority", label: "Mandatory — public authority" },
       { value: "mandatory_large_scale_monitoring", label: "Mandatory — large-scale systematic monitoring" },
@@ -61,6 +64,7 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
     text: "Where processing is based on consent, how can individuals withdraw consent?",
     whyWeAsk: "Art.13(2)(c) requires disclosure of the right to withdraw consent at any time.",
     type: "text_short",
+    isRequired: false,
     showIf: { questionKey: "lawful_basis", operator: "contains", value: "consent" },
   },
   {
@@ -69,6 +73,7 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
     whyWeAsk:
       "Art.21 requires disclosure of the right to object to processing based on legitimate interests.",
     type: "text_short",
+    isRequired: false,
     showIf: {
       questionKey: "lawful_basis",
       operator: "contains",
@@ -81,17 +86,21 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
     whyWeAsk:
       "Art.13(2)(d) requires disclosure of the right to lodge a complaint with a supervisory authority.",
     type: "text_short",
+    isRequired: true,
   },
   {
     key: "gdpr_profiling",
     text: "Do you engage in profiling of data subjects?",
     whyWeAsk: "Art.13(2)(f) requires information about profiling and its consequences.",
     type: "yes_no_unsure",
+    isRequired: false,
   },
   {
     key: "gdpr_profiling_info",
     text: "What is the profiling used for, and what are its consequences for the individual?",
+    whyWeAsk: "Required by Art.13(2)(f) when profiling is used.",
     type: "text_long",
+    isRequired: false,
     showIf: { questionKey: "gdpr_profiling", operator: "equals", value: "yes" },
   },
 ];
@@ -102,8 +111,9 @@ export const UKGDPR_ADDITIONS: Question[] = [
     key: "uk_lawful_basis_schedule",
     text: "UK DPA 2018 Schedule 1 condition if relying on Art.9 special-category processing",
     whyWeAsk:
-      "UK DPA 2018 Schedule 1 specifies the additional UK-specific conditions required alongside Art.9.",
+      "UK DPA 2018 Schedule 1 specifies additional UK-specific conditions required alongside Art.9.",
     type: "text_short",
+    isRequired: false,
     jurisdictionOnly: ["UK_GDPR"],
     showIf: {
       questionKey: "data_categories",
@@ -123,7 +133,9 @@ export const UKGDPR_ADDITIONS: Question[] = [
   {
     key: "uk_ico_complaint",
     text: "Confirm ICO complaint URL (default: ico.org.uk/make-a-complaint)",
+    whyWeAsk: "UK GDPR requires the ICO to be named as the complaint route.",
     type: "text_short",
+    isRequired: false,
     jurisdictionOnly: ["UK_GDPR"],
   },
 ];
@@ -133,7 +145,9 @@ export const CHADP_ADDITIONS: Question[] = [
   {
     key: "ch_fdpic_complaint",
     text: "Confirm FDPIC complaint URL (default: fdpic.ch/en/data-subjects/complaints)",
+    whyWeAsk: "Swiss nFADP requires the FDPIC to be named as the complaint route.",
     type: "text_short",
+    isRequired: false,
     jurisdictionOnly: ["CH_FADP"],
   },
   {
@@ -143,6 +157,7 @@ export const CHADP_ADDITIONS: Question[] = [
     whyWeAsk:
       "Swiss nFADP has a specific definition of 'high-risk profiling' requiring explicit disclosure.",
     type: "yes_no",
+    isRequired: false,
     jurisdictionOnly: ["CH_FADP"],
   },
 ];
