@@ -98,6 +98,7 @@ const buildJurisdictionData = () => {
         website: s.website,
         complaint_portal: s.complaint_portal,
         legislation: s.statute_name,
+        statute_url: s.statute_url,
         statute_status: s.statute_status,
         effective_date: s.effective_date,
         notes: s.notes,
