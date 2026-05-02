@@ -113,6 +113,12 @@ import MyReports from "./pages/MyReports.tsx";
 import DPAResult from "./pages/DPAResult.tsx";
 import IRPlaybookResult from "./pages/IRPlaybookResult.tsx";
 import BiometricCheckerResult from "./pages/BiometricCheckerResult.tsx";
+import CPPAScopeChecker from "./pages/CPPAScopeChecker.tsx";
+import CPPARiskAssessment from "./pages/CPPARiskAssessment.tsx";
+import CPPARiskAssessmentResult from "./pages/CPPARiskAssessmentResult.tsx";
+import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
+import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
+import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 
 const queryClient = new QueryClient();
 
@@ -347,6 +353,34 @@ const App = () => (
             <Route path="/dpa-generator" element={<DPAGenerator />} />
             <Route path="/ir-playbook" element={<IRPlaybook />} />
             <Route path="/biometric-checker" element={<BiometricChecker />} />
+            {/* CPPA Audit Readiness Suite */}
+            <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
+            <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
+            <Route
+              path="/cppa-risk-assessment/result/:id"
+              element={
+                <ProtectedRoute>
+                  <CPPARiskAssessmentResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/cppa-cybersecurity" element={<CPPACybersecurity />} />
+            <Route
+              path="/cppa-cybersecurity/result/:id"
+              element={
+                <ProtectedRoute>
+                  <CPPACybersecurityResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cppa-suite/result"
+              element={
+                <ProtectedRoute>
+                  <CPPASuiteResult />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/horizon" element={<Horizon />} />
             {/* RoPA Builder */}
             <Route path="/ropa" element={<ProtectedRoute><RopaHome /></ProtectedRoute>} />

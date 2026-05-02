@@ -15,7 +15,10 @@ export type ToolType =
   | "dpia_framework"
   | "dpa_generator"
   | "ir_playbook"
-  | "biometric_checker";
+  | "biometric_checker"
+  | "cppa_risk_assessment"
+  | "cppa_cybersecurity"
+  | "cppa_suite";
 
 interface Props {
   open: boolean;

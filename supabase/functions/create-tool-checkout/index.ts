@@ -138,6 +138,37 @@ const TOOLS: Record<
     fallback_standalone_cents: 3500,
     fallback_subscriber_cents: 1900,
   },
+  cppa_risk_assessment: {
+    name: "CPPA Risk Assessment — Module 1",
+    standalone_lookup: "cppa_risk_standalone",
+    subscriber_lookup: "cppa_risk_subscriber",
+    table: "cppa_assessments",
+    fallback_standalone_cents: 14900,
+    fallback_subscriber_cents: 7900,
+  },
+  cppa_cybersecurity: {
+    name: "CPPA Cybersecurity Readiness — Module 2",
+    standalone_lookup: "cppa_cyber_standalone",
+    subscriber_lookup: "cppa_cyber_subscriber",
+    table: "cppa_assessments",
+    fallback_standalone_cents: 19900,
+    fallback_subscriber_cents: 9900,
+  },
+  cppa_suite: {
+    name: "CPPA Full Audit Suite",
+    standalone_lookup: "cppa_suite_standalone",
+    subscriber_lookup: "cppa_suite_subscriber",
+    table: "cppa_assessments",
+    fallback_standalone_cents: 29900,
+    fallback_subscriber_cents: 14900,
+  },
+};
+
+// Tools whose row insert needs a `module` discriminator (CPPA family).
+const MODULE_FOR_TOOL: Record<string, string> = {
+  cppa_risk_assessment: "risk_assessment",
+  cppa_cybersecurity: "cybersecurity",
+  cppa_suite: "suite",
 };
 
 const SESSION_TABLES = new Set([
@@ -262,38 +293,98 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert pending assessment record (price stored for accounting).
-    let assessmentData: Record<string, unknown> = {};
-    if (tool_type === "li_assessment") {
-      assessmentData = {
-        user_id,
-        status: "pending",
-        processing_description: intake_data?.processing_description || "",
-        purchased_as_standalone: !isSubscriber,
-        purchase_price_cents: amountCents,
-        ...(intake_data || {}),
-      };
-    } else {
-      assessmentData = {
-        user_id,
-        status: "pending",
+    // ── CPPA assessments — table uses a `module` discriminator ──
+    let assessmentRecord: { id: string } | null = null;
+    let suiteCyberId: string | null = null;
+    if (MODULE_FOR_TOOL[tool_type]) {
+      const baseRow = {
+        user_id: user_id || null,
+        status: "pending" as const,
         intake_data: intake_data || {},
-        purchased_as_standalone: !isSubscriber,
         purchase_price_cents: amountCents,
       };
+
+      if (tool_type === "cppa_suite") {
+        // Suite purchase creates one row per module so each can be processed independently.
+        const { data: riskRow, error: riskErr } = await supabase
+          .from("cppa_assessments")
+          .insert({ ...baseRow, module: "risk_assessment" })
+          .select("id")
+          .single();
+        if (riskErr || !riskRow) {
+          console.error("CPPA suite (risk) insert error:", riskErr);
+          throw new Error("Failed to create CPPA suite assessment rows");
+        }
+        const { data: cyberRow, error: cyberErr } = await supabase
+          .from("cppa_assessments")
+          .insert({ ...baseRow, module: "cybersecurity" })
+          .select("id")
+          .single();
+        if (cyberErr || !cyberRow) {
+          console.error("CPPA suite (cyber) insert error:", cyberErr);
+          throw new Error("Failed to create CPPA suite assessment rows");
+        }
+        assessmentRecord = riskRow;
+        suiteCyberId = cyberRow.id;
+      } else {
+        const { data: row, error: insErr } = await supabase
+          .from("cppa_assessments")
+          .insert({ ...baseRow, module: MODULE_FOR_TOOL[tool_type] })
+          .select("id")
+          .single();
+        if (insErr || !row) {
+          console.error("CPPA insert error:", insErr);
+          throw new Error("Failed to create CPPA assessment row");
+        }
+        assessmentRecord = row;
+      }
     }
 
-    const { data: record, error } = await supabase
-      .from(tool.table)
-      .insert(assessmentData)
-      .select()
-      .single();
-    if (error || !record) {
-      console.error("Insert error:", error);
-      throw new Error("Failed to create assessment record");
+    // ── All other tools ──
+    if (!assessmentRecord) {
+      let assessmentData: Record<string, unknown> = {};
+      if (tool_type === "li_assessment") {
+        assessmentData = {
+          user_id,
+          status: "pending",
+          processing_description: intake_data?.processing_description || "",
+          purchased_as_standalone: !isSubscriber,
+          purchase_price_cents: amountCents,
+          ...(intake_data || {}),
+        };
+      } else {
+        assessmentData = {
+          user_id,
+          status: "pending",
+          intake_data: intake_data || {},
+          purchased_as_standalone: !isSubscriber,
+          purchase_price_cents: amountCents,
+        };
+      }
+
+      const { data: record, error } = await supabase
+        .from(tool.table)
+        .insert(assessmentData)
+        .select()
+        .single();
+      if (error || !record) {
+        console.error("Insert error:", error);
+        throw new Error("Failed to create assessment record");
+      }
+      assessmentRecord = record;
     }
 
+    const record = assessmentRecord!;
+
+    // CPPA suite uses a combined result page; other tools use /<slug>/result/:id.
     const toolPath = tool_type.replace(/_/g, "-");
+    const successPath =
+      tool_type === "cppa_suite"
+        ? `/cppa-suite/result?risk_id=${record.id}&cyber_id=${suiteCyberId}&purchased=true`
+        : `/${toolPath}/result/${record.id}?purchased=true`;
+    const cancelPath =
+      tool_type === "cppa_suite" ? `/cppa-risk-assessment` : `/${toolPath}`;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [lineItemBase as any],
@@ -301,25 +392,36 @@ Deno.serve(async (req) => {
       metadata: {
         tool_type,
         assessment_id: record.id,
+        // For suite purchases, also stash the second (cybersecurity) row so the
+        // webhook can dispatch both edge functions after payment.
+        ...(suiteCyberId ? { suite_cyber_id: suiteCyberId } : {}),
         user_id: user_id || "",
         tier: isSubscriber ? "subscriber" : "standalone",
       },
       ...(embedded
         ? {
             ui_mode: "embedded",
-            return_url: `${origin}/${toolPath}/result/${record.id}?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
+            return_url: `${origin}${successPath}${successPath.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`,
           }
         : {
-            success_url: `${origin}/${toolPath}/result/${record.id}?purchased=true`,
-            cancel_url: `${origin}/${toolPath}`,
+            success_url: `${origin}${successPath}`,
+            cancel_url: `${origin}${cancelPath}`,
           }),
     });
 
     return new Response(
       JSON.stringify(
         embedded
-          ? { client_secret: session.client_secret, assessment_id: record.id }
-          : { url: session.url, assessment_id: record.id },
+          ? {
+              client_secret: session.client_secret,
+              assessment_id: record.id,
+              suite_cyber_id: suiteCyberId,
+            }
+          : {
+              url: session.url,
+              assessment_id: record.id,
+              suite_cyber_id: suiteCyberId,
+            },
       ),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

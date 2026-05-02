@@ -15,6 +15,9 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   us_notice_single: { standalone: 25, subscriber: 12, name: "US Privacy Notice — Single State" },
   us_notice_all_states: { standalone: 59, subscriber: 29, name: "US Privacy Notice — All States" },
   us_notice_refresh: { standalone: 25, subscriber: 12, name: "US Notice — Annual Refresh" },
+  cppa_risk_assessment: { standalone: 149, subscriber: 79, name: "CPPA Risk Assessment — Module 1" },
+  cppa_cybersecurity: { standalone: 199, subscriber: 99, name: "CPPA Cybersecurity Readiness — Module 2" },
+  cppa_suite: { standalone: 299, subscriber: 149, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
 };
 
 export interface ToolPricing {
@@ -70,6 +73,9 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           us_notice_single: "us_notice_single",
           us_notice_all_states: "us_notice_all_states",
           us_notice_refresh: "us_notice_refresh",
+          cppa_risk_assessment: "cppa_risk_assessment",
+          cppa_cybersecurity: "cppa_cybersecurity",
+          cppa_suite: "cppa_suite",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 

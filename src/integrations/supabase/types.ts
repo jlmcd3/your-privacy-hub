@@ -172,6 +172,81 @@ export type Database = {
         }
         Relationships: []
       }
+      cppa_assessments: {
+        Row: {
+          created_at: string
+          document_a_text: string | null
+          document_b_text: string | null
+          id: string
+          intake_data: Json
+          module: string
+          purchase_price_cents: number | null
+          report_data: Json | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_a_text?: string | null
+          document_b_text?: string | null
+          id?: string
+          intake_data?: Json
+          module: string
+          purchase_price_cents?: number | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_a_text?: string | null
+          document_b_text?: string | null
+          id?: string
+          intake_data?: Json
+          module?: string
+          purchase_price_cents?: number | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      cppa_scope_checks: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          in_scope: boolean
+          obligation_map: Json | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          id?: string
+          in_scope?: boolean
+          obligation_map?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          in_scope?: boolean
+          obligation_map?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       custom_briefs: {
         Row: {
           articles_used: number | null
