@@ -6,7 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 
 /**
  * Defence-in-depth client-scope check for EU & Global Notice session pages.
- * Mirrors useUsNoticeSessionGuard. Bounces to /eu-notices on mismatch.
+ * Mirrors useUsNoticeSessionGuard. RLS is the primary mechanism; this
+ * front-end check prevents stale sessions from showing after a client switch.
  */
 export function useEuNoticeSessionGuard(sessionId: string | undefined): {
   verifying: boolean;
