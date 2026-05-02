@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ArrowRight, Check, Shield, RefreshCw, MapPin } from "lucide-react";
+import { US_NOTICE_PRICING } from "@/config/pricing";
 
 const VIRGINIA_STATES = [
   "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
