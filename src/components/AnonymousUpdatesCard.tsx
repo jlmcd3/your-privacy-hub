@@ -8,6 +8,7 @@ interface AnonymousUpdatesCardItem {
   category?: string | null;
   published_at?: string | null;
   source_name?: string | null;
+  image_url?: string | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -47,31 +48,54 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
   return (
     <Link
       to={`/updates/${item.id}`}
-      className="block group py-4 border-b border-fog last:border-0 no-underline"
+      className="group flex gap-4 items-start py-4 border-b border-fog last:border-0 no-underline"
     >
-      <div className="flex flex-wrap items-center gap-1.5 mb-1">
-        {item.source_name && (
-          <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
-            {item.source_name}
-          </span>
-        )}
-        {item.published_at && (
-          <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
-        )}
-        {cat && (
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
-            {catLabel}
-          </span>
+      {/* Article thumbnail (or source-name placeholder) */}
+      {item.image_url ? (
+        <img
+          src={item.image_url}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
+          {item.source_name && (
+            <span className="text-[9px] font-bold text-slate uppercase text-center leading-tight px-1">
+              {item.source_name.split(".")[0].slice(0, 6)}
+            </span>
+          )}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+          {item.source_name && (
+            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+              {item.source_name}
+            </span>
+          )}
+          {item.published_at && (
+            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
+          )}
+          {cat && (
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
+              {catLabel}
+            </span>
+          )}
+        </div>
+        <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
+          {normalizeTitle(item.title)}
+        </p>
+        {item.summary && (
+          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">
+            {stripHtml(item.summary)}
+          </p>
         )}
       </div>
-      <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
-        {normalizeTitle(item.title)}
-      </p>
-      {item.summary && (
-        <p className="text-[13px] text-slate leading-relaxed line-clamp-2">
-          {stripHtml(item.summary)}
-        </p>
-      )}
     </Link>
   );
 }
