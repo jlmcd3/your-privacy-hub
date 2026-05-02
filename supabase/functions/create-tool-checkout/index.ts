@@ -344,13 +344,35 @@ Deno.serve(async (req) => {
     if (!assessmentRecord) {
       let assessmentData: Record<string, unknown> = {};
       if (tool_type === "li_assessment") {
+        // Whitelist columns that actually exist on li_assessments. The
+        // intake form passes extra analytics fields (e.g. preview_assessment_id)
+        // that are not persisted columns — spreading them caused the insert
+        // to fail with PGRST204 "column not found".
+        const LI_ALLOWED_KEYS = new Set([
+          "processing_description",
+          "data_categories",
+          "relationship_type",
+          "jurisdictions",
+          "sector",
+          "stated_purpose",
+          "alternatives_considered",
+          "purpose_details",
+          "necessity_details",
+          "balancing_details",
+          "stage",
+          "client_id",
+        ]);
+        const filteredIntake: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(intake_data || {})) {
+          if (LI_ALLOWED_KEYS.has(k)) filteredIntake[k] = v;
+        }
         assessmentData = {
           user_id,
           status: "pending",
           processing_description: intake_data?.processing_description || "",
           purchased_as_standalone: !isSubscriber,
           purchase_price_cents: amountCents,
-          ...(intake_data || {}),
+          ...filteredIntake,
         };
       } else {
         assessmentData = {
