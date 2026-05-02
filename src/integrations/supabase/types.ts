@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_image_pool: {
+        Row: {
+          category: string | null
+          created_at: string
+          height: number | null
+          id: string
+          photographer_name: string | null
+          photographer_url: string | null
+          public_url: string
+          query: string | null
+          source: string
+          source_id: string | null
+          storage_path: string
+          times_used: number
+          width: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          photographer_name?: string | null
+          photographer_url?: string | null
+          public_url: string
+          query?: string | null
+          source?: string
+          source_id?: string | null
+          storage_path: string
+          times_used?: number
+          width?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          photographer_name?: string | null
+          photographer_url?: string | null
+          public_url?: string
+          query?: string | null
+          source?: string
+          source_id?: string | null
+          storage_path?: string
+          times_used?: number
+          width?: number | null
+        }
+        Relationships: []
+      }
       assessment_purchases: {
         Row: {
           amount_cents: number
@@ -3125,6 +3173,7 @@ export type Database = {
           enrichment_version: number | null
           entities: Json | null
           id: string
+          image_source: string | null
           image_url: string | null
           is_hidden: boolean
           is_premium: boolean
@@ -3159,6 +3208,7 @@ export type Database = {
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
+          image_source?: string | null
           image_url?: string | null
           is_hidden?: boolean
           is_premium?: boolean
@@ -3193,6 +3243,7 @@ export type Database = {
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
+          image_source?: string | null
           image_url?: string | null
           is_hidden?: boolean
           is_premium?: boolean
