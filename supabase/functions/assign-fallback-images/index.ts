@@ -2,14 +2,14 @@
 // or that currently use picsum.photos. Uses a deterministic 1-in-6 mix of the
 // EUP brand tile, with the rest pulled from article_image_pool by category.
 //
-// Auth: x-admin-token: <ADMIN_SECRET_TOKEN>
-// Body (optional): { limit?: number, onlyCategory?: string, includeOriginalNullOnly?: boolean }
+// Auth: Bearer JWT of an admin user (verified via has_role).
+// Body (optional): { limit?: number, onlyCategory?: string }
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 // Simple deterministic hash → integer in [0, n)
