@@ -465,6 +465,8 @@ export default function USNoticeReview() {
                     message: issue.message,
                     operator: "equals",
                     value: "",
+                    flagType: "recommendation",
+                    consequence: "",
                   } as FlagCondition}
                 />
               ))}
