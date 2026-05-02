@@ -125,6 +125,7 @@ const navItems: NavItem[] = [
           { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
           { icon: "📋", label: "RoPA Builder", href: "/ropa-builder" },
           { icon: "📋", label: "US Notice Builder", href: "/us-notice-builder" },
+          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder" },
         ],
       },
     ],

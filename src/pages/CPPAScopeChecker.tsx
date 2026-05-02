@@ -294,7 +294,7 @@ function ResultsPanel({
 }) {
 
   // Out of scope, no Unsure: confidently out of scope
-  if (!om.inScope && !om.hasUnsure) {
+  if (!obligationMap.inScope && !obligationMap.hasUnsure) {
     return (
       <div className="bg-card border rounded-lg p-8 space-y-4">
         <h2 className="text-2xl font-semibold">
@@ -386,13 +386,13 @@ function ResultsPanel({
         <Row
           title="CCPA/CPRA Full Compliance"
           deadline="In force now"
-          statusLabel={status(true, om.hasUnsure)}
+          statusLabel={status(true, obligationMap.hasUnsure)}
           description="Consumer rights, privacy notices, opt-out mechanisms, data subject request handling."
         />
         <Row
           title="Privacy Risk Assessment"
           deadline="December 31, 2027 (existing processing activities)"
-          statusLabel={status(om.riskAssessmentRequired, om.hasUnsure)}
+          statusLabel={status(obligationMap.riskAssessmentRequired, obligationMap.hasUnsure)}
           description="Controllers processing PI posing significant risk must complete and submit risk assessments to the CPPA."
           cta={{ label: "CPPA Risk Assessment tool", href: "/cppa-risk-assessment" }}
         />
@@ -410,19 +410,19 @@ function ResultsPanel({
         <Row
           title="ADMT Disclosure & Opt-Out"
           deadline="January 1, 2027"
-          statusLabel={status(om.admtRequired, om.hasUnsure)}
+          statusLabel={status(obligationMap.admtRequired, obligationMap.hasUnsure)}
           description="Businesses using ADMT for consequential decisions about consumers must provide disclosure and an opt-out right."
         />
         <Row
           title="Sensitive Personal Information"
           deadline="In force now"
-          statusLabel={status(om.sensitiveRequired, om.hasUnsure)}
+          statusLabel={status(obligationMap.sensitiveRequired, obligationMap.hasUnsure)}
           description="Consumers have the right to limit use of sensitive PI. You must honour this right and provide the required disclosure."
         />
         <Row
           title="Data Broker Registration"
           deadline="In force now — annual renewal"
-          statusLabel={status(om.dataBrokerRequired, false)}
+          statusLabel={status(obligationMap.dataBrokerRequired, false)}
           description="Data brokers must register with the California AG annually. Failure to register can result in fines of up to $200 per day."
         />
       </section>
@@ -435,7 +435,7 @@ function ResultsPanel({
       <section className="bg-card border rounded-lg p-6 space-y-3">
         <h3 className="font-semibold">Next steps</h3>
         <div className="flex flex-wrap gap-3">
-          {om.riskAssessmentRequired && (
+          {obligationMap.riskAssessmentRequired && (
             <Button onClick={() => navigate("/cppa-risk-assessment")}>
               Run CPPA Risk Assessment — Module 1 →
             </Button>
@@ -445,7 +445,7 @@ function ResultsPanel({
               Run CPPA Cybersecurity Readiness — Module 2 →
             </Button>
           )}
-          {om.riskAssessmentRequired && cyberRequiredConfirmed && (
+          {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
             <Button
               variant="outline"
               onClick={() => navigate("/cppa-risk-assessment?suite=true")}
