@@ -592,19 +592,13 @@ const HomepageCard = ({ item }: { item: ArticleItem }) => {
       className="block group py-4 border-b border-fog last:border-0 no-underline"
     >
       <div className="flex gap-3">
-        {item.image_url ? (
-          <img
-            src={item.image_url}
-            alt=""
-            loading="lazy"
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-slate-100"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-md bg-slate-100 flex-shrink-0 flex items-center justify-center text-[22px]">
-            📰
-          </div>
-        )}
+        <img
+          src={item.image_url || EUP_TILE}
+          alt=""
+          loading="lazy"
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             {item.source_name && (
