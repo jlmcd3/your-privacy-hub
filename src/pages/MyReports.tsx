@@ -52,7 +52,15 @@ export default function MyReports() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [li, dpia, gov, dpa, ir, bio, reg] = await Promise.all([
+      // Fetch user's client ids first to scope ropa sessions
+      const { data: myClients } = await supabase
+        .from("clients")
+        .select("id, name")
+        .eq("owner_id", user.id);
+      const clientIds = (myClients || []).map((c: any) => c.id);
+      const clientNameById = new Map<string, string>((myClients || []).map((c: any) => [c.id, c.name]));
+
+      const [li, dpia, gov, dpa, ir, bio, reg, ropa] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -74,6 +82,13 @@ export default function MyReports() {
         supabase.from("registration_orders")
           .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
+        clientIds.length > 0
+          ? supabase.from("ropa_sessions")
+              .select("id, client_id, status, created_at, updated_at, last_activity_at, completed_activities, total_activities")
+              .in("client_id", clientIds)
+              .eq("status", "in_progress")
+              .order("last_activity_at", { ascending: false })
+          : Promise.resolve({ data: [] as any[] } as any),
       ]);
 
       if (cancelled) return;
@@ -128,6 +143,23 @@ export default function MyReports() {
         summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
         view_path: `/registration-manager/order/${r.id}`,
       }));
+      (ropa?.data || []).forEach((r: any) => {
+        const done = r.completed_activities ?? 0;
+        const total = r.total_activities ?? 0;
+        const orgName = clientNameById.get(r.client_id) || "RoPA";
+        const summary = total > 0
+          ? `${done} of ${total} activities completed · ${orgName}`
+          : (done > 0 ? `${done} activities completed · ${orgName}` : orgName);
+        all.push({
+          id: r.id,
+          tool: "ropa",
+          tool_label: "RoPA Builder",
+          created_at: r.last_activity_at || r.updated_at || r.created_at,
+          status: "in_progress",
+          summary,
+          view_path: "/ropa/activities",
+        });
+      });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
@@ -171,9 +203,15 @@ export default function MyReports() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="font-display font-semibold text-navy text-[14px]">{r.tool_label}</span>
-                        <Badge variant={statusVariant(r.status)} className="text-[10px]">
-                          {(r.status || "—").replace(/_/g, " ")}
-                        </Badge>
+                        {r.status === "in_progress" ? (
+                          <Badge className="text-[10px] bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
+                            in progress
+                          </Badge>
+                        ) : (
+                          <Badge variant={statusVariant(r.status)} className="text-[10px]">
+                            {(r.status || "—").replace(/_/g, " ")}
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-[13px] text-slate truncate">{r.summary}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">
@@ -189,7 +227,9 @@ export default function MyReports() {
                         </Button>
                       )}
                       <Button asChild size="sm">
-                        <Link to={r.view_path}>View <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+                        <Link to={r.view_path}>
+                          {r.status === "in_progress" ? "Continue" : "View"} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                        </Link>
                       </Button>
                     </div>
                   </CardContent>
