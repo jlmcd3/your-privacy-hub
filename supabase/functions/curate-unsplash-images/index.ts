@@ -1,17 +1,15 @@
 // Curate ~500 privacy/tech/legal images from Unsplash into the article-images
 // storage bucket and the article_image_pool table.
 //
-// Auth: requires header `x-admin-token: <ADMIN_SECRET_TOKEN>`.
-// Optional body: { perQuery?: number, queries?: string[] }
-//
-// Designed to be re-runnable: existing (source, source_id) pairs are skipped.
+// Auth: Bearer JWT of an admin user (verified via has_role).
+// Optional body: { perQuery?: number, queries?: Array<{q,category}> }
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-admin-token",
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface UnsplashPhoto {
