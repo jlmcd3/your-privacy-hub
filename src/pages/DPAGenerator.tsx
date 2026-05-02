@@ -32,7 +32,8 @@ const SAMPLE = `1. PARTIES AND RECITALS
 export default function DPAGenerator() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const access = useToolAccess({ standalonePrice: 69, subscriberPrice: 39 });
+  const pricing = useToolPrice("dpa_generator");
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.subscriberPrice });
   const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
