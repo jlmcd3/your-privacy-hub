@@ -147,3 +147,33 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
     ],
   },
 ];
+
+/**
+ * VIRGINIA_MODEL_STATE_ADDONS — registry of state-specific addon questions
+ * appended on top of the core Virginia-model question set when a particular
+ * Virginia-model state has obligations beyond the shared framework.
+ *
+ * Activation flow (see `activate-us-state-law` edge function):
+ *   1. A new state law is activated in `us_state_privacy_laws`.
+ *   2. If that state has unique requirements beyond the core Virginia model,
+ *      add an entry here keyed by the US state code (e.g. "IL", "MA", "NY").
+ *   3. If it's a pure Virginia-model state with no addons, no change needed —
+ *      the state automatically inherits VIRGINIA_MODEL_QUESTIONS.
+ *
+ * Each entry's questions are appended to the question set ONLY if the state
+ * is selected. Use `jurisdictionOnly: ["US_<CODE>"]` on each Question for
+ * mid-flow filtering.
+ */
+export const VIRGINIA_MODEL_STATE_ADDONS: Record<string, Question[]> = {
+  // Example shape (uncomment + populate when activating Illinois):
+  // IL: [
+  //   {
+  //     key: "il_geolocation_radius",
+  //     text: "Do you collect precise geolocation within a 1,750-foot radius?",
+  //     whyWeAsk: "Illinois defines precise geolocation more narrowly than the standard Virginia model.",
+  //     type: "yes_no",
+  //     isRequired: true,
+  //     jurisdictionOnly: ["US_IL"],
+  //   },
+  // ],
+};
