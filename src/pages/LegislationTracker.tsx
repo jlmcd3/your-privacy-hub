@@ -149,23 +149,26 @@ export default function LegislationTracker() {
           <div className="space-y-4">
             {filtered.map(bill => {
               const cfg = STAGE_CONFIG[bill.stage];
-              const link = JURISDICTION_LINK_MAP[bill.jurisdiction];
-              const isoOnly = JURISDICTION_ISO_ONLY[bill.jurisdiction];
-              const iso = link?.iso2 ?? isoOnly;
-              const chipInner = (
+              const meta = JURISDICTION_META[bill.jurisdiction];
+              const chipInner = meta ? (
                 <>
-                  <span className="text-base leading-none flag-emoji" aria-hidden="true">{bill.flag}</span>
-                  {iso && (
-                    <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{iso}</span>
-                  )}
+                  <img
+                    src={meta.flagUrl}
+                    alt={`${bill.jurisdiction} flag`}
+                    loading="lazy"
+                    className="w-6 h-4 object-cover rounded-[2px] shadow-sm flex-shrink-0"
+                  />
+                  <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{meta.iso2}</span>
                 </>
+              ) : (
+                <span className="text-base leading-none flag-emoji" aria-hidden="true">{bill.flag}</span>
               );
               return (
                 <div key={bill.id} className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
                   <div className="flex items-start gap-4">
-                    {link ? (
+                    {meta?.slug ? (
                       <Link
-                        to={`/jurisdiction/${link.slug}`}
+                        to={`/jurisdiction/${meta.slug}`}
                         aria-label={`View ${bill.jurisdiction} jurisdiction page`}
                         className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white hover:border-navy/30 hover:shadow-eup-sm transition-all no-underline"
                       >
