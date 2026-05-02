@@ -297,9 +297,15 @@ export default function USNoticeReview() {
     return issues;
   }, [answers]);
 
-  const warningCount = triggeredFlags.filter((t) => t.flag.severity === "warning").length;
-  const infoCount = triggeredFlags.filter((t) => t.flag.severity === "info").length;
-  const recCount = triggeredFlags.filter((t) => t.flag.severity === "recommendation").length;
+  const warningCount =
+    triggeredFlags.filter((t) => t.flag.severity === "warning").length +
+    qualityIssues.filter((q) => q.severity === "warning").length;
+  const infoCount =
+    triggeredFlags.filter((t) => t.flag.severity === "info").length +
+    qualityIssues.filter((q) => q.severity === "info").length;
+  const recCount =
+    triggeredFlags.filter((t) => t.flag.severity === "recommendation").length +
+    qualityIssues.filter((q) => q.severity === "recommendation").length;
 
   async function handleGenerate() {
     if (!sessionId) return;
