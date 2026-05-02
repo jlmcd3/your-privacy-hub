@@ -40,6 +40,36 @@ async function safeCount(
   }
 }
 
+async function loadUsNoticeStatus(
+  clientId: string
+): Promise<{ stateCount: number; latestDate: string | null }> {
+  try {
+    // Find the latest completed session for this client.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: sessions, error } = await (supabase as any)
+      .from('us_notice_sessions')
+      .select('id, completed_at, status')
+      .eq('client_id', clientId)
+      .order('completed_at', { ascending: false, nullsFirst: false })
+      .limit(1);
+    if (error || !sessions || sessions.length === 0) {
+      return { stateCount: 0, latestDate: null };
+    }
+    const latest = sessions[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count } = await (supabase as any)
+      .from('us_notice_state_selections')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', latest.id);
+    return {
+      stateCount: count ?? 0,
+      latestDate: latest.completed_at ?? null,
+    };
+  } catch {
+    return { stateCount: 0, latestDate: null };
+  }
+}
+
 async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
   const [
     liaCount,
@@ -49,6 +79,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     govCount,
     biometricCount,
     registrationCount,
+    usNotices,
   ] = await Promise.all([
     safeCount('li_assessments', clientId),
     safeCount('dpia_frameworks', clientId),
@@ -57,10 +88,9 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     safeCount('governance_assessments', clientId),
     safeCount('biometric_assessments', clientId),
     safeCount('registration_orders', clientId),
+    loadUsNoticeStatus(clientId),
   ]);
 
-  // Future tables — wrapped in try/catch via safeCount; will be 0 for now.
-  // We surface them as "not yet generated" in UI when zero.
   return {
     clientId,
     liaCount,
@@ -71,7 +101,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     biometricCount,
     registrationCount,
     ropa: { latestVersion: null, latestDate: null },
-    usNotices: { stateCount: 0, latestDate: null },
+    usNotices,
     euNotices: { frameworkCount: 0, latestDate: null },
     totalFlags:
       liaCount + dpiaCount + dpaCount + irCount + govCount + biometricCount + registrationCount,
