@@ -28,6 +28,7 @@ interface NavItem {
   label: string;
   href?: string;
   wide?: boolean;
+  columns?: 2 | 3;
   sections?: {
     header?: string;
     divider?: boolean;
@@ -56,25 +57,47 @@ const navItems: NavItem[] = [
           { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar" },
           { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker" },
           { icon: "📋", label: "Legitimate Interest Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker" },
-          { icon: "📄", label: "Sample Intelligence Brief", href: "/sample-brief", badge: "FREE", badgeGreen: true },
+          { icon: "📄", label: "Sample Intelligence Brief", badge: "FREE", badgeGreen: true, href: "/sample-brief" },
         ],
       },
       {
-        header: "Intelligence Tools",
+        header: "Intelligence Subscription",
         items: [
           { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
           { icon: "🛰️", label: "Regulatory Trend Forecast", badge: "PRO", href: "/horizon" },
           { icon: "🗄️", label: "Global Enforcement Database", badge: "PRO", href: "/enforcement?view=archive" },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Compliance Tools",
+    wide: true,
+    columns: 3,
+    sections: [
+      {
+        header: "Assessments",
+        items: [
           { icon: "⚖️", label: "Legitimate Interest Assessment", badge: "PRO", href: "/li-assessment" },
           { icon: "🛡️", label: "Privacy Program Assessment", badge: "PRO", href: "/governance-assessment" },
           { icon: "📑", label: "Data Protection Impact Assessment", badge: "PRO", href: "/dpia-framework" },
           { icon: "👁️", label: "Biometric Compliance Assessment", badge: "PRO", href: "/biometric-checker" },
-          { icon: "📂", label: "Your Registration Filings", badge: "PRO", href: "/registration-manager" },
-          { icon: "📝", label: "Your Custom DPA", badge: "PRO", href: "/dpa-generator" },
-          { icon: "🚨", label: "Your Breach Response Playbook", badge: "PRO", href: "/ir-playbook" },
+          { icon: "🚨", label: "Breach Response Playbook", badge: "PRO", href: "/ir-playbook" },
+        ],
+      },
+      {
+        header: "Compliance Documents",
+        items: [
+          { icon: "📝", label: "Custom DPA Generator", badge: "PRO", href: "/dpa-generator" },
+          { icon: "📂", label: "Registration Filings", badge: "PRO", href: "/registration-manager" },
           { icon: "📋", label: "RoPA Builder", badge: "PRO", href: "/ropa" },
-          { icon: "📋", label: "US Notice Builder", badge: "PRO", href: "/us-notices" },
+          { icon: "📋", label: "US Privacy Notice Builder", badge: "PRO", href: "/us-notices" },
           { icon: "🌍", label: "EU & Global Notice Builder", badge: "PRO", href: "/eu-notices" },
+        ],
+      },
+      {
+        header: "CPPA Audit Readiness",
+        items: [
           { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker" },
           { icon: "🏛️", label: "CPPA Risk Assessment", badge: "PRO", href: "/cppa-risk-assessment" },
           { icon: "🔒", label: "CPPA Cybersecurity Readiness", badge: "PRO", href: "/cppa-cybersecurity" },
@@ -124,9 +147,6 @@ const navItems: NavItem[] = [
           { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy" },
           { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy" },
           { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
-          { icon: "📋", label: "RoPA Builder", href: "/ropa-builder" },
-          { icon: "📋", label: "US Notice Builder", href: "/us-notice-builder" },
-          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder" },
         ],
       },
     ],
@@ -208,7 +228,7 @@ const Navbar = () => {
 
               {item.sections && openDropdown === item.label && (
                 <div className="absolute top-full left-0 pt-1 z-50">
-                  <div className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${item.wide ? "min-w-[480px] grid grid-cols-2 gap-x-2" : "min-w-[240px]"}`}>
+                  <div className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${item.wide ? (item.columns === 3 ? "min-w-[720px] grid grid-cols-3 gap-x-2" : "min-w-[480px] grid grid-cols-2 gap-x-2") : "min-w-[240px]"}`}>
                     {item.sections.map((section, si) => (
                       <div key={si}>
                         {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
