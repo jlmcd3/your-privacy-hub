@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
 
 interface SessionRow {
   id: string;
@@ -71,6 +72,7 @@ function formatDate(iso: string): string {
 export default function USNoticeDocuments() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { toast } = useToast();
+  const { authorized } = useUsNoticeSessionGuard(sessionId);
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -121,9 +123,10 @@ export default function USNoticeDocuments() {
   }
 
   useEffect(() => {
+    if (!authorized) return;
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [sessionId, authorized]);
 
   async function handleGenerate() {
     if (!sessionId) return;
