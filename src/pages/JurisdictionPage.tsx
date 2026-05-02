@@ -78,7 +78,7 @@ const buildJurisdictionData = () => {
       flag: "🇺🇸",
       overview: s.notes ||
         `${s.state} privacy regulation is enforced by the ${s.authority_name}.` +
-        (s.statute_name ? ` The primary statute is the ${s.statute_name}.` : " No comprehensive privacy law has been enacted as of 2026."),
+        (s.statute_name ? "" : " No comprehensive privacy law has been enacted as of 2026."),
       authorities: [{
         name: s.authority_name,
         abbreviation: s.authority_type,
