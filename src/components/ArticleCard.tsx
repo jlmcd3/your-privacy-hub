@@ -292,23 +292,14 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
       className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
       style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Article thumbnail (or source-name placeholder) */}
-      {item.image_url ? (
-        <img
-          src={item.image_url}
-          alt=""
-          className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-        />
-      ) : (
-        <div className="w-16 h-16 rounded-lg bg-fog flex-shrink-0 flex items-center justify-center overflow-hidden">
-          {item.source_name && (
-            <span className="text-[9px] font-bold text-slate uppercase text-center leading-tight px-1">
-              {item.source_name.split('.')[0].slice(0,6)}
-            </span>
-          )}
-        </div>
-      )}
+      {/* Article thumbnail — falls back to EUP brand tile when missing */}
+      <img
+        src={item.image_url || EUP_TILE}
+        alt=""
+        loading="lazy"
+        className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+        onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+      />
       <div className="flex-1 min-w-0">
         {/* Metadata row — base info always shown; legal weight badge if enriched */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
