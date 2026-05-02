@@ -77,6 +77,7 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           cppa_risk_assessment: "cppa_risk_assessment",
           cppa_cybersecurity: "cppa_cybersecurity",
           cppa_suite: "cppa_suite",
+          dpa_generator: "dpa_generator",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 
