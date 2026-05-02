@@ -295,6 +295,11 @@ export default function ClientsPortfolio() {
     navigate('/dashboard');
   }
 
+  function handleOpenUsNotices(c: Client) {
+    setActiveClient(c);
+    navigate('/us-notices');
+  }
+
   function handleAddClick() {
     if (!isPremium && clients.length >= 1) {
       setShowGate(true);
