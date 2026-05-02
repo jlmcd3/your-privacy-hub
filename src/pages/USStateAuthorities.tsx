@@ -93,59 +93,72 @@ const USStateAuthorities = () => {
           <span className="ml-auto text-[12px] text-slate-light">{filtered.length} results</span>
         </div>
 
-        {/* Table */}
-        <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-fog">
-                <tr>
-                  {["State", "Authority", "Statute", "Status", "Effective Date", "Links"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-slate text-left border-b border-silver">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((state: any) => (
-                  <tr key={state.id} className="hover:bg-paper transition-colors">
-                    <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog whitespace-nowrap">
-                      <Link
-                        to={`/jurisdiction/${slugify(state.state)}`}
-                        className="text-primary hover:underline font-medium no-underline"
-                      >
-                        {state.state}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">
-                      <div className="font-medium">{state.authority_name}</div>
-                      <div className="text-[11px] text-slate mt-0.5">{state.authority_type}</div>
-                    </td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">
-                      {state.statute_name || <span className="text-slate-light italic">None</span>}
-                    </td>
-                    <td className="px-4 py-3 border-b border-fog">
-                      <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${statusClass(state.statute_status)}`}>
-                        {state.statute_status || "None"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog whitespace-nowrap">
-                      {state.effective_date || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-[13px] border-b border-fog">
-                      <div className="flex gap-2">
-                        <a href={state.website} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline no-underline text-[12px]">Website ↗</a>
-                        {state.complaint_portal && (
-                          <a href={state.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline no-underline text-[12px]">Complaints ↗</a>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Authority list */}
+        <div className="flex flex-col gap-2">
+          {filtered.map((state: any) => {
+            const status = state.statute_status || "None";
+            const style = getStatusStyle(state.statute_status);
+            return (
+              <div
+                key={state.id}
+                className="grid grid-cols-[4px_minmax(170px,200px)_1fr_minmax(180px,260px)_100px_140px] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
+              >
+                <div className={`${style.stripe} self-stretch`} aria-hidden="true" />
+
+                <div className="px-5 py-4">
+                  <Link
+                    to={`/jurisdiction/${slugify(state.state)}`}
+                    className="font-display text-[20px] leading-tight text-navy hover:text-blue no-underline"
+                  >
+                    {state.state}
+                  </Link>
+                  <div className="text-[10.5px] uppercase tracking-wider text-slate-light mt-0.5">
+                    {style.subtitle(state.effective_date)}
+                  </div>
+                </div>
+
+                <div className="py-4 pr-4">
+                  <div className="text-[13px] font-semibold text-navy leading-snug">
+                    {state.authority_name}
+                  </div>
+                  <div className="text-[11.5px] text-slate mt-0.5">{state.authority_type}</div>
+                </div>
+
+                <div className="py-4 pr-4 text-[13px] italic text-navy/80 leading-snug">
+                  {state.statute_name || <span className="text-slate-light not-italic">—</span>}
+                </div>
+
+                <div className="py-4 flex items-center">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded ${style.pill}`}>
+                    {status}
+                  </span>
+                </div>
+
+                <div className="py-4 pr-4 flex items-center gap-3 text-[12px] font-medium">
+                  <a
+                    href={state.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue hover:text-navy no-underline"
+                  >
+                    Site ↗
+                  </a>
+                  {state.complaint_portal && (
+                    <a
+                      href={state.complaint_portal}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue hover:text-navy no-underline"
+                    >
+                      File ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+
         <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
