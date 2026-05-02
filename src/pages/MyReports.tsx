@@ -203,9 +203,15 @@ export default function MyReports() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="font-display font-semibold text-navy text-[14px]">{r.tool_label}</span>
-                        <Badge variant={statusVariant(r.status)} className="text-[10px]">
-                          {(r.status || "—").replace(/_/g, " ")}
-                        </Badge>
+                        {r.status === "in_progress" ? (
+                          <Badge className="text-[10px] bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
+                            in progress
+                          </Badge>
+                        ) : (
+                          <Badge variant={statusVariant(r.status)} className="text-[10px]">
+                            {(r.status || "—").replace(/_/g, " ")}
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-[13px] text-slate truncate">{r.summary}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">
@@ -221,7 +227,9 @@ export default function MyReports() {
                         </Button>
                       )}
                       <Button asChild size="sm">
-                        <Link to={r.view_path}>View <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+                        <Link to={r.view_path}>
+                          {r.status === "in_progress" ? "Continue" : "View"} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                        </Link>
                       </Button>
                     </div>
                   </CardContent>
