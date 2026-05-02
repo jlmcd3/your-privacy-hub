@@ -149,11 +149,13 @@ function ClientCard({
   counts,
   loading,
   onOpen,
+  onOpenUsNotices,
 }: {
   client: Client;
   counts: PerClientCounts | null;
   loading: boolean;
   onOpen: () => void;
+  onOpenUsNotices: () => void;
 }) {
   const total =
     (counts?.liaCount ?? 0) +
@@ -226,6 +228,8 @@ function ClientCard({
                 ? `${counts!.usNotices.stateCount} states`
                 : 'Not yet generated'
             }
+            onClick={onOpenUsNotices}
+            ariaLabel={`Open US Privacy Notices for ${client.name}`}
           />
           <CountRow
             label="EU Notices"
