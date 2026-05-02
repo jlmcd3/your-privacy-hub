@@ -585,6 +585,258 @@ export type Database = {
           },
         ]
       }
+      eu_notice_answers: {
+        Row: {
+          answer_value: Json
+          answered_at: string
+          id: string
+          question_key: string
+          ropa_activity_id: string | null
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer_value: Json
+          answered_at?: string
+          id?: string
+          question_key: string
+          ropa_activity_id?: string | null
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer_value?: Json
+          answered_at?: string
+          id?: string
+          question_key?: string
+          ropa_activity_id?: string | null
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_answers_ropa_activity_id_fkey"
+            columns: ["ropa_activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_notice_documents: {
+        Row: {
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes: number | null
+          framework_code: string
+          generated_at: string
+          id: string
+          is_combined: boolean
+          is_current: boolean
+          session_id: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes?: number | null
+          framework_code: string
+          generated_at?: string
+          id?: string
+          is_combined?: boolean
+          is_current?: boolean
+          session_id: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          document_format?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          framework_code?: string
+          generated_at?: string
+          id?: string
+          is_combined?: boolean
+          is_current?: boolean
+          session_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_documents_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_notice_framework_selections: {
+        Row: {
+          framework_code: string
+          framework_name: string
+          id: string
+          region: string
+          session_id: string
+        }
+        Insert: {
+          framework_code: string
+          framework_name: string
+          id?: string
+          region: string
+          session_id: string
+        }
+        Update: {
+          framework_code?: string
+          framework_name?: string
+          id?: string
+          region?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_framework_selections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_notice_sessions: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_refresh: boolean
+          last_activity_at: string
+          mode: string
+          paid_at: string | null
+          parent_session_id: string | null
+          payment_confirmed: boolean
+          ropa_session_id: string | null
+          scope: string
+          started_at: string
+          status: string
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          mode?: string
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          ropa_session_id?: string | null
+          scope?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          mode?: string
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          ropa_session_id?: string | null
+          scope?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_sessions_ropa_session_id_fkey"
+            columns: ["ropa_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_privacy_frameworks: {
+        Row: {
+          effective_date: string | null
+          enforcement_body: string | null
+          enforcement_url: string | null
+          framework_code: string
+          framework_name: string
+          full_law_name: string
+          is_active: boolean
+          notes: string | null
+          region: string
+          template_type: string
+        }
+        Insert: {
+          effective_date?: string | null
+          enforcement_body?: string | null
+          enforcement_url?: string | null
+          framework_code: string
+          framework_name: string
+          full_law_name: string
+          is_active?: boolean
+          notes?: string | null
+          region: string
+          template_type: string
+        }
+        Update: {
+          effective_date?: string | null
+          enforcement_body?: string | null
+          enforcement_url?: string | null
+          framework_code?: string
+          framework_name?: string
+          full_law_name?: string
+          is_active?: boolean
+          notes?: string | null
+          region?: string
+          template_type?: string
+        }
+        Relationships: []
+      }
       eup_user_roles: {
         Row: {
           action_brief_salutation: string
