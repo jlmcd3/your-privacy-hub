@@ -81,7 +81,7 @@ const USStateComparison = () => {
                 <tr className="bg-muted">
                   <th className="px-3 py-3 text-left font-semibold text-muted-foreground sticky left-0 bg-muted z-10 min-w-[140px]">Provision</th>
                   {states.map((s) => (
-                    <th key={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[56px]">
+                    <th key={s.abbr} id={s.abbr} className="px-2 py-3 text-center font-bold text-foreground min-w-[56px] scroll-mt-24">
                       {STATE_FLAGS[s.abbr] && (
                         <img
                           src={STATE_FLAGS[s.abbr]}

@@ -11,7 +11,19 @@ import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
+import usStateComparison from "@/data/us_state_comparison.json";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
+// Map state name → comparison abbr (only states actually in /compare/us-states)
+const STATE_COMPARISON_ABBR: Record<string, string> = Object.fromEntries(
+  (usStateComparison as any).states
+    .filter((s: any) => s.status === "enacted")
+    .map((s: any) => [s.name, s.abbr])
+);
+const statuteCompareUrl = (stateName: string) => {
+  const abbr = STATE_COMPARISON_ABBR[stateName];
+  return abbr ? `/compare/us-states#${abbr}` : "/compare/us-states";
+};
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
@@ -78,7 +90,7 @@ const buildJurisdictionData = () => {
       flag: "🇺🇸",
       overview: s.notes ||
         `${s.state} privacy regulation is enforced by the ${s.authority_name}.` +
-        (s.statute_name ? ` The primary statute is the ${s.statute_name}.` : " No comprehensive privacy law has been enacted as of 2026."),
+        (s.statute_name ? "" : " No comprehensive privacy law has been enacted as of 2026."),
       authorities: [{
         name: s.authority_name,
         abbreviation: s.authority_type,
@@ -388,7 +400,20 @@ const JurisdictionPage = () => {
               {auth.legislation && (
                 <div className="text-[12px] text-slate mt-1">
                   <span className="font-semibold text-navy">Statute: </span>{" "}
-                  {auth.legislation}
+                  {(() => {
+                    const stateName = (auth as any).stateName || jurisdiction.name;
+                    const abbr = STATE_COMPARISON_ABBR[stateName];
+                    return abbr ? (
+                      <Link
+                        to={statuteCompareUrl(stateName)}
+                        className="text-blue hover:underline no-underline font-medium"
+                      >
+                        {auth.legislation}
+                      </Link>
+                    ) : (
+                      <span>{auth.legislation}</span>
+                    );
+                  })()}
                   {(auth as any).effective_date && (
                     <span className="text-slate/70 ml-1">
                       · Effective{" "}
