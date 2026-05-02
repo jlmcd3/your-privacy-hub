@@ -219,3 +219,11 @@ export const INTELLIGENCE_PRICING = {
   monthlyShort: () => `${getPrice("intelligence_monthly").displayPrice}/mo`,
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
 } as const;
+
+/** US Notice price helpers — derived from the registry, never hardcode. */
+export const US_NOTICE_PRICING = {
+  singleStandalone: () => getPrice("us_notice_single_standalone").displayPrice,   // "$25"
+  singleSubscriber: () => getPrice("us_notice_single_subscriber").displayPrice,   // "$12"
+  allStatesStandalone: () => getPrice("us_notice_all_standalone").displayPrice,   // "$59"
+  allStatesSubscriber: () => getPrice("us_notice_all_subscriber").displayPrice,   // "$29"
+} as const;
