@@ -138,17 +138,20 @@ export default function USNoticeHome() {
     }
     setCreating(true);
     try {
-      // Find or use the user's primary active client.
-      const { data: clients, error: clientsErr } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("owner_id", user.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: true })
-        .limit(1);
-      if (clientsErr) throw clientsErr;
-      const clientId = clients?.[0]?.id;
-      if (!clientId) {
+      // Prefer the active client; otherwise fall back to the user's primary active client.
+      let targetClientId = clientId;
+      if (!targetClientId) {
+        const { data: clients, error: clientsErr } = await supabase
+          .from("clients")
+          .select("id")
+          .eq("owner_id", user.id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: true })
+          .limit(1);
+        if (clientsErr) throw clientsErr;
+        targetClientId = clients?.[0]?.id ?? null;
+      }
+      if (!targetClientId) {
         toast({
           title: "No client profile found",
           description: "Set up a client profile before starting a notice.",
@@ -160,7 +163,7 @@ export default function USNoticeHome() {
       const { data: created, error: insertErr } = await supabase
         .from("us_notice_sessions")
         .insert({
-          client_id: clientId,
+          client_id: targetClientId,
           status: "in_progress",
         })
         .select("id")
