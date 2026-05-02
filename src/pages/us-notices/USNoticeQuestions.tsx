@@ -305,21 +305,24 @@ export default function USNoticeQuestions() {
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between mt-6">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
         <Button
           variant="ghost"
           onClick={handleBack}
           disabled={saving}
+          className="w-full sm:w-auto min-h-[44px]"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden />
           {currentIndex === 0 ? "Back to states" : "Previous"}
         </Button>
-        <Button onClick={handleNext} disabled={saving}>
-          {saving ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : null}
+        <Button
+          onClick={handleNext}
+          disabled={saving}
+          className="w-full sm:w-auto min-h-[44px]"
+        >
+          {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden /> : null}
           {currentIndex === visibleQuestions.length - 1 ? "Continue to review" : "Next"}
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <ArrowRight className="h-4 w-4 ml-2" aria-hidden />
         </Button>
       </div>
     </USNoticeShell>
