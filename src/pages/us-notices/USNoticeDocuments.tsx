@@ -277,6 +277,56 @@ export default function USNoticeDocuments() {
         </Card>
       )}
 
+      {/* Combined all-states suite */}
+      {hasAny && currentDocs.some((d) => d.is_combined) && (
+        <Card className="mb-6 border-primary/30 bg-primary/5">
+          <CardContent className="p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="h-10 w-10 rounded-md bg-primary/15 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 text-primary" aria-hidden />
+              </div>
+              <div className="min-w-0">
+                <div className="font-medium">All-states suite (combined)</div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                  <Badge variant="secondary" className="text-[10px]">
+                    {states.length} state{states.length === 1 ? "" : "s"}
+                  </Badge>
+                  {currentDocs
+                    .filter((d) => d.is_combined)
+                    .slice(0, 1)
+                    .map((d) => (
+                      <span key={d.id} className="flex items-center gap-2">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" aria-hidden />
+                          {formatDate(d.generated_at)}
+                        </span>
+                        <span>v{d.version_number}</span>
+                        <span>{formatBytes(d.file_size_bytes)}</span>
+                      </span>
+                    ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 md:flex-shrink-0">
+              {currentDocs
+                .filter((d) => d.is_combined)
+                .map((d) => (
+                  <Button
+                    key={d.id}
+                    onClick={() => handleDownload(d)}
+                    disabled={!d.file_path}
+                    className="w-full sm:w-auto min-h-[44px]"
+                    aria-label="Download combined all-states suite"
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                    Download suite
+                  </Button>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Per-state documents */}
       {hasAny && (
         <div className="space-y-3 mb-8">
