@@ -168,7 +168,7 @@ export default function USNoticeReview() {
         setLoading(false);
       }
     })();
-  }, [sessionId, navigate, toast]);
+  }, [sessionId, navigate, toast, authorized]);
 
   const selectedStateCodes = useMemo(
     () => states.map((s) => s.state_code),
