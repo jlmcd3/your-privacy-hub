@@ -382,14 +382,14 @@ export default function USNoticeDocuments() {
         </Card>
       )}
 
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Button variant="ghost" asChild className="w-full sm:w-auto min-h-[44px]">
           <Link to={`/us-notices/${sessionId}/review`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2" aria-hidden />
             Back to review
           </Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="w-full sm:w-auto min-h-[44px]">
           <Link to="/us-notices">All notice sessions</Link>
         </Button>
       </div>
