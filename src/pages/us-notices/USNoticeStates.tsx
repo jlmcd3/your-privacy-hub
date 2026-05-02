@@ -111,6 +111,7 @@ export default function USNoticeStates() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!authorized) return;
     let cancelled = false;
     async function load() {
       const { data, error } = await supabase
@@ -129,7 +130,7 @@ export default function USNoticeStates() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, authorized]);
 
   const showGrid = volume !== null && revenue !== null;
 
