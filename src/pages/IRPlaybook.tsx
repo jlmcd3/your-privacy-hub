@@ -13,6 +13,7 @@ import { useToolAccess } from "@/hooks/useToolAccess";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import { toast } from "sonner";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -53,6 +54,13 @@ export default function IRPlaybook() {
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
 
   const handleGenerate = async () => {
+    const discoveryDate = new Date(form.discoveryDateTime);
+    if (isNaN(discoveryDate.getTime()) || discoveryDate > new Date()) {
+      toast.error("Invalid date", {
+        description: "The discovery date cannot be in the future. A breach response playbook requires a date when the incident was actually discovered.",
+      });
+      return;
+    }
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
@@ -98,7 +106,7 @@ export default function IRPlaybook() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="font-display font-bold text-navy text-[18px]">Incident details</h2>
             <label className="block text-[13px]"><span className="font-semibold text-navy">Date & time of discovery</span>
-              <input type="datetime-local" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
+              <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-[13px]"><span className="font-semibold text-navy">Apparent cause</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>
