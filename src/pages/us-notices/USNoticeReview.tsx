@@ -451,6 +451,28 @@ export default function USNoticeReview() {
         </Card>
       )}
 
+      {/* Computed quality checks */}
+      {qualityIssues.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-4 md:p-6">
+            <h2 className="font-serif text-lg mb-4">Quality checks</h2>
+            <div className="space-y-3">
+              {qualityIssues.map((issue) => (
+                <FlagRow
+                  key={issue.id}
+                  flag={{
+                    severity: issue.severity,
+                    message: issue.message,
+                    operator: "equals",
+                    value: "",
+                  } as FlagCondition}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Grouped answers */}
       <Card className="mb-8">
         <CardContent className="p-4 md:p-6">
