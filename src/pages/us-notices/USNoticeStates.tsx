@@ -305,7 +305,7 @@ export default function USNoticeStates() {
                 onToggle={() => toggle(law.state_code)}
                 autoReason={autoReasons[law.state_code]}
                 emphasized
-                tagline="Unique framework"
+                tagline="CCPA/CPRA — Unique Framework"
               />
             ))}
           </section>
@@ -385,7 +385,7 @@ export default function USNoticeStates() {
 
           {/* Sticky bottom bar */}
           <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur px-4 py-3">
-            <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-4">
+            <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm">
                 <span className="font-semibold text-foreground">{selected.size}</span>{" "}
                 <span className="text-muted-foreground">
@@ -395,11 +395,13 @@ export default function USNoticeStates() {
               <Button
                 onClick={handleContinue}
                 disabled={selected.size === 0 || submitting}
+                className="w-full sm:w-auto min-h-[44px]"
+                aria-label="Continue to questions"
               >
                 {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                 ) : (
-                  <>Continue to questions <ArrowRight className="ml-1.5 h-4 w-4" /></>
+                  <>Continue to questions <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden /></>
                 )}
               </Button>
             </div>
@@ -425,16 +427,21 @@ function StateCard({
   emphasized?: boolean;
   tagline?: string;
 }) {
+  const descId = `state-${law.state_code}-desc`;
   return (
     <button
       type="button"
       onClick={onToggle}
-      className={`w-full text-left rounded-lg border-2 transition-colors p-4 ${
+      role="checkbox"
+      aria-checked={selected}
+      aria-describedby={descId}
+      aria-label={`${law.state_name} — ${law.law_name}${tagline ? `, ${tagline}` : ""}`}
+      className={`w-full min-h-[52px] text-left rounded-lg border-2 transition-colors p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         selected ? "border-primary bg-primary/5" : "border-border hover:border-foreground/30"
       } ${emphasized ? "shadow-sm" : ""}`}
     >
       <div className="flex items-start gap-3">
-        <Checkbox checked={selected} className="mt-1 pointer-events-none" />
+        <Checkbox checked={selected} className="mt-1 pointer-events-none" aria-hidden />
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <h4 className={`font-semibold text-foreground ${emphasized ? "text-lg" : "text-sm"}`}>
@@ -442,28 +449,30 @@ function StateCard({
             </h4>
             <span className="text-xs text-muted-foreground">— {law.law_name}</span>
           </div>
-          {tagline && (
-            <p className="text-xs text-muted-foreground mt-0.5 italic">{tagline}</p>
-          )}
-          {law.applicability_threshold && (
-            <p className="text-xs text-muted-foreground mt-1.5">
-              Threshold: {law.applicability_threshold}
-            </p>
-          )}
-          {law.effective_date && (
-            <p className="text-xs text-muted-foreground">
-              Effective: {new Date(law.effective_date).toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          )}
-          {autoReason && (
-            <div className="mt-2 flex items-start gap-1.5 text-xs text-primary">
-              <Check className="h-3 w-3 mt-0.5 shrink-0" />
-              <span>{autoReason}</span>
-            </div>
-          )}
+          <div id={descId}>
+            {tagline && (
+              <p className="text-xs text-muted-foreground mt-0.5 italic">{tagline}</p>
+            )}
+            {law.applicability_threshold && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Threshold: {law.applicability_threshold}
+              </p>
+            )}
+            {law.effective_date && (
+              <p className="text-xs text-muted-foreground">
+                Effective: {new Date(law.effective_date).toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            )}
+            {autoReason && (
+              <div className="mt-2 flex items-start gap-1.5 text-xs text-primary">
+                <Check className="h-3 w-3 mt-0.5 shrink-0" aria-hidden />
+                <span>{autoReason}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </button>

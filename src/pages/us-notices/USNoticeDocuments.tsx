@@ -290,14 +290,14 @@ export default function USNoticeDocuments() {
             );
             return (
               <Card key={state.state_code}>
-                <CardContent className="p-4 md:p-5 flex items-center justify-between gap-4">
+                <CardContent className="p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center gap-4 min-w-0">
                     <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
                       <FileText className="h-5 w-5 text-muted-foreground" aria-hidden />
                     </div>
                     <div className="min-w-0">
                       <div className="font-medium truncate">{state.state_name}</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
                         <Badge variant="secondary" className="text-[10px]">
                           {FRAMEWORK_LABELS[state.framework_type] ?? state.framework_type}
                         </Badge>
@@ -307,19 +307,15 @@ export default function USNoticeDocuments() {
                             {formatDate(stateDocs[0].generated_at)}
                           </span>
                         )}
-                        {stateDocs[0] && (
-                          <span>v{stateDocs[0].version_number}</span>
-                        )}
-                        {stateDocs[0] && (
-                          <span>{formatBytes(stateDocs[0].file_size_bytes)}</span>
-                        )}
+                        {stateDocs[0] && <span>v{stateDocs[0].version_number}</span>}
+                        {stateDocs[0] && <span>{formatBytes(stateDocs[0].file_size_bytes)}</span>}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 md:flex-shrink-0">
                     {stateDocs.length === 0 ? (
-                      <span className="text-xs text-muted-foreground italic">
-                        Not generated
+                      <span className="text-xs text-muted-foreground italic" role="status">
+                        Not generated yet
                       </span>
                     ) : (
                       stateDocs.map((d) => (
@@ -329,8 +325,10 @@ export default function USNoticeDocuments() {
                           size="sm"
                           onClick={() => handleDownload(d)}
                           disabled={!d.file_path}
+                          className="w-full sm:w-auto min-h-[44px]"
+                          aria-label={`Download ${state.state_name} notice (${(d.document_format ?? "pdf").toUpperCase()})`}
                         >
-                          <Download className="h-3.5 w-3.5 mr-1.5" />
+                          <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
                           {(d.document_format ?? "pdf").toUpperCase()}
                         </Button>
                       ))
@@ -384,14 +382,14 @@ export default function USNoticeDocuments() {
         </Card>
       )}
 
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Button variant="ghost" asChild className="w-full sm:w-auto min-h-[44px]">
           <Link to={`/us-notices/${sessionId}/review`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2" aria-hidden />
             Back to review
           </Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="w-full sm:w-auto min-h-[44px]">
           <Link to="/us-notices">All notice sessions</Link>
         </Button>
       </div>
