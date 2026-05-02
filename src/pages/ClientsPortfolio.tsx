@@ -40,6 +40,36 @@ async function safeCount(
   }
 }
 
+async function loadUsNoticeStatus(
+  clientId: string
+): Promise<{ stateCount: number; latestDate: string | null }> {
+  try {
+    // Find the latest completed session for this client.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: sessions, error } = await (supabase as any)
+      .from('us_notice_sessions')
+      .select('id, completed_at, status')
+      .eq('client_id', clientId)
+      .order('completed_at', { ascending: false, nullsFirst: false })
+      .limit(1);
+    if (error || !sessions || sessions.length === 0) {
+      return { stateCount: 0, latestDate: null };
+    }
+    const latest = sessions[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count } = await (supabase as any)
+      .from('us_notice_state_selections')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', latest.id);
+    return {
+      stateCount: count ?? 0,
+      latestDate: latest.completed_at ?? null,
+    };
+  } catch {
+    return { stateCount: 0, latestDate: null };
+  }
+}
+
 async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
   const [
     liaCount,
@@ -49,6 +79,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     govCount,
     biometricCount,
     registrationCount,
+    usNotices,
   ] = await Promise.all([
     safeCount('li_assessments', clientId),
     safeCount('dpia_frameworks', clientId),
@@ -57,10 +88,9 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     safeCount('governance_assessments', clientId),
     safeCount('biometric_assessments', clientId),
     safeCount('registration_orders', clientId),
+    loadUsNoticeStatus(clientId),
   ]);
 
-  // Future tables — wrapped in try/catch via safeCount; will be 0 for now.
-  // We surface them as "not yet generated" in UI when zero.
   return {
     clientId,
     liaCount,
@@ -71,18 +101,45 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     biometricCount,
     registrationCount,
     ropa: { latestVersion: null, latestDate: null },
-    usNotices: { stateCount: 0, latestDate: null },
+    usNotices,
     euNotices: { frameworkCount: 0, latestDate: null },
     totalFlags:
       liaCount + dpiaCount + dpaCount + irCount + govCount + biometricCount + registrationCount,
   };
 }
 
-function CountRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0">
+function CountRow({
+  label,
+  value,
+  onClick,
+  ariaLabel,
+}: {
+  label: string;
+  value: React.ReactNode;
+  onClick?: () => void;
+  ariaLabel?: string;
+}) {
+  const content = (
+    <>
       <span className="text-slate">{label}</span>
       <span className="font-semibold text-navy tabular-nums">{value}</span>
+    </>
+  );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel ?? label}
+        className="w-full flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0 bg-transparent border-x-0 border-t-0 cursor-pointer text-left hover:bg-fog/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue/40 rounded"
+      >
+        {content}
+      </button>
+    );
+  }
+  return (
+    <div className="flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0">
+      {content}
     </div>
   );
 }
@@ -92,11 +149,13 @@ function ClientCard({
   counts,
   loading,
   onOpen,
+  onOpenUsNotices,
 }: {
   client: Client;
   counts: PerClientCounts | null;
   loading: boolean;
   onOpen: () => void;
+  onOpenUsNotices: () => void;
 }) {
   const total =
     (counts?.liaCount ?? 0) +
@@ -169,6 +228,8 @@ function ClientCard({
                 ? `${counts!.usNotices.stateCount} states`
                 : 'Not yet generated'
             }
+            onClick={onOpenUsNotices}
+            ariaLabel={`Open US Privacy Notices for ${client.name}`}
           />
           <CountRow
             label="EU Notices"
@@ -232,6 +293,11 @@ export default function ClientsPortfolio() {
   function handleOpen(c: Client) {
     setActiveClient(c);
     navigate('/dashboard');
+  }
+
+  function handleOpenUsNotices(c: Client) {
+    setActiveClient(c);
+    navigate('/us-notices');
   }
 
   function handleAddClick() {
@@ -312,6 +378,7 @@ export default function ClientsPortfolio() {
               counts={counts[c.id] ?? null}
               loading={countsLoading && !counts[c.id]}
               onOpen={() => handleOpen(c)}
+              onOpenUsNotices={() => handleOpenUsNotices(c)}
             />
           ))}
         </div>

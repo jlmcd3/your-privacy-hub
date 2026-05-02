@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
@@ -43,6 +44,7 @@ const STATUS_LABELS: Record<string, { label: string; tone: "default" | "secondar
 
 export default function USNoticeHome() {
   const { user } = useAuth();
+  const { clientId, clientName, isMultiClient } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -51,15 +53,23 @@ export default function USNoticeHome() {
 
   useEffect(() => {
     if (!user) return;
+    // Reset list immediately so the user sees a loading state when switching clients.
+    setSessions([]);
     (async () => {
       setLoading(true);
       try {
-        const { data: clients } = await supabase
-          .from("clients")
-          .select("id")
-          .eq("owner_id", user.id)
-          .eq("is_active", true);
-        const clientIds = (clients ?? []).map((c) => c.id);
+        // Determine which client(s) to scope to.
+        let clientIds: string[] = [];
+        if (clientId) {
+          clientIds = [clientId];
+        } else {
+          const { data: clients } = await supabase
+            .from("clients")
+            .select("id")
+            .eq("owner_id", user.id)
+            .eq("is_active", true);
+          clientIds = (clients ?? []).map((c) => c.id);
+        }
         if (clientIds.length === 0) {
           setSessions([]);
           return;
@@ -103,7 +113,7 @@ export default function USNoticeHome() {
         setLoading(false);
       }
     })();
-  }, [user, toast]);
+  }, [user, clientId, toast]);
 
   function resumeRoute(s: SessionRow): string {
     switch (s.status) {
@@ -128,17 +138,20 @@ export default function USNoticeHome() {
     }
     setCreating(true);
     try {
-      // Find or use the user's primary active client.
-      const { data: clients, error: clientsErr } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("owner_id", user.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: true })
-        .limit(1);
-      if (clientsErr) throw clientsErr;
-      const clientId = clients?.[0]?.id;
-      if (!clientId) {
+      // Prefer the active client; otherwise fall back to the user's primary active client.
+      let targetClientId = clientId;
+      if (!targetClientId) {
+        const { data: clients, error: clientsErr } = await supabase
+          .from("clients")
+          .select("id")
+          .eq("owner_id", user.id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: true })
+          .limit(1);
+        if (clientsErr) throw clientsErr;
+        targetClientId = clients?.[0]?.id ?? null;
+      }
+      if (!targetClientId) {
         toast({
           title: "No client profile found",
           description: "Set up a client profile before starting a notice.",
@@ -150,7 +163,7 @@ export default function USNoticeHome() {
       const { data: created, error: insertErr } = await supabase
         .from("us_notice_sessions")
         .insert({
-          client_id: clientId,
+          client_id: targetClientId,
           status: "in_progress",
         })
         .select("id")
@@ -175,11 +188,16 @@ export default function USNoticeHome() {
   );
   const latestCompleted = sessions.find((s) => s.status === "completed");
 
+  const heading =
+    isMultiClient && clientName
+      ? `US Privacy Notices — ${clientName}`
+      : "US Privacy Notice Builder";
+
   if (loading) {
     return (
       <USNoticeShell
         title="US Privacy Notice Builder — End User Privacy"
-        heading="US Privacy Notice Builder"
+        heading={heading}
       >
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-32 w-full" />
@@ -190,7 +208,7 @@ export default function USNoticeHome() {
   return (
     <USNoticeShell
       title="US Privacy Notice Builder — End User Privacy"
-      heading="US Privacy Notice Builder"
+      heading={heading}
     >
       <p className="text-muted-foreground mb-2 max-w-3xl">
         Build state-by-state privacy notices that match your data practices and the laws

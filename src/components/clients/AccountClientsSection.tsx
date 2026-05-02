@@ -355,19 +355,51 @@ interface ToolStatus {
 
 export function ComplianceDocumentsSection() {
   const clients = useClientStore((s) => s.clients);
-  // For now, future tables (ropa_sessions, us_notice_sessions, eu_notice_sessions)
-  // are not present, so we surface "Not yet generated" for all entries.
-  const [status] = useState<ToolStatus>({
+  const [status, setStatus] = useState<ToolStatus>({
     ropa: { latestVersion: null, latestDate: null },
     usNotices: { stateCount: 0, latestDate: null },
     euNotices: { frameworkCount: 0, latestDate: null },
   });
+  const [usNoticesAvailable, setUsNoticesAvailable] = useState(true);
 
-  // Hook for future use — quietly query if tables exist later.
   useEffect(() => {
     if (clients.length === 0) return;
-    // Future: loop over clients and try ropa_sessions, etc.
-    // safeCount() above handles missing tables gracefully.
+    const clientIds = clients.map((c) => c.id);
+    (async () => {
+      // Wrap us_notice_documents lookup in try/catch in case the table is not yet created.
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: sessions, error: sessErr } = await (supabase as any)
+          .from('us_notice_sessions')
+          .select('id, completed_at, status')
+          .in('client_id', clientIds)
+          .eq('status', 'completed')
+          .order('completed_at', { ascending: false, nullsFirst: false });
+        if (sessErr) {
+          setUsNoticesAvailable(false);
+          return;
+        }
+        const sessionRows = sessions ?? [];
+        if (sessionRows.length === 0) return;
+        const latestSessionId = sessionRows[0].id;
+        const latestDate = sessionRows[0].completed_at ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count, error: stateErr } = await (supabase as any)
+          .from('us_notice_state_selections')
+          .select('id', { count: 'exact', head: true })
+          .eq('session_id', latestSessionId);
+        if (stateErr) {
+          setUsNoticesAvailable(false);
+          return;
+        }
+        setStatus((prev) => ({
+          ...prev,
+          usNotices: { stateCount: count ?? 0, latestDate },
+        }));
+      } catch {
+        setUsNoticesAvailable(false);
+      }
+    })();
   }, [clients]);
 
   function row(label: string, value: string, href: string) {
@@ -400,10 +432,12 @@ export function ComplianceDocumentsSection() {
         )}
         {row(
           'US Privacy Notices',
-          status.usNotices.stateCount > 0
+          !usNoticesAvailable
+            ? 'Not yet available'
+            : status.usNotices.stateCount > 0
             ? `${status.usNotices.stateCount} states`
             : 'Not yet generated',
-          '/clients'
+          '/us-notices'
         )}
         {row(
           'EU & Global Notices',
