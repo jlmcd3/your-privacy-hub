@@ -379,6 +379,10 @@ export default function USNoticeStates() {
             </div>
           </section>
 
+          <p className="text-xs text-muted-foreground text-center mb-24">
+            Answering questions is free · Notices from $12
+          </p>
+
           {/* Sticky bottom bar */}
           <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur px-4 py-3">
             <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-4">
