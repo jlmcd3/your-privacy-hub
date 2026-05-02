@@ -473,6 +473,26 @@ export default function USNoticeStates() {
           </div>
         </>
       )}
+      <Dialog open={floridaGateOpen} onOpenChange={setFloridaGateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Does Florida's FDBR apply to you?</DialogTitle>
+            <DialogDescription className="pt-2">
+              Florida's Digital Bill of Rights applies only to controllers with
+              over <strong>$1 billion in global annual revenue</strong> AND
+              specific data processing thresholds. Does this describe your business?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => handleFloridaGate(false)}>
+              No — skip Florida
+            </Button>
+            <Button onClick={() => handleFloridaGate(true)}>
+              Yes — include Florida
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </USNoticeShell>
   );
 }
