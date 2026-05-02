@@ -220,13 +220,15 @@ export default function USNoticeStates() {
       return;
     }
 
-    navigate(`/us-notices/questions/${sessionId}`);
+    navigate(`/us-notices/${sessionId}/questions`);
   }
 
   return (
     <USNoticeShell
       title="Select States — US Notice Builder"
       heading="Which states do your customers live in?"
+      step="states"
+      sessionId={sessionId}
     >
       <p className="text-muted-foreground text-base mb-8 max-w-2xl">
         Select all that apply. We'll generate a separate notice for each, optimised

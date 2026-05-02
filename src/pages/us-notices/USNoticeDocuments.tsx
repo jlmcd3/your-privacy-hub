@@ -213,6 +213,8 @@ export default function USNoticeDocuments() {
       <USNoticeShell
         title="My US Privacy Notices — End User Privacy"
         heading="My US privacy notices"
+        step="documents"
+        sessionId={sessionId}
       >
         <Skeleton className="h-24 w-full mb-6" />
         <Skeleton className="h-64 w-full" />
@@ -224,6 +226,8 @@ export default function USNoticeDocuments() {
     <USNoticeShell
       title="My US Privacy Notices — End User Privacy"
       heading="My US privacy notices"
+      step="documents"
+      sessionId={sessionId}
     >
       <p className="text-muted-foreground mb-8 max-w-3xl">
         Download your generated notices below. Each state-specific notice reflects the

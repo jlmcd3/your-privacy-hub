@@ -115,13 +115,14 @@ export default function USNoticeMode() {
       return;
     }
 
-    navigate(`/us-notices/states/${data.id}`);
+    navigate(`/us-notices/${data.id}/states`);
   }
 
   return (
     <USNoticeShell
       title="Choose Your Path — US Notice Builder"
       heading="US Privacy Notice Builder"
+      step="mode"
     >
       <p className="text-muted-foreground text-base mb-2">
         Choose how you'd like to start.
