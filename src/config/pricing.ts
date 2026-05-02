@@ -179,6 +179,119 @@ export const PRICING_REGISTRY = {
     addonReason: "subscriber_discount",
     active: true,
   },
+
+  // ── EU & Global Privacy Notice ─────────────────────────────────────────
+  eu_notice_single_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_single_standalone",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Single Framework (Standalone)",
+    description:
+      "One framework-specific privacy notice (GDPR, UK GDPR, FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA, AU Privacy, PIPA, PDPA, or PDPL).",
+    amountCents: 4500,
+    currency: "usd",
+    displayPrice: "$45",
+    displaySuffix: " per framework",
+    active: true,
+  },
+  eu_notice_single_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_single_subscriber",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Single Framework (Intelligence subscriber)",
+    description:
+      "Subscriber rate for one framework-specific privacy notice. Requires active Intelligence subscription.",
+    amountCents: 1900,
+    currency: "usd",
+    displayPrice: "$19",
+    displaySuffix: " per framework",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  eu_notice_suite_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_suite_standalone",
+    productKey: "eu_notice",
+    productName: "EU Notice Suite — GDPR + UK GDPR + Swiss FADP (Standalone)",
+    description:
+      "EU GDPR, UK GDPR, and Swiss FADP — three notices covering most EU-facing businesses.",
+    amountCents: 14900,
+    currency: "usd",
+    displayPrice: "$149",
+    displaySuffix: " flat",
+    active: true,
+  },
+  eu_notice_suite_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_suite_subscriber",
+    productKey: "eu_notice",
+    productName: "EU Notice Suite (Intelligence subscriber)",
+    description:
+      "Subscriber rate for the EU + UK + Swiss notice suite. Requires active Intelligence subscription.",
+    amountCents: 6500,
+    currency: "usd",
+    displayPrice: "$65",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  eu_notice_full_international_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_full_international_standalone",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Full International (Standalone)",
+    description:
+      "All 12 supported global frameworks. One session, 12 notices, plus a combined international notice.",
+    amountCents: 22900,
+    currency: "usd",
+    displayPrice: "$229",
+    displaySuffix: " flat",
+    active: true,
+  },
+  eu_notice_full_international_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_full_international_subscriber",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Full International (Intelligence subscriber)",
+    description:
+      "Subscriber rate for the full international suite. Requires active Intelligence subscription.",
+    amountCents: 9900,
+    currency: "usd",
+    displayPrice: "$99",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  eu_notice_refresh_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_refresh_standalone",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Annual Refresh (Standalone)",
+    description: "Annual refresh of an existing EU/global notice set.",
+    amountCents: 3500,
+    currency: "usd",
+    displayPrice: "$35",
+    displaySuffix: " flat",
+    active: true,
+  },
+  eu_notice_refresh_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_refresh_subscriber",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Annual Refresh (Intelligence subscriber)",
+    description:
+      "Subscriber rate for an annual EU/global notice refresh. Requires active Intelligence subscription.",
+    amountCents: 1900,
+    currency: "usd",
+    displayPrice: "$19",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
 } as const satisfies Record<string, PriceEntry>;
 
 export type PriceLookupKey = keyof typeof PRICING_REGISTRY;
@@ -226,4 +339,16 @@ export const US_NOTICE_PRICING = {
   singleSubscriber: () => getPrice("us_notice_single_subscriber").displayPrice,   // "$12"
   allStatesStandalone: () => getPrice("us_notice_all_standalone").displayPrice,   // "$59"
   allStatesSubscriber: () => getPrice("us_notice_all_subscriber").displayPrice,   // "$29"
+} as const;
+
+/** EU & Global Notice price helpers — derived from the registry, never hardcode. */
+export const EU_NOTICE_PRICING = {
+  singleStandalone: () => getPrice("eu_notice_single_standalone").displayPrice,                       // "$45"
+  singleSubscriber: () => getPrice("eu_notice_single_subscriber").displayPrice,                       // "$19"
+  suiteStandalone: () => getPrice("eu_notice_suite_standalone").displayPrice,                         // "$149"
+  suiteSubscriber: () => getPrice("eu_notice_suite_subscriber").displayPrice,                         // "$65"
+  fullInternationalStandalone: () => getPrice("eu_notice_full_international_standalone").displayPrice, // "$229"
+  fullInternationalSubscriber: () => getPrice("eu_notice_full_international_subscriber").displayPrice, // "$99"
+  refreshStandalone: () => getPrice("eu_notice_refresh_standalone").displayPrice,                     // "$35"
+  refreshSubscriber: () => getPrice("eu_notice_refresh_subscriber").displayPrice,                     // "$19"
 } as const;
