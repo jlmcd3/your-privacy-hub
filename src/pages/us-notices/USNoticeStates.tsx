@@ -151,7 +151,16 @@ export default function USNoticeStates() {
     [grouped.virginia, selected],
   );
 
+  // Florida gate state: null = not asked, true = passed gate, false = explicitly excluded.
+  const [floridaGateAnswered, setFloridaGateAnswered] = useState<boolean | null>(null);
+  const [floridaGateOpen, setFloridaGateOpen] = useState(false);
+
   function toggle(code: string) {
+    // Florida applicability gate — $1B+ revenue threshold.
+    if (code === "FL" && !selected.has(code) && floridaGateAnswered !== true) {
+      setFloridaGateOpen(true);
+      return;
+    }
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(code)) {
@@ -166,6 +175,18 @@ export default function USNoticeStates() {
       }
       return next;
     });
+  }
+
+  function handleFloridaGate(include: boolean) {
+    setFloridaGateAnswered(include);
+    setFloridaGateOpen(false);
+    if (include) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.add("FL");
+        return next;
+      });
+    }
   }
 
   function loadObligations() {
