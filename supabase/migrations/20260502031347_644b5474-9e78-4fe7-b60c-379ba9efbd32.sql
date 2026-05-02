@@ -1,0 +1,1 @@
+DELETE FROM public.eu_notice_answers WHERE session_id='89b2de9c-17a3-4932-b83a-40f4bab500d1';
