@@ -190,7 +190,15 @@ const JurisdictionPage = () => {
       // "united-kingdom", "us-federal"), so we must match against the slug —
       // not the display name — for `direct_jurisdictions` / `affected_jurisdictions`.
       const enrichmentSlug = nameLower.replace(/\s+/g, "-");
-      const enrichmentMatchValues = Array.from(new Set([enrichmentSlug, nameLower, name]));
+      const ENRICHMENT_ALIASES: Record<string, string[]> = {
+        "european-union": ["eu"],
+        "united-states": ["us-federal", "us"],
+        "united-kingdom": ["uk"],
+      };
+      const aliases = ENRICHMENT_ALIASES[enrichmentSlug] ?? [];
+      const enrichmentMatchValues = Array.from(
+        new Set([enrichmentSlug, nameLower, name, ...aliases])
+      );
       const authorityTerms = jurisdiction.authorities
         .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
       const allTerms = [nameLower, ...authorityTerms];
