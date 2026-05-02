@@ -162,4 +162,55 @@ export const STATE_SPECIFIC_QUESTIONS: Question[] = [
       },
     ],
   },
+
+  // ----- Florida (FDBR) — only loaded when user passes the $1B+ revenue gate -----
+  {
+    key: "fl_biometric",
+    text: "Do you collect biometric data from Florida consumers?",
+    whyWeAsk:
+      "The Florida Digital Bill of Rights treats biometric data as sensitive and requires opt-in consent before processing. [Fla. Stat. § 501.702(31)]",
+    type: "yes_no",
+    isRequired: true,
+    jurisdictionOnly: ["US_FL"],
+    flagIf: [
+      {
+        operator: "equals",
+        value: "yes",
+        flagType: "high_risk_activity",
+        severity: "warning",
+        message: "Biometric processing requires opt-in consent under FDBR.",
+        consequence:
+          "Florida requires opt-in consent for biometric data and specific disclosures in the notice.",
+      },
+    ],
+  },
+  {
+    key: "fl_profiling_opt_out",
+    text: "Do you process personal data for profiling that produces legal or similarly significant effects on Florida consumers?",
+    whyWeAsk:
+      "FDBR grants Florida residents the right to opt out of profiling with significant effects. The notice must describe this right and how to exercise it. [Fla. Stat. § 501.705(1)(e)]",
+    type: "yes_no",
+    isRequired: true,
+    jurisdictionOnly: ["US_FL"],
+  },
+  {
+    key: "fl_known_children",
+    text: "Do you knowingly process personal data of Florida residents under 18?",
+    whyWeAsk:
+      "FDBR includes heightened obligations for known minors, including restrictions on targeted advertising and data sales. [Fla. Stat. § 501.71]",
+    type: "yes_no",
+    isRequired: true,
+    jurisdictionOnly: ["US_FL"],
+    flagIf: [
+      {
+        operator: "equals",
+        value: "yes",
+        flagType: "high_risk_activity",
+        severity: "warning",
+        message: "Known-minor processing triggers FDBR minor protections.",
+        consequence:
+          "Florida prohibits targeted advertising, sale, and most profiling of known minors without consent.",
+      },
+    ],
+  },
 ];
