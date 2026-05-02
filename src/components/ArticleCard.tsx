@@ -534,14 +534,13 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
       <div className="px-4 py-3">
         <div className="flex gap-3 mb-3">
-          {item.image_url && (
-            <img
-              src={item.image_url}
-              alt=""
-              className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-          )}
+          <img
+            src={item.image_url || EUP_TILE}
+            alt=""
+            loading="lazy"
+            className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
+            onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+          />
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
