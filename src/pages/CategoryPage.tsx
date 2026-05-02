@@ -63,15 +63,11 @@ const categoryMeta: Record<string, { title: string; icon: string; description: s
   },
 };
 
-const FALLBACK_IMAGES: Record<string, string> = {
-  "us-federal": "https://picsum.photos/seed/federal-law/400/200",
-  "us-states": "https://picsum.photos/seed/state-capitol/400/200",
-  "eu-uk": "https://picsum.photos/seed/european-union/400/200",
-  "global": "https://picsum.photos/seed/global-privacy/400/200",
-  "enforcement": "https://picsum.photos/seed/legal-court/400/200",
-  "ai-privacy": "https://picsum.photos/seed/artificial-intelligence/400/200",
-  "adtech": "https://picsum.photos/seed/advertising-tech/400/200",
-};
+import eupTile from "@/assets/eup-intelligence-tile.jpg";
+
+// Render-time fallback: when an article has no image, show the EUP brand tile.
+// (Curated photo pool is applied at ingestion time via assign-fallback-images.)
+const FALLBACK_IMAGE = eupTile;
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
