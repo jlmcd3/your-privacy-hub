@@ -18,6 +18,7 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   cppa_risk_assessment: { standalone: 149, subscriber: 79, name: "CPPA Risk Assessment — Module 1" },
   cppa_cybersecurity: { standalone: 199, subscriber: 99, name: "CPPA Cybersecurity Readiness — Module 2" },
   cppa_suite: { standalone: 299, subscriber: 149, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
+  dpa_generator: { standalone: 99, subscriber: 49, name: "Your Custom DPA" },
 };
 
 export interface ToolPricing {
@@ -76,6 +77,7 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           cppa_risk_assessment: "cppa_risk_assessment",
           cppa_cybersecurity: "cppa_cybersecurity",
           cppa_suite: "cppa_suite",
+          dpa_generator: "dpa_generator",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 

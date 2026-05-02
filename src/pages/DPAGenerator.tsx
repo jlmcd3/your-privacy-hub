@@ -9,6 +9,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
@@ -31,7 +32,8 @@ const SAMPLE = `1. PARTIES AND RECITALS
 export default function DPAGenerator() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const access = useToolAccess({ standalonePrice: 69, subscriberPrice: 39 });
+  const pricing = useToolPrice("dpa_generator");
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.subscriberPrice });
   const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -158,7 +160,7 @@ export default function DPAGenerator() {
               onClick={handlePurchase}
               className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all"
             >
-              {access.priceLabel}
+              {access.isFreeForUser ? "Generate — Free" : `Generate — $${pricing.price}`}
             </button>
           </div>
         )}
