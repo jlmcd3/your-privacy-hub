@@ -9,7 +9,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
-import usStates from "@/data/us_state_privacy_authorities.json";
+import usStatesRaw from "@/data/us_state_privacy_authorities.json";
+import { useStateLawOverrides, applyOverride } from "@/hooks/useStateLawOverrides";
 
 const RELATED_LINKS = [
   { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
