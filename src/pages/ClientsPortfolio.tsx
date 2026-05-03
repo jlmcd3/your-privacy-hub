@@ -268,11 +268,15 @@ export default function ClientsPortfolio() {
   const isLoadingClients = useClientStore((s) => s.isLoading);
   const loadClients = useClientStore((s) => s.loadClients);
   const setActiveClient = useClientStore((s) => s.setActiveClient);
+  const deleteClient = useClientStore((s) => s.deleteClient);
+  const { toast } = useToast();
 
   const [counts, setCounts] = useState<Record<string, PerClientCounts>>({});
   const [countsLoading, setCountsLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showGate, setShowGate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Client | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadClients();
