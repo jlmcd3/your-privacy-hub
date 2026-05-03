@@ -149,7 +149,14 @@ const PillarPage = ({
             {icon} Intelligence Guide
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">{title}</h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">{subtitle}</p>
+          {subtitleHtml ? (
+            <p
+              className="text-sm md:text-base text-slate-light max-w-[700px] [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
+              dangerouslySetInnerHTML={{ __html: subtitleHtml }}
+            />
+          ) : (
+            <p className="text-sm md:text-base text-slate-light max-w-[700px]">{subtitle}</p>
+          )}
           <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated}</div>
 
           {/* Stat bar */}
