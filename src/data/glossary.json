@@ -374,9 +374,11 @@
       {
         "label": "Commission Implementing Decision (EU) 2021/914",
         "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32021D0914"
-      },
+      }
+    ],
+    "additionalLinks": [
       {
-        "label": "SCC text (Annex)",
+        "label": "Standard Contract Clauses",
         "url": "https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en"
       }
     ]
