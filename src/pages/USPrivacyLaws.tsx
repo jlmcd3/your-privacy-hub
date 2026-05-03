@@ -233,8 +233,8 @@ const USPrivacyLaws = () => {
           onClick={() => scrollTo("recent-developments")}
           className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-sky/10 to-navy/5 border border-sky/30 hover:border-sky/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
         >
-          <span className="text-[13px] md:text-[14px] text-foreground">
-            <span className="font-semibold text-navy">New:</span> See the latest U.S. privacy regulatory developments and enforcement actions.
+          <span className="text-[13px] md:text-[14px] text-foreground font-bold">
+            See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
           <span className="text-[12px] font-semibold text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform">
             Jump to Recent Developments →
