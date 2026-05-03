@@ -278,8 +278,6 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              </>
-              }
               {/* removed: My Clients link + ClientSwitcher */}
               {!isPremium && (
                 <Link
