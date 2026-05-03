@@ -294,7 +294,7 @@ export default function ClientsPortfolio() {
 
   function handleOpen(c: Client) {
     setActiveClient(c);
-    navigate('/dashboard');
+    navigate('/clients');
   }
 
   function handleOpenUsNotices(c: Client) {
