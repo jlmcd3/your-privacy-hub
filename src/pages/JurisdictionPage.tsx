@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useStateLawOverrides } from "@/hooks/useStateLawOverrides";
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
