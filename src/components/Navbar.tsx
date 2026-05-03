@@ -145,6 +145,7 @@ const navItems: NavItem[] = [
           { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy" },
           { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy" },
           { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
+          { icon: "📖", label: "Key Privacy Terms", href: "/glossary" },
         ],
       },
     ],
