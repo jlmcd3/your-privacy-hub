@@ -86,6 +86,29 @@ const GlossaryTerm = () => {
               return term.source;
             })()}
           </p>
+          {(() => {
+            const t = term as typeof term & {
+              additionalLinks?: Array<{ label: string; url: string }>;
+            };
+            if (!Array.isArray(t.additionalLinks) || t.additionalLinks.length === 0) return null;
+            return (
+              <div className="mt-2 space-y-1">
+                {t.additionalLinks.map((link, i) => (
+                  <p key={i} className="text-xs text-muted-foreground italic">
+                    {link.label}:{" "}
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary no-underline hover:underline"
+                    >
+                      {link.url}
+                    </a>
+                  </p>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
