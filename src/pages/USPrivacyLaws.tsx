@@ -378,9 +378,12 @@ const USPrivacyLaws = () => {
                       {state.authority_type}
                     </div>
                     {state.statute_name && (
-                      <div className="text-[12px] italic text-navy/80 leading-snug mb-2">
+                      <Link
+                        to={`/jurisdiction/${slugify(state.state)}`}
+                        className="block text-[12px] italic text-blue hover:text-navy no-underline leading-snug mb-2"
+                      >
                         {state.statute_name}
-                      </div>
+                      </Link>
                     )}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium">
                       <a
@@ -391,16 +394,6 @@ const USPrivacyLaws = () => {
                       >
                         Site ↗
                       </a>
-                      {state.regulations_url && (
-                        <a
-                          href={state.regulations_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue hover:text-navy no-underline"
-                        >
-                          {state.regulations_name || "Regulations"} ↗
-                        </a>
-                      )}
                       {(status === "Enacted" || status === "Pending") && (
                         <Link
                           to="/compare/us-states"
