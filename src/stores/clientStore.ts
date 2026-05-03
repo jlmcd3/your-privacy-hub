@@ -122,6 +122,24 @@ export const useClientStore = create<ClientStore>()(
         });
       },
 
+      deleteClient: async (id) => {
+        const { error } = await supabase
+          .from('clients')
+          .delete()
+          .eq('id', id);
+        if (error) throw new Error(error.message);
+        set((state) => {
+          const remaining = state.clients.filter((c) => c.id !== id);
+          return {
+            clients: remaining,
+            activeClient:
+              state.activeClient?.id === id
+                ? remaining[0] ?? null
+                : state.activeClient,
+          };
+        });
+      },
+
       getActiveClientId: () => get().activeClient?.id ?? null,
     }),
     {
