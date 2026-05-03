@@ -11,7 +11,7 @@
 //   - Account is the fallback: it highlights only when no workspace tab matched.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, FileCheck, Bookmark, Settings } from "lucide-react";
+import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
