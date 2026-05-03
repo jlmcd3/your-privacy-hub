@@ -401,8 +401,55 @@ export default function ClientsPortfolio() {
               loading={countsLoading && !counts[c.id]}
               onOpen={() => handleOpen(c)}
               onOpenUsNotices={() => handleOpenUsNotices(c)}
+              onDelete={() => setConfirmDelete(c)}
             />
           ))}
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-card border border-fog rounded-xl shadow-eup-md max-w-md w-full p-5">
+            <h3 className="text-lg font-bold text-navy mb-2">
+              Delete {confirmDelete.name}?
+            </h3>
+            <p className="text-sm text-slate mb-4">
+              This will permanently remove <strong>{confirmDelete.name}</strong> and
+              all associated documents. This cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleting}
+                className="text-sm px-3 py-1.5 border border-fog rounded-md bg-card text-slate"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirmDelete) return;
+                  setDeleting(true);
+                  try {
+                    await deleteClient(confirmDelete.id);
+                    toast({ title: 'Client deleted' });
+                    setConfirmDelete(null);
+                  } catch (err) {
+                    toast({
+                      title: 'Delete failed',
+                      description: err instanceof Error ? err.message : 'Unknown error',
+                      variant: 'destructive',
+                    });
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+                className="text-sm px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-50"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
