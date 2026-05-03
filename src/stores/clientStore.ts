@@ -26,7 +26,6 @@ interface ClientStore {
     id: string,
     updates: Partial<Pick<Client, 'name' | 'sector' | 'notes'>>
   ) => Promise<void>;
-  archiveClient: (id: string) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   getActiveClientId: () => string | null;
 }
@@ -102,24 +101,6 @@ export const useClientStore = create<ClientStore>()(
               ? { ...state.activeClient, ...updates }
               : state.activeClient,
         }));
-      },
-
-      archiveClient: async (id) => {
-        const { error } = await supabase
-          .from('clients')
-          .update({ is_active: false })
-          .eq('id', id);
-        if (error) throw new Error(error.message);
-        set((state) => {
-          const remaining = state.clients.filter((c) => c.id !== id);
-          return {
-            clients: remaining,
-            activeClient:
-              state.activeClient?.id === id
-                ? remaining[0] ?? null
-                : state.activeClient,
-          };
-        });
       },
 
       deleteClient: async (id) => {
