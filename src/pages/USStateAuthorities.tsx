@@ -33,6 +33,9 @@ const USStateAuthorities = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  const overrides = useStateLawOverrides();
+  const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
+
   const filtered = usStates.filter((state: any) => {
     const matchesSearch = !searchTerm || 
       state.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
