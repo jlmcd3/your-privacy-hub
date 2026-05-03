@@ -236,7 +236,7 @@ const USPrivacyLaws = () => {
           <span className="text-[13px] md:text-[14px] text-foreground font-bold">
             See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
-          <span className="text-[12px] font-semibold text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform">
+          <span className="text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
             Jump to Recent Developments →
           </span>
         </button>
