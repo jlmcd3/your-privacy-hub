@@ -20,7 +20,7 @@ function safeCount(table: string, clientId: string) {
 
 function ClientRow({ client }: { client: Client }) {
   const updateClient = useClientStore((s) => s.updateClient);
-  const archiveClient = useClientStore((s) => s.archiveClient);
+  const deleteClient = useClientStore((s) => s.deleteClient);
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
