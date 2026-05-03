@@ -87,10 +87,6 @@ export default function CPPACybersecurity() {
       return;
     }
     if (!user) { setAuthGateOpen(true); return; }
-    if (!pricing.stripeConfigured) {
-      toast({ title: "Payments unavailable", description: "Payments are not yet configured.", variant: "destructive" });
-      return;
-    }
     setCheckoutOpen(true);
   };
 
