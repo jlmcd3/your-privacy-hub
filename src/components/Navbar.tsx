@@ -464,6 +464,8 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    <ClientContextBar />
+    </>
   );
 };
 
