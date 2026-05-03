@@ -13,7 +13,7 @@ const SECTIONS = [
   },
   {
     heading: "Texas & Washington Biometric Laws",
-    content: `**Texas CUBI (Tex. Bus. & Com. Code § 503.001):** Enacted in 2009, Texas prohibits capturing biometric identifiers for commercial purposes without informed consent. Unlike BIPA, enforcement was limited to the Attorney General — until 2024, when AG Ken Paxton secured a **$1.4B settlement from Meta** for unauthorized facial recognition data collection through Facebook's tag suggestions feature.\n\n**Washington Biometric Privacy (RCW 19.375):** Washington's 2017 law prohibits enrolling biometric identifiers in a database for a commercial purpose without consent. It does not include a private right of action, relying on AG enforcement and the state Consumer Protection Act.`,
+    content: `**Texas CUBI (<a href="https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm" target="_blank" rel="noopener noreferrer">Tex. Bus. & Com. Code § 503.001</a>):** Enacted in 2009, Texas prohibits capturing biometric identifiers for commercial purposes without informed consent. Unlike BIPA, enforcement was limited to the Attorney General — until 2024, when AG Ken Paxton secured a **$1.4B settlement from Meta** for unauthorized facial recognition data collection through Facebook's tag suggestions feature.\n\n**Washington Biometric Privacy (<a href="https://app.leg.wa.gov/rcw/default.aspx?cite=19.375" target="_blank" rel="noopener noreferrer">RCW 19.375</a>):** Washington's 2017 law prohibits enrolling biometric identifiers in a database for a commercial purpose without consent. It does not include a private right of action, relying on AG enforcement and the state Consumer Protection Act.`,
   },
   {
     heading: "Comprehensive Privacy Laws & Biometric Data",
