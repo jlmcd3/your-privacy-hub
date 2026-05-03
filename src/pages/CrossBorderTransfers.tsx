@@ -46,6 +46,7 @@ export default function CrossBorderTransfersPage() {
       <PillarPage
         title="Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules"
         subtitle="The definitive reference for privacy professionals on international data transfer mechanisms — from GDPR Chapter V and Standard Contractual Clauses to the EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and Asia-Pacific frameworks."
+        subtitleHtml={`The definitive reference for privacy professionals on international data transfer mechanisms — from <a href="https://gdpr-info.eu/chapter-5-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Chapter V</a> and Standard Contractual Clauses to the EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and Asia-Pacific frameworks.`}
         icon="🌐"
         lastUpdated="March 24, 2026"
         intro="International transfers sit on top of fragile legal foundations — Schrems II reset the world, the DPF could be next. This guide is the working reference for the mechanisms still in force today."
