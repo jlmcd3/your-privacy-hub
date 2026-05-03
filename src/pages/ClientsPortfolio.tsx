@@ -154,12 +154,14 @@ function ClientCard({
   loading,
   onOpen,
   onOpenUsNotices,
+  onDelete,
 }: {
   client: Client;
   counts: PerClientCounts | null;
   loading: boolean;
   onOpen: () => void;
   onOpenUsNotices: () => void;
+  onDelete: () => void;
 }) {
   const total =
     (counts?.liaCount ?? 0) +
@@ -182,12 +184,21 @@ function ClientCard({
             <p className="text-xs text-slate mt-0.5">{client.sector}</p>
           )}
         </div>
-        <button
-          onClick={onOpen}
-          className="text-sm font-semibold text-blue hover:text-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
-        >
-          Open <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onDelete}
+            className="text-xs font-medium text-slate hover:text-red-600 bg-transparent border-none cursor-pointer flex items-center gap-1"
+            aria-label={`Delete ${client.name}`}
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
+          <button
+            onClick={onOpen}
+            className="text-sm font-semibold text-blue hover:text-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
+          >
+            Open <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </header>
 
       {loading ? (
