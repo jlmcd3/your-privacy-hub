@@ -382,7 +382,7 @@ const USPrivacyLaws = () => {
                         {state.statute_name}
                       </div>
                     )}
-                    <div className="flex items-center gap-3 text-[12px] font-medium">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium">
                       <a
                         href={state.website}
                         target="_blank"
@@ -391,15 +391,23 @@ const USPrivacyLaws = () => {
                       >
                         Site ↗
                       </a>
-                      {state.complaint_portal && (
+                      {state.regulations_url && (
                         <a
-                          href={state.complaint_portal}
+                          href={state.regulations_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue hover:text-navy no-underline"
                         >
-                          File ↗
+                          {state.regulations_name || "Regulations"} ↗
                         </a>
+                      )}
+                      {(status === "Enacted" || status === "Pending") && (
+                        <Link
+                          to="/compare/us-states"
+                          className="text-blue hover:text-navy no-underline"
+                        >
+                          Compare ↗
+                        </Link>
                       )}
                     </div>
                   </div>
