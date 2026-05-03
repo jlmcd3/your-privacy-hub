@@ -355,6 +355,18 @@ const JurisdictionPage = () => {
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
       <Navbar />
+      {(() => {
+        const isUSState = jurisdiction.region === "United States" && slug !== "united-states";
+        const crumbHref = isUSState ? "/us-privacy-laws" : "/global-privacy-laws";
+        const crumbLabel = isUSState ? "U.S. Privacy Laws" : "Global Privacy Laws";
+        return (
+          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-[13px] text-slate">
+            <Link to={crumbHref} className="text-blue hover:underline no-underline">{crumbLabel}</Link>
+            <span className="mx-2 text-slate-light">›</span>
+            <span className="text-navy">{jurisdiction.name}</span>
+          </nav>
+        );
+      })()}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-6 md:py-8 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
           <div className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
