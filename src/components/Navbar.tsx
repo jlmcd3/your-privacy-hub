@@ -136,7 +136,7 @@ const navItems: NavItem[] = [
       {
         items: [
           { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
-          { icon: "🏛️", label: "U.S. State Authorities", href: "/us-state-privacy-authorities" },
+          
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "⚖️", label: "GDPR & UK", href: "/gdpr-enforcement" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
