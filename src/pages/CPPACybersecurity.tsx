@@ -176,8 +176,8 @@ export default function CPPACybersecurity() {
               Purchase CPPA Suite — ${suitePricing.price}
             </Button>
           ) : (
-            <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
-              {!pricing.stripeConfigured ? `Payments Coming Soon — $${pricing.price}` : `Run Cybersecurity Readiness — $${pricing.price}`}
+            <Button onClick={handlePurchase}>
+              Run Cybersecurity Readiness — ${pricing.price}
             </Button>
           )}
         </div>
