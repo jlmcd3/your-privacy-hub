@@ -87,10 +87,6 @@ export default function CPPACybersecurity() {
       return;
     }
     if (!user) { setAuthGateOpen(true); return; }
-    if (!pricing.stripeConfigured) {
-      toast({ title: "Payments unavailable", description: "Payments are not yet configured.", variant: "destructive" });
-      return;
-    }
     setCheckoutOpen(true);
   };
 
@@ -176,8 +172,8 @@ export default function CPPACybersecurity() {
               Purchase CPPA Suite — ${suitePricing.price}
             </Button>
           ) : (
-            <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
-              {!pricing.stripeConfigured ? `Payments Coming Soon — $${pricing.price}` : `Run Cybersecurity Readiness — $${pricing.price}`}
+            <Button onClick={handlePurchase}>
+              Run Cybersecurity Readiness — ${pricing.price}
             </Button>
           )}
         </div>
