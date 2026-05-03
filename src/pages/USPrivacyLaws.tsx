@@ -119,6 +119,9 @@ const USPrivacyLaws = () => {
     return () => observers.forEach((o) => o.disconnect());
   }, [recentArticles]);
 
+  const overrides = useStateLawOverrides();
+  const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
+
   const filteredAuthorities = usStates.filter((state: any) => {
     const matchesSearch =
       !authSearch ||
