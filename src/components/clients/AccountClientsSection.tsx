@@ -90,7 +90,7 @@ function ClientRow({ client }: { client: Client }) {
             className="text-xs font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer flex items-center gap-1"
             disabled={busy}
           >
-            <Archive className="w-3 h-3" /> Archive
+            <Trash2 className="w-3 h-3" /> Delete
           </button>
         </div>
       </div>
