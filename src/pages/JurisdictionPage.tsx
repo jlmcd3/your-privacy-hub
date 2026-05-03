@@ -436,6 +436,9 @@ const JurisdictionPage = () => {
               )}
               <div className="mt-3 flex gap-4 flex-wrap">
                 <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Official Website ↗</a>
+                {(auth as any).regulations_url && (
+                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
+                )}
                 {auth.complaint_portal && (
                   <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Complaint Portal ↗</a>
                 )}
