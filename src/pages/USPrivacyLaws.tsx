@@ -54,14 +54,6 @@ const FEDERAL_AUTHORITIES = [
     authority: "FERPA (20 U.S.C. § 1232g); PPRA",
     website: "https://studentprivacy.ed.gov",
   },
-  {
-    name: "California Privacy Protection Agency",
-    abbr: "CPPA",
-    scope: "For-profit businesses doing business in California meeting CCPA/CPRA thresholds",
-    authority: "CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.)",
-    note: "State agency — listed here given its national compliance impact",
-    website: "https://cppa.ca.gov",
-  },
 ];
 
 const STATUS_STYLE: Record<
