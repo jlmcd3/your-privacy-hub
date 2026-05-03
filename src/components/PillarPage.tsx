@@ -343,7 +343,7 @@ const PillarPage = ({
                 <div id={slug} className="scroll-mt-24">
                   <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
                   <div
-                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line"
+                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
                     dangerouslySetInnerHTML={{
                       __html: sec.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-navy font-semibold">$1</strong>'),
                     }}
