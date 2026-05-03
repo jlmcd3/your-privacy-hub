@@ -348,20 +348,23 @@ const USPrivacyLaws = () => {
             {filteredAuthorities.map((state: any) => {
               const status = state.statute_status || "None";
               const style = getStatusStyle(state.statute_status);
+              const showCompare = status === "Enacted" || status === "Pending";
               return (
                 <div
                   key={state.id}
-                  className="grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
+                  className="relative grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
                 >
+                  <Link
+                    to={`/jurisdiction/${slugify(state.state)}`}
+                    aria-label={`${state.state} jurisdiction page`}
+                    className="absolute inset-0 z-0"
+                  />
                   <div className={`${style.stripe} self-stretch`} aria-hidden="true" />
-                  <div className="px-4 py-3 md:px-5 md:py-4">
+                  <div className="relative z-[1] px-4 py-3 md:px-5 md:py-4 pointer-events-none">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <Link
-                        to={`/jurisdiction/${slugify(state.state)}`}
-                        className="font-display text-[16px] md:text-[17px] leading-tight text-navy hover:text-blue no-underline"
-                      >
+                      <span className="font-display text-[16px] md:text-[17px] leading-tight text-navy">
                         {state.state}
-                      </Link>
+                      </span>
                       <span
                         className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${style.pill}`}
                       >
@@ -378,31 +381,20 @@ const USPrivacyLaws = () => {
                       {state.authority_type}
                     </div>
                     {state.statute_name && (
-                      <Link
-                        to={`/jurisdiction/${slugify(state.state)}`}
-                        className="block text-[12px] italic text-blue hover:text-navy no-underline leading-snug mb-2"
-                      >
+                      <div className="text-[12px] italic text-navy/80 leading-snug mb-2">
                         {state.statute_name}
-                      </Link>
+                      </div>
                     )}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium">
-                      <a
-                        href={state.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue hover:text-navy no-underline"
-                      >
-                        Site ↗
-                      </a>
-                      {(status === "Enacted" || status === "Pending") && (
+                    {showCompare && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium pointer-events-auto">
                         <Link
                           to="/compare/us-states"
-                          className="text-blue hover:text-navy no-underline"
+                          className="relative z-[2] text-blue hover:text-navy no-underline"
                         >
                           Compare ↗
                         </Link>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

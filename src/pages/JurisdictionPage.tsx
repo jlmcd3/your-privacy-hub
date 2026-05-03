@@ -20,7 +20,7 @@ const buildJurisdictionData = () => {
     region: string;
     flag: string;
     overview: string;
-    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_url?: string; statute_status?: string; effective_date?: string; notes?: string; stateName?: string }[];
+    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_url?: string; statute_status?: string; effective_date?: string; regulations_name?: string; regulations_url?: string; notes?: string; stateName?: string }[];
   }> = {};
 
   const regionFlags: Record<string, string> = {
@@ -89,6 +89,8 @@ const buildJurisdictionData = () => {
         statute_url: s.statute_url,
         statute_status: s.statute_status,
         effective_date: s.effective_date,
+        regulations_name: s.regulations_name,
+        regulations_url: s.regulations_url,
         notes: s.notes,
       }],
     };
@@ -434,6 +436,9 @@ const JurisdictionPage = () => {
               )}
               <div className="mt-3 flex gap-4 flex-wrap">
                 <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Official Website ↗</a>
+                {(auth as any).regulations_url && (
+                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
+                )}
                 {auth.complaint_portal && (
                   <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Complaint Portal ↗</a>
                 )}
