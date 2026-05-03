@@ -89,6 +89,8 @@ const buildJurisdictionData = () => {
         statute_url: s.statute_url,
         statute_status: s.statute_status,
         effective_date: s.effective_date,
+        regulations_name: s.regulations_name,
+        regulations_url: s.regulations_url,
         notes: s.notes,
       }],
     };
