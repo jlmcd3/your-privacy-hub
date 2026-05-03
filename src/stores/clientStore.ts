@@ -26,7 +26,6 @@ interface ClientStore {
     id: string,
     updates: Partial<Pick<Client, 'name' | 'sector' | 'notes'>>
   ) => Promise<void>;
-  archiveClient: (id: string) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   getActiveClientId: () => string | null;
 }
