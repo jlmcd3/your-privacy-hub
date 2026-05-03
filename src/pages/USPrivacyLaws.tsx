@@ -343,98 +343,51 @@ const USPrivacyLaws = () => {
             </span>
           </div>
 
-          {/* Full state list */}
-          <div className="flex flex-col gap-2">
+          {/* Compact card grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {filteredAuthorities.map((state: any) => {
               const status = state.statute_status || "None";
               const style = getStatusStyle(state.statute_status);
               return (
                 <div
                   key={state.id}
-                  className="grid grid-cols-[4px_1fr] md:grid-cols-[4px_minmax(160px,190px)_1fr_minmax(160px,240px)_90px_120px] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
+                  className="grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
                 >
                   <div className={`${style.stripe} self-stretch`} aria-hidden="true" />
-
                   <div className="px-4 py-3 md:px-5 md:py-4">
-                    <Link
-                      to={`/jurisdiction/${slugify(state.state)}`}
-                      className="font-display text-[18px] md:text-[20px] leading-tight text-navy hover:text-blue no-underline"
-                    >
-                      {state.state}
-                    </Link>
-                    <div className="text-[10.5px] uppercase tracking-wider text-slate-light mt-0.5">
-                      {style.subtitle(state.effective_date)}
-                    </div>
-                  </div>
-
-                  <div className="hidden md:block py-4 pr-4">
-                    <div className="text-[13px] font-semibold text-navy leading-snug">
-                      {state.authority_name}
-                    </div>
-                    <div className="text-[11.5px] text-slate mt-0.5">
-                      {state.authority_type}
-                    </div>
-                  </div>
-
-                  <div className="hidden md:block py-4 pr-4 text-[13px] italic text-navy/80 leading-snug">
-                    {state.statute_name || (
-                      <span className="text-slate-light not-italic">—</span>
-                    )}
-                  </div>
-
-                  <div className="hidden md:flex py-4 items-center">
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded ${style.pill}`}
-                    >
-                      {status}
-                    </span>
-                  </div>
-
-                  <div className="hidden md:flex py-4 pr-4 items-center gap-3 text-[12px] font-medium">
-                    <a
-                      href={state.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue hover:text-navy no-underline"
-                    >
-                      Site ↗
-                    </a>
-                    {state.complaint_portal && (
-                      <a
-                        href={state.complaint_portal}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue hover:text-navy no-underline"
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <Link
+                        to={`/jurisdiction/${slugify(state.state)}`}
+                        className="font-display text-[16px] md:text-[17px] leading-tight text-navy hover:text-blue no-underline"
                       >
-                        File ↗
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Mobile-only condensed details */}
-                  <div className="md:hidden col-span-2 px-4 pb-3 -mt-2">
-                    <div className="text-[12.5px] font-semibold text-navy leading-snug">
-                      {state.authority_name}
-                    </div>
-                    <div className="text-[11px] text-slate mt-0.5">
-                      {state.authority_type}
-                    </div>
-                    {state.statute_name && (
-                      <div className="text-[12px] italic text-navy/80 mt-1">
-                        {state.statute_name}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3 mt-2">
+                        {state.state}
+                      </Link>
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${style.pill}`}
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${style.pill}`}
                       >
                         {status}
                       </span>
+                    </div>
+                    <div className="text-[10.5px] uppercase tracking-wider text-slate-light mb-2">
+                      {style.subtitle(state.effective_date)}
+                    </div>
+                    <div className="text-[12px] font-semibold text-navy leading-snug">
+                      {state.authority_name}
+                    </div>
+                    <div className="text-[11.5px] text-slate mt-0.5 mb-1.5">
+                      {state.authority_type}
+                    </div>
+                    {state.statute_name && (
+                      <div className="text-[12px] italic text-navy/80 leading-snug mb-2">
+                        {state.statute_name}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 text-[12px] font-medium">
                       <a
                         href={state.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[12px] text-blue no-underline"
+                        className="text-blue hover:text-navy no-underline"
                       >
                         Site ↗
                       </a>
@@ -443,7 +396,7 @@ const USPrivacyLaws = () => {
                           href={state.complaint_portal}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[12px] text-blue no-underline"
+                          className="text-blue hover:text-navy no-underline"
                         >
                           File ↗
                         </a>
