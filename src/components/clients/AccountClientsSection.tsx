@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Lock, Pencil, Archive } from 'lucide-react';
+import { Plus, Lock, Pencil, Trash2 } from 'lucide-react';
 import { useClientStore, type Client } from '@/stores/clientStore';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { SECTORS } from '@/constants/sectors';
