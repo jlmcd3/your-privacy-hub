@@ -150,7 +150,7 @@ const App = () => (
           <BlankScreenDiagnostic />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
+            <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
             <Route path="/enforcement" element={<Enforcement />} />
             <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
