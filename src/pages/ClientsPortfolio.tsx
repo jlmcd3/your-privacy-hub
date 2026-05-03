@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AddClientModal } from '@/components/clients/AddClientModal';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import DashboardSubnav from '@/components/dashboard/DashboardSubnav';
 
 interface PerClientCounts {
   clientId: string;
