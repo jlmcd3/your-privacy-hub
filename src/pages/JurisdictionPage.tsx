@@ -288,9 +288,13 @@ const JurisdictionPage = () => {
       const sortByDate = (arr: any[]) =>
         arr.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
-      setDirectRecent(sortByDate(direct).slice(0, 8));
-      setRegionalRecent(sortByDate(regional).slice(0, 10));
+      const sortedDirect = sortByDate(direct).slice(0, 8);
+      const sortedRegional = sortByDate(regional).slice(0, 10);
+      setDirectRecent(sortedDirect);
+      setRegionalRecent(sortedRegional);
       setArchive(sortByDate(archiveList).slice(0, 20));
+      // Auto-expand "Also relevant" when there's no direct coverage
+      setShowRegional(sortedDirect.length === 0 && sortedRegional.length > 0);
       setDevLoading(false);
 
       // Translate non-English titles in the visible direct tier
@@ -351,6 +355,18 @@ const JurisdictionPage = () => {
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
       <Navbar />
+      {(() => {
+        const isUSState = jurisdiction.region === "United States" && slug !== "united-states";
+        const crumbHref = isUSState ? "/us-privacy-laws" : "/global-privacy-laws";
+        const crumbLabel = isUSState ? "U.S. Privacy Laws" : "Global Privacy Laws";
+        return (
+          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-[13px] text-slate">
+            <Link to={crumbHref} className="text-blue hover:underline no-underline">{crumbLabel}</Link>
+            <span className="mx-2 text-slate-light">›</span>
+            <span className="text-navy">{jurisdiction.name}</span>
+          </nav>
+        );
+      })()}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-6 md:py-8 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
           <div className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
@@ -448,6 +464,86 @@ const JurisdictionPage = () => {
         </div>
 
         <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
+
+        {/* Compliance tools — only for jurisdictions with an enacted law */}
+        {(() => {
+          const isUSState = jurisdiction.region === "United States" && slug !== "united-states";
+          const firstAuth: any = jurisdiction.authorities[0] || {};
+          const usEnacted = isUSState && firstAuth.statute_status === "Enacted";
+          const statuteText = (firstAuth.legislation || "").toLowerCase();
+          const isGdprAligned =
+            !isUSState &&
+            (derivedCategory === "eu-uk" || statuteText.includes("gdpr")) &&
+            !!firstAuth.legislation;
+
+          if (!usEnacted && !isGdprAligned) return null;
+
+          type Tool = { label: string; desc: string; href: string };
+          const tools: Tool[] = [];
+          if (usEnacted) {
+            tools.push({
+              label: "Privacy Program Assessment",
+              desc: "Assess your organisation's privacy programme posture.",
+              href: "/governance-assessment",
+            });
+            tools.push({
+              label: "US Privacy Notice Generator",
+              desc: `Generate a privacy notice that complies with ${jurisdiction.name} and other applicable state laws.`,
+              href: "/us-notices",
+            });
+            if (slug === "california") {
+              tools.push({
+                label: "CPPA Scope Checker",
+                desc: "Find out whether CPPA audit obligations apply to your business.",
+                href: "/cppa-scope-checker",
+              });
+              tools.push({
+                label: "CPPA Risk Assessment",
+                desc: "Build a CPPA-ready privacy risk assessment.",
+                href: "/cppa-risk-assessment",
+              });
+            }
+          } else if (isGdprAligned) {
+            tools.push({
+              label: "EU & Global Privacy Notice Generator",
+              desc: "Generate a GDPR-compliant privacy notice under Article 13/14.",
+              href: "/eu-notices",
+            });
+            tools.push({
+              label: "Legitimate Interest Assessment",
+              desc: "Document your legitimate interest basis before you rely on it.",
+              href: "/li-assessment",
+            });
+            tools.push({
+              label: "DPIA Framework",
+              desc: "Build a Data Protection Impact Assessment under Article 35.",
+              href: "/dpia-framework",
+            });
+          }
+
+          return (
+            <div className="mb-10">
+              <h2 className="font-display text-xl text-navy mb-4">
+                Compliance tools for {jurisdiction.name}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {tools.map((t) => (
+                  <Link
+                    key={t.href}
+                    to={t.href}
+                    className="group block p-4 bg-sky/5 border border-sky/30 rounded-xl hover:border-blue hover:bg-sky/10 transition-colors no-underline"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <span className="font-display text-[15px] text-navy">{t.label}</span>
+                      <span className="text-blue group-hover:translate-x-0.5 transition-transform">→</span>
+                    </div>
+                    <p className="text-[12.5px] text-slate leading-snug">{t.desc}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Top Premium CTA — anonymous only, high-intent SEO traffic */}
         {!user && (
