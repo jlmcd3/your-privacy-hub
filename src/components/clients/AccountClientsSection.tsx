@@ -51,14 +51,14 @@ function ClientRow({ client }: { client: Client }) {
     }
   }
 
-  async function handleArchive() {
+  async function handleDelete() {
     setBusy(true);
     try {
-      await archiveClient(client.id);
-      toast({ title: 'Client archived' });
+      await deleteClient(client.id);
+      toast({ title: 'Client deleted' });
     } catch (err) {
       toast({
-        title: 'Archive failed',
+        title: 'Delete failed',
         description: err instanceof Error ? err.message : 'Unknown error',
         variant: 'destructive',
       });
