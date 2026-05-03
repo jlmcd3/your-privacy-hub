@@ -70,9 +70,13 @@ const ITEMS: Item[] = [
     to: "/account#watchlist",
     label: "Watchlist",
     icon: Bookmark,
-    // Active whenever the user is anchored at the watchlist section,
-    // regardless of which path family they navigated from.
     match: (p, h) => p === "/account" && h === "watchlist",
+  },
+  {
+    to: "/clients",
+    label: "Clients",
+    icon: Building2,
+    match: (p) => p === "/clients" || p.startsWith("/clients/"),
   },
 ];
 
