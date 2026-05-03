@@ -11,7 +11,7 @@
 //   - Account is the fallback: it highlights only when no workspace tab matched.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, FileCheck, Bookmark, Settings } from "lucide-react";
+import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -70,9 +70,13 @@ const ITEMS: Item[] = [
     to: "/account#watchlist",
     label: "Watchlist",
     icon: Bookmark,
-    // Active whenever the user is anchored at the watchlist section,
-    // regardless of which path family they navigated from.
     match: (p, h) => p === "/account" && h === "watchlist",
+  },
+  {
+    to: "/clients",
+    label: "Clients",
+    icon: Building2,
+    match: (p) => p === "/clients" || p.startsWith("/clients/"),
   },
 ];
 

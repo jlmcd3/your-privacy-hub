@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, ArrowRight, Plus, Lock } from 'lucide-react';
+import { Building2, ArrowRight, Plus, Lock, Trash2 } from 'lucide-react';
 import { useClientStore, type Client } from '@/stores/clientStore';
 import { useActiveClient } from '@/hooks/useActiveClient';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { AddClientModal } from '@/components/clients/AddClientModal';
+import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import DashboardSubnav from '@/components/dashboard/DashboardSubnav';
 
 interface PerClientCounts {
   clientId: string;
@@ -152,12 +154,14 @@ function ClientCard({
   loading,
   onOpen,
   onOpenUsNotices,
+  onDelete,
 }: {
   client: Client;
   counts: PerClientCounts | null;
   loading: boolean;
   onOpen: () => void;
   onOpenUsNotices: () => void;
+  onDelete: () => void;
 }) {
   const total =
     (counts?.liaCount ?? 0) +
@@ -180,12 +184,21 @@ function ClientCard({
             <p className="text-xs text-slate mt-0.5">{client.sector}</p>
           )}
         </div>
-        <button
-          onClick={onOpen}
-          className="text-sm font-semibold text-blue hover:text-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
-        >
-          Open <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onDelete}
+            className="text-xs font-medium text-slate hover:text-red-600 bg-transparent border-none cursor-pointer flex items-center gap-1"
+            aria-label={`Delete ${client.name}`}
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
+          <button
+            onClick={onOpen}
+            className="text-sm font-semibold text-blue hover:text-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
+          >
+            Open <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </header>
 
       {loading ? (
@@ -255,11 +268,15 @@ export default function ClientsPortfolio() {
   const isLoadingClients = useClientStore((s) => s.isLoading);
   const loadClients = useClientStore((s) => s.loadClients);
   const setActiveClient = useClientStore((s) => s.setActiveClient);
+  const deleteClient = useClientStore((s) => s.deleteClient);
+  const { toast } = useToast();
 
   const [counts, setCounts] = useState<Record<string, PerClientCounts>>({});
   const [countsLoading, setCountsLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showGate, setShowGate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Client | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -313,6 +330,7 @@ export default function ClientsPortfolio() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
+      <DashboardSubnav />
       <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
@@ -383,8 +401,55 @@ export default function ClientsPortfolio() {
               loading={countsLoading && !counts[c.id]}
               onOpen={() => handleOpen(c)}
               onOpenUsNotices={() => handleOpenUsNotices(c)}
+              onDelete={() => setConfirmDelete(c)}
             />
           ))}
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-card border border-fog rounded-xl shadow-eup-md max-w-md w-full p-5">
+            <h3 className="text-lg font-bold text-navy mb-2">
+              Delete {confirmDelete.name}?
+            </h3>
+            <p className="text-sm text-slate mb-4">
+              This will permanently remove <strong>{confirmDelete.name}</strong> and
+              all associated documents. This cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleting}
+                className="text-sm px-3 py-1.5 border border-fog rounded-md bg-card text-slate"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirmDelete) return;
+                  setDeleting(true);
+                  try {
+                    await deleteClient(confirmDelete.id);
+                    toast({ title: 'Client deleted' });
+                    setConfirmDelete(null);
+                  } catch (err) {
+                    toast({
+                      title: 'Delete failed',
+                      description: err instanceof Error ? err.message : 'Unknown error',
+                      variant: 'destructive',
+                    });
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+                className="text-sm px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-50"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

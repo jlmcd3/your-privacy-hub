@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Lock, Pencil, Archive } from 'lucide-react';
+import { Plus, Lock, Pencil, Trash2 } from 'lucide-react';
 import { useClientStore, type Client } from '@/stores/clientStore';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { SECTORS } from '@/constants/sectors';
@@ -20,7 +20,7 @@ function safeCount(table: string, clientId: string) {
 
 function ClientRow({ client }: { client: Client }) {
   const updateClient = useClientStore((s) => s.updateClient);
-  const archiveClient = useClientStore((s) => s.archiveClient);
+  const deleteClient = useClientStore((s) => s.deleteClient);
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -51,14 +51,14 @@ function ClientRow({ client }: { client: Client }) {
     }
   }
 
-  async function handleArchive() {
+  async function handleDelete() {
     setBusy(true);
     try {
-      await archiveClient(client.id);
-      toast({ title: 'Client archived' });
+      await deleteClient(client.id);
+      toast({ title: 'Client deleted' });
     } catch (err) {
       toast({
-        title: 'Archive failed',
+        title: 'Delete failed',
         description: err instanceof Error ? err.message : 'Unknown error',
         variant: 'destructive',
       });
@@ -90,7 +90,7 @@ function ClientRow({ client }: { client: Client }) {
             className="text-xs font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer flex items-center gap-1"
             disabled={busy}
           >
-            <Archive className="w-3 h-3" /> Archive
+            <Trash2 className="w-3 h-3" /> Delete
           </button>
         </div>
       </div>
@@ -147,27 +147,31 @@ function ClientRow({ client }: { client: Client }) {
       )}
 
       {confirming && (
-        <div className="mt-3 bg-amber-50 border border-amber-200 p-3 rounded-md">
-          <p className="text-sm text-navy mb-2">
-            Archive <strong>{client.name}</strong>? Their documents are retained but this
-            client will no longer appear in your switcher. You can reactivate them from
-            Support.
-          </p>
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => setConfirming(false)}
-              className="text-xs px-3 py-1.5 border border-fog rounded-md bg-card text-slate"
-              disabled={busy}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleArchive}
-              className="text-xs px-3 py-1.5 rounded-md bg-warn text-white font-semibold disabled:opacity-50"
-              disabled={busy}
-            >
-              {busy ? 'Working…' : 'Archive'}
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-card border border-fog rounded-xl shadow-eup-md max-w-md w-full p-5">
+            <h3 className="text-lg font-bold text-navy mb-2">
+              Delete {client.name}?
+            </h3>
+            <p className="text-sm text-slate mb-4">
+              This will permanently remove <strong>{client.name}</strong> and all
+              associated documents. This cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirming(false)}
+                className="text-xs px-3 py-1.5 border border-fog rounded-md bg-card text-slate"
+                disabled={busy}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="text-xs px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-50"
+                disabled={busy}
+              >
+                {busy ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronDown, ChevronRight, Building2 } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ClientSwitcher } from "@/components/clients/ClientSwitcher";
-import { useActiveClient } from "@/hooks/useActiveClient";
+import ClientContextBar from "@/components/ClientContextBar";
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
@@ -157,7 +156,6 @@ const Navbar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isMultiClient } = useActiveClient();
   const [isPremium, setIsPremium] = useState(false);
   const [briefLabel, setBriefLabel] = useState<string | null>(null);
 
@@ -185,6 +183,7 @@ const Navbar = () => {
   }, []);
 
   return (
+    <>
     <nav className="bg-card border-b border-fog sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
@@ -281,15 +280,7 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              {isMultiClient && (
-                <Link
-                  to="/clients"
-                  className="text-[12px] font-semibold text-slate hover:text-navy no-underline transition-colors flex items-center gap-1"
-                >
-                  <Building2 className="w-3.5 h-3.5" /> My Clients
-                </Link>
-              )}
-              <ClientSwitcher />
+              {/* removed: My Clients link + ClientSwitcher */}
               {!isPremium && (
                 <Link
                   to="/subscribe"
@@ -475,6 +466,8 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    <ClientContextBar />
+    </>
   );
 };
 

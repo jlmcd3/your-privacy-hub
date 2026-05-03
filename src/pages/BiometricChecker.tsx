@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
@@ -79,6 +80,7 @@ export default function BiometricChecker() {
         <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Intelligence." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <ActiveClientLabel />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
           <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Intelligence.</p>

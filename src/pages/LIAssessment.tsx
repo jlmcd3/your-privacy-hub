@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -177,6 +178,7 @@ const LIAssessment = () => {
       </div>
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
