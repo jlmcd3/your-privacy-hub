@@ -17,7 +17,7 @@ const SECTIONS = [
   },
   {
     heading: "AI & Health Data: Emerging Obligations",
-    content: `The intersection of AI and health data is creating new compliance challenges:\n\n• **HHS AI Strategy** — Voluntary AI frameworks for healthcare, but expect mandatory requirements by 2027\n• **EU AI Act** — Classifies AI systems used in healthcare as "high-risk," requiring conformity assessments, human oversight, and data governance\n• **State AI Health Laws** — Colorado's AI Act (effective 2026) requires impact assessments for AI systems that make consequential decisions in healthcare\n• **De-identification challenges** — AI training on health data raises questions about whether de-identified data can be re-identified, potentially creating HIPAA compliance risk`,
+    content: `The intersection of AI and health data is creating new compliance challenges:\n\n• **HHS AI Strategy** — Voluntary AI frameworks for healthcare, but expect mandatory requirements by 2027\n• **<a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a>** — Classifies AI systems used in healthcare as "high-risk," requiring conformity assessments, human oversight, and data governance\n• **State AI Health Laws** — <a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">Colorado's AI Act</a> (effective 2026) requires impact assessments for AI systems that make consequential decisions in healthcare\n• **De-identification challenges** — AI training on health data raises questions about whether de-identified data can be re-identified, potentially creating HIPAA compliance risk`,
   },
 ];
 
