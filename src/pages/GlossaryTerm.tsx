@@ -54,7 +54,38 @@ const GlossaryTerm = () => {
         <div className="bg-card border border-border rounded-xl p-6 mb-8">
           <h2 className="text-sm font-semibold text-foreground mb-3">Definition</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">{term.definition}</p>
-          <p className="text-xs text-muted-foreground mt-4 italic">Source: {term.source}</p>
+          <p className="text-xs text-muted-foreground mt-4 italic">
+            Source:{" "}
+            {(() => {
+              const t = term as typeof term & {
+                sourceUrl?: string;
+                sources?: Array<{ label: string; url: string | null }>;
+              };
+              const linkClass = "text-primary no-underline hover:underline";
+              if (Array.isArray(t.sources) && t.sources.length > 0) {
+                return t.sources.map((item, i) => (
+                  <span key={i}>
+                    {i > 0 && " · "}
+                    {item.url ? (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                        {item.label}
+                      </a>
+                    ) : (
+                      item.label
+                    )}
+                  </span>
+                ));
+              }
+              if (typeof t.sourceUrl === "string" && t.sourceUrl) {
+                return (
+                  <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                    {term.source}
+                  </a>
+                );
+              }
+              return term.source;
+            })()}
+          </p>
         </div>
 
         <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
