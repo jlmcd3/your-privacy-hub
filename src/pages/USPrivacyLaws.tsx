@@ -257,38 +257,40 @@ const USPrivacyLaws = () => {
             across U.S. sectors. Each oversees a distinct slice of the privacy
             regulatory landscape.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {FEDERAL_AUTHORITIES.map((a) => (
               <div
                 key={a.abbr}
-                className="bg-card border border-fog rounded-xl p-4 hover:border-navy/30 hover:shadow-eup-sm transition"
+                className="grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
               >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="font-display text-[15px] font-bold text-navy leading-tight">
-                    {a.name}
+                <div className="bg-blue self-stretch" aria-hidden="true" />
+                <div className="px-4 py-3 md:px-5 md:py-4">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="font-display text-[16px] md:text-[17px] leading-tight text-navy">
+                      {a.name}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
+                      {a.abbr}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
-                    {a.abbr}
-                  </span>
+                  <div className="text-[10.5px] uppercase tracking-wider text-slate-light mb-2">
+                    Federal regulator
+                  </div>
+                  <div className="text-[12px] text-slate mb-1.5">
+                    <span className="font-semibold text-navy/80">Scope:</span> {a.scope}
+                  </div>
+                  <div className="text-[12px] italic text-navy/80 mb-2 leading-snug">
+                    {a.authority}
+                  </div>
+                  <a
+                    href={a.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[12px] font-medium text-blue hover:text-navy no-underline"
+                  >
+                    Site ↗
+                  </a>
                 </div>
-                <div className="text-[12px] text-slate mb-1.5">
-                  <span className="font-semibold text-navy/80">Scope:</span> {a.scope}
-                </div>
-                <div className="text-[12px] text-slate mb-2">
-                  <span className="font-semibold text-navy/80">Primary authority:</span>{" "}
-                  {a.authority}
-                </div>
-                {a.note && (
-                  <div className="text-[11px] italic text-slate-light mb-2">{a.note}</div>
-                )}
-                <a
-                  href={a.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[12px] font-semibold text-blue hover:text-navy no-underline"
-                >
-                  Official site ↗
-                </a>
               </div>
             ))}
           </div>
