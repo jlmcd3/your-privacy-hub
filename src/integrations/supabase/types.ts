@@ -1017,6 +1017,24 @@ export type Database = {
         }
         Relationships: []
       }
+      function_run_log: {
+        Row: {
+          function_name: string
+          last_result: Json | null
+          last_run_at: string | null
+        }
+        Insert: {
+          function_name: string
+          last_result?: Json | null
+          last_run_at?: string | null
+        }
+        Update: {
+          function_name?: string
+          last_result?: Json | null
+          last_run_at?: string | null
+        }
+        Relationships: []
+      }
       governance_assessments: {
         Row: {
           client_id: string | null
@@ -3035,6 +3053,90 @@ export type Database = {
           placement?: string | null
           sponsor_name?: string
           starts_at?: string | null
+        }
+        Relationships: []
+      }
+      state_law_overrides: {
+        Row: {
+          authority_name: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          effective_date: string | null
+          state_name: string
+          state_slug: string
+          statute_name: string | null
+          statute_status: string
+          statute_url: string | null
+        }
+        Insert: {
+          authority_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_date?: string | null
+          state_name: string
+          state_slug: string
+          statute_name?: string | null
+          statute_status: string
+          statute_url?: string | null
+        }
+        Update: {
+          authority_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_date?: string | null
+          state_name?: string
+          state_slug?: string
+          statute_name?: string | null
+          statute_status?: string
+          statute_url?: string | null
+        }
+        Relationships: []
+      }
+      state_law_update_candidates: {
+        Row: {
+          confidence: string | null
+          detected_at: string | null
+          detected_authority: string | null
+          detected_effective_date: string | null
+          detected_law_name: string | null
+          detected_statute_url: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_summary: string | null
+          state_name: string
+          state_slug: string
+          status: string
+        }
+        Insert: {
+          confidence?: string | null
+          detected_at?: string | null
+          detected_authority?: string | null
+          detected_effective_date?: string | null
+          detected_law_name?: string | null
+          detected_statute_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_summary?: string | null
+          state_name: string
+          state_slug: string
+          status?: string
+        }
+        Update: {
+          confidence?: string | null
+          detected_at?: string | null
+          detected_authority?: string | null
+          detected_effective_date?: string | null
+          detected_law_name?: string | null
+          detected_statute_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_summary?: string | null
+          state_name?: string
+          state_slug?: string
+          status?: string
         }
         Relationships: []
       }

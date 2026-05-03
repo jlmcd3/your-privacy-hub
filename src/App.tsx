@@ -90,6 +90,7 @@ import AdminArticles from "./pages/AdminArticles.tsx";
 import AdminEmailSignups from "./pages/AdminEmailSignups.tsx";
 import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
+import AdminLawUpdates from "./pages/AdminLawUpdates.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
 import LIAssessmentIntake from "./pages/LIAssessmentIntake.tsx";
 import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";
@@ -319,6 +320,14 @@ const App = () => (
                   <DevOnly fallback={<NotFound />}>
                     <AdminPricingReconciliation />
                   </DevOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/law-updates"
+              element={
+                <ProtectedRoute>
+                  <AdminLawUpdates />
                 </ProtectedRoute>
               }
             />

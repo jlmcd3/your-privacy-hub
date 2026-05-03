@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useStateLawOverrides } from "@/hooks/useStateLawOverrides";
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
@@ -125,7 +126,28 @@ const isLikelyNonEnglish = (text: string): boolean => {
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
-  const staticJurisdiction = slug ? allJurisdictions[slug] : null;
+  const baseJurisdiction = slug ? allJurisdictions[slug] : null;
+  const overrides = useStateLawOverrides();
+  const staticJurisdiction = (() => {
+    if (!baseJurisdiction || !slug) return baseJurisdiction;
+    const ov = overrides.get(slug);
+    if (!ov) return baseJurisdiction;
+    return {
+      ...baseJurisdiction,
+      authorities: baseJurisdiction.authorities.map((a, i) =>
+        i === 0
+          ? {
+              ...a,
+              name: ov.authority_name || a.name,
+              legislation: ov.statute_name || a.legislation,
+              statute_url: ov.statute_url || (a as any).statute_url,
+              statute_status: ov.statute_status || (a as any).statute_status,
+              effective_date: ov.effective_date || (a as any).effective_date,
+            }
+          : a,
+      ),
+    };
+  })();
   const [dbFallback, setDbFallback] = useState<any>(null);
   const [fallbackLoading, setFallbackLoading] = useState(false);
   const jurisdiction = staticJurisdiction || dbFallback;
