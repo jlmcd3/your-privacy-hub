@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, ArrowRight, Plus, Lock } from 'lucide-react';
+import { Building2, ArrowRight, Plus, Lock, Trash2 } from 'lucide-react';
 import { useClientStore, type Client } from '@/stores/clientStore';
 import { useActiveClient } from '@/hooks/useActiveClient';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { AddClientModal } from '@/components/clients/AddClientModal';
+import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DashboardSubnav from '@/components/dashboard/DashboardSubnav';
