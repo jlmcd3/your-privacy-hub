@@ -288,9 +288,13 @@ const JurisdictionPage = () => {
       const sortByDate = (arr: any[]) =>
         arr.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
-      setDirectRecent(sortByDate(direct).slice(0, 8));
-      setRegionalRecent(sortByDate(regional).slice(0, 10));
+      const sortedDirect = sortByDate(direct).slice(0, 8);
+      const sortedRegional = sortByDate(regional).slice(0, 10);
+      setDirectRecent(sortedDirect);
+      setRegionalRecent(sortedRegional);
       setArchive(sortByDate(archiveList).slice(0, 20));
+      // Auto-expand "Also relevant" when there's no direct coverage
+      setShowRegional(sortedDirect.length === 0 && sortedRegional.length > 0);
       setDevLoading(false);
 
       // Translate non-English titles in the visible direct tier
