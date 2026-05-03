@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -107,6 +108,7 @@ export default function CPPACybersecurity() {
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <ActiveClientLabel />
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="text-xl font-semibold">Organisation Profile</h2>
           <div>
