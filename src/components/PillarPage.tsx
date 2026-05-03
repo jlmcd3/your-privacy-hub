@@ -14,6 +14,8 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 interface PillarPageProps {
   title: string;
   subtitle: string;
+  /** Optional HTML version of the subtitle (e.g. with inline links). Used for display only; meta tags still use the plain `subtitle`. */
+  subtitleHtml?: string;
   icon: string;
   lastUpdated: string;
   intro: string;
