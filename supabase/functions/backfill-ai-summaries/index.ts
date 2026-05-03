@@ -294,7 +294,7 @@ Deno.serve(async (req) => {
   // Default 10 per invocation: at ~4s/call this fits comfortably in a single edge function run
   // and keeps each batch's reserved OTPM well below Anthropic's per-minute ceiling.
   const batchSize = Math.min(
-    parseInt(url.searchParams.get("batch") || "10"),
+    parseInt(url.searchParams.get("batch") || "25"),
     100
   );
 
