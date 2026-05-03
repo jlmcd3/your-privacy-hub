@@ -44,6 +44,7 @@ interface PillarPageProps {
 const PillarPage = ({
   title,
   subtitle,
+  subtitleHtml,
   icon,
   lastUpdated,
   intro,
