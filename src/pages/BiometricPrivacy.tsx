@@ -21,7 +21,7 @@ const SECTIONS = [
   },
   {
     heading: "Workplace Biometric Use",
-    content: `Biometric timekeeping, access control, and identity verification in the workplace are among the highest-risk use cases:\n\n• **BIPA litigation** is dominated by workplace claims — fingerprint time clocks, facial recognition entry systems, and palm scanners\n• **EEOC guidance** warns that biometric screening tools may create disparate impact liability under Title VII\n• **ADA considerations** arise when biometric systems fail to accommodate individuals with disabilities\n• **Union considerations** — NLRB has indicated that implementation of biometric monitoring may be a mandatory subject of bargaining`,
+    content: `Biometric timekeeping, access control, and identity verification in the workplace are among the highest-risk use cases:\n\n• **BIPA litigation** is dominated by workplace claims — fingerprint time clocks, facial recognition entry systems, and palm scanners\n• **<a href="https://www.eeoc.gov/artificial-intelligence-and-algorithmic-fairness" target="_blank" rel="noopener noreferrer">EEOC guidance</a>** warns that biometric screening tools may create disparate impact liability under Title VII\n• **ADA considerations** arise when biometric systems fail to accommodate individuals with disabilities\n• **Union considerations** — <a href="https://www.nlrb.gov/" target="_blank" rel="noopener noreferrer">NLRB</a> has indicated that implementation of biometric monitoring may be a mandatory subject of bargaining`,
   },
   {
     heading: "Enforcement & Litigation Trends",
