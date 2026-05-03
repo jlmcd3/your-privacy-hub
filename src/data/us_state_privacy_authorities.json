@@ -70,7 +70,9 @@
     "notes": "CCPA effective January 2020. CPRA amendments effective January 2023. CPPA is the dedicated enforcement authority. AG retains concurrent enforcement authority.",
     "ag_website": "https://oag.ca.gov/privacy",
     "last_updated": "2026-03-01",
-    "statute_url": "https://oag.ca.gov/privacy/ccpa"
+    "statute_url": "https://oag.ca.gov/privacy/ccpa",
+    "regulations_name": "California Privacy Regulations",
+    "regulations_url": "https://cppa.ca.gov/regulations/"
   },
   {
     "id": "us-co",
