@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
-import USStateAuthorities from "./pages/USStateAuthorities.tsx";
+
 import GlobalAuthorities from "./pages/GlobalAuthorities.tsx";
 
 import USPrivacyLaws from "./pages/USPrivacyLaws.tsx";
@@ -150,7 +150,7 @@ const App = () => (
           <BlankScreenDiagnostic />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
+            <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
             <Route path="/enforcement" element={<Enforcement />} />
             <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
