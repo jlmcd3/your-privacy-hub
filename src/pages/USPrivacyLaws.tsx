@@ -176,7 +176,7 @@ const USPrivacyLaws = () => {
         <title>U.S. Privacy Laws — Federal & State Privacy Guide 2026 | End User Privacy</title>
         <meta
           name="description"
-          content="A complete guide to the U.S. privacy regulatory framework — federal enforcement authorities, state-level privacy laws across all 50 states, and the latest regulatory developments."
+          content="A complete guide to the U.S. privacy regulatory framework — federal enforcement authorities, state-level authorities and privacy laws across all 50 states, and the latest regulatory developments."
         />
         <meta property="og:title" content="U.S. Privacy Laws | End User Privacy" />
         <meta
@@ -197,7 +197,7 @@ const USPrivacyLaws = () => {
           </h1>
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">
             A complete guide to the U.S. privacy regulatory framework — federal
-            enforcement authorities, state-level privacy laws across all 50 states,
+            enforcement authorities, state-level authorities and privacy laws across all 50 states,
             and the latest regulatory developments.
           </p>
           <div className="text-[11px] text-slate-light mt-4">
