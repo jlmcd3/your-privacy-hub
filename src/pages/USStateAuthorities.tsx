@@ -93,11 +93,23 @@ const USStateAuthorities = () => {
           <span className="ml-auto text-[12px] text-slate-light">{filtered.length} results</span>
         </div>
 
+        {/* Compare CTA */}
+        <div className="mb-4">
+          <Link
+            to="/compare/us-states"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
+          >
+            Compare enacted state laws side by side →
+          </Link>
+        </div>
+
         {/* Authority list */}
         <div className="flex flex-col gap-2">
           {filtered.map((state: any) => {
             const status = state.statute_status || "None";
             const style = getStatusStyle(state.statute_status);
+            const showView = status === "Enacted" || status === "Pending";
+            const slug = slugify(state.state);
             return (
               <div
                 key={state.id}
@@ -107,8 +119,8 @@ const USStateAuthorities = () => {
 
                 <div className="px-5 py-4">
                   <Link
-                    to={`/jurisdiction/${slugify(state.state)}`}
-                    className="font-display text-[20px] leading-tight text-navy hover:text-blue no-underline"
+                    to={`/jurisdiction/${slug}`}
+                    className="font-display text-[20px] leading-tight text-navy no-underline hover:underline"
                   >
                     {state.state}
                   </Link>
@@ -124,8 +136,21 @@ const USStateAuthorities = () => {
                   <div className="text-[11.5px] text-slate mt-0.5">{state.authority_type}</div>
                 </div>
 
-                <div className="py-4 pr-4 text-[13px] italic text-navy/80 leading-snug">
-                  {state.statute_name || <span className="text-slate-light not-italic">—</span>}
+                <div className="py-4 pr-4 text-[13px] leading-snug">
+                  {state.statute_name && state.statute_url ? (
+                    <a
+                      href={state.statute_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="italic text-blue hover:text-navy no-underline"
+                    >
+                      {state.statute_name} ↗
+                    </a>
+                  ) : state.statute_name ? (
+                    <span className="italic text-navy/80">{state.statute_name}</span>
+                  ) : (
+                    <span className="italic text-slate-light">No statute enacted</span>
+                  )}
                 </div>
 
                 <div className="py-4 flex items-center">
@@ -135,23 +160,13 @@ const USStateAuthorities = () => {
                 </div>
 
                 <div className="py-4 pr-4 flex items-center gap-3 text-[12px] font-medium">
-                  <a
-                    href={state.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue hover:text-navy no-underline"
-                  >
-                    Site ↗
-                  </a>
-                  {state.complaint_portal && (
-                    <a
-                      href={state.complaint_portal}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue hover:text-navy no-underline"
+                  {showView && (
+                    <Link
+                      to={`/jurisdiction/${slug}`}
+                      className="text-blue hover:text-navy no-underline font-semibold"
                     >
-                      File ↗
-                    </a>
+                      View →
+                    </Link>
                   )}
                 </div>
               </div>
