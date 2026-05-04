@@ -335,7 +335,7 @@ export default function Tools() {
               to="/subscribe"
               className="text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline"
             >
-              Subscribe — from $39/month →
+              Subscribe — from {INTELLIGENCE_PRICING.monthlyShort()} →
             </Link>
             <a
               href="#tools"
