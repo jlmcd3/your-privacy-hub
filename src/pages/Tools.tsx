@@ -425,19 +425,19 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Program Assessment Tool", "$49 standalone → $25 subscriber rate"],
-  ["Legitimate Interest Assessment Tool", "$79 standalone → $35 subscriber rate"],
-  ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
-  ["Your Custom DPA", "$69 standalone → $39 subscriber rate"],
-  ["Your Breach Response Playbook", "$59 → Included with Annual Platform"],
-  ["Biometric Privacy Compliance Assessment", "$49 → Included with Annual Platform"],
-  ["RoPA Builder", "$99 → Included with Annual Platform"],
-  ["U.S. Privacy Notice Builder", "$149 → Included with Annual Platform"],
-  ["EU/UK Privacy Notice Builder", "$149 → Included with Annual Platform"],
-  ["CPPA Risk Assessment", "$199 → Subscriber rate (CPPA)"],
-  ["CPPA Cybersecurity Audit", "$249 → Subscriber rate (CPPA)"],
-  ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
-  ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
+  ["Privacy Program Assessment Tool", "$49 standalone → Included with Annual Platform"],
+  ["Legitimate Interest Assessment Tool", "$79 standalone → Included with Annual Platform"],
+  ["Impact Assessment Builder", "$99 standalone → Included with Annual Platform"],
+  ["DPA Generator", "$99 standalone → Included with Annual Platform"],
+  ["IR Playbook", "$59 standalone → Included with Annual Platform"],
+  ["Biometric Privacy Check", "$49 standalone → Included with Annual Platform"],
+  ["RoPA Builder", "$99 standalone → Included with Annual Platform"],
+  ["U.S. Privacy Notice Builder", "$25/state or $59 all states → Included"],
+  ["EU/UK Privacy Notice Builder", "$45/framework or $149 suite → Included"],
+  ["Registration Manager (Annual)", "Standalone rates → Included with Annual Platform"],
+  ["Registration Manager (Monthly sub)", "20% off DIY · $75 off Counsel-Ready"],
+  ["CPPA Risk Assessment", "$199 standalone → $79 subscriber rate"],
+  ["CPPA Cybersecurity Audit", "$199 standalone → $99 subscriber rate"],
 ];
 
 export default function Tools() {
