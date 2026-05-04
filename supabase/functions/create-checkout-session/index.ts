@@ -15,13 +15,14 @@ const corsHeaders = {
 const PLAN_LOOKUPS: Record<string, string> = {
   intelligence_monthly: "intelligence_monthly",
   intelligence_yearly: "intelligence_yearly",
+  intelligence_yearly_founding: "intelligence_yearly_founding",
   // Legacy aliases — all map to the new monthly Professional price.
-  pro: "intelligence_monthly_v2",
-  premium: "intelligence_monthly_v2",
-  standard: "intelligence_monthly_v2",
-  monthly: "intelligence_monthly_v2",
-  yearly: "intelligence_yearly_v2",
-  annual: "intelligence_yearly_v2",
+  pro: "intelligence_monthly",
+  premium: "intelligence_monthly",
+  standard: "intelligence_monthly",
+  monthly: "intelligence_monthly",
+  yearly: "intelligence_yearly",
+  annual: "intelligence_yearly",
 };
 
 // Tool one-time purchases via tool_slug
