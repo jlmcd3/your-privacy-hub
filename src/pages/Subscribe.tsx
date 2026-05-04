@@ -388,12 +388,13 @@ const Subscribe = () => {
                       const cls = color === "platform" ? "text-amber-700" : "text-slate";
                       return <span className={`text-[11px] font-medium ${cls}`}>{val}</span>;
                     };
+                    const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
                     return (
                       <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                        <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{row.feature}</td>
-                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(row.free, "free")}</td>
-                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(row.intel, "intel")}</td>
-                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(row.platform, "platform")}</td>
+                        <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{dataRow.feature}</td>
+                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.free, "free")}</td>
+                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.intel, "intel")}</td>
+                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.platform, "platform")}</td>
                       </tr>
                     );
                   })}
