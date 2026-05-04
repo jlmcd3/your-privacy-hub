@@ -45,6 +45,27 @@ Deno.serve(async (req) => {
         const periodEnd =
           item?.current_period_end ?? sub.current_period_end ?? null;
         const isActive = ["active", "trialing", "past_due"].includes(sub.status);
+
+        // Resolve the lookup key (e.g. "intelligence_yearly_founding") so we
+        // can derive the new subscription_type / founding_subscriber columns.
+        // Prefer Stripe's native lookup_key on the Price; fall back to the
+        // lovable_external_id metadata we stamp via sync-pricing.
+        const lookupKey: string | null =
+          item?.price?.lookup_key ||
+          item?.price?.metadata?.lovable_external_id ||
+          null;
+
+        let subscriptionType: "monthly" | "annual" | "annual_founding" | null = null;
+        let foundingSubscriber: boolean | null = null;
+        if (lookupKey === "intelligence_yearly_founding") {
+          subscriptionType = "annual_founding";
+          foundingSubscriber = true;
+        } else if (lookupKey === "intelligence_yearly") {
+          subscriptionType = "annual";
+        } else if (lookupKey === "intelligence_monthly") {
+          subscriptionType = "monthly";
+        }
+
         await supabase
           .from("profiles")
           .update({
@@ -56,6 +77,11 @@ Deno.serve(async (req) => {
             // Don't flip is_premium off here — only on actual deletion. A
             // canceled-at-period-end sub still has access until period end.
             ...(isActive ? { is_premium: true, payment_failed: false } : {}),
+            ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
+            // Only ever flip founding_subscriber TRUE here — never false, so a
+            // founding subscriber whose price changes for any reason keeps the
+            // perk for life.
+            ...(foundingSubscriber ? { founding_subscriber: true } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_customer_id", sub.customer);

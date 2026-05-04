@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
-import { INTELLIGENCE_PRICING, formatPrice, getPrice } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, formatPrice, getPrice } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
@@ -96,6 +96,21 @@ const Subscribe = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [foundingStatus, setFoundingStatus] = useState<{
+    remainingSlots: number;
+    isAvailable: boolean;
+    usedSlots: number;
+  } | null>(null);
+
+  useEffect(() => {
+    supabase.functions
+      .invoke("get-founding-status")
+      .then(({ data }) => {
+        if (data && typeof data.remainingSlots === "number") setFoundingStatus(data);
+      })
+      .catch(() => setFoundingStatus({ remainingSlots: 500, isAvailable: true, usedSlots: 0 }));
+  }, []);
+
   const toggleTrack = (label: string) =>
     setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
 
@@ -290,13 +305,15 @@ const Subscribe = () => {
       </div>
 
       {/* Founding offer banner */}
-      <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
-        <div className="max-w-[720px] mx-auto text-center">
-          <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Intelligence free for one year, then {INTELLIGENCE_PRICING.combined()}.
-          </p>
+      {foundingStatus?.isAvailable && (
+        <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
+          <div className="max-w-[720px] mx-auto text-center">
+            <p className="text-amber-800 font-semibold text-[14px]">
+              🎁 Founding rate: First 500 annual subscribers lock in {PLATFORM_PRICING.founding()}/yr for life — {foundingStatus.remainingSlots} slots remaining.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Registration Manager mention */}
       <div className="bg-white border-b border-fog py-4 px-4">
@@ -915,19 +932,31 @@ const Subscribe = () => {
             </button>
           </div>
 
-          {/* Annual */}
+          {/* Annual — auto-routes to founding rate ($369/yr) while slots remain */}
           <div className="pricing-card-safe bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border-2 border-amber-400/60 relative flex flex-col">
             <div className="absolute -top-3 right-5 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-              Best Value
+              {foundingStatus?.isAvailable ? "Founding Rate" : "Best Value"}
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
               ⭐ Intelligence Annual
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              {getPrice("intelligence_yearly").displayPrice}<span className="text-lg font-normal text-blue-200">/year</span>
+              {foundingStatus?.isAvailable
+                ? getPrice("intelligence_yearly_founding").displayPrice
+                : getPrice("intelligence_yearly").displayPrice}
+              <span className="text-lg font-normal text-blue-200">/year</span>
             </div>
-            <p className="text-blue-200 text-[12px] mb-4">~$32.50/month — Save $78 (2 months free)</p>
-            <ul className="space-y-2.5 mb-6 flex-1">
+            <p className="text-blue-200 text-[12px] mb-1">
+              {foundingStatus?.isAvailable
+                ? `${PLATFORM_PRICING.foundingMonthly()} equivalent — locked for life`
+                : `${PLATFORM_PRICING.standardMonthly()} equivalent — Save $78 (2 months free)`}
+            </p>
+            {foundingStatus?.isAvailable && (
+              <p className="text-amber-300 text-[11px] font-semibold mb-3">
+                ⚡ {foundingStatus.remainingSlots} founding slots remaining of 500
+              </p>
+            )}
+            <ul className="space-y-2.5 mb-6 flex-1 mt-3">
               {[
                 "Two months free vs. monthly billing",
                 "Weekly Intelligence Brief — curated for privacy professionals",
@@ -953,14 +982,15 @@ const Subscribe = () => {
         </div>
 
         {/* Founding offer */}
-        <div className="max-w-3xl mx-auto mt-6">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-center">
-            <p className="text-[13px] text-amber-800">
-              🎁 <strong>Founding offer:</strong> First 25 subscribers get Intelligence free for one year, then
-              {" "}{INTELLIGENCE_PRICING.combined()}.
-            </p>
+        {foundingStatus?.isAvailable && (
+          <div className="max-w-3xl mx-auto mt-6">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-center">
+              <p className="text-[13px] text-amber-800">
+                🎁 <strong>Founding rate:</strong> First 500 annual subscribers lock in {PLATFORM_PRICING.founding()}/yr for life — {foundingStatus.remainingSlots} slots remaining.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Subscriber Pricing on All Tools */}
         <div className="max-w-3xl mx-auto mt-12">

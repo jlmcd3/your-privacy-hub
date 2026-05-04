@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.check-state-privacy-laws]
 verify_jwt = false
+
+[functions.get-founding-status]
+verify_jwt = false
