@@ -111,6 +111,40 @@ const GlossaryTerm = () => {
           })()}
         </div>
 
+        {(() => {
+          const t = term as typeof term & {
+            definitionsByRegime?: Array<{ regime: string; citation: string; text: string; url?: string }>;
+          };
+          if (!Array.isArray(t.definitionsByRegime) || t.definitionsByRegime.length === 0) return null;
+          return (
+            <div className="bg-card border border-border rounded-xl p-6 mb-8">
+              <h2 className="text-sm font-semibold text-foreground mb-1">Definitions across regimes</h2>
+              <p className="text-xs text-muted-foreground mb-4">How this term is defined in each major privacy regime. Definitions vary — read the source text before relying on any one summary.</p>
+              <div className="space-y-4">
+                {t.definitionsByRegime.map((d, i) => (
+                  <div key={i} className="border-l-2 border-primary/30 pl-4">
+                    <div className="flex items-baseline justify-between gap-2 flex-wrap mb-1">
+                      <p className="text-sm font-semibold text-foreground">{d.regime}</p>
+                      <span className="font-mono-code text-[11px] text-muted-foreground">{d.citation}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{d.text}</p>
+                    {d.url && (
+                      <a
+                        href={d.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary no-underline hover:underline mt-1 inline-block"
+                      >
+                        View source ↗
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
 
         {relatedTerms.length > 0 && (
