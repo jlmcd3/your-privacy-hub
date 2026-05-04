@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Search } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { TieredFeed } from "@/components/TieredFeed";
 import type { ArticleItem } from "@/components/ArticleCard";
@@ -89,7 +89,7 @@ const TAB_ITEMS = [
 
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
-  const [authSearch, setAuthSearch] = useState("");
+  
   const [authStatusFilter, setAuthStatusFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("federal-authorities");
 
@@ -123,15 +123,7 @@ const USPrivacyLaws = () => {
   const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
 
   const filteredAuthorities = usStates.filter((state: any) => {
-    const matchesSearch =
-      !authSearch ||
-      state.state.toLowerCase().includes(authSearch.toLowerCase()) ||
-      state.authority_name.toLowerCase().includes(authSearch.toLowerCase()) ||
-      (state.statute_name &&
-        state.statute_name.toLowerCase().includes(authSearch.toLowerCase()));
-    const matchesStatus =
-      authStatusFilter === "All" || state.statute_status === authStatusFilter;
-    return matchesSearch && matchesStatus;
+    return authStatusFilter === "All" || state.statute_status === authStatusFilter;
   });
 
   useEffect(() => {
@@ -317,15 +309,6 @@ const USPrivacyLaws = () => {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
-            <div className="relative flex-1 min-w-[200px] max-w-[400px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <input
-                className="w-full py-2 pl-10 pr-4 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
-                placeholder="Search states, authorities, or statutes…"
-                value={authSearch}
-                onChange={(e) => setAuthSearch(e.target.value)}
-              />
-            </div>
             <span className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
               Status:
             </span>

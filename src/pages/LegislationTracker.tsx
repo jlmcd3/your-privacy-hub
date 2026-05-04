@@ -60,7 +60,6 @@ export default function LegislationTracker() {
   const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState("All Regions");
   const [stage, setStage] = useState("All Stages");
-  const [search, setSearch] = useState("");
   const [lastVerified, setLastVerified] = useState<string | null>(null);
 
   useEffect(() => {
@@ -84,11 +83,6 @@ export default function LegislationTracker() {
   const filtered = bills
     .filter((b) => region === "All Regions" || b.region === region)
     .filter((b) => stage === "All Stages" || b.stage === stage)
-    .filter((b) =>
-      !search ||
-      b.bill_name.toLowerCase().includes(search.toLowerCase()) ||
-      (b.jurisdiction ?? "").toLowerCase().includes(search.toLowerCase())
-    )
     .sort((a, b) => (STAGE_CONFIG[a.stage]?.order ?? 99) - (STAGE_CONFIG[b.stage]?.order ?? 99));
 
   return (
@@ -114,12 +108,6 @@ export default function LegislationTracker() {
           </div>
 
           <div className="flex flex-wrap gap-3 mb-6">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search bills…"
-              className="bg-white border border-fog rounded-xl px-4 py-2 text-sm text-navy placeholder:text-slate-light focus:outline-none focus:border-blue/50 w-56"
-            />
             <div className="flex gap-2 flex-wrap">
               {REGIONS.map((r) => (
                 <button
