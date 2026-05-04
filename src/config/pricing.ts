@@ -99,10 +99,10 @@ export const PRICING_REGISTRY = {
     productKey: "intelligence",
     productName: "Intelligence — Monthly",
     description:
-      "Weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool.",
-    amountCents: 3900,
+      "Monthly Intelligence subscription. Weekly Intelligence Brief, full enforcement archive, and watchlists. Compliance tools sold separately at standalone rates.",
+    amountCents: 2900,
     currency: "usd",
-    displayPrice: "$39",
+    displayPrice: "$29",
     displaySuffix: "/month",
     recurringInterval: "month",
     active: true,
@@ -111,14 +111,43 @@ export const PRICING_REGISTRY = {
     kind: "subscription",
     lookupKey: "intelligence_yearly",
     productKey: "intelligence",
-    productName: "Intelligence — Yearly",
+    productName: "Platform — Annual",
     description:
-      "Annual Intelligence subscription. Same as monthly, billed once per year (~17% savings).",
-    amountCents: 39000,
+      "Annual Platform subscription. All compliance tools included. $33.25/mo equivalent.",
+    amountCents: 39900,
     currency: "usd",
-    displayPrice: "$390",
+    displayPrice: "$399",
     displaySuffix: "/year",
     recurringInterval: "year",
+    active: true,
+  },
+  intelligence_yearly_founding: {
+    kind: "subscription",
+    lookupKey: "intelligence_yearly_founding",
+    productKey: "intelligence",
+    productName: "Platform — Annual (Founding Rate)",
+    description:
+      "Founding subscriber annual platform subscription. All compliance tools included free. First 500 subscribers only. $369/yr — $30.75/mo equivalent.",
+    amountCents: 36900,
+    currency: "usd",
+    displayPrice: "$369",
+    displaySuffix: "/year",
+    recurringInterval: "year",
+    active: true,
+  },
+  per_client_addon: {
+    kind: "addon",
+    lookupKey: "per_client_addon",
+    productKey: "intelligence",
+    productName: "Per-Client Add-On",
+    description:
+      "Additional client workspace for annual Platform subscribers. $199/yr per additional client. Annual Platform subscription required.",
+    amountCents: 19900,
+    currency: "usd",
+    displayPrice: "$199",
+    displaySuffix: "/year per client",
+    parentLookupKey: "intelligence_yearly",
+    addonReason: "multi_client",
     active: true,
   },
 
@@ -325,12 +354,23 @@ export function getActivePrices(): PriceEntry[] {
 
 /** Convenience accessors for the most common copy patterns. */
 export const INTELLIGENCE_PRICING = {
-  monthly: () => formatPrice("intelligence_monthly"),                       // "$39/month"
-  yearly: () => formatPrice("intelligence_yearly"),                         // "$390/year"
+  monthly: () => formatPrice("intelligence_monthly"),                              // "$29/month"
+  yearly: () => formatPrice("intelligence_yearly"),                                // "$399/year"
+  yearlyFounding: () => formatPrice("intelligence_yearly_founding"),               // "$369/year"
   combined: () =>
     `${formatPrice("intelligence_monthly")} or ${formatPrice("intelligence_yearly")}`,
   monthlyShort: () => `${getPrice("intelligence_monthly").displayPrice}/mo`,
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
+  yearlyFoundingShort: () => `${getPrice("intelligence_yearly_founding").displayPrice}/yr`,
+} as const;
+
+/** Platform pricing helpers (annual subscriptions with tool access included). */
+export const PLATFORM_PRICING = {
+  standard: () => formatPrice("intelligence_yearly"),                              // "$399/year"
+  founding: () => formatPrice("intelligence_yearly_founding"),                     // "$369/year"
+  standardMonthly: () => "$33.25/mo",
+  foundingMonthly: () => "$30.75/mo",
+  clientAddon: () => formatPrice("per_client_addon"),                              // "$199/year per client"
 } as const;
 
 /** US Notice price helpers — derived from the registry, never hardcode. */

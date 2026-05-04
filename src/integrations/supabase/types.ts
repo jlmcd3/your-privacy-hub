@@ -1792,6 +1792,7 @@ export type Database = {
           created_at: string
           digest_jurisdictions: string[] | null
           digest_topics: string[] | null
+          founding_subscriber: boolean | null
           id: string
           industry: string | null
           is_premium: boolean
@@ -1812,6 +1813,7 @@ export type Database = {
           subscription_interval: string | null
           subscription_plan: string | null
           subscription_tier: string | null
+          subscription_type: string | null
           updated_at: string
           user_role: string | null
         }
@@ -1825,6 +1827,7 @@ export type Database = {
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
+          founding_subscriber?: boolean | null
           id: string
           industry?: string | null
           is_premium?: boolean
@@ -1845,6 +1848,7 @@ export type Database = {
           subscription_interval?: string | null
           subscription_plan?: string | null
           subscription_tier?: string | null
+          subscription_type?: string | null
           updated_at?: string
           user_role?: string | null
         }
@@ -1858,6 +1862,7 @@ export type Database = {
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
+          founding_subscriber?: boolean | null
           id?: string
           industry?: string | null
           is_premium?: boolean
@@ -1878,6 +1883,7 @@ export type Database = {
           subscription_interval?: string | null
           subscription_plan?: string | null
           subscription_tier?: string | null
+          subscription_type?: string | null
           updated_at?: string
           user_role?: string | null
         }
@@ -3871,6 +3877,12 @@ export type Database = {
       }
     }
     Views: {
+      founding_subscriber_count: {
+        Row: {
+          total: number | null
+        }
+        Relationships: []
+      }
       free_user_upgrade_signals: {
         Row: {
           action_brief_views: number | null
@@ -3941,6 +3953,7 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_premium: { Args: never; Returns: boolean }
+      is_founding_rate_available: { Args: never; Returns: boolean }
       my_client_ids: { Args: never; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
     }
