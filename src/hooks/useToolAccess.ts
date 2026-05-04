@@ -1,59 +1,63 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 interface ToolAccessConfig {
   /** null = free for everyone (non-subscribers); otherwise standalone price in dollars */
   standalonePrice: number | null;
-  /** null = free for subscribers; otherwise per-use subscriber price in dollars */
+  /**
+   * Per-use rate for ANNUAL Platform subscribers (only). null = included
+   * (free) for annual subscribers. Monthly subscribers do NOT get this rate
+   * — they pay standalonePrice.
+   */
   subscriberPrice: number | null;
-  /** Optional: max number of free jurisdictions for freemium tools (e.g. Biometric Checker) */
+  /** Optional: max number of free jurisdictions for freemium tools */
   freeJurisdictionLimit?: number;
+  /**
+   * CPPA tools remain paid for everyone, but annual subscribers get the
+   * subscriberPrice. Set true to use that semantic; default false (standard
+   * tool: annual = included free, monthly/free = standalonePrice).
+   */
+  isCppa?: boolean;
 }
 
 /**
- * Determines access tier and effective price for a paid tool.
+ * Determines access tier and effective price for a paid tool under the
+ * New Model (Doc 4):
  *
- * Returns the price the current viewer pays, whether they're a subscriber,
- * a CTA-ready label, and helpers for freemium gating.
+ *   Standard tool (default):
+ *     annual / annual_founding → effectivePrice = subscriberPrice (typically 0 / included)
+ *     monthly / free           → effectivePrice = standalonePrice
+ *
+ *   CPPA tool (isCppa = true):
+ *     annual / annual_founding → effectivePrice = subscriberPrice (discounted, still paid)
+ *     monthly / free           → effectivePrice = standalonePrice
+ *
+ * `isPremium` here is preserved for backwards compatibility with existing
+ * callers, but it now means "has tool access" (annual subscriber) — NOT
+ * "has any active subscription". Monthly Intelligence subscribers do not
+ * get tool access and will be treated as standalone purchasers.
  */
 export function useToolAccess(config: ToolAccessConfig) {
-  const { user } = useAuth();
-  const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  const { user, hasToolAccess, isLoading, tier } = useSubscriptionTier();
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!user) {
-      setIsPremium(false);
-      return;
-    }
-    supabase
-      .from("profiles")
-      .select("is_premium, is_pro")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setIsPremium(data?.is_premium === true || data?.is_pro === true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
+  // Annual subscribers (incl. annual_founding) get the subscriber rate.
+  // For standard tools, subscriberPrice is typically null (included free).
+  // For CPPA tools, subscriberPrice is the discounted paid rate.
+  const effectivePrice = hasToolAccess ? config.subscriberPrice : config.standalonePrice;
 
-  const isLoading = isPremium === null;
-
-  // Price the current user pays
-  const effectivePrice = isPremium ? config.subscriberPrice : config.standalonePrice;
-
-  // True if user pays nothing (free for all, or free for this subscriber)
   const isFreeForUser = effectivePrice === null || effectivePrice === 0;
 
-  const priceLabel = isFreeForUser ? "Generate — Free" : `Generate — $${effectivePrice}`;
+  const priceLabel = isFreeForUser
+    ? "Generate — Included in your plan"
+    : `Generate — $${effectivePrice}`;
 
   return {
     user,
-    isPremium,
+    /** True when this user has annual-tier tool access (formerly: any premium). */
+    isPremium: hasToolAccess,
+    /** True only when the user is an Annual Platform subscriber. */
+    hasToolAccess,
+    /** True for monthly Intelligence subscribers (no tool access). */
+    isMonthlyIntelligence: tier === "monthly",
     isLoading,
     effectivePrice,
     isFreeForUser,
