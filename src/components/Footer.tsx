@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-navy text-slate-light pt-14 pb-8 px-4 md:px-8">
       <div className="max-w-[1280px] mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[280px_1fr_1fr_1fr_1fr] gap-8 lg:gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[220px_1fr_1fr_1fr_1fr_1fr] gap-8 lg:gap-10 mb-12">
           <div>
             <div className="flex items-center gap-2.5 mb-3">
               <img src="/logo.png" alt="End User Privacy" className="h-7 w-auto" />
@@ -68,6 +68,27 @@ const Footer = () => {
             <Link to="/enforcement" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
             <Link to="/faq" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">FAQ</Link>
             <Link to="/sample-brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Weekly Brief</Link>
+          </div>
+
+          <div>
+            <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Compliance Tools</h4>
+            <Link to="/tools" className="block text-[13px] font-semibold text-white mb-3 hover:text-amber-300 transition-colors no-underline">
+              See all tools →
+            </Link>
+            {[
+              { label: "Privacy Programme Assessment", href: "/governance-assessment" },
+              { label: "Legitimate Interest Assessment", href: "/li-assessment" },
+              { label: "Impact Assessment (DPIA)", href: "/dpia-framework" },
+              { label: "DPA Generator", href: "/dpa-generator" },
+              { label: "IR Playbook", href: "/ir-playbook" },
+              { label: "RoPA Builder", href: "/ropa-builder" },
+              { label: "US Privacy Notice", href: "/us-notices" },
+              { label: "EU/UK Privacy Notice", href: "/eu-notices" },
+              { label: "CPPA Scope Checker", href: "/cppa-scope-checker" },
+              { label: "Registration Manager", href: "/registration-manager" },
+            ].map((l) => (
+              <Link key={l.label} to={l.href} className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
+            ))}
           </div>
         </div>
 
