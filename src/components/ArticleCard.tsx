@@ -359,6 +359,7 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
               {weight}
             </span>
           )}
+          <AdminHideButton articleId={item.id} />
         </div>
         {/* Title */}
         <Link to={`/updates/${item.id}`}
