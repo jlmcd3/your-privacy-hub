@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
-import { INTELLIGENCE_PRICING, formatPrice, getPrice } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, formatPrice, getPrice } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
