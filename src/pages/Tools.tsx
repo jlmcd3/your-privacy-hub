@@ -38,6 +38,7 @@ type ToolDef = {
   href: string;
   subscriberPrice: string;
   standalonePrice: string;
+  monthlySubscriberPrice?: string;
   body: string[];
   sampleSections: { label: string; content: string }[];
 };
