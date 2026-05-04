@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const MATURITY = [
   "Not implemented",
@@ -106,6 +107,10 @@ export default function CPPACybersecurity() {
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
         </div>
       </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote isCppa={true} />
+        </div>
+
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />

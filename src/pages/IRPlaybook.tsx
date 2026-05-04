@@ -15,6 +15,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { toast } from "sonner";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -90,6 +91,10 @@ export default function IRPlaybook() {
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
           <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
         </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote />
+        </div>
+
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
