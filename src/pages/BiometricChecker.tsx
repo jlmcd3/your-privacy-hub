@@ -15,6 +15,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
@@ -85,6 +86,10 @@ export default function BiometricChecker() {
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
           <p className="text-slate text-[14px]">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Intelligence.</p>
         </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote />
+        </div>
+
 
         {phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">

@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,9 @@ export default function EUNoticeLanding() {
         <link rel="canonical" href="https://www.enduserprivacy.com/eu-global-notice-builder" />
       </Helmet>
       <Navbar />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <ToolTierNote />
+      </div>
       <main className="flex-1">
         <section className="py-16 md:py-20 border-b border-border">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
