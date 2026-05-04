@@ -431,11 +431,12 @@ export default function Tools() {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
-            Every tool. Subscriber rates. $39/month.
+            Every standard tool. Included. {INTELLIGENCE_PRICING.yearlyShort()} Annual Platform.
           </h2>
           <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
-            Intelligence subscribers pay subscriber rates on every tool and receive Your Breach Response Playbook and
-            the Biometric Privacy Compliance Assessment included at no additional cost.
+            Annual Platform subscribers get every standard assessment, document, and notice tool included at no
+            additional cost. CPPA tools remain paid but at the discounted subscriber rate. Monthly Intelligence
+            subscribers pay standalone rates on tools.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[560px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
@@ -449,9 +450,11 @@ export default function Tools() {
             to="/subscribe"
             className="inline-block text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline"
           >
-            Start your Intelligence subscription →
+            Start your Annual Platform subscription →
           </Link>
-          <p className="text-blue-200/60 text-[12px] mt-4">Monthly at $39 · Annual at $390 · Cancel any time</p>
+          <p className="text-blue-200/60 text-[12px] mt-4">
+            Monthly Intelligence at {INTELLIGENCE_PRICING.monthlyShort()} · Annual Platform at {INTELLIGENCE_PRICING.yearlyShort()} · Cancel any time
+          </p>
         </div>
       </div>
 
