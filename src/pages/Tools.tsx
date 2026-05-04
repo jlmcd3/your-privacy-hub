@@ -83,7 +83,7 @@ const TOOLS: ToolDef[] = [
     name: "Legitimate Interest Assessment Tool",
     tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
     href: "/li-assessment",
-    subscriberPrice: "$35 per assessment",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$79",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
