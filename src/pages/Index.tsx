@@ -20,7 +20,7 @@ import ProToolsBanner from "@/components/home/ProToolsBanner";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 const Index = () => {
   const { isPremium } = usePremiumStatus();
