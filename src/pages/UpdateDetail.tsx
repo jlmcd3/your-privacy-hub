@@ -410,9 +410,7 @@ const UpdateDetail = () => {
                       action_items={article.action_items ?? null}
                       risk_level={ai?.risk_level ?? null}
                       isPremium={isPremium}
-                      userSalutation={userProfile.action_brief_salutation}
                       articleId={article.id}
-                      articleCategory={article.category ?? null}
                     />
                   </div>
                 )}
