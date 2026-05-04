@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -96,6 +97,9 @@ export default function RopaLanding() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <ToolTierNote />
+      </div>
       <main className="flex-1">
         {/* HERO */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
