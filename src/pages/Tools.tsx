@@ -285,6 +285,141 @@ const TOOLS: ToolDef[] = [
       },
     ],
   },
+  {
+    slug: "ropa-builder",
+    icon: "🗃️",
+    name: "RoPA Builder",
+    tagline:
+      "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction.",
+    href: "/ropa-builder",
+    subscriberPrice: "Included with Annual Platform",
+    standalonePrice: "$99",
+    body: [
+      "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
+      "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
+      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. Annual subscribers get full access; standalone users can generate per-activity records.",
+    ],
+    sampleSections: [
+      {
+        label: "Activity record (sample)",
+        content:
+          "Customer support ticketing — Zendesk. Lawful basis: Article 6(1)(b) contract performance. Data categories: contact data, support correspondence content. Retention: 24 months from ticket close. Recipients: Zendesk (processor, US), internal support team.",
+      },
+      {
+        label: "International transfer safeguard",
+        content:
+          "Transfer to US (Zendesk): EU–US Data Privacy Framework adequacy decision relied upon. Backup safeguard: SCCs in DPA. Transfer impact assessment dated 2024-09 retained.",
+      },
+    ],
+  },
+  {
+    slug: "us-notices",
+    icon: "🇺🇸",
+    name: "U.S. Privacy Notice Builder",
+    tagline:
+      "State-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state privacy laws.",
+    href: "/us-notices",
+    subscriberPrice: "Included with Annual Platform",
+    standalonePrice: "$149",
+    body: [
+      "US state privacy laws are not interchangeable. CCPA disclosure requirements differ from Virginia's, which differ from Colorado's, which differ again from the more recent state laws. A single \"US privacy notice\" that does not surface those differences is itself a compliance risk — and increasingly, an enforcement one.",
+      "The U.S. Privacy Notice Builder produces state-specific notices that include the disclosures each statute actually requires: categories of personal information, sources, purposes, sale and sharing disclosures, sensitive data handling, and consumer rights mechanisms. State-specific overlays are applied automatically based on the jurisdictions you select.",
+      "The output is a draft notice for review by your privacy or legal professional before publication. It is structured to be read by counsel quickly — clearly delineating the state-specific provisions from the universal ones — and to be updated as state laws continue to evolve.",
+    ],
+    sampleSections: [
+      {
+        label: "California (CCPA/CPRA) — sensitive personal information",
+        content:
+          "We collect the following categories of sensitive personal information: government identifiers, account log-in credentials, and precise geolocation. You have the right to limit the use and disclosure of this information. To exercise this right, use the \"Limit the Use of My Sensitive Personal Information\" link in the website footer.",
+      },
+      {
+        label: "Virginia (VCDPA) — consumer rights",
+        content:
+          "Virginia consumers have the right to: (1) confirm whether we are processing their personal data, (2) access that data, (3) correct inaccuracies, (4) delete data we hold about them, (5) obtain a portable copy, and (6) opt out of targeted advertising, sale, and certain profiling. Submit requests via privacy@example.com.",
+      },
+    ],
+  },
+  {
+    slug: "eu-notices",
+    icon: "🇪🇺",
+    name: "EU/UK Privacy Notice Builder",
+    tagline:
+      "GDPR & UK GDPR-aligned privacy notices with Article 13/14 disclosures and international transfer language.",
+    href: "/eu-notices",
+    subscriberPrice: "Included with Annual Platform",
+    standalonePrice: "$149",
+    body: [
+      "Article 13 and 14 set out what a GDPR-compliant notice must contain. The gap between meeting those requirements on paper and producing a notice that withstands scrutiny is, in practice, the gap between checkbox compliance and an accountability posture that holds up.",
+      "The EU/UK Privacy Notice Builder produces a GDPR and UK GDPR-aligned notice covering each Article 13/14 disclosure: identity of the controller, contact details, lawful basis per processing purpose, recipients, retention, international transfer safeguards, and data subject rights. International transfer language is calibrated to the destinations and mechanisms you specify (SCCs, adequacy, derogations).",
+      "The generated notice is structured for review by your privacy or legal professional and intended to be the basis of a documented review — not a substitute for one.",
+    ],
+    sampleSections: [
+      {
+        label: "Lawful basis (per purpose)",
+        content:
+          "Account creation and management: Article 6(1)(b) — necessary for performance of a contract. Marketing communications: Article 6(1)(a) — consent (withdrawable at any time). Fraud prevention: Article 6(1)(f) — legitimate interest, balancing test documented and available on request.",
+      },
+      {
+        label: "International transfers",
+        content:
+          "Personal data may be transferred to the United States to our processors. The transfer relies on the EU Commission's adequacy decision under the EU–US Data Privacy Framework (where applicable) and on Standard Contractual Clauses as a backup safeguard. A copy of the SCCs is available on request.",
+      },
+    ],
+  },
+  {
+    slug: "cppa-risk-assessment",
+    icon: "🔍",
+    name: "CPPA Risk Assessment",
+    tagline:
+      "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
+    href: "/cppa-risk-assessment",
+    subscriberPrice: "Subscriber rate",
+    standalonePrice: "$199",
+    body: [
+      "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
+      "The CPPA Risk Assessment Tool walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
+      "CPPA tools remain paid for all users — including annual subscribers — but annual subscribers receive the discounted subscriber rate. The output is structured for review by California privacy counsel before being relied upon.",
+    ],
+    sampleSections: [
+      {
+        label: "Processing description",
+        content:
+          "Behavioural advertising profile development using web browsing data collected via cookies and SDK telemetry across owned properties and third-party publishers.",
+      },
+      {
+        label: "Negative impacts identified",
+        content:
+          "Loss of consumer control over personal information; potential for inferred sensitive characteristics (health interests, political views) without consumer awareness; increased exposure in the event of a data breach.",
+      },
+    ],
+  },
+  {
+    slug: "cppa-cybersecurity",
+    icon: "🔐",
+    name: "CPPA Cybersecurity Audit",
+    tagline:
+      "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
+    href: "/cppa-cybersecurity",
+    subscriberPrice: "Subscriber rate",
+    standalonePrice: "$249",
+    body: [
+      "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
+      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
+      "Like other CPPA tools, this remains paid for all users; annual subscribers receive the discounted subscriber rate. The output is intended to be reviewed by your security and legal teams and to inform — not substitute for — the formal independent audit the regulation requires.",
+    ],
+    sampleSections: [
+      {
+        label: "Multi-factor authentication finding",
+        content:
+          "MFA is enforced for administrative access to production systems but not for general employee access to systems containing personal information. The CPPA regulation expects MFA for both. Remediation: enable MFA for all employee access to PI-containing systems within 90 days.",
+      },
+      {
+        label: "Encryption coverage",
+        content:
+          "Personal information is encrypted at rest in primary databases. Backups stored in third-party cloud storage are not encrypted at the application layer. Recommended: implement application-layer encryption for backups before next renewal cycle.",
+      },
+    ],
+  },
 ];
 
 const PRICING_GRID: [string, string][] = [
@@ -292,8 +427,13 @@ const PRICING_GRID: [string, string][] = [
   ["Legitimate Interest Assessment Tool", "$79 standalone → $35 subscriber rate"],
   ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
   ["Your Custom DPA", "$69 standalone → $39 subscriber rate"],
-  ["Your Breach Response Playbook", "$39 → Included with Intelligence"],
-  ["Biometric Privacy Compliance Assessment", "$49 → Included with Intelligence"],
+  ["Your Breach Response Playbook", "$59 → Included with Annual Platform"],
+  ["Biometric Privacy Compliance Assessment", "$49 → Included with Annual Platform"],
+  ["RoPA Builder", "$99 → Included with Annual Platform"],
+  ["U.S. Privacy Notice Builder", "$149 → Included with Annual Platform"],
+  ["EU/UK Privacy Notice Builder", "$149 → Included with Annual Platform"],
+  ["CPPA Risk Assessment", "$199 → Subscriber rate (CPPA)"],
+  ["CPPA Cybersecurity Audit", "$249 → Subscriber rate (CPPA)"],
   ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
   ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
 ];
