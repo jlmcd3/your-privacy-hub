@@ -13,7 +13,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 
