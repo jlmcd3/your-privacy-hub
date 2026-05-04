@@ -205,15 +205,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    let isSubscriber = false;
+    // New Model gating:
+    //   - Annual subscribers (annual / annual_founding) get standard tools
+    //     INCLUDED — block checkout entirely.
+    //   - Annual subscribers get CPPA tools at the subscriber rate.
+    //   - Monthly Intelligence subscribers get NO tool discount and pay
+    //     standalone, same as anonymous users.
+    const CPPA_TOOL_LOOKUPS = new Set([
+      "cppa_risk_standalone", "cppa_risk_subscriber",
+      "cppa_cyber_standalone", "cppa_cyber_subscriber",
+      "cppa_suite_standalone", "cppa_suite_subscriber",
+    ]);
+    const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
+
+    let isAnnualSubscriber = false;
+    let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_premium")
+        .select("is_premium, is_pro, subscription_type")
         .eq("id", user_id)
         .single();
-      isSubscriber = !!profile?.is_premium;
+      subscriptionType = (profile as any)?.subscription_type ?? null;
+      if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
+        isAnnualSubscriber = true;
+      } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
+        // Legacy premium without subscription_type — grandfather as annual.
+        isAnnualSubscriber = true;
+      }
     }
+
+    // Annual subscriber + standard tool → tool is included; refuse checkout.
+    if (isAnnualSubscriber && !isCppa) {
+      return new Response(
+        JSON.stringify({
+          error: "tool_included",
+          message: "This tool is included with your Annual Platform subscription. No checkout is required.",
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const isSubscriber = isAnnualSubscriber; // backwards-compat alias used below
 
     const lookupKey =
       isSubscriber && tool.subscriber_lookup ? tool.subscriber_lookup : tool.standalone_lookup;
