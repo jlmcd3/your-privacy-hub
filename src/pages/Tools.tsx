@@ -301,6 +301,7 @@ const PRICING_GRID: [string, string][] = [
 export default function Tools() {
   const [sampleModal, setSampleModal] = useState<string | null>(null);
   const activeTool = sampleModal ? TOOLS.find((t) => t.slug === sampleModal) : null;
+  const { hasToolAccess, tier } = useSubscriptionTier();
 
   return (
     <>
