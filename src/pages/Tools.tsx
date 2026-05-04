@@ -38,6 +38,7 @@ type ToolDef = {
   href: string;
   subscriberPrice: string;
   standalonePrice: string;
+  monthlySubscriberPrice?: string;
   body: string[];
   sampleSections: { label: string; content: string }[];
 };
@@ -50,7 +51,7 @@ const TOOLS: ToolDef[] = [
     tagline:
       "A structured assessment of your privacy program across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
     href: "/governance-assessment",
-    subscriberPrice: "$25 per assessment",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$49",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
@@ -82,7 +83,7 @@ const TOOLS: ToolDef[] = [
     name: "Legitimate Interest Assessment Tool",
     tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
     href: "/li-assessment",
-    subscriberPrice: "$35 per assessment",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$79",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
@@ -118,7 +119,7 @@ const TOOLS: ToolDef[] = [
     name: "Impact Assessment Builder",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
     href: "/dpia-framework",
-    subscriberPrice: "$49 per DPIA",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$99",
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
@@ -155,8 +156,8 @@ const TOOLS: ToolDef[] = [
     tagline:
       "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
-    subscriberPrice: "$39 per document",
-    standalonePrice: "$69",
+    subscriberPrice: "Included with Annual Platform",
+    standalonePrice: "$99",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
       "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is numbered hierarchically, marks all fields requiring your specific input, and is structured for legal review before execution.",
@@ -187,12 +188,12 @@ const TOOLS: ToolDef[] = [
     tagline:
       "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
-    subscriberPrice: "Included with Intelligence",
-    standalonePrice: "$39",
+    subscriberPrice: "Included with Annual Platform",
+    standalonePrice: "$59",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
       "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
-      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Intelligence subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
+      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Annual Platform subscribers, this tool is included at no additional cost. An effective incident response capability should not be subject to a payment decision at the moment it is needed.",
     ],
     sampleSections: [
       {
@@ -218,12 +219,12 @@ const TOOLS: ToolDef[] = [
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
-    subscriberPrice: "Included with Intelligence",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$49",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks. The relevant laws are not always obvious until an organisation is already mid-implementation.",
       "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population, intended to support internal risk assessment and board-level conversations, not to constitute legal advice.",
-      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free End User Privacy account is required to run any analysis. Multi-jurisdiction assessments are included with Intelligence subscriptions.",
+      "The assessment is designed to be the starting point for a conversation with your privacy or legal team — specifically, to ensure that conversation is informed by the correct legal framework for your jurisdictions and organisation type before build decisions are finalised. A free End User Privacy account is required to run any analysis. Multi-jurisdiction assessments are included with Annual Platform subscriptions.",
     ],
     sampleSections: [
       {
@@ -255,8 +256,9 @@ const TOOLS: ToolDef[] = [
     tagline:
       "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
     href: "/registration-manager",
-    subscriberPrice: "20% off DIY · $75 off Counsel-Ready Pack",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "Free assessment · DIY from $59 · Counsel-Ready $399",
+    monthlySubscriberPrice: "20% off DIY · $75 off Counsel-Ready Pack",
     body: [
       "Most privacy programmes know they need to register a DPO somewhere. Far fewer have a current, jurisdiction-by-jurisdiction map of where formal registration with the supervisory authority is mandatory, where an EU/UK representative must be appointed, where the AI Act register applies, and when each filing must be renewed. The result is a quiet, recurring source of regulatory exposure that surfaces — usually — only when something else goes wrong.",
       "The Registration Manager begins with a free assessment: organisation type, size, sectors, and the markets in which you operate. From that, it produces a recommended registration footprint across 50+ jurisdictions — flagging where DPO registration, controller registration, representative appointment, and AI Act notification are required, and on what timeline. From there, you can generate the filings yourself with the DIY tier, or upgrade to the Counsel-Ready Pack for enhanced jurisdiction notes and a structured handoff your privacy counsel can review and submit.",
@@ -401,7 +403,7 @@ const TOOLS: ToolDef[] = [
       "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
     subscriberPrice: "Subscriber rate",
-    standalonePrice: "$249",
+    standalonePrice: "$199",
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
@@ -423,19 +425,19 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Program Assessment Tool", "$49 standalone → $25 subscriber rate"],
-  ["Legitimate Interest Assessment Tool", "$79 standalone → $35 subscriber rate"],
-  ["Impact Assessment Builder", "$99 standalone → $49 subscriber rate"],
-  ["Your Custom DPA", "$69 standalone → $39 subscriber rate"],
-  ["Your Breach Response Playbook", "$59 → Included with Annual Platform"],
-  ["Biometric Privacy Compliance Assessment", "$49 → Included with Annual Platform"],
-  ["RoPA Builder", "$99 → Included with Annual Platform"],
-  ["U.S. Privacy Notice Builder", "$149 → Included with Annual Platform"],
-  ["EU/UK Privacy Notice Builder", "$149 → Included with Annual Platform"],
-  ["CPPA Risk Assessment", "$199 → Subscriber rate (CPPA)"],
-  ["CPPA Cybersecurity Audit", "$249 → Subscriber rate (CPPA)"],
-  ["Your Registration Filings (DIY)", "$59 / $149 / $275 / $499 by jurisdiction count"],
-  ["Your Registration Filings (Counsel-Ready)", "$399 flat"],
+  ["Privacy Program Assessment Tool", "$49 standalone → Included with Annual Platform"],
+  ["Legitimate Interest Assessment Tool", "$79 standalone → Included with Annual Platform"],
+  ["Impact Assessment Builder", "$99 standalone → Included with Annual Platform"],
+  ["DPA Generator", "$99 standalone → Included with Annual Platform"],
+  ["IR Playbook", "$59 standalone → Included with Annual Platform"],
+  ["Biometric Privacy Check", "$49 standalone → Included with Annual Platform"],
+  ["RoPA Builder", "$99 standalone → Included with Annual Platform"],
+  ["U.S. Privacy Notice Builder", "$25/state or $59 all states → Included"],
+  ["EU/UK Privacy Notice Builder", "$45/framework or $149 suite → Included"],
+  ["Registration Manager (Annual)", "Standalone rates → Included with Annual Platform"],
+  ["Registration Manager (Monthly sub)", "20% off DIY · $75 off Counsel-Ready"],
+  ["CPPA Risk Assessment", "$199 standalone → $79 subscriber rate"],
+  ["CPPA Cybersecurity Audit", "$199 standalone → $99 subscriber rate"],
 ];
 
 export default function Tools() {
@@ -525,21 +527,25 @@ export default function Tools() {
                     Subscriber rate
                   </div>
                 )}
-                {!hasToolAccess && (
+                {!hasToolAccess && tier === "monthly" && (
                   <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
-                    ⭐ {tool.subscriberPrice}
+                    ⭐ {tool.monthlySubscriberPrice ?? tool.standalonePrice}
                   </div>
                 )}
-                <div className="text-[11px] text-muted-foreground">
+                {!hasToolAccess && tier !== "monthly" && (
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
+                    ⭐ {tool.standalonePrice}
+                  </div>
+                )}
+                <div className="text-[11px] text-muted-foreground mt-0.5">
                   {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
                     ? "Included in your Annual Platform"
+                    : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
+                    ? "Paid — subscriber rate applied"
+                    : tier === "monthly" && tool.monthlySubscriberPrice
+                    ? "Monthly subscriber discount"
                     : `${tool.standalonePrice} without subscription`}
                 </div>
-                {!hasToolAccess && tier === "monthly" && (
-                  <div className="text-[10px] text-slate bg-gray-100 px-2 py-0.5 rounded-full mt-1 inline-block">
-                    Standalone rate applies
-                  </div>
-                )}
               </div>
             </div>
 
