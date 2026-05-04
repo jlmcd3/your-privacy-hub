@@ -16,7 +16,7 @@ import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import ToolkitSection from "@/components/home/ToolkitSection";
-import ProToolsBanner from "@/components/home/ProToolsBanner";
+import HomepageTriptych from "@/components/home/HomepageTriptych";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -44,8 +44,8 @@ const Index = () => {
       {/* Layer 5: Free vs paid */}
       <FreeVsPaidStrip />
 
-      {/* Layer 5b: Pro Tools cross-link (includes Registration Manager) */}
-      <ProToolsBanner />
+      {/* Layer 5b: Homepage triptych — Intelligence / Assessments / Documents */}
+      <HomepageTriptych />
 
       {/* Layer 6: Main editorial content */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
