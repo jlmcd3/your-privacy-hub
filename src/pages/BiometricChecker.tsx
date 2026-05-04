@@ -134,11 +134,11 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-[12px] text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Intelligence subscribers receive this tool included at no additional charge.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Annual Platform subscribers receive this tool included at no additional charge.</p>
               ) : access.isPremium ? (
-                <p className="text-[12px] text-muted-foreground mb-3">Included with your Intelligence subscription.</p>
+                <p className="text-[12px] text-muted-foreground mb-3">Included with your Annual Platform subscription.</p>
               ) : (
-                <p className="text-[12px] text-muted-foreground mb-3">{`Analysis is $49 — or included with Intelligence (${INTELLIGENCE_PRICING.monthly()}).`}</p>
+                <p className="text-[12px] text-muted-foreground mb-3">{`Analysis is $49 — or included with Annual Platform ($399/yr).`}</p>
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">
