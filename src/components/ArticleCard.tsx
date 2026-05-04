@@ -1,9 +1,49 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
+
+// Admin-only inline control to hide an article from all feeds.
+const AdminHideButton = ({ articleId }: { articleId: string }) => {
+  const { isAdmin } = useIsAdmin();
+  const [hiding, setHiding] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  if (!isAdmin || hidden) return null;
+
+  const onHide = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Hide this article from all feeds?")) return;
+    setHiding(true);
+    const { data, error } = await supabase.functions.invoke(
+      "admin-toggle-update-hidden",
+      { body: { id: articleId, is_hidden: true } },
+    );
+    setHiding(false);
+    if (error || (data as any)?.error) {
+      alert(`Failed: ${error?.message || (data as any)?.error}`);
+      return;
+    }
+    setHidden(true);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onHide}
+      disabled={hiding}
+      className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 border border-red-200 rounded px-1.5 py-0.5 disabled:opacity-50"
+      title="Admin: hide from feeds"
+    >
+      <EyeOff className="w-3 h-3" />
+      {hiding ? "Hiding…" : "Hide"}
+    </button>
+  );
+};
 
 // Render-time fallback for any article missing a real image. Curated photo
 // rotation is applied at ingestion time via the assign-fallback-images
