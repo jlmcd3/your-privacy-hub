@@ -135,11 +135,29 @@ serve(async (req) => {
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else {
-      // Resolve interval-aware plan key. If caller passes interval=year, prefer yearly.
-      const requestedKey = interval === "year" ? "intelligence_yearly" : plan || "intelligence_monthly";
-      lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
-      metadata.subscription_tier = "intelligence";
-      metadata.subscription_interval = lookupKey === "intelligence_yearly_v2" ? "year" : "month";
+      // Resolve interval-aware plan key. For yearly, prefer the founding
+      // rate ($369/yr) while slots remain — auto-routed via the SECURITY
+      // DEFINER `is_founding_rate_available` function (capped at 500 seats).
+      if (interval === "year") {
+        let foundingAvailable = false;
+        try {
+          const { data: foundingFlag } = await supabase.rpc("is_founding_rate_available");
+          foundingAvailable = foundingFlag === true;
+        } catch (e) {
+          console.error("is_founding_rate_available rpc failed:", (e as Error).message);
+        }
+        lookupKey = foundingAvailable ? "intelligence_yearly_founding" : "intelligence_yearly";
+        metadata.subscription_tier = "intelligence";
+        metadata.subscription_interval = "year";
+        metadata.subscription_type = foundingAvailable ? "annual_founding" : "annual";
+        if (foundingAvailable) metadata.founding_subscriber = "true";
+      } else {
+        const requestedKey = plan || "intelligence_monthly";
+        lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
+        metadata.subscription_tier = "intelligence";
+        metadata.subscription_interval = "month";
+        metadata.subscription_type = "monthly";
+      }
     }
 
     const stripe = createStripeClient(env);
