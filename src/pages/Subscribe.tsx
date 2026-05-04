@@ -305,13 +305,15 @@ const Subscribe = () => {
       </div>
 
       {/* Founding offer banner */}
-      <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
-        <div className="max-w-[720px] mx-auto text-center">
-          <p className="text-amber-800 font-semibold text-[14px]">
-            🎁 Founding offer: First 25 subscribers get Intelligence free for one year, then {INTELLIGENCE_PRICING.combined()}.
-          </p>
+      {foundingStatus?.isAvailable && (
+        <div className="bg-amber-50 border-y border-amber-200 py-4 px-4">
+          <div className="max-w-[720px] mx-auto text-center">
+            <p className="text-amber-800 font-semibold text-[14px]">
+              🎁 Founding rate: First 500 annual subscribers lock in {PLATFORM_PRICING.founding()}/yr for life — {foundingStatus.remainingSlots} slots remaining.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Registration Manager mention */}
       <div className="bg-white border-b border-fog py-4 px-4">
