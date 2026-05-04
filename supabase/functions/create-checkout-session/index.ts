@@ -148,7 +148,7 @@ serve(async (req) => {
       }
     }
 
-    if (tool_slug) {
+    if (!addon && tool_slug) {
       const lookups = TOOL_LOOKUPS[tool_slug];
       if (!lookups) {
         return new Response(JSON.stringify({ error: "Unknown tool_slug" }), {
@@ -162,7 +162,7 @@ serve(async (req) => {
       mode = "payment";
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
-    } else {
+    } else if (!addon) {
       // Resolve interval-aware plan key. For yearly, prefer the founding
       // rate ($369/yr) while slots remain — auto-routed via the SECURITY
       // DEFINER `is_founding_rate_available` function (capped at 500 seats).
@@ -198,8 +198,12 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
-    const successPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}/success` : "/subscribe/success";
-    const cancelPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
+    const successPath = addon
+      ? "/account?addon=success"
+      : tool_slug
+      ? `/${tool_slug.replace(/_/g, "-")}/success`
+      : "/subscribe/success";
+    const cancelPath = addon ? "/account" : tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
     const session = await stripe.checkout.sessions.create({
       mode,
