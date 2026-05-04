@@ -72,7 +72,7 @@ export default function BiometricChecker() {
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — Included with Intelligence"
+      ? "Analyse — Included with Annual Platform"
       : "Analyse — $49";
 
   return (
