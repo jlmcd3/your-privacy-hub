@@ -29,7 +29,7 @@ const Index = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Global Privacy Law, Tracked Daily | End User Privacy</title>
-        <meta name="description" content="Privacy regulatory intelligence for professionals. Tracking 119 authorities across 150+ jurisdictions — enforcement actions, new legislation, and regulatory guidance, updated daily." />
+        <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform from ${PLATFORM_PRICING.founding()} (founding) — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
 
       {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
