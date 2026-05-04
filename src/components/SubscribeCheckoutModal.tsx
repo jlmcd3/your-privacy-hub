@@ -93,6 +93,17 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
         >
           <X className="w-4 h-4" />
         </button>
+        {/* Price preview — informational; server is authoritative */}
+        <div className="px-4 pt-4 pb-2 border-b border-border/40">
+          <p className="text-[12px] text-muted-foreground">You're subscribing to:</p>
+          <p className="text-[14px] font-bold text-navy">
+            {interval === "year"
+              ? foundingAvailable
+                ? `${PLATFORM_PRICING.founding()}/year (Founding Rate — locked for life)`
+                : `${PLATFORM_PRICING.standard()}/year`
+              : `${INTELLIGENCE_PRICING.monthly()} (Intelligence Feed)`}
+          </p>
+        </div>
         <div className="p-2 sm:p-4">
           {confirming ? (
             <div className="p-10 text-center">
