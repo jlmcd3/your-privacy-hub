@@ -219,7 +219,7 @@ const TOOLS: ToolDef[] = [
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
-    subscriberPrice: "Included with Intelligence",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$49",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks. The relevant laws are not always obvious until an organisation is already mid-implementation.",
