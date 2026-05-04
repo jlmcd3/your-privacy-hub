@@ -150,8 +150,19 @@ serve(async (req) => {
       });
     }
 
-    // Determine subscriber status (anonymous = standalone)
-    let isSubscriber = false;
+    // CPPA tools remain paid for everyone (annual gets a discount).
+    // All other tools are FREE (included) for annual subscribers under the
+    // New Model. Monthly Intelligence subscribers do NOT get tool access.
+    const CPPA_TOOLS = new Set([
+      "cppa_risk_assessment",
+      "cppa_cybersecurity",
+      "cppa_suite",
+    ]);
+    const isCppa = CPPA_TOOLS.has(tool_slug);
+
+    // Determine subscription tier (anonymous / monthly = standalone)
+    let subscriptionType: string | null = null;
+    let isAnnualSubscriber = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -168,42 +179,65 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("is_premium")
+            .select("is_premium, is_pro, subscription_type, founding_subscriber")
             .eq("id", user.id)
             .single();
-          isSubscriber = !!profile?.is_premium;
+          subscriptionType = (profile as any)?.subscription_type ?? null;
+          if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
+            isAnnualSubscriber = true;
+          } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
+            // Legacy premium without subscription_type — grandfather as annual.
+            isAnnualSubscriber = true;
+            subscriptionType = "annual";
+          }
         }
       } catch (_) {
         // ignore
       }
     }
 
-    const lookupKey =
-      isSubscriber && tool.subscriber_lookup ? tool.subscriber_lookup : tool.standalone_lookup;
-    const fallbackCents =
-      isSubscriber && tool.subscriber_lookup
-        ? tool.fallback_subscriber_cents
-        : tool.fallback_standalone_cents;
-
-    let amountCents = fallbackCents;
+    // Resolve BOTH standalone and subscriber prices from Stripe so the
+    // client can render the New Model accurately.
+    let standaloneCents = tool.fallback_standalone_cents;
+    let subscriberCents = tool.fallback_subscriber_cents;
     let stripeConfigured = false;
     try {
       const stripe = createStripeClient(detectEnv());
-      const stripePrice = await resolvePriceId(stripe, lookupKey);
-      if (stripePrice) {
-        amountCents = stripePrice.unit_amount ?? fallbackCents;
+      const standalonePrice = await resolvePriceId(stripe, tool.standalone_lookup);
+      if (standalonePrice) {
+        standaloneCents = standalonePrice.unit_amount ?? standaloneCents;
         stripeConfigured = true;
+      }
+      if (tool.subscriber_lookup) {
+        const subPrice = await resolvePriceId(stripe, tool.subscriber_lookup);
+        if (subPrice) subscriberCents = subPrice.unit_amount ?? subscriberCents;
       }
     } catch (e) {
       console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
+    }
+
+    // New Model effective price:
+    //   annual + standard tool → 0 (included)
+    //   annual + CPPA tool     → subscriber rate
+    //   monthly / free         → standalone
+    let effectiveCents: number;
+    if (isAnnualSubscriber) {
+      effectiveCents = isCppa ? subscriberCents : 0;
+    } else {
+      effectiveCents = standaloneCents;
     }
 
     return new Response(
       JSON.stringify({
         tool_slug,
         tool_name: tool.name,
-        tier: isSubscriber ? "subscriber" : "standalone",
-        amount_cents: amountCents,
+        tier: isAnnualSubscriber ? "subscriber" : "standalone",
+        subscription_type: subscriptionType,
+        is_cppa: isCppa,
+        is_included: isAnnualSubscriber && !isCppa,
+        amount_cents: effectiveCents,
+        standalone_amount_cents: standaloneCents,
+        subscriber_amount_cents: subscriberCents,
         stripe_price_id: null, // resolved server-side at checkout
         stripe_configured: stripeConfigured,
       }),
