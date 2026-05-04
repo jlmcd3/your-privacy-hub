@@ -68,12 +68,13 @@ serve(async (req) => {
       });
     }
 
-    const { plan, tool_slug, interval, environment, embedded } = (await req.json().catch(() => ({}))) as {
+    const { plan, tool_slug, interval, environment, embedded, addon } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
       interval?: "month" | "year";
       environment?: string;
       embedded?: boolean;
+      addon?: "per_client_addon";
     };
     const env = detectEnv(environment);
 
@@ -81,11 +82,37 @@ serve(async (req) => {
     let mode: "subscription" | "payment" = "subscription";
     const metadata: Record<string, string> = { user_id: user.id };
 
+    // Per-client add-on: requires an active annual Platform subscription.
+    // Charged $199/yr as an additional recurring subscription.
+    if (addon === "per_client_addon") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_type, is_premium, is_pro")
+        .eq("id", user.id)
+        .maybeSingle();
+      const subType = (profile as any)?.subscription_type as string | null;
+      const isAnnual = subType === "annual" || subType === "annual_founding";
+      if (!isAnnual) {
+        return new Response(
+          JSON.stringify({
+            error: "annual_required",
+            message: "Per-client workspaces require an active annual Platform subscription.",
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      lookupKey = "per_client_addon";
+      mode = "subscription";
+      metadata.addon = "per_client_addon";
+      metadata.parent_subscription_type = subType!;
+    }
+
     // Guard: if this is a SUBSCRIPTION request and the user is already a
     // premium subscriber, route them to the Stripe Billing Portal instead
     // of attempting to create a duplicate subscription (Stripe would reject
     // it with "Customer already has an active subscription to this price").
-    if (!tool_slug) {
+    // SKIPPED for add-on subscriptions (the user IS already subscribed by design).
+    if (!tool_slug && !addon) {
       const { data: existing } = await supabase
         .from("profiles")
         .select("is_premium, is_pro, stripe_customer_id")
