@@ -15,6 +15,11 @@ import {
   Siren,
   Sparkles,
   ClipboardList,
+  Database,
+  FileText,
+  Globe,
+  ShieldAlert,
+  Lock,
 } from "lucide-react";
 
 type Tool = {
