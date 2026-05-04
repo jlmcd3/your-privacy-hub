@@ -159,6 +159,7 @@ const Navbar = () => {
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [briefLabel, setBriefLabel] = useState<string | null>(null);
+  const { tier } = useSubscriptionTier();
 
   useEffect(() => {
     if (!user) return;
