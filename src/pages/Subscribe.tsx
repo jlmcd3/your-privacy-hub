@@ -930,19 +930,31 @@ const Subscribe = () => {
             </button>
           </div>
 
-          {/* Annual */}
+          {/* Annual — auto-routes to founding rate ($369/yr) while slots remain */}
           <div className="pricing-card-safe bg-gradient-to-br from-navy to-steel rounded-2xl p-7 border-2 border-amber-400/60 relative flex flex-col">
             <div className="absolute -top-3 right-5 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-              Best Value
+              {foundingStatus?.isAvailable ? "Founding Rate" : "Best Value"}
             </div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
               ⭐ Intelligence Annual
             </div>
             <div className="text-white font-display font-bold text-[40px] leading-none mb-1">
-              {getPrice("intelligence_yearly").displayPrice}<span className="text-lg font-normal text-blue-200">/year</span>
+              {foundingStatus?.isAvailable
+                ? getPrice("intelligence_yearly_founding").displayPrice
+                : getPrice("intelligence_yearly").displayPrice}
+              <span className="text-lg font-normal text-blue-200">/year</span>
             </div>
-            <p className="text-blue-200 text-[12px] mb-4">~$32.50/month — Save $78 (2 months free)</p>
-            <ul className="space-y-2.5 mb-6 flex-1">
+            <p className="text-blue-200 text-[12px] mb-1">
+              {foundingStatus?.isAvailable
+                ? `${PLATFORM_PRICING.foundingMonthly()} equivalent — locked for life`
+                : `${PLATFORM_PRICING.standardMonthly()} equivalent — Save $78 (2 months free)`}
+            </p>
+            {foundingStatus?.isAvailable && (
+              <p className="text-amber-300 text-[11px] font-semibold mb-3">
+                ⚡ {foundingStatus.remainingSlots} founding slots remaining of 500
+              </p>
+            )}
+            <ul className="space-y-2.5 mb-6 flex-1 mt-3">
               {[
                 "Two months free vs. monthly billing",
                 "Weekly Intelligence Brief — curated for privacy professionals",
