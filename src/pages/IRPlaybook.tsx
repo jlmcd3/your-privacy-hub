@@ -32,7 +32,7 @@ const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
 export default function IRPlaybook() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const access = useToolAccess({ standalonePrice: 39, subscriberPrice: null });
+  const access = useToolAccess({ standalonePrice: 59, subscriberPrice: null });
   const { clientId } = useActiveClient();
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
