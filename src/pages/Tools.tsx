@@ -3,6 +3,14 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
+const CPPA_TOOL_SLUGS = new Set([
+  "cppa-risk-assessment",
+  "cppa-cybersecurity",
+  "cppa-suite",
+]);
 
 const DIFFERENTIATORS = [
   {
