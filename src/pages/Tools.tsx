@@ -51,7 +51,7 @@ const TOOLS: ToolDef[] = [
     tagline:
       "A structured assessment of your privacy program across the domains regulators actually inspect. (Formerly Data Privacy Healthcheck.)",
     href: "/governance-assessment",
-    subscriberPrice: "$25 per assessment",
+    subscriberPrice: "Included with Annual Platform",
     standalonePrice: "$49",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
