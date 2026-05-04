@@ -527,21 +527,25 @@ export default function Tools() {
                     Subscriber rate
                   </div>
                 )}
-                {!hasToolAccess && (
+                {!hasToolAccess && tier === "monthly" && (
                   <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
-                    ⭐ {tool.subscriberPrice}
+                    ⭐ {tool.monthlySubscriberPrice ?? tool.standalonePrice}
                   </div>
                 )}
-                <div className="text-[11px] text-muted-foreground">
+                {!hasToolAccess && tier !== "monthly" && (
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
+                    ⭐ {tool.standalonePrice}
+                  </div>
+                )}
+                <div className="text-[11px] text-muted-foreground mt-0.5">
                   {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
                     ? "Included in your Annual Platform"
+                    : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
+                    ? "Paid — subscriber rate applied"
+                    : tier === "monthly" && tool.monthlySubscriberPrice
+                    ? "Monthly subscriber discount"
                     : `${tool.standalonePrice} without subscription`}
                 </div>
-                {!hasToolAccess && tier === "monthly" && (
-                  <div className="text-[10px] text-slate bg-gray-100 px-2 py-0.5 rounded-full mt-1 inline-block">
-                    Standalone rate applies
-                  </div>
-                )}
               </div>
             </div>
 
