@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-navy text-slate-light pt-14 pb-8 px-4 md:px-8">
       <div className="max-w-[1280px] mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[280px_1fr_1fr_1fr_1fr] gap-8 lg:gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[220px_1fr_1fr_1fr_1fr_1fr] gap-8 lg:gap-10 mb-12">
           <div>
             <div className="flex items-center gap-2.5 mb-3">
               <img src="/logo.png" alt="End User Privacy" className="h-7 w-auto" />
