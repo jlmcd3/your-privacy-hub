@@ -20,7 +20,7 @@ import ProToolsBanner from "@/components/home/ProToolsBanner";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 const Index = () => {
   const { isPremium } = usePremiumStatus();
@@ -29,7 +29,7 @@ const Index = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Global Privacy Law, Tracked Daily | End User Privacy</title>
-        <meta name="description" content="Privacy regulatory intelligence for professionals. Tracking 119 authorities across 150+ jurisdictions — enforcement actions, new legislation, and regulatory guidance, updated daily." />
+        <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform from ${PLATFORM_PRICING.founding()} (founding) — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
 
       {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
@@ -73,37 +73,48 @@ const Index = () => {
             <SponsorshipBanner placement="home_sidebar" />
 
 
-            {/* Weekly brief sidebar card — hidden for premium */}
+            {/* Two-tier pricing card — hidden for premium */}
             {!isPremium && (
-              <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-5 text-white">
-                <div className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-2">
-                  ⭐ Weekly Intelligence Brief
-                </div>
-                <p className="font-display font-bold text-[15px] leading-snug mb-2">
-                  Every Monday. Intelligence. 8-section analysis.
+              <div className="bg-card border border-fog rounded-xl p-5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate mb-3">
+                  Get started
                 </p>
-                <p className="text-blue-200 text-[12px] leading-relaxed mb-4">
-                  Enforcement table · trend signals · action items ·
-                  regional analysis. Customized and analyzed for your priorities and responsibilities.
-                </p>
-                <Link
-                  to="/sample-brief"
-                  className="block text-center text-[12px] font-semibold text-navy bg-white hover:opacity-90 px-4 py-2 rounded-lg no-underline mb-3"
-                >
-                  See a sample brief →
-                </Link>
-                <div className="border-t border-white/10 pt-3">
-                  <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1.5">
-                    ⭐ Intelligence — {`${INTELLIGENCE_PRICING.monthly()}`}
+
+                {/* Platform option — primary */}
+                <div className="mb-4">
+                  <p className="text-navy font-bold text-[15px]">Compliance Platform</p>
+                  <p className="text-[22px] font-display font-bold text-navy leading-tight">
+                    {PLATFORM_PRICING.foundingMonthly()}
+                    <span className="text-[13px] font-normal text-slate"> /mo</span>
                   </p>
-                  <p className="text-[11px] text-blue-200 leading-snug mb-2">
-                    Customized and analyzed for your priorities and responsibilities.
+                  <p className="text-[11px] text-amber-700 font-semibold mb-2">
+                    Founding rate — billed {PLATFORM_PRICING.founding()}
+                  </p>
+                  <p className="text-[11px] text-slate mb-3">
+                    All compliance tools included. Full intelligence brief.
                   </p>
                   <Link
                     to="/subscribe"
-                    className="block text-center text-[11px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-1.5 rounded-lg no-underline"
+                    className="block w-full text-center bg-navy text-white text-[12px] font-bold py-2.5 rounded-lg hover:opacity-90 no-underline"
                   >
-                    Get full intelligence →
+                    Start platform →
+                  </Link>
+                </div>
+
+                {/* Intelligence option — secondary */}
+                <div className="border-t border-fog pt-4">
+                  <p className="text-navy font-semibold text-[13px]">Intelligence only</p>
+                  <p className="text-[18px] font-display font-bold text-navy leading-tight">
+                    {INTELLIGENCE_PRICING.monthlyShort()}
+                  </p>
+                  <p className="text-[11px] text-slate mb-2">
+                    Brief, monitoring, and enforcement tracking.
+                  </p>
+                  <Link
+                    to="/subscribe"
+                    className="block w-full text-center border border-navy text-navy text-[12px] font-semibold py-2 rounded-lg hover:bg-navy/5 no-underline"
+                  >
+                    Start intelligence →
                   </Link>
                 </div>
               </div>

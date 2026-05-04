@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import ClientContextBar from "@/components/ClientContextBar";
 
 // Helper component for icon images with fallback
@@ -158,6 +159,7 @@ const Navbar = () => {
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [briefLabel, setBriefLabel] = useState<string | null>(null);
+  const { tier } = useSubscriptionTier();
 
   useEffect(() => {
     if (!user) return;
@@ -286,14 +288,25 @@ const Navbar = () => {
                   to="/subscribe"
                   className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
                 >
-                  ⭐ Get Intelligence
+                  ⭐ See plans
                 </Link>
               )}
-              {isPremium ? (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-700 text-purple-100">
+              {tier === "annual_founding" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                  Platform · Founding
+                </span>
+              )}
+              {tier === "annual" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
+                  Platform
+                </span>
+              )}
+              {tier === "monthly" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
                   Intelligence
                 </span>
-              ) : (
+              )}
+              {tier === "free" && (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
                   FREE PLAN
                 </span>
@@ -423,7 +436,7 @@ const Navbar = () => {
                     className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
-                    ⭐ Get Intelligence
+                    ⭐ See plans
                   </Link>
                 )}
                 <Link
