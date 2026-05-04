@@ -133,7 +133,7 @@ const GlossaryTerm = () => {
                         href={d.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-primary no-underline hover:underline mt-1 inline-block"
+                        className="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80 mt-2 inline-block"
                       >
                         View source ↗
                       </a>
