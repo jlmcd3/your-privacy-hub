@@ -96,6 +96,21 @@ const Subscribe = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [foundingStatus, setFoundingStatus] = useState<{
+    remainingSlots: number;
+    isAvailable: boolean;
+    usedSlots: number;
+  } | null>(null);
+
+  useEffect(() => {
+    supabase.functions
+      .invoke("get-founding-status")
+      .then(({ data }) => {
+        if (data && typeof data.remainingSlots === "number") setFoundingStatus(data);
+      })
+      .catch(() => setFoundingStatus({ remainingSlots: 500, isAvailable: true, usedSlots: 0 }));
+  }, []);
+
   const toggleTrack = (label: string) =>
     setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
 
