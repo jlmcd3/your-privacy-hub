@@ -288,14 +288,25 @@ const Navbar = () => {
                   to="/subscribe"
                   className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
                 >
-                  ⭐ Get Intelligence
+                  ⭐ See plans
                 </Link>
               )}
-              {isPremium ? (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-700 text-purple-100">
+              {tier === "annual_founding" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                  Platform · Founding
+                </span>
+              )}
+              {tier === "annual" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
+                  Platform
+                </span>
+              )}
+              {tier === "monthly" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
                   Intelligence
                 </span>
-              ) : (
+              )}
+              {tier === "free" && (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
                   FREE PLAN
                 </span>
