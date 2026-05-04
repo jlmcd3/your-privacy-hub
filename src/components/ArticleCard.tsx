@@ -623,7 +623,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 };
 
 // — HOMEPAGE variant (anonymous users — uniform internal-link card) ——
-const HomepageCard = ({ item }: { item: ArticleItem }) => {
+export const HomepageCard = ({ item }: { item: ArticleItem }) => {
   const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
   return (
     <Link

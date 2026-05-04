@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
+import { ArticleCard, HomepageCard, type ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -98,7 +98,7 @@ export function TieredFeed({
     <div>
       <div>
         {anonArticles.map(a => (
-          <ArticleCard key={a.id} item={a} variant="homepage" />
+          <HomepageCard key={a.id} item={a} />
         ))}
       </div>
 
