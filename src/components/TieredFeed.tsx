@@ -98,7 +98,7 @@ export function TieredFeed({
     <div>
       <div>
         {anonArticles.map(a => (
-          <ArticleCard key={a.id} item={a} variant="homepage" />
+          <HomepageCard key={a.id} item={a} />
         ))}
       </div>
 
