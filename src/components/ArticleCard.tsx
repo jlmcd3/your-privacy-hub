@@ -389,9 +389,7 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             action_items={item.action_items ?? null}
             risk_level={item.ai_summary?.risk_level ?? null}
             isPremium={isPremium}
-            userSalutation={userSalutation}
             articleId={item.id}
-            articleCategory={item.category ?? null}
           />
         )}
         {/* Intelligence Card — paid only, collapsed by default */}
