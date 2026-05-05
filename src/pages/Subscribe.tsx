@@ -404,46 +404,143 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {/* How we compare */}
+        {/* The missing piece of the privacy toolkit */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-2">How we compare</h2>
-          <p className="text-[14px] text-navy text-center font-semibold mb-6">
-            DataGuidance (OneTrust) charges enterprise rates for features you access here free.
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
-              <thead>
-                <tr className="bg-fog">
-                  <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">
-                    End User Privacy
-                  </th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">
-                    DataGuidance (OneTrust)
-                  </th>
-                  <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP</th>
-                </tr>
-              </thead>
-              <tbody>
+          {/* Section heading */}
+          <div className="text-center mb-8">
+            <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate mb-3">
+              Where we fit
+            </p>
+            <h2 className="font-display text-[22px] md:text-[28px] text-navy mb-3 leading-tight">
+              The missing piece of the privacy toolkit
+            </h2>
+            <p className="text-[14px] text-slate max-w-[480px] mx-auto leading-relaxed">
+              Privacy professionals rely on four well-established categories of tools.
+              End User Privacy was purpose-built for the one that had no dedicated home.
+            </p>
+          </div>
+
+          {/* Donut chart + legend card */}
+          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              {/* SVG donut chart */}
+              <div className="flex items-center justify-center">
+                <svg
+                  viewBox="0 0 240 240"
+                  className="w-full max-w-[220px]"
+                  role="img"
+                  aria-label="Donut chart of the privacy professional's toolkit. End User Privacy occupies the largest segment at 40 percent."
+                >
+                  <title>The privacy professional's toolkit — End User Privacy fills the missing piece</title>
+                  {/* EUP segment: 40% */}
+                  <path d="M120,24 A96,96 0 0,1 176.4,197.7 L151.7,163.7 A54,54 0 0,0 120,66 Z" fill="#D97706" stroke="#B45309" strokeWidth="1" />
+                  {/* Legal research: 15% */}
+                  <path d="M176.4,197.7 A96,96 0 0,1 90.3,211.3 L103.3,171.4 A54,54 0 0,0 151.7,163.7 Z" fill="#C7D5E8" stroke="#B0C0D8" strokeWidth="0.5" />
+                  {/* Compliance management: 15% */}
+                  <path d="M90.3,211.3 A96,96 0 0,1 28.7,149.7 L68.6,136.7 A54,54 0 0,0 103.3,171.4 Z" fill="#C7D5E8" stroke="#B0C0D8" strokeWidth="0.5" />
+                  {/* Privacy technology: 15% */}
+                  <path d="M28.7,149.7 A96,96 0 0,1 42.3,63.6 L76.3,88.3 A54,54 0 0,0 68.6,136.7 Z" fill="#C7D5E8" stroke="#B0C0D8" strokeWidth="0.5" />
+                  {/* Professional development: 15% */}
+                  <path d="M42.3,63.6 A96,96 0 0,1 120,24 L120,66 A54,54 0 0,0 76.3,88.3 Z" fill="#C7D5E8" stroke="#B0C0D8" strokeWidth="0.5" />
+                  {/* Center hole */}
+                  <circle cx="120" cy="120" r="50" fill="white" />
+                  {/* Center label */}
+                  <text x="120" y="114" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="DM Sans, sans-serif">Privacy</text>
+                  <text x="120" y="126" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="DM Sans, sans-serif">professional's</text>
+                  <text x="120" y="138" textAnchor="middle" fontSize="10" fontWeight="500" fill="#6B7A99" fontFamily="DM Sans, sans-serif">toolkit</text>
+                  {/* EUP label */}
+                  <text x="191" y="90" textAnchor="middle" fontSize="11" fontWeight="500" fill="#7C2D12" fontFamily="DM Sans, sans-serif">EUP</text>
+                  <text x="191" y="103" textAnchor="middle" fontSize="10" fill="#92400E" fontFamily="DM Sans, sans-serif">40%</text>
+                </svg>
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-col gap-4">
                 {[
-                  ["Price", `${INTELLIGENCE_PRICING.monthly()} or ${PLATFORM_PRICING.standard()}/yr`, "$300–$3,500+/year", "$550+/year"],
-                  ["Format", "Weekly intelligence brief + tools", "Research database", "Membership + events"],
-                  ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
-                  ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
-                  ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding", "Conference-based"],
-                ].map(([label, us, dg, iapp], i) => (
-                  <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                    <td className="px-5 py-3 text-navy font-medium border-t border-fog">{label}</td>
-                    <td className="px-5 py-3 text-center text-navy font-medium border-t border-fog">
-                      <span className="text-accent mr-1">✓</span>
-                      {us}
-                    </td>
-                    <td className="px-5 py-3 text-center text-slate border-t border-fog">{dg}</td>
-                    <td className="px-5 py-3 text-center text-slate border-t border-fog">{iapp}</td>
-                  </tr>
+                  {
+                    color: "bg-amber-500",
+                    name: "Regulatory intelligence and action",
+                    desc: "What changed, what it means for your work, and what to do — automatically, every week.",
+                    nameClass: "text-amber-800",
+                  },
+                  {
+                    color: "bg-[#C7D5E8]",
+                    name: "Legal research",
+                    desc: "Statutes, case law, and regulatory guidance for teams that need primary source access.",
+                    nameClass: "text-navy",
+                  },
+                  {
+                    color: "bg-[#C7D5E8]",
+                    name: "Compliance management",
+                    desc: "Programme workflows, DSAR handling, consent management, and data mapping.",
+                    nameClass: "text-navy",
+                  },
+                  {
+                    color: "bg-[#C7D5E8]",
+                    name: "Privacy technology",
+                    desc: "Consent banners, cookie management, preference centres, and data discovery.",
+                    nameClass: "text-navy",
+                  },
+                  {
+                    color: "bg-[#C7D5E8]",
+                    name: "Professional development",
+                    desc: "Credentials, community, events, and continuing education.",
+                    nameClass: "text-navy",
+                  },
+                ].map((item) => (
+                  <div key={item.name} className="flex items-start gap-2.5">
+                    <div className={`w-3 h-3 rounded-sm flex-shrink-0 mt-1 ${item.color}`} />
+                    <div>
+                      <p className={`text-[13px] font-semibold leading-snug mb-0.5 ${item.nameClass}`}>
+                        {item.name}
+                      </p>
+                      <p className="text-[12px] text-slate leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+          </div>
+
+          {/* EUP highlight card */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 mb-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
+              End User Privacy
+            </p>
+            <h3 className="font-display text-[16px] text-navy mb-2 leading-snug">
+              The monitoring and action layer — purpose-built
+            </h3>
+            <p className="text-[13px] text-slate leading-relaxed">
+              Our tools monitor 119 regulatory authorities daily, synthesise every development,
+              and tell you what it means for your specific work — automatically, every week.
+              Plus the compliance documents to act on it.
+            </p>
+          </div>
+
+          {/* Body copy card */}
+          <div className="bg-card border border-fog rounded-2xl px-6 py-5 mb-5">
+            <p className="text-[13px] text-slate leading-relaxed mb-4">
+              The privacy professional's toolkit has four well-established categories, each
+              with excellent tools. Legal research databases give you access to the primary
+              source when you need to read the statute. Compliance management platforms handle
+              programme workflows and consent. Professional associations provide credentials and
+              community. Privacy technology keeps your websites and data practices running
+              correctly.
+            </p>
+            <div className="h-px bg-fog my-4" />
+            <p className="text-[13px] text-slate leading-relaxed">
+              Our tools monitor what is happening across the regulatory landscape
+              automatically, synthesise it, and tell you what it means for your specific work.
+            </p>
+          </div>
+
+          {/* Closing quote */}
+          <div className="border-l-[3px] border-amber-500 bg-card border border-fog rounded-r-xl px-5 py-4">
+            <p className="text-[13px] text-slate leading-relaxed italic">
+              "End User Privacy is the monitoring and intelligence layer you add once, and
+              then stop having to think about — working alongside the professional tools you
+              already rely on."
+            </p>
           </div>
         </div>
 
