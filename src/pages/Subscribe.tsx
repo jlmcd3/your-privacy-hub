@@ -7,7 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
-import BriefBuilder from "@/components/subscribe/BriefBuilder";
+import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
@@ -65,6 +65,7 @@ const Subscribe = () => {
   const [error, setError] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
+  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [foundingStatus, setFoundingStatus] = useState<{
     remainingSlots: number;
     isAvailable: boolean;
@@ -79,6 +80,9 @@ const Subscribe = () => {
       })
       .catch(() => setFoundingStatus({ remainingSlots: 500, isAvailable: true, usedSlots: 0 }));
   }, []);
+
+  const toggleTrack = (label: string) =>
+    setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
 
   const startCheckout = async (interval: "month" | "year") => {
     if (!user) {
@@ -268,17 +272,66 @@ const Subscribe = () => {
           </div>
         </div>
       </div>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-fog">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            See what your brief would look like
+            See what your brief would look like this week
           </h2>
           <p className="text-slate text-[13px]">
-            Pick your sector, region, and topics. We'll build a sample brief
-            showing the depth and format you receive every Monday.
+            Pick your sector and region. We'll show you what your Monday brief would have opened with.
           </p>
         </div>
-        <BriefBuilder />
+        <ProBriefPreview />
+      </div>
+
+      {/* Report Tracks */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-fog">
+        <div className="text-center mb-8">
+          <h2 className="font-display font-bold text-navy text-[20px] mb-2">What do you want covered?</h2>
+          <p className="text-slate text-[13px] max-w-lg mx-auto">
+            Select the areas most relevant to your work. Your brief covers all selected tracks every Monday.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+          {[
+            { icon: "🗺️", label: "US State Privacy Laws", desc: "New state laws, AG enforcement, CPPA actions, and compliance deadlines across all 50 states" },
+            { icon: "🇪🇺", label: "GDPR Enforcement & DPA Activity", desc: "DPA fines, EDPB binding decisions, cross-border enforcement, and legal precedent" },
+            { icon: "🤖", label: "EU AI Act Compliance", desc: "AI Act implementation phases, GPAI code updates, prohibited AI, and GDPR intersection" },
+            { icon: "👶", label: "Children's Privacy & Age Verification", desc: "COPPA enforcement, KOSA developments, UK AADC, and platform-specific obligations" },
+            { icon: "🍪", label: "AdTech, Consent & Cookie Compliance", desc: "TCF updates, cookie enforcement actions, Privacy Sandbox changes, FTC surveillance rules" },
+            { icon: "🔀", label: "Cross-Border Data Transfers", desc: "DPF status, SCC updates, LGPD transfers, APAC mechanisms, and Schrems litigation" },
+            { icon: "🏥", label: "Health & Medical Data Privacy", desc: "HIPAA enforcement, FTC health data actions, state health laws, and health AI obligations" },
+            { icon: "🏛️", label: "Privacy Litigation & Class Actions", desc: "BIPA filings, VPPA cases, CIPA wiretap suits, MDL proceedings, settlement watch" },
+            { icon: "👁️", label: "Biometric Data Privacy", desc: "BIPA class action tracker, state biometric laws, AI Act biometric provisions" },
+            { icon: "🔓", label: "Data Breach & Incident Response", desc: "Breach notification law changes, SEC disclosure rules, enforcement for late reporting" },
+          ].map((track) => {
+            const sel = selectedTracks.includes(track.label);
+            return (
+              <button
+                key={track.label}
+                type="button"
+                onClick={() => toggleTrack(track.label)}
+                className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-left w-full transition-all cursor-pointer ${
+                  sel ? "bg-navy border-navy shadow-eup-sm" : "bg-white border-fog hover:border-navy/40"
+                }`}
+              >
+                <span className="text-lg flex-shrink-0 mt-0.5">{track.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm font-semibold leading-tight ${sel ? "text-white" : "text-navy"}`}>
+                    {track.label}
+                  </p>
+                  <p className={`text-[11px] mt-0.5 leading-snug ${sel ? "text-blue-200" : "text-slate"}`}>
+                    {track.desc}
+                  </p>
+                </div>
+                {sel && <span className="text-xs text-white/70 flex-shrink-0 mt-0.5">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-center text-slate text-[12px] mt-4 max-w-lg mx-auto leading-relaxed">
+          Each track is included with both Intelligence Feed and Compliance Platform. Your brief synthesizes all selected tracks into one weekly issue.
+        </p>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
