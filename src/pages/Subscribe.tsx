@@ -65,11 +65,6 @@ const Subscribe = () => {
   const [error, setError] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
-  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
-
-  const toggleTrack = (label: string) =>
-    setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
-
   const startCheckout = async (interval: "month" | "year") => {
     if (!user) {
       navigate(`/signup?redirect=/subscribe`);
