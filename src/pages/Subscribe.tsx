@@ -7,7 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
-import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
+import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
@@ -65,7 +65,6 @@ const Subscribe = () => {
   const [error, setError] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
-  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [foundingStatus, setFoundingStatus] = useState<{
     remainingSlots: number;
     isAvailable: boolean;
@@ -80,9 +79,6 @@ const Subscribe = () => {
       })
       .catch(() => setFoundingStatus({ remainingSlots: 500, isAvailable: true, usedSlots: 0 }));
   }, []);
-
-  const toggleTrack = (label: string) =>
-    setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
 
   const startCheckout = async (interval: "month" | "year") => {
     if (!user) {
