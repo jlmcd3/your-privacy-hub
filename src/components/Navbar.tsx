@@ -291,12 +291,7 @@ const Navbar = () => {
                   ⭐ See plans
                 </Link>
               )}
-              {tier === "annual_founding" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                  Platform · Founding
-                </span>
-              )}
-              {tier === "annual" && (
+              {(tier === "annual" || tier === "annual_founding") && (
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
                   Platform
                 </span>

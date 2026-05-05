@@ -202,7 +202,7 @@ export default function Account() {
               Compliance Platform — Annual (Founding Subscriber)
             </p>
             <p className="text-[13px] text-amber-700 font-semibold mt-1">
-              {PLATFORM_PRICING.founding()} · Rate locked for life
+              Rate locked for life
             </p>
             <p className="text-[12px] text-slate mt-1">
               All compliance tools included. Full intelligence brief.
@@ -236,8 +236,7 @@ export default function Account() {
                 Add compliance tools with Annual Platform
               </p>
               <p className="text-[11px] text-slate mb-2">
-                All tools included. {PLATFORM_PRICING.founding()} founding or{" "}
-                {PLATFORM_PRICING.standard()} standard.
+                All tools included. {PLATFORM_PRICING.standard()}.
               </p>
               <Link to="/subscribe" className="text-[12px] font-bold text-navy underline">
                 Upgrade to Platform →
@@ -312,7 +311,7 @@ export default function Account() {
               Compliance Platform or Intelligence Feed
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
-              Annual Platform from {PLATFORM_PRICING.founding()} (founding) — every assessment,
+              Annual Platform at {PLATFORM_PRICING.standard()} — every assessment,
               notice, and document tool included. Or Intelligence Feed at{" "}
               {INTELLIGENCE_PRICING.monthly()}.
             </p>

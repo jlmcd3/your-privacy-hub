@@ -133,7 +133,7 @@ export const PRICING_REGISTRY = {
     displayPrice: "$369",
     displaySuffix: "/year",
     recurringInterval: "year",
-    active: true,
+    active: false,
   },
   per_client_addon: {
     kind: "addon",
@@ -356,20 +356,16 @@ export function getActivePrices(): PriceEntry[] {
 export const INTELLIGENCE_PRICING = {
   monthly: () => formatPrice("intelligence_monthly"),                              // "$29/month"
   yearly: () => formatPrice("intelligence_yearly"),                                // "$399/year"
-  yearlyFounding: () => formatPrice("intelligence_yearly_founding"),               // "$369/year"
   combined: () =>
     `${formatPrice("intelligence_monthly")} or ${formatPrice("intelligence_yearly")}`,
   monthlyShort: () => `${getPrice("intelligence_monthly").displayPrice}/mo`,
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
-  yearlyFoundingShort: () => `${getPrice("intelligence_yearly_founding").displayPrice}/yr`,
 } as const;
 
 /** Platform pricing helpers (annual subscriptions with tool access included). */
 export const PLATFORM_PRICING = {
   standard: () => formatPrice("intelligence_yearly"),                              // "$399/year"
-  founding: () => formatPrice("intelligence_yearly_founding"),                     // "$369/year"
   standardMonthly: () => "$33.25/mo",
-  foundingMonthly: () => "$30.75/mo",
   clientAddon: () => formatPrice("per_client_addon"),                              // "$199/year per client"
 } as const;
 
