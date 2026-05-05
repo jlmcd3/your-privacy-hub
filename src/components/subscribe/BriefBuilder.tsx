@@ -49,7 +49,6 @@ type Excerpt = { headline: string; excerpt: string; action: string };
 type ExcerptMap = Record<string, Record<string, Record<string, Excerpt>>>;
 
 const EXCERPTS: ExcerptMap = {
-const EXCERPTS: ExcerptMap = {
 
   // ── EU & UK ─────────────────────────────────────────────────────────
   eu: {
@@ -354,7 +353,6 @@ const EXCERPTS: ExcerptMap = {
       breach: { headline: "APAC breach response practical guide — India CERT-In 6-hour clock as the governing standard for all APAC operations", excerpt: "Privacy professionals managing breach response across APAC must prepare for India CERT-In's 6-hour notification requirement as the fastest globally applicable clock. The practical pre-incident preparation checklist: CERT-In portal access tested and current; India-specific notification template prepared; South Korea PIPA 24-hour template prepared; Singapore PDPC 3-day template prepared; Australia NDB assessment criteria documented. These cannot be prepared effectively during an active incident.", action: "Complete APAC breach response pre-incident preparation: CERT-In portal access, India and South Korea notification templates, Singapore PDPC template, and Australia NDB criteria. Conduct a tabletop exercise testing the 6-hour CERT-In notification capability specifically." },
     },
   },
-};
 };
 
 function getExcerptsForBrief(
