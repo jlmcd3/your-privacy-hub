@@ -49,7 +49,6 @@ type Excerpt = { headline: string; excerpt: string; action: string };
 type ExcerptMap = Record<string, Record<string, Record<string, Excerpt>>>;
 
 const EXCERPTS: ExcerptMap = {
-const EXCERPTS: ExcerptMap = {
 
   // ── EU & UK ─────────────────────────────────────────────────────────
   eu: {
