@@ -7,7 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
-import ProBriefPreview from "@/components/subscribe/ProBriefPreview";
+import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
@@ -256,7 +256,7 @@ const Subscribe = () => {
             Pick your sector and region. We'll show you what your Monday brief would have opened with.
           </p>
         </div>
-        <ProBriefPreview />
+        <BriefBuilder />
       </div>
 
       {/* Report Tracks */}
