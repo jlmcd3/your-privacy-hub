@@ -66,20 +66,6 @@ const Subscribe = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
-  const [foundingStatus, setFoundingStatus] = useState<{
-    remainingSlots: number;
-    isAvailable: boolean;
-    usedSlots: number;
-  } | null>(null);
-
-  useEffect(() => {
-    supabase.functions
-      .invoke("get-founding-status")
-      .then(({ data }) => {
-        if (data && typeof data.remainingSlots === "number") setFoundingStatus(data);
-      })
-      .catch(() => setFoundingStatus({ remainingSlots: 500, isAvailable: true, usedSlots: 0 }));
-  }, []);
 
   const toggleTrack = (label: string) =>
     setSelectedTracks((prev) => (prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label]));
@@ -106,12 +92,7 @@ const Subscribe = () => {
     navigate("/account?subscribed=1");
   };
 
-  const platformHeadlinePrice = foundingStatus?.isAvailable
-    ? PLATFORM_PRICING.foundingMonthly()
-    : PLATFORM_PRICING.standardMonthly();
-  const platformAnnualPrice = foundingStatus?.isAvailable
-    ? PLATFORM_PRICING.founding()
-    : PLATFORM_PRICING.standard();
+
 
   return (
     <div className="min-h-screen bg-paper">
@@ -119,7 +100,7 @@ const Subscribe = () => {
         <title>{`Two products. One mission. — ${INTELLIGENCE_PRICING.monthly()} or ${PLATFORM_PRICING.standard()}/yr | End User Privacy`}</title>
         <meta
           name="description"
-          content={`Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()} or the Compliance Platform at ${PLATFORM_PRICING.founding()} (founding) / ${PLATFORM_PRICING.standard()}/yr. All compliance tools included on Platform.`}
+          content={`Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()}. Annual Platform at ${PLATFORM_PRICING.standard()} — all compliance tools included.`}
         />
       </Helmet>
       <Navbar />
@@ -132,8 +113,7 @@ const Subscribe = () => {
           </h1>
           <p className="text-[15px] text-slate-light max-w-[600px] mx-auto leading-relaxed mb-10">
             Stay informed with Intelligence for {INTELLIGENCE_PRICING.monthly()}.
-            Run your compliance program with Platform for {PLATFORM_PRICING.founding()} (founding)
-            or {PLATFORM_PRICING.standard()}/yr.
+            Run your compliance program with Annual Platform for {PLATFORM_PRICING.standard()}.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
@@ -172,26 +152,21 @@ const Subscribe = () => {
 
             {/* Compliance Platform card */}
             <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
-              {foundingStatus?.isAvailable && (
-                <div className="absolute -top-3 right-5 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                  Founding Rate
-                </div>
-              )}
               <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
                 Compliance Platform
               </p>
-              <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
-                {platformHeadlinePrice}
-                <span className="text-lg font-normal text-blue-200">/mo</span>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-white font-display font-bold text-[36px] leading-none">
+                  $399
+                </span>
+                <span className="text-blue-200 text-[18px] font-normal">/year</span>
               </div>
-              <p className="text-blue-200 text-[12px] mb-1">
-                Billed {platformAnnualPrice} annually
+              <p className="text-blue-200/70 text-[12px] mb-1">
+                Billed as one annual payment
               </p>
-              {foundingStatus?.isAvailable && (
-                <p className="text-amber-300 text-[11px] font-semibold mb-4">
-                  ⚡ {foundingStatus.remainingSlots} founding slots remaining of 500
-                </p>
-              )}
+              <p className="text-blue-200/50 text-[11px] mb-4">
+                {PLATFORM_PRICING.standardMonthly()} equivalent
+              </p>
               <ul className="space-y-2 mb-6">
                 {[
                   "Everything in Intelligence Feed",
@@ -210,7 +185,7 @@ const Subscribe = () => {
                 disabled={!!loading}
                 className="w-full py-3 rounded-xl text-[13px] font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
               >
-                Start Platform — {platformAnnualPrice} →
+                Start Platform — {PLATFORM_PRICING.standard()} →
               </button>
             </div>
           </div>
@@ -353,7 +328,7 @@ const Subscribe = () => {
                       Intelligence ({INTELLIGENCE_PRICING.monthlyShort()})
                     </th>
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
-                      Platform ({PLATFORM_PRICING.founding()}–{PLATFORM_PRICING.standard()}/yr)
+                      Platform ({PLATFORM_PRICING.standard()})
                     </th>
                   </tr>
                 </thead>

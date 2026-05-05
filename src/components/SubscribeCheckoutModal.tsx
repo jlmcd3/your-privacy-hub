@@ -98,9 +98,7 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
           <p className="text-[12px] text-muted-foreground">You're subscribing to:</p>
           <p className="text-[14px] font-bold text-navy">
             {interval === "year"
-              ? foundingAvailable
-                ? `${PLATFORM_PRICING.founding()}/year (Founding Rate — locked for life)`
-                : `${PLATFORM_PRICING.standard()}/year`
+              ? `${PLATFORM_PRICING.standard()}/year`
               : `${INTELLIGENCE_PRICING.monthly()} (Intelligence Feed)`}
           </p>
         </div>

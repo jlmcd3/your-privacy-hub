@@ -113,7 +113,7 @@ export default function SubscribeSuccess() {
           </p>
           {isFoundingSubscriber && (
             <p className="text-amber-700 text-[13px] font-semibold mt-3">
-              Welcome, founding subscriber. Your rate is locked at {PLATFORM_PRICING.founding()}/yr for life.
+              Welcome, founding subscriber. Your rate is locked for life.
             </p>
           )}
           {!activated && isPremium && (
@@ -150,7 +150,7 @@ export default function SubscribeSuccess() {
         {isIntelligenceOnly && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
             <p className="text-amber-800 text-[13px] font-medium">
-              Want all compliance tools included? Upgrade to the Annual Platform from your account settings — {PLATFORM_PRICING.standard()}/yr (or {PLATFORM_PRICING.founding()}/yr while founding slots remain).
+              Want all compliance tools included? Upgrade to the Annual Platform from your account settings — {PLATFORM_PRICING.standard()}.
             </p>
           </div>
         )}

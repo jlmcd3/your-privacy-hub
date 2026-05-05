@@ -29,7 +29,7 @@ const Index = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Global Privacy Law, Tracked Daily | End User Privacy</title>
-        <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform from ${PLATFORM_PRICING.founding()} (founding) — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
+        <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform at ${PLATFORM_PRICING.standard()} — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
 
       {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
@@ -84,11 +84,10 @@ const Index = () => {
                 <div className="mb-4">
                   <p className="text-navy font-bold text-[15px]">Compliance Platform</p>
                   <p className="text-[22px] font-display font-bold text-navy leading-tight">
-                    {PLATFORM_PRICING.foundingMonthly()}
-                    <span className="text-[13px] font-normal text-slate"> /mo</span>
+                    {PLATFORM_PRICING.standard()}
                   </p>
                   <p className="text-[11px] text-amber-700 font-semibold mb-2">
-                    Founding rate — billed {PLATFORM_PRICING.founding()}
+                    Billed annually · {PLATFORM_PRICING.standardMonthly()} equivalent
                   </p>
                   <p className="text-[11px] text-slate mb-3">
                     All compliance tools included. Full intelligence brief.
