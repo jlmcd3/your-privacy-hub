@@ -354,7 +354,6 @@ const EXCERPTS: ExcerptMap = {
     },
   },
 };
-};
 
 function getExcerptsForBrief(
   jurisdiction: string,
