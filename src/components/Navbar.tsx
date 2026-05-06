@@ -98,6 +98,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         header: "Assessments",
+        column: 1,
         items: [
           { icon: "⚖️", label: "Legitimate Interest Assessment", badge: "PRO", href: "/li-assessment",
             description: "Full three-part documented LIA, calibrated to enforcement decisions" },
@@ -113,6 +114,7 @@ const navItems: NavItem[] = [
       },
       {
         header: "Compliance Documents",
+        column: 2,
         items: [
           { icon: "📝", label: "Custom DPA Generator", badge: "PRO", href: "/dpa-generator",
             description: "Article 28-compliant data processing agreement, enforcement-informed" },
@@ -128,6 +130,7 @@ const navItems: NavItem[] = [
       },
       {
         header: "CPPA Suite · California",
+        column: 3,
         items: [
           { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker",
             description: "Find out if your organisation is in scope for the Dec 31, 2027 audit" },
