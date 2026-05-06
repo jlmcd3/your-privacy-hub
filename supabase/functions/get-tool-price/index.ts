@@ -29,7 +29,7 @@ const TOOLS: Record<
     name: "Legitimate Interest Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
-    fallback_standalone_cents: 7900,
+    fallback_standalone_cents: 6900,
     fallback_subscriber_cents: 3500,
   },
   dpia_builder: {
