@@ -643,6 +643,7 @@ const Dashboard = () => {
                         <CustomBriefDocument
                           customBrief={b}
                           sourceMap={brief?.source_map ?? {}}
+                          hideHeader
                         />
                       </div>
                     )}
