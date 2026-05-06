@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import ClientContextBar from "@/components/ClientContextBar";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 // Helper component for icon images with fallback
 const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
