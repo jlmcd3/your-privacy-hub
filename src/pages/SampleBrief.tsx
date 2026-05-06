@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import SampleBriefLanguageToggle from "@/components/brief/SampleBriefLanguageToggle";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import BriefBuilder from "@/components/subscribe/BriefBuilder";
 
 const enforcementRows = [
   {
@@ -138,12 +139,12 @@ const SampleBrief = () => {
                   Get full intelligence →
                 </Link>
               )}
-              <Link
-                to="/get-intelligence"
+              <a
+                href="#brief-builder-section"
                 className="inline-flex items-center px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors no-underline text-[14px]"
               >
                 Build a brief like this for your practice →
-              </Link>
+              </a>
               <Link
                 to="/"
                 className="inline-block px-6 py-3 border border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all no-underline text-[14px]"
@@ -471,6 +472,20 @@ const SampleBrief = () => {
             )}
           </div>
           {/* end white document card */}
+
+          {/* BriefBuilder — interactive demo */}
+          <div id="brief-builder-section" className="mb-8">
+            <div className="text-center mb-6">
+              <h2 className="font-display font-bold text-navy text-[22px] mb-2">
+                Now build one for your practice
+              </h2>
+              <p className="text-slate text-[14px] max-w-[520px] mx-auto">
+                Select your jurisdiction, role, and topic tracks.
+                We'll show you the exact depth and format you'd receive every Monday.
+              </p>
+            </div>
+            <BriefBuilder />
+          </div>
 
           {/* Bottom CTA — outside the document */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 text-center">
