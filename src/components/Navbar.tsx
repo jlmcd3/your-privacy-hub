@@ -431,8 +431,8 @@ const Navbar = () => {
                               ? section.column === 1
                                 ? "col-start-1"
                                 : section.column === 2
-                                ? "col-start-2"
-                                : "col-start-3"
+                                ? "col-start-2 row-start-1"
+                                : "col-start-3 row-start-1"
                               : ""
                           }
                         >
