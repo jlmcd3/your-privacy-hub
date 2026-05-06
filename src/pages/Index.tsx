@@ -17,6 +17,7 @@ import SearchFirstHero from "@/components/home/SearchFirstHero";
 import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import ToolkitSection from "@/components/home/ToolkitSection";
 import HomepageTriptych from "@/components/home/HomepageTriptych";
+import { IntelligenceBriefSection } from "@/components/home/IntelligenceBriefSection";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
