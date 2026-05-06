@@ -182,27 +182,25 @@ function ClientRow({ client }: { client: Client }) {
 export function AccountClientsSection() {
   const { isPremium } = usePremiumStatus();
   const clients = useClientStore((s) => s.clients);
+  const personal = useClientStore((s) => s.personal);
   const loadClients = useClientStore((s) => s.loadClients);
   const updateClient = useClientStore((s) => s.updateClient);
   const [showAdd, setShowAdd] = useState(false);
   const [showGate, setShowGate] = useState(false);
   const { toast } = useToast();
 
-  // Single-client inline edit
-  const [editingSingle, setEditingSingle] = useState(false);
-  const single = clients[0];
-  const [singleName, setSingleName] = useState(single?.name ?? '');
-  const [singleBusy, setSingleBusy] = useState(false);
+  // Personal workspace inline edit
+  const [editingPersonal, setEditingPersonal] = useState(false);
+  const [personalName, setPersonalName] = useState(personal?.name ?? '');
+  const [personalBusy, setPersonalBusy] = useState(false);
 
   useEffect(() => {
     loadClients();
   }, [loadClients]);
 
   useEffect(() => {
-    if (single) setSingleName(single.name);
-  }, [single?.name]);
-
-  const isMulti = clients.length > 1;
+    if (personal) setPersonalName(personal.name);
+  }, [personal?.name]);
 
   function handleAddClick() {
     if (!isPremium) {
@@ -212,13 +210,13 @@ export function AccountClientsSection() {
     setShowAdd(true);
   }
 
-  async function handleSaveSingle() {
-    if (!single || !singleName.trim()) return;
-    setSingleBusy(true);
+  async function handleSavePersonal() {
+    if (!personal || !personalName.trim()) return;
+    setPersonalBusy(true);
     try {
-      await updateClient(single.id, { name: singleName.trim() });
-      toast({ title: 'Organisation updated' });
-      setEditingSingle(false);
+      await updateClient(personal.id, { name: personalName.trim() });
+      toast({ title: 'Workspace updated' });
+      setEditingPersonal(false);
     } catch (err) {
       toast({
         title: 'Update failed',
@@ -226,128 +224,159 @@ export function AccountClientsSection() {
         variant: 'destructive',
       });
     } finally {
-      setSingleBusy(false);
+      setPersonalBusy(false);
     }
   }
 
   return (
-    <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
-      <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
-        {isMulti ? `My Clients — ${clients.length} active` : 'My Organisation'}
-      </h2>
+    <>
+      {/* Personal workspace card */}
+      <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
+            My Workspace
+          </h2>
+          <span className="text-[10px] font-bold uppercase tracking-wider bg-[#EEF2F8] text-navy px-2 py-0.5 rounded">
+            Personal
+          </span>
+        </div>
+        <p className="text-xs text-slate mb-3">
+          Your own privacy programme — kept separate from any clients you manage.
+        </p>
 
-      {!isMulti && single && (
-        <div>
-          {editingSingle ? (
-            <div className="space-y-2">
-              <input
-                value={singleName}
-                onChange={(e) => setSingleName(e.target.value)}
-                className="w-full border border-fog rounded-md px-2.5 py-1.5 text-sm"
-              />
-              <div className="flex gap-2 justify-end">
+        {personal && (
+          <>
+            {editingPersonal ? (
+              <div className="space-y-2">
+                <input
+                  value={personalName}
+                  onChange={(e) => setPersonalName(e.target.value)}
+                  className="w-full border border-fog rounded-md px-2.5 py-1.5 text-sm"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => {
+                      setEditingPersonal(false);
+                      setPersonalName(personal.name);
+                    }}
+                    className="text-xs px-3 py-1.5 border border-fog rounded-md text-slate"
+                    disabled={personalBusy}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSavePersonal}
+                    className="text-xs px-3 py-1.5 rounded-md bg-gradient-to-br from-steel to-blue text-white font-semibold disabled:opacity-50"
+                    disabled={personalBusy || !personalName.trim()}
+                  >
+                    {personalBusy ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center py-2.5 border-t border-fog">
+                <div>
+                  <div className="text-[13px] text-slate">Name</div>
+                  <div className="text-[14px] font-semibold text-navy">{personal.name}</div>
+                </div>
                 <button
-                  onClick={() => {
-                    setEditingSingle(false);
-                    setSingleName(single.name);
-                  }}
-                  className="text-xs px-3 py-1.5 border border-fog rounded-md text-slate"
-                  disabled={singleBusy}
+                  onClick={() => setEditingPersonal(true)}
+                  className="text-[13px] font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveSingle}
-                  className="text-xs px-3 py-1.5 rounded-md bg-gradient-to-br from-steel to-blue text-white font-semibold disabled:opacity-50"
-                  disabled={singleBusy || !singleName.trim()}
-                >
-                  {singleBusy ? 'Saving…' : 'Save'}
+                  Rename
                 </button>
               </div>
-            </div>
-          ) : (
-            <div className="flex justify-between items-center py-2.5 border-b border-fog">
-              <div>
-                <div className="text-[13px] text-slate">Name</div>
-                <div className="text-[14px] font-semibold text-navy">{single.name}</div>
-                {single.sector && (
-                  <div className="text-xs text-slate mt-0.5">Sector: {single.sector}</div>
-                )}
-              </div>
-              <button
-                onClick={() => setEditingSingle(true)}
-                className="text-[13px] font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer"
-              >
-                Edit name
-              </button>
-            </div>
-          )}
+            )}
+          </>
+        )}
+      </div>
 
-          <div className="mt-4 bg-gradient-to-br from-blue/5 to-sky/10 border border-blue/20 rounded-xl p-4">
+      {/* Clients card */}
+      <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
+            My Clients{clients.length > 0 ? ` — ${clients.length} active` : ''}
+          </h2>
+          <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+            Client work
+          </span>
+        </div>
+
+        {clients.length === 0 ? (
+          <div className="bg-gradient-to-br from-blue/5 to-sky/10 border border-blue/20 rounded-xl p-4">
             <p className="text-sm text-navy font-medium mb-1">
-              Want to manage compliance for multiple clients?
+              Manage compliance for clients separately from your own workspace.
             </p>
             <p className="text-xs text-slate mb-3">
-              Intelligence subscribers can add unlimited clients.
+              Each client gets their own RoPA, notices, assessments, and documents — kept distinct from your personal workspace. Intelligence subscribers can add unlimited clients.
             </p>
             <div className="flex gap-3 items-center">
-              <Link to="/subscribe" className="text-sm font-semibold text-blue hover:text-navy no-underline">
-                Learn more →
-              </Link>
-              <Link
-                to="/subscribe"
-                className="text-xs font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-md no-underline"
-              >
-                Get Intelligence
-              </Link>
+              {isPremium ? (
+                <button
+                  onClick={handleAddClick}
+                  className="text-xs font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-md inline-flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add your first client
+                </button>
+              ) : (
+                <>
+                  <Link to="/subscribe" className="text-sm font-semibold text-blue hover:text-navy no-underline">
+                    Learn more →
+                  </Link>
+                  <Link
+                    to="/subscribe"
+                    className="text-xs font-semibold text-white bg-gradient-to-br from-steel to-blue px-3 py-1.5 rounded-md no-underline"
+                  >
+                    Get Intelligence
+                  </Link>
+                </>
+              )}
             </div>
           </div>
-        </div>
-      )}
-
-      {isMulti && (
-        <div>
-          <div className="divide-y divide-fog">
-            {clients.map((c) => (
-              <ClientRow key={c.id} client={c} />
-            ))}
-          </div>
-          <button
-            onClick={handleAddClick}
-            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg hover:opacity-90"
-          >
-            <Plus className="w-4 h-4" /> Add new client
-          </button>
-        </div>
-      )}
-
-      {showGate && !isPremium && (
-        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start gap-2">
-          <Lock className="w-4 h-4 text-amber-600 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-navy">
-              Managing compliance documents for multiple clients requires an Intelligence
-              subscription.
-            </p>
-            <Link
-              to="/subscribe"
-              className="text-sm font-semibold text-amber-700 hover:text-amber-800 no-underline"
+        ) : (
+          <div>
+            <div className="divide-y divide-fog">
+              {clients.map((c) => (
+                <ClientRow key={c.id} client={c} />
+              ))}
+            </div>
+            <button
+              onClick={handleAddClick}
+              className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg hover:opacity-90"
             >
-              Get Intelligence →
-            </Link>
+              <Plus className="w-4 h-4" /> Add new client
+            </button>
           </div>
-          <button
-            onClick={() => setShowGate(false)}
-            className="text-slate hover:text-navy bg-transparent border-none text-sm"
-            aria-label="Dismiss"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+        )}
 
-      <AddClientModal open={showAdd} onClose={() => setShowAdd(false)} />
-    </div>
+        {showGate && !isPremium && (
+          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start gap-2">
+            <Lock className="w-4 h-4 text-amber-600 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-navy">
+                Managing compliance documents for multiple clients requires an Intelligence
+                subscription.
+              </p>
+              <Link
+                to="/subscribe"
+                className="text-sm font-semibold text-amber-700 hover:text-amber-800 no-underline"
+              >
+                Get Intelligence →
+              </Link>
+            </div>
+            <button
+              onClick={() => setShowGate(false)}
+              className="text-slate hover:text-navy bg-transparent border-none text-sm"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <AddClientModal open={showAdd} onClose={() => setShowAdd(false)} />
+      </div>
+    </>
   );
 }
 
