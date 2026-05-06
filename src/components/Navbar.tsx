@@ -319,6 +319,7 @@ const Navbar = () => {
     <Link
       key={sub.label}
       to={sub.href}
+      title={sub.tooltip}
       className={`flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
       onClick={() => {
         if (mobile) setMobileOpen(false);
