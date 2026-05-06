@@ -127,8 +127,8 @@ const TOOLS: Record<
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 4900,
+    fallback_subscriber_cents: 0,
   },
 };
 
