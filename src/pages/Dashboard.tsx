@@ -823,8 +823,6 @@ const Dashboard = () => {
           </>
         )}
 
-        <RecentReportsCard />
-        <PremiumToolsSection isPremium={isPremium} />
       </div>
 
       <Footer />
