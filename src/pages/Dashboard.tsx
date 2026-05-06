@@ -191,6 +191,7 @@ function describeBriefPeriod(publishedAt: string | null | undefined): string {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { tier, hasToolAccess, isFoundingSubscriber } = useSubscriptionTier();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
