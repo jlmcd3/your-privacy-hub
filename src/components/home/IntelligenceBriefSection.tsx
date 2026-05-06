@@ -21,11 +21,7 @@ export function IntelligenceBriefSection() {
               Your brief. Your jurisdictions. Your Monday morning edge.
             </h2>
             <p className="text-blue-100/80 text-sm leading-relaxed">
-              119 authorities tracked
-              <span className="mx-1.5 text-white/25">·</span>
-              hours of reading done for you
-              <span className="mx-1.5 text-white/25">·</span>
-              for $29 a month
+              Hours of reading and analysis done for you — for $29 a month
             </p>
           </div>
           <Link
