@@ -29,6 +29,8 @@ interface NavSubItem {
   iconImage?: string;
   label: string;
   description?: string;
+  /** Optional native hover tooltip (title attribute). */
+  tooltip?: string;
   badge?: string;
   badgeGreen?: boolean;
   href: string;
