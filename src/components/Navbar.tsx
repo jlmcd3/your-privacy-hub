@@ -93,11 +93,14 @@ const navItems: NavItem[] = [
   },
   {
     label: "Updates",
+    wide: true,
+    columns: 2,
     sections: [
       {
         header: "Browse by region",
         headerBadge: "FREE",
         headerBadgeGreen: true,
+        column: 1,
         items: [
           { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
           { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
