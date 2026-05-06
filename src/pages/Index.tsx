@@ -52,6 +52,10 @@ const Index = () => {
       {/* Layer 5b: Homepage triptych — Intelligence / Assessments / Documents */}
       <HomepageTriptych />
 
+      {/* Tools CTA strip */}
+      <ToolsStrip />
+
+
       {/* Layer 6: Main editorial content — full-width feed matching triptych */}
       <section className="mt-0 px-4">
         <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
