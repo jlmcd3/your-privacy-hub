@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdBanner from "@/components/AdBanner";
+import { FlagIcon } from "@/components/FlagIcon";
 import { GLOBAL_STATUTES } from "@/data/global_statutes";
 
 const DIMENSIONS = [
