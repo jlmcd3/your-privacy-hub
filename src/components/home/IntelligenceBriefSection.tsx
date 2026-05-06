@@ -77,21 +77,7 @@ export function IntelligenceBriefSection() {
           </div>
         </div>
 
-        {/* Stats strip */}
-        <div className="px-4 md:px-6 py-4">
-          <div className="bg-white/5 rounded-lg px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="font-display font-bold text-[20px] text-white leading-tight">
-                  {s.value}
-                </p>
-                <p className="text-[12px] text-blue-200/80 mt-0.5">
-                  {s.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <div className="pb-4" />
       </div>
     </section>
   );
