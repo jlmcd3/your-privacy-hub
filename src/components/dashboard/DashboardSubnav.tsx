@@ -156,28 +156,6 @@ export default function DashboardSubnav() {
                 </li>
               );
             })}
-            {isAdmin && (
-              <li className="flex-shrink-0">
-                <NavLink
-                  to="/admin/law-updates"
-                  end
-                  className={cn(
-                    "relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors no-underline whitespace-nowrap",
-                    activeTo === "/admin/law-updates"
-                      ? "bg-navy text-white"
-                      : "text-slate hover:bg-fog hover:text-navy",
-                  )}
-                >
-                  <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
-                  Law Updates
-                  {pendingCount > 0 && (
-                    <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-600 rounded-full">
-                      {pendingCount}
-                    </span>
-                  )}
-                </NavLink>
-              </li>
-            )}
           </ul>
 
           {/* Account is settings, not workspace — separated on the right */}
