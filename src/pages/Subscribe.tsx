@@ -201,7 +201,7 @@ const Subscribe = () => {
             to="/registration-manager"
             className="text-navy font-semibold underline underline-offset-2 hover:text-navy-mid"
           >
-            Try Your Registration Filings →
+            Try Registration Filings →
           </Link>{" "}
           <span className="text-slate-light">— included on Platform; standalone rates on Intelligence.</span>
         </div>
@@ -223,7 +223,7 @@ const Subscribe = () => {
         </div>
       )}
 
-      <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             See what your brief would look like
