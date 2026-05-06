@@ -77,7 +77,7 @@ export function IntelligenceBriefSection() {
           </div>
         </div>
 
-        <div className="pb-4" />
+        <div className="pb-4 md:pb-6" />
       </div>
     </section>
   );
