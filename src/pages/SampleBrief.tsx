@@ -143,9 +143,13 @@ const SampleBrief = () => {
                 href="#brief-builder-section"
                 onClick={(e) => {
                   e.preventDefault();
-                  document
-                    .getElementById("brief-builder-section")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  const el = document.getElementById("brief-builder-section");
+                  if (!el) return;
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  // Move keyboard/AT focus to the section after the scroll begins
+                  window.setTimeout(() => {
+                    el.focus({ preventScroll: true });
+                  }, 400);
                 }}
                 className="inline-flex items-center px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors no-underline text-[14px]"
               >
@@ -480,7 +484,12 @@ const SampleBrief = () => {
           {/* end white document card */}
 
           {/* BriefBuilder — interactive demo */}
-          <div id="brief-builder-section" className="mb-8">
+          <div
+            id="brief-builder-section"
+            tabIndex={-1}
+            aria-label="Build your own intelligence brief"
+            className="mb-8 scroll-mt-24 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/40 rounded-2xl"
+          >
             <div className="text-center mb-6">
               <h2 className="font-display font-bold text-navy text-[22px] mb-2">
                 Now build one for your practice
