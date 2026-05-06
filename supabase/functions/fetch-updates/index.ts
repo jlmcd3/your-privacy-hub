@@ -1178,7 +1178,7 @@ AdTech: IAB TCF, GDPR consent for tracking cookies, DPA cookie enforcement (CNIL
 Healthcare: HIPAA Privacy and Security Rules, HITECH, GDPR Article 9 special category health data, EDPB health data guidance, FDA digital health, state health privacy laws (Washington My Health MY Data, Nevada, Connecticut, Montana, Oregon, Texas consumer health data laws).
 AI governance: EU AI Act prohibited practices, high-risk systems and GPAI obligations, GDPR Article 22 automated decision-making, FTC AI enforcement, NIST AI RMF, algorithmic accountability, AI training data and scraping, biometric data in AI systems.
 Financial services: GLBA Privacy and Safeguards Rules, CFPB Section 1033, DORA, SEC cybersecurity disclosure rules, NY DFS Part 500, PCI DSS.
-Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysis — treat as Commentary legal weight.
+Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysis, noyb, EDRi, Open Rights Group, Statewatch, Access Now, Bits of Freedom — treat as Commentary legal weight. Law firm blog analysis (Out-Law, Bird & Bird, Linklaters, Fieldfisher, DLA Piper, CMS Law, Clifford Chance, A&O Shearman, Freshfields, Herbert Smith Freehills, etc.) — treat as Soft Guidance legal weight.
 Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
 Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
 Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
