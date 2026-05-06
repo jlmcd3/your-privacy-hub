@@ -7,7 +7,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
  * Shown immediately while the subscriber-aware price loads from the backend.
  */
 const FALLBACK: Record<string, { standalone: number; subscriber: number; name: string }> = {
-  li_assessment: { standalone: 79, subscriber: 35, name: "Legitimate Interest Assessment Tool" },
+  li_assessment: { standalone: 69, subscriber: 35, name: "Legitimate Interest Assessment Tool" },
   governance_assessment: { standalone: 49, subscriber: 25, name: "Privacy Program Assessment Tool" },
   dpia_framework: { standalone: 99, subscriber: 49, name: "Impact Assessment Builder" },
   ropa_initial: { standalone: 79, subscriber: 35, name: "RoPA Builder — Initial Generation" },
