@@ -11,11 +11,9 @@
 //   - Account is the fallback: it highlights only when no workspace tab matched.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2, ShieldAlert } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 type Item = {
   to: string;
@@ -86,40 +84,14 @@ export default function DashboardSubnav() {
   const location = useLocation();
   const pathname = normalizePath(location.pathname);
   const hash = normalizeHash(location.hash);
-  const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
-
-  useEffect(() => {
-    if (!user) {
-      setIsAdmin(false);
-      return;
-    }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .then(({ data }) => setIsAdmin(!!data && data.length > 0));
-  }, [user]);
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    (supabase as any)
-      .from("state_law_update_candidates")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending")
-      .then(({ count }: any) => setPendingCount(count || 0));
-  }, [isAdmin, pathname]);
 
   // First-match-wins so exactly one workspace tab can be active at a time.
   const activeTo = useMemo(() => {
     for (const item of ITEMS) {
       if (item.match(pathname, hash)) return item.to;
     }
-    if (isAdmin && pathname === "/admin/law-updates") return "/admin/law-updates";
     return null;
-  }, [pathname, hash, isAdmin]);
+  }, [pathname, hash]);
 
   // Account highlights only when no workspace tab claimed the route.
   const accountActive = activeTo === null && pathname === "/account";
@@ -156,28 +128,6 @@ export default function DashboardSubnav() {
                 </li>
               );
             })}
-            {isAdmin && (
-              <li className="flex-shrink-0">
-                <NavLink
-                  to="/admin/law-updates"
-                  end
-                  className={cn(
-                    "relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors no-underline whitespace-nowrap",
-                    activeTo === "/admin/law-updates"
-                      ? "bg-navy text-white"
-                      : "text-slate hover:bg-fog hover:text-navy",
-                  )}
-                >
-                  <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
-                  Law Updates
-                  {pendingCount > 0 && (
-                    <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-600 rounded-full">
-                      {pendingCount}
-                    </span>
-                  )}
-                </NavLink>
-              </li>
-            )}
           </ul>
 
           {/* Account is settings, not workspace — separated on the right */}

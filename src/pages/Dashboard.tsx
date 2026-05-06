@@ -19,6 +19,7 @@ import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 interface EnforcementRow {
   regulator: string;
@@ -190,6 +191,7 @@ function describeBriefPeriod(publishedAt: string | null | undefined): string {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { tier, hasToolAccess, isFoundingSubscriber } = useSubscriptionTier();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
@@ -435,11 +437,20 @@ const Dashboard = () => {
           <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="font-display font-bold text-foreground text-[16px]">
-                {subscriptionInterval === "year" ? "⭐ Intelligence Annual" : "⭐ Intelligence Monthly"}
+                {tier === "annual_founding"
+                  ? "⭐ Compliance Platform — Founding"
+                  : tier === "annual"
+                  ? "⭐ Compliance Platform"
+                  : "⭐ Intelligence Feed"}
               </span>
-              {subscriptionInterval === "year" && (
+              {isFoundingSubscriber && (
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                  Best Value
+                  Lifetime-locked rate
+                </span>
+              )}
+              {tier === "annual" && !isFoundingSubscriber && (
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Annual
                 </span>
               )}
             </div>
@@ -447,9 +458,9 @@ const Dashboard = () => {
               Manage →
             </Link>
           </div>
-          {subscriptionInterval === "year" && (
+          {hasToolAccess && (
             <p className="text-[12px] text-muted-foreground mb-4">
-              Annual plan — saving $78/year vs monthly billing.
+              Compliance Platform — every standard tool included, CPPA tools at the subscriber rate.
             </p>
           )}
 
