@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { FlagIcon } from "@/components/FlagIcon";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
