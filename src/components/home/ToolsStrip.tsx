@@ -6,8 +6,8 @@ import { Link } from "react-router-dom";
  */
 export default function ToolsStrip() {
   return (
-    <div className="bg-muted/50 border-y border-border text-center py-1.5 px-4">
-      <p className="text-[11px] text-muted-foreground">
+    <div className="bg-muted/50 border-y border-border text-center px-4 h-9 flex items-center justify-center">
+      <p className="text-[11px] text-muted-foreground truncate">
         🛠️ Compliance tools built on enforcement precedent
         <span className="text-border mx-1.5">·</span>
         <span className="text-amber-600 font-semibold">
