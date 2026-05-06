@@ -6,6 +6,8 @@ import { formatFilterLabel } from "@/lib/filterLabels";
 interface Props {
   customBrief: any;
   sourceMap: SourceMap;
+  /** When true, skip the dark gradient document header (used when an outer accordion already shows the title). */
+  hideHeader?: boolean;
   /** @deprecated Briefs are immutable. Edit preferences from the dashboard or /brief-preferences. */
   showEditPreferencesLink?: boolean;
 }
@@ -27,7 +29,7 @@ function summarizeList(values: unknown, max = 4): { visible: string[]; extra: nu
  * topics / role) the brief was generated for, so subscribers can tell at a
  * glance which of their criteria shaped this week's analysis.
  */
-export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
+export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader = false }: Props) {
   if (!customBrief) return null;
   const sections = customBrief.custom_sections ?? {};
   const snapshot = customBrief.preferences_snapshot ?? null;
@@ -46,6 +48,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Document header */}
+      {!hideHeader && (
       <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
@@ -92,8 +95,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap }: Props) {
           </div>
         )}
       </div>
-
-      {/* Section content */}
+      )}
       <div className="px-6 py-2 divide-y divide-slate-100">
         {sections.your_critical_alert && (
           <section className="py-5">
