@@ -1568,8 +1568,16 @@ Deno.serve(async (req) => {
         if (!title || !link || !link.startsWith("http")) continue;
         if (existingUrls.has(link)) { results.skipped_existing++; continue; }
 
-        // Translate non-English content to English before processing
-        if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
+        // Per-feed declared-language translation (Batch 2). Runs first when the
+        // feed config explicitly sets `language`, so we get reliable translation
+        // for non-English DPAs. The heuristic fallback below covers feeds with
+        // no declared language that still emit non-English items.
+        const declaredLang = (source as { language?: string }).language;
+        if (anthropicKey && declaredLang && declaredLang !== "en") {
+          const translated = await translateIfNeeded(title, description, declaredLang, anthropicKey);
+          title = translated.title;
+          description = translated.description;
+        } else if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
           const translated = await translateToEnglish(title, description, anthropicKey);
           title = translated.title;
           description = translated.description;
