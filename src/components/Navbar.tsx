@@ -36,6 +36,9 @@ interface NavSubItem {
 
 interface NavSection {
   header?: string;
+  /** Optional badge displayed next to the section header (e.g. "FREE"). */
+  headerBadge?: string;
+  headerBadgeGreen?: boolean;
   divider?: boolean;
   /** Explicit column placement for wide multi-column dropdowns (1-based). */
   column?: 1 | 2 | 3;
