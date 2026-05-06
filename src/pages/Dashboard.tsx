@@ -702,7 +702,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {!loading && brief && (
+        {!loading && brief && !customBrief && (
           <>
             {/* Public weekly brief — document layout */}
             <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8">
