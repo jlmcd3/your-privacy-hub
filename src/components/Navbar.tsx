@@ -375,9 +375,8 @@ const Navbar = () => {
         <TooltipTrigger asChild>{link}</TooltipTrigger>
         <TooltipContent
           side="top"
-          align="end"
-          sideOffset={10}
-          alignOffset={24}
+          align="center"
+          sideOffset={14}
           className="max-w-[280px] text-[12px] leading-snug"
         >
           {sub.tooltip}
