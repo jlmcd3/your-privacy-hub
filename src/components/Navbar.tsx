@@ -113,7 +113,7 @@ const navItems: NavItem[] = [
         header: "Browse by topic",
         headerBadge: "FREE",
         headerBadgeGreen: true,
-        divider: true,
+        column: 2,
         items: [
           { icon: "🤖", label: "AI & Privacy", href: "/updates?topic=ai-privacy" },
           { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement" },
