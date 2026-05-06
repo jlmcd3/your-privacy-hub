@@ -309,7 +309,7 @@ export default function BriefPreferences() {
                       : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
                   }`}
                 >
-                  <span>{r.icon}</span>
+                  <span><FlagIcon icon={r.icon} /></span>
                   <span>{r.label}</span>
                   {role === r.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
                 </button>
