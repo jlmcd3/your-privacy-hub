@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 
 import OnboardingModal from "@/components/OnboardingModal";
 
-import PremiumToolsSection from "@/components/dashboard/PremiumToolsSection";
+
 import DigestPreferences from "@/components/DigestPreferences";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
@@ -16,10 +16,10 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
-import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
+
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
-import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+
 
 interface EnforcementRow {
   regulator: string;
@@ -191,7 +191,6 @@ function describeBriefPeriod(publishedAt: string | null | undefined): string {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
-  const { tier, hasToolAccess, isFoundingSubscriber } = useSubscriptionTier();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
@@ -425,119 +424,14 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Intelligence Dashboard | End User Privacy</title>
-        <meta name="description" content="Your personalized privacy intelligence dashboard. Access your weekly digest, enforcement tracker, and regulatory updates." />
+        <title>Intelligence Brief | End User Privacy</title>
+        <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Subscription plan status */}
-        <div className="mb-8 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-display font-bold text-foreground text-[16px]">
-                {tier === "annual_founding"
-                  ? "⭐ Compliance Platform — Founding"
-                  : tier === "annual"
-                  ? "⭐ Compliance Platform"
-                  : "⭐ Intelligence Feed"}
-              </span>
-              {isFoundingSubscriber && (
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                  Lifetime-locked rate
-                </span>
-              )}
-              {tier === "annual" && !isFoundingSubscriber && (
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                  Annual
-                </span>
-              )}
-            </div>
-            <Link to="/account" className="text-[12px] font-semibold text-primary hover:underline no-underline">
-              Manage →
-            </Link>
-          </div>
-          {hasToolAccess && (
-            <p className="text-[12px] text-muted-foreground mb-4">
-              Compliance Platform — every standard tool included, CPPA tools at the subscriber rate.
-            </p>
-          )}
-
-          {/* Tool pricing reminder */}
-          <div className="border-t border-border pt-4">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-steel mb-3">
-              Your subscriber tool pricing
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-2">
-              <Link
-                to="/governance-assessment"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Privacy Program Assessment</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$25</span>
-                  <span className="text-muted-foreground"> /analysis</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $24 vs standard</p>
-              </Link>
-              <Link
-                to="/li-assessment"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Legitimate Interest Assessment</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$35</span>
-                  <span className="text-muted-foreground"> /analysis</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $44 vs standard</p>
-              </Link>
-              <Link
-                to="/dpia-framework"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Impact Assessment Builder</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$49</span>
-                  <span className="text-muted-foreground"> /analysis</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $50 vs standard</p>
-              </Link>
-              <Link
-                to="/dpa-generator"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Your Custom DPA</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$49</span>
-                  <span className="text-muted-foreground"> /document</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $50 vs standard</p>
-              </Link>
-              <Link
-                to="/ir-playbook"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Your Breach Response Playbook</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">Included free</span>
-                </p>
-                <p className="text-[10px] text-green-700">Free with your subscription</p>
-              </Link>
-              <Link
-                to="/biometric-checker"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Biometric Assessment</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">Included free</span>
-                </p>
-                <p className="text-[10px] text-green-700">Free with your subscription</p>
-              </Link>
-            </div>
-          </div>
-        </div>
-
+        {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
         {/* Header — only shown to subscribers without a personalized brief yet */}
         {!customBrief && (
           <div className="mb-10">
@@ -928,8 +822,6 @@ const Dashboard = () => {
           </>
         )}
 
-        <RecentReportsCard />
-        <PremiumToolsSection isPremium={isPremium} />
       </div>
 
       <Footer />
