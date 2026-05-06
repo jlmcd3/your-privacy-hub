@@ -613,40 +613,62 @@ const Dashboard = () => {
                     })
                   : "";
                 const headline = b.custom_sections?.opening_headline ?? "Personalized brief";
+                const headerId = `brief-header-${b.id}`;
+                const panelId = `brief-panel-${b.id}`;
+                const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  if (e.key === " " || e.key === "Enter") {
+                    e.preventDefault();
+                    toggle();
+                  }
+                };
                 return (
                   <div key={b.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={toggle}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer"
-                    >
-                      {isOpen
-                        ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                        : <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                            ⭐ {b.week_label}
-                          </span>
-                          {isLatest && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                              Latest
+                    <h3 className="m-0">
+                      <button
+                        type="button"
+                        id={headerId}
+                        onClick={toggle}
+                        onKeyDown={onKeyDown}
+                        aria-expanded={isOpen}
+                        aria-controls={panelId}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                      >
+                        {isOpen
+                          ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" />
+                          : <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" />}
+                        <span className="sr-only">{isOpen ? "Collapse brief" : "Expand brief"}: </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                              ⭐ {b.week_label}
                             </span>
-                          )}
-                          <span className="text-[11px] text-slate-400">{generated}</span>
+                            {isLatest && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                Latest
+                              </span>
+                            )}
+                            <span className="text-[11px] text-slate-400">{generated}</span>
+                          </div>
+                          <p className="text-[13px] text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
                         </div>
-                        <p className="text-[13px] text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
-                      </div>
-                    </button>
-                    {isOpen && (
-                      <div className="bg-slate-100 p-3 md:p-4 border-t border-slate-200">
-                        <CustomBriefDocument
-                          customBrief={b}
-                          sourceMap={brief?.source_map ?? {}}
-                          hideHeader
-                        />
-                      </div>
-                    )}
+                      </button>
+                    </h3>
+                    <div
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={headerId}
+                      hidden={!isOpen}
+                    >
+                      {isOpen && (
+                        <div className="bg-slate-100 p-3 md:p-4 border-t border-slate-200">
+                          <CustomBriefDocument
+                            customBrief={b}
+                            sourceMap={brief?.source_map ?? {}}
+                            hideHeader
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
