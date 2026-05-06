@@ -51,17 +51,11 @@ const Index = () => {
       {/* Layer 5b: Homepage triptych — Intelligence / Assessments / Documents */}
       <HomepageTriptych />
 
-      {/* Layer 6: Main editorial content */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Two-column layout: main content + sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-
+      {/* Layer 6: Main editorial content — full-width feed matching triptych */}
+      <section className="mt-4 px-4">
+        <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
           {/* === LEFT COLUMN === */}
           <div className="min-w-0">
-            {/* Article feed with filters */}
-
-            {/* Article feed with filters */}
             <LatestUpdates />
           </div>
 
@@ -132,9 +126,8 @@ const Index = () => {
             </div>
 
           </aside>
-
         </div>
-      </div>
+      </section>
 
       {/* Below-fold content */}
       <SponsorshipBanner placement="home_belowfold" className="mx-auto max-w-[1280px] mt-6" />
