@@ -556,8 +556,21 @@ const Navbar = () => {
                       {item.sections.map((section, si) => (
                         <div key={si}>
                           {section.header && (
-                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
-                              {section.header}
+                            <div className="px-3 pt-2 pb-1 flex items-center gap-2">
+                              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                {section.header}
+                              </span>
+                              {section.headerBadge && (
+                                <span
+                                  className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                    section.headerBadgeGreen
+                                      ? "bg-accent/10 text-accent border border-accent/20"
+                                      : "bg-blue/10 text-blue border border-blue/20"
+                                  }`}
+                                >
+                                  {section.headerBadge}
+                                </span>
+                              )}
                             </div>
                           )}
                           {section.items.map((sub) => renderSubItem(sub, true))}
