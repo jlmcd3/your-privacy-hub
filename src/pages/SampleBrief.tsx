@@ -165,15 +165,34 @@ const SampleBrief = () => {
           </div>
         </section>
 
+        {/* BriefBuilder — interactive demo: always comes first */}
+        <div className="bg-white py-12">
+          <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+              id="brief-builder-section"
+              tabIndex={-1}
+              aria-label="Build your own intelligence brief"
+              className="scroll-mt-8 focus:outline-none"
+            >
+              <div className="text-center mb-8">
+                <h2 className="font-display font-bold text-navy text-[24px] mb-3">
+                  Build a brief like this for your practice
+                </h2>
+                <p className="text-slate text-[15px] max-w-[520px] mx-auto">
+                  Select your jurisdiction, role, and topic tracks. We'll show you
+                  the depth and format you'd receive every Monday — written for your role.
+                </p>
+              </div>
+              <BriefBuilder />
+            </div>
+          </div>
+        </div>
+
         {/* Brief Document */}
         <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <SampleBriefLanguageToggle
-            englishContent={englishText}
-            onLanguageChange={(content, dir) => {
-              setTranslatedContent(content);
-              setContentDir(dir);
-            }}
-          />
+          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate mb-4 text-center">
+            ↓ A complete sample brief — what Intelligence subscribers receive every Monday
+          </p>
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-10">
             {/* Document header — dark branded band */}
             <div className="bg-gradient-to-r from-navy to-steel px-8 py-6">
@@ -190,6 +209,17 @@ const SampleBrief = () => {
               <p className="text-[12px] text-blue-300">
                 Based on 18 regulatory updates · 8 sections · Published every Monday
               </p>
+            </div>
+
+            {/* Language toggle — inside the document */}
+            <div className="px-8 pt-5 pb-4 bg-slate-50 border-b border-slate-100">
+              <SampleBriefLanguageToggle
+                englishContent={englishText}
+                onLanguageChange={(content, dir) => {
+                  setTranslatedContent(content);
+                  setContentDir(dir);
+                }}
+              />
             </div>
 
             {/* Table of contents navigation strip */}
@@ -483,24 +513,6 @@ const SampleBrief = () => {
           </div>
           {/* end white document card */}
 
-          {/* BriefBuilder — interactive demo */}
-          <div
-            id="brief-builder-section"
-            tabIndex={-1}
-            aria-label="Build your own intelligence brief"
-            className="mb-8 scroll-mt-24 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/40 rounded-2xl"
-          >
-            <div className="text-center mb-6">
-              <h2 className="font-display font-bold text-navy text-[22px] mb-2">
-                Now build one for your practice
-              </h2>
-              <p className="text-slate text-[14px] max-w-[520px] mx-auto">
-                Select your jurisdiction, role, and topic tracks.
-                We'll show you the exact depth and format you'd receive every Monday.
-              </p>
-            </div>
-            <BriefBuilder />
-          </div>
 
           {/* Bottom CTA — outside the document */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 text-center">
