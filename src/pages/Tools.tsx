@@ -285,6 +285,7 @@ const TOOLS: ToolDef[] = [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
       "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
       "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. Annual subscribers get full access; standalone users can generate per-activity records.",
+      "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
       { label: "Activity record (sample)", content: "Customer support ticketing — Zendesk. Lawful basis: Article 6(1)(b) contract performance. Data categories: contact data, support correspondence content. Retention: 24 months from ticket close. Recipients: Zendesk (processor, US), internal support team." },
