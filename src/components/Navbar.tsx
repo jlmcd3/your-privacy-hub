@@ -423,28 +423,32 @@ const Navbar = () => {
                           : "min-w-[280px]"
                       }`}
                     >
-                      {item.sections.map((section, si) => (
-                        <div
-                          key={si}
-                          className={
-                            item.wide && section.column
-                              ? section.column === 1
-                                ? "col-start-1"
-                                : section.column === 2
-                                ? "col-start-2 row-start-1"
-                                : "col-start-3 row-start-1"
-                              : ""
-                          }
-                        >
-                          {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
-                          {section.header && (
-                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
-                              {section.header}
+                      {(() => {
+                        const colCounts: Record<number, number> = {};
+                        return item.sections.map((section, si) => {
+                          const col = section.column ?? 1;
+                          colCounts[col] = (colCounts[col] ?? 0) + 1;
+                          const rowIdx = colCounts[col];
+                          const rowClass =
+                            rowIdx === 1 ? "row-start-1" : rowIdx === 2 ? "row-start-2" : "row-start-3";
+                          const colClass =
+                            col === 1 ? "col-start-1" : col === 2 ? "col-start-2" : "col-start-3";
+                          return (
+                            <div
+                              key={si}
+                              className={item.wide && section.column ? `${colClass} ${rowClass}` : ""}
+                            >
+                              {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
+                              {section.header && (
+                                <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                  {section.header}
+                                </div>
+                              )}
+                              {section.items.map((sub) => renderSubItem(sub))}
                             </div>
-                          )}
-                          {section.items.map((sub) => renderSubItem(sub))}
-                        </div>
-                      ))}
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 )}
