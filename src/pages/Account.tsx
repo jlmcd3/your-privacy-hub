@@ -381,10 +381,7 @@ export default function Account() {
           </div>
         </div>
 
-        {/* Watchlist */}
-        <div id="watchlist" className="mb-4">
-          <WatchlistManager isPremium={isPremium} />
-        </div>
+        {/* Watchlist now lives at /watchlist */}
 
         {/* Sign out */}
         <button
