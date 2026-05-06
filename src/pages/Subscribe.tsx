@@ -223,25 +223,6 @@ const Subscribe = () => {
         </div>
       )}
 
-      {/* Interactive Intelligence Brief Preview */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-        <div className="max-w-3xl mx-auto mb-8 text-center">
-          <p className="text-[12px] text-slate mb-4 uppercase tracking-wider font-semibold">
-            Trusted by privacy professionals
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 text-[13px] text-slate">
-            <span className="text-navy font-bold">DPOs</span>
-            <span className="text-fog">·</span>
-            <span className="text-navy font-bold">Privacy Counsel</span>
-            <span className="text-fog">·</span>
-            <span className="text-navy font-bold">Compliance Leads</span>
-            <span className="text-fog">·</span>
-            <span className="text-navy font-bold">CPOs</span>
-            <span className="text-fog">·</span>
-            <span className="text-navy font-bold">Privacy Consultants</span>
-          </div>
-        </div>
-      </div>
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
