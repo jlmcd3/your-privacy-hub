@@ -198,7 +198,7 @@ const LatestUpdates = () => {
   );
 
   return (
-    <section className="pt-5 pb-10 md:pt-8 md:pb-16 bg-paper py-0">
+    <section className="pt-0 pb-10 md:pb-16 bg-paper">
       <div className="mx-auto">
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
