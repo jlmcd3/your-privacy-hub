@@ -201,7 +201,7 @@ const Subscribe = () => {
             to="/registration-manager"
             className="text-navy font-semibold underline underline-offset-2 hover:text-navy-mid"
           >
-            Try Your Registration Filings →
+            Try Registration Filings →
           </Link>{" "}
           <span className="text-slate-light">— included on Platform; standalone rates on Intelligence.</span>
         </div>
