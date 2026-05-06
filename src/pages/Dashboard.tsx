@@ -425,8 +425,8 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Intelligence Dashboard | End User Privacy</title>
-        <meta name="description" content="Your personalized privacy intelligence dashboard. Access your weekly digest, enforcement tracker, and regulatory updates." />
+        <title>Intelligence Brief | End User Privacy</title>
+        <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
