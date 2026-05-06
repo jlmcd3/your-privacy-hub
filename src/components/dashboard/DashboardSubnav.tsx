@@ -84,40 +84,14 @@ export default function DashboardSubnav() {
   const location = useLocation();
   const pathname = normalizePath(location.pathname);
   const hash = normalizeHash(location.hash);
-  const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
-
-  useEffect(() => {
-    if (!user) {
-      setIsAdmin(false);
-      return;
-    }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .then(({ data }) => setIsAdmin(!!data && data.length > 0));
-  }, [user]);
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    (supabase as any)
-      .from("state_law_update_candidates")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending")
-      .then(({ count }: any) => setPendingCount(count || 0));
-  }, [isAdmin, pathname]);
 
   // First-match-wins so exactly one workspace tab can be active at a time.
   const activeTo = useMemo(() => {
     for (const item of ITEMS) {
       if (item.match(pathname, hash)) return item.to;
     }
-    if (isAdmin && pathname === "/admin/law-updates") return "/admin/law-updates";
     return null;
-  }, [pathname, hash, isAdmin]);
+  }, [pathname, hash]);
 
   // Account highlights only when no workspace tab claimed the route.
   const accountActive = activeTo === null && pathname === "/account";
