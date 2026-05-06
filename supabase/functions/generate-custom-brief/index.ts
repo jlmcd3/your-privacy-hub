@@ -251,7 +251,7 @@ Deno.serve(async (req) => {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentArticles } = await supabase
     .from("updates")
-    .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
+    .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, legal_weight, urgency, affected_jurisdictions")
     .gte("published_at", oneWeekAgo)
     .order("published_at", { ascending: false })
     .limit(60);
@@ -479,20 +479,35 @@ CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_in
 Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
 
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-        signal: AbortSignal.timeout(60000),
-      });
+      // Retry once on 429 (rate limit) or 529 (overloaded).
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 4000,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userPrompt }],
+          }),
+          signal: AbortSignal.timeout(60000),
+        });
+        if (response.status !== 429 && response.status !== 529) break;
+        if (attempt === 0) {
+          const retryAfter = Math.min(
+            parseInt(response.headers.get("retry-after") || "15"),
+            15
+          );
+          console.warn(
+            `Rate limited for user ${user.id}, retrying in ${retryAfter}s`
+          );
+          await new Promise(r => setTimeout(r, retryAfter * 1000));
+        }
+      }
 
-      if (!response.ok) {
-        console.error(`Sonnet API error for user ${user.id}: ${response.status}`);
+      if (!response || !response.ok) {
+        console.error(`Sonnet API error for user ${user.id}: ${response?.status}`);
         continue;
       }
       const data = await response.json();
@@ -556,15 +571,6 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         verification_result: verificationResult,
         issue_tags: issueTags,
       });
-
-      // Decrement bonus credits if we're past the included limit
-      const newUsed = used + 1;
-      if (newUsed > INCLUDED_REPORTS && bonusCredits > 0) {
-        await supabase
-          .from("profiles")
-          .update({ bonus_report_credits: bonusCredits - 1 })
-          .eq("id", user.id);
-      }
 
       processed++;
     } catch (e) {
