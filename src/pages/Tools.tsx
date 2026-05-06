@@ -296,7 +296,7 @@ const TOOLS: ToolDef[] = [
     tagline: "GDPR & UK GDPR-aligned privacy notices with Article 13/14 disclosures and international transfer language.",
     href: "/eu-notices",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$45/framework or $149 EU suite",
+    standalonePrice: "$45/framework or $119 EU suite",
     body: [
       "Article 13 and 14 set out what a GDPR-compliant notice must contain. The gap between meeting those requirements on paper and producing a notice that withstands scrutiny is, in practice, the gap between checkbox compliance and an accountability posture that holds up.",
       "The EU/UK Privacy Notice Builder produces a GDPR and UK GDPR-aligned notice covering each Article 13/14 disclosure: identity of the controller, contact details, lawful basis per processing purpose, recipients, retention, international transfer safeguards, and data subject rights. International transfer language is calibrated to the destinations and mechanisms you specify (SCCs, adequacy, derogations).",
