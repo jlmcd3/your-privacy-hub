@@ -483,24 +483,6 @@ const SampleBrief = () => {
           </div>
           {/* end white document card */}
 
-          {/* BriefBuilder — interactive demo */}
-          <div
-            id="brief-builder-section"
-            tabIndex={-1}
-            aria-label="Build your own intelligence brief"
-            className="mb-8 scroll-mt-24 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/40 rounded-2xl"
-          >
-            <div className="text-center mb-6">
-              <h2 className="font-display font-bold text-navy text-[22px] mb-2">
-                Now build one for your practice
-              </h2>
-              <p className="text-slate text-[14px] max-w-[520px] mx-auto">
-                Select your jurisdiction, role, and topic tracks.
-                We'll show you the exact depth and format you'd receive every Monday.
-              </p>
-            </div>
-            <BriefBuilder />
-          </div>
 
           {/* Bottom CTA — outside the document */}
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-8 text-center">
