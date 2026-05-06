@@ -242,7 +242,7 @@ const Subscribe = () => {
           </div>
         </div>
       </div>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             See what your brief would look like
