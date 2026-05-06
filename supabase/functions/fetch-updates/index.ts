@@ -1468,6 +1468,54 @@ Description: ${description || ""}`,
     return { title, description };
   }
 }
+
+// Batch 2 — Per-feed declared-language translation. Used when a feed entry
+// declares a `language` other than "en". Translates title + description via Haiku
+// before relevance / enrichment / storage.
+async function translateIfNeeded(
+  title: string,
+  description: string,
+  language: string,
+  apiKey: string
+): Promise<{ title: string; description: string }> {
+  if (!language || language === "en") return { title, description };
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 800,
+        messages: [{
+          role: "user",
+          content: `Translate this privacy/data protection article from ${language} to English.
+Return ONLY valid JSON: {"title": "...", "description": "..."}.
+Preserve all proper nouns, regulator names, fine amounts, and legal references exactly.
+Title: ${title}
+Description: ${(description || "").substring(0, 1000)}`,
+        }],
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!resp.ok) return { title, description };
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return { title, description };
+    const parsed = JSON.parse(match[0]);
+    return {
+      title: parsed.title || title,
+      description: parsed.description || description,
+    };
+  } catch {
+    return { title, description };
+  }
+}
+
 import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
 
 Deno.serve(async (req) => {
