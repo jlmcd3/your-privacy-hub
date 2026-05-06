@@ -415,27 +415,25 @@ const Navbar = () => {
                       }`}
                     >
                       {(() => {
-                        const colCounts: Record<number, number> = {};
-                        return item.sections.map((section, si) => {
-                          const col = section.column ?? 1;
-                          colCounts[col] = (colCounts[col] ?? 0) + 1;
-                          const rowIdx = colCounts[col];
-                          const rowClass =
-                            rowIdx === 1 ? "row-start-1" : rowIdx === 2 ? "row-start-2" : "row-start-3";
-                          const colClass =
-                            col === 1 ? "col-start-1" : col === 2 ? "col-start-2" : "col-start-3";
+                        const renderSection = (section: NavSection, si: number) => (
+                          <div key={si}>
+                            {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
+                            {section.header && (
+                              <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                {section.header}
+                              </div>
+                            )}
+                            {section.items.map((sub) => renderSubItem(sub))}
+                          </div>
+                        );
+                        if (!item.wide) return item.sections.map(renderSection);
+                        const totalCols = item.columns ?? 2;
+                        return Array.from({ length: totalCols }, (_, i) => {
+                          const colNum = i + 1;
+                          const colSections = item.sections.filter((s) => (s.column ?? 1) === colNum);
                           return (
-                            <div
-                              key={si}
-                              className={item.wide && section.column ? `${colClass} ${rowClass}` : ""}
-                            >
-                              {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
-                              {section.header && (
-                                <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
-                                  {section.header}
-                                </div>
-                              )}
-                              {section.items.map((sub) => renderSubItem(sub))}
+                            <div key={colNum} className="flex flex-col">
+                              {colSections.map((s, idx) => renderSection(s, idx))}
                             </div>
                           );
                         });
