@@ -85,7 +85,7 @@ const TOOLS: Record<
     name: "EU Notice Suite",
     standalone_lookup: "eu_notice_suite_standalone",
     subscriber_lookup: "eu_notice_suite_subscriber",
-    fallback_standalone_cents: 14900,
+    fallback_standalone_cents: 11900,
     fallback_subscriber_cents: 6500,
   },
   eu_notice_full_international: {
