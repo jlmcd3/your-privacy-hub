@@ -19,7 +19,7 @@ import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
-import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+
 
 interface EnforcementRow {
   regulator: string;
