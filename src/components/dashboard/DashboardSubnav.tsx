@@ -69,10 +69,10 @@ const ITEMS: Item[] = [
     match: (p) => FILING_PATH.test(p),
   },
   {
-    to: "/account#watchlist",
+    to: "/watchlist",
     label: "Watchlist",
     icon: Bookmark,
-    match: (p, h) => p === "/account" && h === "watchlist",
+    match: (p) => p === "/watchlist",
   },
   {
     to: "/clients",
