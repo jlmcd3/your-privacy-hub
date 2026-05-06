@@ -199,6 +199,7 @@ const Dashboard = () => {
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [briefArchive, setBriefArchive] = useState<any[]>([]);
+  const [customBriefLoading, setCustomBriefLoading] = useState(true);
   const [expandedBriefId, setExpandedBriefId] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showDigestPrefs, setShowDigestPrefs] = useState(false);
@@ -246,6 +247,7 @@ const Dashboard = () => {
   // Fetch all personalized briefs (most recent first) for Pro users
   useEffect(() => {
     if (!user) return;
+    setCustomBriefLoading(true);
     (supabase as any)
       .from("custom_briefs")
       .select("*")
@@ -256,6 +258,7 @@ const Dashboard = () => {
         const rows = Array.isArray(data) ? data : [];
         setCustomBrief(rows[0] ?? null);
         setBriefArchive(rows);
+        setCustomBriefLoading(false);
       });
   }, [user]);
 
@@ -290,6 +293,8 @@ const Dashboard = () => {
   }
 
   if (!user) return null;
+
+  const canShowPublicBrief = !customBriefLoading && !customBrief && briefArchive.length === 0;
 
   if (!isPremium) {
     return (
