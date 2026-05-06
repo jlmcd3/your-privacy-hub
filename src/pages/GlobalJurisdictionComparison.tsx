@@ -236,7 +236,7 @@ export default function GlobalJurisdictionComparison() {
                   </th>
                   {cols.map(j => (
                     <th key={j.name} className="px-4 py-3 text-center min-w-[140px]">
-                      <div className="text-lg flag-emoji">{j.flag}</div>
+                      <div className="text-lg flag-emoji"><FlagIcon icon={j.flag} /></div>
                       <div className="text-primary-foreground font-bold text-[13px]">{j.name}</div>
                     </th>
                   ))}
