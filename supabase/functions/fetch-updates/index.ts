@@ -53,6 +53,28 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'anpd.gov.br':            ['brazil'],
   'pipc.go.kr':             ['south-korea'],
   'ppc.go.jp':              ['japan'],
+  // Civil society, policy, legal analysis (Batch 1 + 3)
+  'noyb.eu':                   ['eu'],
+  'out.law':                   ['united-kingdom', 'eu'],
+  'euractiv.com':              ['eu'],
+  'theregister.com':           ['united-kingdom'],
+  'privacyinternational.org':  ['global'],
+  'twobirds.com':              ['eu', 'united-kingdom'],
+  'edri.org':                  ['eu'],
+  'openrightsgroup.org':       ['united-kingdom'],
+  'politico.eu':               ['eu'],
+  'dataprotectionauthority.be':['belgium'],
+  'cnpd.public.lu':            ['luxembourg'],
+  'bsi.bund.de':               ['germany'],
+  'uoou.cz':                   ['czech-republic'],
+  'bitsoffreedom.nl':          ['netherlands'],
+  'statewatch.org':            ['eu'],
+  'accessnow.org':             ['global'],
+  'cms.law':                   ['global'],
+  'cliffordchance.com':        ['global'],
+  'aoshearman.com':            ['global'],
+  'freshfields.com':           ['global'],
+  'hsfnotes.com':              ['global'],
 };
 
 const extractDomain = (url: string): string => {
