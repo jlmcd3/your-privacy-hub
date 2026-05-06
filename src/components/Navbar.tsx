@@ -64,11 +64,12 @@ const navItems: NavItem[] = [
     sections: [
       {
         header: "Intelligence subscription",
+        headerBadge: "PRO",
         column: 1,
         items: [
-          { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
-          { icon: "🛰️", label: "Regulatory Trend Forecast", badge: "PRO", href: "/horizon" },
-          { icon: "🗄️", label: "Global Enforcement Database", badge: "PRO", href: "/enforcement?view=archive" },
+          { icon: "⭐", label: "Weekly Intelligence Brief", href: "/get-intelligence" },
+          { icon: "🛰️", label: "Regulatory Trend Forecast", href: "/horizon" },
+          { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive" },
           { icon: "📄", label: "Sample Intelligence Brief", badge: "FREE", badgeGreen: true, href: "/sample-brief" },
         ],
       },
