@@ -16,7 +16,7 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
-import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
+
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
