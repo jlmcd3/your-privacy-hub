@@ -145,6 +145,7 @@ const navItems: NavItem[] = [
           { icon: "🔄", label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
           { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy" },
           { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy" },
+          { icon: "🍪", label: "Cookie Consent Guide", href: "/cookie-consent" },
           { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
           { icon: "📖", label: "Key Privacy Terms", href: "/glossary" },
         ],
