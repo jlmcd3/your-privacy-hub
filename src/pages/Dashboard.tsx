@@ -199,6 +199,7 @@ const Dashboard = () => {
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [briefArchive, setBriefArchive] = useState<any[]>([]);
+  const [customBriefLoading, setCustomBriefLoading] = useState(true);
   const [expandedBriefId, setExpandedBriefId] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showDigestPrefs, setShowDigestPrefs] = useState(false);
@@ -246,6 +247,7 @@ const Dashboard = () => {
   // Fetch all personalized briefs (most recent first) for Pro users
   useEffect(() => {
     if (!user) return;
+    setCustomBriefLoading(true);
     (supabase as any)
       .from("custom_briefs")
       .select("*")
@@ -256,6 +258,7 @@ const Dashboard = () => {
         const rows = Array.isArray(data) ? data : [];
         setCustomBrief(rows[0] ?? null);
         setBriefArchive(rows);
+        setCustomBriefLoading(false);
       });
   }, [user]);
 
@@ -290,6 +293,8 @@ const Dashboard = () => {
   }
 
   if (!user) return null;
+
+  const canShowPublicBrief = !customBriefLoading && !customBrief && briefArchive.length === 0;
 
   if (!isPremium) {
     return (
@@ -433,7 +438,7 @@ const Dashboard = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
         {/* Header — only shown to subscribers without a personalized brief yet */}
-        {!customBrief && (
+        {canShowPublicBrief && (
           <div className="mb-10">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
               📋 Weekly Intelligence Brief
@@ -460,7 +465,7 @@ const Dashboard = () => {
         {/* Awaiting first personalized brief — prospective messaging.
             Shown above the general weekly brief so subscribers know their
             customized version is still pending. */}
-        {!customBrief && (
+        {canShowPublicBrief && (
           <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">
             <div className="flex items-start gap-4">
               <p className="text-3xl">📬</p>
@@ -584,9 +589,9 @@ const Dashboard = () => {
         )}
 
 
-        {loading && <BriefSkeleton />}
+        {loading && canShowPublicBrief && <BriefSkeleton />}
 
-        {!loading && !brief && (
+        {!loading && canShowPublicBrief && !brief && (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📅</p>
             <p className="font-display text-[20px] text-foreground mb-2">First brief coming Monday</p>
@@ -596,7 +601,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {!loading && brief && !customBrief && (
+        {!loading && brief && canShowPublicBrief && (
           <>
             {/* Public weekly brief — document layout */}
             <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8">
