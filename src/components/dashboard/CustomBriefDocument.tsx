@@ -6,6 +6,8 @@ import { formatFilterLabel } from "@/lib/filterLabels";
 interface Props {
   customBrief: any;
   sourceMap: SourceMap;
+  /** When true, skip the dark gradient document header (used when an outer accordion already shows the title). */
+  hideHeader?: boolean;
   /** @deprecated Briefs are immutable. Edit preferences from the dashboard or /brief-preferences. */
   showEditPreferencesLink?: boolean;
 }
