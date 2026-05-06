@@ -192,6 +192,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          is_personal: boolean
           name: string
           notes: string | null
           owner_id: string
@@ -202,6 +203,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_personal?: boolean
           name: string
           notes?: string | null
           owner_id?: string
@@ -212,6 +214,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_personal?: boolean
           name?: string
           notes?: string | null
           owner_id?: string
