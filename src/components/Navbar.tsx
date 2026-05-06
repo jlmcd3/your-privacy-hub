@@ -36,6 +36,9 @@ interface NavSubItem {
 
 interface NavSection {
   header?: string;
+  /** Optional badge displayed next to the section header (e.g. "FREE"). */
+  headerBadge?: string;
+  headerBadgeGreen?: boolean;
   divider?: boolean;
   /** Explicit column placement for wide multi-column dropdowns (1-based). */
   column?: 1 | 2 | 3;
@@ -63,30 +66,54 @@ const navItems: NavItem[] = [
         header: "Intelligence subscription",
         column: 1,
         items: [
-          { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence",
-            description: "Curated briefing filtered to your jurisdictions and roles" },
-          { icon: "🛰️", label: "Regulatory Trend Forecast", badge: "PRO", href: "/horizon",
-            description: "Forward-looking signals derived from enforcement patterns" },
-          { icon: "🗄️", label: "Global Enforcement Database", badge: "PRO", href: "/enforcement?view=archive",
-            description: "3,500+ decisions across 119 authorities, fully searchable" },
-          { icon: "📄", label: "Sample Intelligence Brief", badge: "FREE", badgeGreen: true, href: "/sample-brief",
-            description: "See a complete brief before subscribing" },
+          { icon: "⭐", label: "Weekly Intelligence Brief", badge: "PRO", href: "/get-intelligence" },
+          { icon: "🛰️", label: "Regulatory Trend Forecast", badge: "PRO", href: "/horizon" },
+          { icon: "🗄️", label: "Global Enforcement Database", badge: "PRO", href: "/enforcement?view=archive" },
+          { icon: "📄", label: "Sample Intelligence Brief", badge: "FREE", badgeGreen: true, href: "/sample-brief" },
         ],
       },
       {
         header: "Free exploration tools",
+        headerBadge: "FREE",
+        headerBadgeGreen: true,
         column: 2,
         items: [
-          { icon: "🗺️", label: "Interactive Global Map", badge: "FREE", badgeGreen: true, href: "/jurisdictions",
-            description: "150+ jurisdictions, spin to explore regulatory scope" },
-          { icon: "📊", label: "State Law Comparison", badge: "FREE", badgeGreen: true, href: "/compare/us-states",
-            description: "Side-by-side U.S. state privacy law comparison table" },
-          { icon: "📊", label: "Enforcement Tracker", badge: "LIVE", badgeGreen: true, href: "/enforcement-tracker",
-            description: "Real-time enforcement actions across all regulators" },
-          { icon: "📅", label: "Compliance Calendar", badge: "FREE", badgeGreen: true, href: "/calendar",
-            description: "Upcoming deadlines, effective dates, and renewal windows" },
-          { icon: "📋", label: "LI Enforcement Tracker", badge: "FREE", badgeGreen: true, href: "/legitimate-interest-tracker",
-            description: "Legitimate interest enforcement decisions by sector" },
+          { icon: "🗺️", label: "Interactive Global Map", href: "/jurisdictions" },
+          { icon: "📊", label: "State Law Comparison", href: "/compare/us-states" },
+          { icon: "📊", label: "Enforcement Tracker", href: "/enforcement-tracker" },
+          { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
+          { icon: "📋", label: "LI Enforcement Tracker", href: "/legitimate-interest-tracker" },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Updates",
+    sections: [
+      {
+        header: "Browse by region",
+        headerBadge: "FREE",
+        headerBadgeGreen: true,
+        items: [
+          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
+          { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
+          { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
+          { icon: "🌐", label: "Global", href: "/updates?region=global" },
+          { icon: "📰", label: "Privacy Newsfeed", href: "/updates?region=all" },
+        ],
+      },
+      {
+        header: "Browse by topic",
+        headerBadge: "FREE",
+        headerBadgeGreen: true,
+        divider: true,
+        items: [
+          { icon: "🤖", label: "AI & Privacy", href: "/updates?topic=ai-privacy" },
+          { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement" },
+          { icon: "📱", label: "AdTech & Consent", href: "/updates?topic=adtech" },
+          { icon: "👤", label: "Biometric Data", href: "/updates?topic=biometric-data" },
+          { icon: "🌐", label: "Data Transfers", href: "/updates?topic=cross-border" },
+          { icon: "🧒", label: "Children's Privacy", href: "/updates?topic=children-privacy" },
         ],
       },
     ],
@@ -143,50 +170,14 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    label: "Regulatory Updates",
-    sections: [
-      {
-        header: "Browse by region",
-        items: [
-          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal",
-            description: "FTC, HHS OCR, DOJ, and federal agency actions" },
-          { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states",
-            description: "CPPA, NY, TX, VA, CO and all active state laws" },
-          { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk",
-            description: "EDPB, ICO, and DPAs across all EU member states" },
-          { icon: "🌐", label: "Global", href: "/updates?region=global",
-            description: "APAC, LATAM, Middle East, and emerging frameworks" },
-          { icon: "📰", label: "Privacy Newsfeed", badge: "FREE", badgeGreen: true, href: "/updates?region=all",
-            description: "All regulatory updates, unfiltered and chronological" },
-        ],
-      },
-      {
-        header: "Browse by topic",
-        divider: true,
-        items: [
-          { icon: "🤖", label: "AI & Privacy", href: "/updates?topic=ai-privacy",
-            description: "EU AI Act, automated decisions, ADMT obligations" },
-          { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement",
-            description: "Fines, investigations, and regulatory actions" },
-          { icon: "📱", label: "AdTech & Consent", href: "/updates?topic=adtech",
-            description: "Consent management, cookies, and tracking" },
-          { icon: "👤", label: "Biometric Data", href: "/updates?topic=biometric-data",
-            description: "BIPA, GDPR Article 9, and facial recognition rules" },
-          { icon: "🌐", label: "Data Transfers", href: "/updates?topic=cross-border",
-            description: "SCCs, adequacy decisions, and post-Schrems II guidance" },
-          { icon: "🧒", label: "Children's Privacy", href: "/updates?topic=children-privacy",
-            description: "COPPA, Kids KOSA, and age assurance requirements" },
-        ],
-      },
-    ],
-  },
-  {
     label: "Research",
     wide: true,
     columns: 2,
     sections: [
       {
         header: "Laws & frameworks",
+        headerBadge: "FREE",
+        headerBadgeGreen: true,
         column: 1,
         items: [
           { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
@@ -198,6 +189,8 @@ const navItems: NavItem[] = [
       },
       {
         header: "Directories",
+        headerBadge: "FREE",
+        headerBadgeGreen: true,
         column: 1,
         items: [
           { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
@@ -206,18 +199,15 @@ const navItems: NavItem[] = [
       },
       {
         header: "Practitioner guides",
+        headerBadge: "FREE",
+        headerBadgeGreen: true,
         column: 2,
         items: [
-          { icon: "🔄", label: "Cross-Border Transfers Guide", href: "/cross-border-transfers",
-            description: "SCCs, adequacy decisions, and derogations explained" },
-          { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy",
-            description: "BIPA, GDPR Article 9, and state biometric data laws" },
-          { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy",
-            description: "HIPAA, state health privacy laws, and sensitive data rules" },
-          { icon: "🍪", label: "Cookie Consent Guide", href: "/cookie-consent",
-            description: "ePrivacy Directive, GDPR requirements, and TCF 2.2" },
-          { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification",
-            description: "72-hour notification clock, thresholds, and documentation" },
+          { icon: "🔄", label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
+          { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy" },
+          { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy" },
+          { icon: "🍪", label: "Cookie Consent Guide", href: "/cookie-consent" },
+          { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
         ],
       },
     ],
@@ -422,8 +412,21 @@ const Navbar = () => {
                           <div key={si}>
                             {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
                             {section.header && (
-                              <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
-                                {section.header}
+                              <div className="px-3 pt-2 pb-1 flex items-center gap-2">
+                                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                  {section.header}
+                                </span>
+                                {section.headerBadge && (
+                                  <span
+                                    className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                      section.headerBadgeGreen
+                                        ? "bg-accent/10 text-accent border border-accent/20"
+                                        : "bg-blue/10 text-blue border border-blue/20"
+                                    }`}
+                                  >
+                                    {section.headerBadge}
+                                  </span>
+                                )}
                               </div>
                             )}
                             {section.items.map((sub) => renderSubItem(sub))}
@@ -553,8 +556,21 @@ const Navbar = () => {
                       {item.sections.map((section, si) => (
                         <div key={si}>
                           {section.header && (
-                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold tracking-widest uppercase text-slate-light">
-                              {section.header}
+                            <div className="px-3 pt-2 pb-1 flex items-center gap-2">
+                              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                {section.header}
+                              </span>
+                              {section.headerBadge && (
+                                <span
+                                  className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                    section.headerBadgeGreen
+                                      ? "bg-accent/10 text-accent border border-accent/20"
+                                      : "bg-blue/10 text-blue border border-blue/20"
+                                  }`}
+                                >
+                                  {section.headerBadge}
+                                </span>
+                              )}
                             </div>
                           )}
                           {section.items.map((sub) => renderSubItem(sub, true))}
