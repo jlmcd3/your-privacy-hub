@@ -29,6 +29,8 @@ interface NavSubItem {
   iconImage?: string;
   label: string;
   description?: string;
+  /** Optional native hover tooltip (title attribute). */
+  tooltip?: string;
   badge?: string;
   badgeGreen?: boolean;
   href: string;
@@ -129,11 +131,16 @@ const navItems: NavItem[] = [
         headerBadge: "PRO",
         column: 1,
         items: [
-          { icon: "⚖️", label: "Legitimate Interest Assessment", href: "/li-assessment" },
-          { icon: "🛡️", label: "Privacy Program Assessment", href: "/governance-assessment" },
-          { icon: "📑", label: "Data Protection Impact Assessment", href: "/dpia-framework" },
-          { icon: "👁️", label: "Biometric Compliance Assessment", href: "/biometric-checker" },
-          { icon: "🚨", label: "Breach Response Playbook", href: "/ir-playbook" },
+          { icon: "⚖️", label: "Legitimate Interest Assessment", href: "/li-assessment",
+            tooltip: "Full three-part documented LIA, calibrated to enforcement decisions" },
+          { icon: "🛡️", label: "Privacy Program Assessment", href: "/governance-assessment",
+            tooltip: "Scored programme health check against what regulators actually enforce" },
+          { icon: "📑", label: "Data Protection Impact Assessment", href: "/dpia-framework",
+            tooltip: "EDPB-aligned DPIA for high-risk processing activities" },
+          { icon: "👁️", label: "Biometric Compliance Assessment", href: "/biometric-checker",
+            tooltip: "BIPA statutory exposure calculator and multi-jurisdiction analysis" },
+          { icon: "🚨", label: "Breach Response Playbook", href: "/ir-playbook",
+            tooltip: "Sequenced incident response plan with regulator notification deadlines" },
         ],
       },
       {
@@ -141,11 +148,16 @@ const navItems: NavItem[] = [
         headerBadge: "PRO",
         column: 2,
         items: [
-          { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator" },
-          { icon: "📂", label: "Registration Filings", href: "/registration-manager" },
-          { icon: "📋", label: "RoPA Builder", href: "/ropa" },
-          { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notices" },
-          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-notices" },
+          { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator",
+            tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
+          { icon: "📂", label: "Registration Filings", href: "/registration-manager",
+            tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions" },
+          { icon: "📋", label: "RoPA Builder", href: "/ropa",
+            tooltip: "Versioned Article 30 record of processing activities, per-activity entry" },
+          { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notices",
+            tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more" },
+          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-notices",
+            tooltip: "GDPR Article 13/14 notices with multi-jurisdiction overlays" },
         ],
       },
       {
@@ -153,10 +165,14 @@ const navItems: NavItem[] = [
         headerBadge: "PRO",
         column: 3,
         items: [
-          { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker" },
-          { icon: "🏛️", label: "CPPA Risk Assessment", href: "/cppa-risk-assessment" },
-          { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity" },
-          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools" },
+          { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker",
+            tooltip: "Find out if your organisation is in scope for the Dec 31, 2027 audit" },
+          { icon: "🏛️", label: "CPPA Risk Assessment", href: "/cppa-risk-assessment",
+            tooltip: "Structured risk assessment aligned to CPPA audit regulations" },
+          { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity",
+            tooltip: "18-control gap analysis for the April 2028 certification deadline" },
+          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools",
+            tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
       },
     ],
@@ -317,6 +333,7 @@ const Navbar = () => {
     <Link
       key={sub.label}
       to={sub.href}
+      title={sub.tooltip}
       className={`flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
       onClick={() => {
         if (mobile) setMobileOpen(false);
