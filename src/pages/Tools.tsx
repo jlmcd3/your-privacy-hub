@@ -477,6 +477,15 @@ export default function Tools() {
               <div className="text-[28px] mb-3">{d.icon}</div>
               <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">{d.title}</h3>
               <p className="text-slate text-[13px] leading-relaxed">{d.body}</p>
+              <hr className="my-4 border-t border-fog" />
+              <ul className="space-y-1.5">
+                {d.checks.map((c) => (
+                  <li key={c} className="flex gap-2 text-[12.5px] text-slate leading-snug">
+                    <span className={`${d.checkColor} font-bold flex-shrink-0`}>✓</span>
+                    <span>{c}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
