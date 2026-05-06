@@ -48,6 +48,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Document header */}
+      {!hideHeader && (
       <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
@@ -94,8 +95,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
           </div>
         )}
       </div>
-
-      {/* Section content */}
+      )}
       <div className="px-6 py-2 divide-y divide-slate-100">
         {sections.your_critical_alert && (
           <section className="py-5">
