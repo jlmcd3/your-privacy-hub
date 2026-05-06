@@ -387,6 +387,7 @@ const TOOLS: ToolDef[] = [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
       "CPPA tools remain paid for all users — including Annual Platform subscribers — but Annual Platform subscribers receive the discounted $79 subscriber rate. The output is structured for review by California privacy counsel before being relied upon.",
+      "Your assessments are your Subscriber Confidential Information and, as such, are protected described in our Privacy Policy.",
     ],
     sampleSections: [
       { label: "Processing description", content: "Behavioural advertising profile development using web browsing data collected via cookies and SDK telemetry across owned properties and third-party publishers." },
