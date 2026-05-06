@@ -87,17 +87,35 @@ const DIFFERENTIATORS = [
   {
     icon: "⚖️",
     title: "Calibrated to enforcement precedent, not just statutory text",
-    body: "Regulatory guidance and enforcement decisions frequently diverge. What a law requires and what a regulator has penalised organisations for failing to do are not always the same thing. Every tool draws from a structured database of 3,500+ enforcement decisions — compiled from published DPA decisions, ICO enforcement notices, FTC settlements, and HHS OCR resolution agreements — before producing output.",
+    body: "Regulatory guidance and enforcement decisions frequently diverge – what a law requires and what a regulator has actually penalised are not always the same thing.",
+    checkColor: "text-navy",
+    checks: [
+      "3,500+ decisions across 119 regulatory authorities",
+      "DPA notices, ICO actions, FTC settlements, HHS OCR agreements",
+      "Applied before every tool produces a single word of output",
+    ],
   },
   {
     icon: "📋",
-    title: "Outputs designed for professional review, not to replace it",
-    body: "Each tool produces a structured, dated document intended to be reviewed by a qualified privacy or legal professional before it forms part of your compliance record. The output accelerates the review process and ensures the analysis is grounded in current enforcement intelligence — it does not substitute for professional judgment. That distinction matters to any organisation that takes its accountability obligations seriously.",
+    title: "Assessments ordered by enforcement risk, not by topic area",
+    body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
+    checkColor: "text-accent",
+    checks: [
+      "Scored against enforcement precedents, not best-practice checklists",
+      "Findings ordered by likelihood of regulatory scrutiny",
+      "Dated, scored output structured for professional review",
+    ],
   },
   {
-    icon: "🔒",
-    title: "Your inputs stay yours",
-    body: "The information you enter to generate a document — your organisation's data categories, jurisdictions, processing activities — is used only to produce your output. It is not retained, analysed, or used to train models. Each session is independent. There are no organisation profiles and no data sharing.",
+    icon: "📄",
+    title: "Documents drafted to survive scrutiny, not just satisfy it",
+    body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
+    checkColor: "text-amber-600",
+    checks: [
+      "Provisions informed by enforcement failures, not generic templates",
+      "Jurisdiction-specific and calibrated to your processing activities",
+      "Your inputs are never retained or used to train models",
+    ],
   },
 ];
 
@@ -459,6 +477,15 @@ export default function Tools() {
               <div className="text-[28px] mb-3">{d.icon}</div>
               <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">{d.title}</h3>
               <p className="text-slate text-[13px] leading-relaxed">{d.body}</p>
+              <hr className="my-4 border-t border-fog" />
+              <ul className="space-y-1.5">
+                {d.checks.map((c) => (
+                  <li key={c} className="flex gap-2 text-[12.5px] text-slate leading-snug">
+                    <span className={`${d.checkColor} font-bold flex-shrink-0`}>✓</span>
+                    <span>{c}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
