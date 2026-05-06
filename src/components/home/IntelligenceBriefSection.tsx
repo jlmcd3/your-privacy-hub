@@ -1,13 +1,4 @@
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const features = [
-  "Critical alerts",
-  "Sector analysis",
-  "Enforcement trends",
-  "Regulatory trajectory",
-  "Action recommendations",
-];
 
 const stats = [
   { value: "119", label: "Authorities tracked" },
@@ -16,112 +7,89 @@ const stats = [
   { value: "Every Monday", label: "Ready when you start" },
 ];
 
-const statusPills = [
-  { label: "New", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  { label: "Continuing", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
-  { label: "Escalating", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
-  { label: "Resolved", bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
-];
-
 export function IntelligenceBriefSection() {
   return (
-    <section className="bg-white py-20 border-b border-slate-100">
-      <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Eyebrow */}
-        <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-teal-700 mb-4">
-          Weekly Intelligence Brief
-        </p>
+    <section className="my-8 px-4">
+      <div className="max-w-[1280px] mx-auto rounded-xl bg-gradient-to-br from-navy via-navy to-[#1A3A5C] overflow-hidden">
+        {/* Navy header */}
+        <div className="flex items-start justify-between gap-4 px-6 md:px-8 pt-6 md:pt-8 pb-5">
+          <div className="max-w-2xl">
+            <p className="text-[12px] font-bold uppercase tracking-widest text-blue-300 mb-2">
+              Weekly Intelligence Brief
+            </p>
+            <h2 className="font-display text-4xl md:text-[32px] font-bold text-white leading-tight mb-1.5">
+              Your brief. Your jurisdictions. Your Monday morning edge.
+            </h2>
+            <p className="text-blue-100/80 text-sm leading-relaxed">
+              119 authorities tracked
+              <span className="mx-1.5 text-white/25">·</span>
+              hours of reading done for you
+              <span className="mx-1.5 text-white/25">·</span>
+              for $29 a month
+            </p>
+          </div>
+          <Link
+            to="/sample-brief"
+            className="flex-shrink-0 mt-1 text-[14px] font-semibold text-white/80 border border-white/25 px-3 py-1.5 rounded-lg hover:bg-white/10 no-underline transition-colors whitespace-nowrap"
+          >
+            See a sample →
+          </Link>
+        </div>
 
-        {/* Headline */}
-        <h2 className="text-center font-serif text-4xl md:text-5xl font-bold text-navy leading-tight mb-4">
-          Your brief. Your jurisdictions.<br />Your Monday morning edge.
-        </h2>
-
-        {/* Sub-headline */}
-        <p className="text-center text-lg text-slate-600 max-w-2xl mx-auto mb-12">
-          119 authorities tracked. Hours of reading done for you. For $29 a month.
-        </p>
-
-        {/* Two-column copy */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
-          {/* Left — Personalisation */}
-          <div>
-            <h3 className="font-semibold text-navy text-xl mb-3">
+        {/* Two white cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4 md:px-6">
+          {/* CARD 1 — Personalisation */}
+          <div className="bg-card rounded-xl border border-fog p-5 flex flex-col">
+            <div className="w-9 h-9 rounded-lg bg-[#E1F5EE] flex items-center justify-center flex-shrink-0 mb-3">
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="none" stroke="#1D9E75" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="10" cy="7" r="3" />
+                <path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+              </svg>
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-widest bg-[#E1F5EE] text-[#1D9E75] px-2 py-0.5 rounded inline-block mb-2 w-fit">
+              Personalised
+            </span>
+            <h3 className="font-display font-bold text-[17px] text-navy leading-snug mb-1">
               Built around your practice
             </h3>
-            <p className="text-slate-600 leading-relaxed mb-5">
+            <p className="text-[14px] text-slate leading-relaxed">
               Tell us your jurisdictions, your industry, the regulatory topics you follow, and your professional role — and every Monday morning we deliver the intelligence that is genuinely relevant to your programme. Not a digest of everything. A brief on what matters to you, clear and specific, ready before your week begins. Privacy law covers a lot of ground. You don't have to cover all of it alone.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {features.map((f) => (
-                <span
-                  key={f}
-                  className="text-xs font-medium px-3 py-1.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200"
-                >
-                  {f}
-                </span>
-              ))}
-            </div>
           </div>
 
-          {/* Right — Memory */}
-          <div>
-            <h3 className="font-semibold text-navy text-xl mb-3">
+          {/* CARD 2 — Memory */}
+          <div className="bg-card rounded-xl border border-fog p-5 flex flex-col">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mb-3">
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="none" stroke="#185FA5" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="10" cy="10" r="7" />
+                <polyline points="10,5 10,10 13,12" />
+              </svg>
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-widest bg-blue-50 text-blue-800 px-2 py-0.5 rounded inline-block mb-2 w-fit">
+              Continuity
+            </span>
+            <h3 className="font-display font-bold text-[17px] text-navy leading-snug mb-1">
               Your brief carries memory
             </h3>
-            <p className="text-slate-600 leading-relaxed mb-5">
+            <p className="text-[14px] text-slate leading-relaxed">
               Issues are tracked week over week — new, continuing, escalating, or resolved — so each Monday your brief opens by connecting this week's developments to what was already on your radar. You'll see when an enforcement pattern is building, when a risk you were monitoring has shifted, and when something that had you concerned is behind you. Your knowledge compounds every week. Your brief makes sure none of it slips.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {statusPills.map((s) => (
-                <span
-                  key={s.label}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-full border ${s.bg} ${s.text} ${s.border}`}
-                >
-                  {s.label}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="text-center py-5 px-4 rounded-xl bg-slate-50 border border-slate-100"
-            >
-              <p className="font-bold text-2xl text-navy mb-1">{s.value}</p>
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                {s.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Value CTA */}
-        <div className="text-center bg-navy rounded-2xl px-8 py-10">
-          <p className="text-white text-xl font-semibold mb-2">
-            All of this for $29 a month.
-          </p>
-          <p className="text-slate-300 text-base mb-6 max-w-lg mx-auto">
-            119 authorities, 150+ jurisdictions, personalised to your practice, carrying your compliance history. You've got this.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <Link
-              to="/subscribe"
-              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white font-semibold px-6 py-3 rounded-lg transition-colors no-underline"
-            >
-              Start your brief
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/sample-brief"
-              className="text-slate-300 hover:text-white text-sm underline underline-offset-4 transition-colors"
-            >
-              See what your brief looks like first →
-            </Link>
+        <div className="px-4 md:px-6 py-4">
+          <div className="bg-white/5 rounded-lg px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="font-display font-bold text-[20px] text-white leading-tight">
+                  {s.value}
+                </p>
+                <p className="text-[12px] text-blue-200/80 mt-0.5">
+                  {s.label}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
