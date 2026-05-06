@@ -7,7 +7,7 @@ import { Helmet } from "react-helmet-async";
 import { Check, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import WatchlistManager from "@/components/watchlist/WatchlistManager";
+
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import {
@@ -381,10 +381,7 @@ export default function Account() {
           </div>
         </div>
 
-        {/* Watchlist */}
-        <div id="watchlist" className="mb-4">
-          <WatchlistManager isPremium={isPremium} />
-        </div>
+        {/* Watchlist now lives at /watchlist */}
 
         {/* Sign out */}
         <button

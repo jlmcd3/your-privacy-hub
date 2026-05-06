@@ -110,6 +110,7 @@ import RegistrationAssessmentResult from "./pages/RegistrationAssessmentResult.t
 import RegistrationOrder from "./pages/RegistrationOrder.tsx";
 import RegistrationDocuments from "./pages/RegistrationDocuments.tsx";
 import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
+import Watchlist from "./pages/Watchlist.tsx";
 import MyReports from "./pages/MyReports.tsx";
 import DPAResult from "./pages/DPAResult.tsx";
 import IRPlaybookResult from "./pages/IRPlaybookResult.tsx";
@@ -449,6 +450,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <RegistrationMyFilings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/watchlist"
+              element={
+                <ProtectedRoute>
+                  <Watchlist />
                 </ProtectedRoute>
               }
             />
