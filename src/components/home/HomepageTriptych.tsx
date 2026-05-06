@@ -37,10 +37,10 @@ function PlatformBadge() {
         </svg>
       </div>
       <div>
-        <p className="text-[12px] font-semibold text-navy leading-tight">
+        <p className="text-[14px] font-semibold text-navy leading-tight">
           Included with Annual Platform
         </p>
-        <p className="text-[11px] text-slate mt-0.5">
+        <p className="text-[13px] text-slate mt-0.5">
           {PLATFORM_PRICING.standard()} · {PLATFORM_PRICING.standardMonthly()} equiv
           <span className="mx-1 text-fog">·</span>
           standalone rates also available
@@ -61,10 +61,10 @@ function FeatRow({
 }) {
   return (
     <li className="flex items-start gap-2 py-1.5 border-b border-fog/60 last:border-0">
-      <span className={`text-[12px] font-bold mt-0.5 ${tickClass}`}>✓</span>
-      <span className="text-[12px] text-slate leading-snug flex-1">{label}</span>
+      <span className={`text-[14px] font-bold mt-0.5 ${tickClass}`}>✓</span>
+      <span className="text-[14px] text-slate leading-snug flex-1">{label}</span>
       {free && (
-        <span className="text-[9px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5">
+        <span className="text-[11px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5">
           free
         </span>
       )}
@@ -81,10 +81,10 @@ export default function HomepageTriptych() {
         {/* Navy header */}
         <div className="flex items-start justify-between gap-4 px-6 md:px-8 pt-6 md:pt-8 pb-5">
           <div className="max-w-2xl">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300 mb-2">
+            <p className="text-[12px] font-bold uppercase tracking-widest text-blue-300 mb-2">
               How we can help
             </p>
-            <h2 className="font-display text-2xl md:text-[28px] font-bold text-white leading-tight mb-1.5">
+            <h2 className="font-display text-4xl md:text-[32px] font-bold text-white leading-tight mb-1.5">
               Intelligence, assessments, and compliance documents
             </h2>
             <p className="text-blue-100/80 text-sm leading-relaxed">
@@ -95,7 +95,7 @@ export default function HomepageTriptych() {
           </div>
           <Link
             to="/tools"
-            className="flex-shrink-0 mt-1 text-[12px] font-semibold text-white/80 border border-white/25 px-3 py-1.5 rounded-lg hover:bg-white/10 no-underline transition-colors"
+            className="flex-shrink-0 mt-1 text-[14px] font-semibold text-white/80 border border-white/25 px-3 py-1.5 rounded-lg hover:bg-white/10 no-underline transition-colors"
           >
             See all tools →
           </Link>
@@ -111,13 +111,13 @@ export default function HomepageTriptych() {
                 <polyline points="10,5 10,10 13,12" />
               </svg>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-widest bg-[#E1F5EE] text-[#1D9E75] px-2 py-0.5 rounded inline-block mb-2 w-fit">
+            <span className="text-[11px] font-bold uppercase tracking-widest bg-[#E1F5EE] text-[#1D9E75] px-2 py-0.5 rounded inline-block mb-2 w-fit">
               Intelligence
             </span>
-            <h3 className="font-display font-bold text-[15px] text-navy leading-snug mb-1">
+            <h3 className="font-display font-bold text-[17px] text-navy leading-snug mb-1">
               Stay current on every regulation that affects your organisation
             </h3>
-            <p className="text-[12px] text-slate leading-relaxed mb-4">
+            <p className="text-[14px] text-slate leading-relaxed mb-4">
               Personalised weekly brief, enforcement tracking, and jurisdiction monitoring — filtered to your regions and topics.
             </p>
             <ul className="list-none mb-4 flex-1">
@@ -129,7 +129,7 @@ export default function HomepageTriptych() {
               ].map((f) => (
                 <FeatRow key={f.label} {...f} tickClass="text-[#1D9E75]" />
               ))}
-              <li className="flex items-center gap-2 py-1.5 text-[12px] text-slate/40">
+              <li className="flex items-center gap-2 py-1.5 text-[14px] text-slate/40">
                 <span>—</span>
                 <span>Compliance tools not included</span>
               </li>
@@ -137,27 +137,27 @@ export default function HomepageTriptych() {
             <div className="h-px bg-fog my-3" />
             <div className="mb-3">
               <div className="flex items-baseline gap-1">
-                <span className="font-display font-bold text-[22px] text-navy">
+                <span className="font-display font-bold text-[24px] text-navy">
                   {INTELLIGENCE_PRICING.monthlyShort()}
                 </span>
               </div>
-              <p className="text-[10px] text-slate mt-0.5">
+              <p className="text-[12px] text-slate mt-0.5">
                 or $249/yr — save two months
               </p>
             </div>
             <Link
               to="/subscribe"
-              className="block w-full text-center bg-[#1D9E75] text-white font-semibold text-[12px] py-2.5 rounded-lg hover:opacity-90 no-underline mb-2"
+              className="block w-full text-center bg-[#1D9E75] text-white font-semibold text-[14px] py-2.5 rounded-lg hover:opacity-90 no-underline mb-2"
             >
               Start intelligence →
             </Link>
-            <p className="text-[10px] text-center text-slate">
+            <p className="text-[12px] text-center text-slate">
               or{" "}
               <Link to="/subscribe#digest" className="underline underline-offset-2 text-slate hover:text-navy">
                 get the free weekly digest
               </Link>
             </p>
-            <p className="text-[10px] text-slate/60 leading-relaxed mt-3 pt-3 border-t border-fog">
+            <p className="text-[12px] text-slate/60 leading-relaxed mt-3 pt-3 border-t border-fog">
               Intelligence is included in every paid tier — Assessments and Documents subscribers receive the full brief.
             </p>
           </div>
@@ -172,13 +172,13 @@ export default function HomepageTriptych() {
                 <line x1="7" y1="14" x2="9" y2="14" />
               </svg>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-widest bg-blue-50 text-blue-800 px-2 py-0.5 rounded inline-block mb-2 w-fit">
+            <span className="text-[11px] font-bold uppercase tracking-widest bg-blue-50 text-blue-800 px-2 py-0.5 rounded inline-block mb-2 w-fit">
               Assessments
             </span>
-            <h3 className="font-display font-bold text-[15px] text-navy leading-snug mb-1">
+            <h3 className="font-display font-bold text-[17px] text-navy leading-snug mb-1">
               Know where you stand against what regulators actually enforce
             </h3>
-            <p className="text-[12px] text-slate leading-relaxed mb-4">
+            <p className="text-[14px] text-slate leading-relaxed mb-4">
               Structured assessments calibrated to 3,500+ enforcement decisions. Score your programme, run a defensible LIA, build your DPIA.
             </p>
             <ul className="list-none mb-4 flex-1">
@@ -190,11 +190,11 @@ export default function HomepageTriptych() {
             <PlatformBadge />
             <Link
               to="/subscribe"
-              className="block w-full text-center bg-navy text-white font-semibold text-[12px] py-2.5 rounded-lg hover:opacity-90 no-underline mb-2"
+              className="block w-full text-center bg-navy text-white font-semibold text-[14px] py-2.5 rounded-lg hover:opacity-90 no-underline mb-2"
             >
               See Annual Platform →
             </Link>
-            <p className="text-[10px] text-center text-slate">
+            <p className="text-[12px] text-center text-slate">
               or{" "}
               <Link to="/governance-assessment" className="underline underline-offset-2 text-slate hover:text-navy">
                 try the free governance quick scan
@@ -212,13 +212,13 @@ export default function HomepageTriptych() {
                 <line x1="7" y1="14" x2="11" y2="14" />
               </svg>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-900 px-2 py-0.5 rounded inline-block mb-2 w-fit">
+            <span className="text-[11px] font-bold uppercase tracking-widest bg-amber-50 text-amber-900 px-2 py-0.5 rounded inline-block mb-2 w-fit">
               Compliance documents
             </span>
-            <h3 className="font-display font-bold text-[15px] text-navy leading-snug mb-1">
+            <h3 className="font-display font-bold text-[17px] text-navy leading-snug mb-1">
               Produce the documents tailored to your jurisdictions and stack
             </h3>
-            <p className="text-[12px] text-slate leading-relaxed mb-4">
+            <p className="text-[14px] text-slate leading-relaxed mb-4">
               Customised compliance documents drawn from enforcement precedent. Designed for professional review, not as a substitute for it.
             </p>
             <ul className="list-none mb-4 flex-1">
@@ -230,11 +230,11 @@ export default function HomepageTriptych() {
             <PlatformBadge />
             <Link
               to="/subscribe"
-              className="block w-full text-center bg-amber-700 text-amber-50 font-semibold text-[12px] py-2.5 rounded-lg hover:opacity-90 no-underline mb-2"
+              className="block w-full text-center bg-amber-700 text-amber-50 font-semibold text-[14px] py-2.5 rounded-lg hover:opacity-90 no-underline mb-2"
             >
               See Annual Platform →
             </Link>
-            <p className="text-[10px] text-center text-slate">
+            <p className="text-[12px] text-center text-slate">
               or{" "}
               <Link to="/tools" className="underline underline-offset-2 text-slate hover:text-navy">
                 buy a single document
@@ -256,24 +256,24 @@ export default function HomepageTriptych() {
               </svg>
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-navy mb-0.5">
+              <p className="text-[15px] font-semibold text-navy mb-0.5">
                 Managing multiple clients?
               </p>
-              <p className="text-[12px] text-slate leading-relaxed">
+              <p className="text-[14px] text-slate leading-relaxed">
                 Annual Platform subscribers can add separate client workspaces — individual document histories and tool sessions per client. Ideal for DPOs, consultants, and privacy counsel.
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="font-display font-bold text-[18px] text-navy leading-none">
+              <p className="font-display font-bold text-[20px] text-navy leading-none">
                 $199
               </p>
-              <p className="text-[10px] text-slate">/yr per additional client</p>
-              <p className="text-[10px] text-slate/60 mb-1">
+              <p className="text-[12px] text-slate">/yr per additional client</p>
+              <p className="text-[12px] text-slate/60 mb-1">
                 Annual Platform required
               </p>
               <Link
                 to="/subscribe#multi-client"
-                className="inline-block text-[10px] font-semibold text-purple-800 border border-purple-300 px-2.5 py-1 rounded-md hover:bg-purple-50 no-underline"
+                className="inline-block text-[12px] font-semibold text-purple-800 border border-purple-300 px-2.5 py-1 rounded-md hover:bg-purple-50 no-underline"
               >
                 Learn more →
               </Link>
@@ -282,15 +282,15 @@ export default function HomepageTriptych() {
 
           {/* Workflow connector */}
           <div className="bg-white/5 rounded-lg px-4 py-2 flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] text-blue-200">The compliance workflow:</span>
-            <span className="text-[11px] font-semibold text-white">stay informed</span>
-            <span className="text-[11px] text-blue-200/50">→</span>
-            <span className="text-[11px] font-semibold text-white">assess your risks</span>
-            <span className="text-[11px] text-blue-200/50">→</span>
-            <span className="text-[11px] font-semibold text-white">produce your documents</span>
+            <span className="text-[13px] text-blue-200">The compliance workflow:</span>
+            <span className="text-[13px] font-semibold text-white">stay informed</span>
+            <span className="text-[13px] text-blue-200/50">→</span>
+            <span className="text-[13px] font-semibold text-white">assess your risks</span>
+            <span className="text-[13px] text-blue-200/50">→</span>
+            <span className="text-[13px] font-semibold text-white">produce your documents</span>
             <Link
               to="/subscribe"
-              className="ml-auto text-[11px] font-semibold text-[#1D9E75] no-underline hover:underline whitespace-nowrap hidden sm:block"
+              className="ml-auto text-[13px] font-semibold text-[#1D9E75] no-underline hover:underline whitespace-nowrap hidden sm:block"
             >
               Annual Platform covers all three — {PLATFORM_PRICING.standard()} →
             </Link>
@@ -299,32 +299,32 @@ export default function HomepageTriptych() {
           {/* CPPA urgency */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-amber-700 mb-1">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-700 mb-1">
                 California · CPPA audit requirement
               </p>
-              <p className="text-[13px] font-semibold text-amber-950 mb-1 flex flex-wrap items-center gap-2">
+              <p className="text-[15px] font-semibold text-amber-950 mb-1 flex flex-wrap items-center gap-2">
                 Is your organisation in scope for the 2027 CPPA audit?
                 <span className="inline-flex items-center gap-1 bg-red-100 border border-red-200 rounded px-1.5 py-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-600 flex-shrink-0" />
-                  <span className="text-[10px] font-bold text-red-800">
+                  <span className="text-[12px] font-bold text-red-800">
                     Dec 31 2027
                   </span>
                 </span>
               </p>
-              <p className="text-[12px] text-amber-800">
+              <p className="text-[14px] text-amber-800">
                 The CPPA Audits Division stood up February 2026. CPPA tools available at subscriber or standalone rates on all plans.
               </p>
             </div>
             <div className="flex gap-2 flex-shrink-0 flex-wrap">
               <Link
                 to="/cppa-scope-checker"
-                className="text-[11px] font-semibold text-amber-800 border border-amber-400 px-3 py-2 rounded-lg hover:bg-amber-100 no-underline whitespace-nowrap"
+                className="text-[13px] font-semibold text-amber-800 border border-amber-400 px-3 py-2 rounded-lg hover:bg-amber-100 no-underline whitespace-nowrap"
               >
                 Free scope check →
               </Link>
               <Link
                 to="/cppa-risk-assessment"
-                className="text-[11px] font-semibold bg-amber-700 text-amber-50 px-3 py-2 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
+                className="text-[13px] font-semibold bg-amber-700 text-amber-50 px-3 py-2 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
               >
                 Run CPPA risk assessment →
               </Link>
@@ -333,12 +333,12 @@ export default function HomepageTriptych() {
 
           {/* Standalone note */}
           <div className="flex items-center justify-between gap-4 pb-1">
-            <p className="text-[11px] text-blue-200/70">
+            <p className="text-[13px] text-blue-200/70">
               Not ready to subscribe? Every tool is available as a one-time standalone purchase — no subscription required.
             </p>
             <Link
               to="/tools"
-              className="text-[11px] font-semibold text-blue-200/70 underline underline-offset-2 hover:text-white no-underline whitespace-nowrap flex-shrink-0"
+              className="text-[13px] font-semibold text-blue-200/70 underline underline-offset-2 hover:text-white no-underline whitespace-nowrap flex-shrink-0"
             >
               See standalone prices →
             </Link>
