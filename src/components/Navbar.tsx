@@ -330,43 +330,61 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const renderSubItem = (sub: NavSubItem, mobile = false) => (
-    <Link
-      key={sub.label}
-      to={sub.href}
-      title={sub.tooltip}
-      className={`flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
-      onClick={() => {
-        if (mobile) setMobileOpen(false);
-        setOpenDropdown(null);
-      }}
-    >
-      <span className="flex items-center justify-center w-5 shrink-0 mt-0.5">
-        <IconImage src={sub.iconImage} fallback={sub.icon} />
-      </span>
-      <span className="flex-1 text-left min-w-0">
-        <span className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium">{sub.label}</span>
-          {sub.badge && (
-            <span
-              className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
-                sub.badgeGreen
-                  ? "bg-accent/10 text-accent border border-accent/20"
-                  : "bg-blue/10 text-blue border border-blue/20"
-              }`}
-            >
-              {sub.badge}
+  const renderSubItem = (sub: NavSubItem, mobile = false) => {
+    const link = (
+      <Link
+        key={sub.label}
+        to={sub.href}
+        className={`flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
+        onClick={() => {
+          if (mobile) setMobileOpen(false);
+          setOpenDropdown(null);
+        }}
+      >
+        <span className="flex items-center justify-center w-5 shrink-0 mt-0.5">
+          <IconImage src={sub.iconImage} fallback={sub.icon} />
+        </span>
+        <span className="flex-1 text-left min-w-0">
+          <span className="flex items-center gap-2 flex-wrap">
+            <span className="font-medium">{sub.label}</span>
+            {sub.badge && (
+              <span
+                className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                  sub.badgeGreen
+                    ? "bg-accent/10 text-accent border border-accent/20"
+                    : "bg-blue/10 text-blue border border-blue/20"
+                }`}
+              >
+                {sub.badge}
+              </span>
+            )}
+          </span>
+          {sub.description && (
+            <span className="block text-[12px] text-slate-light mt-0.5 leading-snug">
+              {sub.description}
             </span>
           )}
         </span>
-        {sub.description && (
-          <span className="block text-[12px] text-slate-light mt-0.5 leading-snug">
-            {sub.description}
-          </span>
-        )}
-      </span>
-    </Link>
-  );
+      </Link>
+    );
+
+    if (!sub.tooltip || mobile) return link;
+
+    return (
+      <Tooltip key={sub.label} delayDuration={250}>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent
+          side="top"
+          align="end"
+          sideOffset={10}
+          alignOffset={24}
+          className="max-w-[280px] text-[12px] leading-snug"
+        >
+          {sub.tooltip}
+        </TooltipContent>
+      </Tooltip>
+    );
+  };
 
   return (
     <>
