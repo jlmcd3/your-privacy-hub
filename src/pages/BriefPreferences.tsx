@@ -6,6 +6,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const ROLES = [
@@ -160,7 +161,7 @@ const Toggle = ({
         : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
     }`}
   >
-    <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
+    <span className="text-lg flex-shrink-0 mt-0.5"><FlagIcon icon={icon} /></span>
     <div className="flex-1 min-w-0">
       <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
       {description && (
@@ -308,7 +309,7 @@ export default function BriefPreferences() {
                       : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
                   }`}
                 >
-                  <span>{r.icon}</span>
+                  <span><FlagIcon icon={r.icon} /></span>
                   <span>{r.label}</span>
                   {role === r.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
                 </button>
@@ -366,7 +367,7 @@ export default function BriefPreferences() {
                       : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
                   }`}
                 >
-                  <span>{f.icon}</span>
+                  <span><FlagIcon icon={f.icon} /></span>
                   <span>{f.label}</span>
                   {prefs.format === f.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
                 </button>

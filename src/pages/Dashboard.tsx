@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { FlagIcon } from "@/components/FlagIcon";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -82,7 +83,7 @@ function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: str
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
       <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
-        <span className="mr-2">{icon}</span>{title}
+        <span className="mr-2"><FlagIcon icon={icon} /></span>{title}
       </h3>
       {subtitle && (
         <p className="text-[12px] text-slate-500 mb-4 leading-snug">{subtitle}</p>
