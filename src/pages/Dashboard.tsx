@@ -602,16 +602,9 @@ const Dashboard = () => {
             <div className="space-y-2">
               {briefArchive.map((b: any, idx: number) => {
                 const isLatest = idx === 0;
-                const isOpen = isLatest
-                  ? (expandedBriefId === null ? latestExpanded : expandedBriefId === b.id)
-                  : expandedBriefId === b.id;
+                const isOpen = expandedBriefId === b.id;
                 const toggle = () => {
-                  if (isLatest && expandedBriefId === null) {
-                    setLatestExpanded(!latestExpanded);
-                  } else {
-                    setExpandedBriefId(isOpen ? null : b.id);
-                    if (!isOpen) setLatestExpanded(false);
-                  }
+                  setExpandedBriefId(isOpen ? null : b.id);
                 };
                 const generated = b.generated_at
                   ? new Date(b.generated_at).toLocaleString(undefined, {
