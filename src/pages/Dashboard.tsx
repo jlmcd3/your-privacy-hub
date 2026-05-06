@@ -199,6 +199,7 @@ const Dashboard = () => {
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [briefArchive, setBriefArchive] = useState<any[]>([]);
   const [expandedBriefId, setExpandedBriefId] = useState<string | null>(null);
+  const [latestExpanded, setLatestExpanded] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showDigestPrefs, setShowDigestPrefs] = useState(false);
   const [digestPrefsSet, setDigestPrefsSet] = useState(false);
