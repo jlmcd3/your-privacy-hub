@@ -10,17 +10,24 @@ export interface Client {
   sector: string | null;
   notes: string | null;
   is_active: boolean;
+  is_personal: boolean;
   created_at: string;
   updated_at: string;
 }
 
 interface ClientStore {
+  /** Real client records only (excludes the personal workspace). */
   clients: Client[];
+  /** The user's personal workspace row (auto-created on signup). */
+  personal: Client | null;
+  /** Currently active workspace — either the personal row or a client. */
   activeClient: Client | null;
   isLoading: boolean;
   error: string | null;
   loadClients: () => Promise<void>;
   setActiveClient: (client: Client) => void;
+  /** Switch to the personal workspace. */
+  switchToPersonal: () => void;
   createClient: (name: string, sector?: string) => Promise<Client>;
   updateClient: (
     id: string,
@@ -34,6 +41,7 @@ export const useClientStore = create<ClientStore>()(
   persist(
     (set, get) => ({
       clients: [],
+      personal: null,
       activeClient: null,
       isLoading: false,
       error: null,
@@ -51,20 +59,31 @@ export const useClientStore = create<ClientStore>()(
           return;
         }
 
-        const clientList = (data ?? []) as Client[];
+        const all = (data ?? []) as Client[];
+        const personal = all.find((c) => c.is_personal) ?? null;
+        const realClients = all.filter((c) => !c.is_personal);
+
         const current = get().activeClient;
+        // Re-resolve the active selection against the freshly loaded rows.
+        // Default landing view: personal workspace.
         const stillActive = current
-          ? clientList.find((c) => c.id === current.id) ?? null
+          ? all.find((c) => c.id === current.id) ?? null
           : null;
 
         set({
-          clients: clientList,
-          activeClient: stillActive ?? clientList[0] ?? null,
+          clients: realClients,
+          personal,
+          activeClient: stillActive ?? personal ?? realClients[0] ?? null,
           isLoading: false,
         });
       },
 
       setActiveClient: (client) => set({ activeClient: client }),
+
+      switchToPersonal: () => {
+        const personal = get().personal;
+        if (personal) set({ activeClient: personal });
+      },
 
       createClient: async (name, sector) => {
         const { data: userData } = await supabase.auth.getUser();
@@ -92,18 +111,29 @@ export const useClientStore = create<ClientStore>()(
           .update(updates)
           .eq('id', id);
         if (error) throw new Error(error.message);
-        set((state) => ({
-          clients: state.clients.map((c) =>
-            c.id === id ? { ...c, ...updates } : c
-          ),
-          activeClient:
-            state.activeClient?.id === id
-              ? { ...state.activeClient, ...updates }
-              : state.activeClient,
-        }));
+        set((state) => {
+          const apply = (c: Client) =>
+            c.id === id ? { ...c, ...updates } : c;
+          return {
+            clients: state.clients.map(apply),
+            personal:
+              state.personal?.id === id
+                ? { ...state.personal, ...updates }
+                : state.personal,
+            activeClient:
+              state.activeClient?.id === id
+                ? { ...state.activeClient, ...updates }
+                : state.activeClient,
+          };
+        });
       },
 
       deleteClient: async (id) => {
+        // Guard: never delete the personal workspace row from the client.
+        const personal = get().personal;
+        if (personal && personal.id === id) {
+          throw new Error('Cannot delete personal workspace');
+        }
         const { error } = await supabase
           .from('clients')
           .delete()
@@ -115,7 +145,7 @@ export const useClientStore = create<ClientStore>()(
             clients: remaining,
             activeClient:
               state.activeClient?.id === id
-                ? remaining[0] ?? null
+                ? state.personal ?? remaining[0] ?? null
                 : state.activeClient,
           };
         });
@@ -132,11 +162,11 @@ export const useClientStore = create<ClientStore>()(
 
 export function useClientLabel() {
   const clients = useClientStore((state) => state.clients);
-  const isMultiClient = clients.length > 1;
+  const hasClients = clients.length > 0;
   return {
-    clientNoun: isMultiClient ? 'client' : 'organisation',
-    clientNounPlural: isMultiClient ? 'clients' : 'organisations',
-    clientNounCapital: isMultiClient ? 'Client' : 'Organisation',
+    clientNoun: hasClients ? 'client' : 'organisation',
+    clientNounPlural: hasClients ? 'clients' : 'organisations',
+    clientNounCapital: hasClients ? 'Client' : 'Organisation',
   };
 }
 
