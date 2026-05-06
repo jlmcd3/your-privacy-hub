@@ -42,6 +42,9 @@ const Index = () => {
       {/* Layer 4: Hero panels */}
       <SearchFirstHero />
 
+      {/* Personalised Intelligence Brief section */}
+      <IntelligenceBriefSection />
+
       {/* Layer 5: Free vs paid */}
       <FreeVsPaidStrip />
 
