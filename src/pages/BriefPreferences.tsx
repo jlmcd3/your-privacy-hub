@@ -161,7 +161,7 @@ const Toggle = ({
         : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
     }`}
   >
-    <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
+    <span className="text-lg flex-shrink-0 mt-0.5"><FlagIcon icon={icon} /></span>
     <div className="flex-1 min-w-0">
       <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
       {description && (
