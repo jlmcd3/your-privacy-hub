@@ -578,38 +578,42 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Custom brief for Pro users — most recent, expanded */}
+        {/* Custom briefs for Pro users — collapsible list, most recent first */}
         {customBrief && (
-          <>
-            <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-3">
-              <CustomBriefDocument
-                customBrief={customBrief}
-                sourceMap={brief?.source_map ?? {}}
-              />
-            </div>
-            <div className="mb-8 flex items-center justify-between gap-3 flex-wrap px-1">
-              <p className="text-[12px] text-muted-foreground">
-                Want to change focus for your next brief?
-              </p>
-              <Link
-                to="/brief-preferences"
-                className="text-[12px] font-semibold text-primary hover:underline no-underline"
-              >
-                Update preferences for next Monday →
-              </Link>
-            </div>
-          </>
+          <div className="mb-3 flex items-center justify-end gap-3 flex-wrap px-1">
+            <p className="text-[12px] text-muted-foreground">
+              Want to change focus for your next brief?
+            </p>
+            <Link
+              to="/brief-preferences"
+              className="text-[12px] font-semibold text-primary hover:underline no-underline"
+            >
+              Update preferences for next Monday →
+            </Link>
+          </div>
         )}
 
-        {/* Archive of older personalized briefs — collapsible */}
         {briefArchive.length > 0 && (
           <div className="mb-8">
-            <h2 className="font-display text-[14px] font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
-              📚 Your Brief History ({briefArchive.length})
-            </h2>
+            {briefArchive.length > 1 && (
+              <h2 className="font-display text-[14px] font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
+                📚 Your Briefs ({briefArchive.length})
+              </h2>
+            )}
             <div className="space-y-2">
-              {briefArchive.map((b: any) => {
-                const isOpen = expandedBriefId === b.id;
+              {briefArchive.map((b: any, idx: number) => {
+                const isLatest = idx === 0;
+                const isOpen = isLatest
+                  ? (expandedBriefId === null ? latestExpanded : expandedBriefId === b.id)
+                  : expandedBriefId === b.id;
+                const toggle = () => {
+                  if (isLatest && expandedBriefId === null) {
+                    setLatestExpanded(!latestExpanded);
+                  } else {
+                    setExpandedBriefId(isOpen ? null : b.id);
+                    if (!isOpen) setLatestExpanded(false);
+                  }
+                };
                 const generated = b.generated_at
                   ? new Date(b.generated_at).toLocaleString(undefined, {
                       month: "short", day: "numeric", year: "numeric",
@@ -621,8 +625,8 @@ const Dashboard = () => {
                   <div key={b.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => setExpandedBriefId(isOpen ? null : b.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                      onClick={toggle}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer"
                     >
                       {isOpen
                         ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -632,6 +636,11 @@ const Dashboard = () => {
                           <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                             ⭐ {b.week_label}
                           </span>
+                          {isLatest && (
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                              Latest
+                            </span>
+                          )}
                           <span className="text-[11px] text-slate-400">{generated}</span>
                         </div>
                         <p className="text-[13px] text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
