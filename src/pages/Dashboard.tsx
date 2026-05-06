@@ -538,28 +538,30 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Header */}
-        <div className="mb-10">
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
-            📋 Weekly Intelligence Brief
-          </p>
-          <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
-            {loading
-              ? "Loading your latest brief…"
-              : brief?.headline ?? "Your next brief is on the way"}
-          </h1>
-          {!loading && brief && (
-            <p className="mt-3 text-[13px] text-muted-foreground">
-              Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
+        {/* Header — only shown to subscribers without a personalized brief yet */}
+        {!customBrief && (
+          <div className="mb-10">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
+              📋 Weekly Intelligence Brief
             </p>
-          )}
-          {!loading && !brief && (
-            <p className="mt-3 text-[13px] text-muted-foreground">
-              We publish a new Intelligence Brief every Monday morning. Your first
-              brief will appear here as soon as it's ready — no action needed.
-            </p>
-          )}
-        </div>
+            <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
+              {loading
+                ? "Loading your latest brief…"
+                : brief?.headline ?? "Your next brief is on the way"}
+            </h1>
+            {!loading && brief && (
+              <p className="mt-3 text-[13px] text-muted-foreground">
+                Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
+              </p>
+            )}
+            {!loading && !brief && (
+              <p className="mt-3 text-[13px] text-muted-foreground">
+                We publish a new Intelligence Brief every Monday morning. Your first
+                brief will appear here as soon as it's ready — no action needed.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Awaiting first personalized brief — prospective messaging.
             Shown above the general weekly brief so subscribers know their
@@ -700,7 +702,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {!loading && brief && (
+        {!loading && brief && !customBrief && (
           <>
             {/* Public weekly brief — document layout */}
             <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8">
