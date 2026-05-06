@@ -26,7 +26,7 @@ export default function FreeVsPaidStrip() {
   if (authLoading || isPremium === null || isPremium) return null;
 
   return (
-    <div className="bg-muted/50 border-b border-border text-center px-4 h-9 flex items-center justify-center">
+    <div className="bg-muted/50 border-y border-border text-center px-4 h-9 flex items-center justify-center">
       <p className="text-[11px] text-muted-foreground truncate">
         📚 Free to browse · Free weekly digest included{" "}
         <span className="text-border mx-1.5">·</span>
