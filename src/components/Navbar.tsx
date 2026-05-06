@@ -196,6 +196,7 @@ const navItems: NavItem[] = [
       {
         header: "Directories",
         column: 1,
+        row: 2,
         items: [
           { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
           { icon: "📖", label: "Key Privacy Terms", href: "/glossary" },
