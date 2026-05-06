@@ -18,6 +18,7 @@ import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import ToolkitSection from "@/components/home/ToolkitSection";
 import HomepageTriptych from "@/components/home/HomepageTriptych";
 import { IntelligenceBriefSection } from "@/components/home/IntelligenceBriefSection";
+import ToolsStrip from "@/components/home/ToolsStrip";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -50,6 +51,10 @@ const Index = () => {
 
       {/* Layer 5b: Homepage triptych — Intelligence / Assessments / Documents */}
       <HomepageTriptych />
+
+      {/* Tools CTA strip */}
+      <ToolsStrip />
+
 
       {/* Layer 6: Main editorial content — full-width feed matching triptych */}
       <section className="mt-0 px-4">
