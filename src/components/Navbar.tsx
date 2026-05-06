@@ -156,6 +156,7 @@ const navItems: NavItem[] = [
           { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker" },
           { icon: "🏛️", label: "CPPA Risk Assessment", href: "/cppa-risk-assessment" },
           { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity" },
+          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools" },
         ],
       },
     ],
