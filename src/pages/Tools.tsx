@@ -285,6 +285,7 @@ const TOOLS: ToolDef[] = [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
       "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
       "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. Annual subscribers get full access; standalone users can generate per-activity records.",
+      "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
       { label: "Activity record (sample)", content: "Customer support ticketing — Zendesk. Lawful basis: Article 6(1)(b) contract performance. Data categories: contact data, support correspondence content. Retention: 24 months from ticket close. Recipients: Zendesk (processor, US), internal support team." },
@@ -407,6 +408,7 @@ const TOOLS: ToolDef[] = [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
       "Like other CPPA tools, this remains paid for all users; Annual Platform subscribers receive the discounted $99 subscriber rate. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
+      "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
       { label: "Multi-factor authentication finding", content: "MFA is enforced for administrative access to production systems but not for general employee access to systems containing personal information. The CPPA regulation expects MFA for both. Remediation: enable MFA for all employee access to PI-containing systems within 90 days." },
