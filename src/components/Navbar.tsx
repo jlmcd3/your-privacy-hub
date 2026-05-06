@@ -93,11 +93,14 @@ const navItems: NavItem[] = [
   },
   {
     label: "Updates",
+    wide: true,
+    columns: 2,
     sections: [
       {
         header: "Browse by region",
         headerBadge: "FREE",
         headerBadgeGreen: true,
+        column: 1,
         items: [
           { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
           { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
@@ -110,7 +113,7 @@ const navItems: NavItem[] = [
         header: "Browse by topic",
         headerBadge: "FREE",
         headerBadgeGreen: true,
-        divider: true,
+        column: 2,
         items: [
           { icon: "🤖", label: "AI & Privacy", href: "/updates?topic=ai-privacy" },
           { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement" },
