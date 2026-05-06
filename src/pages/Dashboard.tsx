@@ -254,7 +254,7 @@ const Dashboard = () => {
       .then(({ data }: any) => {
         const rows = Array.isArray(data) ? data : [];
         setCustomBrief(rows[0] ?? null);
-        setBriefArchive(rows.slice(1));
+        setBriefArchive(rows);
       });
   }, [user]);
 
