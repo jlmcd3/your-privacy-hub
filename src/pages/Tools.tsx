@@ -528,58 +528,55 @@ export default function Tools() {
                   id={secIdx === 0 && toolIdx === 0 ? "tools-list" : undefined}
                   className="max-w-[860px] mx-auto px-4 py-12 border-b border-fog last:border-0"
                 >
-                  {/* Tool header row */}
-                  <div className="flex items-start justify-between gap-6 flex-wrap mb-6">
-                    <div>
-                      <div className="text-[28px] mb-2">{tool.icon}</div>
-                      <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
-                      <p className="text-slate text-[14px]">{tool.tagline}</p>
-                      {tool.freeBadge && (
-                        <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                          ✓ {tool.freeBadge}
-                        </span>
-                      )}
+                  {/* Tool header row — icon and pricing pill share the top line */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                      <div className="text-[28px] leading-none">{tool.icon}</div>
+
+                      {/* Pricing pill — uniform design across all states */}
+                      <div className="shrink-0 text-right">
+                        {tool.alwaysFree ? (
+                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
+                            Always free
+                          </span>
+                        ) : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) ? (
+                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
+                            ✓ Included
+                          </span>
+                        ) : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug) ? (
+                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full">
+                            {tool.subscriberPrice}
+                          </span>
+                        ) : tier === "monthly" ? (
+                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
+                            ⭐ {tool.monthlySubscriberPrice ?? tool.standalonePrice}
+                          </span>
+                        ) : (
+                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
+                            ⭐ {tool.standalonePrice}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Pricing badge */}
-                    <div className="text-right shrink-0">
-                      {tool.alwaysFree && (
-                        <div className="text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full mb-1 inline-block">
-                          Always free
-                        </div>
-                      )}
-                      {!tool.alwaysFree && hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) && (
-                        <div className="text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full mb-1 inline-block">
-                          ✓ Included
-                        </div>
-                      )}
-                      {!tool.alwaysFree && hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug) && (
-                        <div className="text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full mb-1 inline-block">
-                          {tool.subscriberPrice}
-                        </div>
-                      )}
-                      {!tool.alwaysFree && !hasToolAccess && tier === "monthly" && (
-                        <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
-                          ⭐ {tool.monthlySubscriberPrice ?? tool.standalonePrice}
-                        </div>
-                      )}
-                      {!tool.alwaysFree && !hasToolAccess && tier !== "monthly" && (
-                        <div className="text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mb-1">
-                          ⭐ {tool.standalonePrice}
-                        </div>
-                      )}
-                      {!tool.alwaysFree && (
-                        <div className="text-[11px] text-muted-foreground mt-0.5">
-                          {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
-                            ? "Included in your Annual Platform"
-                            : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
-                            ? "Paid — subscriber rate applied"
-                            : tier === "monthly" && tool.monthlySubscriberPrice
-                            ? "Monthly subscriber discount"
-                            : `${tool.standalonePrice} without subscription`}
-                        </div>
-                      )}
-                    </div>
+                    <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
+                    <p className="text-slate text-[14px]">{tool.tagline}</p>
+                    {tool.freeBadge && (
+                      <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                        ✓ {tool.freeBadge}
+                      </span>
+                    )}
+                    {!tool.alwaysFree && (
+                      <div className="text-[11px] text-muted-foreground mt-2">
+                        {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
+                          ? "Included in your Annual Platform"
+                          : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
+                          ? "Paid — subscriber rate applied"
+                          : tier === "monthly" && tool.monthlySubscriberPrice
+                          ? "Monthly subscriber discount"
+                          : `${tool.standalonePrice} without subscription`}
+                      </div>
+                    )}
                   </div>
 
                   {/* Body */}
