@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-05-04T14:30:59.714Z",
+  "generatedAt": "2026-05-06T07:20:08.768Z",
   "server_truth": {
     "tools": [
       {
         "key": "li_assessment",
         "name": "Legitimate Interest Assessment Tool",
-        "standalone_cents": 7900,
+        "standalone_cents": 6900,
         "subscriber_cents": 3500
       },
       {
@@ -23,13 +23,13 @@
       {
         "key": "dpa_generator",
         "name": "Your Custom DPA",
-        "standalone_cents": 9900,
-        "subscriber_cents": 4900
+        "standalone_cents": 4900,
+        "subscriber_cents": 0
       },
       {
         "key": "ir_playbook",
         "name": "Your Breach Response Playbook",
-        "standalone_cents": 5900,
+        "standalone_cents": 3900,
         "subscriber_cents": 0
       },
       {
@@ -71,7 +71,7 @@
       {
         "key": "eu_notice_suite",
         "name": "EU Notice Suite — GDPR + UK GDPR + FADP",
-        "standalone_cents": 14900,
+        "standalone_cents": 11900,
         "subscriber_cents": 6500
       },
       {
@@ -128,44 +128,26 @@
   "rows": [
     {
       "product": "Legitimate Interest Assessment Tool",
-      "server_standalone": "$79",
+      "server_standalone": "$69",
       "server_subscriber": "$35",
-      "ui_prices_seen": [
-        "$25",
-        "$35",
-        "$39",
-        "$49",
-        "$69",
-        "$79",
-        "$99"
-      ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "ui_prices_seen": [],
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "Privacy Program Assessment Tool",
       "server_standalone": "$49",
       "server_subscriber": "$25",
-      "ui_prices_seen": [
-        "$25",
-        "$35",
-        "$49",
-        "$79",
-        "$99"
-      ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "ui_prices_seen": [],
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "Impact Assessment Builder",
       "server_standalone": "$99",
       "server_subscriber": "$49",
       "ui_prices_seen": [
-        "$25",
-        "$39",
         "$49",
-        "$59",
-        "$69",
         "$99"
       ],
       "standalone_match": true,
@@ -173,33 +155,18 @@
     },
     {
       "product": "Your Custom DPA",
-      "server_standalone": "$99",
-      "server_subscriber": "$49",
-      "ui_prices_seen": [
-        "$25",
-        "$39",
-        "$49",
-        "$59",
-        "$69",
-        "$99"
-      ],
-      "standalone_match": true,
+      "server_standalone": "$49",
+      "server_subscriber": "—",
+      "ui_prices_seen": [],
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
       "product": "Your Breach Response Playbook",
-      "server_standalone": "$59",
+      "server_standalone": "$39",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$149",
-        "$25",
-        "$275",
-        "$39",
-        "$49",
-        "$499",
-        "$59"
-      ],
-      "standalone_match": true,
+      "ui_prices_seen": [],
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
@@ -252,7 +219,7 @@
     },
     {
       "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
-      "server_standalone": "$149",
+      "server_standalone": "$119",
       "server_subscriber": "$65",
       "ui_prices_seen": [],
       "standalone_match": false,
@@ -356,10 +323,10 @@
       "ui_prices_seen": [
         "$75",
         "$59",
-        "$399",
         "$149",
         "$275",
-        "$499"
+        "$499",
+        "$399"
       ],
       "standalone_match": true,
       "subscriber_match": true
@@ -369,7 +336,6 @@
       "server_standalone": "$79",
       "server_subscriber": "—",
       "ui_prices_seen": [
-        "$75",
         "$79"
       ],
       "standalone_match": true,
@@ -377,6 +343,42 @@
     }
   ],
   "findings": [
+    {
+      "severity": "high",
+      "product": "Legitimate Interest Assessment Tool",
+      "issue": "Server charges $69 standalone, but UI never shows that price.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Legitimate Interest Assessment Tool",
+      "issue": "Server charges $35 subscriber, but UI never shows that price.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Privacy Program Assessment Tool",
+      "issue": "Server charges $49 standalone, but UI never shows that price.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Privacy Program Assessment Tool",
+      "issue": "Server charges $25 subscriber, but UI never shows that price.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Your Custom DPA",
+      "issue": "Server charges $49 standalone, but UI never shows that price.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Your Breach Response Playbook",
+      "issue": "Server charges $39 standalone, but UI never shows that price.",
+      "ui_prices_seen": []
+    },
     {
       "severity": "high",
       "product": "Biometric Privacy Compliance Checker",
@@ -446,7 +448,7 @@
     {
       "severity": "high",
       "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
-      "issue": "Server charges $149 standalone, but UI never shows that price.",
+      "issue": "Server charges $119 standalone, but UI never shows that price.",
       "ui_prices_seen": []
     },
     {
@@ -518,6 +520,6 @@
   ],
   "summary": {
     "products_checked": 23,
-    "mismatches": 23
+    "mismatches": 29
   }
 }

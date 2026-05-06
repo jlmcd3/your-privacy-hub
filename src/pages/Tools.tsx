@@ -151,7 +151,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
     href: "/li-assessment",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$79",
+    standalonePrice: "$69",
     freeBadge: "Step 1 free",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
@@ -217,7 +217,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$99",
+    standalonePrice: "$49",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
       "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is structured for legal review before execution.",
@@ -237,7 +237,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$59",
+    standalonePrice: "$39",
     freeBadge: "Deadline lookup free",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
@@ -258,7 +258,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction.",
     href: "/ropa-builder",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$99",
+    standalonePrice: "$79",
     body: [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
       "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
@@ -296,7 +296,7 @@ const TOOLS: ToolDef[] = [
     tagline: "GDPR & UK GDPR-aligned privacy notices with Article 13/14 disclosures and international transfer language.",
     href: "/eu-notices",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$45/framework or $149 EU suite",
+    standalonePrice: "$45/framework or $119 EU suite",
     body: [
       "Article 13 and 14 set out what a GDPR-compliant notice must contain. The gap between meeting those requirements on paper and producing a notice that withstands scrutiny is, in practice, the gap between checkbox compliance and an accountability posture that holds up.",
       "The EU/UK Privacy Notice Builder produces a GDPR and UK GDPR-aligned notice covering each Article 13/14 disclosure: identity of the controller, contact details, lawful basis per processing purpose, recipients, retention, international transfer safeguards, and data subject rights. International transfer language is calibrated to the destinations and mechanisms you specify (SCCs, adequacy, derogations).",
@@ -394,14 +394,14 @@ const TOOLS: ToolDef[] = [
 
 const PRICING_GRID: [string, string][] = [
   ["Privacy Programme Assessment", "$49 standalone → Included with Annual Platform"],
-  ["Legitimate Interest Assessment", "$79 standalone → Included with Annual Platform"],
+  ["Legitimate Interest Assessment", "$69 standalone → Included with Annual Platform"],
   ["Impact Assessment (DPIA)", "$99 standalone → Included with Annual Platform"],
-  ["DPA Generator", "$99 standalone → Included with Annual Platform"],
-  ["Incident Response Playbook", "$59 standalone → Included with Annual Platform"],
+  ["DPA Generator", "$49 standalone → Included with Annual Platform"],
+  ["Incident Response Playbook", "$39 standalone → Included with Annual Platform"],
   ["Biometric Privacy Check", "$49 standalone → Included with Annual Platform"],
-  ["RoPA Builder", "$99 standalone → Included with Annual Platform"],
+  ["RoPA Builder", "$79 standalone → Included with Annual Platform"],
   ["U.S. Privacy Notice", "$25/state or $59 all states → Included"],
-  ["EU/UK Privacy Notice", "$45/framework or $149 suite → Included"],
+  ["EU/UK Privacy Notice", "$45/framework or $119 suite → Included"],
   ["Registration Manager (Annual)", "Standalone rates → Included with Annual Platform"],
   ["Registration Manager (Monthly)", "20% off DIY · $75 off Counsel-Ready"],
   ["CPPA Scope Checker", "Always free"],

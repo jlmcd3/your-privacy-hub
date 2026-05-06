@@ -245,9 +245,9 @@ export const PRICING_REGISTRY = {
     productName: "EU Notice Suite — GDPR + UK GDPR + Swiss FADP (Standalone)",
     description:
       "EU GDPR, UK GDPR, and Swiss FADP — three notices covering most EU-facing businesses.",
-    amountCents: 14900,
+    amountCents: 11900,
     currency: "usd",
-    displayPrice: "$149",
+    displayPrice: "$119",
     displaySuffix: " flat",
     active: true,
   },

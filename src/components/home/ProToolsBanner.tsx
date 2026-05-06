@@ -52,7 +52,7 @@ const TOOLS: Tool[] = [
     icon: Scale,
     title: "Legitimate Interest Assessment",
     blurb: "Build a defensible three-part LIA, with prompts tuned to your specific processing activity.",
-    price: "From $35 — subscribers · $79 standalone",
+    price: "From $35 — subscribers · $69 standalone",
     cta: "Build LIA",
     href: "/li-assessment",
   },

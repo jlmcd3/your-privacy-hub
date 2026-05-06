@@ -29,7 +29,7 @@ const TOOLS: Record<
     name: "Legitimate Interest Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
-    fallback_standalone_cents: 7900,
+    fallback_standalone_cents: 6900,
     fallback_subscriber_cents: 3500,
   },
   dpia_builder: {
@@ -85,7 +85,7 @@ const TOOLS: Record<
     name: "EU Notice Suite",
     standalone_lookup: "eu_notice_suite_standalone",
     subscriber_lookup: "eu_notice_suite_subscriber",
-    fallback_standalone_cents: 14900,
+    fallback_standalone_cents: 11900,
     fallback_subscriber_cents: 6500,
   },
   eu_notice_full_international: {
@@ -127,8 +127,8 @@ const TOOLS: Record<
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 4900,
+    fallback_subscriber_cents: 0,
   },
 };
 

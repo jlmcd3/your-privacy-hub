@@ -7,7 +7,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
  * Shown immediately while the subscriber-aware price loads from the backend.
  */
 const FALLBACK: Record<string, { standalone: number; subscriber: number; name: string }> = {
-  li_assessment: { standalone: 79, subscriber: 35, name: "Legitimate Interest Assessment Tool" },
+  li_assessment: { standalone: 69, subscriber: 35, name: "Legitimate Interest Assessment Tool" },
   governance_assessment: { standalone: 49, subscriber: 25, name: "Privacy Program Assessment Tool" },
   dpia_framework: { standalone: 99, subscriber: 49, name: "Impact Assessment Builder" },
   ropa_initial: { standalone: 79, subscriber: 35, name: "RoPA Builder — Initial Generation" },
@@ -18,7 +18,7 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   cppa_risk_assessment: { standalone: 149, subscriber: 79, name: "CPPA Risk Assessment — Module 1" },
   cppa_cybersecurity: { standalone: 199, subscriber: 99, name: "CPPA Cybersecurity Readiness — Module 2" },
   cppa_suite: { standalone: 299, subscriber: 149, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
-  dpa_generator: { standalone: 99, subscriber: 49, name: "Your Custom DPA" },
+  dpa_generator: { standalone: 49, subscriber: 0, name: "Your Custom DPA" },
 };
 
 /**
