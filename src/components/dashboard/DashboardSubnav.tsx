@@ -11,11 +11,9 @@
 //   - Account is the fallback: it highlights only when no workspace tab matched.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2, ShieldAlert } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 type Item = {
   to: string;
