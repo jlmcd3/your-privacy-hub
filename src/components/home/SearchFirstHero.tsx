@@ -13,6 +13,9 @@ export default function SearchFirstHero() {
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left: text content */}
           <div className="flex-1 text-center lg:text-left">
+            <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-3">
+              For DPOs, privacy counsel, and compliance professionals
+            </p>
             <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] mb-3">
               Global privacy law, tracked daily.
             </h1>
@@ -34,6 +37,12 @@ export default function SearchFirstHero() {
               >
                 See a sample Intelligence Brief →
               </Link>
+              <a
+                href="#how-we-can-help"
+                className="inline-flex items-center px-3 py-3 text-sm font-medium text-blue-200 hover:text-white transition-colors no-underline"
+              >
+                How it works ↓
+              </a>
             </div>
           </div>
 
