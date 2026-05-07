@@ -73,10 +73,15 @@ function FeatRow({
 }
 
 export default function HomepageTriptych() {
-  usePremiumStatus();
+  const { isPremium } = usePremiumStatus();
+
+  // Hide entirely for any paid subscriber.
+  // Anonymous users and free digest subscribers see it normally.
+  // This mirrors the pattern in FreeVsPaidStrip.tsx exactly.
+  if (isPremium) return null;
 
   return (
-    <section className="my-8 px-4">
+    <section id="how-we-can-help" className="my-8 px-4">
       <div className="max-w-[1280px] mx-auto rounded-xl bg-gradient-to-br from-navy via-navy to-[#1A3A5C] overflow-hidden">
         {/* Navy header */}
         <div className="flex items-start justify-between gap-4 px-6 md:px-8 pt-6 md:pt-8 pb-5">
