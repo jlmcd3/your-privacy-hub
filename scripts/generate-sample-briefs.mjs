@@ -338,6 +338,7 @@ function buildSources(items) {
 // ─── MAIN ─────────────────────────────────────────────────────────────────
 async function generateBrief(region, role) {
   console.log(`\n━━ ${region.toUpperCase()} × ${role.toUpperCase()} ━━`);
+  writeProgress({ status: "generating", currentRegion: region, currentRole: role, currentTrack: null });
 
   // 1. Pull region-wide enforcement (8 most recent real actions)
   const enforcement = pullEnforcement(region, 8);
