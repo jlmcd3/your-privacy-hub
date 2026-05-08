@@ -1,32 +1,86 @@
 {
-  "startedAt": "2026-05-08T09:47:31.318Z",
-  "updatedAt": "2026-05-08T09:48:06.469Z",
+  "startedAt": "2026-05-08T14:53:40.246Z",
+  "updatedAt": "2026-05-08T15:02:58.119Z",
   "status": "generating",
   "totalBriefs": 24,
-  "completedBriefs": 2,
+  "completedBriefs": 3,
   "totalSteps": 264,
-  "completedSteps": 23,
+  "completedSteps": 42,
   "currentRegion": "eu",
-  "currentRole": "privacy_counsel",
-  "currentTrack": "gdpr",
+  "currentRole": "compliance_lead",
+  "currentTrack": "breach",
   "recent": [
     {
-      "t": "2026-05-08T09:48:05.666Z",
-      "label": "eu/privacy_counsel/us_state",
+      "t": "2026-05-08T15:02:57.317Z",
+      "label": "eu/compliance_lead/biometric",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T09:47:31.322Z",
-      "label": "eu/cpo/_skipped",
+      "t": "2026-05-08T15:02:36.286Z",
+      "label": "eu/compliance_lead/litigation",
       "ok": true,
-      "detail": "already in output"
+      "detail": ""
     },
     {
-      "t": "2026-05-08T09:47:31.322Z",
-      "label": "eu/dpo/_skipped",
+      "t": "2026-05-08T15:02:10.938Z",
+      "label": "eu/compliance_lead/health_hipaa",
       "ok": true,
-      "detail": "already in output"
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T15:01:45.936Z",
+      "label": "eu/compliance_lead/cross_border",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T15:01:24.150Z",
+      "label": "eu/compliance_lead/adtech_cookies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T15:00:44.420Z",
+      "label": "eu/compliance_lead/childrens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T15:00:19.400Z",
+      "label": "eu/compliance_lead/ai_act",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T14:59:43.448Z",
+      "label": "eu/compliance_lead/gdpr",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T14:59:14.823Z",
+      "label": "eu/compliance_lead/us_state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T14:58:41.739Z",
+      "label": "eu/privacy_counsel/_shared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T14:58:19.180Z",
+      "label": "eu/privacy_counsel/breach",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T14:57:58.930Z",
+      "label": "eu/privacy_counsel/biometric",
+      "ok": true,
+      "detail": ""
     }
   ],
   "errors": [],
