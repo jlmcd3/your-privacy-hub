@@ -153,6 +153,8 @@ Deno.serve(async (req) => {
       url.searchParams.set("per_page", String(perQuery));
       url.searchParams.set("orientation", "landscape");
       url.searchParams.set("content_filter", "high");
+      url.searchParams.set("order_by", "relevant");
+      url.searchParams.set("collections", EDITORIAL_COLLECTIONS);
 
       const resp = await fetch(url, {
         headers: { Authorization: `Client-ID ${unsplashKey}` },
