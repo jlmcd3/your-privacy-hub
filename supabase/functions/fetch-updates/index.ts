@@ -160,21 +160,15 @@ const RSS_SOURCES = [
     regulator: "noyb - European Centre for Digital Rights",
   },
   {
-    url: "https://www.out.law/rss",
+    url: "https://www.out-law.com/feeds/out-law_roundup.aspx",
     source: "Out-Law",
-    domain: "out.law",
+    domain: "out-law.com",
     defaultCategory: "eu-uk",
     regulator: "Pinsent Masons LLP",
   },
+  // Euractiv Digital removed: publisher blocks RSS endpoints with Cloudflare 403.
   {
-    url: "https://www.euractiv.com/sections/digital/feed/",
-    source: "Euractiv Digital",
-    domain: "euractiv.com",
-    defaultCategory: "eu-uk",
-    regulator: "Euractiv",
-  },
-  {
-    url: "https://www.theregister.com/data_centre/privacy_and_security/headlines.atom",
+    url: "https://www.theregister.com/security/headlines.atom",
     source: "The Register",
     domain: "theregister.com",
     defaultCategory: "eu-uk",
