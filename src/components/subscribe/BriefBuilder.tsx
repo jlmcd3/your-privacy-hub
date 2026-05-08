@@ -213,7 +213,7 @@ export default function BriefBuilder() {
 
             <div className="mt-4 pt-4 border-t border-white/10">
               <p className="text-blue-200/70 text-[11px] leading-relaxed mb-2">
-                Translations of your brief are available in these languages
+                Translations of your brief are available in these languages as part of your subscription.
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {[
