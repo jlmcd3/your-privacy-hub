@@ -10,6 +10,8 @@ interface AnonymousUpdatesCardItem {
   published_at?: string | null;
   source_name?: string | null;
   image_url?: string | null;
+  why_it_matters_short?: string | null;
+  ai_summary?: { why_it_matters_short?: string | null } | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -45,6 +47,7 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
   const cat = item.category || "";
   const catClass = CATEGORY_COLORS[cat] || "bg-gray-50 text-gray-600 border border-gray-200";
   const catLabel = CATEGORY_LABELS[cat] || cat;
+  const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
 
   return (
     <Link
@@ -81,11 +84,24 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
         <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
           {normalizeTitle(item.title)}
         </p>
-        {item.summary && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">
-            {stripHtml(item.summary)}
-          </p>
+        {shortWhy && (
+          <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
+              Why it matters
+            </p>
+            <p className="text-[12.5px] text-navy leading-relaxed line-clamp-2">{stripHtml(shortWhy)}</p>
+          </div>
         )}
+        <div className="mt-2 flex items-center gap-2">
+          <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
+          <Link
+            to="/signup"
+            className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Register free →
+          </Link>
+        </div>
       </div>
     </Link>
   );

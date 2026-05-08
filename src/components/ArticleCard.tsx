@@ -77,6 +77,7 @@ export interface ArticleItem {
     why_it_matters_short?: string | null;
     compliance_impact?: string | null;
     risk_level?: string | null;
+    takeaways?: string[] | null;
     skipped?: boolean;
   } | null;
 }
@@ -366,12 +367,16 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
-        {/* Summary — first ~2 lines, always shown for all tiers */}
-        {item.summary && (
-          <p className="text-[13px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
-        )}
-        {/* Why it matters (short) — both registered tiers */}
-        {shortWhy && (
+        {/* Why it matters — Pro sees full, free sees short */}
+        {isPremium && item.ai_summary?.why_it_matters ? (
+          <div className="mt-2 flex gap-2 items-start">
+            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
+              Why it matters
+            </span>
+            <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(item.ai_summary.why_it_matters)}</p>
+          </div>
+        ) : shortWhy ? (
           <div className="mt-2 flex gap-2 items-start">
             <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
               style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
@@ -379,6 +384,14 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             </span>
             <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
           </div>
+        ) : null}
+        {/* Inline takeaways — Pro only */}
+        {isPremium && item.ai_summary?.takeaways && item.ai_summary.takeaways.length > 0 && (
+          <ul className="mt-2 space-y-1 pl-4 list-disc">
+            {item.ai_summary.takeaways.map((t, i) => (
+              <li key={i} className="text-[12px] text-slate leading-relaxed">{t}</li>
+            ))}
+          </ul>
         )}
         {/* Action Brief — both registered tiers (blurred for free, full for Pro) */}
         {(item.ai_summary?.compliance_impact || item.ai_summary?.urgency) && (
@@ -391,6 +404,18 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             isPremium={isPremium}
             articleId={item.id}
           />
+        )}
+        {/* Upgrade CTA — free signed-in only */}
+        {!isPremium && (
+          <div className="mt-2 flex items-center gap-2">
+            <p className="text-[11px] text-amber-700 flex-1">Unlock action items, compliance impact, and full analysis</p>
+            <Link
+              to="/subscribe"
+              className="flex-shrink-0 text-[11px] font-semibold bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
+            >
+              Upgrade to Pro →
+            </Link>
+          </div>
         )}
         {/* Intelligence Card — paid only, collapsed by default */}
         {isPremium && <IntelligenceCard item={item} />}
@@ -655,9 +680,6 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
           <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
             {normalizeTitle(item.title)}
           </p>
-          {item.summary && (
-            <p className="text-[13px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
-          )}
           {shortWhy && (
             <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
               <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
@@ -666,6 +688,16 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
               <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
             </div>
           )}
+          <div className="mt-2 flex items-center gap-2">
+            <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
+            <Link
+              to="/signup"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
+            >
+              Register free →
+            </Link>
+          </div>
         </div>
       </div>
     </Link>
