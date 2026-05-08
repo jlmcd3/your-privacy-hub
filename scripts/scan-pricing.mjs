@@ -26,7 +26,7 @@ const ROOT = process.cwd();
 // for the Intelligence subscription. Any hardcoded "$39" / "$390" string
 // outside that file is a drift risk. This check fails the scanner if found.
 const SUBSCRIPTION_PATTERNS = [
-  "\\$39\\/month", "\\$39\\/mo\\b", "\\$390\\/year", "\\$390\\/yr\\b",
+  "\\$29\\/month", "\\$29\\/mo\\b", "\\$399\\/year", "\\$399\\/yr\\b",
 ];
 const ALLOWED_FILES = new Set([
   "src/config/pricing.ts",
