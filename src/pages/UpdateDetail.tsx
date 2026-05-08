@@ -13,6 +13,7 @@ import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
 
 interface AISummary {
   why_it_matters?: string;
+  why_it_matters_short?: string;
   takeaways?: string[];
   compliance_impact?: string;
   who_should_care?: string;
