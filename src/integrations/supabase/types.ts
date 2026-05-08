@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       article_image_pool: {
         Row: {
+          approval_status: string
           category: string | null
           created_at: string
           height: number | null
@@ -31,6 +32,7 @@ export type Database = {
           width: number | null
         }
         Insert: {
+          approval_status?: string
           category?: string | null
           created_at?: string
           height?: number | null
@@ -46,6 +48,7 @@ export type Database = {
           width?: number | null
         }
         Update: {
+          approval_status?: string
           category?: string | null
           created_at?: string
           height?: number | null

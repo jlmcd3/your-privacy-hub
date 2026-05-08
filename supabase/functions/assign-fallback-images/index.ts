@@ -57,10 +57,11 @@ Deno.serve(async (req) => {
   const limit = Math.min(Math.max(Number(body.limit ?? 1000), 1), 5000);
   const onlyCategory: string | undefined = body.onlyCategory;
 
-  // 1. Load pool grouped by category
+  // 1. Load pool grouped by category — only approved images (plus brand tile)
   const { data: poolRows, error: poolErr } = await supabase
     .from("article_image_pool")
-    .select("id, public_url, category, source");
+    .select("id, public_url, category, source, approval_status")
+    .or("approval_status.eq.approved,source.eq.eup-tile");
   if (poolErr) {
     return new Response(JSON.stringify({ error: poolErr.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
