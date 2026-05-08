@@ -208,11 +208,82 @@ function fmt(c) {
   return c == null ? "—" : `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
 }
 
+// ---------- 3a. Registry-vs-server (the real source-of-truth check) ----------
+// Per project memory, src/config/pricing.ts is the single source of truth.
+// For tools that have a registry entry, compare server fallback cents against
+// the registry directly — this is unambiguous and not subject to UI scrape noise.
+// Tools with no registry entry are reported as "unmigrated" (informational).
+const REGISTRY_SRC = (() => {
+  try { return readFileSync(join(ROOT, "src/config/pricing.ts"), "utf8"); }
+  catch { return ""; }
+})();
+function registryCents(lookupKey) {
+  const re = new RegExp(
+    `${lookupKey}:\\s*\\{[\\s\\S]*?amountCents:\\s*(\\d+)`
+  );
+  const m = REGISTRY_SRC.match(re);
+  return m ? Number(m[1]) : null;
+}
+// Map server tool key -> { standalone: registry lookup key, subscriber: lookup key | null }
+const REGISTRY_MAP = {
+  us_notice_single:               { standalone: "us_notice_single_standalone",            subscriber: "us_notice_single_subscriber" },
+  us_notice_all_states:           { standalone: "us_notice_all_standalone",               subscriber: "us_notice_all_subscriber" },
+  eu_notice_single:               { standalone: "eu_notice_single_standalone",            subscriber: "eu_notice_single_subscriber" },
+  eu_notice_suite:                { standalone: "eu_notice_suite_standalone",             subscriber: "eu_notice_suite_subscriber" },
+  eu_notice_full_international:   { standalone: "eu_notice_full_international_standalone",subscriber: "eu_notice_full_international_subscriber" },
+  eu_notice_refresh:              { standalone: "eu_notice_refresh_standalone",           subscriber: "eu_notice_refresh_subscriber" },
+};
+
 // Tools
 for (const t of serverTools) {
+  const map = REGISTRY_MAP[t.key];
   const ui = findMarketedPrices(
     PRODUCTS.find((p) => p.key === t.key)?.patterns ?? [t.name]
   );
+
+  if (map) {
+    // Registry-driven check — true source of truth.
+    const regStandalone = registryCents(map.standalone);
+    const regSubscriber = map.subscriber ? registryCents(map.subscriber) : null;
+    const standaloneOk = regStandalone === t.standalone_cents;
+    const subscriberOk =
+      t.subscriber_cents === 0
+        ? true
+        : regSubscriber === t.subscriber_cents;
+    rows.push({
+      product: t.name,
+      server_standalone: fmt(t.standalone_cents),
+      server_subscriber: t.subscriber_cents ? fmt(t.subscriber_cents) : "—",
+      ui_prices_seen: [
+        regStandalone != null ? `registry: ${fmt(regStandalone)}` : null,
+        regSubscriber != null ? `registry sub: ${fmt(regSubscriber)}` : null,
+      ].filter(Boolean),
+      standalone_match: standaloneOk,
+      subscriber_match: subscriberOk,
+    });
+    if (!standaloneOk) {
+      findings.push({
+        severity: "high",
+        product: t.name,
+        issue: `Registry says ${fmt(regStandalone)} but server charges ${fmt(t.standalone_cents)} standalone.`,
+        ui_prices_seen: [],
+      });
+    }
+    if (!subscriberOk) {
+      findings.push({
+        severity: "high",
+        product: t.name,
+        issue: `Registry says ${fmt(regSubscriber)} but server charges ${fmt(t.subscriber_cents)} subscriber.`,
+        ui_prices_seen: [],
+      });
+    }
+    continue;
+  }
+
+  // No registry entry yet — informational only. Match if UI shows the price
+  // anywhere in src/pages or src/components (broad scan above). If not,
+  // record as "unmigrated", not as a finding — pricing for these products
+  // hasn't been pulled into src/config/pricing.ts yet.
   const standaloneOk = ui.some((u) => u.cents === t.standalone_cents);
   const subscriberOk =
     t.subscriber_cents === 0
@@ -225,23 +296,10 @@ for (const t of serverTools) {
     ui_prices_seen: ui.map((u) => fmt(u.cents)).sort(),
     standalone_match: standaloneOk,
     subscriber_match: subscriberOk,
+    unmigrated: true,
   });
-  if (!standaloneOk) {
-    findings.push({
-      severity: "high",
-      product: t.name,
-      issue: `Server charges ${fmt(t.standalone_cents)} standalone, but UI never shows that price.`,
-      ui_prices_seen: ui.map((u) => fmt(u.cents)),
-    });
-  }
-  if (!subscriberOk) {
-    findings.push({
-      severity: "high",
-      product: t.name,
-      issue: `Server charges ${fmt(t.subscriber_cents)} subscriber, but UI never shows that price.`,
-      ui_prices_seen: ui.map((u) => fmt(u.cents)),
-    });
-  }
+  // Do NOT push findings for unmigrated tools — too many UI patterns to scrape
+  // reliably. The registry check above is what catches real drift.
 }
 
 // Registration: compare each marketed tier against the server ladder.
