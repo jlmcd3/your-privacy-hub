@@ -94,6 +94,37 @@ const ONLY_REGION = flag("region");
 const ONLY_ROLE   = flag("role");
 const DRY         = flag("dry");
 const OUT_PATH    = "src/data/sampleBriefs.ts";
+const PROGRESS_PATH = "public/briegen-progress.json".replace("briegen", "briefgen");
+
+// ─── PROGRESS WRITER ──────────────────────────────────────────────────────
+const PROGRESS = {
+  startedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  status: "starting",
+  totalBriefs: 0,
+  completedBriefs: 0,
+  totalSteps: 0,           // tracks + shared per brief
+  completedSteps: 0,
+  currentRegion: null,
+  currentRole: null,
+  currentTrack: null,
+  recent: [],              // last 12 step log entries
+  errors: [],
+  finishedAt: null,
+};
+function writeProgress(patch = {}) {
+  Object.assign(PROGRESS, patch, { updatedAt: new Date().toISOString() });
+  try {
+    if (!existsSync(dirname(PROGRESS_PATH))) mkdirSync(dirname(PROGRESS_PATH), { recursive: true });
+    writeFileSync(PROGRESS_PATH, JSON.stringify(PROGRESS, null, 2));
+  } catch (e) { /* non-fatal */ }
+}
+function logStep(label, ok = true, detail = "") {
+  PROGRESS.recent.unshift({ t: new Date().toISOString(), label, ok, detail });
+  PROGRESS.recent = PROGRESS.recent.slice(0, 12);
+  if (!ok) PROGRESS.errors.unshift({ t: new Date().toISOString(), label, detail });
+  PROGRESS.errors = PROGRESS.errors.slice(0, 25);
+}
 
 // ─── DB HELPERS (psql JSON) ───────────────────────────────────────────────
 function psqlJson(sql) {
@@ -307,6 +338,7 @@ function buildSources(items) {
 // ─── MAIN ─────────────────────────────────────────────────────────────────
 async function generateBrief(region, role) {
   console.log(`\n━━ ${region.toUpperCase()} × ${role.toUpperCase()} ━━`);
+  writeProgress({ status: "generating", currentRegion: region, currentRole: role, currentTrack: null });
 
   // 1. Pull region-wide enforcement (8 most recent real actions)
   const enforcement = pullEnforcement(region, 8);
@@ -333,6 +365,7 @@ async function generateBrief(region, role) {
   const tracks = {};
   for (const track of TRACKS) {
     const items = trackData[track];
+    writeProgress({ currentTrack: track });
     if (items.length === 0) {
       tracks[track] = {
         headline: `Limited monitored activity: ${TRACK_LABELS[track]} in ${REGION_LABELS[region]}`,
@@ -342,6 +375,9 @@ async function generateBrief(region, role) {
         actionItem: "Continue monitoring; no track-specific action required this week.",
         sourceMap: {},
       };
+      PROGRESS.completedSteps++;
+      logStep(`${region}/${role}/${track}`, true, "no source data — placeholder");
+      writeProgress();
       continue;
     }
     const { sourceMap, sourcesForPrompt } = buildSources(items);
@@ -353,6 +389,9 @@ async function generateBrief(region, role) {
     } catch (e) {
       console.error(`  !! ${track} failed: ${e.message}`);
       tracks[track] = { error: e.message, headline: "Generation failed", keyTakeaways: [], fullAnalysis: "", complianceImpact: "", actionItem: "", sourceMap: {} };
+      PROGRESS.completedSteps++;
+      logStep(`${region}/${role}/${track}`, false, e.message.slice(0, 160));
+      writeProgress();
       continue;
     }
     const v = validateSection(parsed, sourceMap);
@@ -365,6 +404,9 @@ async function generateBrief(region, role) {
     }
     tracks[track] = { ...parsed, sourceMap };
     console.log(`  ✓ ${track}`);
+    PROGRESS.completedSteps++;
+    logStep(`${region}/${role}/${track}`, true);
+    writeProgress();
     await sleep(800);
   }
 
@@ -388,6 +430,9 @@ async function generateBrief(region, role) {
   }
   const sv = validateSection(shared, sharedMap);
   if (!sv.ok) console.warn(`  ⚠ shared bad refs: ${sv.badRefs.join(",")}`);
+  PROGRESS.completedSteps++;
+  logStep(`${region}/${role}/_shared`, true);
+  writeProgress();
 
   // 5. Enforcement table — REAL rows, no AI
   const enforcementTable = enforcement.map(r => ({
@@ -438,6 +483,10 @@ async function main() {
   }
 
   const result = existing;
+  const totalBriefs = regions.length * roles.length;
+  const totalSteps  = totalBriefs * (TRACKS.length + 1); // tracks + shared
+  writeProgress({ status: "running", totalBriefs, totalSteps, completedBriefs: 0, completedSteps: 0 });
+
   for (const region of regions) {
     result[region] ||= {};
     for (const role of roles) {
@@ -445,8 +494,11 @@ async function main() {
       result[region][role] = brief;
       // Persist after each brief so partial runs aren't lost.
       writeOutput(result);
+      PROGRESS.completedBriefs++;
+      writeProgress();
     }
   }
+  writeProgress({ status: "done", finishedAt: new Date().toISOString(), currentRegion: null, currentRole: null, currentTrack: null });
   console.log(`\n✓ Wrote ${OUT_PATH}`);
 }
 
@@ -496,4 +548,8 @@ export const sampleBriefs: Record<string, Record<string, SampleBrief>> = ${json}
   writeFileSync(OUT_PATH, ts);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch(e => {
+  console.error(e);
+  try { writeProgress({ status: "error", finishedAt: new Date().toISOString() }); logStep("fatal", false, String(e?.message || e)); writeProgress(); } catch {}
+  process.exit(1);
+});
