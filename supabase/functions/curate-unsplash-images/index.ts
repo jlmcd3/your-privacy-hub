@@ -20,52 +20,55 @@ interface UnsplashPhoto {
   user: { name: string; links: { html: string } };
 }
 
+// More editorial / abstract / architectural prompts. Avoids stock-photo
+// clichés (padlocks on keyboards, hooded hackers, binary code, robots, etc.)
+// in favour of real-world places, documents, and minimal abstract textures
+// that read as serious editorial photography.
 const DEFAULT_QUERIES: Array<{ q: string; category: string }> = [
-  // privacy / law
-  { q: "data privacy", category: "global" },
-  { q: "cybersecurity lock", category: "global" },
-  { q: "encryption", category: "global" },
-  { q: "padlock keyboard", category: "global" },
-  { q: "privacy shield", category: "global" },
-  { q: "fingerprint biometric", category: "ai-privacy" },
-  { q: "facial recognition", category: "ai-privacy" },
-  { q: "surveillance camera", category: "enforcement" },
-  { q: "courthouse columns", category: "enforcement" },
-  { q: "judge gavel", category: "enforcement" },
-  { q: "law books", category: "enforcement" },
-  { q: "legal contract signing", category: "enforcement" },
-  { q: "us capitol washington", category: "us-federal" },
-  { q: "supreme court us", category: "us-federal" },
-  { q: "white house washington", category: "us-federal" },
-  { q: "state capitol building", category: "us-states" },
-  { q: "california sacramento", category: "us-states" },
-  { q: "european parliament", category: "eu-uk" },
-  { q: "european commission brussels", category: "eu-uk" },
-  { q: "uk parliament london", category: "eu-uk" },
-  { q: "european flag", category: "eu-uk" },
-  { q: "world map technology", category: "global" },
-  { q: "global network", category: "global" },
-  { q: "data center servers", category: "global" },
-  { q: "cloud computing", category: "global" },
-  // adtech
-  { q: "digital advertising", category: "adtech" },
-  { q: "billboard city", category: "adtech" },
-  { q: "smartphone apps", category: "adtech" },
-  { q: "browser cookies", category: "adtech" },
-  { q: "marketing analytics", category: "adtech" },
-  // ai
-  { q: "artificial intelligence circuit", category: "ai-privacy" },
-  { q: "machine learning", category: "ai-privacy" },
-  { q: "neural network abstract", category: "ai-privacy" },
-  { q: "robot ai", category: "ai-privacy" },
-  { q: "ai chatbot", category: "ai-privacy" },
-  // generic tech
-  { q: "fiber optic", category: "global" },
-  { q: "binary code", category: "global" },
-  { q: "circuit board", category: "global" },
-  { q: "abstract technology blue", category: "global" },
-  { q: "office laptop work", category: "global" },
+  // privacy / law — abstract/editorial
+  { q: "modernist architecture detail", category: "global" },
+  { q: "newspaper print closeup", category: "global" },
+  { q: "library archive", category: "global" },
+  { q: "minimal office interior", category: "global" },
+  { q: "glass building facade", category: "global" },
+  // enforcement — real institutions, no gavel cliché
+  { q: "courthouse exterior architecture", category: "enforcement" },
+  { q: "marble columns government", category: "enforcement" },
+  { q: "legal document signing pen", category: "enforcement" },
+  { q: "courtroom interior empty", category: "enforcement" },
+  // us federal
+  { q: "us capitol building dusk", category: "us-federal" },
+  { q: "supreme court building washington", category: "us-federal" },
+  { q: "washington dc monument", category: "us-federal" },
+  // us states
+  { q: "california state capitol sacramento", category: "us-states" },
+  { q: "texas state capitol austin", category: "us-states" },
+  { q: "new york state capitol albany", category: "us-states" },
+  // eu / uk
+  { q: "european parliament strasbourg", category: "eu-uk" },
+  { q: "european commission berlaymont", category: "eu-uk" },
+  { q: "westminster london parliament", category: "eu-uk" },
+  { q: "european union flags brussels", category: "eu-uk" },
+  // ai-privacy — abstract, no robots
+  { q: "abstract data visualization", category: "ai-privacy" },
+  { q: "minimal geometric pattern blue", category: "ai-privacy" },
+  { q: "fiber optic light abstract", category: "ai-privacy" },
+  { q: "server room minimal", category: "ai-privacy" },
+  // adtech — editorial
+  { q: "billboard urban skyline night", category: "adtech" },
+  { q: "newsstand magazines", category: "adtech" },
+  { q: "city street advertising", category: "adtech" },
+  // global / data
+  { q: "data center hallway", category: "global" },
+  { q: "satellite earth from space", category: "global" },
+  { q: "fiber cable abstract", category: "global" },
+  { q: "world map paper", category: "global" },
 ];
+
+// Curated Unsplash collection IDs that bias toward editorial/architectural
+// quality. These are appended to every query to nudge results toward the
+// editorial aesthetic.
+const EDITORIAL_COLLECTIONS = "317099,3694365,1538150,4332580";
 
 async function uploadToStorage(
   supabase: any,
