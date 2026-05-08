@@ -1,15 +1,28 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T08:50:21.604Z",
+  "updatedAt": "2026-05-08T08:51:24.537Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 0,
   "totalSteps": 264,
-  "completedSteps": 0,
+  "completedSteps": 2,
   "currentRegion": "eu",
   "currentRole": "dpo",
-  "currentTrack": null,
-  "recent": [],
+  "currentTrack": "ai_act",
+  "recent": [
+    {
+      "t": "2026-05-08T08:51:23.736Z",
+      "label": "eu/dpo/gdpr",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:50:57.567Z",
+      "label": "eu/dpo/us_state",
+      "ok": true,
+      "detail": ""
+    }
+  ],
   "errors": [],
   "finishedAt": null
 }
