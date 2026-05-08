@@ -1,15 +1,21 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T08:56:47.770Z",
+  "updatedAt": "2026-05-08T08:57:08.082Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 1,
   "totalSteps": 264,
-  "completedSteps": 14,
+  "completedSteps": 15,
   "currentRegion": "eu",
   "currentRole": "cpo",
-  "currentTrack": "childrens",
+  "currentTrack": "adtech_cookies",
   "recent": [
+    {
+      "t": "2026-05-08T08:57:07.279Z",
+      "label": "eu/cpo/childrens",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T08:56:46.969Z",
       "label": "eu/cpo/ai_act",
@@ -73,12 +79,6 @@
     {
       "t": "2026-05-08T08:52:15.294Z",
       "label": "eu/dpo/childrens",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:51:51.155Z",
-      "label": "eu/dpo/ai_act",
       "ok": true,
       "detail": ""
     }
