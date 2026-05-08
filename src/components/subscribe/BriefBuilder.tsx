@@ -210,6 +210,27 @@ export default function BriefBuilder() {
               {ROLES.find((r) => r.value === role)?.label ?? "your role"} in{" "}
               {JURISDICTIONS.find((j) => j.value === jurisdiction)?.label ?? "your jurisdiction"}.
             </p>
+
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <p className="text-blue-200/70 text-[11px] leading-relaxed mb-2">
+                Translations of your brief are available in these languages
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "English","French","German","Spanish","Italian","Dutch","Polish","Portuguese",
+                  "Swedish","Japanese","Korean","Chinese (Simplified)","Arabic","Turkish","Danish",
+                  "Norwegian","Finnish","Czech","Romanian","Greek","Thai","Indonesian","Hindi","Hebrew",
+                ].map((lang) => (
+                  <span
+                    key={lang}
+                    aria-disabled="true"
+                    className="px-2.5 py-0.5 rounded-full text-[10.5px] font-medium bg-white/5 border border-white/10 text-blue-100/40 cursor-not-allowed select-none"
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">
