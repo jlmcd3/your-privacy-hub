@@ -359,7 +359,11 @@ console.log(`Mismatches       : ${report.summary.mismatches}\n`);
 console.log("Product".padEnd(48), "Server".padEnd(18), "UI seen");
 console.log("-".repeat(110));
 for (const r of rows) {
-  const status = r.standalone_match && r.subscriber_match ? "✅" : "❌";
+  const status = r.unmigrated
+    ? "—"
+    : r.standalone_match && r.subscriber_match
+      ? "✅"
+      : "❌";
   console.log(
     `${status} ${r.product.padEnd(45)} ${r.server_standalone.padEnd(8)} / ${(r.server_subscriber ?? "—").padEnd(8)}  ${r.ui_prices_seen.join(", ")}`
   );
