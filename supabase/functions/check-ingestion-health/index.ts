@@ -64,14 +64,31 @@ async function checkStuckRuns(): Promise<Alert[]> {
     console.error("checkStuckRuns query failed:", error);
     return [];
   }
-  return (data ?? []).map((r) => {
+  const alerts: Alert[] = [];
+  for (const r of data ?? []) {
     const ageMin = Math.round((Date.now() - new Date(r.run_at).getTime()) / 60_000);
-    return {
+    // Auto-reap: mark the orphan row as 'error' so it stops showing as
+    // "running" forever in the admin dashboard. Edge functions that hit the
+    // wall-clock limit get killed before finishRun() executes, so nothing
+    // else will ever update this row.
+    const { error: reapErr } = await supabase
+      .from("ingestion_runs")
+      .update({
+        status: "error",
+        finished_at: new Date().toISOString(),
+        error_message: `Auto-reaped: still 'running' after ${ageMin}m (threshold ${STUCK_MINUTES}m). Function likely exceeded wall-clock limit before finishRun() could record completion.`,
+      })
+      .eq("id", r.id)
+      .eq("status", "running"); // guard against races
+    if (reapErr) console.error(`auto-reap failed for ${r.id}:`, reapErr);
+
+    alerts.push({
       key: `stuck:${r.id}`,
-      subject: `[Ingestion alert] ${r.job_name ?? "unknown job"} stuck in 'running' for ${ageMin}m`,
-      body: `Run ID: ${r.id}\nJob: ${r.job_name}\nStarted: ${r.run_at}\nStill marked as 'running' after ${ageMin} minutes (threshold: ${STUCK_MINUTES}m).\n\nThis usually indicates the function timed out before it could record completion. Check the function logs and consider marking this run as 'error'.`,
-    };
-  });
+      subject: `[Ingestion alert] ${r.job_name ?? "unknown job"} stuck in 'running' for ${ageMin}m (auto-reaped)`,
+      body: `Run ID: ${r.id}\nJob: ${r.job_name}\nStarted: ${r.run_at}\nWas marked 'running' for ${ageMin} minutes (threshold: ${STUCK_MINUTES}m) and has been auto-marked as 'error'.\n\nThis usually indicates the function timed out before it could record completion. Check function logs.`,
+    });
+  }
+  return alerts;
 }
 
 async function checkConsecutiveFailures(): Promise<Alert[]> {
