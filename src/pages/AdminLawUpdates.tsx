@@ -46,26 +46,13 @@ function fmtDate(iso: string | null): string {
 
 export default function AdminLawUpdates() {
   const { user, loading: authLoading } = useAuth();
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const { isAdmin, loading: roleLoading } = useIsAdmin();
+  const allowed = isAdmin;
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<Candidate | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const { toast } = useToast();
-
-  // Admin role check (consistent with other admin pages in the project)
-  useEffect(() => {
-    if (!user) {
-      setAllowed(false);
-      return;
-    }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .then(({ data }) => setAllowed(!!data && data.length > 0));
-  }, [user]);
 
   const load = async () => {
     setLoading(true);
