@@ -1,84 +1,84 @@
 {
-  "startedAt": "2026-05-08T19:14:53.077Z",
-  "updatedAt": "2026-05-08T19:24:16.534Z",
+  "startedAt": "2026-05-08T19:25:19.826Z",
+  "updatedAt": "2026-05-08T19:34:41.655Z",
   "status": "generating",
   "totalBriefs": 24,
-  "completedBriefs": 21,
+  "completedBriefs": 23,
   "totalSteps": 264,
-  "completedSteps": 232,
+  "completedSteps": 253,
   "currentRegion": "apac",
-  "currentRole": "compliance_lead",
-  "currentTrack": "gdpr",
+  "currentRole": "privacy_pro",
+  "currentTrack": null,
   "recent": [
     {
-      "t": "2026-05-08T19:24:15.733Z",
-      "label": "apac/compliance_lead/us_state",
+      "t": "2026-05-08T19:34:41.635Z",
+      "label": "apac/security_lead/_shared",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:23:45.707Z",
-      "label": "apac/privacy_counsel/_shared",
+      "t": "2026-05-08T19:34:18.393Z",
+      "label": "apac/security_lead/breach",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:23:19.028Z",
-      "label": "apac/privacy_counsel/breach",
+      "t": "2026-05-08T19:33:41.755Z",
+      "label": "apac/security_lead/biometric",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:22:54.883Z",
-      "label": "apac/privacy_counsel/biometric",
+      "t": "2026-05-08T19:33:17.072Z",
+      "label": "apac/security_lead/litigation",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:22:34.542Z",
-      "label": "apac/privacy_counsel/litigation",
+      "t": "2026-05-08T19:32:57.665Z",
+      "label": "apac/security_lead/health_hipaa",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:22:15.218Z",
-      "label": "apac/privacy_counsel/health_hipaa",
+      "t": "2026-05-08T19:32:35.090Z",
+      "label": "apac/security_lead/cross_border",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:21:51.681Z",
-      "label": "apac/privacy_counsel/cross_border",
+      "t": "2026-05-08T19:32:12.286Z",
+      "label": "apac/security_lead/adtech_cookies",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:21:26.403Z",
-      "label": "apac/privacy_counsel/adtech_cookies",
+      "t": "2026-05-08T19:31:43.378Z",
+      "label": "apac/security_lead/childrens",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:21:00.314Z",
-      "label": "apac/privacy_counsel/childrens",
+      "t": "2026-05-08T19:31:20.148Z",
+      "label": "apac/security_lead/ai_act",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:20:36.946Z",
-      "label": "apac/privacy_counsel/ai_act",
+      "t": "2026-05-08T19:30:59.636Z",
+      "label": "apac/security_lead/gdpr",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:20:14.117Z",
-      "label": "apac/privacy_counsel/gdpr",
+      "t": "2026-05-08T19:30:37.795Z",
+      "label": "apac/security_lead/us_state",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T19:19:51.556Z",
-      "label": "apac/privacy_counsel/us_state",
+      "t": "2026-05-08T19:30:01.236Z",
+      "label": "apac/compliance_lead/_shared",
       "ok": true,
       "detail": ""
     }
