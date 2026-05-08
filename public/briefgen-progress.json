@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T09:00:01.981Z",
+  "updatedAt": "2026-05-08T09:00:10.403Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 2,
@@ -8,7 +8,7 @@
   "completedSteps": 22,
   "currentRegion": "eu",
   "currentRole": "privacy_counsel",
-  "currentTrack": null,
+  "currentTrack": "us_state",
   "recent": [
     {
       "t": "2026-05-08T09:00:01.977Z",
