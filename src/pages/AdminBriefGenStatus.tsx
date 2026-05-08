@@ -43,8 +43,18 @@ export default function AdminBriefGenStatus() {
       }
     };
     tick();
-    const id = setInterval(tick, POLL_MS);
-    return () => { alive = false; clearInterval(id); };
+    let id: ReturnType<typeof setInterval> | null = setInterval(async () => {
+      await tick();
+      // Stop polling once the job has reached a terminal state.
+      setData((curr) => {
+        if (curr && (curr.status === "done" || curr.status === "error") && id) {
+          clearInterval(id);
+          id = null;
+        }
+        return curr;
+      });
+    }, POLL_MS);
+    return () => { alive = false; if (id) clearInterval(id); };
   }, []);
 
   const stepPct = data && data.totalSteps > 0
