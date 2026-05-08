@@ -1,15 +1,21 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T09:00:37.485Z",
+  "updatedAt": "2026-05-08T09:01:05.197Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 2,
   "totalSteps": 264,
-  "completedSteps": 23,
+  "completedSteps": 24,
   "currentRegion": "eu",
   "currentRole": "privacy_counsel",
-  "currentTrack": "gdpr",
+  "currentTrack": "ai_act",
   "recent": [
+    {
+      "t": "2026-05-08T09:01:04.397Z",
+      "label": "eu/privacy_counsel/gdpr",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T09:00:36.684Z",
       "label": "eu/privacy_counsel/us_state",
@@ -73,12 +79,6 @@
     {
       "t": "2026-05-08T08:56:25.498Z",
       "label": "eu/cpo/gdpr",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:55:58.318Z",
-      "label": "eu/cpo/us_state",
       "ok": true,
       "detail": ""
     }
