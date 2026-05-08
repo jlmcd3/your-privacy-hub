@@ -1,84 +1,84 @@
 {
-  "startedAt": "2026-05-08T17:32:55.804Z",
-  "updatedAt": "2026-05-08T17:42:08.593Z",
+  "startedAt": "2026-05-08T17:43:00.454Z",
+  "updatedAt": "2026-05-08T17:51:55.342Z",
   "status": "generating",
   "totalBriefs": 24,
-  "completedBriefs": 9,
+  "completedBriefs": 10,
   "totalSteps": 264,
-  "completedSteps": 109,
+  "completedSteps": 120,
   "currentRegion": "us",
-  "currentRole": "compliance_lead",
+  "currentRole": "security_lead",
   "currentTrack": "breach",
   "recent": [
     {
-      "t": "2026-05-08T17:42:08.593Z",
+      "t": "2026-05-08T17:51:55.342Z",
+      "label": "us/security_lead/breach",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:51:32.761Z",
+      "label": "us/security_lead/biometric",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:51:08.922Z",
+      "label": "us/security_lead/litigation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:50:41.197Z",
+      "label": "us/security_lead/health_hipaa",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:50:11.092Z",
+      "label": "us/security_lead/cross_border",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:49:48.603Z",
+      "label": "us/security_lead/adtech_cookies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:49:25.647Z",
+      "label": "us/security_lead/childrens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:49:01.250Z",
+      "label": "us/security_lead/ai_act",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:48:27.254Z",
+      "label": "us/security_lead/gdpr",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:48:00.970Z",
+      "label": "us/security_lead/us_state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:47:31.836Z",
+      "label": "us/compliance_lead/_shared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T17:47:05.801Z",
       "label": "us/compliance_lead/breach",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:41:44.703Z",
-      "label": "us/compliance_lead/biometric",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:41:22.330Z",
-      "label": "us/compliance_lead/litigation",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:40:57.476Z",
-      "label": "us/compliance_lead/health_hipaa",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:40:28.187Z",
-      "label": "us/compliance_lead/cross_border",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:40:06.403Z",
-      "label": "us/compliance_lead/adtech_cookies",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:39:44.075Z",
-      "label": "us/compliance_lead/childrens",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:39:22.410Z",
-      "label": "us/compliance_lead/ai_act",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:38:59.237Z",
-      "label": "us/compliance_lead/gdpr",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:38:37.723Z",
-      "label": "us/compliance_lead/us_state",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:38:04.275Z",
-      "label": "us/privacy_counsel/_shared",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T17:37:15.656Z",
-      "label": "us/privacy_counsel/breach",
       "ok": true,
       "detail": ""
     }
