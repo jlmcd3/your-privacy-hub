@@ -1,15 +1,39 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T09:01:05.197Z",
+  "updatedAt": "2026-05-08T09:02:44.522Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 2,
   "totalSteps": 264,
-  "completedSteps": 24,
+  "completedSteps": 28,
   "currentRegion": "eu",
   "currentRole": "privacy_counsel",
-  "currentTrack": "ai_act",
+  "currentTrack": "health_hipaa",
   "recent": [
+    {
+      "t": "2026-05-08T09:02:43.720Z",
+      "label": "eu/privacy_counsel/cross_border",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T09:02:17.480Z",
+      "label": "eu/privacy_counsel/adtech_cookies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T09:01:52.706Z",
+      "label": "eu/privacy_counsel/childrens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T09:01:28.795Z",
+      "label": "eu/privacy_counsel/ai_act",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T09:01:04.397Z",
       "label": "eu/privacy_counsel/gdpr",
@@ -55,30 +79,6 @@
     {
       "t": "2026-05-08T08:57:56.684Z",
       "label": "eu/cpo/cross_border",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:57:34.306Z",
-      "label": "eu/cpo/adtech_cookies",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:57:07.279Z",
-      "label": "eu/cpo/childrens",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:56:46.969Z",
-      "label": "eu/cpo/ai_act",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:56:25.498Z",
-      "label": "eu/cpo/gdpr",
       "ok": true,
       "detail": ""
     }
