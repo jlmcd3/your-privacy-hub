@@ -529,6 +529,7 @@ export type Database = {
           jurisdiction: string
           key_compliance_failure: string | null
           law: string | null
+          li_processed: boolean
           precedent_significance: number | null
           preventive_measures: string | null
           raw_text: string | null
@@ -560,6 +561,7 @@ export type Database = {
           jurisdiction: string
           key_compliance_failure?: string | null
           law?: string | null
+          li_processed?: boolean
           precedent_significance?: number | null
           preventive_measures?: string | null
           raw_text?: string | null
@@ -591,6 +593,7 @@ export type Database = {
           jurisdiction?: string
           key_compliance_failure?: string | null
           law?: string | null
+          li_processed?: boolean
           precedent_significance?: number | null
           preventive_measures?: string | null
           raw_text?: string | null
@@ -1672,6 +1675,7 @@ export type Database = {
           processing_activity: string
           signal_type: string
           source_article_id: string | null
+          source_enforcement_id: string | null
           source_url: string | null
           summary: string
           updated_at: string | null
@@ -1688,6 +1692,7 @@ export type Database = {
           processing_activity: string
           signal_type: string
           source_article_id?: string | null
+          source_enforcement_id?: string | null
           source_url?: string | null
           summary: string
           updated_at?: string | null
@@ -1704,6 +1709,7 @@ export type Database = {
           processing_activity?: string
           signal_type?: string
           source_article_id?: string | null
+          source_enforcement_id?: string | null
           source_url?: string | null
           summary?: string
           updated_at?: string | null
