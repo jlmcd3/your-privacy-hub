@@ -163,15 +163,13 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const s = item.ai_summary;
 
   const fullWhy = s?.why_it_matters;
-  const compliance = s?.compliance_impact;
-  const actionItems = (item as any).action_items as Array<{ role?: string; action?: string; timeframe?: string }> | undefined;
   const signals = (item as any).related_signals as Array<{ label?: string; kind?: string }> | undefined;
   const regTheory = item.regulatory_theory;
   const related = item.related_development;
   const urgency = s?.urgency;
   const weight = s?.legal_weight;
 
-  const hasContent = fullWhy || compliance || (actionItems && actionItems.length > 0)
+  const hasContent = fullWhy
     || (signals && signals.length > 0) || regTheory || related;
   if (!hasContent) return null;
 
@@ -214,33 +212,6 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
             </div>
           )}
 
-          {/* Compliance impact */}
-          {compliance && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
-                Compliance Impact
-              </p>
-              <p className="text-[12px] text-navy leading-relaxed">{compliance}</p>
-            </div>
-          )}
-
-          {/* Action items */}
-          {actionItems && actionItems.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
-                Action Items
-              </p>
-              <ul className="space-y-1.5">
-                {actionItems.map((a, i) => (
-                  <li key={i} className="text-[12px] text-navy">
-                    {a.role && <span className="font-semibold">{a.role}: </span>}
-                    {a.action}
-                    {a.timeframe && <span className="text-slate-500"> · {a.timeframe}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {/* Full analysis */}
           {fullWhy && (
