@@ -125,7 +125,7 @@ const RSS_SOURCES = [
   },
   // ── Global / Industry ─────────────────────────────────────────────
   {
-    url: "https://iapp.org/news/rss/",
+    url: "https://iapp.org/feeds/daily_dashboard/",
     source: "IAPP",
     domain: "iapp.org",
     defaultCategory: "global",
@@ -139,49 +139,17 @@ const RSS_SOURCES = [
     regulator: "Future of Privacy Forum",
   },
   // ── Litigation / Courts ──────────────────────────────────────────────
+  // Law360 Privacy & Reuters Legal removed: feeds are paywalled / auth-only.
   {
-    url: "https://feeds.law360.com/privacy",
-    source: "Law360 Privacy",
-    domain: "law360.com",
-    defaultCategory: "enforcement",
-    regulator: "Law360",
-  },
-  {
-    url: "https://www.reuters.com/legal/privacy/rss",
-    source: "Reuters Legal",
-    domain: "reuters.com",
-    defaultCategory: "enforcement",
-    regulator: "Reuters Legal",
-  },
-  {
-    url: "https://www.jdsupra.com/topics/privacy/rss/",
+    url: "https://www.jdsupra.com/topics/privacy-concerns/feed/",
     source: "JD Supra Privacy",
     domain: "jdsupra.com",
     defaultCategory: "global",
     regulator: "JD Supra",
   },
   // ── Additional regulatory sources ────────────────────────────────────
-  {
-    url: "https://www.ico.org.uk/about-the-ico/media-centre/news-and-blogs/rss/",
-    source: "ICO",
-    domain: "ico.org.uk",
-    defaultCategory: "eu-uk",
-    regulator: "Information Commissioner's Office",
-  },
-  {
-    url: "https://www.dataprotection.ie/en/news-media/press-releases/rss",
-    source: "DPC Ireland",
-    domain: "dataprotection.ie",
-    defaultCategory: "eu-uk",
-    regulator: "Data Protection Commission",
-  },
-  {
-    url: "https://edps.europa.eu/press-publications/press-news/news_en/rss",
-    source: "EDPS",
-    domain: "edps.europa.eu",
-    defaultCategory: "eu-uk",
-    regulator: "European Data Protection Supervisor",
-  },
+  // ICO, DPC Ireland, and EDPS public RSS feeds have been retired by the
+  // publishers — leaving them in the source list only produced 404s.
 
   // ── EU Civil Society, Policy & Legal Analysis (Batch 1) ─────────────
   {
