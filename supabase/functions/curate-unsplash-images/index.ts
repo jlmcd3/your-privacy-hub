@@ -154,7 +154,8 @@ Deno.serve(async (req) => {
       url.searchParams.set("orientation", "landscape");
       url.searchParams.set("content_filter", "high");
       url.searchParams.set("order_by", "relevant");
-      url.searchParams.set("collections", EDITORIAL_COLLECTIONS);
+      // Note: not using `collections` filter — it's AND-combined with query
+      // and produces near-empty results for narrow editorial prompts.
 
       const resp = await fetch(url, {
         headers: { Authorization: `Client-ID ${unsplashKey}` },
