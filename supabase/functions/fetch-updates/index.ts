@@ -1488,9 +1488,26 @@ Deno.serve(async (req) => {
   // No auth check needed — this function only ingests public RSS data
   // and writes via service_role. Rate-limited by cron schedule.
 
-  const run = await startRun(supabase, "fetch-updates", { sources: RSS_SOURCES.length });
+  // Sharding: caller may pass ?shard=N&shards=M (1-indexed) to process only a
+  // slice of RSS_SOURCES. Cron fans out multiple staggered invocations so each
+  // one fits comfortably under the edge-runtime wall-clock limit.
+  const url = new URL(req.url);
+  const shards = Math.max(1, Math.min(10, parseInt(url.searchParams.get("shards") || "1", 10) || 1));
+  const shard = Math.max(1, Math.min(shards, parseInt(url.searchParams.get("shard") || "1", 10) || 1));
+  const sliceSize = Math.ceil(RSS_SOURCES.length / shards);
+  const sliceStart = (shard - 1) * sliceSize;
+  const sliceEnd = Math.min(RSS_SOURCES.length, sliceStart + sliceSize);
+  const sourcesForRun = shards === 1 ? RSS_SOURCES : RSS_SOURCES.slice(sliceStart, sliceEnd);
+
+  const run = await startRun(supabase, "fetch-updates", {
+    sources: sourcesForRun.length,
+    shard,
+    shards,
+  });
   const startedMs = Date.now();
-  const maxRuntimeMs = 240_000;
+  // Stay safely under the edge-runtime wall-clock cap (~150s) so finishRun()
+  // always gets to record completion. With sharding, 120s per shard is plenty.
+  const maxRuntimeMs = 120_000;
   const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, stopped_due_to_time_budget: false, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
@@ -1503,7 +1520,7 @@ Deno.serve(async (req) => {
     .select("url");
   const existingUrls = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
-  for (const source of RSS_SOURCES) {
+  for (const source of sourcesForRun) {
     if (Date.now() - startedMs > maxRuntimeMs) {
       results.stopped_due_to_time_budget = true;
       break;
@@ -1680,7 +1697,7 @@ Deno.serve(async (req) => {
     enrichmentFailed429: results.enrichment_failed_429,
     enrichmentFailedOther: results.enrichment_failed_other,
     status: results.stopped_due_to_time_budget ? "partial" : undefined,
-    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
+    metadata: { errors: results.errors.slice(0, 10), sources: sourcesForRun.length, total_sources: RSS_SOURCES.length, shard, shards, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
   });
 
   return new Response(JSON.stringify(results), {
