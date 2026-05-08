@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag } from "lucide-react";
 
 interface AISummary {
   why_it_matters?: string;
