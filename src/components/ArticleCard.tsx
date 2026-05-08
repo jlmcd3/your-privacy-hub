@@ -212,16 +212,6 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
           )}
 
 
-          {/* Full analysis */}
-          {fullWhy && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
-                Full Analysis
-              </p>
-              <p className="text-[12px] text-navy leading-relaxed">{stripHtml(fullWhy)}</p>
-            </div>
-          )}
-
           {/* Regulatory theory + related */}
           {(regTheory || related) && (
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: '#E0E8F5' }}>
