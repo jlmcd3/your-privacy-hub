@@ -202,6 +202,7 @@ Deno.serve(async (req) => {
             query: q,
             width: photo.width,
             height: photo.height,
+            approval_status: "pending",
           });
           results.inserted++;
         } catch (e) {
