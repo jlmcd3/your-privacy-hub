@@ -165,7 +165,6 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const signals = (item as any).related_signals as Array<{ label?: string; kind?: string }> | undefined;
   const regTheory = item.regulatory_theory;
   const related = item.related_development;
-  const related = item.related_development;
   const urgency = s?.urgency;
   const weight = s?.legal_weight;
 
