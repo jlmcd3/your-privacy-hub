@@ -224,20 +224,57 @@ export default function BriefBuilder() {
                     {item.trackLabel}
                   </span>
                 </div>
-                <h4 className="font-display font-bold text-white text-[15px] leading-snug mb-2.5">
+                <h4 className="font-display font-bold text-white text-[15px] leading-snug mb-3">
                   {item.headline}
                 </h4>
-                <p className="text-blue-100/80 text-[13px] leading-relaxed mb-3">
-                  {item.excerpt}
-                </p>
-                <div className="bg-white/10 border border-white/15 rounded-lg px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">
-                    🎯 Your action item
-                  </p>
-                  <p className="text-white/90 text-[13px] leading-relaxed">
-                    {item.action}
-                  </p>
-                </div>
+
+                {item.keyTakeaways?.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300/80 mb-1.5">
+                      Key takeaways
+                    </p>
+                    <ul className="space-y-1 list-disc list-outside pl-4 text-blue-100/85 text-[12.5px] leading-relaxed">
+                      {item.keyTakeaways.map((kt, i) => (
+                        <li key={i}>
+                          <CitedText text={kt} sourceMap={item.sourceMap} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {item.fullAnalysis && (
+                  <div className="mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300/80 mb-1.5">
+                      Full analysis
+                    </p>
+                    <p className="text-blue-100/80 text-[13px] leading-relaxed">
+                      <CitedText text={item.fullAnalysis} sourceMap={item.sourceMap} />
+                    </p>
+                  </div>
+                )}
+
+                {item.complianceImpact && (
+                  <div className="mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300/80 mb-1">
+                      Compliance impact
+                    </p>
+                    <p className="text-white/85 text-[12.5px] leading-relaxed">
+                      <CitedText text={item.complianceImpact} sourceMap={item.sourceMap} />
+                    </p>
+                  </div>
+                )}
+
+                {item.actionItem && (
+                  <div className="bg-white/10 border border-white/15 rounded-lg px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                      🎯 Your action item
+                    </p>
+                    <p className="text-white/90 text-[13px] leading-relaxed">
+                      <CitedText text={item.actionItem} sourceMap={item.sourceMap} />
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
