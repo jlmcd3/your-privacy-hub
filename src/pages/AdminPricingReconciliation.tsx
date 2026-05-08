@@ -11,6 +11,7 @@ interface Row {
   ui_prices_seen: string[];
   standalone_match: boolean;
   subscriber_match: boolean;
+  unmigrated?: boolean;
 }
 
 interface Finding {
@@ -87,15 +88,21 @@ export default function AdminPricingReconciliation() {
               <tbody>
                 {rows.map((r, i) => {
                   const ok = r.standalone_match && r.subscriber_match;
+                  const status = r.unmigrated ? "info" : ok ? "ok" : "fail";
                   return (
                     <tr
                       key={i}
                       className={`border-t border-fog ${
-                        ok ? "" : "bg-red-50"
+                        status === "fail" ? "bg-red-50" : ""
                       }`}
                     >
                       <td className="px-3 py-2 font-medium text-navy">
                         {r.product}
+                        {r.unmigrated && (
+                          <span className="ml-2 text-[10px] uppercase tracking-wider text-slate bg-fog px-1.5 py-0.5 rounded">
+                            not in registry
+                          </span>
+                        )}
                       </td>
                       <td className="px-3 py-2 font-mono">
                         {r.server_standalone}
@@ -107,7 +114,7 @@ export default function AdminPricingReconciliation() {
                         {r.ui_prices_seen.join(", ") || "—"}
                       </td>
                       <td className="px-3 py-2 text-center">
-                        {ok ? "✅" : "❌"}
+                        {status === "ok" ? "✅" : status === "fail" ? "❌" : "—"}
                       </td>
                     </tr>
                   );
