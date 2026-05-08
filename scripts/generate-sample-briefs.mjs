@@ -430,6 +430,9 @@ async function generateBrief(region, role) {
   }
   const sv = validateSection(shared, sharedMap);
   if (!sv.ok) console.warn(`  ⚠ shared bad refs: ${sv.badRefs.join(",")}`);
+  PROGRESS.completedSteps++;
+  logStep(`${region}/${role}/_shared`, true);
+  writeProgress();
 
   // 5. Enforcement table — REAL rows, no AI
   const enforcementTable = enforcement.map(r => ({
