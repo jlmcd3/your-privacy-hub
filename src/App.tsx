@@ -329,7 +329,9 @@ const App = () => (
               path="/admin/law-updates"
               element={
                 <ProtectedRoute>
-                  <AdminLawUpdates />
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminLawUpdates />
+                  </AdminOnly>
                 </ProtectedRoute>
               }
             />

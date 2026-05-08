@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -45,26 +46,13 @@ function fmtDate(iso: string | null): string {
 
 export default function AdminLawUpdates() {
   const { user, loading: authLoading } = useAuth();
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const { isAdmin, loading: roleLoading } = useIsAdmin();
+  const allowed = isAdmin;
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<Candidate | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const { toast } = useToast();
-
-  // Admin role check (consistent with other admin pages in the project)
-  useEffect(() => {
-    if (!user) {
-      setAllowed(false);
-      return;
-    }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .then(({ data }) => setAllowed(!!data && data.length > 0));
-  }, [user]);
 
   const load = async () => {
     setLoading(true);
@@ -135,7 +123,7 @@ export default function AdminLawUpdates() {
     load();
   };
 
-  if (authLoading || allowed === null) {
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground">
         Loading…
