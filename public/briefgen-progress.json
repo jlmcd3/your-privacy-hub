@@ -1,15 +1,21 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T08:59:14.464Z",
+  "updatedAt": "2026-05-08T08:59:39.905Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 1,
   "totalSteps": 264,
-  "completedSteps": 20,
+  "completedSteps": 21,
   "currentRegion": "eu",
   "currentRole": "cpo",
   "currentTrack": "breach",
   "recent": [
+    {
+      "t": "2026-05-08T08:59:39.905Z",
+      "label": "eu/cpo/breach",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T08:59:13.664Z",
       "label": "eu/cpo/biometric",
@@ -73,12 +79,6 @@
     {
       "t": "2026-05-08T08:54:53.841Z",
       "label": "eu/dpo/breach",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:54:30.448Z",
-      "label": "eu/dpo/biometric",
       "ok": true,
       "detail": ""
     }
