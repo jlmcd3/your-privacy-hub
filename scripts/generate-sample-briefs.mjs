@@ -94,6 +94,37 @@ const ONLY_REGION = flag("region");
 const ONLY_ROLE   = flag("role");
 const DRY         = flag("dry");
 const OUT_PATH    = "src/data/sampleBriefs.ts";
+const PROGRESS_PATH = "public/briegen-progress.json".replace("briegen", "briefgen");
+
+// ─── PROGRESS WRITER ──────────────────────────────────────────────────────
+const PROGRESS = {
+  startedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  status: "starting",
+  totalBriefs: 0,
+  completedBriefs: 0,
+  totalSteps: 0,           // tracks + shared per brief
+  completedSteps: 0,
+  currentRegion: null,
+  currentRole: null,
+  currentTrack: null,
+  recent: [],              // last 12 step log entries
+  errors: [],
+  finishedAt: null,
+};
+function writeProgress(patch = {}) {
+  Object.assign(PROGRESS, patch, { updatedAt: new Date().toISOString() });
+  try {
+    if (!existsSync(dirname(PROGRESS_PATH))) mkdirSync(dirname(PROGRESS_PATH), { recursive: true });
+    writeFileSync(PROGRESS_PATH, JSON.stringify(PROGRESS, null, 2));
+  } catch (e) { /* non-fatal */ }
+}
+function logStep(label, ok = true, detail = "") {
+  PROGRESS.recent.unshift({ t: new Date().toISOString(), label, ok, detail });
+  PROGRESS.recent = PROGRESS.recent.slice(0, 12);
+  if (!ok) PROGRESS.errors.unshift({ t: new Date().toISOString(), label, detail });
+  PROGRESS.errors = PROGRESS.errors.slice(0, 25);
+}
 
 // ─── DB HELPERS (psql JSON) ───────────────────────────────────────────────
 function psqlJson(sql) {
