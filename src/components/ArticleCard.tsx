@@ -169,8 +169,7 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const urgency = s?.urgency;
   const weight = s?.legal_weight;
 
-  const hasContent = fullWhy
-    || (signals && signals.length > 0) || regTheory || related;
+  const hasContent = (signals && signals.length > 0) || regTheory || related;
   if (!hasContent) return null;
 
   return (
