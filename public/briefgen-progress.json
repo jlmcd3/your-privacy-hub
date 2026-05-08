@@ -1,15 +1,21 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T08:59:39.905Z",
+  "updatedAt": "2026-05-08T09:00:01.981Z",
   "status": "generating",
   "totalBriefs": 24,
-  "completedBriefs": 1,
+  "completedBriefs": 2,
   "totalSteps": 264,
-  "completedSteps": 21,
+  "completedSteps": 22,
   "currentRegion": "eu",
-  "currentRole": "cpo",
-  "currentTrack": "breach",
+  "currentRole": "privacy_counsel",
+  "currentTrack": null,
   "recent": [
+    {
+      "t": "2026-05-08T09:00:01.977Z",
+      "label": "eu/cpo/_shared",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T08:59:39.905Z",
       "label": "eu/cpo/breach",
@@ -73,12 +79,6 @@
     {
       "t": "2026-05-08T08:55:22.048Z",
       "label": "eu/dpo/_shared",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:54:53.841Z",
-      "label": "eu/dpo/breach",
       "ok": true,
       "detail": ""
     }
