@@ -1,15 +1,21 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T09:02:44.522Z",
+  "updatedAt": "2026-05-08T09:03:09.906Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 2,
   "totalSteps": 264,
-  "completedSteps": 28,
+  "completedSteps": 29,
   "currentRegion": "eu",
   "currentRole": "privacy_counsel",
-  "currentTrack": "health_hipaa",
+  "currentTrack": "litigation",
   "recent": [
+    {
+      "t": "2026-05-08T09:03:09.105Z",
+      "label": "eu/privacy_counsel/health_hipaa",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T09:02:43.720Z",
       "label": "eu/privacy_counsel/cross_border",
@@ -73,12 +79,6 @@
     {
       "t": "2026-05-08T08:58:24.956Z",
       "label": "eu/cpo/health_hipaa",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "t": "2026-05-08T08:57:56.684Z",
-      "label": "eu/cpo/cross_border",
       "ok": true,
       "detail": ""
     }
