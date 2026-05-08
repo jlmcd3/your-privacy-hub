@@ -1697,7 +1697,7 @@ Deno.serve(async (req) => {
     enrichmentFailed429: results.enrichment_failed_429,
     enrichmentFailedOther: results.enrichment_failed_other,
     status: results.stopped_due_to_time_budget ? "partial" : undefined,
-    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
+    metadata: { errors: results.errors.slice(0, 10), sources: sourcesForRun.length, total_sources: RSS_SOURCES.length, shard, shards, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
   });
 
   return new Response(JSON.stringify(results), {
