@@ -170,7 +170,7 @@ const GovernanceAssessment = () => {
             {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Included with Annual Platform · $49 standalone →</a></>}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
-          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks. Formerly the Data Privacy Healthcheck.</p>
+          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
           <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
         </div>
       </header>
