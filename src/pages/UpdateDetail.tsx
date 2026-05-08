@@ -445,37 +445,21 @@ const UpdateDetail = () => {
             {/* ============================================================
                 SECTION 3 — ANALYZED (Pro-only deep analysis)
                 ============================================================ */}
-            <section aria-labelledby="section-analyzed" className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Analyzed</span>
-                <span className="text-[9px] bg-purple-700 text-white px-1.5 py-0.5 rounded font-semibold">PRO</span>
-                <span className="text-[10px] text-muted-foreground/60">Deep regulatory analysis</span>
-              </div>
-              <hr className="border-border mb-4" />
+            {isPremium && (
+              <section aria-labelledby="section-analyzed" className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Analyzed</span>
+                  <span className="text-[9px] bg-purple-700 text-white px-1.5 py-0.5 rounded font-semibold">PRO</span>
+                  <span className="text-[10px] text-muted-foreground/60">Deep regulatory analysis</span>
+                </div>
+                <hr className="border-border mb-4" />
 
-              {!hasAnalyzed ? (
-                <p className="text-[14px] italic text-muted-foreground">
-                  No deep analysis available for this article yet.
-                </p>
-              ) : (
-                <div className="relative">
-                  <div className={isPremium ? "space-y-3" : "opacity-10 pointer-events-none select-none space-y-3"}>
-                    {article.regulatory_theory && !user && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Regulatory theory
-                        </div>
-                        <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
-                      </div>
-                    )}
-                    {article.related_development && !user && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Related development
-                        </div>
-                        <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
-                      </div>
-                    )}
+                {!hasAnalyzed ? (
+                  <p className="text-[14px] italic text-muted-foreground">
+                    No deep analysis available for this article yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
                     {article.attention_level && (
                       <div className="border border-border rounded-lg p-3">
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
@@ -504,30 +488,9 @@ const UpdateDetail = () => {
                       </div>
                     )}
                   </div>
-
-                  {!isPremium && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                      <div className="bg-background border border-border rounded-xl shadow-md p-5 max-w-[320px]">
-                        <Lock size={20} className="mx-auto mb-2 text-purple-700" />
-                        <h3 className="text-[15px] font-semibold text-foreground mb-1">Full analysis — Pro feature</h3>
-                        <p className="text-[12px] text-muted-foreground mb-3 leading-relaxed">
-                          Regulatory theory, cross-jurisdiction signals, and action intelligence on every update.
-                        </p>
-                        <Link
-                          to="/subscribe"
-                          onClick={() => {
-                            void trackEvent("analyzed_blur_click");
-                          }}
-                          className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
-                        >
-                          See Pro plan
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
+                )}
+              </section>
+            )}
 
             {/* Topic tags */}
             {article.topic_tags && article.topic_tags.length > 0 && (
