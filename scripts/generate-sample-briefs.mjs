@@ -365,6 +365,7 @@ async function generateBrief(region, role) {
   const tracks = {};
   for (const track of TRACKS) {
     const items = trackData[track];
+    writeProgress({ currentTrack: track });
     if (items.length === 0) {
       tracks[track] = {
         headline: `Limited monitored activity: ${TRACK_LABELS[track]} in ${REGION_LABELS[region]}`,
@@ -374,6 +375,9 @@ async function generateBrief(region, role) {
         actionItem: "Continue monitoring; no track-specific action required this week.",
         sourceMap: {},
       };
+      PROGRESS.completedSteps++;
+      logStep(`${region}/${role}/${track}`, true, "no source data — placeholder");
+      writeProgress();
       continue;
     }
     const { sourceMap, sourcesForPrompt } = buildSources(items);
@@ -385,6 +389,9 @@ async function generateBrief(region, role) {
     } catch (e) {
       console.error(`  !! ${track} failed: ${e.message}`);
       tracks[track] = { error: e.message, headline: "Generation failed", keyTakeaways: [], fullAnalysis: "", complianceImpact: "", actionItem: "", sourceMap: {} };
+      PROGRESS.completedSteps++;
+      logStep(`${region}/${role}/${track}`, false, e.message.slice(0, 160));
+      writeProgress();
       continue;
     }
     const v = validateSection(parsed, sourceMap);
@@ -397,6 +404,9 @@ async function generateBrief(region, role) {
     }
     tracks[track] = { ...parsed, sourceMap };
     console.log(`  ✓ ${track}`);
+    PROGRESS.completedSteps++;
+    logStep(`${region}/${role}/${track}`, true);
+    writeProgress();
     await sleep(800);
   }
 
