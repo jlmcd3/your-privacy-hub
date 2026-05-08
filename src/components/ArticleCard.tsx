@@ -77,6 +77,7 @@ export interface ArticleItem {
     why_it_matters_short?: string | null;
     compliance_impact?: string | null;
     risk_level?: string | null;
+    takeaways?: string[] | null;
     skipped?: boolean;
   } | null;
 }
