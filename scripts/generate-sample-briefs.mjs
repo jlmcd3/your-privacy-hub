@@ -548,4 +548,8 @@ export const sampleBriefs: Record<string, Record<string, SampleBrief>> = ${json}
   writeFileSync(OUT_PATH, ts);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch(e => {
+  console.error(e);
+  try { writeProgress({ status: "error", finishedAt: new Date().toISOString() }); logStep("fatal", false, String(e?.message || e)); writeProgress(); } catch {}
+  process.exit(1);
+});
