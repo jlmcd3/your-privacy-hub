@@ -1,15 +1,69 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T08:51:24.537Z",
+  "updatedAt": "2026-05-08T08:55:30.334Z",
   "status": "generating",
   "totalBriefs": 24,
-  "completedBriefs": 0,
+  "completedBriefs": 1,
   "totalSteps": 264,
-  "completedSteps": 2,
+  "completedSteps": 11,
   "currentRegion": "eu",
-  "currentRole": "dpo",
-  "currentTrack": "ai_act",
+  "currentRole": "cpo",
+  "currentTrack": "us_state",
   "recent": [
+    {
+      "t": "2026-05-08T08:55:22.048Z",
+      "label": "eu/dpo/_shared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:54:53.841Z",
+      "label": "eu/dpo/breach",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:54:30.448Z",
+      "label": "eu/dpo/biometric",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:54:03.822Z",
+      "label": "eu/dpo/litigation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:53:38.136Z",
+      "label": "eu/dpo/health_hipaa",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:53:12.847Z",
+      "label": "eu/dpo/cross_border",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:52:37.600Z",
+      "label": "eu/dpo/adtech_cookies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:52:15.294Z",
+      "label": "eu/dpo/childrens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T08:51:51.155Z",
+      "label": "eu/dpo/ai_act",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T08:51:23.736Z",
       "label": "eu/dpo/gdpr",
