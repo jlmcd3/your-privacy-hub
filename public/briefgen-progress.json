@@ -1,15 +1,21 @@
 {
   "startedAt": "2026-05-08T08:50:21.599Z",
-  "updatedAt": "2026-05-08T08:55:30.334Z",
+  "updatedAt": "2026-05-08T08:55:58.318Z",
   "status": "generating",
   "totalBriefs": 24,
   "completedBriefs": 1,
   "totalSteps": 264,
-  "completedSteps": 11,
+  "completedSteps": 12,
   "currentRegion": "eu",
   "currentRole": "cpo",
   "currentTrack": "us_state",
   "recent": [
+    {
+      "t": "2026-05-08T08:55:58.318Z",
+      "label": "eu/cpo/us_state",
+      "ok": true,
+      "detail": ""
+    },
     {
       "t": "2026-05-08T08:55:22.048Z",
       "label": "eu/dpo/_shared",
