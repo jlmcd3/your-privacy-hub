@@ -283,18 +283,36 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (!prefs) continue;
+    // Fallback defaults: paying subscribers without explicit preferences should
+    // still receive a brief. We pull a wide-coverage default so they get value
+    // immediately, then nudge them to refine in /brief-preferences.
+    const DEFAULT_PREFS = {
+      industries: [] as string[],
+      jurisdictions: ["us-federal", "us-states", "us-ca", "eu-all", "global"],
+      topics: [] as string[],
+      format: "full",
+      _is_default: true,
+    };
 
-    const industries = prefs.industries || [];
-    const jurisdictions = prefs.jurisdictions || [];
-    const topics = prefs.topics || [];
-    const briefFormat = (prefs as any).format || "full";
+    const effective = prefs ?? DEFAULT_PREFS;
+    if (!prefs) {
+      console.log(`[generate-custom-brief] user=${user.id} has no preferences row — using defaults`);
+    }
 
-    if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) continue;
+    const industries    = effective.industries || [];
+    let   jurisdictions = effective.jurisdictions || [];
+    const topics        = effective.topics || [];
+    const briefFormat   = (effective as any).format || "full";
 
-    const industryList = industries.join(", ") || "General";
+    // If a row exists but every field is empty, treat it like missing prefs.
+    if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) {
+      console.log(`[generate-custom-brief] user=${user.id} has empty preferences — applying default jurisdictions`);
+      jurisdictions = DEFAULT_PREFS.jurisdictions;
+    }
+
+    const industryList     = industries.join(", ") || "General";
     const jurisdictionList = jurisdictions.join(", ") || "All jurisdictions";
-    const topicList = topics.join(", ") || "All topics";
+    const topicList        = topics.join(", ") || "All topics";
 
     // Parallel data fetches per user
     const [scoredArticles, enforcementHistory, priorBriefsData] = await Promise.all([
@@ -564,7 +582,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         base_brief_id: latestBrief.id,
         week_label: latestBrief.week_label,
         custom_sections: customSections,
-        preferences_snapshot: { ...prefs, brief_role: userRole },
+        preferences_snapshot: { ...effective, brief_role: userRole },
         generated_at: new Date().toISOString(),
         articles_used: topArticles.length,
         generation_model: "claude-sonnet-4-20250514",
