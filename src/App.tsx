@@ -61,6 +61,7 @@ import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DevOnly from "./components/DevOnly.tsx";
+import AdminOnly from "./components/AdminOnly.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import SampleBrief from "./pages/SampleBrief.tsx";
@@ -308,9 +309,9 @@ const App = () => (
               path="/admin/gating-leaks"
               element={
                 <ProtectedRoute>
-                  <DevOnly fallback={<NotFound />}>
+                  <AdminOnly fallback={<NotFound />}>
                     <AdminGatingLeaks />
-                  </DevOnly>
+                  </AdminOnly>
                 </ProtectedRoute>
               }
             />
@@ -318,9 +319,9 @@ const App = () => (
               path="/admin/pricing"
               element={
                 <ProtectedRoute>
-                  <DevOnly fallback={<NotFound />}>
+                  <AdminOnly fallback={<NotFound />}>
                     <AdminPricingReconciliation />
-                  </DevOnly>
+                  </AdminOnly>
                 </ProtectedRoute>
               }
             />
