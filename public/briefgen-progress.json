@@ -1,84 +1,84 @@
 {
-  "startedAt": "2026-05-08T17:10:45.164Z",
-  "updatedAt": "2026-05-08T17:20:14.134Z",
+  "startedAt": "2026-05-08T17:22:40.092Z",
+  "updatedAt": "2026-05-08T17:32:04.738Z",
   "status": "generating",
   "totalBriefs": 24,
-  "completedBriefs": 7,
+  "completedBriefs": 8,
   "totalSteps": 264,
-  "completedSteps": 77,
+  "completedSteps": 96,
   "currentRegion": "us",
-  "currentRole": "cpo",
-  "currentTrack": null,
+  "currentRole": "privacy_counsel",
+  "currentTrack": "biometric",
   "recent": [
     {
-      "t": "2026-05-08T17:20:14.127Z",
-      "label": "us/dpo/_shared",
+      "t": "2026-05-08T17:32:03.936Z",
+      "label": "us/privacy_counsel/litigation",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:19:43.090Z",
-      "label": "us/dpo/breach",
+      "t": "2026-05-08T17:31:39.504Z",
+      "label": "us/privacy_counsel/health_hipaa",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:19:17.069Z",
-      "label": "us/dpo/biometric",
+      "t": "2026-05-08T17:31:14.881Z",
+      "label": "us/privacy_counsel/cross_border",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:18:51.883Z",
-      "label": "us/dpo/litigation",
+      "t": "2026-05-08T17:30:52.189Z",
+      "label": "us/privacy_counsel/adtech_cookies",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:18:28.454Z",
-      "label": "us/dpo/health_hipaa",
+      "t": "2026-05-08T17:30:22.850Z",
+      "label": "us/privacy_counsel/childrens",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:18:06.949Z",
-      "label": "us/dpo/cross_border",
+      "t": "2026-05-08T17:30:00.563Z",
+      "label": "us/privacy_counsel/ai_act",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:17:44.248Z",
-      "label": "us/dpo/adtech_cookies",
+      "t": "2026-05-08T17:29:30.845Z",
+      "label": "us/privacy_counsel/gdpr",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:17:22.675Z",
-      "label": "us/dpo/childrens",
+      "t": "2026-05-08T17:29:05.397Z",
+      "label": "us/privacy_counsel/us_state",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:16:56.086Z",
-      "label": "us/dpo/ai_act",
+      "t": "2026-05-08T17:28:23.682Z",
+      "label": "us/cpo/_shared",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:16:31.388Z",
-      "label": "us/dpo/gdpr",
+      "t": "2026-05-08T17:27:56.847Z",
+      "label": "us/cpo/breach",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:16:05.578Z",
-      "label": "us/dpo/us_state",
+      "t": "2026-05-08T17:27:31.674Z",
+      "label": "us/cpo/biometric",
       "ok": true,
       "detail": ""
     },
     {
-      "t": "2026-05-08T17:15:34.437Z",
-      "label": "eu/privacy_pro/_shared",
+      "t": "2026-05-08T17:26:52.273Z",
+      "label": "us/cpo/litigation",
       "ok": true,
       "detail": ""
     }
