@@ -487,9 +487,18 @@ async function main() {
   const totalSteps  = totalBriefs * (TRACKS.length + 1); // tracks + shared
   writeProgress({ status: "running", totalBriefs, totalSteps, completedBriefs: 0, completedSteps: 0 });
 
+  const SKIP_EXISTING = args.includes("--skip-existing");
   for (const region of regions) {
     result[region] ||= {};
     for (const role of roles) {
+      if (SKIP_EXISTING && result[region]?.[role]?.tracks && Object.keys(result[region][role].tracks).length > 0) {
+        console.log(`\n⏭  ${region}/${role} — already exists, skipping`);
+        PROGRESS.completedBriefs++;
+        PROGRESS.completedSteps += (TRACKS.length + 1);
+        logStep(`${region}/${role}/_skipped`, true, "already in output");
+        writeProgress();
+        continue;
+      }
       const brief = await generateBrief(region, role);
       result[region][role] = brief;
       // Persist after each brief so partial runs aren't lost.
