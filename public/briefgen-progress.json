@@ -1,0 +1,15 @@
+{
+  "startedAt": "2026-05-08T08:50:21.599Z",
+  "updatedAt": "2026-05-08T08:50:21.604Z",
+  "status": "generating",
+  "totalBriefs": 24,
+  "completedBriefs": 0,
+  "totalSteps": 264,
+  "completedSteps": 0,
+  "currentRegion": "eu",
+  "currentRole": "dpo",
+  "currentTrack": null,
+  "recent": [],
+  "errors": [],
+  "finishedAt": null
+}
