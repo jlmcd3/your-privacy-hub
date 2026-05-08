@@ -86,8 +86,8 @@ export default function BriefBuilder() {
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
     );
 
-  const briefItems  = briefShown
-    ? getExcerptsForBrief(jurisdiction, role, tracks)
+  const briefItems = briefShown
+    ? getBriefItems(jurisdiction, role, tracks)
     : [];
 
   const canGenerate = !!jurisdiction && !!role && tracks.length > 0;
