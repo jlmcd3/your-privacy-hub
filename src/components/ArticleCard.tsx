@@ -162,15 +162,13 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const [open, setOpen] = useState(false);
   const s = item.ai_summary;
 
-  const fullWhy = s?.why_it_matters;
   const signals = (item as any).related_signals as Array<{ label?: string; kind?: string }> | undefined;
   const regTheory = item.regulatory_theory;
   const related = item.related_development;
   const urgency = s?.urgency;
   const weight = s?.legal_weight;
 
-  const hasContent = fullWhy
-    || (signals && signals.length > 0) || regTheory || related;
+  const hasContent = (signals && signals.length > 0) || regTheory || related;
   if (!hasContent) return null;
 
   return (
@@ -212,16 +210,6 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
             </div>
           )}
 
-
-          {/* Full analysis */}
-          {fullWhy && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
-                Full Analysis
-              </p>
-              <p className="text-[12px] text-navy leading-relaxed">{stripHtml(fullWhy)}</p>
-            </div>
-          )}
 
           {/* Regulatory theory + related */}
           {(regTheory || related) && (
