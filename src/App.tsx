@@ -90,6 +90,7 @@ import AdminIngestionDashboard from "./pages/AdminIngestionDashboard.tsx";
 import AdminArticles from "./pages/AdminArticles.tsx";
 import AdminEmailSignups from "./pages/AdminEmailSignups.tsx";
 import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
+import AdminBriefGenStatus from "./pages/AdminBriefGenStatus.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
 import AdminLawUpdates from "./pages/AdminLawUpdates.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
