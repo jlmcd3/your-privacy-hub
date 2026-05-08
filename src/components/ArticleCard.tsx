@@ -214,33 +214,6 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
             </div>
           )}
 
-          {/* Compliance impact */}
-          {compliance && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
-                Compliance Impact
-              </p>
-              <p className="text-[12px] text-navy leading-relaxed">{compliance}</p>
-            </div>
-          )}
-
-          {/* Action items */}
-          {actionItems && actionItems.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
-                Action Items
-              </p>
-              <ul className="space-y-1.5">
-                {actionItems.map((a, i) => (
-                  <li key={i} className="text-[12px] text-navy">
-                    {a.role && <span className="font-semibold">{a.role}: </span>}
-                    {a.action}
-                    {a.timeframe && <span className="text-slate-500"> · {a.timeframe}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {/* Full analysis */}
           {fullWhy && (
