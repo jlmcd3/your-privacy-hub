@@ -139,14 +139,13 @@ const UpdateDetail = () => {
     }
   };
 
-
   // Fetch article
   useEffect(() => {
     if (!id) return;
     (supabase as any)
       .from("updates")
       .select(
-        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items"
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items",
       )
       .eq("id", id)
       .eq("is_hidden", false)
@@ -160,7 +159,6 @@ const UpdateDetail = () => {
         setLoading(false);
       });
   }, [id]);
-
 
   // Fetch related articles
   useEffect(() => {
@@ -182,17 +180,17 @@ const UpdateDetail = () => {
   const catColor = CATEGORY_COLORS[article?.category || "global"] || CATEGORY_COLORS.global;
   const catLabel = CATEGORY_LABELS[article?.category || "global"] || article?.category || "Global";
   const cleanedSummary = cleanSummary(article?.summary);
-  const metaDesc = ai?.why_it_matters?.slice(0, 160) || cleanedSummary.slice(0, 160) || "";
+  const metaDesc = ai?.why_it_matters?.slice(0, 160) || "";
 
   // Briefed tier — present when ungated AI enrichment exists
   const hasBriefed = Boolean(
     ai?.why_it_matters ||
-      (ai?.takeaways && ai.takeaways.length > 0) ||
-      ai?.compliance_impact ||
-      ai?.who_should_care ||
-      ai?.urgency ||
-      ai?.legal_weight ||
-      ai?.risk_level
+    (ai?.takeaways && ai.takeaways.length > 0) ||
+    ai?.compliance_impact ||
+    ai?.who_should_care ||
+    ai?.urgency ||
+    ai?.legal_weight ||
+    ai?.risk_level,
   );
 
   // Analyzed tier — Pro-only deep analysis
@@ -202,9 +200,9 @@ const UpdateDetail = () => {
     ? Boolean(article?.attention_level || (article?.affected_sectors && article.affected_sectors.length > 0))
     : Boolean(
         article?.regulatory_theory ||
-          article?.related_development ||
-          article?.attention_level ||
-          (article?.affected_sectors && article.affected_sectors.length > 0)
+        article?.related_development ||
+        article?.attention_level ||
+        (article?.affected_sectors && article.affected_sectors.length > 0),
       );
 
   // Track when a free registered user is shown the blurred Analyzed section.
@@ -263,7 +261,10 @@ const UpdateDetail = () => {
           <>
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground mb-4">
-              <Link to="/updates" className="no-underline hover:text-foreground transition-colors text-muted-foreground">
+              <Link
+                to="/updates"
+                className="no-underline hover:text-foreground transition-colors text-muted-foreground"
+              >
                 News
               </Link>
               <span>→</span>
@@ -280,14 +281,14 @@ const UpdateDetail = () => {
             </nav>
 
             {/* Category badge */}
-            <span className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}>
+            <span
+              className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}
+            >
               {catLabel}
             </span>
 
             {/* Title */}
-            <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">
-              {article.title}
-            </h1>
+            <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground mb-6">
@@ -301,26 +302,6 @@ const UpdateDetail = () => {
                 </>
               )}
             </div>
-
-            {/* ============================================================
-                SECTION 1 — FEED (raw source summary, free for all)
-                ============================================================ */}
-            <section aria-labelledby="section-feed" className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Feed</span>
-                <span className="text-[10px] text-muted-foreground/60">Source summary</span>
-              </div>
-              <hr className="border-border mb-4" />
-              {cleanedSummary ? (
-                <p className="text-[15px] text-muted-foreground leading-relaxed">
-                  {cleanedSummary}
-                </p>
-              ) : (
-                <p className="text-[14px] italic text-muted-foreground">
-                  Visit the original source to read the full article.
-                </p>
-              )}
-            </section>
 
             {/* ============================================================
                 SECTION 2 — BRIEFED (tiered)
@@ -342,9 +323,7 @@ const UpdateDetail = () => {
                     <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
                       Why it matters
                     </div>
-                    <p className="text-[14px] leading-relaxed text-foreground">
-                      {ai.why_it_matters}
-                    </p>
+                    <p className="text-[14px] leading-relaxed text-foreground">{ai.why_it_matters}</p>
                   </div>
                 )}
 
@@ -353,16 +332,15 @@ const UpdateDetail = () => {
                   <div className="mb-5">
                     <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
                     <ul className="list-disc pl-5 space-y-1.5">
-                      <li className="text-[14px] text-muted-foreground leading-relaxed">
-                        {ai.takeaways[0]}
-                      </li>
+                      <li className="text-[14px] text-muted-foreground leading-relaxed">{ai.takeaways[0]}</li>
                     </ul>
                     {ai.takeaways.length > 1 && (
                       <Link
                         to="/signup"
                         className="inline-block mt-3 text-[13px] font-semibold text-primary no-underline hover:underline"
                       >
-                        + {ai.takeaways.length - 1} more {ai.takeaways.length - 1 === 1 ? "takeaway" : "takeaways"} — register free →
+                        + {ai.takeaways.length - 1} more {ai.takeaways.length - 1 === 1 ? "takeaway" : "takeaways"} —
+                        register free →
                       </Link>
                     )}
                   </div>
@@ -387,13 +365,17 @@ const UpdateDetail = () => {
                   <div className="space-y-3 mb-5">
                     {article.regulatory_theory && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Regulatory theory
+                        </div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
                       </div>
                     )}
                     {article.related_development && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Related development
+                        </div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
                       </div>
                     )}
@@ -437,19 +419,25 @@ const UpdateDetail = () => {
                   <div className={isPremium ? "space-y-3" : "opacity-10 pointer-events-none select-none space-y-3"}>
                     {article.regulatory_theory && !user && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Regulatory theory
+                        </div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
                       </div>
                     )}
                     {article.related_development && !user && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Related development
+                        </div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
                       </div>
                     )}
                     {article.attention_level && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Attention level</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Attention level
+                        </div>
                         <span className="inline-block text-[12px] px-2 py-0.5 rounded bg-muted text-foreground capitalize">
                           {article.attention_level}
                         </span>
@@ -457,10 +445,15 @@ const UpdateDetail = () => {
                     )}
                     {article.affected_sectors && article.affected_sectors.length > 0 && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Affected sectors</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">
+                          Affected sectors
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
                           {article.affected_sectors.map((s) => (
-                            <span key={s} className="text-[12px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            <span
+                              key={s}
+                              className="text-[12px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                            >
                               {s}
                             </span>
                           ))}
@@ -473,15 +466,15 @@ const UpdateDetail = () => {
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                       <div className="bg-background border border-border rounded-xl shadow-md p-5 max-w-[320px]">
                         <Lock size={20} className="mx-auto mb-2 text-purple-700" />
-                        <h3 className="text-[15px] font-semibold text-foreground mb-1">
-                          Full analysis — Pro feature
-                        </h3>
+                        <h3 className="text-[15px] font-semibold text-foreground mb-1">Full analysis — Pro feature</h3>
                         <p className="text-[12px] text-muted-foreground mb-3 leading-relaxed">
                           Regulatory theory, cross-jurisdiction signals, and action intelligence on every update.
                         </p>
                         <Link
                           to="/subscribe"
-                          onClick={() => { void trackEvent("analyzed_blur_click"); }}
+                          onClick={() => {
+                            void trackEvent("analyzed_blur_click");
+                          }}
                           className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
                         >
                           See Pro plan
@@ -531,9 +524,7 @@ const UpdateDetail = () => {
                       to={`/updates/${r.id}`}
                       className="block no-underline hover:bg-muted rounded-lg p-3 -mx-3 transition-colors"
                     >
-                      <p className="text-[14px] text-foreground font-medium leading-snug">
-                        {r.title}
-                      </p>
+                      <p className="text-[14px] text-foreground font-medium leading-snug">{r.title}</p>
                       <p className="text-[12px] text-muted-foreground mt-0.5">
                         {r.source_name && <span>{r.source_name} · </span>}
                         {formatDate(r.published_at)}
