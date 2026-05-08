@@ -483,6 +483,10 @@ async function main() {
   }
 
   const result = existing;
+  const totalBriefs = regions.length * roles.length;
+  const totalSteps  = totalBriefs * (TRACKS.length + 1); // tracks + shared
+  writeProgress({ status: "running", totalBriefs, totalSteps, completedBriefs: 0, completedSteps: 0 });
+
   for (const region of regions) {
     result[region] ||= {};
     for (const role of roles) {
@@ -490,8 +494,11 @@ async function main() {
       result[region][role] = brief;
       // Persist after each brief so partial runs aren't lost.
       writeOutput(result);
+      PROGRESS.completedBriefs++;
+      writeProgress();
     }
   }
+  writeProgress({ status: "done", finishedAt: new Date().toISOString(), currentRegion: null, currentRole: null, currentTrack: null });
   console.log(`\n✓ Wrote ${OUT_PATH}`);
 }
 
