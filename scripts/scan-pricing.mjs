@@ -111,26 +111,46 @@ const serverRegistration = {
 };
 
 // ---------- 2. UI-marketed prices ----------
-// Light-weight scan: a product is identified by its display name; we record
-// every $-amount that appears within ~120 chars of that name.
-const UI_FILES = [
-  "src/pages/Tools.tsx",
-  "src/pages/Subscribe.tsx",
-  "src/pages/RegistrationLanding.tsx",
-  "src/components/home/ProToolsBanner.tsx",
-  "src/components/home/RegistrationManagerBanner.tsx",
-  "src/components/home/ChooseYourMode.tsx",
-];
+// Walk every UI file under src/pages and src/components — a marketed price
+// counts no matter which page it appears on. Skip the admin pricing page
+// itself (it embeds the report) and the registry source-of-truth file.
+import { readdirSync, statSync } from "node:fs";
+const UI_DIRS = ["src/pages", "src/components"];
+const UI_FILE_EXCLUDE = new Set([
+  "src/pages/AdminPricingReconciliation.tsx",
+]);
+function walk(dir, out = []) {
+  for (const entry of readdirSync(join(ROOT, dir))) {
+    const rel = `${dir}/${entry}`;
+    const abs = join(ROOT, rel);
+    const st = statSync(abs);
+    if (st.isDirectory()) walk(rel, out);
+    else if (/\.(tsx|ts|jsx|js)$/.test(entry) && !UI_FILE_EXCLUDE.has(rel)) out.push(rel);
+  }
+  return out;
+}
+const UI_FILES = UI_DIRS.flatMap((d) => walk(d));
 
 const PRODUCTS = [
-  { key: "governance_assessment", patterns: ["Privacy Program Assessment Tool"] },
-  { key: "li_assessment", patterns: ["Legitimate Interest Assessment Tool"] },
-  { key: "dpia_framework", patterns: ["Impact Assessment Builder"] },
-  { key: "dpa_generator", patterns: ["Your Custom DPA"] },
-  { key: "ir_playbook", patterns: ["Your Breach Response Playbook"] },
-  { key: "biometric_checker", patterns: ["Biometric Privacy Compliance Checker", "Biometric Compliance Checker"] },
-  { key: "intelligence_monthly", patterns: ["$39/month", "$39/mo", "Monthly · $39", "Intelligence — $39"] },
-  { key: "intelligence_yearly", patterns: ["$390/year", "$390/yr", "Yearly · $390"] },
+  { key: "governance_assessment", patterns: ["Privacy Program Assessment", "Governance Assessment"] },
+  { key: "li_assessment", patterns: ["Legitimate Interest Assessment", "LI Assessment"] },
+  { key: "dpia_framework", patterns: ["Impact Assessment Builder", "DPIA"] },
+  { key: "dpa_generator", patterns: ["Your Custom DPA", "DPA Generator", "Data Processing Agreement"] },
+  { key: "ir_playbook", patterns: ["Breach Response Playbook", "Incident Response Playbook", "IR Playbook"] },
+  { key: "biometric_checker", patterns: ["Biometric Privacy Compliance Checker", "Biometric Compliance Checker", "Biometric Checker"] },
+  { key: "ropa_initial", patterns: ["RoPA Builder", "Records of Processing", "RoPA — Initial", "RoPA Initial"] },
+  { key: "ropa_refresh", patterns: ["RoPA — Annual Refresh", "RoPA Refresh", "Annual Refresh"] },
+  { key: "us_notice_single", patterns: ["US Privacy Notice", "Single State", "per state"] },
+  { key: "us_notice_all_states", patterns: ["All States Suite", "All-States Suite"] },
+  { key: "eu_notice_single", patterns: ["Single Framework", "per framework"] },
+  { key: "eu_notice_suite", patterns: ["EU Notice Suite", "GDPR + UK GDPR"] },
+  { key: "eu_notice_full_international", patterns: ["Full International"] },
+  { key: "eu_notice_refresh", patterns: ["EU & Global Notice — Annual Refresh", "Notice Refresh"] },
+  { key: "cppa_risk_assessment", patterns: ["CPPA Risk Assessment", "CPPA Module 1", "Risk Assessment — Module 1"] },
+  { key: "cppa_cybersecurity", patterns: ["CPPA Cybersecurity", "Cybersecurity Readiness", "Module 2"] },
+  { key: "cppa_suite", patterns: ["CPPA Full Audit Suite", "CPPA Suite"] },
+  { key: "intelligence_monthly", patterns: ["$29/month", "$29/mo", "Intelligence — Monthly", "Monthly · $29"] },
+  { key: "intelligence_yearly", patterns: ["$399/year", "$399/yr", "Platform — Annual", "Yearly · $399"] },
   { key: "registration_diy_1", patterns: ["1 jurisdiction"] },
   { key: "registration_diy_3", patterns: ["Up to 3 jurisdictions"] },
   { key: "registration_diy_7", patterns: ["Up to 7 jurisdictions"] },
