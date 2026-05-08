@@ -317,8 +317,51 @@ const UpdateDetail = () => {
                 </div>
                 <hr className="border-border mb-4" />
 
-                {/* why_it_matters — visible to everyone (incl. anon) */}
-                {ai?.why_it_matters && (
+                {/* Anonymous: short why + first sentence teaser + hard register gate */}
+                {!user && (
+                  <>
+                    {(ai as any)?.why_it_matters_short && (
+                      <div className="border-l-4 border-primary bg-primary/5 px-4 py-3 mb-3 rounded-r">
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                          Why it matters
+                        </div>
+                        <p className="text-[14px] leading-relaxed text-foreground">
+                          {(ai as any).why_it_matters_short}
+                        </p>
+                      </div>
+                    )}
+                    {ai?.why_it_matters && (
+                      <p className="text-[14px] text-muted-foreground leading-relaxed mt-3">
+                        {ai.why_it_matters.split('. ')[0]}…
+                      </p>
+                    )}
+                    <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center">
+                      <p className="text-[15px] font-semibold text-foreground mb-1">
+                        Create a free account to read the full analysis
+                      </p>
+                      <p className="text-[13px] text-muted-foreground mb-4 leading-relaxed">
+                        Key takeaways, regulatory theory, compliance impact, and action intelligence — on every update.
+                      </p>
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        <Link
+                          to="/signup"
+                          className="text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline"
+                        >
+                          Register free →
+                        </Link>
+                        <Link
+                          to="/subscribe"
+                          className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-lg hover:bg-muted transition-colors no-underline"
+                        >
+                          See Pro plan →
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Pro: full why_it_matters */}
+                {user && isPremium && ai?.why_it_matters && (
                   <div className="border-l-4 border-primary bg-primary/5 px-4 py-3 mb-5 rounded-r">
                     <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
                       Why it matters
@@ -327,26 +370,7 @@ const UpdateDetail = () => {
                   </div>
                 )}
 
-                {/* Anon: show first takeaway + register-free link for the rest */}
-                {!user && ai?.takeaways && ai.takeaways.length > 0 && (
-                  <div className="mb-5">
-                    <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
-                    <ul className="list-disc pl-5 space-y-1.5">
-                      <li className="text-[14px] text-muted-foreground leading-relaxed">{ai.takeaways[0]}</li>
-                    </ul>
-                    {ai.takeaways.length > 1 && (
-                      <Link
-                        to="/signup"
-                        className="inline-block mt-3 text-[13px] font-semibold text-primary no-underline hover:underline"
-                      >
-                        + {ai.takeaways.length - 1} more {ai.takeaways.length - 1 === 1 ? "takeaway" : "takeaways"} —
-                        register free →
-                      </Link>
-                    )}
-                  </div>
-                )}
-
-                {/* Key takeaways — signed-in users (free + pro) get all */}
+                {/* Key takeaways — all signed-in users */}
                 {user && ai?.takeaways && ai.takeaways.length > 0 && (
                   <div className="mb-5">
                     <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
@@ -360,8 +384,8 @@ const UpdateDetail = () => {
                   </div>
                 )}
 
-                {/* Regulatory theory & related development — unlocked for all signed-in users */}
-                {user && (article.regulatory_theory || article.related_development) && (
+                {/* Regulatory theory & related development — Pro only */}
+                {user && isPremium && (article.regulatory_theory || article.related_development) && (
                   <div className="space-y-3 mb-5">
                     {article.regulatory_theory && (
                       <div className="border border-border rounded-lg p-3">
@@ -394,6 +418,24 @@ const UpdateDetail = () => {
                       isPremium={isPremium}
                       articleId={article.id}
                     />
+                  </div>
+                )}
+
+                {/* Upgrade CTA — free signed-in only */}
+                {user && !isPremium && (
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-center">
+                    <p className="text-[14px] font-semibold text-amber-900 mb-1">
+                      Upgrade to Pro for full action intelligence
+                    </p>
+                    <p className="text-[12px] text-amber-700 mb-3 leading-relaxed">
+                      Compliance impact, action items by role, regulatory theory, and deep analysis on every update.
+                    </p>
+                    <Link
+                      to="/subscribe"
+                      className="inline-block text-[13px] font-semibold bg-amber-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                    >
+                      See Pro plan →
+                    </Link>
                   </div>
                 )}
               </section>
