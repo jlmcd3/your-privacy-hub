@@ -1,4 +1,4 @@
-import { normalizeTitle } from "@/lib/utils";
+import { normalizeTitle, stripHtml } from "@/lib/utils";
 
 interface RegionItem {
   flag: string;
@@ -9,6 +9,7 @@ interface RegionItem {
   date: string;
   whyItMatters?: string | null;
   urgency?: string | null;
+  summary?: string | null;
 }
 
 interface RegionFeedStripProps {
