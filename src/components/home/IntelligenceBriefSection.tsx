@@ -74,6 +74,12 @@ export function IntelligenceBriefSection({ children }: { children?: ReactNode })
           </div>
         </div>
 
+        {children && (
+          <div className="px-4 md:px-6 pt-6">
+            {children}
+          </div>
+        )}
+
         <div className="pb-4 md:pb-6" />
       </div>
     </section>
