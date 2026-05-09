@@ -519,7 +519,7 @@ export default function RopaReview() {
               <p className="text-[11px] text-teal-700 mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
-                  href="/intelligence"
+                  href="/get-intelligence"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline font-semibold"
