@@ -255,6 +255,17 @@ export default function USNoticeDocuments() {
         legal framework that applies in that jurisdiction based on your answers.
       </p>
 
+      <CrossToolPrompt
+        visitKey={`/us-notices/${sessionId}/documents`}
+        dismissKey="eu_notice_prompt_dismissed"
+        icon={<Globe2 className="w-5 h-5" />}
+        title="🌍 Add EU & global notices?"
+        body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
+        ctaLabel="Generate EU notices →"
+        ctaTo="/eu-notices/mode?mode=ropa_powered"
+        enabled={!hasEuNotices && documents.length > 0}
+      />
+
       {/* Generate / regenerate panel */}
       <Card className="mb-8">
         <CardContent className="p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
