@@ -103,6 +103,7 @@ Respond ONLY with valid JSON matching the schema provided.`;
 Intake data:
 ${JSON.stringify(row.intake_data, null, 2)}
 
+${enforcementContext ? `Recent CPPA / California AG enforcement context (use to calibrate risk levels and cite where directly relevant):\n${enforcementContext}\n` : ""}
 Respond with this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall compliance posture and top 3 priorities)",
