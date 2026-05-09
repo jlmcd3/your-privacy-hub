@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import SampleBriefShowcase from "@/components/SampleBriefShowcase";
 
 const SampleBrief = () => {
   const { isPremium } = usePremiumStatus();
@@ -67,9 +66,6 @@ const SampleBrief = () => {
             </div>
           </div>
         </section>
-
-        {/* Full sample brief showcase — tier-gated */}
-        <SampleBriefShowcase variant="full" />
 
         {/* BriefBuilder — interactive demo */}
         <div className="bg-white py-12">
