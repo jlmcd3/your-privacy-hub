@@ -422,7 +422,7 @@ const PRICING_GRID: [string, string][] = [
   ["Legitimate Interest Assessment", "$69 standalone → Included with Annual Platform"],
   ["Impact Assessment (DPIA)", "$99 standalone → Included with Annual Platform"],
   ["DPA Generator", "$49 standalone → Included with Annual Platform"],
-  ["Incident Response Playbook", "$39 standalone → Included with Annual Platform"],
+  ["Incident Response Playbook", `${getPrice("ir_playbook_standalone").displayPrice} standalone → Included with Annual Platform`],
   ["Biometric Privacy Check", "$49 standalone → Included with Annual Platform"],
   ["RoPA Builder", "$79 standalone → Included with Annual Platform"],
   ["U.S. Privacy Notice", "$25/state or $59 all states → Included"],
