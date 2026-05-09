@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 interface DocRow {
   id: string;
