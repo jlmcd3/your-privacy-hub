@@ -449,6 +449,11 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
           className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </Link>
+        {item.summary && (
+          <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+            {stripHtml(item.summary)}
+          </p>
+        )}
         <p className="text-[11px] text-slate-light mt-0.5">
           {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
         </p>
