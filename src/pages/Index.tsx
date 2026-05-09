@@ -33,18 +33,18 @@ const Index = () => {
 
       {/* ── Full Brief Experience ─────────────────────────── */}
       <div id="brief" className="scroll-mt-16 py-16">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 mb-6">
+          <h2 className="font-display text-[24px] font-bold text-navy mb-2">
+            Your intelligence brief
+          </h2>
+          <p className="text-[14px] text-slate">
+            Customized and analyzed for your priorities and responsibilities.
+            Here is what lands in your inbox every Monday.
+          </p>
+        </div>
         <div className="max-w-3xl mx-auto px-4 md:px-8">
-          <div className="mb-8">
-            <h2 className="font-display text-[28px] font-bold text-navy mb-2">
-              Your intelligence brief
-            </h2>
-            <p className="text-[15px] text-slate leading-relaxed">
-              Customized and analyzed for your priorities and responsibilities.
-              Here is what lands in your inbox every Monday.
-            </p>
-          </div>
-
-          <BriefBuilder />
+          <div className="bg-card border border-fog rounded-2xl shadow-eup-sm p-5 md:p-8">
+            <BriefBuilder />
 
           {!user && (
             <div className="rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center my-6">
@@ -78,6 +78,7 @@ const Index = () => {
               </Link>
             </div>
           )}
+          </div>
         </div>
       </div>
 
