@@ -124,6 +124,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     biometricCount,
     registrationCount,
     usNotices,
+    euNotices,
   ] = await Promise.all([
     safeCount('li_assessments', clientId),
     safeCount('dpia_frameworks', clientId),
@@ -133,6 +134,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     safeCount('biometric_assessments', clientId),
     safeCount('registration_orders', clientId),
     loadUsNoticeStatus(clientId),
+    loadEuNoticeStatus(clientId),
   ]);
 
   return {
@@ -146,7 +148,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     registrationCount,
     ropa: { latestVersion: null, latestDate: null },
     usNotices,
-    euNotices: { frameworkCount: 0, latestDate: null },
+    euNotices,
     totalFlags:
       liaCount + dpiaCount + dpaCount + irCount + govCount + biometricCount + registrationCount,
   };
