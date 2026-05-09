@@ -19,6 +19,7 @@ interface Update {
   published_at: string;
   is_premium: boolean;
   ai_summary?: any;
+  why_it_matters_short?: string | null;
   topic_tags?: string[];
   attention_level?: string;
   affected_sectors?: string[];
