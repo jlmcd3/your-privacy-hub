@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, FileSpreadsheet, FileType, Download, RefreshCw, Plus } from "lucide-react";
+import { FileText, FileSpreadsheet, FileType, Download, RefreshCw, Plus, Globe2 } from "lucide-react";
 import { format } from "date-fns";
+import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 type SessionRow = {
   id: string;
