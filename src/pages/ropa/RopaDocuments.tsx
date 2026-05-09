@@ -50,6 +50,33 @@ export default function RopaDocuments() {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [docs, setDocs] = useState<Record<string, DocVersion[]>>({});
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
+  const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count: usCount } = await (supabase as any)
+          .from('us_notice_sessions')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'completed');
+        setHasUsNotices((usCount ?? 0) > 0);
+      } catch {
+        setHasUsNotices(true);
+      }
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count: euCount } = await (supabase as any)
+          .from('eu_notice_documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_current', true);
+        setHasEuNotices((euCount ?? 0) > 0);
+      } catch {
+        setHasEuNotices(true);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     void loadDocuments();
