@@ -64,7 +64,7 @@ import DevOnly from "./components/DevOnly.tsx";
 import AdminOnly from "./components/AdminOnly.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
-import SampleBrief from "./pages/SampleBrief.tsx";
+
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
