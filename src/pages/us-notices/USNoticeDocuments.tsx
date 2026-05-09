@@ -81,6 +81,22 @@ export default function USNoticeDocuments() {
   const [session, setSession] = useState<SessionRow | null>(null);
   const [states, setStates] = useState<StateRow[]>([]);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
+  const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count } = await (supabase as any)
+          .from('eu_notice_documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_current', true);
+        setHasEuNotices((count ?? 0) > 0);
+      } catch {
+        setHasEuNotices(true);
+      }
+    })();
+  }, []);
 
   async function load() {
     if (!sessionId) return;
