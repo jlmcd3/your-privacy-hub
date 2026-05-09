@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
 
 const stats = [
   { value: "119", label: "Authorities tracked" },
@@ -7,7 +8,7 @@ const stats = [
   { value: "Every Monday", label: "Ready when you start" },
 ];
 
-export function IntelligenceBriefSection() {
+export function IntelligenceBriefSection({ children }: { children?: ReactNode }) {
   return (
     <section className="my-8 px-4">
       <div className="max-w-[1280px] mx-auto rounded-xl bg-gradient-to-br from-navy via-navy to-[#1A3A5C] overflow-hidden">
@@ -72,6 +73,12 @@ export function IntelligenceBriefSection() {
             </p>
           </div>
         </div>
+
+        {children && (
+          <div className="px-4 md:px-6 pt-6">
+            {children}
+          </div>
+        )}
 
         <div className="pb-4 md:pb-6" />
       </div>
