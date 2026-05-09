@@ -189,6 +189,31 @@ export default function RopaDocuments() {
         </Button>
       </div>
 
+      {/* Cross-tool prompts: US notice prompt takes priority over EU when both missing. */}
+      {!hasUsNotices ? (
+        <CrossToolPrompt
+          visitKey="/ropa/documents"
+          dismissKey="us_notice_prompt_dismissed"
+          icon={<FileText className="w-5 h-5" />}
+          title="📋 Add US state privacy notices?"
+          body="Your RoPA data pre-populates most answers. Takes 5–12 minutes."
+          ctaLabel="Generate US notices →"
+          ctaTo="/us-notices/mode?mode=ropa_powered"
+          enabled={sessions.length > 0}
+        />
+      ) : (
+        <CrossToolPrompt
+          visitKey="/ropa/documents"
+          dismissKey="eu_notice_prompt_dismissed"
+          icon={<Globe2 className="w-5 h-5" />}
+          title="🌍 Add EU & global notices?"
+          body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
+          ctaLabel="Generate EU notices →"
+          ctaTo="/eu-notices/mode?mode=ropa_powered"
+          enabled={sessions.length > 0 && !hasEuNotices}
+        />
+      )}
+
       {loading ? (
         <div className="space-y-4">
           {[0, 1, 2].map((i) => (
