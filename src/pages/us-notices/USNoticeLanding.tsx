@@ -13,7 +13,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ArrowRight, Check, Shield, RefreshCw, MapPin } from "lucide-react";
-import { US_NOTICE_PRICING } from "@/config/pricing";
+import { US_NOTICE_PRICING, INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const VIRGINIA_STATES = [
   "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
@@ -219,7 +219,7 @@ export default function USNoticeLanding() {
                       <th className="text-left p-4 font-medium">Free</th>
                       <th className="text-left p-4 font-medium">
                         Intelligence{" "}
-                        <span className="text-muted-foreground font-normal">($39/mo)</span>
+                        <span className="text-muted-foreground font-normal">({INTELLIGENCE_PRICING.monthlyShort()})</span>
                       </th>
                     </tr>
                   </thead>
