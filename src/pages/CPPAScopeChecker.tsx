@@ -261,6 +261,7 @@ export default function CPPAScopeChecker() {
         {showResults && (
           <ResultsPanel
             obligationMap={obligationMap}
+            q1={q1}
             q2={q2}
             onReset={reset}
             navigate={navigate}
