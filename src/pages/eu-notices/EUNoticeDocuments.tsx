@@ -135,6 +135,13 @@ export default function EUNoticeDocuments() {
           </CardContent>
         </Card>
       )}
+
+      <RelatedToolsChips
+        tools={[
+          { label: "📋 RoPA", to: "/ropa/documents" },
+          { label: "📋 US Notices", to: "/us-notices" },
+        ]}
+      />
     </EUNoticeShell>
   );
 }
