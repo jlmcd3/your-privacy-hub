@@ -263,6 +263,8 @@ export default function CPPAScopeChecker() {
             obligationMap={obligationMap}
             q1={q1}
             q2={q2}
+            q3={q3}
+            q5={q5}
             onReset={reset}
             navigate={navigate}
           />
@@ -278,6 +280,8 @@ function ResultsPanel({
   obligationMap,
   q1,
   q2,
+  q3,
+  q5,
   onReset,
   navigate,
 }: {
@@ -292,6 +296,8 @@ function ResultsPanel({
   };
   q1: string;
   q2: string;
+  q3: string;
+  q5: string;
   onReset: () => void;
   navigate: (to: string) => void;
 }) {
@@ -385,12 +391,39 @@ function ResultsPanel({
     ? "Likely Required"
     : "Not applicable";
 
+  const thresholdSentences: string[] = [];
+  const revenueMet = ["$25M–$100M", "$100M–$500M", "Over $500M"].includes(q2);
+  const consumerMet = ["100,000–1 million", "Over 1 million"].includes(q3);
+  const salesMet = q5 === "Yes";
+  if (revenueMet) {
+    thresholdSentences.push(`meets the annual revenue threshold (${q2})`);
+  } else if (q2 === "Unsure") {
+    thresholdSentences.push("may meet the annual revenue threshold based on your answers");
+  }
+  if (consumerMet) {
+    thresholdSentences.push(`meets the consumer volume threshold (${q3} California consumers)`);
+  } else if (q3 === "Unsure") {
+    thresholdSentences.push("may meet the consumer volume threshold based on your answers");
+  }
+  if (salesMet) {
+    thresholdSentences.push("meets the 50%+ revenue from data sales threshold");
+  } else if (q5 === "Unsure") {
+    thresholdSentences.push("may meet the 50%+ revenue from data sales threshold based on your answers");
+  }
+  const thresholdSummary =
+    thresholdSentences.length > 0
+      ? `Your business ${thresholdSentences.join("; and ")}.`
+      : null;
+
   return (
     <div className="space-y-6">
       <section className="border-l-4 border-emerald-500 bg-card border rounded-lg p-6">
         <h2 className="text-2xl font-semibold">
           CCPA/CPRA applies — or likely applies — to your business.
         </h2>
+        {thresholdSummary && (
+          <p className="text-sm text-foreground mt-2">{thresholdSummary}</p>
+        )}
         <p className="text-sm text-muted-foreground mt-2">
           The CPPA Audits Division formally stood up in February 2026 and is actively
           scheduling compliance audits.
