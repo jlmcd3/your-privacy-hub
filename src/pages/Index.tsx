@@ -103,14 +103,16 @@ const Index = () => {
 
       {/* ── Tools ─────────────────────────── */}
       <div id="tools" className="scroll-mt-16 py-16">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 mb-6">
-          <h2 className="font-display text-[24px] font-bold text-navy mb-2">
-            Your compliance toolkit
-          </h2>
-          <p className="text-[14px] text-slate">
-            Enforcement-calibrated assessments and documents — not checkbox compliance.
-          </p>
-        </div>
+        {!isPremium && (
+          <div className="max-w-[1280px] mx-auto px-4 md:px-8 mb-6">
+            <h2 className="font-display text-[24px] font-bold text-navy mb-2">
+              Your compliance toolkit
+            </h2>
+            <p className="text-[14px] text-slate">
+              Enforcement-calibrated assessments and documents — not checkbox compliance.
+            </p>
+          </div>
+        )}
         <HomepageTriptych />
         <ToolsStrip />
       </div>
