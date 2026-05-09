@@ -330,9 +330,9 @@ export const PRICING_REGISTRY = {
     productName: "Breach Response Playbook (Standalone)",
     description:
       "AI-generated incident response playbook tailored to your organisation. Standalone price; included with Annual Platform.",
-    amountCents: 3900,
+    amountCents: 5900,
     currency: "usd",
-    displayPrice: "$39",
+    displayPrice: "$59",
     displaySuffix: " flat",
     active: true,
   },
