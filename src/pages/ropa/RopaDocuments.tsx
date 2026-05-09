@@ -334,6 +334,13 @@ export default function RopaDocuments() {
           })}
         </div>
       )}
+
+      <RelatedToolsChips
+        tools={[
+          { label: "📋 US Notices", to: "/us-notices" },
+          { label: "🌍 EU Notices", to: "/eu-notices" },
+        ]}
+      />
     </RopaShell>
   );
 }
