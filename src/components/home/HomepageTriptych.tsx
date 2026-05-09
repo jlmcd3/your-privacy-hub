@@ -147,7 +147,7 @@ export default function HomepageTriptych() {
                 </span>
               </div>
               <p className="text-[12px] text-slate mt-0.5">
-                or $249/yr — save two months
+                Cancel anytime
               </p>
             </div>
             <Link
