@@ -43,6 +43,7 @@ interface SessionRow {
   is_refresh: boolean | null;
   payment_confirmed: boolean | null;
   ropa_session_id: string | null;
+  version_number: number | null;
 }
 
 interface FwFlag {
