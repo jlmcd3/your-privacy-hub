@@ -305,3 +305,7 @@ th,
 dt {
   font-weight: 600;
 }
+
+/* Smooth in-page anchor scrolling */
+html { scroll-behavior: smooth; }
+
