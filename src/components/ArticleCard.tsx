@@ -271,6 +271,11 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
         </p>
         {enriched && <IntelligenceBadge />}
       </div>
+      {item.summary && (
+        <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+          {stripHtml(item.summary)}
+        </p>
+      )}
       <p className="text-[11px] text-slate-light mt-1">
         {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
       </p>
