@@ -129,7 +129,19 @@ export default function BriefBuilder() {
   const canGenerate = !!jurisdiction && !!role && tracks.length > 0;
 
   return (
-    <div className="bg-card border border-fog rounded-2xl p-6 md:p-8">
+    <div ref={rootRef} className="bg-card border border-fog rounded-2xl p-6 md:p-8 relative">
+      {showCollapsePill && (
+        <button
+          type="button"
+          onClick={collapseBrief}
+          aria-label="Collapse brief (Esc)"
+          title="Collapse brief (Esc)"
+          className="fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 px-4 h-11 rounded-full bg-navy text-white shadow-eup-md hover:bg-navy/90 transition-all border border-navy-light text-[13px] font-semibold"
+        >
+          <X className="w-4 h-4" />
+          Collapse brief
+        </button>
+      )}
       <div className="mb-6">
         <h3 className="font-display font-bold text-navy text-[18px] mb-1">
           Build your sample Intelligence Brief
