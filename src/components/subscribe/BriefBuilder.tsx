@@ -80,11 +80,47 @@ export default function BriefBuilder() {
   const [role,         setRole]         = useState("");
   const [tracks,       setTracks]       = useState<string[]>([]);
   const [briefShown,   setBriefShown]   = useState(false);
+  const [showCollapsePill, setShowCollapsePill] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const toggleTrack = (t: string) =>
     setTracks((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
     );
+
+  const collapseBrief = () => {
+    setBriefShown(false);
+    requestAnimationFrame(() => {
+      rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  // Esc key collapses the brief
+  useEffect(() => {
+    if (!briefShown) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") collapseBrief();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [briefShown]);
+
+  // Show floating pill once user scrolls past the top of the brief container
+  useEffect(() => {
+    if (!briefShown) {
+      setShowCollapsePill(false);
+      return;
+    }
+    const onScroll = () => {
+      const el = rootRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      setShowCollapsePill(top < 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [briefShown]);
 
   const briefItems = briefShown
     ? getBriefItems(jurisdiction, role, tracks)
