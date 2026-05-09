@@ -475,6 +475,13 @@ export default function USNoticeDocuments() {
           <Link to="/us-notices">All notice sessions</Link>
         </Button>
       </div>
+
+      <RelatedToolsChips
+        tools={[
+          { label: "📋 RoPA", to: "/ropa/documents" },
+          { label: "🌍 EU Notices", to: "/eu-notices" },
+        ]}
+      />
     </USNoticeShell>
   );
 }
