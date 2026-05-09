@@ -261,6 +261,7 @@ export default function CPPAScopeChecker() {
         {showResults && (
           <ResultsPanel
             obligationMap={obligationMap}
+            q1={q1}
             q2={q2}
             onReset={reset}
             navigate={navigate}
@@ -275,6 +276,7 @@ export default function CPPAScopeChecker() {
 
 function ResultsPanel({
   obligationMap,
+  q1,
   q2,
   onReset,
   navigate,
@@ -288,6 +290,7 @@ function ResultsPanel({
     riskAssessmentRequired: boolean;
     hasUnsure: boolean;
   };
+  q1: string;
   q2: string;
   onReset: () => void;
   navigate: (to: string) => void;
@@ -295,19 +298,31 @@ function ResultsPanel({
 
   // Out of scope, no Unsure: confidently out of scope
   if (!obligationMap.inScope && !obligationMap.hasUnsure) {
+    const isGeoOut = q1 === "No";
     return (
       <div className="bg-card border rounded-lg p-8 space-y-4">
         <h2 className="text-2xl font-semibold">
           Based on your answers, CCPA/CPRA likely does not apply to you.
         </h2>
-        <p className="text-foreground">
-          Your business does not appear to meet any of the three CCPA/CPRA applicability
-          thresholds: $25M+ revenue, 100,000+ consumers, or 50%+ revenue from data sales.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          This may change if your revenue or data volume grows, or if California enacts
-          lower thresholds.
-        </p>
+        {isGeoOut ? (
+          <p className="text-foreground">
+            The CCPA/CPRA applies to businesses that do business in California or collect
+            personal information from California residents. Based on your answers, your
+            business does not appear to fall within California's jurisdiction. This may
+            change if you begin operating in California or serving California customers.
+          </p>
+        ) : (
+          <>
+            <p className="text-foreground">
+              Your business does not appear to meet any of the three CCPA/CPRA applicability
+              thresholds: $25M+ revenue, 100,000+ consumers, or 50%+ revenue from data sales.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              This may change if your revenue or data volume grows, or if California enacts
+              lower thresholds.
+            </p>
+          </>
+        )}
         <p className="text-xs text-muted-foreground italic pt-3 border-t">
           This is a preliminary scope indicator based on your self-reported answers.
           It is not legal advice.
