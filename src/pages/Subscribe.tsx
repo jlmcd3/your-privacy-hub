@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
@@ -40,7 +40,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Legitimate Interest Assessment", free: false, intel: "$69 per analysis", platform: "Included" },
   { feature: "DPIA / Impact Assessment", free: false, intel: "$99 per document", platform: "Included" },
   { feature: "DPA Generator", free: false, intel: "$49 per document", platform: "Included" },
-  { feature: "IR Playbook", free: false, intel: "$39 per playbook", platform: "Included" },
+  { feature: "IR Playbook", free: false, intel: `${getPrice("ir_playbook_standalone").displayPrice} per playbook`, platform: "Included" },
   { feature: "Biometric Privacy Checker", free: false, intel: "$49 per assessment", platform: "Included" },
   { feature: "Records of Processing (RoFA)", free: false, intel: "$79 per record set", platform: "Included" },
   { feature: "US Privacy Notice", free: false, intel: "$25 per state / $59 all states", platform: "Included" },
