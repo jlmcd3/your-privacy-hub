@@ -289,12 +289,32 @@ function ClientCard({
             ariaLabel={`Open US Privacy Notices for ${client.name}`}
           />
           <CountRow
-            label="EU Notices"
-            value={
-              counts!.euNotices.frameworkCount > 0
-                ? `${counts!.euNotices.frameworkCount} frameworks`
-                : 'Not yet generated'
-            }
+            label="EU & Global Notices"
+            value={(() => {
+              const eu = counts!.euNotices;
+              if (eu.frameworkCount === 0) return 'No EU notices yet';
+              const labels = eu.frameworks.map((f) => f.toUpperCase()).join(' + ');
+              const days = eu.daysUntilRefresh;
+              if (days === null) return labels;
+              if (days <= 30) {
+                return (
+                  <span className="text-red-600">
+                    {labels} · {days < 0 ? `Refresh overdue ${-days}d` : `Refresh due in ${days}d`}
+                  </span>
+                );
+              }
+              if (days <= 60) {
+                return (
+                  <span className="text-amber-700">
+                    {labels} · Refresh due in {days}d
+                  </span>
+                );
+              }
+              const refreshLabel = eu.refreshDueDate
+                ? new Date(eu.refreshDueDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })
+                : '';
+              return `${labels}${refreshLabel ? ` · ${refreshLabel}` : ''} · Current`;
+            })()}
           />
         </div>
       )}
