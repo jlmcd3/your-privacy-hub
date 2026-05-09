@@ -18,6 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
+import { Globe2 } from "lucide-react";
+import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 interface SessionRow {
   id: string;
