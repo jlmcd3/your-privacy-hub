@@ -13,7 +13,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ArrowRight, Check, Shield, RefreshCw, MapPin } from "lucide-react";
-import { US_NOTICE_PRICING, INTELLIGENCE_PRICING } from "@/config/pricing";
+import { US_NOTICE_PRICING, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 const VIRGINIA_STATES = [
   "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
@@ -23,13 +24,13 @@ const VIRGINIA_STATES = [
 
 const PENDING_STATES = ["Kentucky (eff. 2026)", "Rhode Island (eff. 2026)"];
 
-const PRICING_ROWS: Array<{ feature: string; free: string; sub: string }> = [
-  { feature: "Answer all questions", free: "✓", sub: "✓" },
-  { feature: "Save & resume", free: "✓", sub: "✓" },
-  { feature: "Pre-population from RoPA", free: "✓", sub: "✓" },
-  { feature: "Single state notice", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber() },
-  { feature: "All 20 states", free: US_NOTICE_PRICING.allStatesStandalone(), sub: US_NOTICE_PRICING.allStatesSubscriber() },
-  { feature: "Annual refresh", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber() },
+const PRICING_ROWS: Array<{ feature: string; free: string; sub: string; platform: string }> = [
+  { feature: "Answer all questions", free: "✓", sub: "✓", platform: "✓" },
+  { feature: "Save & resume", free: "✓", sub: "✓", platform: "✓" },
+  { feature: "Pre-population from RoPA", free: "✓", sub: "✓", platform: "✓" },
+  { feature: "Single state notice", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber(), platform: "Included" },
+  { feature: "All 20 states", free: US_NOTICE_PRICING.allStatesStandalone(), sub: US_NOTICE_PRICING.allStatesSubscriber(), platform: "Included" },
+  { feature: "Annual refresh", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber(), platform: "Included" },
 ];
 
 const FAQ: Array<{ q: string; a: string }> = [
@@ -60,6 +61,7 @@ const FAQ: Array<{ q: string; a: string }> = [
 ];
 
 export default function USNoticeLanding() {
+  const { hasToolAccess } = useSubscriptionTier();
   useEffect(() => {
     document.title =
       "US Privacy Notice Builder — CCPA, Virginia, Texas & All 20 States | End User Privacy";
@@ -78,6 +80,11 @@ export default function USNoticeLanding() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
+        {hasToolAccess && (
+          <div className="mt-2 text-[12px] text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+            ✓ Included in your Annual Platform — every US state privacy notice is included at no additional charge.
+          </div>
+        )}
       </div>
       <main className="flex-1">
         {/* HERO */}
@@ -218,8 +225,12 @@ export default function USNoticeLanding() {
                       <th className="text-left p-4 font-medium"></th>
                       <th className="text-left p-4 font-medium">Free</th>
                       <th className="text-left p-4 font-medium">
-                        Intelligence{" "}
+                        Intelligence Plan{" "}
                         <span className="text-muted-foreground font-normal">({INTELLIGENCE_PRICING.monthlyShort()})</span>
+                      </th>
+                      <th className="text-left p-4 font-medium">
+                        Platform{" "}
+                        <span className="text-muted-foreground font-normal">({PLATFORM_PRICING.standard()})</span>
                       </th>
                     </tr>
                   </thead>
@@ -229,6 +240,7 @@ export default function USNoticeLanding() {
                         <td className="p-4 text-foreground">{row.feature}</td>
                         <td className="p-4">{row.free}</td>
                         <td className="p-4 font-medium">{row.sub}</td>
+                        <td className="p-4 font-medium text-green-700">{row.platform}</td>
                       </tr>
                     ))}
                   </tbody>
