@@ -61,6 +61,41 @@ Deno.serve(async (req) => {
       .update({ status: "processing" })
       .eq("id", assessment_id);
 
+    // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
+    let enforcementContext = "";
+    try {
+      const sector = (row.intake_data as any)?.industry_sector
+        ?? (row.intake_data as any)?.sector
+        ?? undefined;
+      const ecRes = await fetch(
+        `${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            tool: "CPPA",
+            jurisdictions: ["California", "United States", "US-CA"],
+            sector,
+            breach: true,
+            limit: 6,
+          }),
+        },
+      );
+      if (ecRes.ok) {
+        const ec = await ecRes.json();
+        if (ec?.results?.length) {
+          enforcementContext = ec.results.map((r: any) =>
+            `- ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
+          ).join("\n");
+        }
+      }
+    } catch (e) {
+      console.warn("enforcement context fetch failed:", e);
+    }
+
     const system = `You are a cybersecurity readiness analyst specialising in California's CPPA cybersecurity audit regulations (effective 2026 for highest-risk businesses). You map an organisation's controls against the CPPA's 18 enumerated cybersecurity programme components and produce a structured readiness report. You never give legal advice.
 Respond ONLY with valid JSON matching the schema provided.`;
 
@@ -69,6 +104,7 @@ Respond ONLY with valid JSON matching the schema provided.`;
 Intake data:
 ${JSON.stringify(row.intake_data, null, 2)}
 
+${enforcementContext ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant):\n${enforcementContext}\n` : ""}
 Respond with this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall readiness posture and top 3 priorities)",
