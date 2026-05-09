@@ -23,7 +23,7 @@ interface PerClientCounts {
   // Future tables — still tolerated as missing.
   ropa: { latestVersion: number | null; latestDate: string | null };
   usNotices: { stateCount: number; latestDate: string | null };
-  euNotices: { frameworkCount: number; latestDate: string | null };
+  euNotices: EuNoticeStatus;
   totalFlags: number; // crude urgency proxy
 }
 
