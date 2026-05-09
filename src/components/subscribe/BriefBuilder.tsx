@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Check, X } from "lucide-react";
 import { sampleBriefs, type SampleTrackSection } from "@/data/sampleBriefs";
 import { CitedText } from "@/components/brief/CitedText";
 
@@ -80,11 +80,47 @@ export default function BriefBuilder() {
   const [role,         setRole]         = useState("");
   const [tracks,       setTracks]       = useState<string[]>([]);
   const [briefShown,   setBriefShown]   = useState(false);
+  const [showCollapsePill, setShowCollapsePill] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const toggleTrack = (t: string) =>
     setTracks((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
     );
+
+  const collapseBrief = () => {
+    setBriefShown(false);
+    requestAnimationFrame(() => {
+      rootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  // Esc key collapses the brief
+  useEffect(() => {
+    if (!briefShown) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") collapseBrief();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [briefShown]);
+
+  // Show floating pill once user scrolls past the top of the brief container
+  useEffect(() => {
+    if (!briefShown) {
+      setShowCollapsePill(false);
+      return;
+    }
+    const onScroll = () => {
+      const el = rootRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      setShowCollapsePill(top < 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [briefShown]);
 
   const briefItems = briefShown
     ? getBriefItems(jurisdiction, role, tracks)
@@ -93,7 +129,19 @@ export default function BriefBuilder() {
   const canGenerate = !!jurisdiction && !!role && tracks.length > 0;
 
   return (
-    <div className="bg-card border border-fog rounded-2xl p-6 md:p-8">
+    <div ref={rootRef} className="bg-card border border-fog rounded-2xl p-6 md:p-8 relative">
+      {showCollapsePill && (
+        <button
+          type="button"
+          onClick={collapseBrief}
+          aria-label="Collapse brief (Esc)"
+          title="Collapse brief (Esc)"
+          className="fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 px-4 h-11 rounded-full bg-navy text-white shadow-eup-md hover:bg-navy/90 transition-all border border-navy-light text-[13px] font-semibold"
+        >
+          <X className="w-4 h-4" />
+          Collapse brief
+        </button>
+      )}
       <div className="mb-6">
         <h3 className="font-display font-bold text-navy text-[18px] mb-1">
           Build your sample Intelligence Brief
