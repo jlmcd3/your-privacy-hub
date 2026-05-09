@@ -8,7 +8,7 @@ const destinations = [
   { icon: "📰", title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
   { icon: "🗺️", title: "Global Law Map", desc: "150+ jurisdictions mapped and profiled", href: "/jurisdictions" },
   { icon: "⚖️", title: "Enforcement Tracker", desc: "Fines, orders, and regulatory actions", href: "/enforcement-tracker" },
-  { icon: "📋", title: "Sample Brief", desc: "See a full Intelligence Brief example", href: "/sample-brief" },
+  { icon: "📋", title: "Sample Brief", desc: "See a full Intelligence Brief example", href: "/#brief" },
 ];
 
 const NotFound = () => {

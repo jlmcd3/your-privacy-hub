@@ -112,7 +112,7 @@ const NAV_HIERARCHY = [
     section: "Footer — Product",
     items: [
       { label: "Subscribe", href: "/subscribe", badge: "CTA" },
-      { label: "Sample Brief", href: "/sample-brief", badge: "FREE" },
+      { label: "Sample Brief", href: "/#brief", badge: "FREE" },
       { label: "Tools", href: "/tools", badge: "MIXED" },
       { label: "FAQ", href: "/faq", badge: "FREE" },
     ],

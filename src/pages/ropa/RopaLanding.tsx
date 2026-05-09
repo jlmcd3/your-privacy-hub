@@ -119,7 +119,7 @@ export default function RopaLanding() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/sample-brief">
+                <Link to="/#brief">
                   See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
                 </Link>
               </Button>

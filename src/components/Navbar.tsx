@@ -73,7 +73,7 @@ const navItems: NavItem[] = [
           { icon: "⭐", label: "Weekly Intelligence Brief", href: "/get-intelligence" },
           { icon: "🛰️", label: "Regulatory Trend Forecast", href: "/horizon" },
           { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive" },
-          { icon: "📄", label: "Sample Intelligence Brief", badge: "FREE", badgeGreen: true, href: "/sample-brief" },
+          { icon: "📄", label: "Sample Intelligence Brief", badge: "FREE", badgeGreen: true, href: "/#brief" },
         ],
       },
       {

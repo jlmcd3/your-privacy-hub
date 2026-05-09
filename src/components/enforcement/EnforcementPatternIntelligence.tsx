@@ -145,7 +145,7 @@ export default function EnforcementPatternIntelligence() {
         Full pattern analysis, written for your industry and jurisdictions — in
         the weekly Intelligence Brief.{" "}
         <Link
-          to="/sample-brief"
+          to="/#brief"
           className="text-primary font-medium no-underline hover:underline"
         >
           See a sample →
