@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EU_NOTICE_PRICING } from "@/config/pricing";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 const FRAMEWORKS = [
   { code: "EU_GDPR", name: "EU GDPR", region: "EU/EEA" },
@@ -25,6 +26,7 @@ const FRAMEWORKS = [
 ];
 
 export default function EUNoticeLanding() {
+  const { hasToolAccess } = useSubscriptionTier();
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
@@ -35,6 +37,11 @@ export default function EUNoticeLanding() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
+        {hasToolAccess && (
+          <div className="mt-2 text-[12px] text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+            ✓ Included in your Annual Platform — every EU & global privacy notice framework is included at no additional charge.
+          </div>
+        )}
       </div>
       <main className="flex-1">
         <section className="py-16 md:py-20 border-b border-border">
