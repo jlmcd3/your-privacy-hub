@@ -419,7 +419,7 @@ export default function EUNoticeReview() {
               label="Mode"
               value={session?.ropa_session_id ? "RoPA-powered" : "Standalone"}
             />
-            <Row label="Version" value={`v${(session as never as { version_number?: number })?.version_number ?? 1}`} />
+            <Row label="Version" value={`v${session?.version_number ?? 1}`} />
           </dl>
           <div className="flex flex-wrap gap-1.5">
             {frameworks.map((f) => (
