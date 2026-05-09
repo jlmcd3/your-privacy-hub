@@ -1,61 +1,18 @@
-import { useState } from "react";
-import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-
-const emailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .email({ message: "Please enter a valid email address" })
-  .max(255, { message: "Email must be less than 255 characters" });
-
-type Status = "idle" | "loading" | "success" | "duplicate" | "error";
+import { Link } from "react-router-dom";
 
 interface FreeDigestSignupProps {
-  /** Tag written to email_signups.source (defaults to "website") */
+  /** Tag forwarded to the signup redirect (defaults to "website") */
   source?: string;
   className?: string;
 }
 
+/**
+ * Free signup CTA — routes to /signup so the user creates a real account
+ * (with required Terms of Service & Privacy Policy agreement). The free tier
+ * entitles them to minimal article enrichment views and the weekly summary email.
+ */
 const FreeDigestSignup = ({ source = "website", className = "" }: FreeDigestSignupProps) => {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-
-    const parsed = emailSchema.safeParse(email);
-    if (!parsed.success) {
-      setStatus("error");
-      setErrorMsg(parsed.error.issues[0]?.message ?? "Invalid email");
-      return;
-    }
-
-    setStatus("loading");
-
-    try {
-      const { data, error } = await supabase.functions.invoke("subscribe-email", {
-        body: { email: parsed.data, source },
-      });
-
-      if (error) throw error;
-
-      const body = data as { success?: boolean; error?: string };
-      if (body?.error === "already_subscribed") {
-        setStatus("duplicate");
-      } else if (body?.success) {
-        setStatus("success");
-      } else {
-        throw new Error(body?.error ?? "Unknown response");
-      }
-    } catch {
-      setStatus("error");
-      setErrorMsg("Something went wrong. Please try again.");
-    }
-  };
-
+  const redirect = `/onboarding-profile?source=${encodeURIComponent(source)}`;
   return (
     <section
       className={`bg-card border border-border rounded-2xl p-6 md:p-8 ${className}`}
@@ -72,52 +29,23 @@ const FreeDigestSignup = ({ source = "website", className = "" }: FreeDigestSign
           Not ready for the full Intelligence Brief?
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
-          Get the personalized weekly digest free — filtered to your regions and topics, every Monday.
+          Create a free account to get the personalized weekly digest — filtered to your regions and topics, every Monday — plus minimal enrichment views on articles.
         </p>
 
-        {status === "success" ? (
-          <p className="text-sm font-medium text-accent" role="status">
-            ✓ You're subscribed — check your inbox Monday.
-          </p>
-        ) : status === "duplicate" ? (
-          <p className="text-sm font-medium text-primary" role="status">
-            You're already subscribed — see you Monday!
-          </p>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-            noValidate
+        <div className="flex flex-col items-center gap-2">
+          <Link
+            to={`/signup?redirect=${encodeURIComponent(redirect)}`}
+            className="inline-block px-6 py-2.5 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-opacity no-underline"
           >
-            <label htmlFor="free-digest-email" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="free-digest-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              required
-              maxLength={255}
-              autoComplete="email"
-              className="flex-1 px-4 py-2.5 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="px-5 py-2.5 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
-            >
-              {status === "loading" ? "Subscribing…" : "Get free digest"}
-            </button>
-          </form>
-        )}
-
-        {status === "error" && errorMsg && (
-          <p className="text-xs text-destructive mt-3" role="alert">
-            {errorMsg}
+            Create free account
+          </Link>
+          <p className="text-[11px] text-muted-foreground">
+            You'll agree to our{" "}
+            <Link to="/terms" className="underline hover:text-foreground">Terms of Service</Link>{" "}
+            and{" "}
+            <Link to="/privacy-policy" className="underline hover:text-foreground">Privacy Policy</Link>.
           </p>
-        )}
+        </div>
       </div>
     </section>
   );

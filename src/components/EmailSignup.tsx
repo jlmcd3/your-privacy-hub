@@ -1,37 +1,23 @@
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 interface EmailSignupProps {
   variant?: "strip" | "card";
   className?: string;
+  /** Optional tag forwarded to the signup redirect for attribution. */
+  source?: string;
 }
 
-const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "duplicate">("idle");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.includes("@")) return;
-    setStatus("loading");
-
-    try {
-      const { data, error } = await supabase.functions.invoke("subscribe-email", {
-        body: { email },
-      });
-
-      if (error) throw error;
-
-      const body = data as any;
-      if (body?.error === "already_subscribed") {
-        setStatus("duplicate");
-      } else {
-        setStatus("success");
-      }
-    } catch {
-      setStatus("error");
-    }
-  };
+/**
+ * Free signup CTA. Replaces the previous inline email-capture form so that every
+ * free subscriber goes through proper account creation with required Terms of
+ * Service and Privacy Policy agreement. Free entitlements: minimal article
+ * enrichment views and the weekly summary email.
+ */
+const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupProps) => {
+  const redirect = source
+    ? `/onboarding-profile?source=${encodeURIComponent(source)}`
+    : "/onboarding-profile";
+  const signupHref = `/signup?redirect=${encodeURIComponent(redirect)}`;
 
   if (variant === "strip") {
     return (
@@ -42,34 +28,25 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
               Free: your personalized weekly digest, every Monday
             </h3>
             <p className="text-sm text-slate-light">
-              Filtered to your regions and topics. Regulatory developments that matter to you, every Monday. Always free.
+              Create a free account to get filtered regulatory developments every Monday — plus minimal enrichment views on articles. Always free.
             </p>
           </div>
-          {status === "success" ? (
-            <p className="text-sm font-medium text-accent">✓ You're subscribed — check your inbox Monday</p>
-          ) : status === "duplicate" ? (
-            <p className="text-sm font-medium text-sky">Already subscribed!</p>
-          ) : (
-            <form onSubmit={handleSubmit} className="flex gap-2 w-full md:w-auto">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                required
-                className="flex-1 md:w-[280px] px-4 py-2.5 rounded-lg text-sm bg-white/10 border border-white/20 text-white placeholder:text-white/50 outline-none focus:border-sky transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="px-5 py-2.5 text-sm font-semibold text-navy bg-white rounded-lg hover:bg-white/90 transition-colors disabled:opacity-60"
-              >
-                {status === "loading" ? "…" : "Get free digest"}
-              </button>
-            </form>
-          )}
+          <div className="flex flex-col items-center md:items-end gap-1.5 w-full md:w-auto">
+            <Link
+              to={signupHref}
+              className="px-5 py-2.5 text-sm font-semibold text-navy bg-white rounded-lg hover:bg-white/90 transition-colors no-underline"
+            >
+              Create free account
+            </Link>
+            <p className="text-[10px] text-white/60">
+              By signing up you agree to our{" "}
+              <Link to="/terms" className="underline hover:text-white">Terms</Link>{" "}
+              &{" "}
+              <Link to="/privacy-policy" className="underline hover:text-white">Privacy Policy</Link>.
+            </p>
+          </div>
         </div>
-        <p className="md:col-span-2 text-[10px] text-white/50 text-center mt-3">
+        <p className="text-[10px] text-white/50 text-center mt-3">
           We show contextual, non-behavioural ads on this site to keep core
           intelligence free. We never share your browsing data with advertisers.
         </p>
@@ -83,32 +60,20 @@ const EmailSignup = ({ variant = "card", className = "" }: EmailSignupProps) => 
         📧 Your Personalized Weekly Digest — Free
       </h4>
       <p className="text-xs text-muted-foreground mb-3">
-        Filtered to your regions and topics. Free weekly updates on the developments that matter to your work.
+        Create a free account for filtered weekly updates on the developments that matter to your work, plus minimal enrichment views on articles.
       </p>
-      {status === "success" ? (
-        <p className="text-sm font-medium text-accent">✓ You're subscribed — check your inbox Monday</p>
-      ) : status === "duplicate" ? (
-        <p className="text-sm font-medium text-primary">Already subscribed!</p>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
-            required
-            className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            className="px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-colors disabled:opacity-60"
-          >
-            {status === "loading" ? "…" : "Subscribe"}
-          </button>
-        </form>
-      )}
-      {status === "error" && <p className="text-xs text-destructive mt-2">Something went wrong. Please try again.</p>}
+      <Link
+        to={signupHref}
+        className="inline-block px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-colors no-underline"
+      >
+        Create free account
+      </Link>
+      <p className="text-[11px] text-muted-foreground mt-2">
+        You'll agree to our{" "}
+        <Link to="/terms" className="underline hover:text-foreground">Terms of Service</Link>{" "}
+        and{" "}
+        <Link to="/privacy-policy" className="underline hover:text-foreground">Privacy Policy</Link>.
+      </p>
     </div>
   );
 };
