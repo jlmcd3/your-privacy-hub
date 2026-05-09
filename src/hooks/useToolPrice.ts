@@ -16,7 +16,7 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   us_notice_all_states: { standalone: 59, subscriber: 29, name: "US Privacy Notice — All States" },
   us_notice_refresh: { standalone: 25, subscriber: 12, name: "US Notice — Annual Refresh" },
   eu_notice_single: { standalone: 45, subscriber: 19, name: "EU & Global Notice — Single Framework" },
-  eu_notice_suite: { standalone: 149, subscriber: 65, name: "EU Notice Suite — GDPR + UK GDPR + FADP" },
+  eu_notice_suite: { standalone: 119, subscriber: 65, name: "EU Notice Suite — GDPR + UK GDPR + FADP" },
   eu_notice_full_international: { standalone: 229, subscriber: 99, name: "EU & Global Notice — Full International" },
   eu_notice_refresh: { standalone: 35, subscriber: 19, name: "EU & Global Notice — Annual Refresh" },
   cppa_risk_assessment: { standalone: 149, subscriber: 79, name: "CPPA Risk Assessment — Module 1" },
