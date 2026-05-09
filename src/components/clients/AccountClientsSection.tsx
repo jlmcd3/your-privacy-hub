@@ -432,6 +432,30 @@ export function ComplianceDocumentsSection() {
       } catch {
         setUsNoticesAvailable(false);
       }
+      // EU notices — wrapped in try/catch in case the table is not yet created.
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: euDocs, error: euErr } = await (supabase as any)
+          .from('eu_notice_documents')
+          .select('framework_code, generated_at, is_combined')
+          .in('client_id', clientIds)
+          .eq('is_current', true)
+          .eq('is_combined', false);
+        if (euErr) return;
+        const rows = (euDocs ?? []) as Array<{ framework_code: string; generated_at: string }>;
+        if (rows.length === 0) return;
+        const frameworks = Array.from(new Set(rows.map((r) => r.framework_code))).sort();
+        const latestMs = Math.max(...rows.map((r) => new Date(r.generated_at).getTime()));
+        setStatus((prev) => ({
+          ...prev,
+          euNotices: {
+            frameworkCount: frameworks.length,
+            latestDate: new Date(latestMs).toISOString(),
+          },
+        }));
+      } catch {
+        /* table may not exist yet — silently ignore */
+      }
     })();
   }, [clients]);
 
