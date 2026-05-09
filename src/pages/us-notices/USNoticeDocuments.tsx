@@ -18,6 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
+import { Globe2 } from "lucide-react";
+import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 interface SessionRow {
   id: string;
@@ -79,6 +81,22 @@ export default function USNoticeDocuments() {
   const [session, setSession] = useState<SessionRow | null>(null);
   const [states, setStates] = useState<StateRow[]>([]);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
+  const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count } = await (supabase as any)
+          .from('eu_notice_documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_current', true);
+        setHasEuNotices((count ?? 0) > 0);
+      } catch {
+        setHasEuNotices(true);
+      }
+    })();
+  }, []);
 
   async function load() {
     if (!sessionId) return;
@@ -236,6 +254,17 @@ export default function USNoticeDocuments() {
         Download your generated notices below. Each state-specific notice reflects the
         legal framework that applies in that jurisdiction based on your answers.
       </p>
+
+      <CrossToolPrompt
+        visitKey={`/us-notices/${sessionId}/documents`}
+        dismissKey="eu_notice_prompt_dismissed"
+        icon={<Globe2 className="w-5 h-5" />}
+        title="🌍 Add EU & global notices?"
+        body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
+        ctaLabel="Generate EU notices →"
+        ctaTo="/eu-notices/mode?mode=ropa_powered"
+        enabled={!hasEuNotices && documents.length > 0}
+      />
 
       {/* Generate / regenerate panel */}
       <Card className="mb-8">
@@ -446,6 +475,13 @@ export default function USNoticeDocuments() {
           <Link to="/us-notices">All notice sessions</Link>
         </Button>
       </div>
+
+      <RelatedToolsChips
+        tools={[
+          { label: "📋 RoPA", to: "/ropa/documents" },
+          { label: "🌍 EU Notices", to: "/eu-notices" },
+        ]}
+      />
     </USNoticeShell>
   );
 }

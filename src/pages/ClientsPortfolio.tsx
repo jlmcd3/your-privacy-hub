@@ -23,7 +23,7 @@ interface PerClientCounts {
   // Future tables — still tolerated as missing.
   ropa: { latestVersion: number | null; latestDate: string | null };
   usNotices: { stateCount: number; latestDate: string | null };
-  euNotices: { frameworkCount: number; latestDate: string | null };
+  euNotices: EuNoticeStatus;
   totalFlags: number; // crude urgency proxy
 }
 
@@ -74,6 +74,46 @@ async function loadUsNoticeStatus(
   }
 }
 
+interface EuNoticeStatus {
+  frameworkCount: number;
+  frameworks: string[];
+  latestDate: string | null;
+  refreshDueDate: string | null;
+  daysUntilRefresh: number | null;
+}
+
+async function loadEuNoticeStatus(clientId: string): Promise<EuNoticeStatus> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from('eu_notice_documents')
+      .select('framework_code, generated_at, is_combined, is_current')
+      .eq('client_id', clientId)
+      .eq('is_current', true)
+      .eq('is_combined', false);
+    if (error || !data || data.length === 0) {
+      return { frameworkCount: 0, frameworks: [], latestDate: null, refreshDueDate: null, daysUntilRefresh: null };
+    }
+    const frameworks = Array.from(new Set(data.map((d: { framework_code: string }) => d.framework_code))).sort();
+    const dates = data
+      .map((d: { generated_at: string }) => new Date(d.generated_at).getTime())
+      .filter((n: number) => !Number.isNaN(n));
+    const latestMs = dates.length ? Math.max(...dates) : null;
+    const earliestMs = dates.length ? Math.min(...dates) : null;
+    const refreshMs = earliestMs !== null ? earliestMs + 365 * 24 * 60 * 60 * 1000 : null;
+    const days = refreshMs !== null ? Math.floor((refreshMs - Date.now()) / (24 * 60 * 60 * 1000)) : null;
+    return {
+      frameworkCount: frameworks.length,
+      frameworks: frameworks as string[],
+      latestDate: latestMs ? new Date(latestMs).toISOString() : null,
+      refreshDueDate: refreshMs ? new Date(refreshMs).toISOString() : null,
+      daysUntilRefresh: days,
+    };
+  } catch {
+    return { frameworkCount: 0, frameworks: [], latestDate: null, refreshDueDate: null, daysUntilRefresh: null };
+  }
+}
+
 async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
   const [
     liaCount,
@@ -84,6 +124,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     biometricCount,
     registrationCount,
     usNotices,
+    euNotices,
   ] = await Promise.all([
     safeCount('li_assessments', clientId),
     safeCount('dpia_frameworks', clientId),
@@ -93,6 +134,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     safeCount('biometric_assessments', clientId),
     safeCount('registration_orders', clientId),
     loadUsNoticeStatus(clientId),
+    loadEuNoticeStatus(clientId),
   ]);
 
   return {
@@ -106,7 +148,7 @@ async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
     registrationCount,
     ropa: { latestVersion: null, latestDate: null },
     usNotices,
-    euNotices: { frameworkCount: 0, latestDate: null },
+    euNotices,
     totalFlags:
       liaCount + dpiaCount + dpaCount + irCount + govCount + biometricCount + registrationCount,
   };
@@ -247,12 +289,32 @@ function ClientCard({
             ariaLabel={`Open US Privacy Notices for ${client.name}`}
           />
           <CountRow
-            label="EU Notices"
-            value={
-              counts!.euNotices.frameworkCount > 0
-                ? `${counts!.euNotices.frameworkCount} frameworks`
-                : 'Not yet generated'
-            }
+            label="EU & Global Notices"
+            value={(() => {
+              const eu = counts!.euNotices;
+              if (eu.frameworkCount === 0) return 'No EU notices yet';
+              const labels = eu.frameworks.map((f) => f.toUpperCase()).join(' + ');
+              const days = eu.daysUntilRefresh;
+              if (days === null) return labels;
+              if (days <= 30) {
+                return (
+                  <span className="text-red-600">
+                    {labels} · {days < 0 ? `Refresh overdue ${-days}d` : `Refresh due in ${days}d`}
+                  </span>
+                );
+              }
+              if (days <= 60) {
+                return (
+                  <span className="text-amber-700">
+                    {labels} · Refresh due in {days}d
+                  </span>
+                );
+              }
+              const refreshLabel = eu.refreshDueDate
+                ? new Date(eu.refreshDueDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })
+                : '';
+              return `${labels}${refreshLabel ? ` · ${refreshLabel}` : ''} · Current`;
+            })()}
           />
         </div>
       )}

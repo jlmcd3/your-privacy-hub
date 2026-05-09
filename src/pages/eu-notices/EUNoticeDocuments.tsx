@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 interface DocRow {
   id: string;
@@ -134,6 +135,13 @@ export default function EUNoticeDocuments() {
           </CardContent>
         </Card>
       )}
+
+      <RelatedToolsChips
+        tools={[
+          { label: "📋 RoPA", to: "/ropa/documents" },
+          { label: "📋 US Notices", to: "/us-notices" },
+        ]}
+      />
     </EUNoticeShell>
   );
 }

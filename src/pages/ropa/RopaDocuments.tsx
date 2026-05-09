@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, FileSpreadsheet, FileType, Download, RefreshCw, Plus } from "lucide-react";
+import { FileText, FileSpreadsheet, FileType, Download, RefreshCw, Plus, Globe2 } from "lucide-react";
 import { format } from "date-fns";
+import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 
 type SessionRow = {
   id: string;
@@ -49,6 +50,33 @@ export default function RopaDocuments() {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [docs, setDocs] = useState<Record<string, DocVersion[]>>({});
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
+  const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count: usCount } = await (supabase as any)
+          .from('us_notice_sessions')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'completed');
+        setHasUsNotices((usCount ?? 0) > 0);
+      } catch {
+        setHasUsNotices(true);
+      }
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { count: euCount } = await (supabase as any)
+          .from('eu_notice_documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_current', true);
+        setHasEuNotices((euCount ?? 0) > 0);
+      } catch {
+        setHasEuNotices(true);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     void loadDocuments();
@@ -160,6 +188,31 @@ export default function RopaDocuments() {
           New RoPA
         </Button>
       </div>
+
+      {/* Cross-tool prompts: US notice prompt takes priority over EU when both missing. */}
+      {!hasUsNotices ? (
+        <CrossToolPrompt
+          visitKey="/ropa/documents"
+          dismissKey="us_notice_prompt_dismissed"
+          icon={<FileText className="w-5 h-5" />}
+          title="📋 Add US state privacy notices?"
+          body="Your RoPA data pre-populates most answers. Takes 5–12 minutes."
+          ctaLabel="Generate US notices →"
+          ctaTo="/us-notices/mode?mode=ropa_powered"
+          enabled={sessions.length > 0}
+        />
+      ) : (
+        <CrossToolPrompt
+          visitKey="/ropa/documents"
+          dismissKey="eu_notice_prompt_dismissed"
+          icon={<Globe2 className="w-5 h-5" />}
+          title="🌍 Add EU & global notices?"
+          body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
+          ctaLabel="Generate EU notices →"
+          ctaTo="/eu-notices/mode?mode=ropa_powered"
+          enabled={sessions.length > 0 && !hasEuNotices}
+        />
+      )}
 
       {loading ? (
         <div className="space-y-4">
@@ -281,6 +334,13 @@ export default function RopaDocuments() {
           })}
         </div>
       )}
+
+      <RelatedToolsChips
+        tools={[
+          { label: "📋 US Notices", to: "/us-notices" },
+          { label: "🌍 EU Notices", to: "/eu-notices" },
+        ]}
+      />
     </RopaShell>
   );
 }
