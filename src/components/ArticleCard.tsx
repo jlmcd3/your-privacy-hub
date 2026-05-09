@@ -326,6 +326,12 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
+        {/* Article excerpt — first two lines of the source article */}
+        {item.summary && (
+          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
+            {stripHtml(item.summary)}
+          </p>
+        )}
         {/* Why it matters — Pro sees full, free sees short */}
         {isPremium && item.ai_summary?.why_it_matters ? (
           <div className="mt-2 flex gap-2 items-start">
