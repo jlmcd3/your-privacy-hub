@@ -499,9 +499,13 @@ export function ComplianceDocumentsSection() {
         {row(
           'EU & Global Notices',
           status.euNotices.frameworkCount > 0
-            ? `${status.euNotices.frameworkCount} frameworks`
+            ? `${status.euNotices.frameworkCount} frameworks${
+                status.euNotices.latestDate
+                  ? ` · ${new Date(status.euNotices.latestDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
+                  : ''
+              }`
             : 'Not yet generated',
-          '/clients'
+          '/eu-notices'
         )}
       </div>
       <div className="mt-3 text-right">
