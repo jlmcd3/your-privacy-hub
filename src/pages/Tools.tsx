@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
 
 // ── Section types ─────────────────────────────────────────────────────────
 type ToolSection = "assessments" | "documents" | "cppa";
@@ -259,7 +259,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
     subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$39",
+    standalonePrice: getPrice("ir_playbook_standalone").displayPrice,
     freeBadge: "Deadline lookup free",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
