@@ -93,7 +93,7 @@ export default function CPPAScopeChecker() {
         q5 === "Yes");
 
     const cyberAuditRequired = ["$100M–$500M", "Over $500M"].includes(q2);
-    const admtRequired = ["Yes", "In evaluation"].includes(q7);
+    const admtRequired = ["Yes", "In evaluation", "Unsure"].includes(q7);
     const sensitiveRequired = q6 === "Yes" || q6 === "Unsure";
     const dataBrokerRequired =
       q8 === "No — we buy or sell PI without a direct consumer relationship";
