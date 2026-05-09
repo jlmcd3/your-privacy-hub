@@ -112,7 +112,7 @@ export default function EUNoticeReview() {
           supabase
             .from("eu_notice_sessions")
             .select(
-              "id, client_id, scope, mode, status, is_refresh, payment_confirmed, ropa_session_id",
+              "id, client_id, scope, mode, status, is_refresh, payment_confirmed, ropa_session_id, version_number",
             )
             .eq("id", sessionId)
             .single(),
