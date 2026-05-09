@@ -19,6 +19,7 @@ interface Update {
   published_at: string;
   is_premium: boolean;
   ai_summary?: any;
+  why_it_matters_short?: string | null;
   topic_tags?: string[];
   attention_level?: string;
   affected_sectors?: string[];
@@ -160,7 +161,7 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("id,title,summary,url,source_name,source_domain,image_url,published_at,category,regulator,is_premium,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
+          .select("id,title,summary,url,source_name,source_domain,image_url,published_at,category,regulator,is_premium,ai_summary,why_it_matters_short,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
           .eq("is_hidden", false)
           .order("published_at", { ascending: false })
           .limit(20);
