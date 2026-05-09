@@ -144,7 +144,7 @@ const GovernanceAssessment = () => {
     if (!user) { setAuthGateOpen(true); return; }
 
     // For $0 (included with Platform), bypass Stripe entirely
-    if (pricing.price === 0 && pricing.isIncluded) {
+    if (pricing.price === 0) {
       setPurchasing(true);
       const { data, error } = await supabase.functions.invoke(
         "run-governance-assessment",
@@ -341,12 +341,16 @@ const GovernanceAssessment = () => {
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
-              <Button onClick={handlePurchase} disabled={purchasing || !pricing.stripeConfigured}>
-                {!pricing.stripeConfigured
-                  ? `Payments Coming Soon — $${pricing.price}`
-                  : purchasing
-                    ? "Redirecting…"
-                    : `Purchase Full Healthcheck — $${pricing.price}`}
+              <Button onClick={handlePurchase} disabled={purchasing || (pricing.price > 0 && !pricing.stripeConfigured)}>
+                {pricing.price === 0
+                  ? purchasing
+                    ? "Generating…"
+                    : "Generate Assessment — Free"
+                  : !pricing.stripeConfigured
+                    ? `Payments Coming Soon — $${pricing.price}`
+                    : purchasing
+                      ? "Redirecting…"
+                      : `Purchase Full Healthcheck — $${pricing.price}`}
               </Button>
             )}
           </div>

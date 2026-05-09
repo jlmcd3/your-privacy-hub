@@ -52,8 +52,9 @@ const DOMAIN_DEFINITIONS = [
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let assessment_id: string | undefined;
   try {
-    const { assessment_id } = await req.json();
+    ({ assessment_id } = await req.json());
     if (!assessment_id) return new Response(JSON.stringify({ error: "assessment_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -234,6 +235,10 @@ Return JSON:
 
   } catch (e) {
     console.error("run-governance-assessment error:", e);
+    if (assessment_id) {
+      await supabase.from("governance_assessments")
+        .update({ status: "failed" }).eq("id", assessment_id);
+    }
     return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

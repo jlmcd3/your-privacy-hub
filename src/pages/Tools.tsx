@@ -383,7 +383,7 @@ const TOOLS: ToolDef[] = [
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
     subscriberPrice: "$79 subscriber rate",
-    standalonePrice: "$199",
+    standalonePrice: "$149",
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
@@ -430,7 +430,7 @@ const PRICING_GRID: [string, string][] = [
   ["Registration Manager (Annual)", "Standalone rates → Included with Annual Platform"],
   ["Registration Manager (Monthly)", "20% off DIY · $75 off Counsel-Ready"],
   ["CPPA Scope Checker", "Always free"],
-  ["CPPA Risk Assessment", "$199 standalone → $79 subscriber rate"],
+  ["CPPA Risk Assessment", "$149 standalone → $79 subscriber rate"],
   ["CPPA Cybersecurity Audit", "$199 standalone → $99 subscriber rate"],
 ];
 

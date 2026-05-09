@@ -49,14 +49,28 @@ const GovernanceAssessmentResult = () => {
   useEffect(() => {
     if (!id) return;
     let timer: any;
+    let pollCount = 0;
+    const MAX_POLLS = 20; // 80 seconds at 4s intervals
+
     const fetchOnce = async () => {
-      const { data } = await supabase.from("governance_assessments").select("*").eq("id", id).maybeSingle();
+      const { data } = await supabase
+        .from("governance_assessments")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
       setAssessment(data);
       setLoading(false);
+
       if (data && (data.status === "pending" || data.status === "processing")) {
-        timer = setTimeout(fetchOnce, 4000);
+        pollCount += 1;
+        if (pollCount < MAX_POLLS) {
+          timer = setTimeout(fetchOnce, 4000);
+        } else {
+          setAssessment((prev: any) => ({ ...prev, status: "failed" }));
+        }
       }
     };
+
     fetchOnce();
     return () => timer && clearTimeout(timer);
   }, [id]);
@@ -97,7 +111,10 @@ const GovernanceAssessmentResult = () => {
 
         {status === "failed" && (
           <div className="bg-card border rounded-lg p-6">
-            <p className="font-medium text-red-700 mb-3">Assessment failed.</p>
+            <p className="font-medium text-red-700 mb-2">Assessment could not be completed.</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              This can happen when the assessment takes longer than expected. Your inputs were saved — please try again.
+            </p>
             <Button asChild><Link to="/governance-assessment">Try Again</Link></Button>
           </div>
         )}

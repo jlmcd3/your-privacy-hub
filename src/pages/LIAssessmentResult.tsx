@@ -59,14 +59,24 @@ const LIAssessmentResult = () => {
   useEffect(() => {
     if (!id) return;
     let timer: any;
+    let pollCount = 0;
+    const MAX_POLLS = 25; // 75 seconds at 3s intervals
+
     const fetchOnce = async () => {
       const { data } = await supabase.from("li_assessments").select("*").eq("id", id).maybeSingle();
       setAssessment(data);
       setLoading(false);
+
       if (data && (data.status === "pending" || data.status === "processing")) {
-        timer = setTimeout(fetchOnce, 3000);
+        pollCount += 1;
+        if (pollCount < MAX_POLLS) {
+          timer = setTimeout(fetchOnce, 3000);
+        } else {
+          setAssessment((prev: any) => ({ ...prev, status: "failed" }));
+        }
       }
     };
+
     fetchOnce();
     return () => timer && clearTimeout(timer);
   }, [id]);
