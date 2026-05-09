@@ -239,7 +239,7 @@ serve(async (req) => {
         standalone_amount_cents: standaloneCents,
         subscriber_amount_cents: subscriberCents,
         stripe_price_id: null, // resolved server-side at checkout
-        stripe_configured: stripeConfigured,
+        stripe_configured: stripeConfigured || tool.fallback_standalone_cents > 0,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -11,6 +11,7 @@ import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
@@ -33,7 +34,8 @@ const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
 export default function IRPlaybook() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const access = useToolAccess({ standalonePrice: 39, subscriberPrice: null });
+  const pricing = useToolPrice("ir_playbook");
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: null });
   const { clientId } = useActiveClient();
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
