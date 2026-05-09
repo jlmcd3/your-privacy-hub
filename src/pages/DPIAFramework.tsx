@@ -111,7 +111,7 @@ const DPIAFramework = () => {
     if (!user) { setAuthGateOpen(true); return; }
 
     // For $0 (included with Platform), bypass Stripe entirely
-    if (pricing.price === 0 && pricing.isIncluded) {
+    if (pricing.price === 0) {
       setPurchasing(true);
       const { data, error } = await supabase.functions.invoke(
         "run-dpia-framework",
