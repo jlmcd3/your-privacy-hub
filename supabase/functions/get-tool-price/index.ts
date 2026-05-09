@@ -130,6 +130,20 @@ const TOOLS: Record<
     fallback_standalone_cents: 4900,
     fallback_subscriber_cents: 0,
   },
+  ir_playbook: {
+    name: "Breach Response Playbook",
+    standalone_lookup: "ir_playbook_standalone",
+    subscriber_lookup: null,
+    fallback_standalone_cents: 3900,
+    fallback_subscriber_cents: 0,
+  },
+  biometric_checker: {
+    name: "Biometric Privacy Compliance Assessment",
+    standalone_lookup: "biometric_checker_standalone",
+    subscriber_lookup: null,
+    fallback_standalone_cents: 4900,
+    fallback_subscriber_cents: 0,
+  },
 };
 
 function detectEnv(): StripeEnv {
