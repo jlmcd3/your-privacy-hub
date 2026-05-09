@@ -271,6 +271,11 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
         </p>
         {enriched && <IntelligenceBadge />}
       </div>
+      {item.summary && (
+        <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+          {stripHtml(item.summary)}
+        </p>
+      )}
       <p className="text-[11px] text-slate-light mt-1">
         {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
       </p>
@@ -326,6 +331,12 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
+        {/* Article excerpt — first two lines of the source article */}
+        {item.summary && (
+          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
+            {stripHtml(item.summary)}
+          </p>
+        )}
         {/* Why it matters — Pro sees full, free sees short */}
         {isPremium && item.ai_summary?.why_it_matters ? (
           <div className="mt-2 flex gap-2 items-start">
@@ -438,6 +449,11 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
           className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </Link>
+        {item.summary && (
+          <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+            {stripHtml(item.summary)}
+          </p>
+        )}
         <p className="text-[11px] text-slate-light mt-0.5">
           {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
         </p>
@@ -639,6 +655,11 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
           <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
             {normalizeTitle(item.title)}
           </p>
+          {item.summary && (
+            <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">
+              {stripHtml(item.summary)}
+            </p>
+          )}
           {shortWhy && (
             <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
               <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
