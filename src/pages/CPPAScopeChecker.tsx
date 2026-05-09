@@ -263,6 +263,8 @@ export default function CPPAScopeChecker() {
             obligationMap={obligationMap}
             q1={q1}
             q2={q2}
+            q3={q3}
+            q5={q5}
             onReset={reset}
             navigate={navigate}
           />
@@ -278,6 +280,8 @@ function ResultsPanel({
   obligationMap,
   q1,
   q2,
+  q3,
+  q5,
   onReset,
   navigate,
 }: {
@@ -292,6 +296,8 @@ function ResultsPanel({
   };
   q1: string;
   q2: string;
+  q3: string;
+  q5: string;
   onReset: () => void;
   navigate: (to: string) => void;
 }) {
