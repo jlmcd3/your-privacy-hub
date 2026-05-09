@@ -428,6 +428,7 @@ const App = () => (
             <Route path="/us-notices/states/:sessionId" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
             <Route path="/us-notices/questions/:sessionId" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
             <Route path="/us-notices/review/:sessionId" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
+            <Route path="/us-notices/review" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
             <Route path="/us-notices/refresh/:sessionId" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
             <Route path="/us-notice-builder" element={<USNoticeLanding />} />
             {/* EU & Global Notice Builder */}
