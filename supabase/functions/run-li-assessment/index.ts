@@ -42,8 +42,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let assessment_id: string | undefined;
   try {
-    const { assessment_id } = await req.json();
+    ({ assessment_id } = await req.json());
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -326,6 +327,10 @@ Return JSON:
 
   } catch (e) {
     console.error("run-li-assessment error:", e);
+    if (assessment_id) {
+      await supabase.from("li_assessments")
+        .update({ status: "failed" }).eq("id", assessment_id);
+    }
     return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
