@@ -109,6 +109,23 @@ const DPIAFramework = () => {
     const err = validate();
     if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
     if (!user) { setAuthGateOpen(true); return; }
+
+    // For $0 (included with Platform), bypass Stripe entirely
+    if (pricing.price === 0 && pricing.isIncluded) {
+      setPurchasing(true);
+      const { data, error } = await supabase.functions.invoke(
+        "run-dpia-framework",
+        { body: { intake_data: buildIntake(), user_id: user.id } }
+      );
+      setPurchasing(false);
+      if (error || !data?.id) {
+        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      navigate(`/dpia-framework/result/${data.id}?purchased=true`);
+      return;
+    }
+
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
       return;
