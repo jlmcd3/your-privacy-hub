@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T03:20:08.189Z",
+  "generatedAt": "2026-05-09T08:36:39.615Z",
   "server_truth": {
     "tools": [
       {
@@ -159,7 +159,6 @@
       "server_standalone": "$99",
       "server_subscriber": "$49",
       "ui_prices_seen": [
-        "$39",
         "$49",
         "$99"
       ],
@@ -172,7 +171,6 @@
       "server_standalone": "$49",
       "server_subscriber": "—",
       "ui_prices_seen": [
-        "$39",
         "$49"
       ],
       "standalone_match": true,
@@ -184,11 +182,10 @@
       "server_standalone": "$39",
       "server_subscriber": "—",
       "ui_prices_seen": [
-        "$39",
         "$49",
         "$79"
       ],
-      "standalone_match": true,
+      "standalone_match": false,
       "subscriber_match": true,
       "unmigrated": true
     },

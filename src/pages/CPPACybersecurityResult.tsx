@@ -29,6 +29,16 @@ export function CybersecurityReportBody({ row }: { row: any }) {
   const report = row?.report_data || {};
   return (
     <div className="space-y-6">
+      <section className="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-600 rounded">
+        <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+          Compliance deadline: April 1, 2028
+        </p>
+        <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+          Businesses subject to CPPA's cybersecurity audit regulation must complete their first independent audit
+          and certify compliance to the Agency by April 1, 2028. Highest-risk thresholds (revenue + sensitive data
+          processing) trigger earlier obligations. Use this assessment to scope remediation now.
+        </p>
+      </section>
       <section className="bg-slate-900 text-white rounded-lg p-8">
         <h1 className="text-3xl font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
         <p className="text-slate-300 text-sm">

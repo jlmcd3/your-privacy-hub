@@ -104,6 +104,13 @@ Deno.serve(async (req) => {
     );
     const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
 
+    // Washington My Health My Data Act applies broadly to "consumer health data"
+    // including biometric data tied to health inferences. Private right of action
+    // under WA Consumer Protection Act creates litigation exposure.
+    const wamhmdApplies = body.jurisdictions.some(
+      (j) => j.toLowerCase().includes("washington") || j.toLowerCase().includes("mhmd")
+    );
+
     // Step 3 — Haiku
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
@@ -127,8 +134,17 @@ Based on ${body.enrolledCount} enrolled individuals:
 Low end (negligent violations): $${bipaRisk.lowEnd.toLocaleString()}
 High end (intentional violations): $${bipaRisk.highEnd.toLocaleString()}
 ${bipaRisk.note}
-` : ""}
-ENFORCEMENT PRECEDENTS
+` : ""}${wamhmdApplies ? `
+WASHINGTON MY HEALTH MY DATA ACT (MHMD) — APPLICABILITY FLAG
+Washington is in scope. If the biometric data is used to identify health status,
+diagnosis, treatment, or to infer any consumer health condition, MHMD applies in
+addition to general WA consumer protection law. MHMD requires:
+  - separate, opt-in consent (distinct from any biometric consent),
+  - a published "consumer health data privacy policy" with specific contents,
+  - heightened restrictions on sale and on geofencing around health facilities.
+MHMD has a private right of action via the WA Consumer Protection Act.
+Address MHMD obligations explicitly in the Washington section.
+` : ""}ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
 
 For each jurisdiction, structure your output EXACTLY as follows:

@@ -61,6 +61,40 @@ Deno.serve(async (req) => {
       .update({ status: "processing" })
       .eq("id", assessment_id);
 
+    // Fetch CPPA/CCPA-relevant enforcement context for grounding
+    let enforcementContext = "";
+    try {
+      const sector = (row.intake_data as any)?.industry_sector
+        ?? (row.intake_data as any)?.sector
+        ?? undefined;
+      const ecRes = await fetch(
+        `${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            tool: "CPPA",
+            jurisdictions: ["California", "United States", "US-CA"],
+            sector,
+            limit: 6,
+          }),
+        },
+      );
+      if (ecRes.ok) {
+        const ec = await ecRes.json();
+        if (ec?.results?.length) {
+          enforcementContext = ec.results.map((r: any) =>
+            `- ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
+          ).join("\n");
+        }
+      }
+    } catch (e) {
+      console.warn("enforcement context fetch failed:", e);
+    }
+
     const system = `You are a California privacy law compliance analyst specialising in CCPA/CPRA and CPPA enforcement. You produce structured compliance gap reports for businesses preparing for CPPA audits. You never give legal advice — you present findings calibrated to enforcement patterns from CPPA and AG enforcement actions.
 Respond ONLY with valid JSON matching the schema provided.`;
 
@@ -69,6 +103,7 @@ Respond ONLY with valid JSON matching the schema provided.`;
 Intake data:
 ${JSON.stringify(row.intake_data, null, 2)}
 
+${enforcementContext ? `Recent CPPA / California AG enforcement context (use to calibrate risk levels and cite where directly relevant):\n${enforcementContext}\n` : ""}
 Respond with this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall compliance posture and top 3 priorities)",
