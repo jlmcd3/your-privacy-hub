@@ -84,6 +84,11 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
         <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
           {normalizeTitle(item.title)}
         </p>
+        {item.summary && (
+          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
+            {stripHtml(item.summary)}
+          </p>
+        )}
         {shortWhy && (
           <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
             <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
