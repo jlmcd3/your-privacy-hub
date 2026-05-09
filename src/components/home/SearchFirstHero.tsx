@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 import StarFieldBackground from "@/components/globe/StarFieldBackground";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SearchFirstHero() {
+  const { user } = useAuth();
 
   return (
     <div className="relative bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
@@ -22,18 +23,26 @@ export default function SearchFirstHero() {
               119 regulatory authorities. 150+ jurisdictions. Action intelligence on every development — and the compliance tools to act on it.
             </p>
             <div className="flex gap-3 justify-center lg:justify-start flex-wrap mb-8">
-              <Link
-                to="/subscribe"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-teal-600 text-white font-semibold text-sm hover:bg-teal-700 transition-colors no-underline"
-              >
-                {`Start for ${INTELLIGENCE_PRICING.monthly()} →`}
-              </Link>
+              {!user && (
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center px-6 py-3 rounded-lg bg-teal-600 text-white font-semibold text-sm hover:bg-teal-700 transition-colors no-underline"
+                >
+                  Start monitoring — it's free
+                </Link>
+              )}
               <Link
                 to="/sample-brief"
                 className="inline-flex items-center px-6 py-3 rounded-lg border border-white/40 text-white font-medium text-sm hover:bg-white/10 transition-colors no-underline"
               >
-                See a sample brief →
+                See a sample Intelligence Brief →
               </Link>
+              <a
+                href="#how-we-can-help"
+                className="inline-flex items-center px-3 py-3 text-sm font-medium text-blue-200 hover:text-white transition-colors no-underline"
+              >
+                How it works ↓
+              </a>
             </div>
           </div>
 

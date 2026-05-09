@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import LatestUpdates from "@/components/LatestUpdates";
+import WeeklyBriefTeaser from "@/components/WeeklyBriefTeaser";
 import PremiumBanner from "@/components/PremiumBanner";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -13,13 +14,11 @@ import SponsorshipBanner from "@/components/SponsorshipBanner";
 import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
+import ThisWeekInPrivacy from "@/components/home/ThisWeekInPrivacy";
 import ToolkitSection from "@/components/home/ToolkitSection";
 import HomepageTriptych from "@/components/home/HomepageTriptych";
 import { IntelligenceBriefSection } from "@/components/home/IntelligenceBriefSection";
 import ToolsStrip from "@/components/home/ToolsStrip";
-
-import HomepageTOC from "@/components/HomepageTOC";
-import SampleBriefShowcase from "@/components/SampleBriefShowcase";
 
 import FreeVsPaidStrip from "@/components/FreeVsPaidStrip";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -35,34 +34,39 @@ const Index = () => {
         <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform at ${PLATFORM_PRICING.standard()} — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
 
+      {/* Layer 2: Navbar — sticky, must be near top so it anchors immediately */}
       <Navbar />
+
+      {/* Layer 3: Breaking news */}
       <BreakingNewsBanner />
+
+      {/* Layer 4: Hero panels */}
       <SearchFirstHero />
 
-      {/* Wayfinding TOC strip */}
-      <HomepageTOC />
+      {/* Personalised Intelligence Brief section */}
+      <IntelligenceBriefSection />
 
-      {/* Proof: Intelligence brief teaser + sample showcase */}
-      <div id="sample" className="scroll-mt-16">
-        <IntelligenceBriefSection />
-        <SampleBriefShowcase variant="condensed" />
-      </div>
+      {/* Layer 5: Free vs paid */}
+      <FreeVsPaidStrip />
 
-      {/* Pricing comparison */}
-      <div id="pricing" className="scroll-mt-16">
-        <FreeVsPaidStrip />
-      </div>
-
+      {/* Layer 5b: Homepage triptych — Intelligence / Assessments / Documents */}
       <HomepageTriptych />
+
+      {/* Tools CTA strip */}
       <ToolsStrip />
 
-      {/* Live updates feed */}
-      <section id="updates" className="scroll-mt-16 mt-8 px-4">
+
+      {/* Layer 6: Main editorial content — full-width feed matching triptych */}
+      <section className="mt-8 px-4">
         <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+          {/* === LEFT COLUMN === */}
           <div className="min-w-0">
             <LatestUpdates />
           </div>
+
+          {/* === RIGHT SIDEBAR === */}
           <aside className="hidden lg:flex flex-col gap-6">
+            {/* Sticky desktop rail ad — shown to all users (Intelligence included) */}
             <StickyRailAd
               adSlot={AD_SLOTS.home_sidebar_rail.id}
               googleAdClient={GOOGLE_AD_CLIENT}
@@ -71,11 +75,15 @@ const Index = () => {
             />
             <SponsorshipBanner placement="home_sidebar" />
 
+
+            {/* Two-tier pricing card — hidden for premium */}
             {!isPremium && (
               <div className="bg-card border border-fog rounded-xl p-5">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate mb-3">
                   Get started
                 </p>
+
+                {/* Platform option — primary */}
                 <div className="mb-4">
                   <p className="text-navy font-bold text-[15px]">Compliance Platform</p>
                   <p className="text-[22px] font-display font-bold text-navy leading-tight">
@@ -94,6 +102,8 @@ const Index = () => {
                     Start platform →
                   </Link>
                 </div>
+
+                {/* Intelligence option — secondary */}
                 <div className="border-t border-fog pt-4">
                   <p className="text-navy font-semibold text-[13px]">Intelligence only</p>
                   <p className="text-[18px] font-display font-bold text-navy leading-tight">
@@ -112,16 +122,19 @@ const Index = () => {
               </div>
             )}
 
+            {/* Search */}
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate mb-2">
                 Search the platform
               </p>
               <SearchBar />
             </div>
+
           </aside>
         </div>
       </section>
 
+      {/* Below-fold content */}
       <SponsorshipBanner placement="home_belowfold" className="mx-auto max-w-[1280px] mt-6" />
       <AdBanner
         variant="leaderboard"
@@ -133,6 +146,7 @@ const Index = () => {
       <EmailSignup variant="strip" />
 
       <div className="h-px bg-fog" />
+      <WeeklyBriefTeaser />
       <div className="py-12"><ToolkitSection /></div>
       <PremiumBanner />
       <Footer />
