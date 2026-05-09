@@ -19,6 +19,8 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   cppa_cybersecurity: { standalone: 199, subscriber: 99, name: "CPPA Cybersecurity Readiness — Module 2" },
   cppa_suite: { standalone: 299, subscriber: 149, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
   dpa_generator: { standalone: 49, subscriber: 0, name: "Your Custom DPA" },
+  ir_playbook: { standalone: 59, subscriber: 0, name: "Breach Response Playbook" },
+  biometric_checker: { standalone: 49, subscriber: 0, name: "Biometric Privacy Compliance Assessment" },
 };
 
 /**
@@ -112,6 +114,8 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
           cppa_cybersecurity: "cppa_cybersecurity",
           cppa_suite: "cppa_suite",
           dpa_generator: "dpa_generator",
+          ir_playbook: "ir_playbook",
+          biometric_checker: "biometric_checker",
         };
         url.searchParams.set("tool_slug", slugMap[toolSlug]);
 

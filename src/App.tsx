@@ -416,6 +416,9 @@ const App = () => (
             <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
             <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
             <Route path="/ropa-builder" element={<RopaLanding />} />
+            <Route path="/rofa" element={<Navigate to="/ropa-builder" replace />} />
+            <Route path="/ropa-builder/home" element={<Navigate to="/ropa-builder" replace />} />
+            <Route path="/article-30" element={<Navigate to="/ropa-builder" replace />} />
             <Route path="/us-notices" element={<ProtectedRoute><USNoticeHome /></ProtectedRoute>} />
             <Route path="/us-notices/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
             <Route path="/us-notices/:sessionId/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
