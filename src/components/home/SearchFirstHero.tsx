@@ -74,7 +74,7 @@ export default function SearchFirstHero() {
             {/* Subtle pricing note */}
             <p className="text-white/40 text-[11px] mt-4 text-center lg:text-left">
               Intelligence Feed from {INTELLIGENCE_PRICING.monthly()} ·
-              Compliance Platform {PLATFORM_PRICING.annual()} ·
+              Compliance Platform {PLATFORM_PRICING.standard()} ·
               Tools available standalone
             </p>
           </div>
