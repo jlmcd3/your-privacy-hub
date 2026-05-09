@@ -68,6 +68,7 @@ export default function CPPARiskAssessment() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_risk_assessment");
+  const displayPrice = pricing.isSubscriber ? pricing.subscriberPrice : pricing.price;
   const [searchParams] = useSearchParams();
   const isSuite = searchParams.get("suite") === "true";
   const suitePricing = useToolPrice("cppa_suite");
@@ -144,8 +145,8 @@ export default function CPPARiskAssessment() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            CPPA AUDIT READINESS · MODULE 1 · ${pricing.price}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence subscribers pay ${pricing.subscriberPrice} →</a></>}
+            CPPA AUDIT READINESS · MODULE 1 · ${displayPrice}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Subscribers pay ${pricing.subscriberPrice} →</a></>}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Privacy Risk Assessment</h1>
           <p className="text-slate-300 text-lg">A structured assessment of your organisation's CCPA/CPRA compliance posture mapped to the CPPA's enforcement priorities. Generates a compliance gap report with remediation guidance.</p>
@@ -240,7 +241,7 @@ export default function CPPARiskAssessment() {
                   </Button>
                 ) : (
                   <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
-                    {!pricing.stripeConfigured ? `Payments Coming Soon — $${pricing.price}` : `Run CPPA Risk Assessment — $${pricing.price}`}
+                    {!pricing.stripeConfigured ? `Payments Coming Soon — $${displayPrice}` : `Run CPPA Risk Assessment — $${displayPrice}`}
                   </Button>
                 )}
               </div>
