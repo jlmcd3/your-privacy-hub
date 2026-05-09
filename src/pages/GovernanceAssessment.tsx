@@ -142,6 +142,23 @@ const GovernanceAssessment = () => {
 
   const handlePurchase = async () => {
     if (!user) { setAuthGateOpen(true); return; }
+
+    // For $0 (included with Platform), bypass Stripe entirely
+    if (pricing.price === 0 && pricing.isIncluded) {
+      setPurchasing(true);
+      const { data, error } = await supabase.functions.invoke(
+        "run-governance-assessment",
+        { body: { intake_data: buildIntake(), user_id: user.id } }
+      );
+      setPurchasing(false);
+      if (error || !data?.id) {
+        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      navigate(`/governance-assessment/result/${data.id}?purchased=true`);
+      return;
+    }
+
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
       return;
