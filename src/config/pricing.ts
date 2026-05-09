@@ -321,6 +321,34 @@ export const PRICING_REGISTRY = {
     addonReason: "subscriber_discount",
     active: true,
   },
+
+  // ── Standalone tools (subscriber rate = included free with Annual Platform) ──
+  ir_playbook_standalone: {
+    kind: "one_time",
+    lookupKey: "ir_playbook_standalone",
+    productKey: "ir_playbook",
+    productName: "Breach Response Playbook (Standalone)",
+    description:
+      "AI-generated incident response playbook tailored to your organisation. Standalone price; included with Annual Platform.",
+    amountCents: 3900,
+    currency: "usd",
+    displayPrice: "$39",
+    displaySuffix: " flat",
+    active: true,
+  },
+  biometric_checker_standalone: {
+    kind: "one_time",
+    lookupKey: "biometric_checker_standalone",
+    productKey: "biometric_checker",
+    productName: "Biometric Privacy Compliance Assessment (Standalone)",
+    description:
+      "Per-jurisdiction biometric data processing compliance assessment. Standalone price; included with Annual Platform.",
+    amountCents: 4900,
+    currency: "usd",
+    displayPrice: "$49",
+    displaySuffix: " flat",
+    active: true,
+  },
 } as const satisfies Record<string, PriceEntry>;
 
 export type PriceLookupKey = keyof typeof PRICING_REGISTRY;
