@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
@@ -151,7 +152,7 @@ const DPIAFrameworkResult = () => {
             <Section num={3} title="Risk Assessment"
               guidance={report?.section_3_risks?.guidance_note}
               completion={report?.section_3_risks?.completion_guidance}>
-              {Array.isArray(report?.section_3_risks?.identified_risks) && report.section_3_risks.identified_risks.map((r: any, i: number) => (
+              {Array.isArray(report?.section_3_risks?.risk_assessment) && report.section_3_risks.risk_assessment.map((r: any, i: number) => (
                 <div key={i} className="border rounded p-4">
                   <p className="font-medium">{r.risk_type || r.type}</p>
                   {r.description && <p className="text-sm mt-1">{r.description}</p>}
@@ -162,16 +163,16 @@ const DPIAFrameworkResult = () => {
                   {r.affected_rights && <p className="text-xs text-muted-foreground mt-2">Affected rights: {Array.isArray(r.affected_rights) ? r.affected_rights.join(", ") : r.affected_rights}</p>}
                 </div>
               ))}
-              <Field label="Residual risk guidance" value={report?.section_3_risks?.residual_risk_guidance} />
+              <Field label="Residual risk guidance" value={report?.section_3_risks?.residual_risk_assessment} />
             </Section>
 
             {/* Section 4 */}
             <Section num={4} title="Mitigation Measures"
               guidance={report?.section_4_mitigation?.guidance_note}
               completion={report?.section_4_mitigation?.completion_guidance}>
-              {Array.isArray(report?.section_4_mitigation?.measures) && report.section_4_mitigation.measures.map((m: any, i: number) => (
+              {Array.isArray(report?.section_4_mitigation?.proposed_measures) && report.section_4_mitigation.proposed_measures.map((m: any, i: number) => (
                 <div key={i} className="border rounded p-4">
-                  <p className="font-medium">{m.measure_name || m.name}</p>
+                  <p className="font-medium">{m.measure || m.name}</p>
                   {m.addresses_risk && <p className="text-xs text-muted-foreground mt-1">Addresses: {m.addresses_risk}</p>}
                   {m.implementation_guidance && <p className="text-sm mt-2">{m.implementation_guidance}</p>}
                   {m.residual_risk_after && <p className="text-xs mt-2 text-muted-foreground">Residual risk: {m.residual_risk_after}</p>}
@@ -183,28 +184,46 @@ const DPIAFrameworkResult = () => {
             <Section num={5} title="Consultation"
               guidance={report?.section_5_consultation?.guidance_note}
               completion={report?.section_5_consultation?.completion_guidance}>
-              <Field label="DPO consultation requirement" value={report?.section_5_consultation?.dpo_consultation_requirement} />
-              <Field label="Basis" value={report?.section_5_consultation?.dpo_consultation_basis} />
+              {report?.section_5_consultation?.dpo_consultation_required !== undefined && (
+                <Field
+                  label="DPO consultation requirement"
+                  value={report.section_5_consultation.dpo_consultation_required ? "Required" : "Not required"}
+                />
+              )}
               <div>
                 <Label className="text-xs uppercase font-medium text-muted-foreground">Record consultation outcome</Label>
-                <Textarea value={consultationNote} onChange={(e) => setConsultationNote(e.target.value)} placeholder={report?.section_5_consultation?.record_template || "Capture consultation outcome here…"} className="mt-2 min-h-24" />
+                <Textarea
+                  value={consultationNote}
+                  onChange={(e) => setConsultationNote(e.target.value)}
+                  placeholder={report?.section_5_consultation?.dpo_consultation_record || "Capture consultation outcome here…"}
+                  className="mt-2 min-h-24"
+                />
               </div>
-              <Field label="Other stakeholders" value={report?.section_5_consultation?.other_stakeholders} />
+              <Field label="Stakeholder consultation" value={report?.section_5_consultation?.stakeholder_consultation} />
             </Section>
 
             {/* Section 6 */}
             <Section num={6} title="Conclusion and Sign-Off"
-              guidance={report?.section_6_signoff?.guidance_note}
-              completion={report?.section_6_signoff?.completion_guidance}>
-              <Field label="Supervisory authority consultation conditions" value={report?.section_6_signoff?.supervisory_authority_conditions} />
+              guidance={report?.section_6_conclusion?.guidance_note}
+              completion={report?.section_6_conclusion?.completion_guidance}>
+              <Field
+                label="Supervisory authority consultation conditions"
+                value={report?.section_6_conclusion?.supervisory_authority_consultation_required}
+              />
               <div className="border rounded p-4 bg-muted/30 font-mono text-sm space-y-2">
-                <div>Name: ___________________________</div>
-                <div>Role: ___________________________</div>
-                <div>Date of review: ___________________________</div>
-                <div>Decision: [ ] Processing may proceed as described &nbsp;&nbsp; [ ] Processing requires further mitigation</div>
-                <div>Signature: ___________________________</div>
+                {report?.section_6_conclusion?.sign_off_template ? (
+                  <p className="whitespace-pre-wrap font-mono text-sm">{report.section_6_conclusion.sign_off_template}</p>
+                ) : (
+                  <>
+                    <div>Name: ___________________________</div>
+                    <div>Role: ___________________________</div>
+                    <div>Date of review: ___________________________</div>
+                    <div>Decision: [ ] Processing may proceed as described &nbsp;&nbsp; [ ] Processing requires further mitigation</div>
+                    <div>Signature: ___________________________</div>
+                  </>
+                )}
               </div>
-              <Field label="Review schedule" value={report?.section_6_signoff?.review_schedule} />
+              <Field label="Review schedule" value={report?.section_6_conclusion?.review_schedule} />
             </Section>
 
             <EnforcementPrecedents
@@ -213,24 +232,12 @@ const DPIAFrameworkResult = () => {
             />
 
             <div className="flex flex-wrap gap-2 print:hidden">
-              {dpia?.pdf_url ? (
-                <a
-                  href={dpia.pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
-                >
-                  ↓ Download PDF
-                </a>
-              ) : (
-                <button
-                  disabled
-                  className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
-                  title="PDF is being prepared — refresh in a moment"
-                >
-                  ↓ PDF preparing...
-                </button>
-              )}
+              <PDFDownloadButton
+                toolType="dpia_framework"
+                assessmentId={dpia?.id}
+                pdfUrl={dpia?.pdf_url}
+                onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
+              />
               <Button onClick={() => window.print()} variant="outline">Print</Button>
               <Button asChild variant="outline"><Link to="/dashboard">Back to Dashboard</Link></Button>
               <Button asChild variant="outline"><Link to="/governance-assessment">Run Privacy Program Assessment Tool</Link></Button>
