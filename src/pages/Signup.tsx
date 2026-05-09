@@ -11,6 +11,7 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -23,6 +24,10 @@ const Signup = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreed) {
+      setError("Please agree to the Terms of Service and Privacy Policy to continue.");
+      return;
+    }
     setLoading(true);
     setError("");
     setMessage("");
@@ -146,20 +151,33 @@ const Signup = () => {
                   </button>
                 </div>
               </div>
-              <p className="text-[13px] text-navy text-center leading-snug">
-                By creating an account, you agree to our{" "}
-                <Link to="/terms" className="font-bold underline text-blue hover:text-steel">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy-policy" className="font-bold underline text-blue hover:text-steel">
-                  Privacy Policy
-                </Link>
-                .
-              </p>
+              <div className="space-y-2">
+                <p className="text-[13px] text-navy leading-snug">
+                  I agree to the{" "}
+                  <Link to="/terms" className="font-bold underline text-blue hover:text-steel">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy-policy" className="font-bold underline text-blue hover:text-steel">
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
+                <label className="flex items-start gap-2 cursor-pointer text-[13px] text-navy">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-silver text-blue focus:ring-blue cursor-pointer"
+                    aria-label="I agree to the Terms of Service and Privacy Policy"
+                  />
+                  <span>I agree</span>
+                </label>
+              </div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !agreed}
                 className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
               >
                 {loading ? "Creating account…" : "Create Account"}
