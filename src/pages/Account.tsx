@@ -361,7 +361,7 @@ export default function Account() {
           </h2>
           <div className="space-y-2">
             {[
-              { label: "Sample Brief", href: "/sample-brief", premium: false },
+              { label: "Sample Brief", href: "/#brief", premium: false },
               { label: "FAQ", href: "/faq", premium: false },
               { label: "Contact Support", href: "/contact", premium: false },
             ]

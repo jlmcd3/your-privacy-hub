@@ -64,7 +64,7 @@ import DevOnly from "./components/DevOnly.tsx";
 import AdminOnly from "./components/AdminOnly.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
-import SampleBrief from "./pages/SampleBrief.tsx";
+
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
@@ -484,7 +484,7 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/sample-brief" element={<SampleBrief />} />
+            <Route path="/sample-brief" element={<Navigate to="/#brief" replace />} />
             <Route path="/ropa-initial/result/:id" element={
               <ProtectedRoute><PaymentReturnRedirect to="/ropa/review" /></ProtectedRoute>
             } />

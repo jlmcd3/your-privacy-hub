@@ -100,7 +100,7 @@ export default function ThisWeekInPrivacy() {
         )}
 
         <Link
-          to="/sample-brief"
+          to="/#brief"
           className="inline-block text-[12px] font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
         >
           Read this week's brief →
@@ -149,7 +149,7 @@ export default function ThisWeekInPrivacy() {
       )}
 
       <Link
-        to="/sample-brief"
+        to="/#brief"
         className="inline-block text-[12px] font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
       >
         Read this week's brief →

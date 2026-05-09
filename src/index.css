@@ -305,3 +305,8 @@ th,
 dt {
   font-weight: 600;
 }
+
+
+/* Smooth scroll for in-page anchor jumps */
+html { scroll-behavior: smooth; }
+

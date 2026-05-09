@@ -25,7 +25,7 @@ export function IntelligenceBriefSection() {
             </p>
           </div>
           <Link
-            to="/sample-brief"
+            to="/#brief"
             className="flex-shrink-0 mt-1 text-[14px] font-semibold text-white/80 border border-white/25 px-3 py-1.5 rounded-lg hover:bg-white/10 no-underline transition-colors whitespace-nowrap"
           >
             See a sample →

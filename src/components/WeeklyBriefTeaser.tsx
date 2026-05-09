@@ -50,7 +50,7 @@ const WeeklyBriefTeaser = () => {
             </p>
           </div>
           <Link
-            to="/sample-brief"
+            to="/#brief"
             className="text-[13px] font-medium text-blue hover:underline no-underline hidden sm:block"
           >
             See a sample brief →
@@ -94,7 +94,7 @@ const WeeklyBriefTeaser = () => {
               ))}
             </div>
             <Link
-              to="/sample-brief"
+              to="/#brief"
               className="inline-flex items-center gap-2 bg-white text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               See a sample brief →

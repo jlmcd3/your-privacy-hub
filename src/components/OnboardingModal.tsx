@@ -173,7 +173,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
               {saving ? "Saving…" : "Go to my dashboard →"}
             </button>
             <div className="text-center">
-              <a href="/sample-brief" className="text-[13px] text-muted-foreground hover:text-foreground no-underline transition-colors">
+              <a href="/#brief" className="text-[13px] text-muted-foreground hover:text-foreground no-underline transition-colors">
                 See a sample brief →
               </a>
             </div>
