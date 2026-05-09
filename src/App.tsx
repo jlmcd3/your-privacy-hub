@@ -484,7 +484,7 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/sample-brief" element={<SampleBrief />} />
+            <Route path="/sample-brief" element={<Navigate to="/#brief" replace />} />
             <Route path="/ropa-initial/result/:id" element={
               <ProtectedRoute><PaymentReturnRedirect to="/ropa/review" /></ProtectedRoute>
             } />
