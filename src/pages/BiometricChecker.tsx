@@ -124,10 +124,27 @@ export default function BiometricChecker() {
             <fieldset className="text-[13px]"><legend className="font-semibold text-navy">Jurisdictions</legend>
               <div className="grid grid-cols-1 gap-1 mt-1">{JURS.map(j => {
                 const isIL = j.includes("Illinois");
+                const isWA = j.includes("Washington");
                 return <label key={j} className={`flex items-center gap-2 text-[12px] ${isIL ? "text-amber-900" : ""}`}>
                   <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}
-                  {isIL && <span className="text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full font-bold">Active litigation risk</span>}</label>;
-              })}</div></fieldset>
+                  {isIL && <span className="text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full font-bold">Active litigation risk</span>}
+                  {isWA && <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full font-bold">MHMD applies</span>}</label>;
+              })}</div>
+              {form.jurisdictions.some(j => j.includes("Illinois")) && (
+                <p className="mt-2 text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded p-2">
+                  <strong>BIPA — heightened risk.</strong> Illinois requires written consent before collection,
+                  a public retention &amp; destruction schedule, and provides a private right of action
+                  with statutory damages of $1,000 (negligent) to $5,000 (intentional) per violation.
+                </p>
+              )}
+              {form.jurisdictions.some(j => j.includes("Washington")) && (
+                <p className="mt-2 text-[11px] text-purple-900 bg-purple-50 border border-purple-200 rounded p-2">
+                  <strong>Washington MHMD.</strong> If biometric data is used to identify or infer any
+                  health condition, the My Health My Data Act applies — separate opt-in consent, a published
+                  consumer health data privacy policy, and a private right of action via the WA Consumer Protection Act.
+                </p>
+              )}
+            </fieldset>
             <label className="block text-[13px]"><span className="font-semibold text-navy">Individuals enrolled</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.enrolledCount} onChange={e => setForm(f => ({ ...f, enrolledCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
