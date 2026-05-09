@@ -23,7 +23,7 @@ const FALLBACK: Record<string, { standalone: number; subscriber: number; name: s
   cppa_cybersecurity: { standalone: 199, subscriber: 99, name: "CPPA Cybersecurity Readiness — Module 2" },
   cppa_suite: { standalone: 299, subscriber: 149, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
   dpa_generator: { standalone: 49, subscriber: 0, name: "Your Custom DPA" },
-  ir_playbook: { standalone: 39, subscriber: 0, name: "Breach Response Playbook" },
+  ir_playbook: { standalone: 59, subscriber: 0, name: "Breach Response Playbook" },
   biometric_checker: { standalone: 49, subscriber: 0, name: "Biometric Privacy Compliance Assessment" },
 };
 
