@@ -48,7 +48,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Registration Manager (DPO, ROPA, AI Act filings)", free: false, intel: "Standalone rates", platform: "Included" },
 
   { isSection: true, feature: "CPPA tools — paid even on Platform" },
-  { feature: "CPPA Risk Assessment", free: false, intel: "$199 standalone", platform: "$79 subscriber rate" },
+  { feature: "CPPA Risk Assessment", free: false, intel: "$149 standalone", platform: "$79 subscriber rate" },
   { feature: "CPPA Cybersecurity Audit", free: false, intel: "$199 standalone", platform: "$99 subscriber rate" },
 ];
 
