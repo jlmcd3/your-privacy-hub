@@ -284,7 +284,7 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
+            <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
               {categoryLabel(item.category)}
             </span>
           )}
@@ -306,22 +306,25 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             {stripHtml(item.summary)}
           </p>
         )}
-        {/* Why it matters — Pro sees full, free sees short */}
-        {isPremium && item.ai_summary?.why_it_matters ? (
-          <div className="mt-2 flex gap-2 items-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
+        {/* Why it matters — bordered block (consistent across cards & detail page) */}
+        {(isPremium && item.ai_summary?.why_it_matters) || shortWhy ? (
+          <div
+            className="mt-2 border-l-4 px-3 py-2 rounded-r-lg"
+            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+          >
+            <p
+              className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+              style={{ color: '#4A6FA5' }}
+            >
               Why it matters
-            </span>
-            <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(item.ai_summary.why_it_matters)}</p>
-          </div>
-        ) : shortWhy ? (
-          <div className="mt-2 flex gap-2 items-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
-              Why it matters
-            </span>
-            <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
+            </p>
+            <p className="text-[12.5px] text-navy leading-relaxed">
+              {stripHtml(
+                (isPremium && item.ai_summary?.why_it_matters) ||
+                  shortWhy ||
+                  '',
+              )}
+            </p>
           </div>
         ) : null}
         {/* Inline takeaways — Pro only */}
@@ -347,12 +350,12 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
         {/* Upgrade CTA — free signed-in only */}
         {!isPremium && (
           <div className="mt-2 flex items-center gap-2">
-            <p className="text-[11px] text-amber-700 flex-1">Unlock action items, compliance impact, and full analysis</p>
+            <p className="text-[11px] text-slate flex-1">Unlock action items, compliance impact, and full analysis</p>
             <Link
               to="/subscribe"
-              className="flex-shrink-0 text-[11px] font-semibold bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
+              className="flex-shrink-0 text-[11px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
             >
-              Upgrade to Pro →
+              Upgrade to Platform →
             </Link>
           </div>
         )}
