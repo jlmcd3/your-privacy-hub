@@ -60,7 +60,7 @@ const Index = () => {
                       Register free →
                     </Link>
                     <Link to="/subscribe" className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-lg hover:bg-muted transition-colors no-underline">
-                      See Pro plan →
+                      See plans →
                     </Link>
                   </div>
                 </div>
