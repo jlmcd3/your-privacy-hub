@@ -50,7 +50,7 @@ export function IntelligenceBriefSection({ children }: { children?: ReactNode })
               Built around your practice
             </h3>
             <p className="text-[14px] text-slate leading-relaxed">
-              Tell us your jurisdictions, your industry, the regulatory topics you follow, and your professional role — and every Monday morning we deliver the intelligence that is genuinely relevant to your programme. Not a digest of everything. A brief on what matters to you, clear and specific, ready before your week begins. Privacy law covers a lot of ground. You don't have to cover all of it alone.
+              Tell us your jurisdictions, your industry, the regulatory topics you follow, and your professional role — and every Monday morning we deliver the intelligence that is genuinely relevant to your programme. Not a digest of everything. A report on what matters to you, clear and specific, ready before your week begins. Privacy law covers a lot of ground. You don't have to cover all of it alone.
             </p>
           </div>
 
