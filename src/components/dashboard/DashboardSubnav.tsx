@@ -46,7 +46,7 @@ const FILING_PATH = /^\/registration-manager\/(my-filings|order|documents)(\/|$)
 const ITEMS: Item[] = [
   {
     to: "/dashboard",
-    label: "Brief",
+    label: "Intelligence Report",
     icon: FileText,
     // Exact /dashboard only — sub-routes like /dashboard/reports belong elsewhere.
     match: (p) => p === "/dashboard",

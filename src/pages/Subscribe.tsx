@@ -29,7 +29,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The intelligence layer" },
   { feature: "Cross-jurisdiction signals and pattern analysis", free: true, intel: true, platform: true },
-  { feature: "Full Intelligence Brief — customized for your industry & jurisdictions", free: false, intel: true, platform: true },
+  { feature: "Full Privacy Intelligence Report — customized for your industry & jurisdictions", free: false, intel: true, platform: true },
   { feature: "Enforcement trends & pattern signals", free: false, intel: true, platform: true },
   { feature: "Per-article intelligence: regulatory theory, action items, sectors", free: false, intel: true, platform: true },
   { feature: "Priority Monday delivery", free: false, intel: true, platform: true },
@@ -123,7 +123,7 @@ const Subscribe = () => {
               <p className="text-blue-200 text-[12px] mb-4">Cancel any time</p>
               <ul className="space-y-2 mb-6">
                 {[
-                  "Weekly Intelligence Brief",
+                  "Weekly Privacy Intelligence Report",
                   "Enforcement tracking — all 119 authorities",
                   "Jurisdiction monitoring",
                   "All reference content",
@@ -226,10 +226,10 @@ const Subscribe = () => {
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
-            See what your brief would look like
+            See what your report would look like
           </h2>
           <p className="text-slate text-[13px]">
-            Pick your jurisdiction, role, and topics. We'll build a sample brief showing the depth and format you receive every Monday.
+            Pick your jurisdiction, role, and topics. We'll build a sample report showing the depth and format you receive every Monday.
           </p>
         </div>
         <BriefBuilder />
