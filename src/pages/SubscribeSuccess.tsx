@@ -51,7 +51,7 @@ export default function SubscribeSuccess() {
         },
         {
           icon: "🎯",
-          title: "Configure your Intelligence Brief",
+          title: "Configure your Privacy Intelligence Report",
           body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
         },
         {
@@ -68,7 +68,7 @@ export default function SubscribeSuccess() {
     : [
         {
           icon: "🎯",
-          title: "Configure your Intelligence Brief",
+          title: "Configure your Privacy Intelligence Report",
           body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
         },
         {
@@ -161,7 +161,7 @@ export default function SubscribeSuccess() {
             to="/brief-preferences?from=subscribe"
             className="flex-1 text-center bg-amber-400 text-navy font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
-            Personalize your Intelligence Brief →
+            Personalize your Privacy Intelligence Report →
           </Link>
           <Link
             to={hasToolAccess ? "/tools" : "/dashboard"}

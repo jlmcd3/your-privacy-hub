@@ -31,7 +31,7 @@ export default function SearchFirstHero() {
                   Intelligence Brief
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
-                  Your intelligence brief — to save you time
+                  Your Privacy Intelligence Report — to save you time
                 </p>
                 <p className="text-[12px] text-teal-100 leading-snug">
                   Personalized to your jurisdiction, role, and tracked topics. Every Monday.

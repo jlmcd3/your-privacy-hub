@@ -33,7 +33,7 @@ const Index = () => {
         <div id="brief" className="scroll-mt-16">
           <div className="max-w-3xl mx-auto mb-6">
             <p className="text-[11px] font-bold uppercase tracking-widest text-blue-300 mb-2">
-              Your intelligence brief
+              Your Privacy Intelligence Report
             </p>
             <h3 className="font-display text-[22px] md:text-[24px] font-bold text-white mb-2">
               Build your sample

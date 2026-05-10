@@ -107,7 +107,7 @@ const Login = () => {
               {safeRedirect?.includes("subscribe")
                 ? "Sign in to complete your subscription"
                 : safeRedirect?.includes("dashboard")
-                ? "Sign in to access your Intelligence Brief"
+                ? "Sign in to access your Privacy Intelligence Report"
                 : safeRedirect?.includes("account")
                 ? "Sign in to manage your account"
                 : "Welcome back to End User Privacy"}
