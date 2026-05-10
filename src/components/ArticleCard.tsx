@@ -627,7 +627,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
               <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
             )}
             {item.category && (
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
+              <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
                 {categoryLabel(item.category)}
               </span>
             )}
