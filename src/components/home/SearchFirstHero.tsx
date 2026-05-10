@@ -47,7 +47,7 @@ export default function SearchFirstHero() {
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
-                  Your privacy intelligence feed — to keep you ahead
+                  Your Privacy Intelligence Feed — to keep you ahead
                 </p>
                 <p className="text-[12px] text-white/60 leading-snug">
                   119 monitored sources. Enriched with compliance intelligence. Updated daily.
