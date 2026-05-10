@@ -6,6 +6,8 @@ import { ActionBrief } from "@/components/ActionBrief";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
+import { fmtDate } from "@/lib/dates";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
@@ -92,38 +94,7 @@ const isEnriched = (item: ArticleItem): boolean => {
   return !!(s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level);
 };
 
-// Badge colors keyed by category string
-const CATEGORY_COLORS: Record<string, string> = {
-  'enforcement': 'bg-red-50 text-red-700 border border-red-200',
-  'eu-uk': 'bg-blue-50 text-blue-700 border border-blue-200',
-  'us-federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  'us-states': 'bg-violet-50 text-violet-700 border border-violet-200',
-  'global': 'bg-teal-50 text-teal-700 border border-teal-200',
-  'ai-privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
-  'adtech': 'bg-orange-50 text-orange-700 border border-orange-200',
-  'Enforcement': 'bg-red-50 text-red-700 border border-red-200',
-  'EU & UK': 'bg-blue-50 text-blue-700 border border-blue-200',
-  'U.S. Federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  'U.S. States': 'bg-violet-50 text-violet-700 border border-violet-200',
-  'Global': 'bg-teal-50 text-teal-700 border border-teal-200',
-  'AI & Privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  'enforcement': 'Enforcement',
-  'eu-uk': 'EU & UK',
-  'us-federal': 'U.S. Federal',
-  'us-states': 'U.S. States',
-  'global': 'Global',
-  'ai-privacy': 'AI & Privacy',
-  'adtech': 'AdTech',
-};
-
-const categoryClass = (cat?: string | null) =>
-  CATEGORY_COLORS[cat || ''] || 'bg-gray-50 text-gray-600 border border-gray-200';
-
-const categoryLabel = (cat?: string | null) =>
-  CATEGORY_LABELS[cat || ''] || cat || '';
+// Category colors/labels live in src/config/categories.ts (shared with UpdateDetail).
 
 // (URGENCY_COLORS / ATTENTION_COLORS removed — Attention badge dropped from
 // surface cards; urgency now appears only inside the paid Intelligence Card.)
