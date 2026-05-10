@@ -356,11 +356,14 @@ export default function BriefBuilder() {
               Every article in the real brief reflects that week's actual enforcement actions and regulatory developments — written for your role and jurisdiction.
             </p>
             <a
-              href="#pro-plan-card"
+              href="/get-intelligence"
               className="inline-block text-[13px] font-bold text-navy bg-amber-400 hover:opacity-90 transition-all px-6 py-2.5 rounded-xl no-underline"
               onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("pro-plan-card")?.scrollIntoView({ behavior: "smooth" });
+                const target = document.getElementById("pro-plan-card");
+                if (target) {
+                  e.preventDefault();
+                  target.scrollIntoView({ behavior: "smooth" });
+                }
               }}
             >
               Get your Privacy Intelligence Report →
