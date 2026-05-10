@@ -106,7 +106,7 @@ const navItems: NavItem[] = [
           { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
           { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
           { icon: "🌐", label: "Global", href: "/updates?region=global" },
-          { icon: "📰", label: "Privacy Newsfeed", href: "/updates?region=all" },
+          { icon: "📰", label: "Privacy Intelligence Feed", href: "/updates?region=all" },
         ],
       },
       {

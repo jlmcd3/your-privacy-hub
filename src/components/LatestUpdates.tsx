@@ -206,7 +206,7 @@ const LatestUpdates = () => {
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
             <div>
               <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
-                Latest Privacy Updates
+                Privacy Intelligence Feed
               </h2>
               <p className="text-[12px] text-slate-light">
                 Updated daily and analyzed for key takeaways.{" "}

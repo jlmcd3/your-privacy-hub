@@ -95,7 +95,7 @@ const Subscribe = () => {
         <title>{`Two products. One mission. — ${INTELLIGENCE_PRICING.monthly()} or ${PLATFORM_PRICING.standard()}/yr | End User Privacy`}</title>
         <meta
           name="description"
-          content={`Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()}. Annual Platform at ${PLATFORM_PRICING.standard()} — all compliance tools included.`}
+          content={`Privacy Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()}. Annual Platform at ${PLATFORM_PRICING.standard()} — all compliance tools included.`}
         />
       </Helmet>
       <Navbar />
@@ -115,7 +115,7 @@ const Subscribe = () => {
             {/* Intelligence Feed card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
               <p className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
-                Intelligence Feed
+                Privacy Intelligence Feed
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
                 {INTELLIGENCE_PRICING.monthlyShort()}
@@ -164,7 +164,7 @@ const Subscribe = () => {
               </p>
               <ul className="space-y-2 mb-6">
                 {[
-                  "Everything in Intelligence Feed",
+                  "Everything in Privacy Intelligence Feed",
                   "ALL compliance tools — included",
                   "Governance, LIA, DPIA, DPA, Notices, RoFA",
                   "IR Playbook & Biometric Checker",

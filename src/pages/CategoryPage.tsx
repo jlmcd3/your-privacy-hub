@@ -144,7 +144,7 @@ const CategoryPage = () => {
               "us-states": "U.S. State Updates",
               "eu-uk": "EU & UK Updates",
               "global": "Global Updates",
-              "ai-privacy": "AI & Privacy Updates",
+              "ai-privacy": "AI & Privacy Intelligence",
             } as Record<string, string>)[slug!] || "Updates"}
           </p>
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">

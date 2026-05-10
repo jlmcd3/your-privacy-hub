@@ -11,17 +11,17 @@ export default function NewsfeedPaywallCard() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white pointer-events-none" />
       <div className="relative z-10 flex flex-col items-center text-center px-8 py-10 bg-white/90 backdrop-blur-sm">
         <h3 className="font-display font-bold text-navy text-xl mb-2">
-          Continue reading with Intelligence
+          Access the full Privacy Intelligence Feed
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">
-          Full archive access, advanced search, and your weekly analyst brief written for your industry. {`${INTELLIGENCE_PRICING.monthly()}`}.
+          Full archive access, advanced search, and your weekly Privacy Intelligence Report written for your industry. {`${INTELLIGENCE_PRICING.monthly()}`}.
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Link
             to="/subscribe"
             className="bg-gradient-to-br from-steel to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all"
           >
-            Get full intelligence — {`${INTELLIGENCE_PRICING.monthlyShort()}`} →
+            Get Privacy Intelligence Feed — {`${INTELLIGENCE_PRICING.monthlyShort()}`} →
           </Link>
           <Link
             to="/signup"
