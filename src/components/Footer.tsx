@@ -67,7 +67,7 @@ const Footer = () => {
             <Link to="/horizon" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Forecast Intelligence</Link>
             <Link to="/enforcement" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
             <Link to="/faq" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">FAQ</Link>
-            <Link to="/#brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Weekly Brief</Link>
+            <Link to="/#brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Privacy Intelligence Report</Link>
           </div>
 
           <div>

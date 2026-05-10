@@ -383,7 +383,7 @@ const Dashboard = () => {
                         Browse updates →
                       </Link>
                       <Link to="/subscribe" className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors no-underline">
-                        Get the full Intelligence Brief
+                        Get the full Privacy Intelligence Report
                       </Link>
                     </div>
                   </div>
@@ -442,7 +442,7 @@ const Dashboard = () => {
         {canShowPublicBrief && (
           <div className="mb-10">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
-              📋 Weekly Intelligence Brief
+              📋 Weekly Privacy Intelligence Report
             </p>
             <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
               {loading
@@ -472,10 +472,10 @@ const Dashboard = () => {
               <p className="text-3xl">📬</p>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display font-bold text-foreground text-[18px] mb-1">
-                  Your personalized brief arrives next Monday
+                  Your Privacy Intelligence Report arrives next Monday
                 </h3>
                 <p className="text-muted-foreground text-[13px] mb-3 leading-relaxed">
-                  In the meantime, the general Weekly Intelligence Brief below covers this week's
+                  In the meantime, the general Weekly Privacy Intelligence Report below covers this week's
                   developments across every jurisdiction and topic. Your personalized version
                   will customize and analyze the same material for your priorities and responsibilities.
                 </p>
@@ -494,7 +494,7 @@ const Dashboard = () => {
         {customBrief && (
           <div className="mb-3 flex items-center justify-end gap-3 flex-wrap px-1">
             <p className="text-[12px] text-muted-foreground">
-              Want to change focus for your next brief?
+              Want to change focus for your next report?
             </p>
             <Link
               to="/brief-preferences"
@@ -509,7 +509,7 @@ const Dashboard = () => {
           <div className="mb-8">
             {briefArchive.length > 1 && (
               <h2 className="font-display text-[14px] font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
-                📚 Your Briefs ({briefArchive.length})
+                📚 Your Reports ({briefArchive.length})
               </h2>
             )}
             <div className="space-y-2">
@@ -525,7 +525,7 @@ const Dashboard = () => {
                       hour: "numeric", minute: "2-digit",
                     })
                   : "";
-                const headline = b.custom_sections?.opening_headline ?? "Personalized brief";
+                const headline = b.custom_sections?.opening_headline ?? "Privacy Intelligence Report";
                 const headerId = `brief-header-${b.id}`;
                 const panelId = `brief-panel-${b.id}`;
                 const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -595,9 +595,9 @@ const Dashboard = () => {
         {!loading && canShowPublicBrief && !brief && (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📅</p>
-            <p className="font-display text-[20px] text-foreground mb-2">First brief coming Monday</p>
+            <p className="font-display text-[20px] text-foreground mb-2">First report coming Monday</p>
             <p className="text-[14px] text-muted-foreground max-w-md mx-auto">
-              Your weekly intelligence brief is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
+              Your Privacy Intelligence Report is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
             </p>
           </div>
         )}
@@ -612,7 +612,7 @@ const Dashboard = () => {
                 <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
                   <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
-                      ⭐ End User Privacy Intelligence Brief
+                      ⭐ End User Privacy Intelligence Report
                     </span>
                     <span className="text-[11px] text-blue-300">
                       Covering {describeBriefPeriod(brief.published_at)} · {brief.article_count} updates reviewed
@@ -793,7 +793,7 @@ const Dashboard = () => {
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
                   <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
-                    <span>📚</span> All source articles for this brief
+                    <span>📚</span> All source articles for this report
                   </h3>
                   <p className="text-[12px] text-slate-400 mb-4">
                     {Object.keys(brief.source_map).length} articles monitored and synthesized for the period covering {describeBriefPeriod(brief.published_at)}. Click any title to read the original.

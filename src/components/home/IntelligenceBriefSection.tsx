@@ -16,10 +16,10 @@ export function IntelligenceBriefSection({ children }: { children?: ReactNode })
         <div className="flex items-start justify-between gap-4 px-6 md:px-8 pt-6 md:pt-8 pb-5">
           <div className="max-w-2xl">
             <p className="text-[12px] font-bold uppercase tracking-widest text-blue-300 mb-2">
-              Weekly Intelligence Brief
+              Weekly Privacy Intelligence Report
             </p>
             <h2 className="font-display text-4xl md:text-[32px] font-bold text-white leading-tight mb-1.5">
-              Your brief. Your jurisdictions. Your Monday morning edge.
+              Your report. Your jurisdictions. Your Monday morning edge.
             </h2>
             <p className="text-blue-100/80 text-sm leading-relaxed">
               Hours of reading and analysis done for you — for $29 a month
@@ -69,7 +69,7 @@ export function IntelligenceBriefSection({ children }: { children?: ReactNode })
               Your brief carries memory
             </h3>
             <p className="text-[14px] text-slate leading-relaxed">
-              Issues are tracked week over week — new, continuing, escalating, or resolved — so each Monday your brief opens by connecting this week's developments to what was already on your radar. You'll see when an enforcement pattern is building, when a risk you were monitoring has shifted, and when something that had you concerned is behind you. Your knowledge compounds every week. Your brief makes sure none of it slips.
+              Issues are tracked week over week — new, continuing, escalating, or resolved — so each Monday your report opens by connecting this week's developments to what was already on your radar. You'll see when an enforcement pattern is building, when a risk you were monitoring has shifted, and when something that had you concerned is behind you. Your knowledge compounds every week. Your report makes sure none of it slips.
             </p>
           </div>
         </div>
