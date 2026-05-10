@@ -228,11 +228,6 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
       style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
       <div className="flex items-start gap-2">
-        {item.category && (
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-shrink-0 mt-0.5 ${categoryClass(item.category)}`}>
-            {categoryLabel(item.category)}
-          </span>
-        )}
         <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
@@ -243,9 +238,16 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           {stripHtml(item.summary)}
         </p>
       )}
-      <p className="text-[11px] text-slate-light mt-1">
-        {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
-      </p>
+      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+        <p className="text-[11px] text-slate-light">
+          {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
+        </p>
+        {item.category && (
+          <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
+            {categoryLabel(item.category)}
+          </span>
+        )}
+      </div>
     </Link>
   );
 };
