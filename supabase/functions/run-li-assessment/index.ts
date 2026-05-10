@@ -30,7 +30,7 @@ async function callAnthropic(
       system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     }),
-    signal: AbortSignal.timeout(45000),
+    signal: AbortSignal.timeout(120000),
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
   const data = await res.json();
