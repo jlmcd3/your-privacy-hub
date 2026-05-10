@@ -471,7 +471,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
             )}
             {item.category && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${categoryClass(item.category)}`}>
+              <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
                 {categoryLabel(item.category)}
               </span>
             )}
@@ -549,7 +549,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             src={item.image_url || EUP_TILE}
             alt=""
             loading="lazy"
-            className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
+            className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
             onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
@@ -561,9 +561,17 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
         </div>
 
         {s?.why_it_matters && (
-          <div className="border-l-4 border-sky-500 bg-sky-50 px-3 py-2 rounded-r-lg mb-3">
-            <p className="text-[10px] font-bold tracking-wider uppercase text-sky-700 mb-1">Why it matters</p>
-            <p className="text-[12px] text-sky-900 leading-relaxed">{stripHtml(s.why_it_matters)}</p>
+          <div
+            className="border-l-4 px-3 py-2 rounded-r-lg mb-3"
+            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+          >
+            <p
+              className="text-[10px] font-bold tracking-wider uppercase mb-1"
+              style={{ color: '#4A6FA5' }}
+            >
+              Why it matters
+            </p>
+            <p className="text-[12px] text-navy leading-relaxed">{stripHtml(s.why_it_matters)}</p>
           </div>
         )}
 
@@ -607,7 +615,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
           src={item.image_url || EUP_TILE}
           alt=""
           loading="lazy"
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
           onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
         />
         <div className="flex-1 min-w-0">
