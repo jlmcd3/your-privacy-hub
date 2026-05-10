@@ -11,7 +11,7 @@ export default function SearchFirstHero() {
           {/* Left: text content */}
           <div className="flex-1 text-center lg:text-left">
             <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-3">
-              For DPOs, privacy counsel, and compliance professionals
+              For privacy professionals and the privacy-conscious
             </p>
             <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] mb-3">
               Global privacy law, tracked daily.
