@@ -297,11 +297,17 @@ const UpdateDetail = () => {
                 {!user && (
                   <>
                     {(ai as any)?.why_it_matters_short && (
-                      <div className="border-l-4 border-primary bg-primary/5 px-4 py-3 mb-3 rounded-r">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                      <div
+                        className="border-l-4 px-4 py-3 mb-3 rounded-r"
+                        style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                      >
+                        <div
+                          className="text-[10px] uppercase tracking-wide font-semibold mb-1"
+                          style={{ color: '#4A6FA5' }}
+                        >
                           Why it matters
                         </div>
-                        <p className="text-[14px] leading-relaxed text-foreground">
+                        <p className="text-[14px] leading-relaxed text-navy">
                           {(ai as any).why_it_matters_short}
                         </p>
                       </div>
@@ -329,7 +335,7 @@ const UpdateDetail = () => {
                           to="/subscribe"
                           className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-lg hover:bg-muted transition-colors no-underline"
                         >
-                          See Pro plan →
+                          See plans →
                         </Link>
                       </div>
                     </div>
@@ -338,11 +344,17 @@ const UpdateDetail = () => {
 
                 {/* Pro: full why_it_matters */}
                 {user && isPremium && ai?.why_it_matters && (
-                  <div className="border-l-4 border-primary bg-primary/5 px-4 py-3 mb-5 rounded-r">
-                    <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                  <div
+                    className="border-l-4 px-4 py-3 mb-5 rounded-r"
+                    style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                  >
+                    <div
+                      className="text-[10px] uppercase tracking-wide font-semibold mb-1"
+                      style={{ color: '#4A6FA5' }}
+                    >
                       Why it matters
                     </div>
-                    <p className="text-[14px] leading-relaxed text-foreground">{ai.why_it_matters}</p>
+                    <p className="text-[14px] leading-relaxed text-navy">{ai.why_it_matters}</p>
                   </div>
                 )}
 
@@ -399,18 +411,18 @@ const UpdateDetail = () => {
 
                 {/* Upgrade CTA — free signed-in only */}
                 {user && !isPremium && (
-                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-center">
-                    <p className="text-[14px] font-semibold text-amber-900 mb-1">
-                      Upgrade to Pro for full action intelligence
+                  <div className="mt-4 rounded-xl border border-blue/20 bg-white px-4 py-4 text-center">
+                    <p className="text-[14px] font-semibold text-navy mb-1">
+                      Upgrade to Platform for full action intelligence
                     </p>
-                    <p className="text-[12px] text-amber-700 mb-3 leading-relaxed">
+                    <p className="text-[12px] text-slate mb-3 leading-relaxed">
                       Compliance impact, action items by role, regulatory theory, and deep analysis on every update.
                     </p>
                     <Link
                       to="/subscribe"
-                      className="inline-block text-[13px] font-semibold bg-amber-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                      className="inline-block text-[13px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
                     >
-                      See Pro plan →
+                      Upgrade to Platform →
                     </Link>
                   </div>
                 )}
