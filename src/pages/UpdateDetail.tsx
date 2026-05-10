@@ -55,25 +55,8 @@ interface RelatedUpdate {
   published_at: string;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  enforcement: "bg-red-50 text-red-700 border-red-200",
-  legislation: "bg-blue-50 text-blue-700 border-blue-200",
-  guidance: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  opinion: "bg-purple-50 text-purple-700 border-purple-200",
-  "ai-regulation": "bg-indigo-50 text-indigo-700 border-indigo-200",
-  "data-breach": "bg-orange-50 text-orange-700 border-orange-200",
-  global: "bg-slate-50 text-slate-700 border-slate-200",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  enforcement: "Enforcement",
-  legislation: "Legislation",
-  guidance: "Guidance",
-  opinion: "Opinion",
-  "ai-regulation": "AI Regulation",
-  "data-breach": "Data Breach",
-  global: "Global",
-};
+import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/config/categories";
+import { fmtDate as formatDate } from "@/lib/dates";
 
 const ANALYSIS_FIELDS: { key: keyof AISummary; label: string }[] = [
   { key: "compliance_impact", label: "Compliance Impact" },
@@ -82,14 +65,6 @@ const ANALYSIS_FIELDS: { key: keyof AISummary; label: string }[] = [
   { key: "legal_weight", label: "Legal Weight" },
   { key: "risk_level", label: "Risk Level" },
 ];
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 /**
  * Strip HTML tags and collapse whitespace from raw summary content.
