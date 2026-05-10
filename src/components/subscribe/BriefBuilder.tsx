@@ -247,7 +247,7 @@ export default function BriefBuilder() {
           <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-5 mb-4">
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
-                ⭐ Your Intelligence Brief
+                ⭐ Your Privacy Intelligence Report
               </span>
               <span className="text-blue-300/60 text-[10px]">
                 {briefItems.length} article{briefItems.length > 1 ? "s" : ""} matched to your tracks
@@ -363,7 +363,7 @@ export default function BriefBuilder() {
                 document.getElementById("pro-plan-card")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              Get your Intelligence Brief →
+              Get your Privacy Intelligence Report →
             </a>
           </div>
 

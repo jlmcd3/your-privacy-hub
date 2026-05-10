@@ -239,7 +239,7 @@ const CategoryPage = () => {
               ⭐ Intelligence Intelligence
             </p>
             <p className="text-sm font-bold text-foreground mb-2">
-              Get {meta.title} analysis in your Intelligence Brief
+              Get {meta.title} analysis in your Privacy Intelligence Report
             </p>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
               Intelligence subscribers receive a full weekly Intelligence Brief with sector-specific context and action items.

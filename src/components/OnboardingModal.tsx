@@ -78,7 +78,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
               What best describes your role?
             </h2>
             <p className="text-muted-foreground text-[13px] text-center mb-6">
-              Your Intelligence Brief is shaped by how you use regulatory information.
+              Your Privacy Intelligence Report is shaped by how you use regulatory information.
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
               {ROLES.map(r => (
