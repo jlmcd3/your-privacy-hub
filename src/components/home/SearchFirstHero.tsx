@@ -63,7 +63,7 @@ export default function SearchFirstHero() {
                   Compliance Tools
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
-                  Your compliance tools — to do your job well
+                  Your Compliance Tools — to do your job well
                 </p>
                 <p className="text-[12px] text-white/60 leading-snug">
                   LIA, DPIA, DPA Generator, RoPA Builder, CPPA Suite. Enforcement-calibrated.
