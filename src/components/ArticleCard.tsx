@@ -6,6 +6,8 @@ import { ActionBrief } from "@/components/ActionBrief";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
+import { fmtDate } from "@/lib/dates";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
@@ -92,38 +94,7 @@ const isEnriched = (item: ArticleItem): boolean => {
   return !!(s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level);
 };
 
-// Badge colors keyed by category string
-const CATEGORY_COLORS: Record<string, string> = {
-  'enforcement': 'bg-red-50 text-red-700 border border-red-200',
-  'eu-uk': 'bg-blue-50 text-blue-700 border border-blue-200',
-  'us-federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  'us-states': 'bg-violet-50 text-violet-700 border border-violet-200',
-  'global': 'bg-teal-50 text-teal-700 border border-teal-200',
-  'ai-privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
-  'adtech': 'bg-orange-50 text-orange-700 border border-orange-200',
-  'Enforcement': 'bg-red-50 text-red-700 border border-red-200',
-  'EU & UK': 'bg-blue-50 text-blue-700 border border-blue-200',
-  'U.S. Federal': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  'U.S. States': 'bg-violet-50 text-violet-700 border border-violet-200',
-  'Global': 'bg-teal-50 text-teal-700 border border-teal-200',
-  'AI & Privacy': 'bg-purple-50 text-purple-700 border border-purple-200',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  'enforcement': 'Enforcement',
-  'eu-uk': 'EU & UK',
-  'us-federal': 'U.S. Federal',
-  'us-states': 'U.S. States',
-  'global': 'Global',
-  'ai-privacy': 'AI & Privacy',
-  'adtech': 'AdTech',
-};
-
-const categoryClass = (cat?: string | null) =>
-  CATEGORY_COLORS[cat || ''] || 'bg-gray-50 text-gray-600 border border-gray-200';
-
-const categoryLabel = (cat?: string | null) =>
-  CATEGORY_LABELS[cat || ''] || cat || '';
+// Category colors/labels live in src/config/categories.ts (shared with UpdateDetail).
 
 // (URGENCY_COLORS / ATTENTION_COLORS removed — Attention badge dropped from
 // surface cards; urgency now appears only inside the paid Intelligence Card.)
@@ -142,11 +113,7 @@ const WEIGHT_COLORS: Record<string, string> = {
   'Proposed': 'bg-amber-100 text-amber-800',
 };
 
-const fmtDate = (d?: string | null) => d
-  ? new Date(d).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-    })
-  : null;
+// fmtDate imported from @/lib/dates
 
 // — Intelligence badge for enriched articles —
 const IntelligenceBadge = () => (
@@ -261,11 +228,6 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
       style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
       <div className="flex items-start gap-2">
-        {item.category && (
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-shrink-0 mt-0.5 ${categoryClass(item.category)}`}>
-            {categoryLabel(item.category)}
-          </span>
-        )}
         <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
@@ -276,9 +238,16 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           {stripHtml(item.summary)}
         </p>
       )}
-      <p className="text-[11px] text-slate-light mt-1">
-        {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
-      </p>
+      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+        <p className="text-[11px] text-slate-light">
+          {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
+        </p>
+        {item.category && (
+          <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
+            {categoryLabel(item.category)}
+          </span>
+        )}
+      </div>
     </Link>
   );
 };
@@ -315,7 +284,7 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
+            <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
               {categoryLabel(item.category)}
             </span>
           )}
@@ -337,22 +306,25 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
             {stripHtml(item.summary)}
           </p>
         )}
-        {/* Why it matters — Pro sees full, free sees short */}
-        {isPremium && item.ai_summary?.why_it_matters ? (
-          <div className="mt-2 flex gap-2 items-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
+        {/* Why it matters — bordered block (consistent across cards & detail page) */}
+        {(isPremium && item.ai_summary?.why_it_matters) || shortWhy ? (
+          <div
+            className="mt-2 border-l-4 px-3 py-2 rounded-r-lg"
+            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+          >
+            <p
+              className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+              style={{ color: '#4A6FA5' }}
+            >
               Why it matters
-            </span>
-            <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(item.ai_summary.why_it_matters)}</p>
-          </div>
-        ) : shortWhy ? (
-          <div className="mt-2 flex gap-2 items-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5 px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
-              Why it matters
-            </span>
-            <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
+            </p>
+            <p className="text-[12.5px] text-navy leading-relaxed">
+              {stripHtml(
+                (isPremium && item.ai_summary?.why_it_matters) ||
+                  shortWhy ||
+                  '',
+              )}
+            </p>
           </div>
         ) : null}
         {/* Inline takeaways — Pro only */}
@@ -378,12 +350,12 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
         {/* Upgrade CTA — free signed-in only */}
         {!isPremium && (
           <div className="mt-2 flex items-center gap-2">
-            <p className="text-[11px] text-amber-700 flex-1">Unlock action items, compliance impact, and full analysis</p>
+            <p className="text-[11px] text-slate flex-1">Unlock action items, compliance impact, and full analysis</p>
             <Link
               to="/subscribe"
-              className="flex-shrink-0 text-[11px] font-semibold bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
+              className="flex-shrink-0 text-[11px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
             >
-              Upgrade to Pro →
+              Upgrade to Platform →
             </Link>
           </div>
         )}
@@ -499,7 +471,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
             )}
             {item.category && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${categoryClass(item.category)}`}>
+              <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
                 {categoryLabel(item.category)}
               </span>
             )}
@@ -577,7 +549,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             src={item.image_url || EUP_TILE}
             alt=""
             loading="lazy"
-            className="w-20 h-20 rounded-md object-cover flex-shrink-0 bg-slate-100"
+            className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
             onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
@@ -589,9 +561,17 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
         </div>
 
         {s?.why_it_matters && (
-          <div className="border-l-4 border-sky-500 bg-sky-50 px-3 py-2 rounded-r-lg mb-3">
-            <p className="text-[10px] font-bold tracking-wider uppercase text-sky-700 mb-1">Why it matters</p>
-            <p className="text-[12px] text-sky-900 leading-relaxed">{stripHtml(s.why_it_matters)}</p>
+          <div
+            className="border-l-4 px-3 py-2 rounded-r-lg mb-3"
+            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+          >
+            <p
+              className="text-[10px] font-bold tracking-wider uppercase mb-1"
+              style={{ color: '#4A6FA5' }}
+            >
+              Why it matters
+            </p>
+            <p className="text-[12px] text-navy leading-relaxed">{stripHtml(s.why_it_matters)}</p>
           </div>
         )}
 
@@ -635,7 +615,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
           src={item.image_url || EUP_TILE}
           alt=""
           loading="lazy"
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
           onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
         />
         <div className="flex-1 min-w-0">
@@ -647,7 +627,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
               <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
             )}
             {item.category && (
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${categoryClass(item.category)}`}>
+              <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
                 {categoryLabel(item.category)}
               </span>
             )}
