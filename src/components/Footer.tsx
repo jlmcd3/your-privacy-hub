@@ -28,7 +28,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Regulatory Updates</h4>
+            <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Privacy Intelligence Feed</h4>
             {[
               { label: "All Updates", href: "/updates" },
               { label: "U.S. Federal", href: "/category/us-federal" },
