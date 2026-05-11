@@ -186,7 +186,11 @@ Deno.serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const limit = Math.min(parseInt(url.searchParams.get("limit") || "20"), 50);
+  const limit = Math.min(parseInt(url.searchParams.get("limit") || "10"), 50);
+  const concurrency = Math.min(
+    Math.max(parseInt(url.searchParams.get("concurrency") || "5"), 1),
+    10,
+  );
   const mode = url.searchParams.get("mode") || "all"; // all | actions | tier | quality | teaser
 
   // Pull rows that have ai_summary but are missing one of the Batch 4/5 fields.
@@ -217,46 +221,69 @@ Deno.serve(async (req) => {
     actions_generated: 0,
     tier_set: 0,
     quality_set: 0,
+    concurrency,
   };
 
-  for (const row of rows || []) {
+  async function processRow(row: any) {
     const ai = (row.ai_summary as any) || {};
     const patch: Record<string, unknown> = {};
 
-    // 1. source_tier (deterministic, no AI)
+    // 1. source_tier (deterministic)
     if (row.source_tier == null) {
       patch.source_tier = inferSourceTier(row.source_domain);
       stats.tier_set++;
     }
 
-    // 2. action_items + precedent_novelty (AI)
+    // 2. action_items + precedent_novelty (AI) — run in parallel with teaser below
     const needsActions = mode !== "tier" && mode !== "quality" &&
       mode !== "teaser" &&
       (!Array.isArray(row.action_items) || row.action_items.length === 0 ||
         !row.precedent_novelty);
-    if (needsActions) {
-      const out = await generateActionsAndNovelty(
-        row.title,
-        ai.why_it_matters || null,
-        row.summary,
-        apiKey,
+
+    // 4-prep. teaser eligibility uses pre-existing tier/quality (deterministic)
+    const preTier = (patch.source_tier ?? row.source_tier) as 1 | 2 | 3 | null;
+    const whyShort = row.why_it_matters_short ||
+      (typeof ai.why_it_matters_short === "string"
+        ? ai.why_it_matters_short
+        : null);
+    // We need a quality estimate to gate teaser; if not set yet, compute provisional
+    // using existing action_items (will be re-evaluated post-action below if needed).
+    const provisionalQuality = row.enrichment_quality ??
+      assessEnrichmentQuality(
+        { ...ai, action_items: row.action_items ?? ai.action_items ?? [] },
+        ai.entities,
       );
-      if (out?.action_items && out.action_items.length > 0) {
-        patch.action_items = out.action_items;
-        stats.actions_generated++;
-      }
-      if (out?.precedent_novelty) {
-        patch.precedent_novelty = out.precedent_novelty;
-      }
-      await new Promise((r) => setTimeout(r, 250));
+    const wantsTeaser = !row.contextual_teaser && preTier === 1 &&
+      provisionalQuality !== "low" && !!whyShort;
+
+    const [actionsRes, teaserRes] = await Promise.all([
+      needsActions
+        ? generateActionsAndNovelty(
+          row.title,
+          ai.why_it_matters || null,
+          row.summary,
+          apiKey!,
+        )
+        : Promise.resolve(null),
+      wantsTeaser
+        ? generateContextualTeaser(whyShort!, apiKey!)
+        : Promise.resolve(null),
+    ]);
+
+    if (actionsRes?.action_items && actionsRes.action_items.length > 0) {
+      patch.action_items = actionsRes.action_items;
+      stats.actions_generated++;
+    }
+    if (actionsRes?.precedent_novelty) {
+      patch.precedent_novelty = actionsRes.precedent_novelty;
     }
 
-    // 3. enrichment_quality (deterministic, depends on action_items)
+    // 3. enrichment_quality — recompute now that action_items may exist
     if (row.enrichment_quality == null) {
       const mergedSummary = {
         ...ai,
-        action_items: patch.action_items ?? row.action_items ?? ai.action_items ??
-          [],
+        action_items: patch.action_items ?? row.action_items ??
+          ai.action_items ?? [],
       };
       patch.enrichment_quality = assessEnrichmentQuality(
         mergedSummary,
@@ -265,34 +292,12 @@ Deno.serve(async (req) => {
       stats.quality_set++;
     }
 
-    // 4. contextual_teaser (tier-1 + non-low quality)
-    const finalTier = (patch.source_tier ?? row.source_tier) as
-      | 1
-      | 2
-      | 3
-      | null;
-    const finalQuality = (patch.enrichment_quality ?? row.enrichment_quality) as
-      | string
-      | null;
-    const whyShort = row.why_it_matters_short ||
-      (typeof ai.why_it_matters_short === "string"
-        ? ai.why_it_matters_short
-        : null);
-    if (
-      !row.contextual_teaser &&
-      finalTier === 1 &&
-      finalQuality && finalQuality !== "low" &&
-      whyShort
-    ) {
-      const teaser = await generateContextualTeaser(whyShort, apiKey);
-      if (teaser) {
-        patch.contextual_teaser = teaser;
-        stats.teasers_generated++;
-      }
-      await new Promise((r) => setTimeout(r, 200));
+    if (teaserRes) {
+      patch.contextual_teaser = teaserRes;
+      stats.teasers_generated++;
     }
 
-    if (Object.keys(patch).length === 0) continue;
+    if (Object.keys(patch).length === 0) return;
 
     const { error: upErr } = await supabase
       .from("updates")
@@ -300,6 +305,15 @@ Deno.serve(async (req) => {
       .eq("id", row.id);
     if (upErr) stats.failed++;
     else stats.updated++;
+  }
+
+  // Process in parallel chunks of `concurrency` rows.
+  const all = rows || [];
+  for (let i = 0; i < all.length; i += concurrency) {
+    const chunk = all.slice(i, i + concurrency);
+    await Promise.all(chunk.map((r) => processRow(r).catch(() => {
+      stats.failed++;
+    })));
   }
 
   return new Response(JSON.stringify(stats), {
