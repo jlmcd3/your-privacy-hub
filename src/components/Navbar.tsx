@@ -390,7 +390,7 @@ const Navbar = () => {
               : "";
             const colorClasses = item.accent
               ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
-              : `${isActive ? "text-white" : "text-white/80 hover:text-white"}`;
+              : `text-white hover:text-white`;
             const dimClass = item.dim ? "opacity-80 hover:opacity-100" : "";
             const directDot = item.directLink
               ? "before:content-[''] before:absolute before:left-1 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[hsl(var(--cobalt))]"
