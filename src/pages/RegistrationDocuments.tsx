@@ -138,14 +138,13 @@ export default function RegistrationDocuments() {
                         : "border-border/60 hover:bg-fog"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-slate" />
-                      <span className="text-xs font-mono uppercase text-slate">{d.jurisdiction_code}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-slate flex-shrink-0" />
+                      <span className="text-sm font-medium text-navy truncate">
+                        <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
+                        - {DOC_LABELS[d.document_type] || d.document_type}
+                      </span>
                     </div>
-                    <div className="text-sm font-medium text-navy mt-1">
-                      {DOC_LABELS[d.document_type] || d.document_type}
-                    </div>
-                    <Badge variant="outline" className="mt-2 text-[10px]">{d.status}</Badge>
                   </button>
                 ))}
               </div>
