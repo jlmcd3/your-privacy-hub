@@ -338,7 +338,8 @@ const UpdateDetail = () => {
                     </p>
                     <Link
                       to="/signup"
-                      className="inline-block text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline"
+                      className="inline-block text-[13px] font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors hover:opacity-90"
+                      style={{ background: 'hsl(var(--accent))' }}
                     >
                       Sign up free →
                     </Link>
