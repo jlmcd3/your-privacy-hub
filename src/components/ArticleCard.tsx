@@ -647,6 +647,14 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
                 {categoryLabel(item.category)}
               </span>
             )}
+            {(() => {
+              const sev = getSeverityLabel(item.ai_summary);
+              return sev ? (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                  {sev.label}
+                </span>
+              ) : null;
+            })()}
           </div>
           <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
             {normalizeTitle(item.title)}
