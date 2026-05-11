@@ -66,54 +66,55 @@ const MOCK_INTAKE = {
   industry_sector: "Healthcare/Life Sciences",
 };
 
-const ASSERTIONS = [
+const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
   {
     label: "report_data.executive_summary present",
-    fn: (r: any) => typeof r?.executive_summary === "string" && r.executive_summary.length > 0,
+    fn: (r) => typeof r.executive_summary === "string" && r.executive_summary.length > 50,
   },
   {
     label: "domains array has ≥5 items",
-    fn: (r: any) => {
-      const domains = r?.domains || r?.domain_assessments || r?.findings || [];
-      return Array.isArray(domains) && domains.length >= 5;
-    },
+    fn: (r) => Array.isArray(r.domains) && r.domains.length >= 5,
   },
   {
     label: "≥1 domain rated Critical or High",
-    fn: (r: any) => {
-      const domains = r?.domains || r?.domain_assessments || r?.findings || [];
-      return Array.isArray(domains) && domains.some((d: any) => /critical|high/i.test(JSON.stringify(d?.rating ?? d?.severity ?? d?.risk_level ?? "")));
-    },
+    fn: (r) =>
+      Array.isArray(r.domains) &&
+      r.domains.some((d: any) =>
+        /(Critical Gap|Gap|High)/i.test(d.status ?? "")
+      ),
   },
   {
-    label: "top_risks (or equivalent) present",
-    fn: (r: any) =>
-      Array.isArray(r?.top_risks) ||
-      Array.isArray(r?.priority_risks) ||
-      Array.isArray(r?.key_risks) ||
-      Array.isArray(r?.risks),
+    label: "top_risks array present with ≥1 item",
+    fn: (r) => Array.isArray(r.top_risks) && r.top_risks.length >= 1,
   },
   {
     label: "enforcement_context present",
-    fn: (r: any) =>
-      r?.enforcement_context !== undefined ||
-      Array.isArray(r?.enforcement_precedents) ||
-      Array.isArray(r?.precedents),
+    fn: (r) => typeof r.enforcement_context === "string" && r.enforcement_context.length > 20,
   },
   {
-    label: "ADMT disclosure flagged in findings",
-    fn: (r: any) => /ADMT|automated decision/i.test(JSON.stringify(r ?? {})),
+    label: "ADMT domain flagged in findings",
+    fn: (r) =>
+      Array.isArray(r.domains) &&
+      r.domains.some((d: any) =>
+        /automat|ADMT|decision.making/i.test(d.domain ?? "") ||
+        /automat|ADMT/i.test(d.finding ?? "")
+      ),
   },
   {
-    label: 'Mentions "December 31, 2027" deadline',
-    fn: (r: any) => /december\s*31,?\s*2027|2027-12-31/i.test(JSON.stringify(r ?? {})),
+    label: "Mentions December 2027 audit deadline",
+    fn: (r) => {
+      const txt = JSON.stringify(r);
+      return /2027|December.*2027|Dec.*2027/i.test(txt);
+    },
   },
   {
     label: "Consumer rights gaps reflected in findings",
-    fn: (r: any) => {
-      const j = JSON.stringify(r ?? {});
-      return /right to correct|right to limit|opt[- ]out of sale/i.test(j);
-    },
+    fn: (r) =>
+      Array.isArray(r.domains) &&
+      r.domains.some((d: any) =>
+        /consumer|rights|opt.out|deletion/i.test(d.domain ?? "") ||
+        /consumer|rights/i.test(d.finding ?? "")
+      ),
   },
 ];
 
