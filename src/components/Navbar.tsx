@@ -314,15 +314,12 @@ const Navbar = () => {
       <Link
         key={sub.label}
         to={sub.href}
-        className={`flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
+        className={`flex items-start px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
         onClick={() => {
           if (mobile) setMobileOpen(false);
           setOpenDropdown(null);
         }}
       >
-        <span className="flex items-center justify-center w-5 shrink-0 mt-0.5">
-          <IconImage src={sub.iconImage} fallback={sub.icon} />
-        </span>
         <span className="flex-1 text-left min-w-0">
           <span className="flex items-center gap-2 flex-wrap">
             <span className="font-medium">{sub.label}</span>
