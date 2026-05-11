@@ -353,7 +353,7 @@ const UpdateDetail = () => {
                     ======================================================== */}
                 <section aria-label="The Brief" className="mb-8">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">The Brief</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>The Brief</span>
                     <span className="text-[10px] text-muted-foreground/60">Why it matters &amp; key takeaways</span>
                   </div>
                   <hr className="border-border mb-4" />
