@@ -428,9 +428,9 @@ const Navbar = () => {
                 )}
 
                 {item.sections && openDropdown === item.label && (
-                  <div className={`absolute top-full pt-1 z-50 ${item.wide ? "right-0" : "left-0"}`}>
+                  <div ref={dropdownRef} className="absolute left-0 top-full pt-1 z-50">
                     <div
-                      className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-auto overscroll-contain max-w-[calc(100vw-2rem)] ${
+                      className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
                             ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-start"
