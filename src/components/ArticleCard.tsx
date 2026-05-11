@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { fmtDate } from "@/lib/dates";
+import { getSeverityLabel } from "@/lib/severity";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
@@ -66,6 +67,7 @@ export interface ArticleItem {
   affected_sectors?: string[] | null;
   regulatory_theory?: string | null;
   related_development?: string | null;
+  precedent_novelty?: "new_theory" | "confirms" | "reverses" | "routine" | string | null;
   enrichment_version?: number | null;
   image_url?: string | null;
   is_premium?: boolean;
