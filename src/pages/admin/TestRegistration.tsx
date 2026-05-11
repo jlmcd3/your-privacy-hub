@@ -146,12 +146,14 @@ export default function TestRegistration() {
       }
       setAssessmentId(assess.assessment_id);
       const codes: string[] = assess.recommended_jurisdictions || [];
-      setRecommendedJurisdictions(codes);
+      // Cap at 3 jurisdictions for the test run to stay within edge function time limits
+      const cappedCodes = codes.slice(0, 3);
+      setRecommendedJurisdictions(cappedCodes);
       addLog(
-        `✓ Assessment ${assess.assessment_id} · confidence=${assess.confidence} · ${codes.length} jurisdictions: ${codes.join(", ") || "(none)"}`
+        `✓ Assessment ${assess.assessment_id} · confidence=${assess.confidence} · ${cappedCodes.length}/${codes.length} jurisdictions: ${cappedCodes.join(", ") || "(none)"}`
       );
 
-      if (!codes.length) {
+      if (!cappedCodes.length) {
         throw new Error("Engine returned no jurisdictions to register in.");
       }
 
@@ -163,7 +165,7 @@ export default function TestRegistration() {
           user_id: user.id,
           assessment_id: assess.assessment_id,
           tier: "diy",
-          jurisdictions: codes,
+          jurisdictions: cappedCodes,
           organization_snapshot: MOCK_INTAKE,
           amount_cents: 0,
           currency: "usd",
