@@ -61,6 +61,7 @@ import TestDPA from "./pages/admin/TestDPA";
 import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
 import TestBiometric from "./pages/admin/TestBiometric";
 import TestCPPAScope from "./pages/admin/TestCPPAScope";
+import TestCPPARisk from "./pages/admin/TestCPPARisk";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
