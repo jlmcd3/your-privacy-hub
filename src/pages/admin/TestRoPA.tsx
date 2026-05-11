@@ -239,7 +239,8 @@ export default function TestRoPA() {
         activity_id: string;
         session_id: string;
         question_key: string;
-        answer_value: unknown;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        answer_value: any;
       }> = [];
       for (const inserted of insertedActivities) {
         const src = MOCK_ACTIVITIES[inserted.display_order];
