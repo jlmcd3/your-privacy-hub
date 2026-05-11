@@ -171,7 +171,7 @@ Return JSON:
   "overall_readiness_rating": "one of: Initial | Developing | Defined | Managed | Optimised",
   "readiness_rationale": "one sentence explaining the rating"
 }`,
-      3000
+      5000
     );
 
     let synthesis: any = {};
