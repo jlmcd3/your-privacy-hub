@@ -118,7 +118,7 @@ Output Markdown with clear headings, bullet points, and signature blocks where r
           order_id,
           jurisdiction_code: r.jurisdiction_code,
           document_type: docDef.type,
-          language: (r.language_requirements || ["en"])[0],
+          language: "en",
           content_text: content,
           generation_model: MODEL,
           status: "ready",
