@@ -374,7 +374,10 @@ const Navbar = () => {
         </Link>
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-2">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
+            // Right-align dropdowns for items in the right half of the nav so
+            // wide panels don't overflow the viewport.
+            const alignRight = idx >= Math.ceil(navItems.length / 2);
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
@@ -415,13 +418,13 @@ const Navbar = () => {
                 )}
 
                 {item.sections && openDropdown === item.label && (
-                  <div className="absolute top-full left-0 pt-1 z-50">
+                  <div className={`absolute top-full ${alignRight ? "right-0" : "left-0"} pt-1 z-50`}>
                     <div
-                      className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
+                      className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain max-w-[calc(100vw-2rem)] ${
                         item.wide
                           ? item.columns === 3
-                            ? "min-w-[840px] grid grid-cols-3 gap-x-3 items-start"
-                            : "min-w-[640px] grid grid-cols-2 gap-x-3 items-start"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-start"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-start"
                           : "min-w-[280px]"
                       }`}
                     >
