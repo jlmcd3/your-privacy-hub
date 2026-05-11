@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import { getSeverityLabel } from "@/lib/severity";
 
 interface AnonymousUpdatesCardItem {
   id: string;
@@ -11,7 +12,7 @@ interface AnonymousUpdatesCardItem {
   source_name?: string | null;
   image_url?: string | null;
   why_it_matters_short?: string | null;
-  ai_summary?: { why_it_matters_short?: string | null } | null;
+  ai_summary?: { why_it_matters_short?: string | null; urgency?: string | null; legal_weight?: string | null } | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
