@@ -247,6 +247,8 @@ Key risk factors: ${JSON.stringify(analysis.balancing_test?.risk_factors || [])}
 PRECEDENT DATABASE:
 ${precedentContext}
 
+IMPORTANT: You must return at least 2–4 items in recommended_documentation regardless of argument strength. Even a weak or insufficient LIA requires documentation to be defensible or to support a re-assessment. Every LIA requires at minimum: (1) a balancing record document, and (2) a legitimate interests notice or transparency document.
+
 Return JSON:
 {
   "recommended_documentation": [
