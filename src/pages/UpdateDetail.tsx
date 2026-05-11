@@ -20,12 +20,20 @@ interface AISummary {
   urgency?: string;
   legal_weight?: string;
   risk_level?: string;
+  affected_jurisdictions?: string[] | string;
+  key_date?: string;
+  entities?: { regulators?: string[]; laws?: string[]; cases?: string[] };
 }
 
 interface ActionItem {
   role?: string;
   action?: string;
   timeframe?: string;
+}
+
+interface RelatedSignal {
+  label?: string;
+  kind?: string;
 }
 
 interface Update {
@@ -46,6 +54,8 @@ interface Update {
   attention_level: string | null;
   affected_sectors: string[] | null;
   action_items: ActionItem[] | null;
+  related_signals: RelatedSignal[] | null;
+  precedent_novelty: string | null;
 }
 
 interface RelatedUpdate {
