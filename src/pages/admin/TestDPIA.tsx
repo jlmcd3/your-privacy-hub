@@ -44,55 +44,65 @@ const intakePayload = {
   source_assessment_id: null,
 };
 
-const ASSERTIONS = [
+const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
   {
-    label: "activity_description present and non-empty",
-    fn: (r: any) => typeof r.activity_description === "string" && r.activity_description.length > 20,
+    label: "section_1_description present and non-empty",
+    fn: (r) =>
+      typeof r.section_1_description === "object" &&
+      r.section_1_description !== null &&
+      (typeof r.section_1_description.processing_nature === "string" ||
+       typeof r.section_1_description.processing_purposes === "string"),
   },
   {
-    label: "necessity_assessment exists",
-    fn: (r: any) => typeof r.necessity_assessment === "object" && r.necessity_assessment !== null,
+    label: "section_2_necessity exists",
+    fn: (r) =>
+      typeof r.section_2_necessity === "object" && r.section_2_necessity !== null,
   },
   {
-    label: "risk_assessment is array with ≥1 risk",
-    fn: (r: any) => Array.isArray(r.risk_assessment) && r.risk_assessment.length >= 1,
+    label: "section_3_risks.risk_assessment is array with ≥1 risk",
+    fn: (r) =>
+      typeof r.section_3_risks === "object" &&
+      Array.isArray(r.section_3_risks?.risk_assessment) &&
+      r.section_3_risks.risk_assessment.length >= 1,
   },
   {
-    label: "mitigation_measures is array with ≥1 measure",
-    fn: (r: any) => Array.isArray(r.mitigation_measures) && r.mitigation_measures.length >= 1,
+    label: "section_4_mitigation.proposed_measures is array with ≥1 measure",
+    fn: (r) =>
+      typeof r.section_4_mitigation === "object" &&
+      Array.isArray(r.section_4_mitigation?.proposed_measures) &&
+      r.section_4_mitigation.proposed_measures.length >= 1,
   },
   {
-    label: "dpo_consultation_required is boolean",
-    fn: (r: any) =>
-      r.dpo_consultation !== null &&
-      r.dpo_consultation !== undefined &&
-      typeof r.dpo_consultation === "object",
+    label: "section_5_consultation exists",
+    fn: (r) =>
+      typeof r.section_5_consultation === "object" && r.section_5_consultation !== null,
   },
   {
-    label: "conclusion section exists",
-    fn: (r: any) => typeof r.conclusion === "object" && r.conclusion !== null,
+    label: "section_6_conclusion exists",
+    fn: (r) =>
+      typeof r.section_6_conclusion === "object" && r.section_6_conclusion !== null,
   },
   {
-    label: "Every risk has a risk_level field",
-    fn: (r: any) =>
-      Array.isArray(r.risk_assessment) &&
-      r.risk_assessment.every(
+    label: "Every risk in section_3 has a risk_level or severity field",
+    fn: (r) =>
+      Array.isArray(r.section_3_risks?.risk_assessment) &&
+      r.section_3_risks.risk_assessment.every(
         (risk: any) =>
-          typeof risk.risk_level === "string" ||
+          typeof risk.likelihood === "string" ||
           typeof risk.severity === "string" ||
-          typeof risk.likelihood === "string"
+          typeof risk.risk_level === "string"
       ),
   },
   {
-    label: "supervisory_authority_consultation flag present",
-    fn: (r: any) =>
-      r.conclusion?.supervisory_authority_consultation !== undefined ||
-      r.supervisory_authority_consultation !== undefined ||
-      Array.isArray(r.risk_assessment),
+    label: "section_6_conclusion or dpia_metadata contains supervisory_authority_consultation flag",
+    fn: (r) =>
+      r.section_6_conclusion?.supervisory_authority_consultation_required !== undefined ||
+      r.dpia_metadata?.supervisory_authority_consultation_trigger !== undefined ||
+      r.section_6_conclusion?.overall_dpia_outcome !== undefined,
   },
   {
     label: "enforcement_precedents array is present",
-    fn: (r: any) => Array.isArray(r.enforcement_precedents),
+    fn: (r) => Array.isArray(r.enforcement_precedents),
   },
 ];
 

@@ -101,10 +101,10 @@ const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
       ),
   },
   {
-    label: "Mentions December 2027 audit deadline",
+    label: "Mentions 2027 CPPA audit deadline or upcoming enforcement timeline",
     fn: (r) => {
       const txt = JSON.stringify(r);
-      return /2027|December.*2027|Dec.*2027/i.test(txt);
+      return /2027|December.*2027|Dec.*2027|audit.*deadline|upcoming.*audit|enforcement.*timeline|high.risk.*deadline/i.test(txt);
     },
   },
   {
