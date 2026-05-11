@@ -357,7 +357,7 @@ ${states
 </body></html>`;
 
       const combinedBytes = new TextEncoder().encode(combinedHtml);
-      const combinedPath = `${sessionId}/v${nextVersion}/_suite.html`;
+      const combinedPath = `${(session as SessionRow).client_id}/${sessionId}/v${nextVersion}/_suite.html`;
       const { error: combinedUploadErr } = await admin.storage
         .from("us-notices")
         .upload(combinedPath, combinedBytes, {
@@ -391,7 +391,7 @@ ${states
     for (const state of states) {
       const html = buildNoticeHtml(state, answers, generatedAtHuman);
       const bytes = new TextEncoder().encode(html);
-      const path = `${sessionId}/v${nextVersion}/${state.state_code}.html`;
+      const path = `${(session as SessionRow).client_id}/${sessionId}/v${nextVersion}/${state.state_code}.html`;
 
       const { error: uploadErr } = await admin.storage
         .from("us-notices")
