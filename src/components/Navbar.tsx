@@ -274,7 +274,23 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!dropdownRef.current) return;
+    // Reset before measuring
+    dropdownRef.current.style.left = "";
+    dropdownRef.current.style.right = "";
+    const rect = dropdownRef.current.getBoundingClientRect();
+    if (rect.right > window.innerWidth - 8) {
+      dropdownRef.current.style.left = "auto";
+      dropdownRef.current.style.right = "0";
+    } else if (rect.left < 8) {
+      dropdownRef.current.style.left = "0";
+      dropdownRef.current.style.right = "auto";
+    }
+  }, [openDropdown]);
   const location = useLocation();
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
