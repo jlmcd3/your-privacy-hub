@@ -125,7 +125,7 @@ const UpdateDetail = () => {
     (supabase as any)
       .from("updates")
       .select(
-        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items, related_signals",
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items, related_signals, contextual_teaser, contextual_record, source_tier, enrichment_quality",
       )
       .eq("id", id)
       .eq("is_hidden", false)
@@ -420,6 +420,11 @@ const UpdateDetail = () => {
                   <div className="rounded-xl border border-border bg-muted/30 p-5 flex items-start gap-3 mb-8">
                     <Lock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1">
+                      {(article as any).contextual_teaser && (
+                        <p className="text-[14px] italic text-foreground/90 mb-2 leading-relaxed">
+                          {(article as any).contextual_teaser}
+                        </p>
+                      )}
                       <p className="text-[14px] font-semibold text-foreground mb-1">
                         Next Steps, Watch, and the full Contextual Record are available on the Annual Platform plan.
                       </p>

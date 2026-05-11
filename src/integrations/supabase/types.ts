@@ -3287,9 +3287,12 @@ export type Database = {
           analysis_basis: string | null
           attention_level: string | null
           category: string
+          contextual_record: Json | null
+          contextual_teaser: string | null
           created_at: string
           defense_considerations: string | null
           direct_jurisdictions: string[] | null
+          enrichment_quality: string | null
           enrichment_version: number | null
           entities: Json | null
           id: string
@@ -3308,6 +3311,7 @@ export type Database = {
           source_domain: string | null
           source_name: string | null
           source_note: string | null
+          source_tier: number | null
           summary: string | null
           title: string
           topic_tags: string[] | null
@@ -3322,9 +3326,12 @@ export type Database = {
           analysis_basis?: string | null
           attention_level?: string | null
           category?: string
+          contextual_record?: Json | null
+          contextual_teaser?: string | null
           created_at?: string
           defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
+          enrichment_quality?: string | null
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
@@ -3343,6 +3350,7 @@ export type Database = {
           source_domain?: string | null
           source_name?: string | null
           source_note?: string | null
+          source_tier?: number | null
           summary?: string | null
           title: string
           topic_tags?: string[] | null
@@ -3357,9 +3365,12 @@ export type Database = {
           analysis_basis?: string | null
           attention_level?: string | null
           category?: string
+          contextual_record?: Json | null
+          contextual_teaser?: string | null
           created_at?: string
           defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
+          enrichment_quality?: string | null
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
@@ -3378,6 +3389,7 @@ export type Database = {
           source_domain?: string | null
           source_name?: string | null
           source_note?: string | null
+          source_tier?: number | null
           summary?: string | null
           title?: string
           topic_tags?: string[] | null
