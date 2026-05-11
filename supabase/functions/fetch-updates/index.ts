@@ -1233,6 +1233,7 @@ Data brokers: state registration requirements, FTC enforcement, California Delet
             role: "user",
             content: `Analyze this privacy/data protection article.
 
+Source authority: ${sourceTier === 1 ? "Primary regulator (official decision or guidance)" : sourceTier === 2 ? "Legal analysis (law firm or legal commentary)" : "Media or civil society coverage"}
 Title: ${title}
 Description: ${summary || "No description available."}
 Source: ${sourceName || "Unknown"}
