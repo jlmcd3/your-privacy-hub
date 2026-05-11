@@ -103,13 +103,15 @@ Health or special category data processed: ${intake.special_category_data ? "Yes
         ["us-federal", "california", "new-york"].includes(j)
       );
 
-    for (const domain of DOMAIN_DEFINITIONS) {
-      const model = (domain.escalate && needsHigherQuality)
-        ? "claude-sonnet-4-6"
-        : "claude-haiku-4-5-20251001";
-
-      const text = await callAnthropic(model, domainSystem,
-        `DOMAIN ${domain.id}: ${domain.name}
+    const domainResultsArray = await Promise.all(
+      DOMAIN_DEFINITIONS.map(async (domain) => {
+        const model = (domain.escalate && needsHigherQuality)
+          ? "claude-sonnet-4-6"
+          : "claude-haiku-4-5-20251001";
+        const text = await callAnthropic(
+          model,
+          domainSystem,
+          `DOMAIN ${domain.id}: ${domain.name}
 
 ORGANISATION PROFILE:
 ${intakeSummary}
@@ -129,15 +131,18 @@ Return JSON:
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
 }`,
-        800
-      );
+          800
+        );
+        try {
+          const m = text.match(/\{[\s\S]*\}/);
+          if (m) return { key: domain.key, result: JSON.parse(m[0]) };
+        } catch { /* fall through */ }
+        return { key: domain.key, result: { domain_id: domain.id, severity: "Unknown" } };
+      })
+    );
 
-      try {
-        const m = text.match(/\{[\s\S]*\}/);
-        if (m) domainResults[domain.key] = JSON.parse(m[0]);
-      } catch { domainResults[domain.key] = { domain_id: domain.id, severity: "Unknown" }; }
-
-      await new Promise(r => setTimeout(r, 200));
+    for (const { key, result } of domainResultsArray) {
+      domainResults[key] = result;
     }
 
     // ── SYNTHESIS ──
