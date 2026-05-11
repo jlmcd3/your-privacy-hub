@@ -420,6 +420,11 @@ const UpdateDetail = () => {
                   <div className="rounded-xl border border-border bg-muted/30 p-5 flex items-start gap-3 mb-8">
                     <Lock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1">
+                      {(article as any).contextual_teaser && (
+                        <p className="text-[14px] italic text-foreground/90 mb-2 leading-relaxed">
+                          {(article as any).contextual_teaser}
+                        </p>
+                      )}
                       <p className="text-[14px] font-semibold text-foreground mb-1">
                         Next Steps, Watch, and the full Contextual Record are available on the Annual Platform plan.
                       </p>
