@@ -565,7 +565,7 @@ Deno.serve(async (req) => {
     for (const fw of fws) {
       const html = buildNoticeHtml({ fw, answers, generatedAtHuman });
       const bytes = new TextEncoder().encode(html);
-      const path = `${sessionId}/v${nextVersion}/${fw.framework_code}.html`;
+      const path = `${sessionRow.client_id}/${sessionId}/v${nextVersion}/${fw.framework_code}.html`;
       const { error: upErr } = await admin.storage
         .from("eu-notices")
         .upload(path, bytes, {
