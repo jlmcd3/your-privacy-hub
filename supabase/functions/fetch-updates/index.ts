@@ -1680,6 +1680,7 @@ Deno.serve(async (req) => {
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
           direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
+          source_tier: inferSourceTier(source),
         };
 
         // Generate AI summary only for new articles; existing URLs are skipped above.
