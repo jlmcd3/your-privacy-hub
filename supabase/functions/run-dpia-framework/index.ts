@@ -96,10 +96,8 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
         ).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
-    const reportText = await callAnthropic("claude-sonnet-4-6", system,
-      `Generate a DPIA framework document for this processing activity.
-
-PROCESSING ACTIVITY DETAILS:
+    // ── Split DPIA generation into two parallel calls to stay within timeout ──
+    const sharedContext = `PROCESSING ACTIVITY DETAILS:
 Description: ${processingDesc}
 Purpose: ${purpose}
 Data categories: ${dataCategories}
@@ -110,10 +108,14 @@ Existing safeguards: ${safeguards}
 Jurisdictions: ${jurisdictions}
 ${orgContext}
 
-ENFORCEMENT PRECEDENTS (recent regulator decisions on similar processing — cite by [E1]–[E5] in risk assessment and mitigation sections):
-${enforcementContextStr}
+ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
+${enforcementContextStr}`;
 
-Return JSON with this exact DPIA structure:
+    const [textA, textB] = await Promise.all([
+      callAnthropic("claude-sonnet-4-6", system,
+        `${sharedContext}
+
+Generate the first half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
 
 {
   "dpia_metadata": {
@@ -121,11 +123,11 @@ Return JSON with this exact DPIA structure:
     "framework_version": "1.0",
     "applicable_frameworks": ["list of applicable frameworks — GDPR Art. 35, UK GDPR, etc."],
     "consultation_requirement": "whether DPO consultation is required and basis",
-    "supervisory_authority_consultation_trigger": "describe the condition under which consultation with the supervisory authority would be required before proceeding"
+    "supervisory_authority_consultation_trigger": "describe when supervisory authority consultation is required"
   },
   "section_1_description": {
     "title": "Description of the Processing",
-    "guidance_note": "GDPR Article 35(7)(a) requires a systematic description of the processing operations and purposes. Include the nature, scope, context, and purposes of processing.",
+    "guidance_note": "GDPR Article 35(7)(a) requires a systematic description of the processing operations and purposes.",
     "processing_nature": "describe the nature of the processing",
     "processing_scope": "describe the scope — volume, range of data subjects, geographic reach",
     "processing_context": "describe the context — relationships, reasonable expectations of data subjects",
@@ -135,7 +137,7 @@ Return JSON with this exact DPIA structure:
   },
   "section_2_necessity": {
     "title": "Assessment of Necessity and Proportionality",
-    "guidance_note": "GDPR Article 35(7)(b) requires assessment of necessity and proportionality. Could the same purpose be achieved with less privacy-invasive means?",
+    "guidance_note": "GDPR Article 35(7)(b) requires assessment of necessity and proportionality.",
     "necessity_analysis": "framework analysis of whether processing is necessary for the stated purpose",
     "proportionality_analysis": "framework analysis of whether processing is proportionate",
     "alternatives_considered": "list alternatives evaluated and why rejected",
@@ -143,7 +145,7 @@ Return JSON with this exact DPIA structure:
   },
   "section_3_risks": {
     "title": "Assessment of Risks to Data Subjects",
-    "guidance_note": "GDPR Article 35(7)(c) requires identification of risks to the rights and freedoms of natural persons. Focus on harm to data subjects, not organisational risk.",
+    "guidance_note": "GDPR Article 35(7)(c) requires identification of risks to the rights and freedoms of natural persons.",
     "risk_assessment": [
       {
         "risk_type": "name of risk",
@@ -155,14 +157,23 @@ Return JSON with this exact DPIA structure:
     ],
     "residual_risk_assessment": "framework guidance on assessing residual risk after mitigation",
     "completion_guidance": "What the organisation must complete in this section"
-  },
+  }
+}`,
+        4000
+      ),
+      callAnthropic("claude-sonnet-4-6", system,
+        `${sharedContext}
+
+Generate the second half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
+
+{
   "section_4_mitigation": {
     "title": "Measures to Address Risks",
-    "guidance_note": "GDPR Article 35(7)(d) requires measures envisaged to address the risks, including safeguards, security measures, and mechanisms to protect personal data.",
+    "guidance_note": "GDPR Article 35(7)(d) requires measures envisaged to address the risks.",
     "proposed_measures": [
       {
         "measure": "name of measure",
-        "addresses_risk": "which risk from section 3 this addresses",
+        "addresses_risk": "which risk this addresses",
         "implementation_guidance": "how to implement",
         "residual_risk_after": "expected residual risk level after implementation"
       }
@@ -171,36 +182,44 @@ Return JSON with this exact DPIA structure:
   },
   "section_5_consultation": {
     "title": "DPO and Stakeholder Consultation",
-    "guidance_note": "Where a DPO is designated, their advice must be sought and documented. Record the advice given and the decision taken.",
-    "dpo_consultation_required": true or false,
+    "guidance_note": "Where a DPO is designated, their advice must be sought and documented.",
+    "dpo_consultation_required": true,
     "dpo_consultation_record": "template for recording DPO consultation outcome",
     "stakeholder_consultation": "list any other stakeholders who should be consulted",
     "completion_guidance": "What the organisation must complete in this section"
   },
   "section_6_conclusion": {
     "title": "Conclusion and Sign-Off",
-    "guidance_note": "Document whether identified risks are acceptable, what residual risks remain, and whether supervisory authority consultation is required before proceeding.",
+    "guidance_note": "Document whether identified risks are acceptable and whether supervisory authority consultation is required.",
     "supervisory_authority_consultation_required": "conditional guidance on when consultation is required",
     "sign_off_template": "template for DPO/counsel sign-off attestation",
     "review_schedule": "recommended review triggers for this DPIA"
   },
   "framework_disclaimer": "This DPIA framework document is provided as a compliance framework tool to assist organisations in structuring their Data Protection Impact Assessment process. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. The organisation's qualified Data Protection Officer or legal counsel must review, complete, and own this document. This framework does not constitute legal advice."
 }`,
-      8000
-    );
+        4000
+      )
+    ]);
 
-    let reportData: any = {};
-    const m = reportText.match(/\{[\s\S]*\}/);
-    if (!m) {
-      console.error("[DPIA] No JSON found. Response length:", reportText.length, "Preview:", reportText.slice(0, 500));
-      reportData = { framework_disclaimer: "This is a compliance framework tool, not legal advice.", error: "Report generation encountered an issue. Please retry." };
-    } else {
-      try {
-        reportData = JSON.parse(m[0]);
-      } catch (e) {
-        console.error("[DPIA] JSON parse error:", e, "Tail:", reportText.slice(-300));
-        reportData = { framework_disclaimer: "This is a compliance framework tool, not legal advice.", error: "Report generation encountered an issue. Please retry." };
-      }
+    let partA: any = {};
+    let partB: any = {};
+    try {
+      const mA = textA.match(/\{[\s\S]*\}/);
+      if (mA) partA = JSON.parse(mA[0]);
+      else console.error("[DPIA] No JSON in part A. Length:", textA.length, "Preview:", textA.slice(0, 300));
+    } catch (e) { console.error("[DPIA] Part A parse error:", e, "Tail:", textA.slice(-200)); }
+    try {
+      const mB = textB.match(/\{[\s\S]*\}/);
+      if (mB) partB = JSON.parse(mB[0]);
+      else console.error("[DPIA] No JSON in part B. Length:", textB.length, "Preview:", textB.slice(0, 300));
+    } catch (e) { console.error("[DPIA] Part B parse error:", e, "Tail:", textB.slice(-200)); }
+
+    let reportData: any = { ...partA, ...partB };
+    if (!reportData.section_1_description && !reportData.section_4_mitigation) {
+      reportData = {
+        framework_disclaimer: "This is a compliance framework tool, not legal advice.",
+        error: "Report generation encountered an issue. Please retry."
+      };
     }
 
     reportData.generated_at = new Date().toISOString();
