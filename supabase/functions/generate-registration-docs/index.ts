@@ -48,7 +48,7 @@ async function aiGenerate(prompt: string): Promise<string> {
         { role: "user", content: prompt },
       ],
     }),
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(45000),
   });
   if (!resp.ok) {
     const txt = await resp.text();
