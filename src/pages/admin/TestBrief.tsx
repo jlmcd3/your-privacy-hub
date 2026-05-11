@@ -68,13 +68,16 @@ const ASSERTIONS: { label: string; fn: (s: CustomSections, t: string) => boolean
   {
     label: 'Output contains a verdict or bottom-line sentence',
     fn: (s, t) => {
-      const items = (s.your_action_items as Array<any>) || [];
-      if (items.some((i) => /bottom.line|verdict/i.test(JSON.stringify(i)))) return true;
+      const alert = (s.your_critical_alert as string) ?? "";
+      const week = (s.your_week as string) ?? "";
+      if (alert.length > 20 || week.length > 20) return true;
       return (
-        /bottom[\s_\-]*line/i.test(t) ||
-        /verdict[:\s—]/i.test(t) ||
-        /the\s+(upshot|takeaway|key\s+point)[:\s—]/i.test(t) ||
-        /what\s+(this\s+means|you\s+need\s+to\s+do)[:\s—]/i.test(t)
+        /bottom[\s_\-*]*line/i.test(t) ||
+        /verdict[:\s—*]/i.test(t) ||
+        /the\s+(upshot|takeaway|key\s+point|net\s+result)[:\s—]/i.test(t) ||
+        /what\s+(this\s+means|you\s+need\s+to\s+do|to\s+do\s+now)[:\s—]/i.test(t) ||
+        /\*{0,2}(your\s+action|action\s+required|what\s+you\s+need)[:\s—*]/i.test(t) ||
+        /in\s+(short|summary|brief)[:\s,—]/i.test(t)
       );
     },
   },

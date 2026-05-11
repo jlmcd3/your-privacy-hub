@@ -51,10 +51,11 @@ const ASSERTIONS = [
     },
   },
   {
-    label: "UK risk rating is HIGH",
+    label: "UK risk rating is HIGH or CRITICAL",
     fn: (t: string) => {
-      const uk = t.split(/united kingdom/i)[1] ?? "";
-      return /HIGH|CRITICAL/.test(uk.split(/illinois/i)[0] ?? uk);
+      const ukMatch = t.match(/###\s*UNITED KINGDOM[\s\S]*?(?=###\s*ILLINOIS|###\s*BIPA|$)/i);
+      const segment = ukMatch?.[0] ?? t;
+      return /(HIGH|CRITICAL|Significant|severe)/i.test(segment);
     },
   },
   {

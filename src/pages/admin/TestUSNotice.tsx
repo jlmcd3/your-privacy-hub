@@ -177,7 +177,7 @@ export default function TestUSNotice() {
 
       // 3. State selections
       addLog("▶ Inserting state selections...");
-      const { error: stateErr } = await supabase
+      const { data: insertedStates, error: stateErr } = await supabase
         .from("us_notice_state_selections")
         .insert(
           MOCK_INPUT.states.map((s) => ({
@@ -186,8 +186,17 @@ export default function TestUSNotice() {
             state_name: s.name,
             framework_type: s.framework,
           }))
-        );
+        )
+        .select("id");
       if (stateErr) throw new Error(`states: ${stateErr.message}`);
+      if (!insertedStates || insertedStates.length === 0) {
+        throw new Error(
+          `State selections insert returned 0 rows — RLS may have blocked the insert. ` +
+          `Session id: ${session.id}, client_id: ${clientId}. ` +
+          `Verify owns_client(${clientId}) returns true for this user.`
+        );
+      }
+      addLog(`✓ ${insertedStates.length} state selection(s) inserted`);
 
       // 4. Answers (template question keys)
       addLog("▶ Inserting universal answers...");

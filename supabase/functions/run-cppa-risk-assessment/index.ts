@@ -20,7 +20,7 @@ async function callAnthropic(system: string, user: string): Promise<string> {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 4000,
+      max_tokens: 8000,
       system,
       messages: [{ role: "user", content: user }],
     }),
@@ -147,8 +147,12 @@ Domains to assess (one object per domain):
     const text = await callAnthropic(system, userPrompt);
     let report: any = {};
     const m = text.match(/\{[\s\S]*\}/);
-    if (m) {
-      try { report = JSON.parse(m[0]); } catch (e) { console.error("Parse error", e); }
+    if (!m) {
+      console.error("[CPPA Risk] No JSON found in response. Length:", text.length, "Preview:", text.slice(0, 300));
+    } else {
+      try { report = JSON.parse(m[0]); } catch (e) {
+        console.error("[CPPA Risk] Parse error:", e, "Tail:", text.slice(-200));
+      }
     }
 
     await supabase
