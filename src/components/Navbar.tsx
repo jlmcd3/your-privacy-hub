@@ -205,11 +205,6 @@ const navItems: NavItem[] = [
     href: "/subscribe",
     accent: true,
   },
-  {
-    label: "Privacy Intelligence Feed",
-    href: "/updates",
-    directLink: true,
-  },
 ];
 
 /** Compact user-icon dropdown that replaces Account + Sign Out in the logged-in nav. */
