@@ -278,18 +278,21 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!dropdownRef.current) return;
-    // Reset before measuring
-    dropdownRef.current.style.left = "";
-    dropdownRef.current.style.right = "";
-    const rect = dropdownRef.current.getBoundingClientRect();
-    if (rect.right > window.innerWidth - 8) {
-      dropdownRef.current.style.left = "auto";
-      dropdownRef.current.style.right = "0";
-    } else if (rect.left < 8) {
-      dropdownRef.current.style.left = "0";
-      dropdownRef.current.style.right = "auto";
-    }
+    const el = dropdownRef.current;
+    if (!el) return;
+    const adjust = () => {
+      el.style.marginLeft = "";
+      const rect = el.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const margin = 8;
+      let delta = 0;
+      if (rect.right > vw - margin) delta = vw - margin - rect.right;
+      if (rect.left + delta < margin) delta = margin - rect.left;
+      if (delta !== 0) el.style.marginLeft = `${delta}px`;
+    };
+    adjust();
+    window.addEventListener("resize", adjust);
+    return () => window.removeEventListener("resize", adjust);
   }, [openDropdown]);
   const location = useLocation();
   const { user } = useAuth();
