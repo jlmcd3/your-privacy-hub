@@ -357,7 +357,7 @@ ${states
 </body></html>`;
 
       const combinedBytes = new TextEncoder().encode(combinedHtml);
-      const combinedPath = `${sessionId}/v${nextVersion}/_suite.html`;
+      const combinedPath = `${(session as SessionRow).client_id}/${sessionId}/v${nextVersion}/_suite.html`;
       const { error: combinedUploadErr } = await admin.storage
         .from("us-notices")
         .upload(combinedPath, combinedBytes, {
