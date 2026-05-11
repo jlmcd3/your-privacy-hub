@@ -61,6 +61,7 @@ import TestDPA from "./pages/admin/TestDPA";
 import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
 import TestBiometric from "./pages/admin/TestBiometric";
 import TestCPPAScope from "./pages/admin/TestCPPAScope";
+import TestCPPARisk from "./pages/admin/TestCPPARisk";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -419,6 +420,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestCPPAScope />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-cppa-risk"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestCPPARisk />
                   </AdminOnly>
                 </ProtectedRoute>
               }
