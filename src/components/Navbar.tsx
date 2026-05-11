@@ -57,6 +57,10 @@ interface NavItem {
   wide?: boolean;
   columns?: 2 | 3;
   sections?: NavSection[];
+  /** Visually de-emphasize this top-level item (secondary nav). */
+  dim?: boolean;
+  /** Mark as a direct link (not a dropdown) with a small cobalt indicator dot. */
+  directLink?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -94,6 +98,7 @@ const navItems: NavItem[] = [
   {
     label: "Privacy Intelligence Feed",
     href: "/updates",
+    directLink: true,
   },
   {
     label: "Compliance Tools",
@@ -155,6 +160,7 @@ const navItems: NavItem[] = [
     label: "Research",
     wide: true,
     columns: 2,
+    dim: true,
     sections: [
       {
         header: "Laws & frameworks",
@@ -367,20 +373,25 @@ const Navbar = () => {
           <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-2">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const baseTopClasses = "relative flex items-center gap-1 px-2 py-2 transition-colors no-underline font-semibold text-[15px]";
+            const basePadX = item.directLink ? "px-4" : "px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[15px]`;
             const activeUnderline = isActive
-              ? "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
+              ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
             const colorClasses = item.accent
               ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
               : `${isActive ? "text-white" : "text-white/80 hover:text-white"}`;
+            const dimClass = item.dim ? "opacity-80 hover:opacity-100" : "";
+            const directDot = item.directLink
+              ? "before:content-[''] before:absolute before:left-1 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[hsl(var(--cobalt))]"
+              : "";
             return (
               <div
                 key={item.label}
@@ -389,14 +400,14 @@ const Navbar = () => {
                 onMouseLeave={() => setOpenDropdown(null)}
               >
                 {item.href ? (
-                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline}`}>
+                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} ${directDot}`}>
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                   </Link>
                 ) : (
                   <button
                     type="button"
-                    className={`${baseTopClasses} ${colorClasses} ${activeUnderline} cursor-pointer bg-transparent border-none`}
+                    className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} cursor-pointer bg-transparent border-none`}
                   >
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
@@ -499,7 +510,7 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="text-[12px] font-medium text-white/80 hover:text-white no-underline transition-colors"
+                className="text-[15px] font-semibold text-white/80 hover:text-white no-underline transition-colors px-3 py-2"
               >
                 Sign In
               </Link>
