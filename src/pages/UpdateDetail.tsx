@@ -69,13 +69,6 @@ interface RelatedUpdate {
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/config/categories";
 import { fmtDate as formatDate } from "@/lib/dates";
 
-const ANALYSIS_FIELDS: { key: keyof AISummary; label: string }[] = [
-  { key: "compliance_impact", label: "Compliance Impact" },
-  { key: "who_should_care", label: "Who Should Care" },
-  { key: "urgency", label: "Urgency" },
-  { key: "legal_weight", label: "Legal Weight" },
-  { key: "risk_level", label: "Risk Level" },
-];
 
 /**
  * Strip HTML tags and collapse whitespace from raw summary content.
