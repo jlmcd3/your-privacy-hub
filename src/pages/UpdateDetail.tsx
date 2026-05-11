@@ -317,9 +317,9 @@ const UpdateDetail = () => {
                 {(ai?.why_it_matters_short || ai?.why_it_matters) && (
                   <div
                     className="border-l-4 px-4 py-3 mb-5 rounded-r"
-                    style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                    style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                   >
-                    <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: '#4A6FA5' }}>
+                    <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
                     <p className="text-[14px] leading-relaxed text-navy">
@@ -338,7 +338,8 @@ const UpdateDetail = () => {
                     </p>
                     <Link
                       to="/signup"
-                      className="inline-block text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline"
+                      className="inline-block text-[13px] font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors hover:opacity-90"
+                      style={{ background: 'hsl(var(--accent))' }}
                     >
                       Sign up free →
                     </Link>
@@ -352,7 +353,7 @@ const UpdateDetail = () => {
                     ======================================================== */}
                 <section aria-label="The Brief" className="mb-8">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">The Brief</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>The Brief</span>
                     <span className="text-[10px] text-muted-foreground/60">Why it matters &amp; key takeaways</span>
                   </div>
                   <hr className="border-border mb-4" />
@@ -360,7 +361,7 @@ const UpdateDetail = () => {
                   {ai?.why_it_matters && (
                     <div
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
-                      style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                      style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
                       <p className="text-[14px] leading-relaxed text-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
@@ -380,9 +381,9 @@ const UpdateDetail = () => {
                   {(() => {
                     const entities = ai?.entities;
                     const chips: { label: string; tone: string }[] = [];
-                    entities?.regulators?.forEach(r => chips.push({ label: r, tone: "bg-blue-50 text-blue-800 border-blue-200" }));
-                    entities?.laws?.forEach(l => chips.push({ label: l, tone: "bg-violet-50 text-violet-800 border-violet-200" }));
-                    entities?.cases?.forEach(c => chips.push({ label: c, tone: "bg-amber-50 text-amber-800 border-amber-200" }));
+                    entities?.regulators?.forEach(r => chips.push({ label: r, tone: "bg-[hsl(var(--cobalt)/0.08)] text-[hsl(var(--cobalt))] border-[hsl(var(--cobalt)/0.25)]" }));
+                    entities?.laws?.forEach(l => chips.push({ label: l, tone: "bg-muted text-foreground border-border" }));
+                    entities?.cases?.forEach(c => chips.push({ label: c, tone: "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.3)]" }));
                     if (chips.length === 0) return null;
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
@@ -456,14 +457,14 @@ const UpdateDetail = () => {
                   return (
                     <section aria-label="Next Steps" className="mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Next Steps</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
                         <span className="text-[10px] text-muted-foreground/60">Actions by timeframe</span>
                       </div>
                       <hr className="border-border mb-4" />
                       <div className="space-y-3">
                         {bands.filter(b => groups[b.key].length > 0).map(b => (
                           <div key={b.key} className="grid grid-cols-[90px_1fr] gap-3 items-start">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 pt-0.5">{b.label}</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
                                 <li key={i} className="text-[13.5px] text-foreground leading-relaxed">
@@ -509,7 +510,7 @@ const UpdateDetail = () => {
                 {isPremium && (
                   <section aria-label="Contextual Record" className="mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Contextual Record</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Contextual Record</span>
                     </div>
                     <hr className="border-border mb-4" />
                     <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
