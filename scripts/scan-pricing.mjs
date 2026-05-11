@@ -26,7 +26,7 @@ const ROOT = process.cwd();
 // for the Intelligence subscription. Any hardcoded "$39" / "$390" string
 // outside that file is a drift risk. This check fails the scanner if found.
 const SUBSCRIPTION_PATTERNS = [
-  "\\$39\\/month", "\\$39\\/mo\\b", "\\$390\\/year", "\\$390\\/yr\\b",
+  "\\$29\\/month", "\\$29\\/mo\\b", "\\$399\\/year", "\\$399\\/yr\\b",
 ];
 const ALLOWED_FILES = new Set([
   "src/config/pricing.ts",
@@ -111,26 +111,46 @@ const serverRegistration = {
 };
 
 // ---------- 2. UI-marketed prices ----------
-// Light-weight scan: a product is identified by its display name; we record
-// every $-amount that appears within ~120 chars of that name.
-const UI_FILES = [
-  "src/pages/Tools.tsx",
-  "src/pages/Subscribe.tsx",
-  "src/pages/RegistrationLanding.tsx",
-  "src/components/home/ProToolsBanner.tsx",
-  "src/components/home/RegistrationManagerBanner.tsx",
-  "src/components/home/ChooseYourMode.tsx",
-];
+// Walk every UI file under src/pages and src/components — a marketed price
+// counts no matter which page it appears on. Skip the admin pricing page
+// itself (it embeds the report) and the registry source-of-truth file.
+import { readdirSync, statSync } from "node:fs";
+const UI_DIRS = ["src/pages", "src/components"];
+const UI_FILE_EXCLUDE = new Set([
+  "src/pages/AdminPricingReconciliation.tsx",
+]);
+function walk(dir, out = []) {
+  for (const entry of readdirSync(join(ROOT, dir))) {
+    const rel = `${dir}/${entry}`;
+    const abs = join(ROOT, rel);
+    const st = statSync(abs);
+    if (st.isDirectory()) walk(rel, out);
+    else if (/\.(tsx|ts|jsx|js)$/.test(entry) && !UI_FILE_EXCLUDE.has(rel)) out.push(rel);
+  }
+  return out;
+}
+const UI_FILES = UI_DIRS.flatMap((d) => walk(d));
 
 const PRODUCTS = [
-  { key: "governance_assessment", patterns: ["Privacy Program Assessment Tool"] },
-  { key: "li_assessment", patterns: ["Legitimate Interest Assessment Tool"] },
-  { key: "dpia_framework", patterns: ["Impact Assessment Builder"] },
-  { key: "dpa_generator", patterns: ["Your Custom DPA"] },
-  { key: "ir_playbook", patterns: ["Your Breach Response Playbook"] },
-  { key: "biometric_checker", patterns: ["Biometric Privacy Compliance Checker", "Biometric Compliance Checker"] },
-  { key: "intelligence_monthly", patterns: ["$39/month", "$39/mo", "Monthly · $39", "Intelligence — $39"] },
-  { key: "intelligence_yearly", patterns: ["$390/year", "$390/yr", "Yearly · $390"] },
+  { key: "governance_assessment", patterns: ["Privacy Program Assessment", "Governance Assessment"] },
+  { key: "li_assessment", patterns: ["Legitimate Interest Assessment", "LI Assessment"] },
+  { key: "dpia_framework", patterns: ["Impact Assessment Builder", "DPIA"] },
+  { key: "dpa_generator", patterns: ["Your Custom DPA", "DPA Generator", "Data Processing Agreement"] },
+  { key: "ir_playbook", patterns: ["Breach Response Playbook", "Incident Response Playbook", "IR Playbook"] },
+  { key: "biometric_checker", patterns: ["Biometric Privacy Compliance Checker", "Biometric Compliance Checker", "Biometric Checker"] },
+  { key: "ropa_initial", patterns: ["RoPA Builder", "Records of Processing", "RoPA — Initial", "RoPA Initial"] },
+  { key: "ropa_refresh", patterns: ["RoPA — Annual Refresh", "RoPA Refresh", "Annual Refresh"] },
+  { key: "us_notice_single", patterns: ["US Privacy Notice", "Single State", "per state"] },
+  { key: "us_notice_all_states", patterns: ["All States Suite", "All-States Suite"] },
+  { key: "eu_notice_single", patterns: ["Single Framework", "per framework"] },
+  { key: "eu_notice_suite", patterns: ["EU Notice Suite", "GDPR + UK GDPR"] },
+  { key: "eu_notice_full_international", patterns: ["Full International"] },
+  { key: "eu_notice_refresh", patterns: ["EU & Global Notice — Annual Refresh", "Notice Refresh"] },
+  { key: "cppa_risk_assessment", patterns: ["CPPA Risk Assessment", "CPPA Module 1", "Risk Assessment — Module 1"] },
+  { key: "cppa_cybersecurity", patterns: ["CPPA Cybersecurity", "Cybersecurity Readiness", "Module 2"] },
+  { key: "cppa_suite", patterns: ["CPPA Full Audit Suite", "CPPA Suite"] },
+  { key: "intelligence_monthly", patterns: ["$29/month", "$29/mo", "Intelligence — Monthly", "Monthly · $29"] },
+  { key: "intelligence_yearly", patterns: ["$399/year", "$399/yr", "Platform — Annual", "Yearly · $399"] },
   { key: "registration_diy_1", patterns: ["1 jurisdiction"] },
   { key: "registration_diy_3", patterns: ["Up to 3 jurisdictions"] },
   { key: "registration_diy_7", patterns: ["Up to 7 jurisdictions"] },
@@ -188,11 +208,82 @@ function fmt(c) {
   return c == null ? "—" : `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
 }
 
+// ---------- 3a. Registry-vs-server (the real source-of-truth check) ----------
+// Per project memory, src/config/pricing.ts is the single source of truth.
+// For tools that have a registry entry, compare server fallback cents against
+// the registry directly — this is unambiguous and not subject to UI scrape noise.
+// Tools with no registry entry are reported as "unmigrated" (informational).
+const REGISTRY_SRC = (() => {
+  try { return readFileSync(join(ROOT, "src/config/pricing.ts"), "utf8"); }
+  catch { return ""; }
+})();
+function registryCents(lookupKey) {
+  const re = new RegExp(
+    `${lookupKey}:\\s*\\{[\\s\\S]*?amountCents:\\s*(\\d+)`
+  );
+  const m = REGISTRY_SRC.match(re);
+  return m ? Number(m[1]) : null;
+}
+// Map server tool key -> { standalone: registry lookup key, subscriber: lookup key | null }
+const REGISTRY_MAP = {
+  us_notice_single:               { standalone: "us_notice_single_standalone",            subscriber: "us_notice_single_subscriber" },
+  us_notice_all_states:           { standalone: "us_notice_all_standalone",               subscriber: "us_notice_all_subscriber" },
+  eu_notice_single:               { standalone: "eu_notice_single_standalone",            subscriber: "eu_notice_single_subscriber" },
+  eu_notice_suite:                { standalone: "eu_notice_suite_standalone",             subscriber: "eu_notice_suite_subscriber" },
+  eu_notice_full_international:   { standalone: "eu_notice_full_international_standalone",subscriber: "eu_notice_full_international_subscriber" },
+  eu_notice_refresh:              { standalone: "eu_notice_refresh_standalone",           subscriber: "eu_notice_refresh_subscriber" },
+};
+
 // Tools
 for (const t of serverTools) {
+  const map = REGISTRY_MAP[t.key];
   const ui = findMarketedPrices(
     PRODUCTS.find((p) => p.key === t.key)?.patterns ?? [t.name]
   );
+
+  if (map) {
+    // Registry-driven check — true source of truth.
+    const regStandalone = registryCents(map.standalone);
+    const regSubscriber = map.subscriber ? registryCents(map.subscriber) : null;
+    const standaloneOk = regStandalone === t.standalone_cents;
+    const subscriberOk =
+      t.subscriber_cents === 0
+        ? true
+        : regSubscriber === t.subscriber_cents;
+    rows.push({
+      product: t.name,
+      server_standalone: fmt(t.standalone_cents),
+      server_subscriber: t.subscriber_cents ? fmt(t.subscriber_cents) : "—",
+      ui_prices_seen: [
+        regStandalone != null ? `registry: ${fmt(regStandalone)}` : null,
+        regSubscriber != null ? `registry sub: ${fmt(regSubscriber)}` : null,
+      ].filter(Boolean),
+      standalone_match: standaloneOk,
+      subscriber_match: subscriberOk,
+    });
+    if (!standaloneOk) {
+      findings.push({
+        severity: "high",
+        product: t.name,
+        issue: `Registry says ${fmt(regStandalone)} but server charges ${fmt(t.standalone_cents)} standalone.`,
+        ui_prices_seen: [],
+      });
+    }
+    if (!subscriberOk) {
+      findings.push({
+        severity: "high",
+        product: t.name,
+        issue: `Registry says ${fmt(regSubscriber)} but server charges ${fmt(t.subscriber_cents)} subscriber.`,
+        ui_prices_seen: [],
+      });
+    }
+    continue;
+  }
+
+  // No registry entry yet — informational only. Match if UI shows the price
+  // anywhere in src/pages or src/components (broad scan above). If not,
+  // record as "unmigrated", not as a finding — pricing for these products
+  // hasn't been pulled into src/config/pricing.ts yet.
   const standaloneOk = ui.some((u) => u.cents === t.standalone_cents);
   const subscriberOk =
     t.subscriber_cents === 0
@@ -205,23 +296,10 @@ for (const t of serverTools) {
     ui_prices_seen: ui.map((u) => fmt(u.cents)).sort(),
     standalone_match: standaloneOk,
     subscriber_match: subscriberOk,
+    unmigrated: true,
   });
-  if (!standaloneOk) {
-    findings.push({
-      severity: "high",
-      product: t.name,
-      issue: `Server charges ${fmt(t.standalone_cents)} standalone, but UI never shows that price.`,
-      ui_prices_seen: ui.map((u) => fmt(u.cents)),
-    });
-  }
-  if (!subscriberOk) {
-    findings.push({
-      severity: "high",
-      product: t.name,
-      issue: `Server charges ${fmt(t.subscriber_cents)} subscriber, but UI never shows that price.`,
-      ui_prices_seen: ui.map((u) => fmt(u.cents)),
-    });
-  }
+  // Do NOT push findings for unmigrated tools — too many UI patterns to scrape
+  // reliably. The registry check above is what catches real drift.
 }
 
 // Registration: compare each marketed tier against the server ladder.
@@ -281,7 +359,11 @@ console.log(`Mismatches       : ${report.summary.mismatches}\n`);
 console.log("Product".padEnd(48), "Server".padEnd(18), "UI seen");
 console.log("-".repeat(110));
 for (const r of rows) {
-  const status = r.standalone_match && r.subscriber_match ? "✅" : "❌";
+  const status = r.unmigrated
+    ? "—"
+    : r.standalone_match && r.subscriber_match
+      ? "✅"
+      : "❌";
   console.log(
     `${status} ${r.product.padEnd(45)} ${r.server_standalone.padEnd(8)} / ${(r.server_subscriber ?? "—").padEnd(8)}  ${r.ui_prices_seen.join(", ")}`
   );

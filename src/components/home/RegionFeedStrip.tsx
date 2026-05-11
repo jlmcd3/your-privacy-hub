@@ -1,4 +1,4 @@
-import { normalizeTitle } from "@/lib/utils";
+import { normalizeTitle, stripHtml } from "@/lib/utils";
 
 interface RegionItem {
   flag: string;
@@ -9,6 +9,7 @@ interface RegionItem {
   date: string;
   whyItMatters?: string | null;
   urgency?: string | null;
+  summary?: string | null;
 }
 
 interface RegionFeedStripProps {
@@ -45,6 +46,11 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
             <h4 className="font-bold text-navy text-[14px] leading-snug group-hover:text-blue transition-colors line-clamp-2">
               {normalizeTitle(item.headline)}
             </h4>
+            {item.summary && (
+              <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+                {stripHtml(item.summary)}
+              </p>
+            )}
             {item.whyItMatters && (
               <p className="text-[11px] text-muted-foreground leading-snug mt-1 line-clamp-2">
                 {item.whyItMatters.split(/\.\s+/)[0] + "."}

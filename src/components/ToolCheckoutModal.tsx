@@ -15,7 +15,10 @@ export type ToolType =
   | "dpia_framework"
   | "dpa_generator"
   | "ir_playbook"
-  | "biometric_checker";
+  | "biometric_checker"
+  | "cppa_risk_assessment"
+  | "cppa_cybersecurity"
+  | "cppa_suite";
 
 interface Props {
   open: boolean;
@@ -24,7 +27,7 @@ interface Props {
   intakeData?: Record<string, unknown>;
   onClose: () => void;
   /** Called only after backend confirms the purchase row was written. */
-  onComplete?: (assessmentId: string) => void;
+  onComplete?: (assessmentId: string, suiteCyberId?: string) => void;
 }
 
 export default function ToolCheckoutModal({
@@ -36,6 +39,7 @@ export default function ToolCheckoutModal({
   onComplete,
 }: Props) {
   const lastAssessmentIdRef = useRef<string>("");
+  const lastSuiteCyberIdRef = useRef<string>("");
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
@@ -54,6 +58,7 @@ export default function ToolCheckoutModal({
       throw new Error(error?.message || data?.error || "Failed to create checkout session");
     }
     lastAssessmentIdRef.current = data.assessment_id;
+    lastSuiteCyberIdRef.current = data.suite_cyber_id || "";
     return data.client_secret as string;
   }, [toolType, userId, intakeData]);
 
@@ -68,7 +73,7 @@ export default function ToolCheckoutModal({
     const ok = await waitForAssessmentPaid(id, { timeoutMs: 30_000, intervalMs: 1_500 });
     setConfirming(false);
     if (ok) {
-      onComplete?.(id);
+      onComplete?.(id, lastSuiteCyberIdRef.current || undefined);
     } else {
       setConfirmError(
         "Payment received, but your purchase hasn't finalized yet. It usually takes a few seconds — you can continue to your result and we'll keep working in the background."
@@ -112,7 +117,7 @@ export default function ToolCheckoutModal({
             <div className="p-8 text-center">
               <p className="text-[13px] text-amber-700 mb-4">{confirmError}</p>
               <button
-                onClick={() => onComplete?.(lastAssessmentIdRef.current)}
+                onClick={() => onComplete?.(lastAssessmentIdRef.current, lastSuiteCyberIdRef.current || undefined)}
                 className="bg-navy text-white text-[13px] font-semibold px-5 py-2 rounded-lg"
               >
                 Continue

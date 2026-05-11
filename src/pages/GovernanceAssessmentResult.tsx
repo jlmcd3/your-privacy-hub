@@ -6,8 +6,10 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
+import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 
 const ratingColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -27,6 +29,15 @@ const sevColor = (s: string) => {
   if (x === "compliant") return "bg-green-100 text-green-800";
   return "bg-muted text-foreground";
 };
+const sevBg = (s: string) => {
+  const x = (s || "").toLowerCase();
+  if (x === "critical") return "bg-red-50 border-red-300";
+  if (x === "high") return "bg-orange-50 border-orange-300";
+  if (x === "medium") return "bg-amber-50 border-amber-300";
+  if (x === "low") return "bg-blue-50 border-blue-300";
+  if (x === "compliant") return "bg-green-50 border-green-300";
+  return "bg-muted/40 border-border";
+};
 
 const GovernanceAssessmentResult = () => {
   const { id } = useParams();
@@ -38,14 +49,28 @@ const GovernanceAssessmentResult = () => {
   useEffect(() => {
     if (!id) return;
     let timer: any;
+    let pollCount = 0;
+    const MAX_POLLS = 20; // 80 seconds at 4s intervals
+
     const fetchOnce = async () => {
-      const { data } = await supabase.from("governance_assessments").select("*").eq("id", id).maybeSingle();
+      const { data } = await supabase
+        .from("governance_assessments")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
       setAssessment(data);
       setLoading(false);
+
       if (data && (data.status === "pending" || data.status === "processing")) {
-        timer = setTimeout(fetchOnce, 4000);
+        pollCount += 1;
+        if (pollCount < MAX_POLLS) {
+          timer = setTimeout(fetchOnce, 4000);
+        } else {
+          setAssessment((prev: any) => ({ ...prev, status: "failed" }));
+        }
       }
     };
+
     fetchOnce();
     return () => timer && clearTimeout(timer);
   }, [id]);
@@ -54,6 +79,13 @@ const GovernanceAssessmentResult = () => {
   const intake = assessment?.intake_data || {};
   const status = assessment?.status;
 
+  const domainList: any[] =
+    report?.domain_findings && typeof report.domain_findings === "object" && !Array.isArray(report.domain_findings)
+      ? (Object.values(report.domain_findings) as any[])
+      : Array.isArray(report?.domain_findings)
+        ? report.domain_findings
+        : [];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
@@ -61,6 +93,7 @@ const GovernanceAssessmentResult = () => {
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
+        <ClientContextBadge />
         {purchased && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.
@@ -78,7 +111,10 @@ const GovernanceAssessmentResult = () => {
 
         {status === "failed" && (
           <div className="bg-card border rounded-lg p-6">
-            <p className="font-medium text-red-700 mb-3">Assessment failed.</p>
+            <p className="font-medium text-red-700 mb-2">Assessment could not be completed.</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              This can happen when the assessment takes longer than expected. Your inputs were saved — please try again.
+            </p>
             <Button asChild><Link to="/governance-assessment">Try Again</Link></Button>
           </div>
         )}
@@ -101,12 +137,32 @@ const GovernanceAssessmentResult = () => {
               {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
             </section>
 
+            {/* 10-Domain Overview grid */}
+            {domainList.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold mb-1">10-Domain Overview</h2>
+                <p className="text-sm text-muted-foreground mb-3">Click any domain below for detailed findings</p>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {domainList.map((d: any, i: number) => (
+                    <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
+                      <p className="text-[12px] font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
+                      {d.severity && (
+                        <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded ${sevColor(d.severity)}`}>
+                          {d.severity}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Top risks */}
-            {Array.isArray(report?.top_risks) && report.top_risks.length > 0 && (
+            {Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
               <section>
                 <h2 className="text-lg font-semibold mb-3">Top Risks</h2>
                 <div className="grid md:grid-cols-3 gap-4">
-                  {report.top_risks.slice(0, 3).map((r: any, i: number) => (
+                  {report.top_three_risks.slice(0, 3).map((r: any, i: number) => (
                     <div key={i} className="bg-card border rounded-lg p-4">
                       <p className="font-medium">{r.risk_name || r.name}</p>
                       {r.domain && <p className="text-xs text-muted-foreground">{r.domain}</p>}
@@ -134,8 +190,51 @@ const GovernanceAssessmentResult = () => {
               </section>
             )}
 
-            {/* Ten Domains */}
-            {Array.isArray(report?.domain_findings) && (
+            {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
+            {report?.domain_findings &&
+              typeof report.domain_findings === "object" &&
+              !Array.isArray(report.domain_findings) &&
+              Object.values(report.domain_findings).length > 0 && (
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="text-lg font-semibold mb-4">Domain Findings</h2>
+                  <Accordion type="multiple">
+                    {Object.values(report.domain_findings).map((d: any, i: number) => (
+                      <AccordionItem key={i} value={`d${i}`}>
+                        <AccordionTrigger>
+                          <div className="flex items-center gap-3">
+                            <span>{d.domain_name || d.name}</span>
+                            {d.severity && (
+                              <span className={`px-2 py-0.5 text-xs rounded ${sevColor(d.severity)}`}>
+                                {d.severity}
+                              </span>
+                            )}
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {d.current_state && (
+                            <p className="text-sm mb-2"><strong>Current state:</strong> {d.current_state}</p>
+                          )}
+                          {d.gap_description && (
+                            <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>
+                          )}
+                          {d.regulatory_basis && (
+                            <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>
+                          )}
+                          {d.recommended_action && (
+                            <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>
+                          )}
+                          <div className="flex gap-3 text-xs text-muted-foreground">
+                            {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
+                            {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </section>
+              )}
+
+            {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
               <section className="bg-card border rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-4">Domain Findings</h2>
                 <Accordion type="multiple">
@@ -204,24 +303,12 @@ const GovernanceAssessmentResult = () => {
             <div className="flex gap-2 flex-wrap">
               <Button asChild variant="outline"><Link to="/governance-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
-              {assessment?.pdf_url ? (
-                <a
-                  href={assessment.pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
-                >
-                  ↓ Download PDF
-                </a>
-              ) : (
-                <button
-                  disabled
-                  className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
-                  title="PDF is being prepared — refresh in a moment"
-                >
-                  ↓ PDF preparing...
-                </button>
-              )}
+              <PDFDownloadButton
+                toolType="governance_assessment"
+                assessmentId={assessment?.id}
+                pdfUrl={assessment?.pdf_url}
+                onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
+              />
             </div>
           </>
         )}

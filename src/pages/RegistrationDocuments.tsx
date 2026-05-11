@@ -11,9 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, FileText, ArrowLeft, Download, Mail } from "lucide-react";
+import { Loader2, FileText, ArrowLeft, Download, Mail, Printer } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
+import CopyButton from "@/components/CopyButton";
+
+// TODO: wire a "Download all as ZIP" edge function (`bundle-registration-documents`)
+// that streams a ZIP of every doc.content_text + any doc.pdf_url for the order.
 
 const DOC_LABELS: Record<string, string> = {
   dpo_appointment: "DPO Appointment Letter",
@@ -106,6 +110,10 @@ export default function RegistrationDocuments() {
             </Button>
           </div>
 
+          <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-900 dark:text-amber-200">
+            <strong>Important:</strong> These are draft documents prepared from your self-reported organisation profile and our jurisdiction database. They are not legal advice and do not constitute a completed filing. You (or your counsel) must review each document, fill in all [placeholder] fields, and submit to the relevant data protection authority. End User Privacy is not responsible for filings rejected, delayed, or otherwise affected.
+          </div>
+
           {docs.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -130,14 +138,13 @@ export default function RegistrationDocuments() {
                         : "border-border/60 hover:bg-fog"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-slate" />
-                      <span className="text-xs font-mono uppercase text-slate">{d.jurisdiction_code}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-slate flex-shrink-0" />
+                      <span className="text-sm font-medium text-navy truncate">
+                        <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
+                        - {DOC_LABELS[d.document_type] || d.document_type}
+                      </span>
                     </div>
-                    <div className="text-sm font-medium text-navy mt-1">
-                      {DOC_LABELS[d.document_type] || d.document_type}
-                    </div>
-                    <Badge variant="outline" className="mt-2 text-[10px]">{d.status}</Badge>
                   </button>
                 ))}
               </div>
@@ -156,11 +163,27 @@ export default function RegistrationDocuments() {
                       <pre className="whitespace-pre-wrap text-[13px] text-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-fog/30 rounded">
                         {selected.content_text || "(empty)"}
                       </pre>
-                      {selected.pdf_url && (
-                        <Button asChild variant="outline" size="sm" className="mt-3">
-                          <a href={selected.pdf_url} target="_blank" rel="noreferrer"><Download className="w-4 h-4 mr-2" /> Download PDF</a>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {selected.content_text && <CopyButton text={selected.content_text} />}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const w = window.open("", "_blank");
+                            if (!w) { toast.error("Pop-up blocked"); return; }
+                            const title = `${DOC_LABELS[selected.document_type] || selected.document_type} — ${selected.jurisdiction_code}`;
+                            w.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 24px;line-height:1.5;color:#1a1a1a}h1{font-size:18px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;font-size:13px}</style></head><body><h1>${title}</h1><pre>${(selected.content_text || "").replace(/[&<>]/g, (c: string) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
+                            w.document.close();
+                          }}
+                        >
+                          <Printer className="w-4 h-4 mr-2" /> Print / Save as PDF
                         </Button>
-                      )}
+                        {selected.pdf_url && (
+                          <Button asChild variant="outline" size="sm">
+                            <a href={selected.pdf_url} target="_blank" rel="noreferrer"><Download className="w-4 h-4 mr-2" /> Download PDF</a>
+                          </Button>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <p className="text-sm text-slate">Choose a document from the list.</p>

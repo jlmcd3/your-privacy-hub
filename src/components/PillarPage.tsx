@@ -14,6 +14,8 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 interface PillarPageProps {
   title: string;
   subtitle: string;
+  /** Optional HTML version of the subtitle (e.g. with inline links). Used for display only; meta tags still use the plain `subtitle`. */
+  subtitleHtml?: string;
   icon: string;
   lastUpdated: string;
   intro: string;
@@ -42,6 +44,7 @@ interface PillarPageProps {
 const PillarPage = ({
   title,
   subtitle,
+  subtitleHtml,
   icon,
   lastUpdated,
   intro,
@@ -95,7 +98,7 @@ const PillarPage = ({
     async function load() {
       let query = (supabase as any)
         .from("updates")
-        .select("id,title,summary,url,source_name,published_at,ai_summary")
+        .select("id,title,summary,url,source_name,published_at,ai_summary,image_url,why_it_matters_short")
         .eq("is_hidden", false);
 
       if (updateCategory) query = query.eq("category", updateCategory);
@@ -146,7 +149,14 @@ const PillarPage = ({
             {icon} Intelligence Guide
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">{title}</h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">{subtitle}</p>
+          {subtitleHtml ? (
+            <p
+              className="text-sm md:text-base text-slate-light max-w-[700px] [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
+              dangerouslySetInnerHTML={{ __html: subtitleHtml }}
+            />
+          ) : (
+            <p className="text-sm md:text-base text-slate-light max-w-[700px]">{subtitle}</p>
+          )}
           <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated}</div>
 
           {/* Stat bar */}
@@ -333,7 +343,7 @@ const PillarPage = ({
                 <div id={slug} className="scroll-mt-24">
                   <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
                   <div
-                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line"
+                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
                     dangerouslySetInnerHTML={{
                       __html: sec.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-navy font-semibold">$1</strong>'),
                     }}

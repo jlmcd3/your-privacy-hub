@@ -43,11 +43,12 @@ async function aiGenerate(prompt: string): Promise<string> {
         {
           role: "system",
           content:
-            "You are a privacy compliance expert drafting jurisdiction-specific filings. Output clean Markdown only — no preamble, no chat. Use real authority names, real laws, realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of.",
+            "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean Markdown only — no preamble, no chat, no translated text. Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of.",
         },
         { role: "user", content: prompt },
       ],
     }),
+    signal: AbortSignal.timeout(45000),
   });
   if (!resp.ok) {
     const txt = await resp.text();
@@ -87,9 +88,10 @@ Deno.serve(async (req) => {
     const generated: Array<{ jurisdiction_code: string; document_type: string }> = [];
 
     for (const r of reqs || []) {
-      for (const docDef of DOCUMENT_TYPES) {
-        if (!docDef.when(r)) continue;
-        const prompt = `Draft a "${docDef.title}" for the following organization, tailored to ${r.jurisdiction_name} (${r.law_name}, supervised by ${r.authority_name}).
+      const applicableDocs = DOCUMENT_TYPES.filter((docDef) => docDef.when(r));
+      const results = await Promise.all(
+        applicableDocs.map(async (docDef) => {
+          const prompt = `Draft a "${docDef.title}" for the following organization, tailored to ${r.jurisdiction_name} (${r.law_name}, supervised by ${r.authority_name}).
 
 Organization details:
 ${JSON.stringify(orgSnapshot, null, 2)}
@@ -106,21 +108,21 @@ Jurisdiction requirements:
 - Notes: ${r.notes || "None"}
 
 Output Markdown with clear headings, bullet points, and signature blocks where relevant. Use [Bracketed Placeholders] for fields the user must complete.`;
+          const content = await aiGenerate(prompt);
+          return { docDef, content };
+        })
+      );
 
-        const text = await aiGenerate(prompt);
-
-        await supabase.from("registration_documents").upsert(
-          {
-            order_id,
-            jurisdiction_code: r.jurisdiction_code,
-            document_type: docDef.type,
-            language: (r.language_requirements || ["en"])[0],
-            content_text: text,
-            generation_model: MODEL,
-            status: "ready",
-          },
-          { onConflict: "order_id,jurisdiction_code,document_type,version" }
-        );
+      for (const { docDef, content } of results) {
+        await supabase.from("registration_documents").insert({
+          order_id,
+          jurisdiction_code: r.jurisdiction_code,
+          document_type: docDef.type,
+          language: "en",
+          content_text: content,
+          generation_model: MODEL,
+          status: "ready",
+        });
         generated.push({ jurisdiction_code: r.jurisdiction_code, document_type: docDef.type });
       }
     }

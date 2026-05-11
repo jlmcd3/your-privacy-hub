@@ -100,9 +100,9 @@ function relativeFromNow(iso: string): string {
 
 function lastIngestionLabel(items: Update[]): string {
   const latest = items[0]?.published_at;
-  if (!latest) return 'All updates';
+  if (!latest) return 'Privacy Intelligence Feed';
   const d = new Date(latest).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return `All updates through ${d}`;
+  return `Privacy Intelligence Feed through ${d}`;
 }
 
 
@@ -336,7 +336,7 @@ const Updates = () => {
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
-                <title>Privacy Regulatory Updates | End User Privacy</title>
+                <title>Privacy Intelligence Feed | End User Privacy</title>
                 <meta name="description" content="Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
             <Navbar />
@@ -484,7 +484,7 @@ const Updates = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                             type="text"
-                            placeholder="Search updates…"
+                            placeholder="Search Privacy Intelligence Feed…"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background"
@@ -523,7 +523,7 @@ const Updates = () => {
                 {/* Anonymous: prominent register CTA above the article list */}
                 {!user && (
                     <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 mb-4 text-[13px] font-medium text-navy text-center flex items-center justify-center gap-3 flex-wrap">
-                        <span>Register free to see why each update matters — analysis on every article</span>
+                        <span>Register free to see why each item matters — analysis on every article</span>
                         <Link
                             to="/signup"
                             className="text-[12px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
@@ -538,7 +538,7 @@ const Updates = () => {
                     <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
                         Showing analysis on every update.{" "}
                         <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
-                            Upgrade to Pro to unlock Action Briefs →
+                            Upgrade to Platform to unlock Action Briefs →
                         </Link>
                     </div>
                 )}
@@ -584,7 +584,7 @@ const Updates = () => {
                                     disabled={loadingMore}
                                     className="mt-4 w-full text-[12px] px-4 py-2.5 rounded-lg border border-fog text-slate hover:bg-slate-50 transition-colors disabled:opacity-50"
                                 >
-                                    {loadingMore ? "Loading…" : "Load more updates"}
+                                    {loadingMore ? "Loading…" : "Load more"}
                                 </button>
                             )}
                         </div>

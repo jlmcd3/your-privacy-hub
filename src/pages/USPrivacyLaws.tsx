@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Lock, Search } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { TieredFeed } from "@/components/TieredFeed";
 import type { ArticleItem } from "@/components/ArticleCard";
@@ -9,42 +9,99 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
-import usStates from "@/data/us_state_privacy_authorities.json";
-
+import usStatesRaw from "@/data/us_state_privacy_authorities.json";
+import { useStateLawOverrides, applyOverride } from "@/hooks/useStateLawOverrides";
 
 const RELATED_LINKS = [
-  { icon: "🏢", label: "U.S. State Privacy Authority Directory", href: "/us-state-privacy-authorities" },
   { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
   { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
   { icon: "⚖️", label: "Enforcement Tracker", href: "/enforcement-tracker" },
+  { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
 ];
 
-const authorityStatusClass = (s: string | null) => {
-  if (!s) return "bg-muted text-muted-foreground";
-  if (s === "Enacted") return "bg-green-100 text-green-800";
-  if (s === "Pending") return "bg-yellow-100 text-yellow-800";
-  return "bg-muted text-muted-foreground";
+const FEDERAL_AUTHORITIES = [
+  {
+    name: "Federal Trade Commission",
+    abbr: "FTC",
+    scope: "General consumer privacy & data security (all sectors)",
+    authority: "FTC Act Section 5; COPPA; GLBA Privacy & Safeguards Rules",
+    website: "https://www.ftc.gov/privacy",
+  },
+  {
+    name: "Federal Communications Commission",
+    abbr: "FCC",
+    scope: "Telecommunications & broadband providers",
+    authority: "Communications Act; CPNI rules (47 CFR Part 64); broadband data security orders",
+    website: "https://www.fcc.gov/consumers/guides/protecting-your-privacy",
+  },
+  {
+    name: "Consumer Financial Protection Bureau",
+    abbr: "CFPB",
+    scope: "Financial products and services",
+    authority: "Gramm-Leach-Bliley Act; Dodd-Frank Section 1033; Fair Credit Reporting Act",
+    website: "https://www.consumerfinance.gov/data-privacy",
+  },
+  {
+    name: "HHS Office for Civil Rights",
+    abbr: "HHS/OCR",
+    scope: "Healthcare providers, health plans, and business associates",
+    authority: "HIPAA Privacy Rule (45 CFR Part 164); HITECH Act",
+    website: "https://www.hhs.gov/hipaa",
+  },
+  {
+    name: "Dept. of Education — Student Privacy Policy Office",
+    abbr: "SPPO",
+    scope: "Educational agencies and institutions receiving federal funding",
+    authority: "FERPA (20 U.S.C. § 1232g); PPRA",
+    website: "https://studentprivacy.ed.gov",
+  },
+];
+
+const STATUS_STYLE: Record<
+  string,
+  { stripe: string; pill: string; subtitle: (d: string | null) => string }
+> = {
+  Enacted: {
+    stripe: "bg-emerald-600",
+    pill: "text-emerald-700 bg-emerald-600/10",
+    subtitle: (d) => (d ? `Effective ${d}` : "Enacted"),
+  },
+  Pending: {
+    stripe: "bg-amber-600",
+    pill: "text-amber-700 bg-amber-600/10",
+    subtitle: (d) => (d ? `Effective ${d}` : "Pending legislation"),
+  },
+  None: {
+    stripe: "bg-slate-400",
+    pill: "text-slate bg-slate-400/15",
+    subtitle: () => "No statute",
+  },
 };
 
+const getStatusStyle = (s: string | null) =>
+  STATUS_STYLE[s || "None"] || STATUS_STYLE.None;
+
 const TAB_ITEMS = [
-  { label: "Authority Directory", anchor: "state-authorities" },
+  { label: "Federal Authorities", anchor: "federal-authorities" },
+  { label: "Authority Directory", anchor: "authority-directory" },
   { label: "Recent Developments", anchor: "recent-developments" },
 ];
 
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
-  const [authSearch, setAuthSearch] = useState("");
+  
   const [authStatusFilter, setAuthStatusFilter] = useState("All");
-  const [authorityExpanded, setAuthorityExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState("state-authorities");
+  const [activeTab, setActiveTab] = useState("federal-authorities");
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  const setRef = useCallback((anchor: string) => (el: HTMLDivElement | null) => {
-    sectionRefs.current[anchor] = el;
-  }, []);
+  const setRef = useCallback(
+    (anchor: string) => (el: HTMLDivElement | null) => {
+      sectionRefs.current[anchor] = el;
+    },
+    []
+  );
 
-  // IntersectionObserver for active tab highlighting
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
     TAB_ITEMS.forEach(({ anchor }) => {
@@ -62,13 +119,11 @@ const USPrivacyLaws = () => {
     return () => observers.forEach((o) => o.disconnect());
   }, [recentArticles]);
 
+  const overrides = useStateLawOverrides();
+  const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
+
   const filteredAuthorities = usStates.filter((state: any) => {
-    const matchesSearch = !authSearch ||
-      state.state.toLowerCase().includes(authSearch.toLowerCase()) ||
-      state.authority_name.toLowerCase().includes(authSearch.toLowerCase()) ||
-      (state.statute_name && state.statute_name.toLowerCase().includes(authSearch.toLowerCase()));
-    const matchesStatus = authStatusFilter === "All" || state.statute_status === authStatusFilter;
-    return matchesSearch && matchesStatus;
+    return authStatusFilter === "All" || state.statute_status === authStatusFilter;
   });
 
   useEffect(() => {
@@ -81,13 +136,22 @@ const USPrivacyLaws = () => {
         .order("published_at", { ascending: false })
         .limit(8);
       if (data) {
-        // Map db `url` → ArticleItem `source_url` expected by ArticleCard.
         setRecentArticles(
           (data as any[]).map((a) => ({ ...a, source_url: a.url })) as ArticleItem[]
         );
       }
     }
     load();
+  }, []);
+
+  // Handle deep-link hash on mount.
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
   }, []);
 
   const scrollTo = (anchor: string) => {
@@ -98,9 +162,15 @@ const USPrivacyLaws = () => {
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>U.S. Privacy Laws — Federal & State Privacy Guide 2026 | End User Privacy</title>
-        <meta name="description" content="A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states." />
+        <meta
+          name="description"
+          content="A complete guide to the U.S. privacy regulatory framework — federal enforcement authorities, state-level authorities and privacy laws across all 50 states, and the latest regulatory developments."
+        />
         <meta property="og:title" content="U.S. Privacy Laws | End User Privacy" />
-        <meta property="og:description" content="Federal & state privacy law guide covering FTC authority, HIPAA, COPPA, and all 50 state privacy statutes." />
+        <meta
+          property="og:description"
+          content="Federal & state privacy law guide covering FTC, FCC, CFPB, HHS/OCR, SPPO, CPPA and all 50 state privacy statutes."
+        />
       </Helmet>
       <Navbar />
 
@@ -110,17 +180,29 @@ const USPrivacyLaws = () => {
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             🇺🇸 Intelligence Guide
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">U.S. Privacy Laws</h1>
+          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
+            U.S. Privacy Laws
+          </h1>
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">
-            A complete guide to the U.S. privacy regulatory framework — federal statutes, FTC enforcement authority, and state-level comprehensive privacy laws across all 50 states.
+            A complete guide to the U.S. privacy regulatory framework — federal
+            enforcement authorities, state-level authorities and privacy laws across all 50 states,
+            and the latest regulatory developments.
           </p>
           <div className="text-[11px] text-slate-light mt-4">
-            Last updated: {recentArticles[0]?.published_at
-              ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-              : new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            Last updated:{" "}
+            {recentArticles[0]?.published_at
+              ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : new Date().toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
           </div>
 
-          {/* Functional tab navigation */}
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
             {TAB_ITEMS.map((tab) => (
               <button
@@ -141,26 +223,95 @@ const USPrivacyLaws = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
 
+      {/* Recent Developments CTA */}
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <button
+          onClick={() => scrollTo("recent-developments")}
+          className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-sky/10 to-navy/5 border border-sky/30 hover:border-sky/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
+        >
+          <span className="text-[13px] md:text-[14px] text-foreground font-bold">
+            See the latest U.S. privacy regulatory developments and enforcement actions.
+          </span>
+          <span className="text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
+            Jump to Recent Developments →
+          </span>
+        </button>
+      </div>
+
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* ── Federal Authorities ── */}
+        <div
+          ref={setRef("federal-authorities")}
+          id="federal-authorities"
+          className="mb-12 scroll-mt-24"
+        >
+          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">
+            U.S. Federal Privacy Authorities
+          </h2>
+          <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+            Federal regulators with privacy and data-protection enforcement authority
+            across U.S. sectors. Each oversees a distinct slice of the privacy
+            regulatory landscape.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {FEDERAL_AUTHORITIES.map((a) => (
+              <div
+                key={a.abbr}
+                className="grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
+              >
+                <div className="bg-blue self-stretch" aria-hidden="true" />
+                <div className="px-4 py-3 md:px-5 md:py-4">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="font-display text-[16px] md:text-[17px] leading-tight text-navy">
+                      {a.name}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
+                      {a.abbr}
+                    </span>
+                  </div>
+                  <div className="text-[10.5px] uppercase tracking-wider text-slate-light mb-2">
+                    Federal regulator
+                  </div>
+                  <div className="text-[12px] text-slate mb-1.5">
+                    <span className="font-semibold text-navy/80">Scope:</span> {a.scope}
+                  </div>
+                  <div className="text-[12px] italic text-navy/80 mb-2 leading-snug">
+                    {a.authority}
+                  </div>
+                  <a
+                    href={a.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[12px] font-medium text-blue hover:text-navy no-underline"
+                  >
+                    Site ↗
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-
-        {/* ── Section: State Authorities Directory (collapsed by default) ── */}
-        <div ref={setRef("state-authorities")} id="state-authorities" className="mt-12 mb-10 scroll-mt-24">
-          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">U.S. State Privacy Authority Directory</h2>
-          <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">Browse the enforcement authorities responsible for privacy regulation in every U.S. state. Use the search and status filters below to find specific states, statutes, or agencies.</p>
+        {/* ── State Authority Directory ── */}
+        <div
+          ref={setRef("authority-directory")}
+          id="authority-directory"
+          className="mt-12 mb-10 scroll-mt-24"
+        >
+          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">
+            U.S. State Privacy Authority Directory
+          </h2>
+          <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+            Browse the enforcement authorities responsible for privacy regulation in
+            every U.S. state and Washington, D.C. Use the search and status filters
+            below to find specific states, statutes, or agencies.
+          </p>
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
-            <div className="relative flex-1 min-w-[200px] max-w-[400px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <input
-                className="w-full py-2 pl-10 pr-4 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
-                placeholder="Search states, authorities, or statutes…"
-                value={authSearch}
-                onChange={(e) => setAuthSearch(e.target.value)}
-              />
-            </div>
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">Status:</span>
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
+              Status:
+            </span>
             {["All", "Enacted", "Pending", "None"].map((f) => (
               <span
                 key={f}
@@ -174,92 +325,111 @@ const USPrivacyLaws = () => {
                 {f}
               </span>
             ))}
-            <span className="ml-auto text-[12px] text-muted-foreground">{filteredAuthorities.length} results</span>
+            <span className="ml-auto text-[12px] text-muted-foreground">
+              {filteredAuthorities.length} results
+            </span>
           </div>
 
-          {/* Collapse toggle */}
-          {!authorityExpanded && (
-            <button
-              onClick={() => setAuthorityExpanded(true)}
-              className="w-full py-3 text-[13px] font-semibold text-primary bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
+          {/* Compare CTA */}
+          <div className="mb-3">
+            <Link
+              to="/compare/us-states"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
             >
-              View all {filteredAuthorities.length} states ↓
-            </button>
-          )}
+              Compare enacted state laws side by side →
+            </Link>
+          </div>
 
-          {/* Table (shown only when expanded) */}
-          {authorityExpanded && (
-            <>
-              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-sm">
-                    <thead className="bg-muted">
-                      <tr>
-                        {["State", "Authority", "Statute", "Status", "Effective Date", "Links"].map((h) => (
-                          <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-left border-b border-border">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredAuthorities.map((state: any) => (
-                        <tr key={state.id} className="hover:bg-muted/50 transition-colors">
-                          <td className="px-4 py-3 text-[13px] text-foreground font-medium border-b border-border whitespace-nowrap">
-                            <Link
-                              to={`/jurisdiction/${slugify(state.state)}`}
-                              className="text-primary hover:underline font-medium no-underline"
-                            >
-                              {state.state}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
-                            <div className="font-medium">{state.authority_name}</div>
-                            <div className="text-[11px] text-muted-foreground mt-0.5">{state.authority_type}</div>
-                          </td>
-                          <td className="px-4 py-3 text-[13px] text-foreground border-b border-border">
-                            {state.statute_name || <span className="text-muted-foreground italic">None</span>}
-                          </td>
-                          <td className="px-4 py-3 border-b border-border">
-                            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${authorityStatusClass(state.statute_status)}`}>
-                              {state.statute_status || "None"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-[13px] text-foreground border-b border-border whitespace-nowrap">
-                            {state.effective_date || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-[13px] border-b border-border">
-                            <div className="flex gap-2">
-                              <a href={state.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Website ↗</a>
-                              {state.complaint_portal && (
-                                <a href={state.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline no-underline text-[12px]">Complaints ↗</a>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* Compact card grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {filteredAuthorities.map((state: any) => {
+              const status = state.statute_status || "None";
+              const style = getStatusStyle(state.statute_status);
+              const showView = status === "Enacted" || status === "Pending";
+              const slug = slugify(state.state);
+              return (
+                <div
+                  key={state.id}
+                  className="grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
+                >
+                  <div className={`${style.stripe} self-stretch`} aria-hidden="true" />
+                  <div className="px-4 py-3 md:px-5 md:py-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <Link
+                        to={`/jurisdiction/${slug}`}
+                        className="font-display text-[16px] md:text-[17px] leading-tight text-navy no-underline hover:underline"
+                      >
+                        {state.state}
+                      </Link>
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${style.pill}`}
+                      >
+                        {status}
+                      </span>
+                    </div>
+                    <div className="text-[10.5px] uppercase tracking-wider text-slate-light mb-2">
+                      {style.subtitle(state.effective_date)}
+                    </div>
+                    <div className="text-[12px] font-semibold text-navy leading-snug">
+                      {state.authority_name}
+                    </div>
+                    <div className="text-[11.5px] text-slate mt-0.5 mb-1.5">
+                      {state.authority_type}
+                    </div>
+                    {state.statute_name && state.statute_url ? (
+                      <a
+                        href={state.statute_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-[12px] italic text-blue hover:text-navy no-underline leading-snug mb-2"
+                      >
+                        {state.statute_name} ↗
+                      </a>
+                    ) : state.statute_name ? (
+                      <div className="text-[12px] italic text-navy/80 leading-snug mb-2">
+                        {state.statute_name}
+                      </div>
+                    ) : (
+                      <div className="text-[12px] italic text-slate-light leading-snug mb-2">
+                        No statute enacted
+                      </div>
+                    )}
+                    {showView && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium">
+                        <Link
+                          to={`/jurisdiction/${slug}`}
+                          className="text-blue hover:text-navy no-underline font-semibold"
+                        >
+                          View →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={() => setAuthorityExpanded(false)}
-                className="w-full mt-3 py-3 text-[13px] font-semibold text-primary bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors cursor-pointer"
-              >
-                Collapse table ↑
-              </button>
-            </>
-          )}
+              );
+            })}
+          </div>
         </div>
 
-        {/* ── Section 3: Recent Developments ── */}
+        {/* ── Recent Developments ── */}
         {recentArticles.length > 0 && (
-          <div ref={setRef("recent-developments")} id="recent-developments" className="mt-12 mb-8 scroll-mt-24">
+          <div
+            ref={setRef("recent-developments")}
+            id="recent-developments"
+            className="mt-12 mb-8 scroll-mt-24"
+          >
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-display text-xl text-navy">Recent U.S. Privacy Developments</h2>
-              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Live</span>
+              <h2 className="font-display text-xl text-navy">
+                Recent U.S. Privacy Developments
+              </h2>
+              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+                Live
+              </span>
             </div>
-            <p className="text-[13px] text-muted-foreground leading-relaxed mb-2">Stay current with the latest federal and state privacy actions, rulemakings, and enforcement updates. This feed pulls the most recent developments so you can track what's changing across U.S. jurisdictions.</p>
+            <p className="text-[13px] text-muted-foreground leading-relaxed mb-2">
+              Stay current with the latest federal and state privacy actions,
+              rulemakings, and enforcement updates.
+            </p>
             <TieredFeed
               articles={recentArticles}
               previewCount={1}
@@ -269,7 +439,7 @@ const USPrivacyLaws = () => {
           </div>
         )}
 
-        {/* Related Resources — styled cards */}
+        {/* Related Resources */}
         <div className="mt-12 pt-8 border-t border-fog">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -280,7 +450,9 @@ const USPrivacyLaws = () => {
                 className="group bg-card border border-fog rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all"
               >
                 <span className="text-2xl block mb-2">{link.icon}</span>
-                <p className="font-display font-bold text-navy text-[14px] mb-1 group-hover:text-blue transition-colors">{link.label}</p>
+                <p className="font-display font-bold text-navy text-[14px] mb-1 group-hover:text-blue transition-colors">
+                  {link.label}
+                </p>
                 <span className="text-blue text-[12px] font-semibold">Explore →</span>
               </Link>
             ))}
@@ -289,12 +461,23 @@ const USPrivacyLaws = () => {
 
         <AdBanner variant="leaderboard" adSlot="eup-pillar-bottom" className="py-6" />
 
-        {/* Premium CTA (bottom — kept) */}
+        {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on U.S. Privacy Laws</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
-          <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
+          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">
+            ⭐ Intelligence
+          </div>
+          <h3 className="font-display text-xl text-white mb-3">
+            Get weekly intelligence on U.S. Privacy Laws
+          </h3>
+          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
+            Intelligence subscribers receive a structured weekly brief covering every
+            material development in this area — enforcement actions, regulatory
+            guidance, and what it means for your compliance posture.
+          </p>
+          <Link
+            to="/subscribe"
+            className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
+          >
             Unlock Weekly Intelligence →
           </Link>
         </div>

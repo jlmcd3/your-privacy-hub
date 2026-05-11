@@ -1,41 +1,35 @@
-import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-
-interface ActionItem {
-  role?: string;
-  action?: string;
-  timeframe?: string;
-}
+import { Link } from "react-router-dom";
 
 interface ActionBriefProps {
-  urgency: string | null;
-  who_should_care: string | null;
+  urgency:          string | null;
+  who_should_care:  string | null;
   compliance_impact: string | null;
-  action_items?: ActionItem[] | null;
-  risk_level?: string | null;
-  isPremium: boolean;
-  userSalutation: string;
-  articleId: string;
-  articleCategory?: string | null;
+  action_items?:    Array<{ role?: string; action?: string; timeframe?: string }> | null;
+  risk_level?:      string | null;
+  isPremium:        boolean;
+  articleId:        string;
 }
 
-const URGENCY_LABELS: Record<string, string> = {
-  Immediate: "immediate",
-  "This Quarter": "action this quarter on",
-  Monitor: "monitoring",
-};
-
-function urgencyLabel(urgency: string | null): string {
-  if (!urgency) return "attention";
-  return URGENCY_LABELS[urgency] ?? "attention";
+/** Maps urgency field value to a readable label for the Action Brief sentence. */
+function urgencyLabel(u: string | null): string {
+  switch ((u ?? "").toLowerCase()) {
+    case "immediate":    return "immediate";
+    case "this quarter": return "action this quarter on";
+    case "monitor":      return "ongoing monitoring of";
+    default:             return "attention on";
+  }
 }
 
-function firstWords(text: string, n: number): string {
-  return text.trim().split(/\s+/).slice(0, n).join(" ");
-}
-
+/**
+ * ActionBrief
+ *
+ * Renders the article's action-level intelligence as a brief sentence.
+ * Free users (isPremium=false): urgency + who_should_care visible,
+ *   compliance_impact blurred with amber 'Unlock' CTA.
+ * Paid subscribers (isPremium=true): fully unblurred.
+ * Never render this component for anonymous (non-logged-in) users —
+ * the parent is responsible for the auth check.
+ */
 export function ActionBrief({
   urgency,
   who_should_care,
@@ -43,144 +37,114 @@ export function ActionBrief({
   action_items,
   risk_level,
   isPremium,
-  userSalutation,
   articleId,
-  articleCategory,
 }: ActionBriefProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const seenRef = useRef(false);
+  // Don't render if there's nothing meaningful to show
+  if (!urgency && !who_should_care && !compliance_impact) return null;
 
-  const trackEvent = async (eventType: string) => {
-    if (!user?.id) return;
-    try {
-      await supabase.from("user_enrichment_events").insert({
-        user_id: user.id,
-        event_type: eventType,
-        article_id: articleId,
-        article_category: articleCategory ?? null,
-        user_role: userSalutation ?? null,
-      });
-    } catch {
-      /* silent — tracking must never break UI */
-    }
-  };
+  const label      = urgencyLabel(urgency);
+  const salutation = who_should_care || "Privacy Teams";
 
-  // Track impression once per mount
-  useEffect(() => {
-    if (!user || seenRef.current) return;
-    seenRef.current = true;
-    void trackEvent("action_brief_seen");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, articleId]);
-
-  const label = urgencyLabel(urgency);
-
-  // ── BLURRED STATE (free registered) ──
+  // ── BLURRED STATE — free registered users ─────────────────────────
   if (!isPremium) {
-    const teaser = compliance_impact ? firstWords(compliance_impact, 12) : "";
-
-    const handleUpgradeClick = async () => {
-      await trackEvent("action_brief_click");
-      navigate("/subscribe");
-    };
+    // First ~12 words of compliance_impact for the blur preview
+    const blurPreview = (compliance_impact ?? "")
+      .split(" ").slice(0, 12).join(" ");
 
     return (
       <div
-        className="rounded-lg p-4 my-3"
-        style={{
-          backgroundColor: "#FFFBEB",
-          borderLeft: "3px solid #EF9F27",
-        }}
+        className="border-l-[3px] border-amber-400 bg-amber-50
+                   rounded-r-lg px-4 py-3 mt-3"
       >
-        <p className="font-sans text-[13px] text-navy leading-relaxed mb-2">
-          This requires <span className="font-semibold">{label}</span> action by{" "}
-          <span className="font-semibold">{userSalutation}</span> because{" "}
-          {teaser && (
-            <span
-              className="text-slate"
-              style={{
-                WebkitMaskImage:
-                  "linear-gradient(to right, black 60%, transparent 100%)",
-                maskImage:
-                  "linear-gradient(to right, black 60%, transparent 100%)",
-                pointerEvents: "none",
-                userSelect: "none",
-                display: "inline",
-              }}
-              aria-hidden="true"
-            >
-              {teaser}…
-            </span>
-          )}
+        <p className="text-[10px] font-bold uppercase tracking-widest
+                      text-amber-700 mb-1.5">
+          Action Brief
         </p>
-        <button
-          type="button"
-          onClick={handleUpgradeClick}
-          className="bg-amber-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-amber-600 transition-colors border-none cursor-pointer"
-        >
-          Unlock Action Brief — Pro →
-        </button>
+        <p className="text-[13px] text-slate leading-snug flex flex-wrap
+                      items-baseline gap-x-1">
+          <span>This requires</span>
+          <span className="font-semibold text-navy">{label} action</span>
+          <span>by</span>
+          <span className="font-semibold text-navy">{salutation}</span>
+          <span>because</span>
+          {/* Blurred compliance_impact preview */}
+          <span
+            className="text-slate select-none pointer-events-none"
+            style={{
+              maskImage:
+                "linear-gradient(to right, black 40%, transparent 90%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, black 40%, transparent 90%)",
+              filter: "blur(3.5px)",
+              userSelect: "none",
+            }}
+          >
+            {blurPreview}…
+          </span>
+          {/* Upgrade CTA — sits directly against the blur */}
+          <Link
+            to="/subscribe"
+            className="flex-shrink-0 text-[11px] font-semibold
+                       bg-amber-500 text-white px-2.5 py-1
+                       rounded-lg hover:opacity-90 no-underline
+                       whitespace-nowrap ml-1"
+          >
+            Unlock →
+          </Link>
+        </p>
       </div>
     );
   }
 
-  // ── FULL STATE (Pro) ──
+  // ── FULL STATE — paid subscribers ─────────────────────────────────
   return (
     <div
-      className="rounded-lg p-4 my-3"
-      style={{
-        backgroundColor: "#F0F4FF",
-        borderLeft: "3px solid #EF9F27",
-      }}
+      className="border-l-[3px] border-amber-400 bg-navy/[0.04]
+                 rounded-r-lg px-4 py-3 mt-3"
     >
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="font-display text-[14px] font-semibold text-navy uppercase tracking-wide m-0">
-          Action Brief
-        </h4>
-        {risk_level && (
-          <span className="text-[10px] font-bold uppercase tracking-wider bg-navy text-white px-2 py-0.5 rounded">
-            {risk_level} risk
-          </span>
-        )}
-      </div>
-
-      <p className="font-sans text-[13px] text-navy leading-relaxed mb-2">
-        <span className="font-semibold capitalize">{label}</span> action required by{" "}
-        <span className="font-semibold">
-          {who_should_care || userSalutation}
-        </span>
+      <p className="text-[10px] font-bold uppercase tracking-widest
+                    text-amber-700 mb-2">
+        Action Brief
       </p>
-
+      {/* Summary sentence */}
+      <p className="text-[13px] leading-snug mb-2">
+        <span className="font-semibold text-navy capitalize">{label} action</span>
+        <span className="text-slate"> required by </span>
+        <span className="font-semibold text-navy">{salutation}</span>
+      </p>
+      {/* Full compliance impact */}
       {compliance_impact && (
-        <p className="font-sans text-[13px] text-slate leading-relaxed mb-3">
+        <p className="text-[13px] text-slate leading-relaxed mb-2">
           {compliance_impact}
         </p>
       )}
-
+      {/* Action items */}
       {action_items && action_items.length > 0 && (
-        <ul className="list-none p-0 m-0 space-y-1">
+        <ul className="space-y-1 mb-2">
           {action_items.map((item, i) => (
-            <li
-              key={i}
-              className="font-sans text-[12px] text-navy leading-snug flex gap-2"
-            >
-              <span className="text-amber-600 font-bold">•</span>
-              <span>
-                {item.role && (
-                  <span className="font-semibold">{item.role}: </span>
-                )}
-                {item.action}
-                {item.timeframe && (
-                  <span className="text-slate"> · {item.timeframe}</span>
-                )}
-              </span>
+            <li key={i} className="text-[12px] text-slate flex gap-1.5 flex-wrap">
+              {item.role && (
+                <span className="font-semibold text-amber-700 flex-shrink-0">
+                  {item.role}:
+                </span>
+              )}
+              {item.action && <span>{item.action}</span>}
+              {item.timeframe && (
+                <span className="text-slate/55">· {item.timeframe}</span>
+              )}
             </li>
           ))}
         </ul>
       )}
+      {/* Risk level badge */}
+      {risk_level && (
+        <span
+          className="inline-block text-[10px] font-bold uppercase tracking-wide
+                     bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full"
+        >
+          {risk_level} risk
+        </span>
+      )}
     </div>
   );
 }
-
-export default ActionBrief;

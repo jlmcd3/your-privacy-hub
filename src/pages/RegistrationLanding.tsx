@@ -6,6 +6,8 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ToolTierNote from "@/components/tools/ToolTierNote";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +46,7 @@ const FAQS = [
 ];
 
 export default function RegistrationLanding() {
+  const { hasToolAccess } = useSubscriptionTier();
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
@@ -56,6 +59,14 @@ export default function RegistrationLanding() {
       </Helmet>
 
       <Navbar />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <ToolTierNote />
+        {hasToolAccess && (
+          <div className="mt-2 text-[12px] text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+            ✓ Included in your Annual Platform — all registration documents included at no additional charge.
+          </div>
+        )}
+      </div>
 
       <PageContainer>
         {/* 1. Hero */}
@@ -221,7 +232,8 @@ export default function RegistrationLanding() {
             </div>
           </div>
           <p className="text-center text-xs text-slate-light mt-4">
-            Intelligence subscribers get 20% off all DIY packages and $75 off the Counsel-Ready Pack. You always submit your own filings.
+            Monthly subscribers: 20% off DIY packages · $75 off Counsel-Ready Pack.<br />
+            Annual Platform subscribers: all registration tools included at no charge. You always submit your own filings.
           </p>
         </section>
 

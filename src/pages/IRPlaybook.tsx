@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
@@ -10,8 +11,12 @@ import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import { toast } from "sonner";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -29,7 +34,9 @@ const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
 export default function IRPlaybook() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const access = useToolAccess({ standalonePrice: 39, subscriberPrice: null });
+  const pricing = useToolPrice("ir_playbook");
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: null });
+  const { clientId } = useActiveClient();
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
     discoveryDateTime: new Date().toISOString().slice(0, 16),
@@ -51,9 +58,16 @@ export default function IRPlaybook() {
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
 
   const handleGenerate = async () => {
+    const discoveryDate = new Date(form.discoveryDateTime);
+    if (isNaN(discoveryDate.getTime()) || discoveryDate > new Date()) {
+      toast.error("Invalid date", {
+        description: "The discovery date cannot be in the future. A breach response playbook requires a date when the incident was actually discovered.",
+      });
+      return;
+    }
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id } });
+    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
     if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
     setResult(data.playbook_text);
     if (data?.id) { navigate(`/ir-playbook/result/${data.id}`); return; }
@@ -73,11 +87,16 @@ export default function IRPlaybook() {
         <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
           <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
         </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote />
+        </div>
+
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
@@ -96,7 +115,7 @@ export default function IRPlaybook() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="font-display font-bold text-navy text-[18px]">Incident details</h2>
             <label className="block text-[13px]"><span className="font-semibold text-navy">Date & time of discovery</span>
-              <input type="datetime-local" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
+              <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-[13px]"><span className="font-semibold text-navy">Apparent cause</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>

@@ -104,6 +104,19 @@ Deno.serve(async (req) => {
     );
     const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
 
+    // Washington My Health My Data Act applies broadly to "consumer health data"
+    // including biometric data tied to health inferences. Private right of action
+    // under WA Consumer Protection Act creates litigation exposure.
+    const wamhmdApplies = body.jurisdictions.some(
+      (j) => j.toLowerCase().includes("washington") || j.toLowerCase().includes("mhmd")
+    );
+
+    // "Other US state" is a generic catch-all selection — flag explicitly so the
+    // model produces a section covering Texas CUBI + WA MHMD + general state-law
+    // posture rather than silently dropping the jurisdiction from output.
+    const otherUsStateApplies = body.jurisdictions.some(
+      (j) => j.toLowerCase().includes("other us"));
+
     // Step 3 — Haiku
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
@@ -127,8 +140,25 @@ Based on ${body.enrolledCount} enrolled individuals:
 Low end (negligent violations): $${bipaRisk.lowEnd.toLocaleString()}
 High end (intentional violations): $${bipaRisk.highEnd.toLocaleString()}
 ${bipaRisk.note}
-` : ""}
-ENFORCEMENT PRECEDENTS
+` : ""}${wamhmdApplies ? `
+WASHINGTON MY HEALTH MY DATA ACT (MHMD) — APPLICABILITY FLAG
+Washington is in scope. If the biometric data is used to identify health status,
+diagnosis, treatment, or to infer any consumer health condition, MHMD applies in
+addition to general WA consumer protection law. MHMD requires:
+  - separate, opt-in consent (distinct from any biometric consent),
+  - a published "consumer health data privacy policy" with specific contents,
+  - heightened restrictions on sale and on geofencing around health facilities.
+MHMD has a private right of action via the WA Consumer Protection Act.
+Address MHMD obligations explicitly in the Washington section.
+` : ""}${otherUsStateApplies ? `
+OTHER US STATE — APPLICABILITY FLAG
+"Other US state" is in scope. Produce a dedicated "### Other US State — General US Biometric Privacy Posture" section that:
+  - notes Texas Capture or Use of Biometric Identifier Act (CUBI) requirements (notice, consent, retention <=1 year past purpose, no sale absent consent — Texas AG enforcement only, no private right of action),
+  - notes Washington My Health My Data Act exposure where biometrics infer health status,
+  - covers the broader pattern across CA/CO/CT/VA/UT/OR comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and DPIAs,
+  - identifies the most likely applicable state regime based on the organisation type and purpose described.
+Do NOT skip this section even though no specific state was named.
+` : ""}ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
 
 For each jurisdiction, structure your output EXACTLY as follows:

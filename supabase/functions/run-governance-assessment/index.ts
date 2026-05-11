@@ -19,7 +19,7 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
       "content-type": "application/json",
     },
     body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(45000),
+    signal: AbortSignal.timeout(120000),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
@@ -52,8 +52,9 @@ const DOMAIN_DEFINITIONS = [
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let assessment_id: string | undefined;
   try {
-    const { assessment_id } = await req.json();
+    ({ assessment_id } = await req.json());
     if (!assessment_id) return new Response(JSON.stringify({ error: "assessment_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -102,13 +103,15 @@ Health or special category data processed: ${intake.special_category_data ? "Yes
         ["us-federal", "california", "new-york"].includes(j)
       );
 
-    for (const domain of DOMAIN_DEFINITIONS) {
-      const model = (domain.escalate && needsHigherQuality)
-        ? "claude-sonnet-4-6"
-        : "claude-haiku-4-5-20251001";
-
-      const text = await callAnthropic(model, domainSystem,
-        `DOMAIN ${domain.id}: ${domain.name}
+    const domainResultsArray = await Promise.all(
+      DOMAIN_DEFINITIONS.map(async (domain) => {
+        const model = (domain.escalate && needsHigherQuality)
+          ? "claude-sonnet-4-6"
+          : "claude-haiku-4-5-20251001";
+        const text = await callAnthropic(
+          model,
+          domainSystem,
+          `DOMAIN ${domain.id}: ${domain.name}
 
 ORGANISATION PROFILE:
 ${intakeSummary}
@@ -128,15 +131,18 @@ Return JSON:
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
 }`,
-        800
-      );
+          1200
+        );
+        try {
+          const m = text.match(/\{[\s\S]*\}/);
+          if (m) return { key: domain.key, result: JSON.parse(m[0]) };
+        } catch { /* fall through */ }
+        return { key: domain.key, result: { domain_id: domain.id, severity: "Low", regulatory_basis: "Could not be determined — assessment incomplete", current_state: "Assessment parse error", gap_description: null, recommended_action: "Re-run assessment", suggested_owner: "DPO", suggested_timeline: "This quarter" } };
+      })
+    );
 
-      try {
-        const m = text.match(/\{[\s\S]*\}/);
-        if (m) domainResults[domain.key] = JSON.parse(m[0]);
-      } catch { domainResults[domain.key] = { domain_id: domain.id, severity: "Unknown" }; }
-
-      await new Promise(r => setTimeout(r, 200));
+    for (const { key, result } of domainResultsArray) {
+      domainResults[key] = result;
     }
 
     // ── SYNTHESIS ──
@@ -165,14 +171,25 @@ Return JSON:
   "overall_readiness_rating": "one of: Initial | Developing | Defined | Managed | Optimised",
   "readiness_rationale": "one sentence explaining the rating"
 }`,
-      3000
+      5000
     );
 
     let synthesis: any = {};
     try {
       const m = synthesisText.match(/\{[\s\S]*\}/);
       if (m) synthesis = JSON.parse(m[0]);
-    } catch { synthesis = { executive_summary: "Assessment complete. Review domain findings.", dpia_scope: [] }; }
+    } catch (e) {
+      console.error("[Governance] Synthesis parse error:", e);
+      synthesis = {
+        executive_summary: "Assessment complete. Review domain findings above for full detail.",
+        top_three_risks: [],
+        immediate_actions: [],
+        overall_readiness_rating: "Initial",
+        readiness_rationale: "Synthesis could not be completed.",
+        interaction_effects: "",
+        dpia_scope: []
+      };
+    }
 
     // Fetch enforcement precedents (3-5) relevant to this org's profile
     let enforcementPrecedents: any[] = [];
@@ -234,6 +251,10 @@ Return JSON:
 
   } catch (e) {
     console.error("run-governance-assessment error:", e);
+    if (assessment_id) {
+      await supabase.from("governance_assessments")
+        .update({ status: "failed" }).eq("id", assessment_id);
+    }
     return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

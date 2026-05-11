@@ -1,60 +1,1038 @@
 [
-  { "slug": "data-controller", "term": "Data Controller", "definition": "An entity that determines the purposes and means of processing personal data. Under GDPR Article 4(7), the controller decides why and how personal data is processed and bears primary responsibility for compliance.", "source": "GDPR Article 4(7)", "related": ["data-processor", "data-subject", "personal-data"], "regulations": ["GDPR", "UK GDPR", "LGPD"] },
-  { "slug": "data-processor", "term": "Data Processor", "definition": "An entity that processes personal data on behalf of a data controller. Processors act under the controller's instructions and must implement appropriate technical and organizational measures to ensure data security.", "source": "GDPR Article 4(8)", "related": ["data-controller", "personal-data", "standard-contractual-clauses"], "regulations": ["GDPR", "UK GDPR", "LGPD"] },
-  { "slug": "data-subject", "term": "Data Subject", "definition": "An identified or identifiable natural person whose personal data is being collected, held, or processed. Data subjects have specific rights under privacy laws including access, rectification, erasure, and portability.", "source": "GDPR Article 4(1)", "related": ["personal-data", "data-controller", "dsar"], "regulations": ["GDPR", "UK GDPR", "CCPA"] },
-  { "slug": "personal-data", "term": "Personal Data", "definition": "Any information relating to an identified or identifiable natural person. This includes names, identification numbers, location data, online identifiers, and factors specific to the physical, physiological, genetic, mental, economic, cultural, or social identity of a person.", "source": "GDPR Article 4(1)", "related": ["data-subject", "special-category-data", "data-controller"], "regulations": ["GDPR", "UK GDPR", "CCPA", "LGPD", "PDPA"] },
-  { "slug": "gdpr", "term": "General Data Protection Regulation (GDPR)", "definition": "The European Union's comprehensive data protection regulation that took effect on May 25, 2018. It harmonizes data protection laws across the EU/EEA, establishes data subject rights, and imposes obligations on organizations processing personal data with penalties up to €20M or 4% of global revenue.", "source": "Regulation (EU) 2016/679", "related": ["data-controller", "data-processor", "dpia", "lead-supervisory-authority"], "regulations": ["GDPR"] },
-  { "slug": "ccpa", "term": "California Consumer Privacy Act (CCPA)", "definition": "California's landmark consumer privacy law effective January 1, 2020, granting residents rights to know, delete, and opt-out of the sale of their personal information. Applies to businesses meeting revenue, data volume, or data sale thresholds.", "source": "Cal. Civ. Code §1798.100–1798.199.100", "related": ["cpra", "personal-data", "data-subject"], "regulations": ["CCPA", "CPRA"] },
-  { "slug": "cpra", "term": "California Privacy Rights Act (CPRA)", "definition": "An amendment and expansion of the CCPA, effective January 1, 2023, that created the California Privacy Protection Agency (CPPA), added rights to correct and limit use of sensitive personal information, and introduced automated decision-making provisions.", "source": "Cal. Civ. Code §1798.100 et seq. (as amended)", "related": ["ccpa", "data-subject", "dpia"], "regulations": ["CPRA"] },
-  { "slug": "lgpd", "term": "Lei Geral de Proteção de Dados (LGPD)", "definition": "Brazil's General Data Protection Law, effective September 2020, modeled on the GDPR. Establishes data subject rights, legal bases for processing, and created the ANPD (National Data Protection Authority) as the enforcement body.", "source": "Law No. 13,709/2018", "related": ["gdpr", "personal-data", "data-controller"], "regulations": ["LGPD"] },
-  { "slug": "pdpa", "term": "Personal Data Protection Act (PDPA)", "definition": "Singapore's comprehensive data protection law governing the collection, use, and disclosure of personal data by private organizations. Administered by the Personal Data Protection Commission (PDPC) with enforcement powers.", "source": "Personal Data Protection Act 2012 (No. 26 of 2012)", "related": ["personal-data", "consent", "data-controller"], "regulations": ["PDPA"] },
-  { "slug": "eu-ai-act", "term": "EU AI Act", "definition": "The European Union's regulation on artificial intelligence, adopted in 2024, establishing a risk-based framework for AI systems. Prohibits certain AI practices, imposes strict requirements on high-risk AI, and mandates transparency for AI systems interacting with people.", "source": "Regulation (EU) 2024/1689", "related": ["gdpr", "dpia", "special-category-data"], "regulations": ["EU AI Act"] },
-  { "slug": "dpia", "term": "Data Protection Impact Assessment (DPIA)", "definition": "A process required under GDPR Article 35 when data processing is likely to result in high risk to individuals' rights and freedoms. DPIAs must describe processing operations, assess necessity and proportionality, and identify measures to mitigate risks.", "source": "GDPR Article 35", "related": ["data-controller", "gdpr", "ropa"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "ropa", "term": "Records of Processing Activities (RoPA)", "definition": "Documentation required under GDPR Article 30 that controllers and processors must maintain describing their data processing activities. Must include purposes, data categories, recipients, transfers, retention periods, and security measures.", "source": "GDPR Article 30", "related": ["data-controller", "data-processor", "dpia"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "legitimate-interest", "term": "Legitimate Interest", "definition": "One of six legal bases for processing personal data under GDPR Article 6(1)(f). Processing is lawful when necessary for the legitimate interests of the controller or a third party, provided those interests are not overridden by the data subject's rights and freedoms.", "source": "GDPR Article 6(1)(f)", "related": ["consent", "gdpr", "data-controller"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "consent", "term": "Consent", "definition": "A legal basis for processing personal data requiring a freely given, specific, informed, and unambiguous indication of the data subject's agreement. Under GDPR, consent must be as easy to withdraw as to give, and controllers must demonstrate valid consent was obtained.", "source": "GDPR Articles 4(11), 6(1)(a), 7", "related": ["legitimate-interest", "personal-data", "special-category-data"], "regulations": ["GDPR", "UK GDPR", "CCPA", "LGPD"] },
-  { "slug": "special-category-data", "term": "Special Category Data", "definition": "Categories of personal data that are particularly sensitive and receive enhanced protection under GDPR Article 9. Includes data revealing racial/ethnic origin, political opinions, religious beliefs, trade union membership, genetic data, biometric data, health data, and data concerning sex life or sexual orientation.", "source": "GDPR Article 9", "related": ["personal-data", "consent", "dpia"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "dsar", "term": "Data Subject Access Request (DSAR)", "definition": "A request made by a data subject to a controller to obtain confirmation of whether their personal data is being processed, access to that data, and supplementary information about the processing. Controllers must respond within one month under GDPR.", "source": "GDPR Article 15", "related": ["data-subject", "right-to-erasure", "right-to-portability"], "regulations": ["GDPR", "UK GDPR", "CCPA"] },
-  { "slug": "right-to-erasure", "term": "Right to Erasure (Right to Be Forgotten)", "definition": "The right of data subjects to obtain from the controller the erasure of their personal data without undue delay in certain circumstances, including when data is no longer necessary, consent is withdrawn, or processing is unlawful.", "source": "GDPR Article 17", "related": ["dsar", "data-subject", "right-to-portability"], "regulations": ["GDPR", "UK GDPR", "CCPA", "LGPD"] },
-  { "slug": "right-to-portability", "term": "Right to Data Portability", "definition": "The right of data subjects to receive their personal data in a structured, commonly used, and machine-readable format, and to transmit that data to another controller without hindrance. Applies when processing is based on consent or contract and carried out by automated means.", "source": "GDPR Article 20", "related": ["dsar", "right-to-erasure", "data-subject"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "lead-supervisory-authority", "term": "Lead Supervisory Authority", "definition": "The data protection authority of the EU member state where a controller or processor has its main establishment. Under the GDPR's one-stop-shop mechanism, the lead authority coordinates cross-border cases with other concerned supervisory authorities.", "source": "GDPR Articles 56, 60", "related": ["one-stop-shop", "dpa", "gdpr"], "regulations": ["GDPR"] },
-  { "slug": "one-stop-shop", "term": "One-Stop-Shop Mechanism", "definition": "The GDPR cooperation mechanism ensuring that organizations operating across multiple EU member states deal primarily with one lead supervisory authority rather than every national DPA. The lead authority coordinates with other concerned authorities before issuing final decisions.", "source": "GDPR Articles 56, 60, 63", "related": ["lead-supervisory-authority", "dpa", "gdpr"], "regulations": ["GDPR"] },
-  { "slug": "dpa", "term": "Data Protection Authority (DPA)", "definition": "An independent public authority responsible for monitoring and enforcing data protection laws within its jurisdiction. Each EU/EEA member state has at least one DPA, and they cooperate through the EDPB on cross-border matters.", "source": "GDPR Articles 51–59", "related": ["lead-supervisory-authority", "one-stop-shop", "gdpr"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "standard-contractual-clauses", "term": "Standard Contractual Clauses (SCCs)", "definition": "Pre-approved contractual terms adopted by the European Commission that provide appropriate safeguards for international transfers of personal data from the EU/EEA to third countries. Updated SCCs were adopted in June 2021 with a modular approach covering four transfer scenarios.", "source": "GDPR Article 46(2)(c); Commission Implementing Decision (EU) 2021/914", "related": ["adequacy-decision", "data-transfers", "data-processor"], "regulations": ["GDPR"] },
-  { "slug": "adequacy-decision", "term": "Adequacy Decision", "definition": "A determination by the European Commission that a third country or territory provides an adequate level of data protection comparable to the EU. Personal data can flow freely to adequate jurisdictions without additional safeguards. Examples include the EU-US Data Privacy Framework.", "source": "GDPR Article 45", "related": ["standard-contractual-clauses", "data-transfers", "gdpr"], "regulations": ["GDPR"] },
-  { "slug": "data-transfers", "term": "International Data Transfer", "definition": "The transmission or making available of personal data to a recipient in a third country or international organization outside the EU/EEA. Transfers require adequate safeguards such as adequacy decisions, SCCs, BCRs, or derogations under Article 49.", "source": "GDPR Chapter V (Articles 44–50)", "related": ["standard-contractual-clauses", "adequacy-decision", "data-processor"], "regulations": ["GDPR", "UK GDPR", "LGPD"] },
-  { "slug": "joint-controller", "term": "Joint Controller", "definition": "Two or more controllers who jointly determine the purposes and means of processing personal data. Joint controllers must establish a transparent arrangement allocating their respective responsibilities for GDPR compliance, particularly regarding data subject rights.", "source": "GDPR Article 26", "related": ["data-controller", "data-processor"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "dpo", "term": "Data Protection Officer (DPO)", "definition": "A designated role required under GDPR for public authorities and organizations whose core activities involve large-scale systematic monitoring or processing of special category data. The DPO advises on compliance, monitors adherence, and serves as the contact point for supervisory authorities.", "source": "GDPR Articles 37–39", "related": ["data-controller", "dpa", "gdpr"], "regulations": ["GDPR", "UK GDPR", "LGPD"] },
-  { "slug": "lawful-basis", "term": "Lawful Basis for Processing", "definition": "One of six legal grounds required under GDPR Article 6 to process personal data: consent, contract performance, legal obligation, vital interests, public task, or legitimate interests. Every processing activity must have a documented lawful basis before processing begins.", "source": "GDPR Article 6", "related": ["consent", "legitimate-interest", "data-controller"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "data-minimisation", "term": "Data Minimisation", "definition": "A core GDPR principle requiring that personal data collected must be adequate, relevant, and limited to what is necessary for the purposes for which it is processed. Organizations must not collect more data than needed.", "source": "GDPR Article 5(1)(c)", "related": ["personal-data", "privacy-by-design", "gdpr"], "regulations": ["GDPR", "UK GDPR", "LGPD"] },
-  { "slug": "privacy-by-design", "term": "Privacy by Design and by Default", "definition": "An approach requiring data protection to be integrated into processing activities and business practices from the design stage, rather than added retroactively. Controllers must implement appropriate measures to ensure only necessary personal data is processed by default.", "source": "GDPR Article 25", "related": ["data-minimisation", "dpia", "data-controller"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "supervisory-authority", "term": "Supervisory Authority", "definition": "An independent public authority established by an EU member state to monitor the application of GDPR within its territory. Supervisory authorities have investigative, corrective, and advisory powers and cooperate through the EDPB consistency mechanism.", "source": "GDPR Article 51", "related": ["dpa", "lead-supervisory-authority", "edpb"], "regulations": ["GDPR"] },
-  { "slug": "edpb", "term": "European Data Protection Board (EDPB)", "definition": "An independent EU body that ensures consistent application of the GDPR across all member states. The EDPB issues binding decisions in cross-border cases, adopts guidelines and recommendations, and coordinates enforcement actions through its consistency mechanism.", "source": "GDPR Articles 68–76", "related": ["dpa", "lead-supervisory-authority", "one-stop-shop"], "regulations": ["GDPR"] },
-  { "slug": "vcdpa", "term": "Virginia Consumer Data Protection Act (VCDPA)", "definition": "Virginia's comprehensive consumer privacy law effective January 1, 2023. Grants consumers rights to access, correct, delete, and opt out of targeted advertising and sale of personal data. Enforced exclusively by the Virginia Attorney General.", "source": "Va. Code §59.1-575 et seq.", "related": ["ccpa", "cpra", "sensitive-data"], "regulations": ["VCDPA"] },
-  { "slug": "cpa", "term": "Colorado Privacy Act (CPA)", "definition": "Colorado's comprehensive privacy law effective July 1, 2023. Requires data protection assessments for high-risk processing, grants consumer rights including opt-out of profiling, and is enforced by the Colorado Attorney General.", "source": "C.R.S. §6-1-1301 et seq.", "related": ["ccpa", "vcdpa", "sensitive-data"], "regulations": ["CPA"] },
-  { "slug": "tdpsa", "term": "Texas Data Privacy and Security Act (TDPSA)", "definition": "Texas's comprehensive consumer data privacy law effective July 1, 2024. Applies broadly to entities conducting business in Texas, with no revenue or data volume thresholds. Grants consumers rights to access, correct, delete, and opt out of data sales.", "source": "Tex. Bus. & Com. Code §541", "related": ["ccpa", "vcdpa", "sensitive-data"], "regulations": ["TDPSA"] },
-  { "slug": "sensitive-data", "term": "Sensitive Data", "definition": "A category of personal data requiring heightened protection under various privacy laws. Definitions vary by jurisdiction but typically include racial/ethnic origin, health data, biometric identifiers, precise geolocation, financial information, and data of known children. Most laws require explicit opt-in consent for processing.", "source": "Various", "related": ["special-category-data", "consent", "biometric-data"], "regulations": ["GDPR", "CCPA", "VCDPA", "CPA", "TDPSA"] },
-  { "slug": "opt-out-right", "term": "Opt-Out Right", "definition": "A consumer right to direct a business to stop selling or sharing their personal information. Under CCPA/CPRA, businesses must provide a 'Do Not Sell or Share My Personal Information' link. US state laws vary in scope but generally include opt-out from sale, targeted advertising, and profiling.", "source": "CCPA §1798.120; various state laws", "related": ["ccpa", "universal-opt-out", "data-broker"], "regulations": ["CCPA", "CPRA", "VCDPA", "CPA"] },
-  { "slug": "universal-opt-out", "term": "Universal Opt-Out Mechanism (UOOM)", "definition": "A browser or device-level signal that communicates a consumer's opt-out preference to all websites and apps. The Global Privacy Control (GPC) is the leading technical implementation. California, Colorado, and several other states require businesses to honor these signals.", "source": "CPRA §1798.135(e); Colorado CPA Rules", "related": ["opt-out-right", "ccpa", "cpa"], "regulations": ["CPRA", "CPA", "CTDPA"] },
-  { "slug": "data-broker", "term": "Data Broker", "definition": "A business that knowingly collects and sells personal information of consumers with whom the business does not have a direct relationship. Several states have enacted data broker registration requirements. California's Delete Act creates a centralized deletion mechanism for data broker records.", "source": "Cal. Civ. Code §1798.99.80; Vermont 9 V.S.A. §2430", "related": ["opt-out-right", "ccpa", "sensitive-data"], "regulations": ["CCPA", "CPRA", "Various state laws"] },
-  { "slug": "coppa", "term": "Children's Online Privacy Protection Act (COPPA)", "definition": "A US federal law requiring parental consent before collecting personal information from children under 13 online. Enforced by the FTC. Proposed 2026 amendments would extend protections to children under 16 for targeted advertising purposes.", "source": "15 U.S.C. §§6501–6506", "related": ["ftc-act-section-5", "sensitive-data", "consent"], "regulations": ["COPPA"] },
-  { "slug": "bipa", "term": "Biometric Information Privacy Act (BIPA)", "definition": "Illinois's biometric privacy law, enacted in 2008, that requires informed written consent before collecting biometric identifiers. Notable for its private right of action, which has generated significant litigation including landmark settlements against Meta ($650M) and Google ($100M).", "source": "740 ILCS 14", "related": ["biometric-data", "sensitive-data", "consent"], "regulations": ["BIPA"] },
-  { "slug": "hipaa", "term": "Health Insurance Portability and Accountability Act (HIPAA)", "definition": "A US federal law establishing privacy and security standards for protected health information (PHI) held by covered entities (healthcare providers, health plans, clearinghouses) and their business associates. Enforced by HHS Office for Civil Rights.", "source": "42 U.S.C. §1320d et seq.", "related": ["sensitive-data", "personal-data"], "regulations": ["HIPAA"] },
-  { "slug": "ftc-act-section-5", "term": "FTC Act Section 5", "definition": "The primary federal authority for privacy enforcement in the US. Section 5 of the FTC Act prohibits 'unfair or deceptive acts or practices in or affecting commerce.' The FTC uses this broad authority to bring enforcement actions for privacy violations, data security failures, and dark patterns.", "source": "15 U.S.C. §45(a)", "related": ["coppa", "data-broker"], "regulations": ["FTC Act"] },
-  { "slug": "gpai-model", "term": "General-Purpose AI (GPAI) Model", "definition": "Under the EU AI Act, an AI model trained with a large amount of data using self-supervision at scale, that displays significant generality and can perform a wide range of distinct tasks. GPAI providers must comply with transparency obligations and systemic risk assessments for models above certain compute thresholds.", "source": "EU AI Act Articles 51–56", "related": ["eu-ai-act", "high-risk-ai"], "regulations": ["EU AI Act"] },
-  { "slug": "high-risk-ai", "term": "High-Risk AI System", "definition": "Under the EU AI Act, AI systems used in specified areas that pose significant risks to health, safety, or fundamental rights. Includes AI used in critical infrastructure, education, employment, law enforcement, and migration. Subject to conformity assessments, risk management, and human oversight requirements.", "source": "EU AI Act Article 6, Annex III", "related": ["eu-ai-act", "gpai-model", "dpia"], "regulations": ["EU AI Act"] },
-  { "slug": "profiling", "term": "Profiling", "definition": "Any form of automated processing of personal data to evaluate certain personal aspects of a natural person, such as work performance, economic situation, health, personal preferences, interests, reliability, behavior, location, or movements. Subject to specific safeguards under GDPR Article 22.", "source": "GDPR Article 4(4)", "related": ["automated-decision-making", "consent", "dpia"], "regulations": ["GDPR", "UK GDPR", "EU AI Act"] },
-  { "slug": "automated-decision-making", "term": "Automated Decision-Making (ADM)", "definition": "Decision-making by technological means without meaningful human involvement. Under GDPR Article 22, data subjects have the right not to be subject to decisions based solely on automated processing that produce legal or similarly significant effects. California's CPPA finalized ADMT regulations requiring pre-use notices.", "source": "GDPR Article 22; CPRA ADMT Rules", "related": ["profiling", "eu-ai-act", "high-risk-ai"], "regulations": ["GDPR", "UK GDPR", "CPRA", "EU AI Act"] },
-  { "slug": "biometric-data", "term": "Biometric Data", "definition": "Personal data resulting from specific technical processing relating to the physical, physiological, or behavioural characteristics of a natural person, which allows or confirms their unique identification, such as facial images, fingerprints, iris scans, or voice patterns.", "source": "GDPR Article 4(14)", "related": ["special-category-data", "bipa", "sensitive-data"], "regulations": ["GDPR", "UK GDPR", "BIPA", "EU AI Act"] },
-  { "slug": "inferred-data", "term": "Inferred Data", "definition": "Personal data that is derived or predicted about an individual through analysis, profiling, or algorithmic processing of other data points, rather than being directly provided by the individual. Examples include credit scores, health predictions, and interest profiles. Treatment varies by jurisdiction.", "source": "Various; CCPA §1798.140(v)", "related": ["profiling", "personal-data", "automated-decision-making"], "regulations": ["CCPA", "GDPR"] },
-  { "slug": "binding-corporate-rules", "term": "Binding Corporate Rules (BCRs)", "definition": "Internal rules adopted by multinational organizations for transfers of personal data within the corporate group to countries outside the EU/EEA. BCRs must be approved by the competent supervisory authority and ensure adequate protection equivalent to GDPR standards.", "source": "GDPR Article 47", "related": ["data-transfers", "standard-contractual-clauses", "adequacy-decision"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "data-breach-notification", "term": "Data Breach Notification", "definition": "The obligation to report a personal data breach to the supervisory authority within 72 hours of becoming aware of it under GDPR, and to affected individuals when the breach is likely to result in high risk to their rights and freedoms. US state laws have varying notification requirements.", "source": "GDPR Articles 33–34; Various US state laws", "related": ["dpa", "data-controller", "personal-data"], "regulations": ["GDPR", "UK GDPR", "CCPA", "HIPAA"] },
-  { "slug": "purpose-limitation", "term": "Purpose Limitation", "definition": "A core GDPR principle requiring that personal data be collected for specified, explicit, and legitimate purposes and not further processed in a manner incompatible with those purposes. Controllers must assess compatibility before repurposing data.", "source": "GDPR Article 5(1)(b)", "related": ["data-minimisation", "lawful-basis", "consent"], "regulations": ["GDPR", "UK GDPR", "LGPD"] },
-  { "slug": "storage-limitation", "term": "Storage Limitation", "definition": "A GDPR principle requiring that personal data be kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data is processed. Requires documented retention schedules.", "source": "GDPR Article 5(1)(e)", "related": ["data-minimisation", "purpose-limitation", "right-to-erasure"], "regulations": ["GDPR", "UK GDPR"] },
-  { "slug": "pipl", "term": "Personal Information Protection Law (PIPL)", "definition": "China's comprehensive data protection law effective November 1, 2021. Establishes consent as the primary legal basis, imposes strict data localization and cross-border transfer requirements, and mandates personal information protection impact assessments for sensitive data processing.", "source": "Personal Information Protection Law of the People's Republic of China", "related": ["gdpr", "data-transfers", "sensitive-data"], "regulations": ["PIPL"] },
-  { "slug": "dark-patterns", "term": "Dark Patterns", "definition": "User interface design techniques that manipulate or deceive users into making decisions they would not otherwise make, particularly regarding privacy settings and consent. Increasingly targeted by regulators including the FTC, CPPA, and European DPAs in enforcement actions.", "source": "FTC enforcement; CPRA §1798.140(l); EDPB Guidelines 3/2022", "related": ["consent", "ftc-act-section-5", "automated-decision-making"], "regulations": ["CPRA", "FTC Act", "GDPR"] },
-  { "slug": "data-localization", "term": "Data Localization", "definition": "Legal requirements mandating that certain categories of data be stored, processed, or maintained within the borders of a specific country or region. Increasingly common in jurisdictions including China, India, Russia, and parts of the Middle East.", "source": "Various national laws", "related": ["data-transfers", "pipl", "standard-contractual-clauses"], "regulations": ["PIPL", "DPDP", "Various"] },
-  { "slug": "pipa", "term": "Personal Information Protection Act (PIPA) — South Korea", "definition": "South Korea's comprehensive data protection law, one of the strictest in Asia-Pacific. Enforced by the Personal Information Protection Commission (PIPC), it requires consent for most processing, mandates breach notification, and imposes significant fines for violations.", "source": "Personal Information Protection Act (Act No. 10465)", "related": ["gdpr", "pdpa", "consent"], "regulations": ["PIPA"] },
-  { "slug": "appi", "term": "Act on Protection of Personal Information (APPI) — Japan", "definition": "Japan's primary data protection law, significantly amended in 2022 to strengthen individual rights and cross-border transfer restrictions. Japan has a mutual adequacy arrangement with the EU, facilitating data flows between the two jurisdictions.", "source": "Act No. 57 of 2003 (as amended 2022)", "related": ["gdpr", "adequacy-decision", "data-transfers"], "regulations": ["APPI"] },
-  { "slug": "dpdp", "term": "Digital Personal Data Protection Act (DPDP) — India", "definition": "India's comprehensive data protection law passed in 2023, establishing a consent-based framework with a new Data Protection Board. Includes provisions for data localization, cross-border transfers, and significant penalties for non-compliance.", "source": "Digital Personal Data Protection Act, 2023", "related": ["gdpr", "consent", "data-localization"], "regulations": ["DPDP"] }
+  {
+    "slug": "data-controller",
+    "term": "Data Controller",
+    "definition": "An entity that determines the purposes and means of processing personal data. Under GDPR Article 4(7), the controller decides why and how personal data is processed and bears primary responsibility for compliance.",
+    "source": "GDPR Article 4(7)",
+    "related": [
+      "data-processor",
+      "data-subject",
+      "personal-data"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-4-gdpr/"
+  },
+  {
+    "slug": "data-processor",
+    "term": "Data Processor",
+    "definition": "An entity that processes personal data on behalf of a data controller. Processors act under the controller's instructions and must implement appropriate technical and organizational measures to ensure data security.",
+    "source": "GDPR Article 4(8)",
+    "related": [
+      "data-controller",
+      "personal-data",
+      "standard-contractual-clauses"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-4-gdpr/"
+  },
+  {
+    "slug": "data-subject",
+    "term": "Data Subject",
+    "definition": "An identified or identifiable natural person whose personal data is being collected, held, or processed. Data subjects have specific rights under privacy laws including access, rectification, erasure, and portability.",
+    "source": "GDPR Article 4(1)",
+    "related": [
+      "personal-data",
+      "data-controller",
+      "dsar"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CCPA"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-4-gdpr/"
+  },
+  {
+    "slug": "personal-data",
+    "term": "Personal Data",
+    "definition": "Any information relating to an identified or identifiable natural person. This includes names, identification numbers, location data, online identifiers, and factors specific to the physical, physiological, genetic, mental, economic, cultural, or social identity of a person.",
+    "source": "GDPR Article 4(1)",
+    "related": [
+      "data-subject",
+      "special-category-data",
+      "data-controller"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CCPA",
+      "LGPD",
+      "PDPA"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-4-gdpr/"
+  },
+  {
+    "slug": "gdpr",
+    "term": "General Data Protection Regulation (GDPR)",
+    "definition": "The European Union's comprehensive data protection regulation that took effect on May 25, 2018. It harmonizes data protection laws across the EU/EEA, establishes data subject rights, and imposes obligations on organizations processing personal data with penalties up to €20M or 4% of global revenue.",
+    "source": "Regulation (EU) 2016/679",
+    "related": [
+      "data-controller",
+      "data-processor",
+      "dpia",
+      "lead-supervisory-authority"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679"
+  },
+  {
+    "slug": "ccpa",
+    "term": "California Consumer Privacy Act (CCPA)",
+    "definition": "California's landmark consumer privacy law effective January 1, 2020, granting residents rights to know, delete, and opt-out of the sale of their personal information. Applies to businesses meeting revenue, data volume, or data sale thresholds.",
+    "source": "Cal. Civ. Code §1798.100–1798.199.100",
+    "related": [
+      "cpra",
+      "personal-data",
+      "data-subject"
+    ],
+    "regulations": [
+      "CCPA",
+      "CPRA"
+    ],
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.100.&lawCode=CIV"
+  },
+  {
+    "slug": "cpra",
+    "term": "California Privacy Rights Act (CPRA)",
+    "definition": "An amendment and expansion of the CCPA, effective January 1, 2023, that created the California Privacy Protection Agency (CPPA), added rights to correct and limit use of sensitive personal information, and introduced automated decision-making provisions.",
+    "source": "Cal. Civ. Code §1798.100 et seq. (as amended)",
+    "related": [
+      "ccpa",
+      "data-subject",
+      "dpia"
+    ],
+    "regulations": [
+      "CPRA"
+    ],
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.100.&lawCode=CIV"
+  },
+  {
+    "slug": "lgpd",
+    "term": "Lei Geral de Proteção de Dados (LGPD)",
+    "definition": "Brazil's General Data Protection Law, effective September 2020, modeled on the GDPR. Establishes data subject rights, legal bases for processing, and created the ANPD (National Data Protection Authority) as the enforcement body.",
+    "source": "Law No. 13,709/2018",
+    "related": [
+      "gdpr",
+      "personal-data",
+      "data-controller"
+    ],
+    "regulations": [
+      "LGPD"
+    ],
+    "sourceUrl": "https://www.gov.br/anpd/en"
+  },
+  {
+    "slug": "pdpa",
+    "term": "Personal Data Protection Act (PDPA)",
+    "definition": "Singapore's comprehensive data protection law governing the collection, use, and disclosure of personal data by private organizations. Administered by the Personal Data Protection Commission (PDPC) with enforcement powers.",
+    "source": "Personal Data Protection Act 2012 (No. 26 of 2012)",
+    "related": [
+      "personal-data",
+      "consent",
+      "data-controller"
+    ],
+    "regulations": [
+      "PDPA"
+    ],
+    "sourceUrl": "https://www.pdpc.gov.sg/Overview-of-PDPA/The-Legislation/Personal-Data-Protection-Act"
+  },
+  {
+    "slug": "eu-ai-act",
+    "term": "EU AI Act",
+    "definition": "The European Union's regulation on artificial intelligence, adopted in 2024, establishing a risk-based framework for AI systems. Prohibits certain AI practices, imposes strict requirements on high-risk AI, and mandates transparency for AI systems interacting with people.",
+    "source": "Regulation (EU) 2024/1689",
+    "related": [
+      "gdpr",
+      "dpia",
+      "special-category-data"
+    ],
+    "regulations": [
+      "EU AI Act"
+    ],
+    "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689"
+  },
+  {
+    "slug": "dpia",
+    "term": "Data Protection Impact Assessment (DPIA)",
+    "definition": "A process required under GDPR Article 35 when data processing is likely to result in high risk to individuals' rights and freedoms. DPIAs must describe processing operations, assess necessity and proportionality, and identify measures to mitigate risks.",
+    "source": "GDPR Article 35",
+    "related": [
+      "data-controller",
+      "gdpr",
+      "ropa"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-35-gdpr/"
+  },
+  {
+    "slug": "ropa",
+    "term": "Records of Processing Activities (RoPA)",
+    "definition": "Documentation required under GDPR Article 30 that controllers and processors must maintain describing their data processing activities. Must include purposes, data categories, recipients, transfers, retention periods, and security measures.",
+    "source": "GDPR Article 30",
+    "related": [
+      "data-controller",
+      "data-processor",
+      "dpia"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-30-gdpr/"
+  },
+  {
+    "slug": "legitimate-interest",
+    "term": "Legitimate Interest",
+    "definition": "One of six legal bases for processing personal data under GDPR Article 6(1)(f). Processing is lawful when necessary for the legitimate interests of the controller or a third party, provided those interests are not overridden by the data subject's rights and freedoms.",
+    "source": "GDPR Article 6(1)(f)",
+    "related": [
+      "consent",
+      "gdpr",
+      "data-controller"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-6-gdpr/"
+  },
+  {
+    "slug": "consent",
+    "term": "Consent",
+    "definition": "A legal basis for processing personal data requiring a freely given, specific, informed, and unambiguous indication of the data subject's agreement. Under GDPR, consent must be as easy to withdraw as to give, and controllers must demonstrate valid consent was obtained.",
+    "source": "GDPR Articles 4(11), 6(1)(a), 7",
+    "related": [
+      "legitimate-interest",
+      "personal-data",
+      "special-category-data"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CCPA",
+      "LGPD"
+    ],
+    "sources": [
+      {
+        "label": "GDPR Article 4(11)",
+        "url": "https://gdpr-info.eu/art-4-gdpr/"
+      },
+      {
+        "label": "Article 6(1)(a)",
+        "url": "https://gdpr-info.eu/art-6-gdpr/"
+      },
+      {
+        "label": "Article 7",
+        "url": "https://gdpr-info.eu/art-7-gdpr/"
+      }
+    ]
+  },
+  {
+    "slug": "special-category-data",
+    "term": "Special Category Data",
+    "definition": "Categories of personal data that are particularly sensitive and receive enhanced protection under GDPR Article 9. Includes data revealing racial/ethnic origin, political opinions, religious beliefs, trade union membership, genetic data, biometric data, health data, and data concerning sex life or sexual orientation.",
+    "source": "GDPR Article 9",
+    "related": [
+      "personal-data",
+      "consent",
+      "dpia"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-9-gdpr/"
+  },
+  {
+    "slug": "dsar",
+    "term": "Data Subject Access Request (DSAR)",
+    "definition": "A request made by a data subject to a controller to obtain confirmation of whether their personal data is being processed, access to that data, and supplementary information about the processing. Controllers must respond within one month under GDPR.",
+    "source": "GDPR Article 15",
+    "related": [
+      "data-subject",
+      "right-to-erasure",
+      "right-to-portability"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CCPA"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-15-gdpr/"
+  },
+  {
+    "slug": "right-to-erasure",
+    "term": "Right to Erasure (Right to Be Forgotten)",
+    "definition": "The right of data subjects to obtain from the controller the erasure of their personal data without undue delay in certain circumstances, including when data is no longer necessary, consent is withdrawn, or processing is unlawful.",
+    "source": "GDPR Article 17",
+    "related": [
+      "dsar",
+      "data-subject",
+      "right-to-portability"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CCPA",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-17-gdpr/"
+  },
+  {
+    "slug": "right-to-portability",
+    "term": "Right to Data Portability",
+    "definition": "The right of data subjects to receive their personal data in a structured, commonly used, and machine-readable format, and to transmit that data to another controller without hindrance. Applies when processing is based on consent or contract and carried out by automated means.",
+    "source": "GDPR Article 20",
+    "related": [
+      "dsar",
+      "right-to-erasure",
+      "data-subject"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-20-gdpr/"
+  },
+  {
+    "slug": "lead-supervisory-authority",
+    "term": "Lead Supervisory Authority",
+    "definition": "The data protection authority of the EU member state where a controller or processor has its main establishment. Under the GDPR's one-stop-shop mechanism, the lead authority coordinates cross-border cases with other concerned supervisory authorities.",
+    "source": "GDPR Articles 56, 60",
+    "related": [
+      "one-stop-shop",
+      "dpa",
+      "gdpr"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-56-gdpr/"
+  },
+  {
+    "slug": "one-stop-shop",
+    "term": "One-Stop-Shop Mechanism",
+    "definition": "The GDPR cooperation mechanism ensuring that organizations operating across multiple EU member states deal primarily with one lead supervisory authority rather than every national DPA. The lead authority coordinates with other concerned authorities before issuing final decisions.",
+    "source": "GDPR Articles 56, 60, 63",
+    "related": [
+      "lead-supervisory-authority",
+      "dpa",
+      "gdpr"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-56-gdpr/"
+  },
+  {
+    "slug": "dpa",
+    "term": "Data Protection Authority (DPA)",
+    "definition": "An independent public authority responsible for monitoring and enforcing data protection laws within its jurisdiction. Each EU/EEA member state has at least one DPA, and they cooperate through the EDPB on cross-border matters.",
+    "source": "GDPR Articles 51–59",
+    "related": [
+      "lead-supervisory-authority",
+      "one-stop-shop",
+      "gdpr"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-51-gdpr/"
+  },
+  {
+    "slug": "standard-contractual-clauses",
+    "term": "Standard Contractual Clauses (SCCs)",
+    "definition": "Pre-approved contractual terms adopted by the European Commission that provide appropriate safeguards for international transfers of personal data from the EU/EEA to third countries. Updated SCCs were adopted in June 2021 with a modular approach covering four transfer scenarios.",
+    "source": "GDPR Article 46(2)(c); Commission Implementing Decision (EU) 2021/914",
+    "related": [
+      "adequacy-decision",
+      "data-transfers",
+      "data-processor"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sources": [
+      {
+        "label": "GDPR Article 46(2)(c)",
+        "url": "https://gdpr-info.eu/art-46-gdpr/"
+      },
+      {
+        "label": "Commission Implementing Decision (EU) 2021/914",
+        "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32021D0914"
+      }
+    ],
+    "additionalLinks": [
+      {
+        "label": "Standard Contract Clauses",
+        "url": "https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en"
+      }
+    ]
+  },
+  {
+    "slug": "adequacy-decision",
+    "term": "Adequacy Decision",
+    "definition": "A determination by the European Commission that a third country or territory provides an adequate level of data protection comparable to the EU. Personal data can flow freely to adequate jurisdictions without additional safeguards. Examples include the EU-US Data Privacy Framework.",
+    "source": "GDPR Article 45",
+    "related": [
+      "standard-contractual-clauses",
+      "data-transfers",
+      "gdpr"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-45-gdpr/"
+  },
+  {
+    "slug": "data-transfers",
+    "term": "International Data Transfer",
+    "definition": "The transmission or making available of personal data to a recipient in a third country or international organization outside the EU/EEA. Transfers require adequate safeguards such as adequacy decisions, SCCs, BCRs, or derogations under Article 49.",
+    "source": "GDPR Chapter V (Articles 44–50)",
+    "related": [
+      "standard-contractual-clauses",
+      "adequacy-decision",
+      "data-processor"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/chapter-5-gdpr/"
+  },
+  {
+    "slug": "joint-controller",
+    "term": "Joint Controller",
+    "definition": "Two or more controllers who jointly determine the purposes and means of processing personal data. Joint controllers must establish a transparent arrangement allocating their respective responsibilities for GDPR compliance, particularly regarding data subject rights.",
+    "source": "GDPR Article 26",
+    "related": [
+      "data-controller",
+      "data-processor"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-26-gdpr/"
+  },
+  {
+    "slug": "dpo",
+    "term": "Data Protection Officer (DPO)",
+    "definition": "A designated role required under GDPR for public authorities and organizations whose core activities involve large-scale systematic monitoring or processing of special category data. The DPO advises on compliance, monitors adherence, and serves as the contact point for supervisory authorities.",
+    "source": "GDPR Articles 37–39",
+    "related": [
+      "data-controller",
+      "dpa",
+      "gdpr"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-37-gdpr/"
+  },
+  {
+    "slug": "lawful-basis",
+    "term": "Lawful Basis for Processing",
+    "definition": "One of six legal grounds required under GDPR Article 6 to process personal data: consent, contract performance, legal obligation, vital interests, public task, or legitimate interests. Every processing activity must have a documented lawful basis before processing begins.",
+    "source": "GDPR Article 6",
+    "related": [
+      "consent",
+      "legitimate-interest",
+      "data-controller"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-6-gdpr/"
+  },
+  {
+    "slug": "data-minimisation",
+    "term": "Data Minimisation",
+    "definition": "A core GDPR principle requiring that personal data collected must be adequate, relevant, and limited to what is necessary for the purposes for which it is processed. Organizations must not collect more data than needed.",
+    "source": "GDPR Article 5(1)(c)",
+    "related": [
+      "personal-data",
+      "privacy-by-design",
+      "gdpr"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-5-gdpr/"
+  },
+  {
+    "slug": "privacy-by-design",
+    "term": "Privacy by Design and by Default",
+    "definition": "An approach requiring data protection to be integrated into processing activities and business practices from the design stage, rather than added retroactively. Controllers must implement appropriate measures to ensure only necessary personal data is processed by default.",
+    "source": "GDPR Article 25",
+    "related": [
+      "data-minimisation",
+      "dpia",
+      "data-controller"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-25-gdpr/"
+  },
+  {
+    "slug": "supervisory-authority",
+    "term": "Supervisory Authority",
+    "definition": "An independent public authority established by an EU member state to monitor the application of GDPR within its territory. Supervisory authorities have investigative, corrective, and advisory powers and cooperate through the EDPB consistency mechanism.",
+    "source": "GDPR Article 51",
+    "related": [
+      "dpa",
+      "lead-supervisory-authority",
+      "edpb"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-51-gdpr/"
+  },
+  {
+    "slug": "edpb",
+    "term": "European Data Protection Board (EDPB)",
+    "definition": "An independent EU body that ensures consistent application of the GDPR across all member states. The EDPB issues binding decisions in cross-border cases, adopts guidelines and recommendations, and coordinates enforcement actions through its consistency mechanism.",
+    "source": "GDPR Articles 68–76",
+    "related": [
+      "dpa",
+      "lead-supervisory-authority",
+      "one-stop-shop"
+    ],
+    "regulations": [
+      "GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-68-gdpr/"
+  },
+  {
+    "slug": "vcdpa",
+    "term": "Virginia Consumer Data Protection Act (VCDPA)",
+    "definition": "Virginia's comprehensive consumer privacy law effective January 1, 2023. Grants consumers rights to access, correct, delete, and opt out of targeted advertising and sale of personal data. Enforced exclusively by the Virginia Attorney General.",
+    "source": "Va. Code §59.1-575 et seq.",
+    "related": [
+      "ccpa",
+      "cpra",
+      "sensitive-data"
+    ],
+    "regulations": [
+      "VCDPA"
+    ],
+    "sourceUrl": "https://law.lis.virginia.gov/vacodefull/title59.1/chapter53/"
+  },
+  {
+    "slug": "cpa",
+    "term": "Colorado Privacy Act (CPA)",
+    "definition": "Colorado's comprehensive privacy law effective July 1, 2023. Requires data protection assessments for high-risk processing, grants consumer rights including opt-out of profiling, and is enforced by the Colorado Attorney General.",
+    "source": "C.R.S. §6-1-1301 et seq.",
+    "related": [
+      "ccpa",
+      "vcdpa",
+      "sensitive-data"
+    ],
+    "regulations": [
+      "CPA"
+    ],
+    "sourceUrl": "https://leg.colorado.gov/bills/sb21-190"
+  },
+  {
+    "slug": "tdpsa",
+    "term": "Texas Data Privacy and Security Act (TDPSA)",
+    "definition": "Texas's comprehensive consumer data privacy law effective July 1, 2024. Applies broadly to entities conducting business in Texas, with no revenue or data volume thresholds. Grants consumers rights to access, correct, delete, and opt out of data sales.",
+    "source": "Tex. Bus. & Com. Code §541",
+    "related": [
+      "ccpa",
+      "vcdpa",
+      "sensitive-data"
+    ],
+    "regulations": [
+      "TDPSA"
+    ],
+    "sourceUrl": "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.541.htm"
+  },
+  {
+    "slug": "sensitive-data",
+    "term": "Sensitive Data",
+    "definition": "A category of personal data requiring heightened protection under various privacy laws. Definitions vary by jurisdiction but typically include racial/ethnic origin, health data, biometric identifiers, precise geolocation, financial information, and data of known children. Most laws require explicit opt-in consent for processing.",
+    "source": "Various",
+    "related": [
+      "special-category-data",
+      "consent",
+      "biometric-data"
+    ],
+    "regulations": [
+      "GDPR",
+      "CCPA",
+      "VCDPA",
+      "CPA",
+      "TDPSA"
+    ]
+  },
+  {
+    "slug": "opt-out-right",
+    "term": "Opt-Out Right",
+    "definition": "A consumer right to direct a business to stop selling or sharing their personal information. Under CCPA/CPRA, businesses must provide a 'Do Not Sell or Share My Personal Information' link. US state laws vary in scope but generally include opt-out from sale, targeted advertising, and profiling.",
+    "source": "CCPA §1798.120; various state laws",
+    "related": [
+      "ccpa",
+      "universal-opt-out",
+      "data-broker"
+    ],
+    "regulations": [
+      "CCPA",
+      "CPRA",
+      "VCDPA",
+      "CPA"
+    ],
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.120.&lawCode=CIV"
+  },
+  {
+    "slug": "universal-opt-out",
+    "term": "Universal Opt-Out Mechanism (UOOM)",
+    "definition": "A browser or device-level signal that communicates a consumer's opt-out preference to all websites and apps. The Global Privacy Control (GPC) is the leading technical implementation. California, Colorado, and several other states require businesses to honor these signals.",
+    "source": "CPRA §1798.135(e); Colorado CPA Rules",
+    "related": [
+      "opt-out-right",
+      "ccpa",
+      "cpa"
+    ],
+    "regulations": [
+      "CPRA",
+      "CPA",
+      "CTDPA"
+    ],
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.135.&lawCode=CIV"
+  },
+  {
+    "slug": "data-broker",
+    "term": "Data Broker",
+    "definition": "A business that knowingly collects and sells personal information of consumers with whom the business does not have a direct relationship. Several states have enacted data broker registration requirements. California's Delete Act creates a centralized deletion mechanism for data broker records.",
+    "source": "Cal. Civ. Code §1798.99.80; Vermont 9 V.S.A. §2430",
+    "related": [
+      "opt-out-right",
+      "ccpa",
+      "sensitive-data"
+    ],
+    "regulations": [
+      "CCPA",
+      "CPRA",
+      "Various state laws"
+    ],
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.99.80.&lawCode=CIV"
+  },
+  {
+    "slug": "coppa",
+    "term": "Children's Online Privacy Protection Act (COPPA)",
+    "definition": "A US federal law requiring parental consent before collecting personal information from children under 13 online. Enforced by the FTC. Proposed 2026 amendments would extend protections to children under 16 for targeted advertising purposes.",
+    "source": "15 U.S.C. §§6501–6506",
+    "related": [
+      "ftc-act-section-5",
+      "sensitive-data",
+      "consent"
+    ],
+    "regulations": [
+      "COPPA"
+    ],
+    "sourceUrl": "https://www.law.cornell.edu/uscode/text/15/6501"
+  },
+  {
+    "slug": "bipa",
+    "term": "Biometric Information Privacy Act (BIPA)",
+    "definition": "Illinois's biometric privacy law, enacted in 2008, that requires informed written consent before collecting biometric identifiers. Notable for its private right of action, which has generated significant litigation including landmark settlements against Meta ($650M) and Google ($100M).",
+    "source": "740 ILCS 14",
+    "related": [
+      "biometric-data",
+      "sensitive-data",
+      "consent"
+    ],
+    "regulations": [
+      "BIPA"
+    ],
+    "sourceUrl": "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57"
+  },
+  {
+    "slug": "hipaa",
+    "term": "Health Insurance Portability and Accountability Act (HIPAA)",
+    "definition": "A US federal law establishing privacy and security standards for protected health information (PHI) held by covered entities (healthcare providers, health plans, clearinghouses) and their business associates. Enforced by HHS Office for Civil Rights.",
+    "source": "42 U.S.C. §1320d et seq.",
+    "related": [
+      "sensitive-data",
+      "personal-data"
+    ],
+    "regulations": [
+      "HIPAA"
+    ],
+    "sourceUrl": "https://www.hhs.gov/hipaa/index.html"
+  },
+  {
+    "slug": "ftc-act-section-5",
+    "term": "FTC Act Section 5",
+    "definition": "The primary federal authority for privacy enforcement in the US. Section 5 of the FTC Act prohibits 'unfair or deceptive acts or practices in or affecting commerce.' The FTC uses this broad authority to bring enforcement actions for privacy violations, data security failures, and dark patterns.",
+    "source": "15 U.S.C. §45(a)",
+    "related": [
+      "coppa",
+      "data-broker"
+    ],
+    "regulations": [
+      "FTC Act"
+    ],
+    "sourceUrl": "https://www.law.cornell.edu/uscode/text/15/45"
+  },
+  {
+    "slug": "gpai-model",
+    "term": "General-Purpose AI (GPAI) Model",
+    "definition": "Under the EU AI Act, an AI model trained with a large amount of data using self-supervision at scale, that displays significant generality and can perform a wide range of distinct tasks. GPAI providers must comply with transparency obligations and systemic risk assessments for models above certain compute thresholds.",
+    "source": "EU AI Act Articles 51–56",
+    "related": [
+      "eu-ai-act",
+      "high-risk-ai"
+    ],
+    "regulations": [
+      "EU AI Act"
+    ],
+    "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689"
+  },
+  {
+    "slug": "high-risk-ai",
+    "term": "High-Risk AI System",
+    "definition": "Under the EU AI Act, AI systems used in specified areas that pose significant risks to health, safety, or fundamental rights. Includes AI used in critical infrastructure, education, employment, law enforcement, and migration. Subject to conformity assessments, risk management, and human oversight requirements.",
+    "source": "EU AI Act Article 6, Annex III",
+    "related": [
+      "eu-ai-act",
+      "gpai-model",
+      "dpia"
+    ],
+    "regulations": [
+      "EU AI Act"
+    ],
+    "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689"
+  },
+  {
+    "slug": "profiling",
+    "term": "Profiling",
+    "definition": "Any form of automated processing of personal data to evaluate certain personal aspects of a natural person, such as work performance, economic situation, health, personal preferences, interests, reliability, behavior, location, or movements. Subject to specific safeguards under GDPR Article 22.",
+    "source": "GDPR Article 4(4)",
+    "related": [
+      "automated-decision-making",
+      "consent",
+      "dpia"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "EU AI Act"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-4-gdpr/"
+  },
+  {
+    "slug": "automated-decision-making",
+    "term": "Automated Decision-Making (ADM)",
+    "definition": "Decision-making by technological means without meaningful human involvement. Under GDPR Article 22, data subjects have the right not to be subject to decisions based solely on automated processing that produce legal or similarly significant effects. California's CPPA finalized ADMT regulations requiring pre-use notices.",
+    "source": "GDPR Article 22; CPRA ADMT Rules",
+    "related": [
+      "profiling",
+      "eu-ai-act",
+      "high-risk-ai"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CPRA",
+      "EU AI Act"
+    ],
+    "sources": [
+      {
+        "label": "GDPR Article 22",
+        "url": "https://gdpr-info.eu/art-22-gdpr/"
+      },
+      {
+        "label": "CPRA ADMT Rules",
+        "url": "https://cppa.ca.gov/regulations/consumer_privacy_act.html"
+      }
+    ]
+  },
+  {
+    "slug": "biometric-data",
+    "term": "Biometric Data",
+    "definition": "Personal data derived from technical processing of a person's physical, physiological, or behavioural characteristics — such as facial geometry, fingerprints, iris/retina scans, or voiceprints — that can be used to identify them. The precise scope varies significantly across regimes: some require identification capability (GDPR), while others cover any biometric identifier regardless of identification purpose (BIPA, Texas CUBI).",
+    "source": "GDPR Article 4(14)",
+    "related": [
+      "special-category-data",
+      "bipa",
+      "sensitive-data"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "BIPA",
+      "EU AI Act",
+      "CCPA",
+      "TX CUBI",
+      "WA HB 1493"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-4-gdpr/",
+    "definitionsByRegime": [
+      {
+        "regime": "GDPR / UK GDPR",
+        "citation": "Art. 4(14)",
+        "text": "Personal data resulting from specific technical processing relating to the physical, physiological or behavioural characteristics of a natural person, which allow or confirm the unique identification of that natural person, such as facial images or dactyloscopic data.",
+        "url": "https://gdpr-info.eu/art-4-gdpr/"
+      },
+      {
+        "regime": "Illinois BIPA",
+        "citation": "740 ILCS 14/10",
+        "text": "A retina or iris scan, fingerprint, voiceprint, or scan of hand or face geometry. Excludes writing samples, written signatures, photographs, human biological samples used for valid scientific testing or screening, demographic data, tattoo descriptions, or physical descriptions such as height, weight, hair color, or eye color.",
+        "url": "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57"
+      },
+      {
+        "regime": "Texas CUBI",
+        "citation": "Bus. & Com. Code §503.001",
+        "text": "A retina or iris scan, fingerprint, voiceprint, or record of hand or face geometry — captured for a commercial purpose. No identification requirement; capture alone triggers consent obligations.",
+        "url": "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm"
+      },
+      {
+        "regime": "Washington HB 1493",
+        "citation": "RCW 19.375.010",
+        "text": "Data generated by automatic measurements of an individual's biological characteristics, such as a fingerprint, voiceprint, eye retinas, irises, or other unique biological patterns or characteristics that is used to identify a specific individual. Excludes physical or digital photographs and audio/video recordings.",
+        "url": "https://app.leg.wa.gov/RCW/default.aspx?cite=19.375.010"
+      },
+      {
+        "regime": "EU AI Act",
+        "citation": "Art. 3(34)",
+        "text": "Personal data resulting from specific technical processing relating to the physical, physiological or behavioural characteristics of a natural person, such as facial images or dactyloscopic data. Used as the basis for 'biometric identification', 'biometric categorisation', and 'emotion recognition' system definitions in the Act.",
+        "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+      },
+      {
+        "regime": "CCPA / CPRA (California)",
+        "citation": "Cal. Civ. Code §1798.140(c)",
+        "text": "An individual's physiological, biological, or behavioral characteristics — including DNA — that can be used, singly or in combination with other identifying data, to establish individual identity. Includes imagery of the iris, retina, fingerprint, face, hand, palm, vein patterns, voice recordings (from which an identifier template can be extracted), keystroke patterns, gait patterns, sleep, health, or exercise data containing identifying information. Classified as sensitive personal information.",
+        "url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV"
+      },
+      {
+        "regime": "Colorado Privacy Act",
+        "citation": "C.R.S. §6-1-1303(3)",
+        "text": "Data generated by the technological processing, measurement, or analysis of an individual's biological, physical, or behavioral characteristics, which data is used or intended to be used, singly or in combination with other personal data, for identification purposes. Treated as sensitive data requiring opt-in consent.",
+        "url": "https://leg.colorado.gov/sites/default/files/2021a_190_signed.pdf"
+      }
+    ]
+  },
+  {
+    "slug": "inferred-data",
+    "term": "Inferred Data",
+    "definition": "Personal data that is derived or predicted about an individual through analysis, profiling, or algorithmic processing of other data points, rather than being directly provided by the individual. Examples include credit scores, health predictions, and interest profiles. Treatment varies by jurisdiction.",
+    "source": "Various; CCPA §1798.140(v)",
+    "related": [
+      "profiling",
+      "personal-data",
+      "automated-decision-making"
+    ],
+    "regulations": [
+      "CCPA",
+      "GDPR"
+    ],
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV"
+  },
+  {
+    "slug": "binding-corporate-rules",
+    "term": "Binding Corporate Rules (BCRs)",
+    "definition": "Internal rules adopted by multinational organizations for transfers of personal data within the corporate group to countries outside the EU/EEA. BCRs must be approved by the competent supervisory authority and ensure adequate protection equivalent to GDPR standards.",
+    "source": "GDPR Article 47",
+    "related": [
+      "data-transfers",
+      "standard-contractual-clauses",
+      "adequacy-decision"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-47-gdpr/"
+  },
+  {
+    "slug": "data-breach-notification",
+    "term": "Data Breach Notification",
+    "definition": "The obligation to report a personal data breach to the supervisory authority within 72 hours of becoming aware of it under GDPR, and to affected individuals when the breach is likely to result in high risk to their rights and freedoms. US state laws have varying notification requirements.",
+    "source": "GDPR Articles 33–34; Various US state laws",
+    "related": [
+      "dpa",
+      "data-controller",
+      "personal-data"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "CCPA",
+      "HIPAA"
+    ],
+    "sources": [
+      {
+        "label": "GDPR Articles 33–34",
+        "url": "https://gdpr-info.eu/art-33-gdpr/"
+      },
+      {
+        "label": "US state notification laws",
+        "url": "https://www.ncsl.org/technology-and-communication/security-breach-notification-laws"
+      }
+    ]
+  },
+  {
+    "slug": "purpose-limitation",
+    "term": "Purpose Limitation",
+    "definition": "A core GDPR principle requiring that personal data be collected for specified, explicit, and legitimate purposes and not further processed in a manner incompatible with those purposes. Controllers must assess compatibility before repurposing data.",
+    "source": "GDPR Article 5(1)(b)",
+    "related": [
+      "data-minimisation",
+      "lawful-basis",
+      "consent"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR",
+      "LGPD"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-5-gdpr/"
+  },
+  {
+    "slug": "storage-limitation",
+    "term": "Storage Limitation",
+    "definition": "A GDPR principle requiring that personal data be kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data is processed. Requires documented retention schedules.",
+    "source": "GDPR Article 5(1)(e)",
+    "related": [
+      "data-minimisation",
+      "purpose-limitation",
+      "right-to-erasure"
+    ],
+    "regulations": [
+      "GDPR",
+      "UK GDPR"
+    ],
+    "sourceUrl": "https://gdpr-info.eu/art-5-gdpr/"
+  },
+  {
+    "slug": "pipl",
+    "term": "Personal Information Protection Law (PIPL)",
+    "definition": "China's comprehensive data protection law effective November 1, 2021. Establishes consent as the primary legal basis, imposes strict data localization and cross-border transfer requirements, and mandates personal information protection impact assessments for sensitive data processing.",
+    "source": "Personal Information Protection Law of the People's Republic of China",
+    "related": [
+      "gdpr",
+      "data-transfers",
+      "sensitive-data"
+    ],
+    "regulations": [
+      "PIPL"
+    ],
+    "sourceUrl": "https://digichina.stanford.edu/work/translation-personal-information-protection-law-of-the-peoples-republic-of-china/"
+  },
+  {
+    "slug": "dark-patterns",
+    "term": "Dark Patterns",
+    "definition": "User interface design techniques that manipulate or deceive users into making decisions they would not otherwise make, particularly regarding privacy settings and consent. Increasingly targeted by regulators including the FTC, CPPA, and European DPAs in enforcement actions.",
+    "source": "FTC enforcement; CPRA §1798.140(l); EDPB Guidelines 3/2022",
+    "related": [
+      "consent",
+      "ftc-act-section-5",
+      "automated-decision-making"
+    ],
+    "regulations": [
+      "CPRA",
+      "FTC Act",
+      "GDPR"
+    ],
+    "sources": [
+      {
+        "label": "FTC enforcement",
+        "url": "https://www.ftc.gov/reports/bringing-dark-patterns-to-light"
+      },
+      {
+        "label": "CPRA §1798.140(l)",
+        "url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.140.&lawCode=CIV"
+      },
+      {
+        "label": "EDPB Guidelines 3/2022",
+        "url": "https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-032022-dark-patterns-social-media-platform_en"
+      }
+    ]
+  },
+  {
+    "slug": "data-localization",
+    "term": "Data Localization",
+    "definition": "Legal requirements mandating that certain categories of data be stored, processed, or maintained within the borders of a specific country or region. Increasingly common in jurisdictions including China, India, Russia, and parts of the Middle East.",
+    "source": "Various national laws",
+    "related": [
+      "data-transfers",
+      "pipl",
+      "standard-contractual-clauses"
+    ],
+    "regulations": [
+      "PIPL",
+      "DPDP",
+      "Various"
+    ]
+  },
+  {
+    "slug": "pipa",
+    "term": "Personal Information Protection Act (PIPA) — South Korea",
+    "definition": "South Korea's comprehensive data protection law, one of the strictest in Asia-Pacific. Enforced by the Personal Information Protection Commission (PIPC), it requires consent for most processing, mandates breach notification, and imposes significant fines for violations.",
+    "source": "Personal Information Protection Act (Act No. 10465)",
+    "related": [
+      "gdpr",
+      "pdpa",
+      "consent"
+    ],
+    "regulations": [
+      "PIPA"
+    ],
+    "sourceUrl": "https://www.pipc.go.kr/eng/"
+  },
+  {
+    "slug": "appi",
+    "term": "Act on Protection of Personal Information (APPI) — Japan",
+    "definition": "Japan's primary data protection law, significantly amended in 2022 to strengthen individual rights and cross-border transfer restrictions. Japan has a mutual adequacy arrangement with the EU, facilitating data flows between the two jurisdictions.",
+    "source": "Act No. 57 of 2003 (as amended 2022)",
+    "related": [
+      "gdpr",
+      "adequacy-decision",
+      "data-transfers"
+    ],
+    "regulations": [
+      "APPI"
+    ],
+    "sourceUrl": "https://www.ppc.go.jp/en/"
+  },
+  {
+    "slug": "dpdp",
+    "term": "Digital Personal Data Protection Act (DPDP) — India",
+    "definition": "India's comprehensive data protection law passed in 2023, establishing a consent-based framework with a new Data Protection Board. Includes provisions for data localization, cross-border transfers, and significant penalties for non-compliance.",
+    "source": "Digital Personal Data Protection Act, 2023",
+    "related": [
+      "gdpr",
+      "consent",
+      "data-localization"
+    ],
+    "regulations": [
+      "DPDP"
+    ],
+    "sourceUrl": "https://www.meity.gov.in/content/personal-data-protection"
+  }
 ]

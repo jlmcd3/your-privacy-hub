@@ -15,13 +15,14 @@ const corsHeaders = {
 const PLAN_LOOKUPS: Record<string, string> = {
   intelligence_monthly: "intelligence_monthly",
   intelligence_yearly: "intelligence_yearly",
+  intelligence_yearly_founding: "intelligence_yearly_founding",
   // Legacy aliases — all map to the new monthly Professional price.
-  pro: "intelligence_monthly_v2",
-  premium: "intelligence_monthly_v2",
-  standard: "intelligence_monthly_v2",
-  monthly: "intelligence_monthly_v2",
-  yearly: "intelligence_yearly_v2",
-  annual: "intelligence_yearly_v2",
+  pro: "intelligence_monthly",
+  premium: "intelligence_monthly",
+  standard: "intelligence_monthly",
+  monthly: "intelligence_monthly",
+  yearly: "intelligence_yearly",
+  annual: "intelligence_yearly",
 };
 
 // Tool one-time purchases via tool_slug
@@ -67,12 +68,13 @@ serve(async (req) => {
       });
     }
 
-    const { plan, tool_slug, interval, environment, embedded } = (await req.json().catch(() => ({}))) as {
+    const { plan, tool_slug, interval, environment, embedded, addon } = (await req.json().catch(() => ({}))) as {
       plan?: string;
       tool_slug?: string;
       interval?: "month" | "year";
       environment?: string;
       embedded?: boolean;
+      addon?: "per_client_addon";
     };
     const env = detectEnv(environment);
 
@@ -80,11 +82,37 @@ serve(async (req) => {
     let mode: "subscription" | "payment" = "subscription";
     const metadata: Record<string, string> = { user_id: user.id };
 
+    // Per-client add-on: requires an active annual Platform subscription.
+    // Charged $199/yr as an additional recurring subscription.
+    if (addon === "per_client_addon") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_type, is_premium, is_pro")
+        .eq("id", user.id)
+        .maybeSingle();
+      const subType = (profile as any)?.subscription_type as string | null;
+      const isAnnual = subType === "annual" || subType === "annual_founding";
+      if (!isAnnual) {
+        return new Response(
+          JSON.stringify({
+            error: "annual_required",
+            message: "Per-client workspaces require an active annual Platform subscription.",
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      lookupKey = "per_client_addon";
+      mode = "subscription";
+      metadata.addon = "per_client_addon";
+      metadata.parent_subscription_type = subType!;
+    }
+
     // Guard: if this is a SUBSCRIPTION request and the user is already a
     // premium subscriber, route them to the Stripe Billing Portal instead
     // of attempting to create a duplicate subscription (Stripe would reject
     // it with "Customer already has an active subscription to this price").
-    if (!tool_slug) {
+    // SKIPPED for add-on subscriptions (the user IS already subscribed by design).
+    if (!tool_slug && !addon) {
       const { data: existing } = await supabase
         .from("profiles")
         .select("is_premium, is_pro, stripe_customer_id")
@@ -120,7 +148,7 @@ serve(async (req) => {
       }
     }
 
-    if (tool_slug) {
+    if (!addon && tool_slug) {
       const lookups = TOOL_LOOKUPS[tool_slug];
       if (!lookups) {
         return new Response(JSON.stringify({ error: "Unknown tool_slug" }), {
@@ -134,12 +162,30 @@ serve(async (req) => {
       mode = "payment";
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
-    } else {
-      // Resolve interval-aware plan key. If caller passes interval=year, prefer yearly.
-      const requestedKey = interval === "year" ? "intelligence_yearly" : plan || "intelligence_monthly";
-      lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
-      metadata.subscription_tier = "intelligence";
-      metadata.subscription_interval = lookupKey === "intelligence_yearly_v2" ? "year" : "month";
+    } else if (!addon) {
+      // Resolve interval-aware plan key. For yearly, prefer the founding
+      // rate ($369/yr) while slots remain — auto-routed via the SECURITY
+      // DEFINER `is_founding_rate_available` function (capped at 500 seats).
+      if (interval === "year") {
+        let foundingAvailable = false;
+        try {
+          const { data: foundingFlag } = await supabase.rpc("is_founding_rate_available");
+          foundingAvailable = foundingFlag === true;
+        } catch (e) {
+          console.error("is_founding_rate_available rpc failed:", (e as Error).message);
+        }
+        lookupKey = foundingAvailable ? "intelligence_yearly_founding" : "intelligence_yearly";
+        metadata.subscription_tier = "intelligence";
+        metadata.subscription_interval = "year";
+        metadata.subscription_type = foundingAvailable ? "annual_founding" : "annual";
+        if (foundingAvailable) metadata.founding_subscriber = "true";
+      } else {
+        const requestedKey = plan || "intelligence_monthly";
+        lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
+        metadata.subscription_tier = "intelligence";
+        metadata.subscription_interval = "month";
+        metadata.subscription_type = "monthly";
+      }
     }
 
     const stripe = createStripeClient(env);
@@ -152,8 +198,12 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
-    const successPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}/success` : "/subscribe/success";
-    const cancelPath = tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
+    const successPath = addon
+      ? "/account?addon=success"
+      : tool_slug
+      ? `/${tool_slug.replace(/_/g, "-")}/success`
+      : "/subscribe/success";
+    const cancelPath = addon ? "/account" : tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
     const session = await stripe.checkout.sessions.create({
       mode,

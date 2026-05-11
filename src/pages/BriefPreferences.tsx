@@ -6,6 +6,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const ROLES = [
@@ -131,7 +132,7 @@ const TOPICS: { id: string; label: string; icon: string; description: string }[]
 ];
 
 const BRIEF_FORMATS = [
-  { id: "full", label: "Full 9-section brief", icon: "📄" },
+  { id: "full", label: "Full 9-section report", icon: "📄" },
   { id: "exec-only", label: "Executive summary only", icon: "⚡" },
   { id: "actions-only", label: "Action items only", icon: "🎯" },
 ];
@@ -160,7 +161,7 @@ const Toggle = ({
         : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
     }`}
   >
-    <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
+    <span className="text-lg flex-shrink-0 mt-0.5"><FlagIcon icon={icon} /></span>
     <div className="flex-1 min-w-0">
       <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
       {description && (
@@ -254,7 +255,7 @@ export default function BriefPreferences() {
   return (
     <>
       <Helmet>
-        <title>Configure Your Intelligence Brief | End User Privacy Intelligence</title>
+        <title>Configure Your Privacy Intelligence Report | End User Privacy Intelligence</title>
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
@@ -265,11 +266,11 @@ export default function BriefPreferences() {
                 ⭐ Welcome to Intelligence
               </p>
               <p className="font-display font-bold text-[18px] mb-1">
-                Set your preferences to get your first personalized brief
+                Set your preferences to get your first Privacy Intelligence Report
               </p>
               <p className="text-blue-200 text-[13px]">
-                Your brief is written specifically for your industry and jurisdictions. The form below takes 60 seconds
-                — your first personalized brief arrives Monday.
+                Your Privacy Intelligence Report is written specifically for your industry and jurisdictions. The form below takes 60 seconds
+                — your first Privacy Intelligence Report arrives Monday.
               </p>
             </div>
           )}
@@ -277,15 +278,15 @@ export default function BriefPreferences() {
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
               <span>⭐</span> Intelligence
             </div>
-            <h1 className="font-display font-bold text-navy text-[24px] mb-2">Configure your Intelligence Brief</h1>
+            <h1 className="font-display font-bold text-navy text-[24px] mb-2">Configure your Privacy Intelligence Report</h1>
             <p className="text-slate text-[14px] mb-3 max-w-lg">
-              Your Intelligence brief is created specifically for your regulatory environment. The more context you
+              Your Privacy Intelligence Report is created specifically for your regulatory environment. The more context you
               provide, the more precisely it speaks to your actual compliance obligations.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 max-w-lg">
               <p className="text-[12px] text-navy leading-snug">
-                <span className="font-semibold">These preferences apply to your next scheduled brief.</span>{" "}
-                Already-published briefs in your archive remain unchanged.
+                <span className="font-semibold">These preferences apply to your next scheduled report.</span>{" "}
+                Already-published reports in your archive remain unchanged.
               </p>
             </div>
           </div>
@@ -293,7 +294,7 @@ export default function BriefPreferences() {
           {/* Role */}
           <div className="mb-8">
             <h2 className="font-bold text-navy text-[15px] mb-1">Your role</h2>
-            <p className="text-slate text-xs mb-4">Your brief is shaped by how you use regulatory intelligence.</p>
+            <p className="text-slate text-xs mb-4">Your report is shaped by how you use regulatory intelligence.</p>
             <div className="flex flex-wrap gap-2">
               {ROLES.map((r) => (
                 <button
@@ -308,7 +309,7 @@ export default function BriefPreferences() {
                       : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
                   }`}
                 >
-                  <span>{r.icon}</span>
+                  <span><FlagIcon icon={r.icon} /></span>
                   <span>{r.label}</span>
                   {role === r.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
                 </button>
@@ -350,8 +351,8 @@ export default function BriefPreferences() {
 
           {/* Brief format */}
           <div className="mb-8">
-            <h2 className="font-bold text-navy text-[15px] mb-1">Your brief format</h2>
-            <p className="text-slate text-xs mb-4">How would you like to receive your brief?</p>
+            <h2 className="font-bold text-navy text-[15px] mb-1">Your report format</h2>
+            <p className="text-slate text-xs mb-4">How would you like to receive your report?</p>
             <div className="flex flex-wrap gap-2">
               {BRIEF_FORMATS.map((f) => (
                 <button
@@ -366,7 +367,7 @@ export default function BriefPreferences() {
                       : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
                   }`}
                 >
-                  <span>{f.icon}</span>
+                  <span><FlagIcon icon={f.icon} /></span>
                   <span>{f.label}</span>
                   {prefs.format === f.id && <span className="text-xs ml-0.5 opacity-70">✓</span>}
                 </button>
@@ -398,7 +399,7 @@ export default function BriefPreferences() {
             >
               {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
             </button>
-            <p className="text-slate text-xs">Saved preferences take effect with the next Monday brief.</p>
+            <p className="text-slate text-xs">Saved preferences take effect with the next Monday report.</p>
           </div>
         </main>
         <Footer />

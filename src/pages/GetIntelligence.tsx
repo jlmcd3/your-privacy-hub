@@ -4,8 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 type Step = 1 | 2 | 3 | "preview";
 
@@ -71,7 +71,7 @@ const Progress = ({ n }: { n: number }) => (
 );
 
 const GetIntelligence = () => {
-  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
+  const { isPremium, isLoading: premiumLoading } = useSubscriptionTier();
   const [step, setStep] = useState<Step>(1);
   const [jurisdiction, setJurisdiction] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);

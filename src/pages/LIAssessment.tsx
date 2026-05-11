@@ -2,14 +2,17 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -73,6 +76,7 @@ const STRENGTH_STYLE: Record<string, string> = {
 
 const LIAssessment = () => {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
@@ -118,6 +122,7 @@ const LIAssessment = () => {
         .from("li_assessments")
         .insert({
           user_id: user?.id ?? null,
+          client_id: clientId ?? null,
           status: "pending",
           stage: "preview",
           processing_description: processingDescription,
@@ -174,6 +179,8 @@ const LIAssessment = () => {
       </div>
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <ToolTierNote className="mb-6" />
+        <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
           <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>

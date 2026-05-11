@@ -251,7 +251,7 @@ Deno.serve(async (req) => {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentArticles } = await supabase
     .from("updates")
-    .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
+    .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, legal_weight, urgency, affected_jurisdictions")
     .gte("published_at", oneWeekAgo)
     .order("published_at", { ascending: false })
     .limit(60);
@@ -283,18 +283,36 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (!prefs) continue;
+    // Fallback defaults: paying subscribers without explicit preferences should
+    // still receive a brief. We pull a wide-coverage default so they get value
+    // immediately, then nudge them to refine in /brief-preferences.
+    const DEFAULT_PREFS = {
+      industries: [] as string[],
+      jurisdictions: ["us-federal", "us-states", "us-ca", "eu-all", "global"],
+      topics: [] as string[],
+      format: "full",
+      _is_default: true,
+    };
 
-    const industries = prefs.industries || [];
-    const jurisdictions = prefs.jurisdictions || [];
-    const topics = prefs.topics || [];
-    const briefFormat = (prefs as any).format || "full";
+    const effective = prefs ?? DEFAULT_PREFS;
+    if (!prefs) {
+      console.log(`[generate-custom-brief] user=${user.id} has no preferences row — using defaults`);
+    }
 
-    if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) continue;
+    const industries    = effective.industries || [];
+    let   jurisdictions = effective.jurisdictions || [];
+    const topics        = effective.topics || [];
+    const briefFormat   = (effective as any).format || "full";
 
-    const industryList = industries.join(", ") || "General";
+    // If a row exists but every field is empty, treat it like missing prefs.
+    if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) {
+      console.log(`[generate-custom-brief] user=${user.id} has empty preferences — applying default jurisdictions`);
+      jurisdictions = DEFAULT_PREFS.jurisdictions;
+    }
+
+    const industryList     = industries.join(", ") || "General";
     const jurisdictionList = jurisdictions.join(", ") || "All jurisdictions";
-    const topicList = topics.join(", ") || "All topics";
+    const topicList        = topics.join(", ") || "All topics";
 
     // Parallel data fetches per user
     const [scoredArticles, enforcementHistory, priorBriefsData] = await Promise.all([
@@ -379,9 +397,52 @@ USE THIS DATA to prioritize high-attention articles, reference regulatory theori
     };
     const roleLens = userRole && ROLE_LENS[userRole] ? `\nROLE LENS (${userRole}): ${ROLE_LENS[userRole]}\n` : "";
 
-    const systemPrompt = `You are the lead privacy intelligence analyst for EndUserPrivacy, a platform serving Data Protection Officers, General Counsel, and senior compliance professionals. You have been tracking this specific subscriber's situation for ${priorContext.length} prior weeks.
+    const systemPrompt = `You are a senior data protection attorney with 20 years of experience. You have been advising this specific client for a number of weeks. You know their industry, their jurisdictions, and their programme. This is their personal briefing — not a broadcast.
 
-Your role is not to summarize what happened. Your role is to tell them what matters, why it matters specifically to their practice, and what they need to do about it before their competitors do.
+You write the way you would speak to this client on the phone: confident, specific, and focused on what affects them. You do not cover everything that happened this week. You cover what matters to them, and you tell them what to do about it.
+
+VOICE RULES — apply to every sentence:
+
+RULE 1: WRITE TO THIS SPECIFIC CLIENT.
+Use "you," "your organisation," "your programme," "your sector" throughout.
+
+WRONG: "Healthcare processors should note that the EDPB has..."
+RIGHT: "Your patient data processing falls directly in scope of what the EDPB moved on this week. Here is what it means for your programme specifically."
+
+RULE 2: LEAD WITH IMPLICATION FOR THIS CLIENT.
+The first sentence states what the development means for this reader specifically.
+The regulatory detail comes second.
+
+WRONG: "The FTC published enforcement guidance on health data..."
+RIGHT: "If you use third-party analytics on any page where patients log in or submit health information, the FTC's latest action means you have something to fix before they look at you."
+
+RULE 3: PLAIN ENGLISH BEFORE CITATION.
+Explain the concept in plain English first. Then cite the law.
+
+RULE 4: SENTENCE LENGTH.
+Maximum 25 words per sentence. No exceptions.
+
+RULE 5: NO HEDGING.
+If something is required, say it is required. If it is a risk, name the specific consequence.
+
+NEVER USE: "may wish to consider," "should be aware," "it is worth noting," "given the regulatory landscape," "in light of recent developments."
+
+RULE 6: VERDICT SENTENCE.
+Every substantive item ends with:
+"Bottom line: [specific implication for this client.]"
+
+RULE 7: ACTIVE VOICE. Always.
+
+RULE 8: ENFORCEMENT ACTIONS.
+Amount first. Conduct second. Implication for this client third.
+Maximum three sentences.
+
+RULE 9: SHOW CONTINUITY FROM PRIOR WEEKS.
+Name what has changed since the last briefing: "Last week this was a warning. This week it is a fine." Or: "The issue we flagged three weeks ago has escalated. Here is where it stands."
+
+Before finalising your output: read the first sentence of each paragraph aloud. If it begins with a regulator's name or a law name, rewrite it so it begins with what the reader needs to know.
+
+You have been tracking this specific subscriber's situation for ${priorContext.length} prior weeks.
 
 INTELLIGENCE STANDARDS — apply to every section you write:
 
@@ -479,20 +540,35 @@ CITATION REQUIREMENT: Throughout every narrative section (your_week, industry_in
 Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
 
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-        signal: AbortSignal.timeout(60000),
-      });
+      // Retry once on 429 (rate limit) or 529 (overloaded).
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 4000,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userPrompt }],
+          }),
+          signal: AbortSignal.timeout(60000),
+        });
+        if (response.status !== 429 && response.status !== 529) break;
+        if (attempt === 0) {
+          const retryAfter = Math.min(
+            parseInt(response.headers.get("retry-after") || "15"),
+            15
+          );
+          console.warn(
+            `Rate limited for user ${user.id}, retrying in ${retryAfter}s`
+          );
+          await new Promise(r => setTimeout(r, retryAfter * 1000));
+        }
+      }
 
-      if (!response.ok) {
-        console.error(`Sonnet API error for user ${user.id}: ${response.status}`);
+      if (!response || !response.ok) {
+        console.error(`Sonnet API error for user ${user.id}: ${response?.status}`);
         continue;
       }
       const data = await response.json();
@@ -549,22 +625,13 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         base_brief_id: latestBrief.id,
         week_label: latestBrief.week_label,
         custom_sections: customSections,
-        preferences_snapshot: { ...prefs, brief_role: userRole },
+        preferences_snapshot: { ...effective, brief_role: userRole },
         generated_at: new Date().toISOString(),
         articles_used: topArticles.length,
         generation_model: "claude-sonnet-4-20250514",
         verification_result: verificationResult,
         issue_tags: issueTags,
       });
-
-      // Decrement bonus credits if we're past the included limit
-      const newUsed = used + 1;
-      if (newUsed > INCLUDED_REPORTS && bonusCredits > 0) {
-        await supabase
-          .from("profiles")
-          .update({ bonus_report_credits: bonusCredits - 1 })
-          .eq("id", user.id);
-      }
 
       processed++;
     } catch (e) {

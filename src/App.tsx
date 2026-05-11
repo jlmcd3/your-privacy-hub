@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
-import USStateAuthorities from "./pages/USStateAuthorities.tsx";
+
 import GlobalAuthorities from "./pages/GlobalAuthorities.tsx";
 
 import USPrivacyLaws from "./pages/USPrivacyLaws.tsx";
@@ -25,10 +25,49 @@ import USStateComparison from "./pages/USStateComparison.tsx";
 import Signup from "./pages/Signup.tsx";
 import Login from "./pages/Login.tsx";
 import Account from "./pages/Account.tsx";
+import ClientsPortfolio from "./pages/ClientsPortfolio.tsx";
+import RopaHome from "./pages/ropa/RopaHome.tsx";
+import RopaSetup from "./pages/ropa/RopaSetup.tsx";
+import RopaActivities from "./pages/ropa/RopaActivities.tsx";
+import RopaActivity from "./pages/ropa/RopaActivity.tsx";
+import RopaReview from "./pages/ropa/RopaReview.tsx";
+import RopaDocuments from "./pages/ropa/RopaDocuments.tsx";
+import RopaRefresh from "./pages/ropa/RopaRefresh.tsx";
+import RopaLanding from "./pages/ropa/RopaLanding.tsx";
+import USNoticeHome from "./pages/us-notices/USNoticeHome.tsx";
+import USNoticeMode from "./pages/us-notices/USNoticeMode.tsx";
+import USNoticeStates from "./pages/us-notices/USNoticeStates.tsx";
+import USNoticeQuestions from "./pages/us-notices/USNoticeQuestions.tsx";
+import USNoticeReview from "./pages/us-notices/USNoticeReview.tsx";
+import USNoticeDocuments from "./pages/us-notices/USNoticeDocuments.tsx";
+import USNoticeRefresh from "./pages/us-notices/USNoticeRefresh.tsx";
+import USNoticeLanding from "./pages/us-notices/USNoticeLanding.tsx";
+import EUNoticeHome from "./pages/eu-notices/EUNoticeHome.tsx";
+import EUNoticeMode from "./pages/eu-notices/EUNoticeMode.tsx";
+import EUNoticeFrameworks from "./pages/eu-notices/EUNoticeFrameworks.tsx";
+import EUNoticeQuestions from "./pages/eu-notices/EUNoticeQuestions.tsx";
+import EUNoticeReview from "./pages/eu-notices/EUNoticeReview.tsx";
+import EUNoticeDocuments from "./pages/eu-notices/EUNoticeDocuments.tsx";
+import EUNoticeRefresh from "./pages/eu-notices/EUNoticeRefresh.tsx";
+import EUNoticeLanding from "./pages/eu-notices/EUNoticeLanding.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import TestGovernanceAssessment from "./pages/admin/TestGovernanceAssessment";
+import TestLIA from "./pages/admin/TestLIA";
+import TestDPIA from "./pages/admin/TestDPIA";
+import TestDPA from "./pages/admin/TestDPA";
+import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
+import TestBiometric from "./pages/admin/TestBiometric";
+import TestCPPAScope from "./pages/admin/TestCPPAScope";
+import TestCPPARisk from "./pages/admin/TestCPPARisk";
+import TestCPPACyber from "./pages/admin/TestCPPACyber";
+import TestRoPA from "./pages/admin/TestRoPA";
+import TestUSNotice from "./pages/admin/TestUSNotice";
+import TestEUNotice from "./pages/admin/TestEUNotice";
+import TestRegistration from "./pages/admin/TestRegistration";
+import TestBrief from "./pages/admin/TestBrief";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -36,9 +75,10 @@ import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import DevOnly from "./components/DevOnly.tsx";
+import AdminOnly from "./components/AdminOnly.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
-import SampleBrief from "./pages/SampleBrief.tsx";
+
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
@@ -64,7 +104,9 @@ import AdminIngestionDashboard from "./pages/AdminIngestionDashboard.tsx";
 import AdminArticles from "./pages/AdminArticles.tsx";
 import AdminEmailSignups from "./pages/AdminEmailSignups.tsx";
 import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
+import AdminBriefGenStatus from "./pages/AdminBriefGenStatus.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
+import AdminLawUpdates from "./pages/AdminLawUpdates.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
 import LIAssessmentIntake from "./pages/LIAssessmentIntake.tsx";
 import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";
@@ -84,10 +126,17 @@ import RegistrationAssessmentResult from "./pages/RegistrationAssessmentResult.t
 import RegistrationOrder from "./pages/RegistrationOrder.tsx";
 import RegistrationDocuments from "./pages/RegistrationDocuments.tsx";
 import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
+import Watchlist from "./pages/Watchlist.tsx";
 import MyReports from "./pages/MyReports.tsx";
 import DPAResult from "./pages/DPAResult.tsx";
 import IRPlaybookResult from "./pages/IRPlaybookResult.tsx";
 import BiometricCheckerResult from "./pages/BiometricCheckerResult.tsx";
+import CPPAScopeChecker from "./pages/CPPAScopeChecker.tsx";
+import CPPARiskAssessment from "./pages/CPPARiskAssessment.tsx";
+import CPPARiskAssessmentResult from "./pages/CPPARiskAssessmentResult.tsx";
+import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
+import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
+import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +148,11 @@ function CategoryRedirect() {
 function TopicRedirect() {
   const { slug } = useParams<{ slug: string }>();
   return <Navigate to={`/updates?topic=${slug ?? ""}`} replace />;
+}
+
+function PaymentReturnRedirect({ to }: { to: string }) {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
 }
 
 const App = () => (
@@ -114,7 +168,7 @@ const App = () => (
           <BlankScreenDiagnostic />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/us-state-privacy-authorities" element={<USStateAuthorities />} />
+            <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
             <Route path="/enforcement" element={<Enforcement />} />
             <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
@@ -172,6 +226,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Account />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute>
+                  <ClientsPortfolio />
                 </ProtectedRoute>
               }
             />
@@ -262,9 +324,19 @@ const App = () => (
               path="/admin/gating-leaks"
               element={
                 <ProtectedRoute>
-                  <DevOnly fallback={<NotFound />}>
+                  <AdminOnly fallback={<NotFound />}>
                     <AdminGatingLeaks />
-                  </DevOnly>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/briefgen-status"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminBriefGenStatus />
+                  </AdminOnly>
                 </ProtectedRoute>
               }
             />
@@ -272,9 +344,159 @@ const App = () => (
               path="/admin/pricing"
               element={
                 <ProtectedRoute>
-                  <DevOnly fallback={<NotFound />}>
+                  <AdminOnly fallback={<NotFound />}>
                     <AdminPricingReconciliation />
-                  </DevOnly>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/law-updates"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminLawUpdates />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-governance"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestGovernanceAssessment />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-lia"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestLIA />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-dpia"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestDPIA />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-dpa"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestDPA />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-ir-playbook"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestIRPlaybook />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-biometric"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestBiometric />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-cppa-scope"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestCPPAScope />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-cppa-risk"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestCPPARisk />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-cppa-cyber"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestCPPACyber />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-ropa"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestRoPA />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-us-notice"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestUSNotice />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-eu-notice"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestEUNotice />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-registration"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestRegistration />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-brief"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestBrief />
+                  </AdminOnly>
                 </ProtectedRoute>
               }
             />
@@ -309,7 +531,73 @@ const App = () => (
             <Route path="/dpa-generator" element={<DPAGenerator />} />
             <Route path="/ir-playbook" element={<IRPlaybook />} />
             <Route path="/biometric-checker" element={<BiometricChecker />} />
+            {/* CPPA Audit Readiness Suite */}
+            <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
+            <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
+            <Route
+              path="/cppa-risk-assessment/result/:id"
+              element={
+                <ProtectedRoute>
+                  <CPPARiskAssessmentResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/cppa-cybersecurity" element={<CPPACybersecurity />} />
+            <Route
+              path="/cppa-cybersecurity/result/:id"
+              element={
+                <ProtectedRoute>
+                  <CPPACybersecurityResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cppa-suite/result"
+              element={
+                <ProtectedRoute>
+                  <CPPASuiteResult />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/horizon" element={<Horizon />} />
+            {/* RoPA Builder */}
+            <Route path="/ropa" element={<ProtectedRoute><RopaHome /></ProtectedRoute>} />
+            <Route path="/ropa/setup" element={<ProtectedRoute><RopaSetup /></ProtectedRoute>} />
+            <Route path="/ropa/activities" element={<ProtectedRoute><RopaActivities /></ProtectedRoute>} />
+            <Route path="/ropa/activity/:id" element={<ProtectedRoute><RopaActivity /></ProtectedRoute>} />
+            <Route path="/ropa/review/:sessionId" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
+            <Route path="/ropa/review" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
+            <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
+            <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
+            <Route path="/ropa-builder" element={<RopaLanding />} />
+            <Route path="/rofa" element={<Navigate to="/ropa-builder" replace />} />
+            <Route path="/ropa-builder/home" element={<Navigate to="/ropa-builder" replace />} />
+            <Route path="/article-30" element={<Navigate to="/ropa-builder" replace />} />
+            <Route path="/us-notices" element={<ProtectedRoute><USNoticeHome /></ProtectedRoute>} />
+            <Route path="/us-notices/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/states" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/questions" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/review" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/documents" element={<ProtectedRoute><USNoticeDocuments /></ProtectedRoute>} />
+            <Route path="/us-notices/:sessionId/refresh" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
+            {/* Legacy redirects (old order: step/sessionId) */}
+            <Route path="/us-notices/states/:sessionId" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
+            <Route path="/us-notices/questions/:sessionId" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
+            <Route path="/us-notices/review/:sessionId" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
+            <Route path="/us-notices/review" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
+            <Route path="/us-notices/refresh/:sessionId" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/us-notice-builder" element={<USNoticeLanding />} />
+            {/* EU & Global Notice Builder */}
+            <Route path="/eu-notices" element={<ProtectedRoute><EUNoticeHome /></ProtectedRoute>} />
+            <Route path="/eu-notices/mode" element={<ProtectedRoute><EUNoticeMode /></ProtectedRoute>} />
+            <Route path="/eu-notices/frameworks/:sessionId" element={<ProtectedRoute><EUNoticeFrameworks /></ProtectedRoute>} />
+            <Route path="/eu-notices/questions/:sessionId" element={<ProtectedRoute><EUNoticeQuestions /></ProtectedRoute>} />
+            <Route path="/eu-notices/review/:sessionId" element={<ProtectedRoute><EUNoticeReview /></ProtectedRoute>} />
+            <Route path="/eu-notices/review" element={<ProtectedRoute><EUNoticeReview /></ProtectedRoute>} />
+            <Route path="/eu-notices/documents" element={<ProtectedRoute><EUNoticeDocuments /></ProtectedRoute>} />
+            <Route path="/eu-notices/refresh/:sessionId" element={<ProtectedRoute><EUNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
@@ -337,6 +625,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/watchlist"
+              element={
+                <ProtectedRoute>
+                  <Watchlist />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/updates" element={<Updates />} />
             <Route path="/updates/:id" element={<UpdateDetail />} />
             <Route path="/faq" element={<FAQ />} />
@@ -346,7 +642,31 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/sample-brief" element={<SampleBrief />} />
+            <Route path="/sample-brief" element={<Navigate to="/#brief" replace />} />
+            <Route path="/ropa-initial/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/ropa/review" /></ProtectedRoute>
+            } />
+            <Route path="/ropa-refresh/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/ropa/review" /></ProtectedRoute>
+            } />
+            <Route path="/us-notice-single/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/us-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/us-notice-all-states/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/us-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-single/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-suite/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-full-international/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
+            <Route path="/eu-notice-refresh/result/:id" element={
+              <ProtectedRoute><PaymentReturnRedirect to="/eu-notices/review" /></ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

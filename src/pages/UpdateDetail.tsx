@@ -9,10 +9,11 @@ import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag } from "lucide-react";
 
 interface AISummary {
   why_it_matters?: string;
+  why_it_matters_short?: string;
   takeaways?: string[];
   compliance_impact?: string;
   who_should_care?: string;
@@ -54,25 +55,8 @@ interface RelatedUpdate {
   published_at: string;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  enforcement: "bg-red-50 text-red-700 border-red-200",
-  legislation: "bg-blue-50 text-blue-700 border-blue-200",
-  guidance: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  opinion: "bg-purple-50 text-purple-700 border-purple-200",
-  "ai-regulation": "bg-indigo-50 text-indigo-700 border-indigo-200",
-  "data-breach": "bg-orange-50 text-orange-700 border-orange-200",
-  global: "bg-slate-50 text-slate-700 border-slate-200",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  enforcement: "Enforcement",
-  legislation: "Legislation",
-  guidance: "Guidance",
-  opinion: "Opinion",
-  "ai-regulation": "AI Regulation",
-  "data-breach": "Data Breach",
-  global: "Global",
-};
+import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/config/categories";
+import { fmtDate as formatDate } from "@/lib/dates";
 
 const ANALYSIS_FIELDS: { key: keyof AISummary; label: string }[] = [
   { key: "compliance_impact", label: "Compliance Impact" },
@@ -81,14 +65,6 @@ const ANALYSIS_FIELDS: { key: keyof AISummary; label: string }[] = [
   { key: "legal_weight", label: "Legal Weight" },
   { key: "risk_level", label: "Risk Level" },
 ];
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 /**
  * Strip HTML tags and collapse whitespace from raw summary content.
@@ -139,14 +115,13 @@ const UpdateDetail = () => {
     }
   };
 
-
   // Fetch article
   useEffect(() => {
     if (!id) return;
     (supabase as any)
       .from("updates")
       .select(
-        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items"
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items",
       )
       .eq("id", id)
       .eq("is_hidden", false)
@@ -160,7 +135,6 @@ const UpdateDetail = () => {
         setLoading(false);
       });
   }, [id]);
-
 
   // Fetch related articles
   useEffect(() => {
@@ -182,17 +156,17 @@ const UpdateDetail = () => {
   const catColor = CATEGORY_COLORS[article?.category || "global"] || CATEGORY_COLORS.global;
   const catLabel = CATEGORY_LABELS[article?.category || "global"] || article?.category || "Global";
   const cleanedSummary = cleanSummary(article?.summary);
-  const metaDesc = ai?.why_it_matters?.slice(0, 160) || cleanedSummary.slice(0, 160) || "";
+  const metaDesc = ai?.why_it_matters?.slice(0, 160) || "";
 
   // Briefed tier — present when ungated AI enrichment exists
   const hasBriefed = Boolean(
     ai?.why_it_matters ||
-      (ai?.takeaways && ai.takeaways.length > 0) ||
-      ai?.compliance_impact ||
-      ai?.who_should_care ||
-      ai?.urgency ||
-      ai?.legal_weight ||
-      ai?.risk_level
+    (ai?.takeaways && ai.takeaways.length > 0) ||
+    ai?.compliance_impact ||
+    ai?.who_should_care ||
+    ai?.urgency ||
+    ai?.legal_weight ||
+    ai?.risk_level,
   );
 
   // Analyzed tier — Pro-only deep analysis
@@ -202,9 +176,9 @@ const UpdateDetail = () => {
     ? Boolean(article?.attention_level || (article?.affected_sectors && article.affected_sectors.length > 0))
     : Boolean(
         article?.regulatory_theory ||
-          article?.related_development ||
-          article?.attention_level ||
-          (article?.affected_sectors && article.affected_sectors.length > 0)
+        article?.related_development ||
+        article?.attention_level ||
+        (article?.affected_sectors && article.affected_sectors.length > 0),
       );
 
   // Track when a free registered user is shown the blurred Analyzed section.
@@ -263,7 +237,10 @@ const UpdateDetail = () => {
           <>
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground mb-4">
-              <Link to="/updates" className="no-underline hover:text-foreground transition-colors text-muted-foreground">
+              <Link
+                to="/updates"
+                className="no-underline hover:text-foreground transition-colors text-muted-foreground"
+              >
                 News
               </Link>
               <span>→</span>
@@ -280,14 +257,14 @@ const UpdateDetail = () => {
             </nav>
 
             {/* Category badge */}
-            <span className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}>
+            <span
+              className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}
+            >
               {catLabel}
             </span>
 
             {/* Title */}
-            <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">
-              {article.title}
-            </h1>
+            <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground mb-6">
@@ -303,26 +280,6 @@ const UpdateDetail = () => {
             </div>
 
             {/* ============================================================
-                SECTION 1 — FEED (raw source summary, free for all)
-                ============================================================ */}
-            <section aria-labelledby="section-feed" className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Feed</span>
-                <span className="text-[10px] text-muted-foreground/60">Source summary</span>
-              </div>
-              <hr className="border-border mb-4" />
-              {cleanedSummary ? (
-                <p className="text-[15px] text-muted-foreground leading-relaxed">
-                  {cleanedSummary}
-                </p>
-              ) : (
-                <p className="text-[14px] italic text-muted-foreground">
-                  Visit the original source to read the full article.
-                </p>
-              )}
-            </section>
-
-            {/* ============================================================
                 SECTION 2 — BRIEFED (tiered)
                   • Anon         → why_it_matters teaser only + sign-in CTA
                   • Free signed  → why_it_matters + key takeaways + Pro CTA
@@ -336,39 +293,72 @@ const UpdateDetail = () => {
                 </div>
                 <hr className="border-border mb-4" />
 
-                {/* why_it_matters — visible to everyone (incl. anon) */}
-                {ai?.why_it_matters && (
-                  <div className="border-l-4 border-primary bg-primary/5 px-4 py-3 mb-5 rounded-r">
-                    <div className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                {/* Anonymous: short why + first sentence teaser + hard register gate */}
+                {!user && (
+                  <>
+                    {(ai as any)?.why_it_matters_short && (
+                      <div
+                        className="border-l-4 px-4 py-3 mb-3 rounded-r"
+                        style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                      >
+                        <div
+                          className="text-[10px] uppercase tracking-wide font-semibold mb-1"
+                          style={{ color: '#4A6FA5' }}
+                        >
+                          Why it matters
+                        </div>
+                        <p className="text-[14px] leading-relaxed text-navy">
+                          {(ai as any).why_it_matters_short}
+                        </p>
+                      </div>
+                    )}
+                    {ai?.why_it_matters && (
+                      <p className="text-[14px] text-muted-foreground leading-relaxed mt-3">
+                        {ai.why_it_matters.split('. ')[0]}…
+                      </p>
+                    )}
+                    <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center">
+                      <p className="text-[15px] font-semibold text-foreground mb-1">
+                        Create a free account to read the full analysis
+                      </p>
+                      <p className="text-[13px] text-muted-foreground mb-4 leading-relaxed">
+                        Key takeaways, regulatory theory, compliance impact, and action intelligence — on every update.
+                      </p>
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        <Link
+                          to="/signup"
+                          className="text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline"
+                        >
+                          Register free →
+                        </Link>
+                        <Link
+                          to="/subscribe"
+                          className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-lg hover:bg-muted transition-colors no-underline"
+                        >
+                          See plans →
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Pro: full why_it_matters */}
+                {user && isPremium && ai?.why_it_matters && (
+                  <div
+                    className="border-l-4 px-4 py-3 mb-5 rounded-r"
+                    style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                  >
+                    <div
+                      className="text-[10px] uppercase tracking-wide font-semibold mb-1"
+                      style={{ color: '#4A6FA5' }}
+                    >
                       Why it matters
                     </div>
-                    <p className="text-[14px] leading-relaxed text-foreground">
-                      {ai.why_it_matters}
-                    </p>
+                    <p className="text-[14px] leading-relaxed text-navy">{ai.why_it_matters}</p>
                   </div>
                 )}
 
-                {/* Anon: show first takeaway + register-free link for the rest */}
-                {!user && ai?.takeaways && ai.takeaways.length > 0 && (
-                  <div className="mb-5">
-                    <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
-                    <ul className="list-disc pl-5 space-y-1.5">
-                      <li className="text-[14px] text-muted-foreground leading-relaxed">
-                        {ai.takeaways[0]}
-                      </li>
-                    </ul>
-                    {ai.takeaways.length > 1 && (
-                      <Link
-                        to="/signup"
-                        className="inline-block mt-3 text-[13px] font-semibold text-primary no-underline hover:underline"
-                      >
-                        + {ai.takeaways.length - 1} more {ai.takeaways.length - 1 === 1 ? "takeaway" : "takeaways"} — register free →
-                      </Link>
-                    )}
-                  </div>
-                )}
-
-                {/* Key takeaways — signed-in users (free + pro) get all */}
+                {/* Key takeaways — all signed-in users */}
                 {user && ai?.takeaways && ai.takeaways.length > 0 && (
                   <div className="mb-5">
                     <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
@@ -382,18 +372,22 @@ const UpdateDetail = () => {
                   </div>
                 )}
 
-                {/* Regulatory theory & related development — unlocked for all signed-in users */}
-                {user && (article.regulatory_theory || article.related_development) && (
+                {/* Regulatory theory & related development — Pro only */}
+                {user && isPremium && (article.regulatory_theory || article.related_development) && (
                   <div className="space-y-3 mb-5">
                     {article.regulatory_theory && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Regulatory theory
+                        </div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
                       </div>
                     )}
                     {article.related_development && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Related development
+                        </div>
                         <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
                       </div>
                     )}
@@ -410,10 +404,26 @@ const UpdateDetail = () => {
                       action_items={article.action_items ?? null}
                       risk_level={ai?.risk_level ?? null}
                       isPremium={isPremium}
-                      userSalutation={userProfile.action_brief_salutation}
                       articleId={article.id}
-                      articleCategory={article.category ?? null}
                     />
+                  </div>
+                )}
+
+                {/* Upgrade CTA — free signed-in only */}
+                {user && !isPremium && (
+                  <div className="mt-4 rounded-xl border border-blue/20 bg-white px-4 py-4 text-center">
+                    <p className="text-[14px] font-semibold text-navy mb-1">
+                      Upgrade to Platform for full action intelligence
+                    </p>
+                    <p className="text-[12px] text-slate mb-3 leading-relaxed">
+                      Compliance impact, action items by role, regulatory theory, and deep analysis on every update.
+                    </p>
+                    <Link
+                      to="/subscribe"
+                      className="inline-block text-[13px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                    >
+                      Upgrade to Platform →
+                    </Link>
                   </div>
                 )}
               </section>
@@ -422,36 +432,26 @@ const UpdateDetail = () => {
             {/* ============================================================
                 SECTION 3 — ANALYZED (Pro-only deep analysis)
                 ============================================================ */}
-            <section aria-labelledby="section-analyzed" className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Analyzed</span>
-                <span className="text-[9px] bg-purple-700 text-white px-1.5 py-0.5 rounded font-semibold">PRO</span>
-                <span className="text-[10px] text-muted-foreground/60">Deep regulatory analysis</span>
-              </div>
-              <hr className="border-border mb-4" />
+            {isPremium && (
+              <section aria-labelledby="section-analyzed" className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Analyzed</span>
+                  <span className="text-[9px] bg-purple-700 text-white px-1.5 py-0.5 rounded font-semibold">PRO</span>
+                  <span className="text-[10px] text-muted-foreground/60">Deep regulatory analysis</span>
+                </div>
+                <hr className="border-border mb-4" />
 
-              {!hasAnalyzed ? (
-                <p className="text-[14px] italic text-muted-foreground">
-                  No deep analysis available for this article yet.
-                </p>
-              ) : (
-                <div className="relative">
-                  <div className={isPremium ? "space-y-3" : "opacity-10 pointer-events-none select-none space-y-3"}>
-                    {article.regulatory_theory && !user && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory theory</div>
-                        <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
-                      </div>
-                    )}
-                    {article.related_development && !user && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Related development</div>
-                        <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
-                      </div>
-                    )}
+                {!hasAnalyzed ? (
+                  <p className="text-[14px] italic text-muted-foreground">
+                    No deep analysis available for this article yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
                     {article.attention_level && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">Attention level</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                          Attention level
+                        </div>
                         <span className="inline-block text-[12px] px-2 py-0.5 rounded bg-muted text-foreground capitalize">
                           {article.attention_level}
                         </span>
@@ -459,10 +459,15 @@ const UpdateDetail = () => {
                     )}
                     {article.affected_sectors && article.affected_sectors.length > 0 && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Affected sectors</div>
+                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">
+                          Affected sectors
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
                           {article.affected_sectors.map((s) => (
-                            <span key={s} className="text-[12px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            <span
+                              key={s}
+                              className="text-[12px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                            >
                               {s}
                             </span>
                           ))}
@@ -470,30 +475,9 @@ const UpdateDetail = () => {
                       </div>
                     )}
                   </div>
-
-                  {!isPremium && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                      <div className="bg-background border border-border rounded-xl shadow-md p-5 max-w-[320px]">
-                        <Lock size={20} className="mx-auto mb-2 text-purple-700" />
-                        <h3 className="text-[15px] font-semibold text-foreground mb-1">
-                          Full analysis — Pro feature
-                        </h3>
-                        <p className="text-[12px] text-muted-foreground mb-3 leading-relaxed">
-                          Regulatory theory, cross-jurisdiction signals, and action intelligence on every update.
-                        </p>
-                        <Link
-                          to="/subscribe"
-                          onClick={() => { void trackEvent("analyzed_blur_click"); }}
-                          className="inline-block text-[12px] font-semibold bg-purple-700 text-white px-3 py-1.5 rounded no-underline hover:bg-purple-800 transition-colors"
-                        >
-                          See Pro plan
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
+                )}
+              </section>
+            )}
 
             {/* Topic tags */}
             {article.topic_tags && article.topic_tags.length > 0 && (
@@ -533,9 +517,7 @@ const UpdateDetail = () => {
                       to={`/updates/${r.id}`}
                       className="block no-underline hover:bg-muted rounded-lg p-3 -mx-3 transition-colors"
                     >
-                      <p className="text-[14px] text-foreground font-medium leading-snug">
-                        {r.title}
-                      </p>
+                      <p className="text-[14px] text-foreground font-medium leading-snug">{r.title}</p>
                       <p className="text-[12px] text-muted-foreground mt-0.5">
                         {r.source_name && <span>{r.source_name} · </span>}
                         {formatDate(r.published_at)}

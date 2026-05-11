@@ -1,0 +1,1 @@
+UPDATE public.updates SET is_hidden = true WHERE id IN ('a32c68f7-9ed9-4f0e-8b2d-4bf651d08abb','cc555d8f-c487-452d-a644-0aaea045e505');

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -140,6 +142,23 @@ const GovernanceAssessment = () => {
 
   const handlePurchase = async () => {
     if (!user) { setAuthGateOpen(true); return; }
+
+    // For $0 (included with Platform), bypass Stripe entirely
+    if (pricing.price === 0) {
+      setPurchasing(true);
+      const { data, error } = await supabase.functions.invoke(
+        "run-governance-assessment",
+        { body: { intake_data: buildIntake(), user_id: user.id } }
+      );
+      setPurchasing(false);
+      if (error || !data?.id) {
+        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      navigate(`/governance-assessment/result/${data.id}?purchased=true`);
+      return;
+    }
+
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
       return;
@@ -165,15 +184,20 @@ const GovernanceAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Compliance Framework Tool · ${pricing.price}
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence subscribers pay ${pricing.subscriberPrice} →</a></>}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Included with Annual Platform · $49 standalone →</a></>}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
-          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks. Formerly the Data Privacy Healthcheck.</p>
+          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
           <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
         </div>
       </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote />
+        </div>
+
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.
         </div>
@@ -317,12 +341,16 @@ const GovernanceAssessment = () => {
             {!summaryStep ? (
               <Button onClick={next}>Next</Button>
             ) : (
-              <Button onClick={handlePurchase} disabled={purchasing || !pricing.stripeConfigured}>
-                {!pricing.stripeConfigured
-                  ? `Payments Coming Soon — $${pricing.price}`
-                  : purchasing
-                    ? "Redirecting…"
-                    : `Purchase Full Healthcheck — $${pricing.price}`}
+              <Button onClick={handlePurchase} disabled={purchasing || (pricing.price > 0 && !pricing.stripeConfigured)}>
+                {pricing.price === 0
+                  ? purchasing
+                    ? "Generating…"
+                    : "Generate Assessment — Free"
+                  : !pricing.stripeConfigured
+                    ? `Payments Coming Soon — $${pricing.price}`
+                    : purchasing
+                      ? "Redirecting…"
+                      : `Purchase Full Healthcheck — $${pricing.price}`}
               </Button>
             )}
           </div>

@@ -83,10 +83,11 @@ function formatEur(n: number | null) {
 
 function Stars({ n }: { n: number | null }) {
   if (!n) return <span className="text-muted-foreground text-xs">—</span>;
+  const filled = Math.max(0, Math.min(5, n));
   return (
-    <span className="text-amber-500 text-xs tracking-tight">
-      {"★".repeat(n)}
-      <span className="text-muted-foreground/40">{"★".repeat(5 - n)}</span>
+    <span className="text-xs tracking-tight" aria-label={`${filled} of 5 stars`}>
+      <span className="text-amber-500">{"★".repeat(filled)}</span>
+      <span className="text-muted-foreground/30">{"☆".repeat(5 - filled)}</span>
     </span>
   );
 }

@@ -54,8 +54,96 @@ const GlossaryTerm = () => {
         <div className="bg-card border border-border rounded-xl p-6 mb-8">
           <h2 className="text-sm font-semibold text-foreground mb-3">Definition</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">{term.definition}</p>
-          <p className="text-xs text-muted-foreground mt-4 italic">Source: {term.source}</p>
+          <p className="text-xs text-muted-foreground mt-4 italic">
+            Source:{" "}
+            {(() => {
+              const t = term as typeof term & {
+                sourceUrl?: string;
+                sources?: Array<{ label: string; url: string | null }>;
+              };
+              const linkClass = "text-primary no-underline hover:underline";
+              if (Array.isArray(t.sources) && t.sources.length > 0) {
+                return t.sources.map((item, i) => (
+                  <span key={i}>
+                    {i > 0 && " · "}
+                    {item.url ? (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                        {item.label}
+                      </a>
+                    ) : (
+                      item.label
+                    )}
+                  </span>
+                ));
+              }
+              if (typeof t.sourceUrl === "string" && t.sourceUrl) {
+                return (
+                  <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                    {term.source}
+                  </a>
+                );
+              }
+              return term.source;
+            })()}
+          </p>
+          {(() => {
+            const t = term as typeof term & {
+              additionalLinks?: Array<{ label: string; url: string }>;
+            };
+            if (!Array.isArray(t.additionalLinks) || t.additionalLinks.length === 0) return null;
+            return (
+              <div className="mt-2 space-y-1">
+                {t.additionalLinks.map((link, i) => (
+                  <p key={i} className="text-xs text-muted-foreground italic">
+                    {link.label}:{" "}
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary no-underline hover:underline"
+                    >
+                      {link.url}
+                    </a>
+                  </p>
+                ))}
+              </div>
+            );
+          })()}
         </div>
+
+        {(() => {
+          const t = term as typeof term & {
+            definitionsByRegime?: Array<{ regime: string; citation: string; text: string; url?: string }>;
+          };
+          if (!Array.isArray(t.definitionsByRegime) || t.definitionsByRegime.length === 0) return null;
+          return (
+            <div className="bg-card border border-border rounded-xl p-6 mb-8">
+              <h2 className="text-sm font-semibold text-foreground mb-1">Definitions across regimes</h2>
+              <p className="text-xs text-muted-foreground mb-4">How this term is defined in each major privacy regime. Definitions vary — read the source text before relying on any one summary.</p>
+              <div className="space-y-4">
+                {t.definitionsByRegime.map((d, i) => (
+                  <div key={i} className="border-l-2 border-primary/30 pl-4">
+                    <div className="flex items-baseline justify-between gap-2 flex-wrap mb-1">
+                      <p className="text-sm font-semibold text-foreground">{d.regime}</p>
+                      <span className="font-mono-code text-[11px] text-muted-foreground">{d.citation}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{d.text}</p>
+                    {d.url && (
+                      <a
+                        href={d.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80 mt-2 inline-block"
+                      >
+                        View source ↗
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
 

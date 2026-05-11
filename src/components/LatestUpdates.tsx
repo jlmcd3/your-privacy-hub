@@ -19,6 +19,7 @@ interface Update {
   published_at: string;
   is_premium: boolean;
   ai_summary?: any;
+  why_it_matters_short?: string | null;
   topic_tags?: string[];
   attention_level?: string;
   affected_sectors?: string[];
@@ -160,7 +161,7 @@ const LatestUpdates = () => {
       try {
         const { data, error } = await (supabase as any)
           .from("updates")
-          .select("id,title,summary,url,source_name,source_domain,image_url,published_at,category,regulator,is_premium,ai_summary,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
+          .select("id,title,summary,url,source_name,source_domain,image_url,published_at,category,regulator,is_premium,ai_summary,why_it_matters_short,topic_tags,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version")
           .eq("is_hidden", false)
           .order("published_at", { ascending: false })
           .limit(20);
@@ -198,14 +199,14 @@ const LatestUpdates = () => {
   );
 
   return (
-    <section className="pt-5 pb-10 md:pt-8 md:pb-16 bg-paper py-0">
+    <section className="pt-0 pb-10 md:pb-16 bg-paper">
       <div className="mx-auto">
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
             <div>
               <h2 className="text-white tracking-tight text-2xl font-sans font-semibold">
-                Latest Privacy Updates
+                Privacy Intelligence Feed
               </h2>
               <p className="text-[12px] text-slate-light">
                 Updated daily and analyzed for key takeaways.{" "}

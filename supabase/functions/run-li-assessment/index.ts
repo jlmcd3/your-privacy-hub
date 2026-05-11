@@ -30,7 +30,7 @@ async function callAnthropic(
       system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     }),
-    signal: AbortSignal.timeout(45000),
+    signal: AbortSignal.timeout(120000),
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
   const data = await res.json();
@@ -42,8 +42,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let assessment_id: string | undefined;
   try {
-    const { assessment_id } = await req.json();
+    ({ assessment_id } = await req.json());
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -66,36 +67,15 @@ Deno.serve(async (req) => {
     // ── STAGE 1: Classify use case ──
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
 
-    const classifyText = await callAnthropic(
-      "claude-haiku-4-5-20251001",
-      classifySystem,
-      `Classify this processing activity for legitimate interest analysis:
-Description: ${assessment.processing_description}
-Data categories: ${(assessment.data_categories || []).join(", ")}
-Relationship type: ${assessment.relationship_type || "not specified"}
-Sector: ${assessment.sector || "not specified"}
-
-Return JSON:
-{
-  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",
-  "primary_data_categories": ["list of data categories involved"],
-  "special_category_data": true or false,
-  "relationship_exists": true or false,
-  "jurisdictions_scope": ["list of relevant jurisdictions"]
-}`,
-      500
-    );
-
-    let classification: any = {};
-    try {
-      const m = classifyText.match(/\{[\s\S]*\}/);
-      if (m) classification = JSON.parse(m[0]);
-    } catch { classification = { use_case_category: "other" }; }
-
-    // Fetch enforcement precedents (3-5) from get-enforcement-context
-    let enforcementPrecedents: any[] = [];
-    try {
-      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
+    // Run classification and enforcement context fetch in parallel
+    const [classifyText, enforcementCtxResult] = await Promise.all([
+      callAnthropic(
+        "claude-haiku-4-5-20251001",
+        classifySystem,
+        `Classify this processing activity for legitimate interest analysis:\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
+        500
+      ),
+      supabase.functions.invoke("get-enforcement-context", {
         body: {
           tool: "LIA",
           data_categories: assessment.data_categories || [],
@@ -103,11 +83,19 @@ Return JSON:
           sector: assessment.sector || undefined,
           limit: 5,
         },
-      });
-      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
-    } catch (e) {
-      console.error("get-enforcement-context failed (non-fatal):", e);
-    }
+      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; })
+    ]);
+
+    let classification: any = {};
+    try {
+      const m = classifyText.match(/\{[\s\S]*\}/);
+      if (m) classification = JSON.parse(m[0]);
+    } catch { classification = { use_case_category: "other" }; }
+
+    let enforcementPrecedents: any[] = [];
+    try {
+      enforcementPrecedents = ((enforcementCtxResult as any)?.data?.results || []).slice(0, 5);
+    } catch { /* non-fatal */ }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) =>
@@ -224,14 +212,24 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
   }
 }`,
-      3500
+      4500
     );
 
     let analysis: any = {};
     try {
       const m = analysisText.match(/\{[\s\S]*\}/);
-      if (m) analysis = JSON.parse(m[0]);
-    } catch { analysis = { overall_assessment: { argument_strength: "uncertain" } }; }
+      if (m) {
+        analysis = JSON.parse(m[0]);
+      } else {
+        console.error("[LIA] No JSON object found in analysis response. Response length:", analysisText.length);
+        console.error("[LIA] Response preview:", analysisText.slice(0, 500));
+      }
+    } catch (parseErr) {
+      console.error("[LIA] JSON parse error:", parseErr);
+      console.error("[LIA] Raw response length:", analysisText.length);
+      console.error("[LIA] Raw response tail:", analysisText.slice(-200));
+      analysis = { overall_assessment: { argument_strength: "uncertain" } };
+    }
 
     // ── STAGE 3: Documentation recommendations ──
     const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.`;
@@ -248,6 +246,8 @@ Key risk factors: ${JSON.stringify(analysis.balancing_test?.risk_factors || [])}
 
 PRECEDENT DATABASE:
 ${precedentContext}
+
+IMPORTANT: You must return at least 2–4 items in recommended_documentation regardless of argument strength. Even a weak or insufficient LIA requires documentation to be defensible or to support a re-assessment. Every LIA requires at minimum: (1) a balancing record document, and (2) a legitimate interests notice or transparency document.
 
 Return JSON:
 {
@@ -272,7 +272,7 @@ Return JSON:
   ],
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`,
-      2000
+      3000
     );
 
     let docRecs: any = {};
@@ -326,6 +326,10 @@ Return JSON:
 
   } catch (e) {
     console.error("run-li-assessment error:", e);
+    if (assessment_id) {
+      await supabase.from("li_assessments")
+        .update({ status: "failed" }).eq("id", assessment_id);
+    }
     return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

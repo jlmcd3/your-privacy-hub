@@ -99,10 +99,10 @@ export const PRICING_REGISTRY = {
     productKey: "intelligence",
     productName: "Intelligence — Monthly",
     description:
-      "Weekly Intelligence Brief, full enforcement archive, watchlists, and subscriber rates on every assessment tool.",
-    amountCents: 3900,
+      "Monthly Intelligence subscription. Weekly Intelligence Brief, full enforcement archive, and watchlists. Compliance tools sold separately at standalone rates.",
+    amountCents: 2900,
     currency: "usd",
-    displayPrice: "$39",
+    displayPrice: "$29",
     displaySuffix: "/month",
     recurringInterval: "month",
     active: true,
@@ -111,12 +111,361 @@ export const PRICING_REGISTRY = {
     kind: "subscription",
     lookupKey: "intelligence_yearly",
     productKey: "intelligence",
-    productName: "Intelligence — Yearly",
+    productName: "Platform — Annual",
     description:
-      "Annual Intelligence subscription. Same as monthly, billed once per year (~17% savings).",
-    amountCents: 39000,
+      "Annual Platform subscription. All compliance tools included. $33.25/mo equivalent.",
+    amountCents: 39900,
     currency: "usd",
-    displayPrice: "$390",
+    displayPrice: "$399",
+    displaySuffix: "/year",
+    recurringInterval: "year",
+    active: true,
+  },
+  intelligence_yearly_founding: {
+    kind: "subscription",
+    lookupKey: "intelligence_yearly_founding",
+    productKey: "intelligence",
+    productName: "Platform — Annual (Founding Rate)",
+    description:
+      "Founding subscriber annual platform subscription. All compliance tools included free. First 500 subscribers only. $369/yr — $30.75/mo equivalent.",
+    amountCents: 36900,
+    currency: "usd",
+    displayPrice: "$369",
+    displaySuffix: "/year",
+    recurringInterval: "year",
+    active: false,
+  },
+  per_client_addon: {
+    kind: "addon",
+    lookupKey: "per_client_addon",
+    productKey: "intelligence",
+    productName: "Per-Client Add-On",
+    description:
+      "Additional client workspace for annual Platform subscribers. $199/yr per additional client. Annual Platform subscription required.",
+    amountCents: 19900,
+    currency: "usd",
+    displayPrice: "$199",
+    displaySuffix: "/year per client",
+    parentLookupKey: "intelligence_yearly",
+    addonReason: "multi_client",
+    active: true,
+  },
+
+  // ── US Privacy Notice — per-state ──────────────────────────────────────
+  us_notice_single_standalone: {
+    kind: "one_time",
+    lookupKey: "us_notice_single_standalone",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — Single State (Standalone)",
+    description:
+      "One state-specific US privacy notice (CCPA/CPRA, Virginia model, MODPA, or FDBR). Standalone price.",
+    amountCents: 2500,
+    currency: "usd",
+    displayPrice: "$25",
+    displaySuffix: " per state",
+    active: true,
+  },
+  us_notice_single_subscriber: {
+    kind: "addon",
+    lookupKey: "us_notice_single_subscriber",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — Single State (Intelligence subscriber)",
+    description:
+      "Subscriber rate for one state-specific US privacy notice. Requires active Intelligence subscription.",
+    amountCents: 1200,
+    currency: "usd",
+    displayPrice: "$12",
+    displaySuffix: " per state",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  us_notice_all_standalone: {
+    kind: "one_time",
+    lookupKey: "us_notice_all_standalone",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — All States Suite (Standalone)",
+    description:
+      "Complete suite covering every US state with active privacy law. Standalone price.",
+    amountCents: 5900,
+    currency: "usd",
+    displayPrice: "$59",
+    displaySuffix: " flat",
+    active: true,
+  },
+  us_notice_all_subscriber: {
+    kind: "addon",
+    lookupKey: "us_notice_all_subscriber",
+    productKey: "us_notice",
+    productName: "US Privacy Notice — All States Suite (Intelligence subscriber)",
+    description:
+      "Subscriber rate for the all-states suite. Requires active Intelligence subscription.",
+    amountCents: 2900,
+    currency: "usd",
+    displayPrice: "$29",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+
+  // ── EU & Global Privacy Notice ─────────────────────────────────────────
+  eu_notice_single_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_single_standalone",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Single Framework (Standalone)",
+    description:
+      "One framework-specific privacy notice (GDPR, UK GDPR, FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA, AU Privacy, PIPA, PDPA, or PDPL).",
+    amountCents: 4500,
+    currency: "usd",
+    displayPrice: "$45",
+    displaySuffix: " per framework",
+    active: true,
+  },
+  eu_notice_single_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_single_subscriber",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Single Framework (Intelligence subscriber)",
+    description:
+      "Subscriber rate for one framework-specific privacy notice. Requires active Intelligence subscription.",
+    amountCents: 1900,
+    currency: "usd",
+    displayPrice: "$19",
+    displaySuffix: " per framework",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  eu_notice_suite_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_suite_standalone",
+    productKey: "eu_notice",
+    productName: "EU Notice Suite — GDPR + UK GDPR + Swiss FADP (Standalone)",
+    description:
+      "EU GDPR, UK GDPR, and Swiss FADP — three notices covering most EU-facing businesses.",
+    amountCents: 11900,
+    currency: "usd",
+    displayPrice: "$119",
+    displaySuffix: " flat",
+    active: true,
+  },
+  eu_notice_suite_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_suite_subscriber",
+    productKey: "eu_notice",
+    productName: "EU Notice Suite (Intelligence subscriber)",
+    description:
+      "Subscriber rate for the EU + UK + Swiss notice suite. Requires active Intelligence subscription.",
+    amountCents: 6500,
+    currency: "usd",
+    displayPrice: "$65",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  eu_notice_full_international_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_full_international_standalone",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Full International (Standalone)",
+    description:
+      "All 12 supported global frameworks. One session, 12 notices, plus a combined international notice.",
+    amountCents: 22900,
+    currency: "usd",
+    displayPrice: "$229",
+    displaySuffix: " flat",
+    active: true,
+  },
+  eu_notice_full_international_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_full_international_subscriber",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Full International (Intelligence subscriber)",
+    description:
+      "Subscriber rate for the full international suite. Requires active Intelligence subscription.",
+    amountCents: 9900,
+    currency: "usd",
+    displayPrice: "$99",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+  eu_notice_refresh_standalone: {
+    kind: "one_time",
+    lookupKey: "eu_notice_refresh_standalone",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Annual Refresh (Standalone)",
+    description: "Annual refresh of an existing EU/global notice set.",
+    amountCents: 3500,
+    currency: "usd",
+    displayPrice: "$35",
+    displaySuffix: " flat",
+    active: true,
+  },
+  eu_notice_refresh_subscriber: {
+    kind: "addon",
+    lookupKey: "eu_notice_refresh_subscriber",
+    productKey: "eu_notice",
+    productName: "EU & Global Notice — Annual Refresh (Intelligence subscriber)",
+    description:
+      "Subscriber rate for an annual EU/global notice refresh. Requires active Intelligence subscription.",
+    amountCents: 1900,
+    currency: "usd",
+    displayPrice: "$19",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_monthly",
+    addonReason: "subscriber_discount",
+    active: true,
+  },
+
+  // ── Standalone tools (subscriber rate = included free with Annual Platform) ──
+  ir_playbook_standalone: {
+    kind: "one_time",
+    lookupKey: "ir_playbook_standalone",
+    productKey: "ir_playbook",
+    productName: "Breach Response Playbook (Standalone)",
+    description:
+      "AI-generated incident response playbook tailored to your organisation. Standalone price; included with Annual Platform.",
+    amountCents: 5900,
+    currency: "usd",
+    displayPrice: "$59",
+    displaySuffix: " flat",
+    active: true,
+  },
+  biometric_checker_standalone: {
+    kind: "one_time",
+    lookupKey: "biometric_checker_standalone",
+    productKey: "biometric_checker",
+    productName: "Biometric Privacy Compliance Assessment (Standalone)",
+    description:
+      "Per-jurisdiction biometric data processing compliance assessment. Standalone price; included with Annual Platform.",
+    amountCents: 4900,
+    currency: "usd",
+    displayPrice: "$49",
+    displaySuffix: " flat",
+    active: true,
+  },
+  governance_assessment_standalone: {
+    kind: "one_time",
+    lookupKey: "governance_assessment_standalone",
+    productKey: "governance_assessment",
+    productName: "Privacy Programme Assessment (Standalone)",
+    description: "Full 10-domain privacy programme assessment, enforcement-calibrated.",
+    amountCents: 4900,
+    currency: "usd",
+    displayPrice: "$49",
+    displaySuffix: " flat",
+    active: true,
+  },
+  li_assessment_standalone: {
+    kind: "one_time",
+    lookupKey: "li_assessment_standalone",
+    productKey: "li_assessment",
+    productName: "Legitimate Interest Assessment (Standalone)",
+    description: "Full three-part LIA with enforcement calibration.",
+    amountCents: 6900,
+    currency: "usd",
+    displayPrice: "$69",
+    displaySuffix: " flat",
+    active: true,
+  },
+  dpia_framework_standalone: {
+    kind: "one_time",
+    lookupKey: "dpia_framework_standalone",
+    productKey: "dpia_framework",
+    productName: "Impact Assessment Builder (Standalone)",
+    description: "DPIA framework document for Article 35 processing.",
+    amountCents: 9900,
+    currency: "usd",
+    displayPrice: "$99",
+    displaySuffix: " flat",
+    active: true,
+  },
+  dpa_generator_standalone: {
+    kind: "one_time",
+    lookupKey: "dpa_generator_standalone",
+    productKey: "dpa_generator",
+    productName: "Custom DPA Generator (Standalone)",
+    description: "GDPR Article 28 DPA template, enforcement-calibrated.",
+    amountCents: 4900,
+    currency: "usd",
+    displayPrice: "$49",
+    displaySuffix: " flat",
+    active: true,
+  },
+  rofa_initial_standalone: {
+    kind: "one_time",
+    lookupKey: "rofa_initial_standalone",
+    productKey: "rofa",
+    productName: "RoFA Article 30 Record — Initial Generation (Standalone)",
+    description: "Populated Article 30 Record of Processing Activities.",
+    amountCents: 7900,
+    currency: "usd",
+    displayPrice: "$79",
+    displaySuffix: " flat",
+    active: true,
+  },
+  rofa_refresh_standalone: {
+    kind: "one_time",
+    lookupKey: "rofa_refresh_standalone",
+    productKey: "rofa",
+    productName: "RoFA Article 30 Record — Annual Refresh (Standalone)",
+    description: "Annual refresh of an existing Article 30 record.",
+    amountCents: 3500,
+    currency: "usd",
+    displayPrice: "$35",
+    displaySuffix: " flat",
+    active: true,
+  },
+  cppa_risk_standalone: {
+    kind: "one_time",
+    lookupKey: "cppa_risk_standalone",
+    productKey: "cppa_risk",
+    productName: "CPPA Risk Assessment — Module 1 (Standalone)",
+    description: "CPPA audit readiness risk assessment.",
+    amountCents: 14900,
+    currency: "usd",
+    displayPrice: "$149",
+    displaySuffix: " flat",
+    active: true,
+  },
+  cppa_cybersecurity_standalone: {
+    kind: "one_time",
+    lookupKey: "cppa_cybersecurity_standalone",
+    productKey: "cppa_cybersecurity",
+    productName: "CPPA Cybersecurity Readiness — Module 2 (Standalone)",
+    description: "CPPA cybersecurity audit gap analysis.",
+    amountCents: 19900,
+    currency: "usd",
+    displayPrice: "$199",
+    displaySuffix: " flat",
+    active: true,
+  },
+  cppa_suite_standalone: {
+    kind: "one_time",
+    lookupKey: "cppa_suite_standalone",
+    productKey: "cppa_suite",
+    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",
+    description: "Complete CPPA audit readiness bundle.",
+    amountCents: 29900,
+    currency: "usd",
+    displayPrice: "$299",
+    displaySuffix: " flat",
+    active: true,
+  },
+  intelligence_only_yearly: {
+    kind: "subscription",
+    lookupKey: "intelligence_only_yearly",
+    productKey: "intelligence",
+    productName: "Intelligence — Annual",
+    description: "Annual Intelligence subscription. Weekly brief, enforcement archive, watchlists. Compliance tools sold separately at standalone rates.",
+    amountCents: 24900,
+    currency: "usd",
+    displayPrice: "$249",
     displaySuffix: "/year",
     recurringInterval: "year",
     active: true,
@@ -154,10 +503,37 @@ export function getActivePrices(): PriceEntry[] {
 
 /** Convenience accessors for the most common copy patterns. */
 export const INTELLIGENCE_PRICING = {
-  monthly: () => formatPrice("intelligence_monthly"),                       // "$39/month"
-  yearly: () => formatPrice("intelligence_yearly"),                         // "$390/year"
+  monthly: () => formatPrice("intelligence_monthly"),                              // "$29/month"
+  yearly: () => formatPrice("intelligence_yearly"),                                // "$399/year"
   combined: () =>
     `${formatPrice("intelligence_monthly")} or ${formatPrice("intelligence_yearly")}`,
   monthlyShort: () => `${getPrice("intelligence_monthly").displayPrice}/mo`,
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
+} as const;
+
+/** Platform pricing helpers (annual subscriptions with tool access included). */
+export const PLATFORM_PRICING = {
+  standard: () => formatPrice("intelligence_yearly"),                              // "$399/year"
+  standardMonthly: () => "$33.25/mo",
+  clientAddon: () => formatPrice("per_client_addon"),                              // "$199/year per client"
+} as const;
+
+/** US Notice price helpers — derived from the registry, never hardcode. */
+export const US_NOTICE_PRICING = {
+  singleStandalone: () => getPrice("us_notice_single_standalone").displayPrice,   // "$25"
+  singleSubscriber: () => getPrice("us_notice_single_subscriber").displayPrice,   // "$12"
+  allStatesStandalone: () => getPrice("us_notice_all_standalone").displayPrice,   // "$59"
+  allStatesSubscriber: () => getPrice("us_notice_all_subscriber").displayPrice,   // "$29"
+} as const;
+
+/** EU & Global Notice price helpers — derived from the registry, never hardcode. */
+export const EU_NOTICE_PRICING = {
+  singleStandalone: () => getPrice("eu_notice_single_standalone").displayPrice,                       // "$45"
+  singleSubscriber: () => getPrice("eu_notice_single_subscriber").displayPrice,                       // "$19"
+  suiteStandalone: () => getPrice("eu_notice_suite_standalone").displayPrice,                         // "$119"
+  suiteSubscriber: () => getPrice("eu_notice_suite_subscriber").displayPrice,                         // "$65"
+  fullInternationalStandalone: () => getPrice("eu_notice_full_international_standalone").displayPrice, // "$229"
+  fullInternationalSubscriber: () => getPrice("eu_notice_full_international_subscriber").displayPrice, // "$99"
+  refreshStandalone: () => getPrice("eu_notice_refresh_standalone").displayPrice,                     // "$35"
+  refreshSubscriber: () => getPrice("eu_notice_refresh_subscriber").displayPrice,                     // "$19"
 } as const;

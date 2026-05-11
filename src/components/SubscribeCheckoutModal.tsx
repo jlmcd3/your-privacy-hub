@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { useAuth } from "@/hooks/useAuth";
 import { waitForSubscriptionActive } from "@/lib/checkoutConfirmation";
+import { PLATFORM_PRICING, INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -21,6 +22,18 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
   const { user } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [foundingAvailable, setFoundingAvailable] = useState<boolean | null>(null);
+
+  // Resolve founding availability for year checkouts so we can preview the
+  // correct rate to the user. The actual price selection happens server-side
+  // in create-checkout-session.
+  useEffect(() => {
+    if (!open || interval !== "year") return;
+    supabase.functions
+      .invoke("get-founding-status")
+      .then(({ data }) => setFoundingAvailable(data?.isAvailable === true))
+      .catch(() => setFoundingAvailable(false));
+  }, [open, interval]);
 
   const fetchClientSecret = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
@@ -80,6 +93,15 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
         >
           <X className="w-4 h-4" />
         </button>
+        {/* Price preview — informational; server is authoritative */}
+        <div className="px-4 pt-4 pb-2 border-b border-border/40">
+          <p className="text-[12px] text-muted-foreground">You're subscribing to:</p>
+          <p className="text-[14px] font-bold text-navy">
+            {interval === "year"
+              ? `${PLATFORM_PRICING.standard()}/year`
+              : `${INTELLIGENCE_PRICING.monthly()} (Intelligence Feed)`}
+          </p>
+        </div>
         <div className="p-2 sm:p-4">
           {confirming ? (
             <div className="p-10 text-center">

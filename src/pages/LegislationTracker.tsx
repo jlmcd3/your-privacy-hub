@@ -1,96 +1,95 @@
-import { useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import InFeedAd from "@/components/InFeedAd";
+import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
+import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
 
 interface Bill {
-  id: string; flag: string; jurisdiction: string; region: string;
-  name: string; stage: Stage; introduced?: string; lastUpdated: string;
-  summary: string; keyProvisions: string[];
+  id: string;
+  jurisdiction: string;
+  iso2: string | null;
+  jurisdiction_slug: string | null;
+  region: string | null;
+  bill_name: string;
+  bill_number: string | null;
+  stage: Stage;
+  summary: string | null;
+  source_url: string | null;
+  source_name: string | null;
+  source_last_action_at: string | null;
+  last_seen_at: string;
+  status: string;
 }
 
 const STAGE_CONFIG: Record<Stage, { label: string; color: string; bg: string; order: number }> = {
-  enacted:    { label: "Enacted",     color: "#16a34a", bg: "#f0fdf4", order: 1 },
-  passed:     { label: "Passed",      color: "#2563eb", bg: "#eff6ff", order: 2 },
-  committee:  { label: "In Committee",color: "#d97706", bg: "#fffbeb", order: 3 },
-  introduced: { label: "Introduced",  color: "#7c3aed", bg: "#f5f3ff", order: 4 },
-  proposed:   { label: "Proposed",    color: "#94a3b8", bg: "#f8fafc", order: 5 },
-  withdrawn:  { label: "Withdrawn",   color: "#dc2626", bg: "#fef2f2", order: 6 },
+  enacted:    { label: "Enacted",      color: "#16a34a", bg: "#f0fdf4", order: 1 },
+  passed:     { label: "Passed",       color: "#2563eb", bg: "#eff6ff", order: 2 },
+  committee:  { label: "In Committee", color: "#d97706", bg: "#fffbeb", order: 3 },
+  introduced: { label: "Introduced",   color: "#7c3aed", bg: "#f5f3ff", order: 4 },
+  proposed:   { label: "Proposed",     color: "#94a3b8", bg: "#f8fafc", order: 5 },
+  withdrawn:  { label: "Withdrawn",    color: "#dc2626", bg: "#fef2f2", order: 6 },
 };
 
-const BILLS: Bill[] = [
-  {
-    id:"1", flag:"🇮🇳", jurisdiction:"India", region:"Asia-Pacific",
-    name:"DPDP Rules (Digital Personal Data Protection)",
-    stage:"proposed", introduced:"2023-08", lastUpdated:"Mar 2026",
-    summary:"Rules to operationalise the DPDP Act 2023 — covering consent managers, data fiduciaries, and the Data Protection Board.",
-    keyProvisions:["Consent manager framework","Significant Data Fiduciary designation","Children's data processing rules","Cross-border transfer safeguards"],
-  },
-  {
-    id:"2", flag:"🇺🇸", jurisdiction:"US Federal", region:"Americas",
-    name:"American Privacy Rights Act (APRA)",
-    stage:"committee", introduced:"2024-04", lastUpdated:"Feb 2026",
-    summary:"Federal comprehensive consumer privacy bill covering data minimization, consumer rights, and preemption of state laws.",
-    keyProvisions:["Data minimization requirements","Consumer access and deletion rights","Sensitive data prohibitions","Private right of action"],
-  },
-  {
-    id:"3", flag:"🇬🇧", jurisdiction:"United Kingdom", region:"Europe",
-    name:"Data (Use & Access) Act 2025 (DUAA) — Phase 2 Implementation",
-    stage:"enacted", introduced:"2024-10", lastUpdated:"Feb 2026",
-    summary:"Full implementation of DUAA provisions; ICO reformation into Information Commission underway.",
-    keyProvisions:["Aligned UK/EU GDPR fining regimes","ICO → Information Commission transition","Enhanced DSAR procedures","Legitimate interests clarification"],
-  },
-  {
-    id:"4", flag:"🇦🇺", jurisdiction:"Australia", region:"Asia-Pacific",
-    name:"Privacy Act Reform — Tranche 2",
-    stage:"introduced", introduced:"2026-01", lastUpdated:"Mar 2026",
-    summary:"Second tranche of Australian Privacy Act reforms covering enhanced enforcement powers and a statutory tort for serious invasions of privacy.",
-    keyProvisions:["Statutory tort for privacy invasion","Enhanced OAIC enforcement powers","Children's privacy code","Automated decision-making disclosure"],
-  },
-  {
-    id:"5", flag:"🇨🇱", jurisdiction:"Chile", region:"Americas",
-    name:"New Data Protection Law (Ley de Protección de Datos)",
-    stage:"passed", introduced:"2022-03", lastUpdated:"Jan 2026",
-    summary:"Chile's new comprehensive data protection law, replacing the 1999 law with GDPR-aligned rights and a new data protection agency.",
-    keyProvisions:["GDPR-style consumer rights","New data protection agency (CPAP)","DPO requirements for some entities","Data breach notification (72 hours)"],
-  },
-  {
-    id:"6", flag:"🇧🇷", jurisdiction:"Brazil", region:"Americas",
-    name:"AI Regulation Bill (PL 2338/2023)",
-    stage:"committee", introduced:"2023-05", lastUpdated:"Feb 2026",
-    summary:"Brazil's proposed AI regulation covering high-risk systems, transparency, and enforcement by consumer protection agencies.",
-    keyProvisions:["High-risk AI classification","Algorithmic impact assessments","Transparency requirements","Consumer protection enforcement"],
-  },
-  {
-    id:"7", flag:"🇪🇺", jurisdiction:"European Union", region:"Europe",
-    name:"EU Digital Omnibus Package — ePrivacy Revision",
-    stage:"proposed", introduced:"2025-11", lastUpdated:"Mar 2026",
-    summary:"Commission proposal to streamline EU digital regulation including targeted amendments to GDPR and ePrivacy Directive.",
-    keyProvisions:["GDPR targeted amendments","ePrivacy Directive overhaul","Cookie rule simplification","Reduced compliance burden for SMEs"],
-  },
-];
+const FLAG_BY_ISO: Record<string, string> = {
+  US: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_the_United_States.svg?width=40",
+  GB: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_the_United_Kingdom.svg?width=40",
+  EU: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Europe.svg?width=40",
+  CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Canada.svg?width=40",
+  AU: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Australia.svg?width=40",
+  BR: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_Brazil.svg?width=40",
+  IN: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_India.svg?width=40",
+};
 
-const REGIONS = ["All Regions","Americas","Europe","Asia-Pacific"];
+const REGIONS = ["All Regions", "Americas", "Europe", "Asia-Pacific"];
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
 
 export default function LegislationTracker() {
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState("All Regions");
-  const [stage,  setStage]  = useState("All Stages");
-  const [search, setSearch] = useState("");
+  const [stage, setStage] = useState("All Stages");
+  const [lastVerified, setLastVerified] = useState<string | null>(null);
 
-  const filtered = BILLS
-    .filter(b => region === "All Regions" || b.region === region)
-    .filter(b => stage  === "All Stages"  || b.stage  === stage)
-    .filter(b => !search || b.name.toLowerCase().includes(search.toLowerCase()) || b.jurisdiction.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => STAGE_CONFIG[a.stage].order - STAGE_CONFIG[b.stage].order);
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data } = await (supabase as any)
+        .from("legislation_bills")
+        .select("id, jurisdiction, iso2, jurisdiction_slug, region, bill_name, bill_number, stage, summary, source_url, source_name, source_last_action_at, last_seen_at, status")
+        .in("status", ["active", "stale"])
+        .order("last_seen_at", { ascending: false })
+        .limit(500);
+      setBills((data ?? []) as Bill[]);
+      if (data?.length) {
+        const newest = data.reduce((acc: string, b: any) => (b.last_seen_at > acc ? b.last_seen_at : acc), data[0].last_seen_at);
+        setLastVerified(newest);
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  const filtered = bills
+    .filter((b) => region === "All Regions" || b.region === region)
+    .filter((b) => stage === "All Stages" || b.stage === stage)
+    .sort((a, b) => (STAGE_CONFIG[a.stage]?.order ?? 99) - (STAGE_CONFIG[b.stage]?.order ?? 99));
 
   return (
     <>
       <Helmet>
-        <title>Global Privacy Legislation Tracker 2026 — Bills &amp; Laws Worldwide | End User Privacy</title>
-        <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US state laws, EU regulations, AI Act, APAC privacy frameworks — updated in real time." />
+        <title>Global Privacy Legislation Tracker — Bills &amp; Laws Worldwide | End User Privacy</title>
+        <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US, UK, EU, Canada, Australia, Brazil — refreshed daily from official government sources." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
@@ -98,31 +97,37 @@ export default function LegislationTracker() {
           <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
             📜 Legislation Status Tracker
           </h1>
-          <p className="text-slate text-sm mb-6 max-w-2xl">
-            Track privacy and data protection bills globally — from introduction through committee,
-            passage, and enactment. Updated as bills progress.
+          <p className="text-slate text-sm mb-3 max-w-2xl">
+            Privacy and data-protection bills tracked across major jurisdictions. Refreshed daily
+            from official government sources (Congress.gov, UK Parliament, LEGISinfo, Câmara dos
+            Deputados, EUR-Lex, and Parliament of Australia).
           </p>
+          <div className="text-[11px] text-slate-light mb-6">
+            Last verified: <span className="font-mono">{formatDate(lastVerified)}</span> · Updated daily at 06:00 UTC ·
+            Bills not seen in their source for 60+ days are marked <span className="font-semibold">stale</span>.
+          </div>
 
           <div className="flex flex-wrap gap-3 mb-6">
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search bills…"
-              className="bg-white border border-fog rounded-xl px-4 py-2 text-sm text-navy placeholder:text-slate-light focus:outline-none focus:border-blue/50 w-56"
-            />
             <div className="flex gap-2 flex-wrap">
-              {REGIONS.map(r => (
-                <button key={r} onClick={() => setRegion(r)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${region===r?"bg-navy text-white border-navy":"bg-white text-slate border-fog hover:border-navy/20"}`}
-                >{r}</button>
+              {REGIONS.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRegion(r)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${region === r ? "bg-navy text-white border-navy" : "bg-white text-slate border-fog hover:border-navy/20"}`}
+                >
+                  {r}
+                </button>
               ))}
             </div>
             <div className="flex gap-2 flex-wrap">
-              {(["All Stages",...Object.keys(STAGE_CONFIG)] as string[]).map(s => {
+              {(["All Stages", ...Object.keys(STAGE_CONFIG)] as string[]).map((s) => {
                 const cfg = s !== "All Stages" ? STAGE_CONFIG[s as Stage] : null;
                 return (
-                  <button key={s} onClick={() => setStage(s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${stage===s?"bg-navy text-white border-navy":"bg-white text-slate border-fog hover:border-navy/20"}`}
-                    style={cfg && stage===s ? { background:cfg.color, borderColor:cfg.color } : {}}
+                  <button
+                    key={s}
+                    onClick={() => setStage(s)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${stage === s ? "bg-navy text-white border-navy" : "bg-white text-slate border-fog hover:border-navy/20"}`}
+                    style={cfg && stage === s ? { background: cfg.color, borderColor: cfg.color } : {}}
                   >
                     {s === "All Stages" ? s : STAGE_CONFIG[s as Stage].label}
                   </button>
@@ -134,38 +139,86 @@ export default function LegislationTracker() {
           <AdBanner variant="leaderboard" adSlot="eup-legislation-top" className="py-3" />
 
           <div className="space-y-4">
-            {filtered.map(bill => {
-              const cfg = STAGE_CONFIG[bill.stage];
+            {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
+            {!loading && filtered.map((bill, idx) => {
+              const cfg = STAGE_CONFIG[bill.stage] ?? STAGE_CONFIG.introduced;
+              const flagUrl = bill.iso2 ? FLAG_BY_ISO[bill.iso2] : undefined;
+              const chipInner = (
+                <>
+                  {flagUrl && (
+                    <img src={flagUrl} alt={`${bill.jurisdiction} flag`} loading="lazy"
+                      className="w-6 h-4 object-cover rounded-[2px] shadow-sm flex-shrink-0" />
+                  )}
+                  {bill.iso2 && (
+                    <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{bill.iso2}</span>
+                  )}
+                </>
+              );
+              const isStale = bill.status === "stale";
+              const showAdAfter = (idx + 1) % 6 === 0 && idx !== filtered.length - 1;
               return (
-                <div key={bill.id} className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
+                <Fragment key={bill.id}>
+                <div className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl flex-shrink-0 flag-emoji">{bill.flag}</div>
+                    {bill.jurisdiction_slug ? (
+                      <Link to={`/jurisdiction/${bill.jurisdiction_slug}`}
+                        aria-label={`View ${bill.jurisdiction} jurisdiction page`}
+                        className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white hover:border-navy/30 hover:shadow-eup-sm transition-all no-underline">
+                        {chipInner}
+                      </Link>
+                    ) : (
+                      <div className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white">
+                        {chipInner}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
-                        <span
-                          className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                          style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}
-                        >
+                        {bill.bill_number && (
+                          <span className="font-mono text-[10px] text-slate-light">{bill.bill_number}</span>
+                        )}
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                          style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}>
                           {cfg.label}
                         </span>
-                        <span className="text-slate-light text-[10px]">Updated {bill.lastUpdated}</span>
-                      </div>
-                      <h3 className="font-bold text-navy text-[15px] mb-2">{bill.name}</h3>
-                      <p className="text-slate text-sm leading-relaxed mb-3">{bill.summary}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {bill.keyProvisions.map((p, i) => (
-                          <span key={i} className="bg-fog text-slate text-[11px] px-2.5 py-0.5 rounded-full font-medium">
-                            {p}
+                        {isStale && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                            Stale
                           </span>
-                        ))}
+                        )}
+                      </div>
+                      <h3 className="font-bold text-navy text-[15px] mb-2">{bill.bill_name}</h3>
+                      {bill.summary && (
+                        <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
+                      )}
+                      <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-light">
+                        {bill.source_url ? (
+                          <a href={bill.source_url} target="_blank" rel="noopener noreferrer"
+                            className="text-blue hover:underline font-medium">
+                            View at {bill.source_name ?? "source"} →
+                          </a>
+                        ) : bill.source_name ? (
+                          <span>Source: {bill.source_name}</span>
+                        ) : null}
+                        {bill.source_last_action_at && (
+                          <span>· Last action {formatDate(bill.source_last_action_at)}</span>
+                        )}
+                        <span>· Verified {formatDate(bill.last_seen_at)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
+                {showAdAfter && (
+                  <InFeedAd
+                    adSlot={`legislation_tracker_infeed_${Math.floor(idx / 6)}`}
+                    googleAdClient={GOOGLE_AD_CLIENT}
+                    googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
+                  />
+                )}
+                </Fragment>
               );
             })}
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
             )}
           </div>

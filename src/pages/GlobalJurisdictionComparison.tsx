@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdBanner from "@/components/AdBanner";
+import { FlagIcon } from "@/components/FlagIcon";
 import { GLOBAL_STATUTES } from "@/data/global_statutes";
 
 const DIMENSIONS = [
@@ -204,7 +205,7 @@ export default function GlobalJurisdictionComparison() {
                       : "bg-background text-muted-foreground border-border hover:border-primary/30"
                   }`}
                 >
-                  <span className="flag-emoji">{j.flag}</span> {j.name}
+                  <span className="flag-emoji"><FlagIcon icon={j.flag} /></span> {j.name}
                   {active && <span className="ml-0.5 opacity-70">✓</span>}
                 </button>
               );
@@ -235,7 +236,7 @@ export default function GlobalJurisdictionComparison() {
                   </th>
                   {cols.map(j => (
                     <th key={j.name} className="px-4 py-3 text-center min-w-[140px]">
-                      <div className="text-lg flag-emoji">{j.flag}</div>
+                      <div className="text-lg flag-emoji"><FlagIcon icon={j.flag} /></div>
                       <div className="text-primary-foreground font-bold text-[13px]">{j.name}</div>
                     </th>
                   ))}

@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_image_pool: {
+        Row: {
+          approval_status: string
+          category: string | null
+          created_at: string
+          height: number | null
+          id: string
+          photographer_name: string | null
+          photographer_url: string | null
+          public_url: string
+          query: string | null
+          source: string
+          source_id: string | null
+          storage_path: string
+          times_used: number
+          width: number | null
+        }
+        Insert: {
+          approval_status?: string
+          category?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          photographer_name?: string | null
+          photographer_url?: string | null
+          public_url: string
+          query?: string | null
+          source?: string
+          source_id?: string | null
+          storage_path: string
+          times_used?: number
+          width?: number | null
+        }
+        Update: {
+          approval_status?: string
+          category?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          photographer_name?: string | null
+          photographer_url?: string | null
+          public_url?: string
+          query?: string | null
+          source?: string
+          source_id?: string | null
+          storage_path?: string
+          times_used?: number
+          width?: number | null
+        }
+        Relationships: []
+      }
       assessment_purchases: {
         Row: {
           amount_cents: number
@@ -53,6 +104,7 @@ export type Database = {
       biometric_assessments: {
         Row: {
           analysis_text: string | null
+          client_id: string | null
           created_at: string | null
           id: string
           intake_data: Json
@@ -70,6 +122,7 @@ export type Database = {
         }
         Insert: {
           analysis_text?: string | null
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -87,6 +140,7 @@ export type Database = {
         }
         Update: {
           analysis_text?: string | null
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -102,7 +156,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "biometric_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brief_translations: {
         Row: {
@@ -125,6 +187,117 @@ export type Database = {
           id?: string
           language_code?: string
           translated_content?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_personal: boolean
+          name: string
+          notes: string | null
+          owner_id: string
+          sector: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_personal?: boolean
+          name: string
+          notes?: string | null
+          owner_id?: string
+          sector?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_personal?: boolean
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          sector?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cppa_assessments: {
+        Row: {
+          created_at: string
+          document_a_text: string | null
+          document_b_text: string | null
+          id: string
+          intake_data: Json
+          module: string
+          purchase_price_cents: number | null
+          report_data: Json | null
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_a_text?: string | null
+          document_b_text?: string | null
+          id?: string
+          intake_data?: Json
+          module: string
+          purchase_price_cents?: number | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_a_text?: string | null
+          document_b_text?: string | null
+          id?: string
+          intake_data?: Json
+          module?: string
+          purchase_price_cents?: number | null
+          report_data?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      cppa_scope_checks: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          in_scope: boolean
+          obligation_map: Json | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          id?: string
+          in_scope?: boolean
+          obligation_map?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          in_scope?: boolean
+          obligation_map?: Json | null
+          session_id?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -180,6 +353,7 @@ export type Database = {
       }
       dpa_documents: {
         Row: {
+          client_id: string | null
           created_at: string | null
           document_text: string | null
           id: string
@@ -195,6 +369,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           document_text?: string | null
           id?: string
@@ -210,6 +385,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           document_text?: string | null
           id?: string
@@ -224,10 +400,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dpa_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dpia_frameworks: {
         Row: {
+          client_id: string | null
           created_at: string | null
           id: string
           intake_data: Json
@@ -244,6 +429,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -260,6 +446,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -276,6 +463,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "dpia_frameworks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dpia_frameworks_source_assessment_id_fkey"
             columns: ["source_assessment_id"]
@@ -335,6 +529,7 @@ export type Database = {
           jurisdiction: string
           key_compliance_failure: string | null
           law: string | null
+          li_processed: boolean
           precedent_significance: number | null
           preventive_measures: string | null
           raw_text: string | null
@@ -366,6 +561,7 @@ export type Database = {
           jurisdiction: string
           key_compliance_failure?: string | null
           law?: string | null
+          li_processed?: boolean
           precedent_significance?: number | null
           preventive_measures?: string | null
           raw_text?: string | null
@@ -397,6 +593,7 @@ export type Database = {
           jurisdiction?: string
           key_compliance_failure?: string | null
           law?: string | null
+          li_processed?: boolean
           precedent_significance?: number | null
           preventive_measures?: string | null
           raw_text?: string | null
@@ -520,6 +717,258 @@ export type Database = {
           },
         ]
       }
+      eu_notice_answers: {
+        Row: {
+          answer_value: Json
+          answered_at: string
+          id: string
+          question_key: string
+          ropa_activity_id: string | null
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer_value: Json
+          answered_at?: string
+          id?: string
+          question_key: string
+          ropa_activity_id?: string | null
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer_value?: Json
+          answered_at?: string
+          id?: string
+          question_key?: string
+          ropa_activity_id?: string | null
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_answers_ropa_activity_id_fkey"
+            columns: ["ropa_activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_notice_documents: {
+        Row: {
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes: number | null
+          framework_code: string
+          generated_at: string
+          id: string
+          is_combined: boolean
+          is_current: boolean
+          session_id: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes?: number | null
+          framework_code: string
+          generated_at?: string
+          id?: string
+          is_combined?: boolean
+          is_current?: boolean
+          session_id: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          document_format?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          framework_code?: string
+          generated_at?: string
+          id?: string
+          is_combined?: boolean
+          is_current?: boolean
+          session_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_documents_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_notice_framework_selections: {
+        Row: {
+          framework_code: string
+          framework_name: string
+          id: string
+          region: string
+          session_id: string
+        }
+        Insert: {
+          framework_code: string
+          framework_name: string
+          id?: string
+          region: string
+          session_id: string
+        }
+        Update: {
+          framework_code?: string
+          framework_name?: string
+          id?: string
+          region?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_framework_selections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_notice_sessions: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_refresh: boolean
+          last_activity_at: string
+          mode: string
+          paid_at: string | null
+          parent_session_id: string | null
+          payment_confirmed: boolean
+          ropa_session_id: string | null
+          scope: string
+          started_at: string
+          status: string
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          mode?: string
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          ropa_session_id?: string | null
+          scope?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          mode?: string
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          ropa_session_id?: string | null
+          scope?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eu_notice_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "eu_notice_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_notice_sessions_ropa_session_id_fkey"
+            columns: ["ropa_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eu_privacy_frameworks: {
+        Row: {
+          effective_date: string | null
+          enforcement_body: string | null
+          enforcement_url: string | null
+          framework_code: string
+          framework_name: string
+          full_law_name: string
+          is_active: boolean
+          notes: string | null
+          region: string
+          template_type: string
+        }
+        Insert: {
+          effective_date?: string | null
+          enforcement_body?: string | null
+          enforcement_url?: string | null
+          framework_code: string
+          framework_name: string
+          full_law_name: string
+          is_active?: boolean
+          notes?: string | null
+          region: string
+          template_type: string
+        }
+        Update: {
+          effective_date?: string | null
+          enforcement_body?: string | null
+          enforcement_url?: string | null
+          framework_code?: string
+          framework_name?: string
+          full_law_name?: string
+          is_active?: boolean
+          notes?: string | null
+          region?: string
+          template_type?: string
+        }
+        Relationships: []
+      }
       eup_user_roles: {
         Row: {
           action_brief_salutation: string
@@ -577,8 +1026,27 @@ export type Database = {
         }
         Relationships: []
       }
+      function_run_log: {
+        Row: {
+          function_name: string
+          last_result: Json | null
+          last_run_at: string | null
+        }
+        Insert: {
+          function_name: string
+          last_result?: Json | null
+          last_run_at?: string | null
+        }
+        Update: {
+          function_name?: string
+          last_result?: Json | null
+          last_run_at?: string | null
+        }
+        Relationships: []
+      }
       governance_assessments: {
         Row: {
+          client_id: string | null
           created_at: string | null
           dpia_scope: Json | null
           id: string
@@ -595,6 +1063,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           dpia_scope?: Json | null
           id?: string
@@ -611,6 +1080,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           dpia_scope?: Json | null
           id?: string
@@ -626,7 +1096,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "governance_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       horizon_intelligence: {
         Row: {
@@ -744,6 +1222,7 @@ export type Database = {
       }
       ir_playbooks: {
         Row: {
+          client_id: string | null
           created_at: string | null
           id: string
           intake_data: Json
@@ -759,6 +1238,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -774,6 +1254,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           id?: string
           intake_data?: Json
@@ -788,7 +1269,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ir_playbooks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jurisdiction_monitoring_log: {
         Row: {
@@ -949,10 +1438,143 @@ export type Database = {
         }
         Relationships: []
       }
+      legislation_bills: {
+        Row: {
+          bill_name: string
+          bill_number: string | null
+          created_at: string
+          external_id: string
+          id: string
+          introduced_at: string | null
+          iso2: string | null
+          jurisdiction: string
+          jurisdiction_slug: string | null
+          key_provisions: string[] | null
+          last_changed_at: string
+          last_seen_at: string
+          matched_keywords: string[] | null
+          raw_payload: Json | null
+          region: string | null
+          source: string
+          source_last_action_at: string | null
+          source_name: string | null
+          source_url: string | null
+          stage: string
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          bill_name: string
+          bill_number?: string | null
+          created_at?: string
+          external_id: string
+          id?: string
+          introduced_at?: string | null
+          iso2?: string | null
+          jurisdiction: string
+          jurisdiction_slug?: string | null
+          key_provisions?: string[] | null
+          last_changed_at?: string
+          last_seen_at?: string
+          matched_keywords?: string[] | null
+          raw_payload?: Json | null
+          region?: string | null
+          source: string
+          source_last_action_at?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          stage: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bill_name?: string
+          bill_number?: string | null
+          created_at?: string
+          external_id?: string
+          id?: string
+          introduced_at?: string | null
+          iso2?: string | null
+          jurisdiction?: string
+          jurisdiction_slug?: string | null
+          key_provisions?: string[] | null
+          last_changed_at?: string
+          last_seen_at?: string
+          matched_keywords?: string[] | null
+          raw_payload?: Json | null
+          region?: string | null
+          source?: string
+          source_last_action_at?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          stage?: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      legislation_ingestion_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          fetched: number
+          finished_at: string | null
+          id: string
+          inserted: number
+          metadata: Json | null
+          rejected: number
+          rejected_samples: Json | null
+          source: string
+          started_at: string
+          status: string
+          unchanged: number
+          updated: number
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          fetched?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          metadata?: Json | null
+          rejected?: number
+          rejected_samples?: Json | null
+          source: string
+          started_at?: string
+          status?: string
+          unchanged?: number
+          updated?: number
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          fetched?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          metadata?: Json | null
+          rejected?: number
+          rejected_samples?: Json | null
+          source?: string
+          started_at?: string
+          status?: string
+          unchanged?: number
+          updated?: number
+        }
+        Relationships: []
+      }
       li_assessments: {
         Row: {
           alternatives_considered: string | null
           balancing_details: Json | null
+          client_id: string | null
           created_at: string | null
           data_categories: string[] | null
           id: string
@@ -979,6 +1601,7 @@ export type Database = {
         Insert: {
           alternatives_considered?: string | null
           balancing_details?: Json | null
+          client_id?: string | null
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
@@ -1005,6 +1628,7 @@ export type Database = {
         Update: {
           alternatives_considered?: string | null
           balancing_details?: Json | null
+          client_id?: string | null
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
@@ -1028,7 +1652,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "li_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       li_tracker_entries: {
         Row: {
@@ -1043,6 +1675,7 @@ export type Database = {
           processing_activity: string
           signal_type: string
           source_article_id: string | null
+          source_enforcement_id: string | null
           source_url: string | null
           summary: string
           updated_at: string | null
@@ -1059,6 +1692,7 @@ export type Database = {
           processing_activity: string
           signal_type: string
           source_article_id?: string | null
+          source_enforcement_id?: string | null
           source_url?: string | null
           summary: string
           updated_at?: string | null
@@ -1075,6 +1709,7 @@ export type Database = {
           processing_activity?: string
           signal_type?: string
           source_article_id?: string | null
+          source_enforcement_id?: string | null
           source_url?: string | null
           summary?: string
           updated_at?: string | null
@@ -1169,6 +1804,7 @@ export type Database = {
           created_at: string
           digest_jurisdictions: string[] | null
           digest_topics: string[] | null
+          founding_subscriber: boolean | null
           id: string
           industry: string | null
           is_premium: boolean
@@ -1189,6 +1825,7 @@ export type Database = {
           subscription_interval: string | null
           subscription_plan: string | null
           subscription_tier: string | null
+          subscription_type: string | null
           updated_at: string
           user_role: string | null
         }
@@ -1202,6 +1839,7 @@ export type Database = {
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
+          founding_subscriber?: boolean | null
           id: string
           industry?: string | null
           is_premium?: boolean
@@ -1222,6 +1860,7 @@ export type Database = {
           subscription_interval?: string | null
           subscription_plan?: string | null
           subscription_tier?: string | null
+          subscription_type?: string | null
           updated_at?: string
           user_role?: string | null
         }
@@ -1235,6 +1874,7 @@ export type Database = {
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
+          founding_subscriber?: boolean | null
           id?: string
           industry?: string | null
           is_premium?: boolean
@@ -1255,6 +1895,7 @@ export type Database = {
           subscription_interval?: string | null
           subscription_plan?: string | null
           subscription_tier?: string | null
+          subscription_type?: string | null
           updated_at?: string
           user_role?: string | null
         }
@@ -1289,6 +1930,7 @@ export type Database = {
       }
       registration_assessments: {
         Row: {
+          client_id: string | null
           confidence_tier: string | null
           converted_order_id: string | null
           created_at: string
@@ -1307,6 +1949,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           confidence_tier?: string | null
           converted_order_id?: string | null
           created_at?: string
@@ -1325,6 +1968,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           confidence_tier?: string | null
           converted_order_id?: string | null
           created_at?: string
@@ -1342,7 +1986,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "registration_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registration_audit_log: {
         Row: {
@@ -1496,6 +2148,7 @@ export type Database = {
         Row: {
           amount_cents: number
           assessment_id: string | null
+          client_id: string | null
           created_at: string
           currency: string
           delivery_email: string | null
@@ -1519,6 +2172,7 @@ export type Database = {
         Insert: {
           amount_cents: number
           assessment_id?: string | null
+          client_id?: string | null
           created_at?: string
           currency?: string
           delivery_email?: string | null
@@ -1542,6 +2196,7 @@ export type Database = {
         Update: {
           amount_cents?: number
           assessment_id?: string | null
+          client_id?: string | null
           created_at?: string
           currency?: string
           delivery_email?: string | null
@@ -1568,6 +2223,13 @@ export type Database = {
             columns: ["assessment_id"]
             isOneToOne: false
             referencedRelation: "registration_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registration_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -1746,6 +2408,609 @@ export type Database = {
         }
         Relationships: []
       }
+      ropa_activity_templates: {
+        Row: {
+          category: string
+          description: string
+          display_name: string
+          display_order: number
+          id: string
+          is_active: boolean
+          is_high_risk: boolean
+          is_public_facing: boolean
+          sector_tags: string[]
+          template_key: string
+        }
+        Insert: {
+          category: string
+          description: string
+          display_name: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          sector_tags?: string[]
+          template_key: string
+        }
+        Update: {
+          category?: string
+          description?: string
+          display_name?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          sector_tags?: string[]
+          template_key?: string
+        }
+        Relationships: []
+      }
+      ropa_answers: {
+        Row: {
+          activity_id: string
+          answer_value: Json
+          answered_at: string
+          id: string
+          question_key: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          activity_id: string
+          answer_value: Json
+          answered_at?: string
+          id?: string
+          question_key: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          activity_id?: string
+          answer_value?: Json
+          answered_at?: string
+          id?: string
+          question_key?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_answers_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_client_profiles: {
+        Row: {
+          client_id: string
+          created_at: string
+          dpo_email: string | null
+          dpo_name: string | null
+          dpo_phone: string | null
+          employee_band: string | null
+          eu_rep_email: string | null
+          eu_rep_name: string | null
+          is_controller: boolean
+          is_processor: boolean
+          legal_entity_type: string | null
+          uk_rep_email: string | null
+          uk_rep_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          dpo_email?: string | null
+          dpo_name?: string | null
+          dpo_phone?: string | null
+          employee_band?: string | null
+          eu_rep_email?: string | null
+          eu_rep_name?: string | null
+          is_controller?: boolean
+          is_processor?: boolean
+          legal_entity_type?: string | null
+          uk_rep_email?: string | null
+          uk_rep_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          dpo_email?: string | null
+          dpo_name?: string | null
+          dpo_phone?: string | null
+          employee_band?: string | null
+          eu_rep_email?: string | null
+          eu_rep_name?: string | null
+          is_controller?: boolean
+          is_processor?: boolean
+          legal_entity_type?: string | null
+          uk_rep_email?: string | null
+          uk_rep_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_client_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_document_versions: {
+        Row: {
+          activities_count: number
+          change_summary: string | null
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes: number | null
+          generated_at: string
+          id: string
+          is_current: boolean
+          jurisdictions_covered: string[]
+          session_id: string
+          version_number: number
+        }
+        Insert: {
+          activities_count?: number
+          change_summary?: string | null
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes?: number | null
+          generated_at?: string
+          id?: string
+          is_current?: boolean
+          jurisdictions_covered?: string[]
+          session_id: string
+          version_number: number
+        }
+        Update: {
+          activities_count?: number
+          change_summary?: string | null
+          client_id?: string
+          document_format?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          generated_at?: string
+          id?: string
+          is_current?: boolean
+          jurisdictions_covered?: string[]
+          session_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_document_versions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_document_versions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_flags: {
+        Row: {
+          action_label: string | null
+          action_route: string | null
+          activity_id: string | null
+          consequence: string | null
+          created_at: string
+          flag_message: string
+          flag_type: string
+          id: string
+          question_key: string | null
+          resolved: boolean
+          resolved_at: string | null
+          session_id: string
+          severity: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_route?: string | null
+          activity_id?: string | null
+          consequence?: string | null
+          created_at?: string
+          flag_message: string
+          flag_type: string
+          id?: string
+          question_key?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          session_id: string
+          severity?: string
+        }
+        Update: {
+          action_label?: string | null
+          action_route?: string | null
+          activity_id?: string | null
+          consequence?: string | null
+          created_at?: string
+          flag_message?: string
+          flag_type?: string
+          id?: string
+          question_key?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          session_id?: string
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_flags_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_flags_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_jurisdiction_selections: {
+        Row: {
+          added_at: string
+          client_id: string
+          id: string
+          jurisdiction_code: string
+          jurisdiction_name: string
+          jurisdiction_region: string
+        }
+        Insert: {
+          added_at?: string
+          client_id: string
+          id?: string
+          jurisdiction_code: string
+          jurisdiction_name: string
+          jurisdiction_region: string
+        }
+        Update: {
+          added_at?: string
+          client_id?: string
+          id?: string
+          jurisdiction_code?: string
+          jurisdiction_name?: string
+          jurisdiction_region?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_jurisdiction_selections_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_noted_regulatory_updates: {
+        Row: {
+          article_id: string
+          article_title: string
+          article_url: string
+          client_id: string
+          id: string
+          jurisdiction_code: string
+          noted_at: string
+          session_id: string
+          urgency: string
+        }
+        Insert: {
+          article_id: string
+          article_title: string
+          article_url: string
+          client_id: string
+          id?: string
+          jurisdiction_code: string
+          noted_at?: string
+          session_id: string
+          urgency: string
+        }
+        Update: {
+          article_id?: string
+          article_title?: string
+          article_url?: string
+          client_id?: string
+          id?: string
+          jurisdiction_code?: string
+          noted_at?: string
+          session_id?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_noted_regulatory_updates_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_noted_regulatory_updates_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_noted_regulatory_updates_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_processing_activities: {
+        Row: {
+          category: string
+          client_id: string
+          completion_pct: number
+          created_at: string
+          display_name: string
+          display_order: number
+          id: string
+          is_high_risk: boolean
+          is_public_facing: boolean
+          session_id: string
+          status: string
+          template_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          client_id: string
+          completion_pct?: number
+          created_at?: string
+          display_name: string
+          display_order?: number
+          id?: string
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          session_id: string
+          status?: string
+          template_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          completion_pct?: number
+          created_at?: string
+          display_name?: string
+          display_order?: number
+          id?: string
+          is_high_risk?: boolean
+          is_public_facing?: boolean
+          session_id?: string
+          status?: string
+          template_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_processing_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_processing_activities_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_refresh_cycles: {
+        Row: {
+          activities_added: number
+          activities_confirmed: number
+          activities_updated: number
+          client_id: string
+          completed_at: string | null
+          id: string
+          initiated_at: string
+          new_session_id: string | null
+          source_session_id: string
+        }
+        Insert: {
+          activities_added?: number
+          activities_confirmed?: number
+          activities_updated?: number
+          client_id: string
+          completed_at?: string | null
+          id?: string
+          initiated_at?: string
+          new_session_id?: string | null
+          source_session_id: string
+        }
+        Update: {
+          activities_added?: number
+          activities_confirmed?: number
+          activities_updated?: number
+          client_id?: string
+          completed_at?: string | null
+          id?: string
+          initiated_at?: string
+          new_session_id?: string | null
+          source_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_refresh_cycles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_refresh_cycles_new_session_id_fkey"
+            columns: ["new_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_refresh_cycles_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_refresh_reminders: {
+        Row: {
+          client_id: string
+          id: string
+          recipient_email: string | null
+          sent_at: string
+          source_session_id: string
+          updates_count: number
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          recipient_email?: string | null
+          sent_at?: string
+          source_session_id: string
+          updates_count?: number
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          recipient_email?: string | null
+          sent_at?: string
+          source_session_id?: string
+          updates_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_refresh_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_refresh_reminders_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ropa_sessions: {
+        Row: {
+          client_id: string
+          completed_activities: number
+          completed_at: string | null
+          created_at: string
+          generated_docx_path: string | null
+          generated_pdf_path: string | null
+          generated_xlsx_path: string | null
+          id: string
+          is_refresh: boolean
+          last_activity_at: string
+          open_flags_count: number
+          paid_at: string | null
+          parent_session_id: string | null
+          payment_confirmed: boolean
+          started_at: string
+          status: string
+          total_activities: number
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          completed_activities?: number
+          completed_at?: string | null
+          created_at?: string
+          generated_docx_path?: string | null
+          generated_pdf_path?: string | null
+          generated_xlsx_path?: string | null
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          open_flags_count?: number
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          started_at?: string
+          status?: string
+          total_activities?: number
+          updated_at?: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          completed_activities?: number
+          completed_at?: string | null
+          created_at?: string
+          generated_docx_path?: string | null
+          generated_pdf_path?: string | null
+          generated_xlsx_path?: string | null
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          open_flags_count?: number
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          started_at?: string
+          status?: string
+          total_activities?: number
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ropa_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sample_brief_translations: {
         Row: {
           created_at: string
@@ -1806,6 +3071,90 @@ export type Database = {
           placement?: string | null
           sponsor_name?: string
           starts_at?: string | null
+        }
+        Relationships: []
+      }
+      state_law_overrides: {
+        Row: {
+          authority_name: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          effective_date: string | null
+          state_name: string
+          state_slug: string
+          statute_name: string | null
+          statute_status: string
+          statute_url: string | null
+        }
+        Insert: {
+          authority_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_date?: string | null
+          state_name: string
+          state_slug: string
+          statute_name?: string | null
+          statute_status: string
+          statute_url?: string | null
+        }
+        Update: {
+          authority_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          effective_date?: string | null
+          state_name?: string
+          state_slug?: string
+          statute_name?: string | null
+          statute_status?: string
+          statute_url?: string | null
+        }
+        Relationships: []
+      }
+      state_law_update_candidates: {
+        Row: {
+          confidence: string | null
+          detected_at: string | null
+          detected_authority: string | null
+          detected_effective_date: string | null
+          detected_law_name: string | null
+          detected_statute_url: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_summary: string | null
+          state_name: string
+          state_slug: string
+          status: string
+        }
+        Insert: {
+          confidence?: string | null
+          detected_at?: string | null
+          detected_authority?: string | null
+          detected_effective_date?: string | null
+          detected_law_name?: string | null
+          detected_statute_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_summary?: string | null
+          state_name: string
+          state_slug: string
+          status?: string
+        }
+        Update: {
+          confidence?: string | null
+          detected_at?: string | null
+          detected_authority?: string | null
+          detected_effective_date?: string | null
+          detected_law_name?: string | null
+          detected_statute_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_summary?: string | null
+          state_name?: string
+          state_slug?: string
+          status?: string
         }
         Relationships: []
       }
@@ -1944,6 +3293,7 @@ export type Database = {
           enrichment_version: number | null
           entities: Json | null
           id: string
+          image_source: string | null
           image_url: string | null
           is_hidden: boolean
           is_premium: boolean
@@ -1978,6 +3328,7 @@ export type Database = {
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
+          image_source?: string | null
           image_url?: string | null
           is_hidden?: boolean
           is_premium?: boolean
@@ -2012,6 +3363,7 @@ export type Database = {
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
+          image_source?: string | null
           image_url?: string | null
           is_hidden?: boolean
           is_premium?: boolean
@@ -2031,6 +3383,312 @@ export type Database = {
           topic_tags?: string[] | null
           url?: string
           why_it_matters_short?: string | null
+        }
+        Relationships: []
+      }
+      us_notice_answers: {
+        Row: {
+          answer_value: Json
+          answered_at: string
+          id: string
+          question_key: string
+          ropa_activity_id: string | null
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer_value: Json
+          answered_at?: string
+          id?: string
+          question_key: string
+          ropa_activity_id?: string | null
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer_value?: Json
+          answered_at?: string
+          id?: string
+          question_key?: string
+          ropa_activity_id?: string | null
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "us_notice_answers_ropa_activity_id_fkey"
+            columns: ["ropa_activity_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "us_notice_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "us_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      us_notice_documents: {
+        Row: {
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes: number | null
+          framework_type: string
+          generated_at: string
+          id: string
+          is_combined: boolean
+          is_current: boolean
+          session_id: string
+          state_code: string | null
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          document_format: string
+          file_path: string
+          file_size_bytes?: number | null
+          framework_type: string
+          generated_at?: string
+          id?: string
+          is_combined?: boolean
+          is_current?: boolean
+          session_id: string
+          state_code?: string | null
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          document_format?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          framework_type?: string
+          generated_at?: string
+          id?: string
+          is_combined?: boolean
+          is_current?: boolean
+          session_id?: string
+          state_code?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "us_notice_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "us_notice_documents_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "us_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      us_notice_sessions: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_refresh: boolean
+          last_activity_at: string
+          mode: string
+          paid_at: string | null
+          parent_session_id: string | null
+          payment_confirmed: boolean
+          ropa_session_id: string | null
+          scope: string
+          started_at: string
+          status: string
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          mode?: string
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          ropa_session_id?: string | null
+          scope?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_refresh?: boolean
+          last_activity_at?: string
+          mode?: string
+          paid_at?: string | null
+          parent_session_id?: string | null
+          payment_confirmed?: boolean
+          ropa_session_id?: string | null
+          scope?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "us_notice_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "us_notice_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "us_notice_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "us_notice_sessions_ropa_session_id_fkey"
+            columns: ["ropa_session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      us_notice_state_selections: {
+        Row: {
+          framework_type: string
+          id: string
+          session_id: string
+          state_code: string
+          state_name: string
+        }
+        Insert: {
+          framework_type: string
+          id?: string
+          session_id: string
+          state_code: string
+          state_name: string
+        }
+        Update: {
+          framework_type?: string
+          id?: string
+          session_id?: string
+          state_code?: string
+          state_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "us_notice_state_selections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "us_notice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      us_state_law_notifications: {
+        Row: {
+          client_id: string
+          delivery_status: string
+          error: string | null
+          id: string
+          notified_at: string
+          recipient_email: string
+          resend_message_id: string | null
+          state_code: string
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          delivery_status?: string
+          error?: string | null
+          id?: string
+          notified_at?: string
+          recipient_email: string
+          resend_message_id?: string | null
+          state_code: string
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          delivery_status?: string
+          error?: string | null
+          id?: string
+          notified_at?: string
+          recipient_email?: string
+          resend_message_id?: string | null
+          state_code?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      us_state_privacy_laws: {
+        Row: {
+          applicability_threshold: string | null
+          effective_date: string | null
+          enforcement_body: string | null
+          enforcement_url: string | null
+          framework_type: string
+          has_appeal_right: boolean
+          has_correction_right: boolean
+          has_opt_out_right: boolean
+          has_sensitive_data_category: boolean
+          is_active: boolean
+          law_name: string
+          notes: string | null
+          requires_gpc: boolean
+          state_code: string
+          state_name: string
+        }
+        Insert: {
+          applicability_threshold?: string | null
+          effective_date?: string | null
+          enforcement_body?: string | null
+          enforcement_url?: string | null
+          framework_type: string
+          has_appeal_right?: boolean
+          has_correction_right?: boolean
+          has_opt_out_right?: boolean
+          has_sensitive_data_category?: boolean
+          is_active?: boolean
+          law_name: string
+          notes?: string | null
+          requires_gpc?: boolean
+          state_code: string
+          state_name: string
+        }
+        Update: {
+          applicability_threshold?: string | null
+          effective_date?: string | null
+          enforcement_body?: string | null
+          enforcement_url?: string | null
+          framework_type?: string
+          has_appeal_right?: boolean
+          has_correction_right?: boolean
+          has_opt_out_right?: boolean
+          has_sensitive_data_category?: boolean
+          is_active?: boolean
+          law_name?: string
+          notes?: string | null
+          requires_gpc?: boolean
+          state_code?: string
+          state_name?: string
         }
         Relationships: []
       }
@@ -2231,6 +3889,12 @@ export type Database = {
       }
     }
     Views: {
+      founding_subscriber_count: {
+        Row: {
+          total: number | null
+        }
+        Relationships: []
+      }
       free_user_upgrade_signals: {
         Row: {
           action_brief_views: number | null
@@ -2262,6 +3926,16 @@ export type Database = {
           violation: string
         }[]
       }
+      commit_eu_notice_generation: {
+        Args: {
+          _docs: Json
+          _expected_status: string[]
+          _generated_at: string
+          _new_version: number
+          _session_id: string
+        }
+        Returns: Json
+      }
       get_enforcement_action_basic: {
         Args: { _id: string }
         Returns: {
@@ -2291,6 +3965,9 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_premium: { Args: never; Returns: boolean }
+      is_founding_rate_available: { Args: never; Returns: boolean }
+      my_client_ids: { Args: never; Returns: string[] }
+      owns_client: { Args: { _client_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

@@ -42,7 +42,7 @@ const WeeklyBriefTeaser = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">
-              This Week's Brief
+              This Week's Privacy Intelligence Report
             </h2>
             <p className="text-[13px] text-slate mt-1">
               Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
@@ -50,10 +50,10 @@ const WeeklyBriefTeaser = () => {
             </p>
           </div>
           <Link
-            to="/sample-brief"
+            to="/#brief"
             className="text-[13px] font-medium text-blue hover:underline no-underline hidden sm:block"
           >
-            See a sample brief →
+            See a sample report →
           </Link>
         </div>
 
@@ -64,14 +64,14 @@ const WeeklyBriefTeaser = () => {
           <div className="p-6 md:p-8 border-b border-white/10">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[9px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
-                ⭐ Intelligence Intelligence Brief
+                ⭐ Privacy Intelligence Report
               </span>
               {brief?.week_label && (
                 <span className="text-[11px] text-slate ml-auto">{brief.week_label}</span>
               )}
             </div>
             <h3 className="font-display text-[17px] md:text-[20px] text-white leading-snug mb-4">
-              {brief?.headline ?? "This week's brief is being prepared…"}
+              {brief?.headline ?? "This week's report is being prepared…"}
             </h3>
             {teaserText && (
               <p className="text-[13px] text-slate-light leading-relaxed mb-5">
@@ -94,10 +94,10 @@ const WeeklyBriefTeaser = () => {
               ))}
             </div>
             <Link
-              to="/sample-brief"
+              to="/#brief"
               className="inline-flex items-center gap-2 bg-white text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
-              See a sample brief →
+              See a sample report →
             </Link>
           </div>
 
@@ -108,7 +108,7 @@ const WeeklyBriefTeaser = () => {
                 ⭐ Intelligence — {`${INTELLIGENCE_PRICING.monthly()}`}
               </p>
               <p className="text-[13px] text-slate-light leading-snug">
-                The full Intelligence Brief, re-analyzed every Monday for your industry,
+                The full Privacy Intelligence Report, re-analyzed every Monday for your industry,
                 your jurisdictions, and your compliance priorities.
                 <span className="text-white"> Sector-specific context. Priorities. Action items.</span>
               </p>

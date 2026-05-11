@@ -26,11 +26,11 @@ export default function FreeVsPaidStrip() {
   if (authLoading || isPremium === null || isPremium) return null;
 
   return (
-    <div className="bg-muted/50 border-b border-border text-center py-1.5 px-4">
-      <p className="text-[11px] text-muted-foreground">
+    <div className="bg-muted/50 border-y border-border text-center px-4 h-9 flex items-center justify-center">
+      <p className="text-[11px] text-muted-foreground truncate">
         📚 Free to browse · Free weekly digest included{" "}
         <span className="text-border mx-1.5">·</span>
-        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, `}<span className="underline">subscriber rates on every tool</span></span>
+        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, and enforcement tracking · Annual Platform includes every compliance tool`}</span>
         <span className="text-border mx-1.5">·</span>
         <Link to="/subscribe" className="text-primary font-semibold no-underline hover:underline">
           See what`s included →

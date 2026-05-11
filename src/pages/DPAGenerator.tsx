@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
@@ -9,8 +10,11 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
@@ -30,7 +34,9 @@ const SAMPLE = `1. PARTIES AND RECITALS
 export default function DPAGenerator() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const access = useToolAccess({ standalonePrice: 69, subscriberPrice: 39 });
+  const pricing = useToolPrice("dpa_generator");
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.subscriberPrice });
+  const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     controllerName: "", controllerJurisdiction: "Germany",
@@ -69,7 +75,7 @@ export default function DPAGenerator() {
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id } }),
+      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } }),
       timeout,
     ]).catch((error) => ({ data: null, error }));
     const { data, error } = response;
@@ -101,11 +107,16 @@ export default function DPAGenerator() {
         <meta name="description" content="Generate your custom GDPR Article 28-compliant Data Protection Agreement, calibrated to live enforcement precedents." /></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Custom DPA</h1>
           <p className="text-slate text-[14px]">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
         </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote />
+        </div>
+
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
@@ -126,7 +137,6 @@ export default function DPAGenerator() {
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Step {step} of 4</div>
             <h2 className="font-display font-bold text-navy text-[18px]">DPA Intake</h2>
             <div className="space-y-3 text-[13px]">
               <label className="block"><span className="font-semibold text-navy">Controller name</span>
@@ -157,7 +167,7 @@ export default function DPAGenerator() {
               onClick={handlePurchase}
               className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all"
             >
-              {access.priceLabel}
+              {access.isFreeForUser ? "Generate — Free" : `Generate — $${pricing.price}`}
             </button>
           </div>
         )}

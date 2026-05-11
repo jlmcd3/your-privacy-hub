@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 import usStates from "@/data/us_state_privacy_authorities.json";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useStateLawOverrides } from "@/hooks/useStateLawOverrides";
 
 // Build jurisdiction data from JSON
 const buildJurisdictionData = () => {
@@ -20,7 +21,7 @@ const buildJurisdictionData = () => {
     region: string;
     flag: string;
     overview: string;
-    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_status?: string; effective_date?: string; notes?: string; stateName?: string }[];
+    authorities: { name: string; abbreviation?: string; website: string; complaint_portal?: string; legislation?: string; statute_url?: string; statute_status?: string; effective_date?: string; regulations_name?: string; regulations_url?: string; notes?: string; stateName?: string }[];
   }> = {};
 
   const regionFlags: Record<string, string> = {
@@ -62,6 +63,7 @@ const buildJurisdictionData = () => {
       website: s.website,
       complaint_portal: s.complaint_portal,
       legislation: s.statute_name,
+      statute_url: s.statute_url,
       statute_status: s.statute_status,
       effective_date: s.effective_date,
       notes: s.notes,
@@ -78,15 +80,18 @@ const buildJurisdictionData = () => {
       flag: "🇺🇸",
       overview: s.notes ||
         `${s.state} privacy regulation is enforced by the ${s.authority_name}.` +
-        (s.statute_name ? ` The primary statute is the ${s.statute_name}.` : " No comprehensive privacy law has been enacted as of 2026."),
+        (s.statute_name ? "" : " No comprehensive privacy law has been enacted as of 2026."),
       authorities: [{
         name: s.authority_name,
         abbreviation: s.authority_type,
         website: s.website,
         complaint_portal: s.complaint_portal,
         legislation: s.statute_name,
+        statute_url: s.statute_url,
         statute_status: s.statute_status,
         effective_date: s.effective_date,
+        regulations_name: s.regulations_name,
+        regulations_url: s.regulations_url,
         notes: s.notes,
       }],
     };
@@ -121,7 +126,28 @@ const isLikelyNonEnglish = (text: string): boolean => {
 const JurisdictionPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
-  const staticJurisdiction = slug ? allJurisdictions[slug] : null;
+  const baseJurisdiction = slug ? allJurisdictions[slug] : null;
+  const overrides = useStateLawOverrides();
+  const staticJurisdiction = (() => {
+    if (!baseJurisdiction || !slug) return baseJurisdiction;
+    const ov = overrides.get(slug);
+    if (!ov) return baseJurisdiction;
+    return {
+      ...baseJurisdiction,
+      authorities: baseJurisdiction.authorities.map((a, i) =>
+        i === 0
+          ? {
+              ...a,
+              name: ov.authority_name || a.name,
+              legislation: ov.statute_name || a.legislation,
+              statute_url: ov.statute_url || (a as any).statute_url,
+              statute_status: ov.statute_status || (a as any).statute_status,
+              effective_date: ov.effective_date || (a as any).effective_date,
+            }
+          : a,
+      ),
+    };
+  })();
   const [dbFallback, setDbFallback] = useState<any>(null);
   const [fallbackLoading, setFallbackLoading] = useState(false);
   const jurisdiction = staticJurisdiction || dbFallback;
@@ -184,18 +210,31 @@ const JurisdictionPage = () => {
     (async () => {
       const name = jurisdiction.name;
       const nameLower = name.toLowerCase();
+      // Enrichment arrays store lowercase kebab-case slugs (e.g. "california",
+      // "united-kingdom", "us-federal"), so we must match against the slug —
+      // not the display name — for `direct_jurisdictions` / `affected_jurisdictions`.
+      const enrichmentSlug = nameLower.replace(/\s+/g, "-");
+      const ENRICHMENT_ALIASES: Record<string, string[]> = {
+        "european-union": ["eu"],
+        "united-states": ["us-federal", "us"],
+        "united-kingdom": ["uk"],
+      };
+      const aliases = ENRICHMENT_ALIASES[enrichmentSlug] ?? [];
+      const enrichmentMatchValues = Array.from(
+        new Set([enrichmentSlug, nameLower, name, ...aliases])
+      );
       const authorityTerms = jurisdiction.authorities
         .map((a: any) => a.abbreviation?.toLowerCase()).filter(Boolean) as string[];
       const allTerms = [nameLower, ...authorityTerms];
 
       const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-      const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version,why_it_matters_short,related_signals,action_items,ai_summary,jurisdiction";
+      const select = "id,title,summary,url,source_domain,source_name,image_url,category,published_at,direct_jurisdictions,affected_jurisdictions,attention_level,affected_sectors,regulatory_theory,related_development,enrichment_version,why_it_matters_short,related_signals,action_items,ai_summary";
 
-      // Tier 1: enriched-direct (last 90d)
+      // Tier 1: enriched-direct (last 90d) — match against any slug variant
       const directQ = (supabase as any)
         .from("updates").select(select)
         .eq("is_hidden", false)
-        .contains("direct_jurisdictions", [name])
+        .overlaps("direct_jurisdictions", enrichmentMatchValues)
         .gte("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
         .limit(20);
@@ -204,7 +243,7 @@ const JurisdictionPage = () => {
       const affectedQ = (supabase as any)
         .from("updates").select(select)
         .eq("is_hidden", false)
-        .contains("affected_jurisdictions", [name])
+        .overlaps("affected_jurisdictions", enrichmentMatchValues)
         .gte("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
         .limit(20);
@@ -246,8 +285,10 @@ const JurisdictionPage = () => {
         if (seen.has(a.id)) return;
         if (!matchesKeyword(a)) return;
         const ts = new Date(a.published_at).getTime();
-        const isDirectByEnrichment = a.direct_jurisdictions?.includes?.(name);
-        const isAffectedByEnrichment = a.affected_jurisdictions?.includes?.(name);
+        const matchesEnrichment = (arr: any) =>
+          Array.isArray(arr) && arr.some((v: any) => enrichmentMatchValues.includes(v));
+        const isDirectByEnrichment = matchesEnrichment(a.direct_jurisdictions);
+        const isAffectedByEnrichment = matchesEnrichment(a.affected_jurisdictions);
         if (ts >= ninetyMs) {
           if (isAffectedByEnrichment && !isDirectByEnrichment) pushUnique(regional, a);
           else pushUnique(direct, a);
@@ -260,7 +301,7 @@ const JurisdictionPage = () => {
       const { data: oldDirect } = await (supabase as any)
         .from("updates").select(select)
         .eq("is_hidden", false)
-        .contains("direct_jurisdictions", [name])
+        .overlaps("direct_jurisdictions", enrichmentMatchValues)
         .lt("published_at", ninetyDaysAgo)
         .order("published_at", { ascending: false })
         .limit(20);
@@ -269,9 +310,13 @@ const JurisdictionPage = () => {
       const sortByDate = (arr: any[]) =>
         arr.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
-      setDirectRecent(sortByDate(direct).slice(0, 8));
-      setRegionalRecent(sortByDate(regional).slice(0, 10));
+      const sortedDirect = sortByDate(direct).slice(0, 8);
+      const sortedRegional = sortByDate(regional).slice(0, 10);
+      setDirectRecent(sortedDirect);
+      setRegionalRecent(sortedRegional);
       setArchive(sortByDate(archiveList).slice(0, 20));
+      // Auto-expand "Also relevant" when there's no direct coverage
+      setShowRegional(sortedDirect.length === 0 && sortedRegional.length > 0);
       setDevLoading(false);
 
       // Translate non-English titles in the visible direct tier
@@ -332,6 +377,18 @@ const JurisdictionPage = () => {
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
       <Navbar />
+      {(() => {
+        const isUSState = jurisdiction.region === "United States" && slug !== "united-states";
+        const crumbHref = isUSState ? "/us-privacy-laws" : "/global-privacy-laws";
+        const crumbLabel = isUSState ? "U.S. Privacy Laws" : "Global Privacy Laws";
+        return (
+          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-[13px] text-slate">
+            <Link to={crumbHref} className="text-blue hover:underline no-underline">{crumbLabel}</Link>
+            <span className="mx-2 text-slate-light">›</span>
+            <span className="text-navy">{jurisdiction.name}</span>
+          </nav>
+        );
+      })()}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-6 md:py-8 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
           <div className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
@@ -388,7 +445,19 @@ const JurisdictionPage = () => {
               {auth.legislation && (
                 <div className="text-[12px] text-slate mt-1">
                   <span className="font-semibold text-navy">Statute: </span>{" "}
-                  {auth.legislation}
+                  {auth.statute_url ? (
+                    <a
+                      href={auth.statute_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue hover:underline no-underline font-medium inline-flex items-center gap-1"
+                    >
+                      {auth.legislation}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span>{auth.legislation}</span>
+                  )}
                   {(auth as any).effective_date && (
                     <span className="text-slate/70 ml-1">
                       · Effective{" "}
@@ -405,6 +474,9 @@ const JurisdictionPage = () => {
               )}
               <div className="mt-3 flex gap-4 flex-wrap">
                 <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Official Website ↗</a>
+                {(auth as any).regulations_url && (
+                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
+                )}
                 {auth.complaint_portal && (
                   <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Complaint Portal ↗</a>
                 )}
@@ -414,6 +486,86 @@ const JurisdictionPage = () => {
         </div>
 
         <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
+
+        {/* Compliance tools — only for jurisdictions with an enacted law */}
+        {(() => {
+          const isUSState = jurisdiction.region === "United States" && slug !== "united-states";
+          const firstAuth: any = jurisdiction.authorities[0] || {};
+          const usEnacted = isUSState && firstAuth.statute_status === "Enacted";
+          const statuteText = (firstAuth.legislation || "").toLowerCase();
+          const isGdprAligned =
+            !isUSState &&
+            (derivedCategory === "eu-uk" || statuteText.includes("gdpr")) &&
+            !!firstAuth.legislation;
+
+          if (!usEnacted && !isGdprAligned) return null;
+
+          type Tool = { label: string; desc: string; href: string };
+          const tools: Tool[] = [];
+          if (usEnacted) {
+            tools.push({
+              label: "Privacy Program Assessment",
+              desc: "Assess your organisation's privacy programme posture.",
+              href: "/governance-assessment",
+            });
+            tools.push({
+              label: "US Privacy Notice Generator",
+              desc: `Generate a privacy notice that complies with ${jurisdiction.name} and other applicable state laws.`,
+              href: "/us-notices",
+            });
+            if (slug === "california") {
+              tools.push({
+                label: "CPPA Scope Checker",
+                desc: "Find out whether CPPA audit obligations apply to your business.",
+                href: "/cppa-scope-checker",
+              });
+              tools.push({
+                label: "CPPA Risk Assessment",
+                desc: "Build a CPPA-ready privacy risk assessment.",
+                href: "/cppa-risk-assessment",
+              });
+            }
+          } else if (isGdprAligned) {
+            tools.push({
+              label: "EU & Global Privacy Notice Generator",
+              desc: "Generate a GDPR-compliant privacy notice under Article 13/14.",
+              href: "/eu-notices",
+            });
+            tools.push({
+              label: "Legitimate Interest Assessment",
+              desc: "Document your legitimate interest basis before you rely on it.",
+              href: "/li-assessment",
+            });
+            tools.push({
+              label: "DPIA Framework",
+              desc: "Build a Data Protection Impact Assessment under Article 35.",
+              href: "/dpia-framework",
+            });
+          }
+
+          return (
+            <div className="mb-10">
+              <h2 className="font-display text-xl text-navy mb-4">
+                Compliance tools for {jurisdiction.name}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {tools.map((t) => (
+                  <Link
+                    key={t.href}
+                    to={t.href}
+                    className="group block p-4 bg-sky/5 border border-sky/30 rounded-xl hover:border-blue hover:bg-sky/10 transition-colors no-underline"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <span className="font-display text-[15px] text-navy">{t.label}</span>
+                      <span className="text-blue group-hover:translate-x-0.5 transition-transform">→</span>
+                    </div>
+                    <p className="text-[12.5px] text-slate leading-snug">{t.desc}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Top Premium CTA — anonymous only, high-intent SEO traffic */}
         {!user && (
@@ -609,7 +761,7 @@ const JurisdictionPage = () => {
           </Link>
           <p className="mt-3 text-slate-light text-[12px]">
             Not sure yet?{" "}
-            <Link to="/sample-brief" className="text-sky hover:text-white transition-colors no-underline underline underline-offset-2">
+            <Link to="/#brief" className="text-sky hover:text-white transition-colors no-underline underline underline-offset-2">
               See a sample brief first →
             </Link>
           </p>

@@ -3,15 +3,17 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 export default function SubscribeSuccess() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const [isPremium, setIsPremium] = useState(false);
+  const { hasToolAccess, isFoundingSubscriber, isIntelligenceOnly, isPremium } = useSubscriptionTier();
+  const [activated, setActivated] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -23,7 +25,7 @@ export default function SubscribeSuccess() {
         .eq("id", user.id)
         .single();
       if (data?.is_premium) {
-        setIsPremium(true);
+        setActivated(true);
         clearInterval(poll);
       }
       if (++attempts >= 10) clearInterval(poll);
@@ -31,33 +33,65 @@ export default function SubscribeSuccess() {
     return () => clearInterval(poll);
   }, [user]);
 
-  const NEXT_STEPS = [
-    {
-      icon: "🎯",
-      title: "Configure your Intelligence Brief",
-      body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
-    },
-    {
-      icon: "📧",
-      title: "Brief arrives Monday",
-      body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET. It covers the past week's most important global privacy developments — re-analyzed for your world.",
-    },
-    {
-      icon: "⚖️",
-      title: "Full Enforcement Tracker unlocked",
-      body: "You now have access to every enforcement action in the database — all regulators, all jurisdictions, with fine amounts and legal basis.",
-    },
-    {
-      icon: "🌍",
-      title: "Explore 150+ jurisdiction profiles",
-      body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history.",
-    },
-  ];
+  // Tier-aware content
+  const headline = hasToolAccess
+    ? "Your Compliance Platform is ready."
+    : "Your Intelligence Feed is active.";
+
+  const subheadline = hasToolAccess
+    ? "All compliance tools are included in your plan. No additional charges for any standard tool."
+    : "Your weekly brief is configured. You'll receive your first issue this Monday at 7am ET.";
+
+  const NEXT_STEPS = hasToolAccess
+    ? [
+        {
+          icon: "🛠️",
+          title: "All compliance tools — included",
+          body: "Governance, LIA, DPIA, DPA, IR Playbook, Biometric Checker, RoFA, US & EU Notices, and Registration. No per-document charges for any standard tool.",
+        },
+        {
+          icon: "🎯",
+          title: "Configure your Privacy Intelligence Report",
+          body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
+        },
+        {
+          icon: "📧",
+          title: "Brief arrives Monday",
+          body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET — customized and analyzed for your priorities and responsibilities.",
+        },
+        {
+          icon: "📁",
+          title: "Documents saved permanently",
+          body: "Every document you generate stays in your workspace — refresh, revise, or download anytime.",
+        },
+      ]
+    : [
+        {
+          icon: "🎯",
+          title: "Configure your Privacy Intelligence Report",
+          body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
+        },
+        {
+          icon: "📧",
+          title: "Brief arrives Monday",
+          body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET — customized and analyzed for your priorities and responsibilities.",
+        },
+        {
+          icon: "⚖️",
+          title: "Full Enforcement Tracker unlocked",
+          body: "You now have access to every enforcement action in the database — all regulators, all jurisdictions, with fine amounts and legal basis.",
+        },
+        {
+          icon: "🌍",
+          title: "Explore 150+ jurisdiction profiles",
+          body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history.",
+        },
+      ];
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>Welcome to Intelligence | End User Privacy</title>
+        <title>{hasToolAccess ? "Welcome to the Compliance Platform" : "Welcome to Intelligence"} | End User Privacy</title>
       </Helmet>
       <Navbar />
 
@@ -72,13 +106,17 @@ export default function SubscribeSuccess() {
             ⭐ Payment Confirmed
           </div>
           <h1 className="font-display font-bold text-navy text-[28px] md:text-[34px] mb-3 leading-tight">
-            Welcome to Intelligence.
+            {headline}
           </h1>
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
-            Your personal analyst is now active. Every Monday morning, you'll receive
-            an Intelligence Brief re-written specifically for your regulatory world.
+            {subheadline}
           </p>
-          {!isPremium && (
+          {isFoundingSubscriber && (
+            <p className="text-amber-700 text-[13px] font-semibold mt-3">
+              Welcome, founding subscriber. Your rate is locked for life.
+            </p>
+          )}
+          {!activated && isPremium && (
             <p className="text-slate-light text-[12px] mt-3 animate-pulse">
               Activating your account…
             </p>
@@ -108,13 +146,14 @@ export default function SubscribeSuccess() {
           </div>
         </div>
 
-        {/* Founding offer reminder */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
-          <p className="text-amber-800 text-[13px] font-medium">
-            🎁 You're one of the first 25 subscribers — your first year is free.
-            Your {`${INTELLIGENCE_PRICING.monthly()} (or ${INTELLIGENCE_PRICING.yearly()})`} billing begins in 12 months.
-          </p>
-        </div>
+        {/* Upgrade nudge for monthly subscribers */}
+        {isIntelligenceOnly && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
+            <p className="text-amber-800 text-[13px] font-medium">
+              Want all compliance tools included? Upgrade to the Annual Platform from your account settings — {PLATFORM_PRICING.standard()}.
+            </p>
+          </div>
+        )}
 
         {/* Primary CTAs */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -122,20 +161,20 @@ export default function SubscribeSuccess() {
             to="/brief-preferences?from=subscribe"
             className="flex-1 text-center bg-amber-400 text-navy font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
-            Personalize your Intelligence Brief →
+            Personalize your Privacy Intelligence Report →
           </Link>
           <Link
-            to="/dashboard"
+            to={hasToolAccess ? "/tools" : "/dashboard"}
             className="flex-1 text-center bg-gradient-to-br from-navy to-blue text-white font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
-            Open My Intelligence Brief →
+            {hasToolAccess ? "Browse compliance tools →" : "Open My Intelligence Brief →"}
           </Link>
         </div>
 
         <p className="text-center text-slate-light text-[12px] mt-6">
           Questions? <Link to="/contact" className="text-blue hover:text-navy no-underline">Contact us</Link>
           {" "}· <Link to="/faq" className="text-blue hover:text-navy no-underline">FAQ</Link>
-          {" "}· Cancel anytime from My Account
+          {" "}· Cancel anytime from <Link to="/account" className="text-blue hover:text-navy no-underline">My Account</Link>
         </p>
       </div>
 

@@ -3,12 +3,13 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { FlagIcon } from "@/components/FlagIcon";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import OnboardingModal from "@/components/OnboardingModal";
 
-import PremiumToolsSection from "@/components/dashboard/PremiumToolsSection";
+
 import DigestPreferences from "@/components/DigestPreferences";
 import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
@@ -16,9 +17,10 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
-import RecentReportsCard from "@/components/dashboard/RecentReportsCard";
+
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
 
 interface EnforcementRow {
   regulator: string;
@@ -81,7 +83,7 @@ function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: str
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
       <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
-        <span className="mr-2">{icon}</span>{title}
+        <span className="mr-2"><FlagIcon icon={icon} /></span>{title}
       </h3>
       {subtitle && (
         <p className="text-[12px] text-slate-500 mb-4 leading-snug">{subtitle}</p>
@@ -198,6 +200,7 @@ const Dashboard = () => {
   const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [briefArchive, setBriefArchive] = useState<any[]>([]);
+  const [customBriefLoading, setCustomBriefLoading] = useState(true);
   const [expandedBriefId, setExpandedBriefId] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showDigestPrefs, setShowDigestPrefs] = useState(false);
@@ -245,6 +248,7 @@ const Dashboard = () => {
   // Fetch all personalized briefs (most recent first) for Pro users
   useEffect(() => {
     if (!user) return;
+    setCustomBriefLoading(true);
     (supabase as any)
       .from("custom_briefs")
       .select("*")
@@ -254,7 +258,8 @@ const Dashboard = () => {
       .then(({ data }: any) => {
         const rows = Array.isArray(data) ? data : [];
         setCustomBrief(rows[0] ?? null);
-        setBriefArchive(rows.slice(1));
+        setBriefArchive(rows);
+        setCustomBriefLoading(false);
       });
   }, [user]);
 
@@ -289,6 +294,8 @@ const Dashboard = () => {
   }
 
   if (!user) return null;
+
+  const canShowPublicBrief = !customBriefLoading && !customBrief && briefArchive.length === 0;
 
   if (!isPremium) {
     return (
@@ -376,7 +383,7 @@ const Dashboard = () => {
                         Browse updates →
                       </Link>
                       <Link to="/subscribe" className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors no-underline">
-                        Get the full Intelligence Brief
+                        Get the full Privacy Intelligence Report
                       </Link>
                     </div>
                   </div>
@@ -423,146 +430,52 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Intelligence Dashboard | End User Privacy</title>
-        <meta name="description" content="Your personalized privacy intelligence dashboard. Access your weekly digest, enforcement tracker, and regulatory updates." />
+        <title>Intelligence Brief | End User Privacy</title>
+        <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Subscription plan status */}
-        <div className="mb-8 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-display font-bold text-foreground text-[16px]">
-                {subscriptionInterval === "year" ? "⭐ Intelligence Annual" : "⭐ Intelligence Monthly"}
-              </span>
-              {subscriptionInterval === "year" && (
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                  Best Value
-                </span>
-              )}
-            </div>
-            <Link to="/account" className="text-[12px] font-semibold text-primary hover:underline no-underline">
-              Manage →
-            </Link>
+        {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
+        {/* Header — only shown to subscribers without a personalized brief yet */}
+        {canShowPublicBrief && (
+          <div className="mb-10">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
+              📋 Weekly Privacy Intelligence Report
+            </p>
+            <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
+              {loading
+                ? "Loading your latest brief…"
+                : brief?.headline ?? "Your next brief is on the way"}
+            </h1>
+            {!loading && brief && (
+              <p className="mt-3 text-[13px] text-muted-foreground">
+                Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
+              </p>
+            )}
+            {!loading && !brief && (
+              <p className="mt-3 text-[13px] text-muted-foreground">
+                We publish a new Intelligence Brief every Monday morning. Your first
+                brief will appear here as soon as it's ready — no action needed.
+              </p>
+            )}
           </div>
-          {subscriptionInterval === "year" && (
-            <p className="text-[12px] text-muted-foreground mb-4">
-              Annual plan — saving $78/year vs monthly billing.
-            </p>
-          )}
-
-          {/* Tool pricing reminder */}
-          <div className="border-t border-border pt-4">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-steel mb-3">
-              Your subscriber tool pricing
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-2">
-              <Link
-                to="/governance-assessment"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Privacy Program Assessment</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$25</span>
-                  <span className="text-muted-foreground"> /analysis</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $24 vs standard</p>
-              </Link>
-              <Link
-                to="/li-assessment"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Legitimate Interest Assessment</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$35</span>
-                  <span className="text-muted-foreground"> /analysis</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $44 vs standard</p>
-              </Link>
-              <Link
-                to="/dpia-framework"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Impact Assessment Builder</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$49</span>
-                  <span className="text-muted-foreground"> /analysis</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $50 vs standard</p>
-              </Link>
-              <Link
-                to="/dpa-generator"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Your Custom DPA</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">$49</span>
-                  <span className="text-muted-foreground"> /document</span>
-                </p>
-                <p className="text-[10px] text-green-700">Save $50 vs standard</p>
-              </Link>
-              <Link
-                to="/ir-playbook"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Your Breach Response Playbook</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">Included free</span>
-                </p>
-                <p className="text-[10px] text-green-700">Free with your subscription</p>
-              </Link>
-              <Link
-                to="/biometric-checker"
-                className="block bg-muted/40 hover:bg-muted rounded-lg px-3 py-2.5 no-underline transition-colors"
-              >
-                <p className="text-[12px] font-semibold text-foreground">Biometric Assessment</p>
-                <p className="text-[12px] text-foreground">
-                  <span className="font-bold">Included free</span>
-                </p>
-                <p className="text-[10px] text-green-700">Free with your subscription</p>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Header */}
-        <div className="mb-10">
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
-            📋 Weekly Intelligence Brief
-          </p>
-          <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
-            {loading
-              ? "Loading your latest brief…"
-              : brief?.headline ?? "Your next brief is on the way"}
-          </h1>
-          {!loading && brief && (
-            <p className="mt-3 text-[13px] text-muted-foreground">
-              Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
-            </p>
-          )}
-          {!loading && !brief && (
-            <p className="mt-3 text-[13px] text-muted-foreground">
-              We publish a new Intelligence Brief every Monday morning. Your first
-              brief will appear here as soon as it's ready — no action needed.
-            </p>
-          )}
-        </div>
+        )}
 
         {/* Awaiting first personalized brief — prospective messaging.
             Shown above the general weekly brief so subscribers know their
             customized version is still pending. */}
-        {!customBrief && (
+        {canShowPublicBrief && (
           <div className="bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/20 rounded-2xl p-6 mb-8">
             <div className="flex items-start gap-4">
               <p className="text-3xl">📬</p>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display font-bold text-foreground text-[18px] mb-1">
-                  Your personalized brief arrives next Monday
+                  Your Privacy Intelligence Report arrives next Monday
                 </h3>
                 <p className="text-muted-foreground text-[13px] mb-3 leading-relaxed">
-                  In the meantime, the general Weekly Intelligence Brief below covers this week's
+                  In the meantime, the general Weekly Privacy Intelligence Report below covers this week's
                   developments across every jurisdiction and topic. Your personalized version
                   will customize and analyze the same material for your priorities and responsibilities.
                 </p>
@@ -577,73 +490,98 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Custom brief for Pro users — most recent, expanded */}
+        {/* Custom briefs for Pro users — collapsible list, most recent first */}
         {customBrief && (
-          <>
-            <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-3">
-              <CustomBriefDocument
-                customBrief={customBrief}
-                sourceMap={brief?.source_map ?? {}}
-              />
-            </div>
-            <div className="mb-8 flex items-center justify-between gap-3 flex-wrap px-1">
-              <p className="text-[12px] text-muted-foreground">
-                Want to change focus for your next brief?
-              </p>
-              <Link
-                to="/brief-preferences"
-                className="text-[12px] font-semibold text-primary hover:underline no-underline"
-              >
-                Update preferences for next Monday →
-              </Link>
-            </div>
-          </>
+          <div className="mb-3 flex items-center justify-end gap-3 flex-wrap px-1">
+            <p className="text-[12px] text-muted-foreground">
+              Want to change focus for your next report?
+            </p>
+            <Link
+              to="/brief-preferences"
+              className="text-[12px] font-semibold text-primary hover:underline no-underline"
+            >
+              Update preferences for next Monday →
+            </Link>
+          </div>
         )}
 
-        {/* Archive of older personalized briefs — collapsible */}
         {briefArchive.length > 0 && (
           <div className="mb-8">
-            <h2 className="font-display text-[14px] font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
-              📚 Your Brief History ({briefArchive.length})
-            </h2>
+            {briefArchive.length > 1 && (
+              <h2 className="font-display text-[14px] font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
+                📚 Your Reports ({briefArchive.length})
+              </h2>
+            )}
             <div className="space-y-2">
-              {briefArchive.map((b: any) => {
+              {briefArchive.map((b: any, idx: number) => {
+                const isLatest = idx === 0;
                 const isOpen = expandedBriefId === b.id;
+                const toggle = () => {
+                  setExpandedBriefId(isOpen ? null : b.id);
+                };
                 const generated = b.generated_at
                   ? new Date(b.generated_at).toLocaleString(undefined, {
                       month: "short", day: "numeric", year: "numeric",
                       hour: "numeric", minute: "2-digit",
                     })
                   : "";
-                const headline = b.custom_sections?.opening_headline ?? "Personalized brief";
+                const headline = b.custom_sections?.opening_headline ?? "Privacy Intelligence Report";
+                const headerId = `brief-header-${b.id}`;
+                const panelId = `brief-panel-${b.id}`;
+                const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  if (e.key === " " || e.key === "Enter") {
+                    e.preventDefault();
+                    toggle();
+                  }
+                };
                 return (
                   <div key={b.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedBriefId(isOpen ? null : b.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-                    >
-                      {isOpen
-                        ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                        : <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                            ⭐ {b.week_label}
-                          </span>
-                          <span className="text-[11px] text-slate-400">{generated}</span>
+                    <h3 className="m-0">
+                      <button
+                        type="button"
+                        id={headerId}
+                        onClick={toggle}
+                        onKeyDown={onKeyDown}
+                        aria-expanded={isOpen}
+                        aria-controls={panelId}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                      >
+                        {isOpen
+                          ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" />
+                          : <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" />}
+                        <span className="sr-only">{isOpen ? "Collapse brief" : "Expand brief"}: </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                              ⭐ {b.week_label}
+                            </span>
+                            {isLatest && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                Latest
+                              </span>
+                            )}
+                            <span className="text-[11px] text-slate-400">{generated}</span>
+                          </div>
+                          <p className="text-[13px] text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
                         </div>
-                        <p className="text-[13px] text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
-                      </div>
-                    </button>
-                    {isOpen && (
-                      <div className="bg-slate-100 p-3 md:p-4 border-t border-slate-200">
-                        <CustomBriefDocument
-                          customBrief={b}
-                          sourceMap={brief?.source_map ?? {}}
-                        />
-                      </div>
-                    )}
+                      </button>
+                    </h3>
+                    <div
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={headerId}
+                      hidden={!isOpen}
+                    >
+                      {isOpen && (
+                        <div className="bg-slate-100 p-3 md:p-4 border-t border-slate-200">
+                          <CustomBriefDocument
+                            customBrief={b}
+                            sourceMap={brief?.source_map ?? {}}
+                            hideHeader
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -652,19 +590,19 @@ const Dashboard = () => {
         )}
 
 
-        {loading && <BriefSkeleton />}
+        {loading && canShowPublicBrief && <BriefSkeleton />}
 
-        {!loading && !brief && (
+        {!loading && canShowPublicBrief && !brief && (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📅</p>
-            <p className="font-display text-[20px] text-foreground mb-2">First brief coming Monday</p>
+            <p className="font-display text-[20px] text-foreground mb-2">First report coming Monday</p>
             <p className="text-[14px] text-muted-foreground max-w-md mx-auto">
-              Your weekly intelligence brief is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
+              Your Privacy Intelligence Report is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
             </p>
           </div>
         )}
 
-        {!loading && brief && (
+        {!loading && brief && canShowPublicBrief && (
           <>
             {/* Public weekly brief — document layout */}
             <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8">
@@ -674,7 +612,7 @@ const Dashboard = () => {
                 <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
                   <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
-                      ⭐ End User Privacy Intelligence Brief
+                      ⭐ End User Privacy Intelligence Report
                     </span>
                     <span className="text-[11px] text-blue-300">
                       Covering {describeBriefPeriod(brief.published_at)} · {brief.article_count} updates reviewed
@@ -855,7 +793,7 @@ const Dashboard = () => {
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
                   <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
-                    <span>📚</span> All source articles for this brief
+                    <span>📚</span> All source articles for this report
                   </h3>
                   <p className="text-[12px] text-slate-400 mb-4">
                     {Object.keys(brief.source_map).length} articles monitored and synthesized for the period covering {describeBriefPeriod(brief.published_at)}. Click any title to read the original.
@@ -890,8 +828,6 @@ const Dashboard = () => {
           </>
         )}
 
-        <RecentReportsCard />
-        <PremiumToolsSection isPremium={isPremium} />
       </div>
 
       <Footer />

@@ -78,7 +78,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
               What best describes your role?
             </h2>
             <p className="text-muted-foreground text-[13px] text-center mb-6">
-              Your Intelligence Brief is shaped by how you use regulatory information.
+              Your Privacy Intelligence Report is shaped by how you use regulatory information.
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
               {ROLES.map(r => (
@@ -173,7 +173,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
               {saving ? "Saving…" : "Go to my dashboard →"}
             </button>
             <div className="text-center">
-              <a href="/sample-brief" className="text-[13px] text-muted-foreground hover:text-foreground no-underline transition-colors">
+              <a href="/#brief" className="text-[13px] text-muted-foreground hover:text-foreground no-underline transition-colors">
                 See a sample brief →
               </a>
             </div>

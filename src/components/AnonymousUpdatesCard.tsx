@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
+import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
 interface AnonymousUpdatesCardItem {
   id: string;
@@ -8,6 +9,9 @@ interface AnonymousUpdatesCardItem {
   category?: string | null;
   published_at?: string | null;
   source_name?: string | null;
+  image_url?: string | null;
+  why_it_matters_short?: string | null;
+  ai_summary?: { why_it_matters_short?: string | null } | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -43,35 +47,67 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
   const cat = item.category || "";
   const catClass = CATEGORY_COLORS[cat] || "bg-gray-50 text-gray-600 border border-gray-200";
   const catLabel = CATEGORY_LABELS[cat] || cat;
+  const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
 
   return (
     <Link
       to={`/updates/${item.id}`}
-      className="block group py-4 border-b border-fog last:border-0 no-underline"
+      className="group flex gap-4 items-start py-4 border-b border-fog last:border-0 no-underline"
     >
-      <div className="flex flex-wrap items-center gap-1.5 mb-1">
-        {item.source_name && (
-          <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
-            {item.source_name}
-          </span>
-        )}
-        {item.published_at && (
-          <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
-        )}
-        {cat && (
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
-            {catLabel}
-          </span>
-        )}
-      </div>
-      <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
-        {normalizeTitle(item.title)}
-      </p>
-      {item.summary && (
-        <p className="text-[13px] text-slate leading-relaxed line-clamp-2">
-          {stripHtml(item.summary)}
+      {/* Article thumbnail — falls back to EUP brand tile when missing */}
+      <img
+        src={item.image_url || eupTile}
+        alt=""
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = eupTile;
+        }}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+          {item.source_name && (
+            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+              {item.source_name}
+            </span>
+          )}
+          {item.published_at && (
+            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
+          )}
+          {cat && (
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
+              {catLabel}
+            </span>
+          )}
+        </div>
+        <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
+          {normalizeTitle(item.title)}
         </p>
-      )}
+        {item.summary && (
+          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
+            {stripHtml(item.summary)}
+          </p>
+        )}
+        {shortWhy && (
+          <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
+              Why it matters
+            </p>
+            <p className="text-[12.5px] text-navy leading-relaxed line-clamp-2">{stripHtml(shortWhy)}</p>
+          </div>
+        )}
+        <div className="mt-2 flex items-center gap-2">
+          <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
+          <Link
+            to="/signup"
+            className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Register free →
+          </Link>
+        </div>
+      </div>
     </Link>
   );
 }

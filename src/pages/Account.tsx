@@ -2,14 +2,19 @@ import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { Helmet } from "react-helmet-async";
 import { Check, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import WatchlistManager from "@/components/watchlist/WatchlistManager";
+
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import {
+  AccountClientsSection,
+  ComplianceDocumentsSection,
+} from "@/components/clients/AccountClientsSection";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,9 +31,8 @@ export default function Account() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isPremium, setIsPremium] = useState(false);
-  const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
-  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const { tier, hasToolAccess, isPremium, isLoading: tierLoading } =
+    useSubscriptionTier();
   const [onboardingComplete, setOnboardingComplete] = useState(true);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(null);
@@ -36,21 +40,19 @@ export default function Account() {
   const [cancelBusy, setCancelBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cancelMsg, setCancelMsg] = useState("");
+  const [addonBusy, setAddonBusy] = useState(false);
 
   const loadProfile = () => {
     if (!user) return;
     supabase
       .from("profiles")
       .select(
-        "is_premium, subscription_interval, subscription_tier, role_confirmed_at, cancel_at_period_end, subscription_end_date"
+        "role_confirmed_at, cancel_at_period_end, subscription_end_date"
       )
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         if (data) {
-          setIsPremium(data.is_premium);
-          setSubscriptionInterval((data as any).subscription_interval ?? null);
-          setSubscriptionTier((data as any).subscription_tier ?? null);
           setOnboardingComplete(!!(data as any).role_confirmed_at);
           setCancelAtPeriodEnd(!!(data as any).cancel_at_period_end);
           setSubscriptionEndDate((data as any).subscription_end_date ?? null);
@@ -109,12 +111,31 @@ export default function Account() {
     loadProfile();
   };
 
+  const handleAddClientWorkspace = async () => {
+    setAddonBusy(true);
+    const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+      body: { addon: "per_client_addon" },
+    });
+    setAddonBusy(false);
+    const url = (data as any)?.url as string | undefined;
+    if (error || (data as any)?.error || !url) {
+      const msg =
+        (data as any)?.message ||
+        (data as any)?.error ||
+        error?.message ||
+        "Could not start add-on checkout.";
+      toast({ title: "Checkout failed", description: msg, variant: "destructive" });
+      return;
+    }
+    window.location.assign(url);
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
-  if (loading) {
+  if (loading || tierLoading) {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-blue/30 border-t-blue rounded-full animate-spin" />
@@ -162,30 +183,6 @@ export default function Account() {
               <span className="text-[13px] text-slate">Email</span>
               <span className="text-[13px] font-medium text-navy">{user?.email}</span>
             </div>
-            <div className="flex justify-between items-center py-2.5 border-b border-fog">
-              <span className="text-[13px] text-slate">Plan</span>
-              {isPremium ? (
-                <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full">
-                  ⭐ {subscriptionTier === "grandfathered_premium" ? "Intelligence (Legacy)" : "Intelligence"}{" "}
-                  {subscriptionInterval === "year" ? "(Annual)" : "(Monthly)"}
-                </span>
-              ) : (
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate bg-fog border border-silver px-2.5 py-1 rounded-full">
-                  Free
-                </span>
-              )}
-            </div>
-            {isPremium && (
-              <div className="flex justify-between items-center py-2.5 border-b border-fog">
-                <span className="text-[13px] text-slate">Tool pricing</span>
-                <Link
-                  to="/tools"
-                  className="text-[13px] text-blue hover:text-navy no-underline font-medium"
-                >
-                  Subscriber rates active →
-                </Link>
-              </div>
-            )}
             <div className="flex justify-between items-center py-2.5">
               <span className="text-[13px] text-slate">Password</span>
               <Link
@@ -198,7 +195,57 @@ export default function Account() {
           </div>
         </div>
 
-        {/* Subscription management */}
+        {/* Plan — tier-specific block */}
+        {tier === "annual_founding" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4">
+            <p className="font-bold text-navy text-[15px]">
+              Compliance Platform — Annual (Founding Subscriber)
+            </p>
+            <p className="text-[13px] text-amber-700 font-semibold mt-1">
+              Rate locked for life
+            </p>
+            <p className="text-[12px] text-slate mt-1">
+              All compliance tools included. Full intelligence brief.
+            </p>
+          </div>
+        )}
+
+        {tier === "annual" && (
+          <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
+            <p className="font-bold text-navy text-[15px]">Compliance Platform — Annual</p>
+            <p className="text-[13px] text-slate mt-1">
+              {PLATFORM_PRICING.standard()} · {PLATFORM_PRICING.standardMonthly()} equivalent
+            </p>
+            <p className="text-[12px] text-slate mt-1">
+              All compliance tools included. Full intelligence brief.
+            </p>
+          </div>
+        )}
+
+        {tier === "monthly" && (
+          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 mb-4">
+            <p className="font-bold text-navy text-[15px]">Intelligence Feed — Monthly</p>
+            <p className="text-[13px] text-teal-700 mt-1">
+              {INTELLIGENCE_PRICING.monthly()} · Cancel any time
+            </p>
+            <p className="text-[12px] text-slate mt-1">
+              Intelligence brief, enforcement tracking, and reference content.
+            </p>
+            <div className="mt-3 p-3 bg-card rounded-lg border border-teal-100">
+              <p className="text-[12px] font-semibold text-navy">
+                Add compliance tools with Annual Platform
+              </p>
+              <p className="text-[11px] text-slate mb-2">
+                All tools included. {PLATFORM_PRICING.standard()}.
+              </p>
+              <Link to="/subscribe" className="text-[12px] font-bold text-navy underline">
+                Upgrade to Platform →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription management — for any paid tier */}
         {isPremium ? (
           <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
             <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
@@ -228,7 +275,7 @@ export default function Account() {
               </div>
               <div className="flex justify-between items-center py-2.5">
                 <span className="text-[13px] text-slate">
-                  {cancelAtPeriodEnd ? "Resume subscription" : "Cancel subscription"}
+                  {cancelAtPeriodEnd ? "Resume subscription" : "Manage subscription"}
                 </span>
                 {cancelAtPeriodEnd ? (
                   <button
@@ -244,9 +291,9 @@ export default function Account() {
                     type="button"
                     onClick={() => setConfirmCancelOpen(true)}
                     disabled={cancelBusy}
-                    className="text-[13px] text-blue hover:text-navy font-medium bg-transparent border-none cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                    className="text-[13px] font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer disabled:opacity-50"
                   >
-                    Cancel subscription <ChevronRight className="w-3.5 h-3.5" />
+                    Cancel auto-renewal
                   </button>
                 )}
               </div>
@@ -261,12 +308,12 @@ export default function Account() {
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
-              Get Intelligence
+              Compliance Platform or Intelligence Feed
             </h3>
             <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
-              Full archive, your weekly brief re-written for your industry and
-              jurisdictions, watchlists, and subscriber pricing on every assessment tool
-              . {`${INTELLIGENCE_PRICING.combined()}`} (save 17%).
+              Annual Platform at {PLATFORM_PRICING.standard()} — every assessment,
+              notice, and document tool included. Or Intelligence Feed at{" "}
+              {INTELLIGENCE_PRICING.monthly()}.
             </p>
             <Link
               to="/subscribe"
@@ -276,6 +323,33 @@ export default function Account() {
             </Link>
           </div>
         )}
+
+        {/* Per-client add-on — annual subscribers only */}
+        {hasToolAccess && (
+          <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+            <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-2">
+              Client Workspaces
+            </h2>
+            <p className="text-[13px] text-slate mb-3 leading-relaxed">
+              Add additional client workspaces for {PLATFORM_PRICING.clientAddon()}. Each
+              workspace gets separate document storage and tool history.
+            </p>
+            <button
+              type="button"
+              onClick={handleAddClientWorkspace}
+              disabled={addonBusy}
+              className="text-[13px] font-semibold text-navy border border-navy px-4 py-2 rounded-lg hover:bg-navy/5 bg-transparent cursor-pointer disabled:opacity-50"
+            >
+              {addonBusy ? "Opening checkout…" : `+ Add client workspace — ${PLATFORM_PRICING.clientAddon()}`}
+            </button>
+          </div>
+        )}
+
+        {/* Multi-client management */}
+        <AccountClientsSection />
+
+        {/* Compliance documents summary */}
+        <ComplianceDocumentsSection />
 
         {/* Weekly Brief Language (Intelligence subscribers only) */}
         <BriefLanguageSelector />
@@ -287,7 +361,7 @@ export default function Account() {
           </h2>
           <div className="space-y-2">
             {[
-              { label: "Sample Brief", href: "/sample-brief", premium: false },
+              { label: "Sample Brief", href: "/#brief", premium: false },
               { label: "FAQ", href: "/faq", premium: false },
               { label: "Contact Support", href: "/contact", premium: false },
             ]
@@ -307,10 +381,7 @@ export default function Account() {
           </div>
         </div>
 
-        {/* Watchlist */}
-        <div id="watchlist" className="mb-4">
-          <WatchlistManager isPremium={isPremium} />
-        </div>
+        {/* Watchlist now lives at /watchlist */}
 
         {/* Sign out */}
         <button
@@ -329,7 +400,7 @@ export default function Account() {
             <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
             <AlertDialogDescription>
               Auto-renewal will be turned off and you won't be charged again. You'll
-              keep full access to Intelligence{" "}
+              keep full access{" "}
               {formattedEndDate ? (
                 <>
                   until <strong>{formattedEndDate}</strong>.

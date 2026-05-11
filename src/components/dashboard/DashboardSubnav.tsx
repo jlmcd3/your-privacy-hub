@@ -11,7 +11,7 @@
 //   - Account is the fallback: it highlights only when no workspace tab matched.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, FileCheck, Bookmark, Settings } from "lucide-react";
+import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ const FILING_PATH = /^\/registration-manager\/(my-filings|order|documents)(\/|$)
 const ITEMS: Item[] = [
   {
     to: "/dashboard",
-    label: "Brief",
+    label: "Intelligence Report",
     icon: FileText,
     // Exact /dashboard only — sub-routes like /dashboard/reports belong elsewhere.
     match: (p) => p === "/dashboard",
@@ -67,12 +67,16 @@ const ITEMS: Item[] = [
     match: (p) => FILING_PATH.test(p),
   },
   {
-    to: "/account#watchlist",
+    to: "/watchlist",
     label: "Watchlist",
     icon: Bookmark,
-    // Active whenever the user is anchored at the watchlist section,
-    // regardless of which path family they navigated from.
-    match: (p, h) => p === "/account" && h === "watchlist",
+    match: (p) => p === "/watchlist",
+  },
+  {
+    to: "/clients",
+    label: "Clients",
+    icon: Building2,
+    match: (p) => p === "/clients" || p.startsWith("/clients/"),
   },
 ];
 

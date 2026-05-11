@@ -88,13 +88,41 @@ serve(async (req) => {
             subscriber_at_time: false,
           });
 
-          const tableMap: Record<string, string> = {
+          const SESSION_TABLES: Record<string, string> = {
+            ropa_initial: "ropa_sessions",
+            ropa_refresh: "ropa_sessions",
+            us_notice_single: "us_notice_sessions",
+            us_notice_all_states: "us_notice_sessions",
+            eu_notice_single: "eu_notice_sessions",
+            eu_notice_suite: "eu_notice_sessions",
+            eu_notice_full_international: "eu_notice_sessions",
+            eu_notice_refresh: "eu_notice_sessions",
+          };
+
+          const ASSESSMENT_TABLES: Record<string, string> = {
             li_assessment: "li_assessments",
             governance_assessment: "governance_assessments",
             dpia_framework: "dpia_frameworks",
+            dpa_generator: "dpa_documents",
+            ir_playbook: "ir_playbooks",
+            biometric_checker: "biometric_assessments",
+            cppa_risk_assessment: "cppa_assessments",
+            cppa_cybersecurity: "cppa_assessments",
+            cppa_suite: "cppa_assessments",
           };
-          const table = tableMap[tool_type];
-          if (table) {
+
+          if (SESSION_TABLES[tool_type]) {
+            // Session-based tools: mark payment confirmed. Do NOT auto-generate.
+            // Generation is triggered by the user from the review screen.
+            await supabase
+              .from(SESSION_TABLES[tool_type])
+              .update({
+                payment_confirmed: true,
+                paid_at: new Date().toISOString(),
+              })
+              .eq("id", assessment_id);
+          } else if (ASSESSMENT_TABLES[tool_type]) {
+            const table = ASSESSMENT_TABLES[tool_type];
             await supabase.from(table).update({
               stripe_payment_intent_id: session.payment_intent as string,
               purchase_price_cents: session.amount_total || 0,
@@ -104,10 +132,36 @@ serve(async (req) => {
               li_assessment: "run-li-assessment",
               governance_assessment: "run-governance-assessment",
               dpia_framework: "run-dpia-framework",
+              cppa_risk_assessment: "run-cppa-risk-assessment",
+              cppa_cybersecurity: "run-cppa-cybersecurity",
             };
-            const fn = fnMap[tool_type];
-            const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
-            await supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } });
+
+            if (tool_type === "cppa_suite") {
+              // Suite: dispatch BOTH module functions in parallel.
+              const cyberId = session.metadata?.suite_cyber_id;
+              if (cyberId) {
+                await supabase.from("cppa_assessments").update({
+                  stripe_payment_intent_id: session.payment_intent as string,
+                  purchase_price_cents: session.amount_total || 0,
+                }).eq("id", cyberId);
+              }
+              await Promise.all([
+                supabase.functions.invoke("run-cppa-risk-assessment", {
+                  body: { assessment_id },
+                }),
+                cyberId
+                  ? supabase.functions.invoke("run-cppa-cybersecurity", {
+                      body: { assessment_id: cyberId },
+                    })
+                  : Promise.resolve(),
+              ]);
+            } else {
+              const fn = fnMap[tool_type];
+              if (fn) {
+                const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
+                await supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } });
+              }
+            }
           }
           break;
         }

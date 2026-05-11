@@ -1,0 +1,82 @@
+{
+  "startedAt": "2026-05-08T19:41:20.497Z",
+  "updatedAt": "2026-05-08T19:45:23.358Z",
+  "status": "done",
+  "totalBriefs": 1,
+  "completedBriefs": 1,
+  "totalSteps": 11,
+  "completedSteps": 11,
+  "currentRegion": null,
+  "currentRole": null,
+  "currentTrack": null,
+  "recent": [
+    {
+      "t": "2026-05-08T19:45:23.335Z",
+      "label": "apac/privacy_pro/_shared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:44:56.312Z",
+      "label": "apac/privacy_pro/breach",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:44:31.782Z",
+      "label": "apac/privacy_pro/biometric",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:44:14.416Z",
+      "label": "apac/privacy_pro/litigation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:43:57.157Z",
+      "label": "apac/privacy_pro/health_hipaa",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:43:41.032Z",
+      "label": "apac/privacy_pro/cross_border",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:43:17.756Z",
+      "label": "apac/privacy_pro/adtech_cookies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:42:53.481Z",
+      "label": "apac/privacy_pro/childrens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:42:31.268Z",
+      "label": "apac/privacy_pro/ai_act",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:42:10.077Z",
+      "label": "apac/privacy_pro/gdpr",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "t": "2026-05-08T19:41:51.032Z",
+      "label": "apac/privacy_pro/us_state",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "finishedAt": "2026-05-08T19:45:23.358Z"
+}

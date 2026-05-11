@@ -53,6 +53,28 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'anpd.gov.br':            ['brazil'],
   'pipc.go.kr':             ['south-korea'],
   'ppc.go.jp':              ['japan'],
+  // Civil society, policy, legal analysis (Batch 1 + 3)
+  'noyb.eu':                   ['eu'],
+  'out.law':                   ['united-kingdom', 'eu'],
+  'euractiv.com':              ['eu'],
+  'theregister.com':           ['united-kingdom'],
+  'privacyinternational.org':  ['global'],
+  'twobirds.com':              ['eu', 'united-kingdom'],
+  'edri.org':                  ['eu'],
+  'openrightsgroup.org':       ['united-kingdom'],
+  'politico.eu':               ['eu'],
+  'dataprotectionauthority.be':['belgium'],
+  'cnpd.public.lu':            ['luxembourg'],
+  'bsi.bund.de':               ['germany'],
+  'uoou.cz':                   ['czech-republic'],
+  'bitsoffreedom.nl':          ['netherlands'],
+  'statewatch.org':            ['eu'],
+  'accessnow.org':             ['global'],
+  'cms.law':                   ['global'],
+  'cliffordchance.com':        ['global'],
+  'aoshearman.com':            ['global'],
+  'freshfields.com':           ['global'],
+  'hsfnotes.com':              ['global'],
 };
 
 const extractDomain = (url: string): string => {
@@ -103,7 +125,7 @@ const RSS_SOURCES = [
   },
   // ── Global / Industry ─────────────────────────────────────────────
   {
-    url: "https://iapp.org/news/rss/",
+    url: "https://iapp.org/feeds/daily_dashboard/",
     source: "IAPP",
     domain: "iapp.org",
     defaultCategory: "global",
@@ -117,49 +139,206 @@ const RSS_SOURCES = [
     regulator: "Future of Privacy Forum",
   },
   // ── Litigation / Courts ──────────────────────────────────────────────
+  // Law360 Privacy & Reuters Legal removed: feeds are paywalled / auth-only.
   {
-    url: "https://feeds.law360.com/privacy",
-    source: "Law360 Privacy",
-    domain: "law360.com",
-    defaultCategory: "enforcement",
-    regulator: "Law360",
-  },
-  {
-    url: "https://www.reuters.com/legal/privacy/rss",
-    source: "Reuters Legal",
-    domain: "reuters.com",
-    defaultCategory: "enforcement",
-    regulator: "Reuters Legal",
-  },
-  {
-    url: "https://www.jdsupra.com/topics/privacy/rss/",
+    url: "https://www.jdsupra.com/topics/privacy-concerns/feed/",
     source: "JD Supra Privacy",
     domain: "jdsupra.com",
     defaultCategory: "global",
     regulator: "JD Supra",
   },
   // ── Additional regulatory sources ────────────────────────────────────
+  // ICO, DPC Ireland, and EDPS public RSS feeds have been retired by the
+  // publishers — leaving them in the source list only produced 404s.
+
+  // ── EU Civil Society, Policy & Legal Analysis (Batch 1) ─────────────
   {
-    url: "https://www.ico.org.uk/about-the-ico/media-centre/news-and-blogs/rss/",
-    source: "ICO",
-    domain: "ico.org.uk",
+    url: "https://noyb.eu/en/rss.xml",
+    source: "noyb",
+    domain: "noyb.eu",
     defaultCategory: "eu-uk",
-    regulator: "Information Commissioner's Office",
+    regulator: "noyb - European Centre for Digital Rights",
   },
   {
-    url: "https://www.dataprotection.ie/en/news-media/press-releases/rss",
-    source: "DPC Ireland",
-    domain: "dataprotection.ie",
+    url: "https://www.out-law.com/feeds/out-law_roundup.aspx",
+    source: "Out-Law",
+    domain: "out-law.com",
     defaultCategory: "eu-uk",
-    regulator: "Data Protection Commission",
+    regulator: "Pinsent Masons LLP",
+  },
+  // Euractiv Digital removed: publisher blocks RSS endpoints with Cloudflare 403.
+  {
+    url: "https://www.theregister.com/security/headlines.atom",
+    source: "The Register",
+    domain: "theregister.com",
+    defaultCategory: "eu-uk",
+    regulator: "The Register",
   },
   {
-    url: "https://edps.europa.eu/press-publications/press-news/news_en/rss",
-    source: "EDPS",
-    domain: "edps.europa.eu",
-    defaultCategory: "eu-uk",
-    regulator: "European Data Protection Supervisor",
+    url: "https://privacyinternational.org/rss.xml",
+    source: "Privacy International",
+    domain: "privacyinternational.org",
+    defaultCategory: "global",
+    regulator: "Privacy International",
   },
+  {
+    url: "https://www.twobirds.com/rss/insights-privacy.rss",
+    source: "Bird & Bird Privacy",
+    domain: "twobirds.com",
+    defaultCategory: "eu-uk",
+    regulator: "Bird & Bird LLP",
+  },
+  {
+    url: "https://edri.org/feed/",
+    source: "EDRi",
+    domain: "edri.org",
+    defaultCategory: "eu-uk",
+    regulator: "European Digital Rights",
+  },
+  {
+    url: "https://www.openrightsgroup.org/feed/",
+    source: "Open Rights Group",
+    domain: "openrightsgroup.org",
+    defaultCategory: "eu-uk",
+    regulator: "Open Rights Group",
+  },
+  {
+    url: "https://www.politico.eu/category/tech/feed/",
+    source: "Politico EU Tech",
+    domain: "politico.eu",
+    defaultCategory: "eu-uk",
+    regulator: "Politico Europe",
+  },
+
+  // ── EU DPA Official Feeds (Non-English — auto-translated, Batch 2) ──
+  {
+    url: "https://www.bfdi.bund.de/SiteGlobals/Functions/RSSFeed/RSSNewsfeed/RSSNewsfeed.xml",
+    source: "BfDI",
+    domain: "bfdi.bund.de",
+    defaultCategory: "eu-uk",
+    regulator: "Federal Commissioner for Data Protection (Germany)",
+    language: "de",
+  },
+  {
+    url: "https://www.autoriteitpersoonsgegevens.nl/nl/rss",
+    source: "AP Netherlands",
+    domain: "autoriteitpersoonsgegevens.nl",
+    defaultCategory: "eu-uk",
+    regulator: "Autoriteit Persoonsgegevens (Dutch DPA)",
+    language: "nl",
+  },
+  {
+    url: "https://www.aepd.es/rss/novedades",
+    source: "AEPD",
+    domain: "aepd.es",
+    defaultCategory: "eu-uk",
+    regulator: "Agencia Española de Protección de Datos (Spanish DPA)",
+    language: "es",
+  },
+  {
+    url: "https://www.dataprotectionauthority.be/rss",
+    source: "APD Belgium",
+    domain: "dataprotectionauthority.be",
+    defaultCategory: "eu-uk",
+    regulator: "Autorité de protection des données (Belgian DPA)",
+    language: "fr",
+  },
+  {
+    url: "https://cnpd.public.lu/fr/rss/actualites.rss",
+    source: "CNPD Luxembourg",
+    domain: "cnpd.public.lu",
+    defaultCategory: "eu-uk",
+    regulator: "Commission nationale pour la protection des données (Luxembourg DPA)",
+    language: "fr",
+  },
+  {
+    url: "https://www.datatilsynet.dk/rss/nyheder",
+    source: "Datatilsynet Denmark",
+    domain: "datatilsynet.dk",
+    defaultCategory: "eu-uk",
+    regulator: "Datatilsynet (Danish DPA)",
+    language: "da",
+  },
+
+  // ── EU Civil Society — English (Batch 3) ────────────────────────────
+  {
+    url: "https://statewatch.org/feed/",
+    source: "Statewatch",
+    domain: "statewatch.org",
+    defaultCategory: "eu-uk",
+    regulator: "Statewatch",
+  },
+
+  // ── Additional Law Firm Blogs (English, Batch 3) ────────────────────
+  {
+    url: "https://www.cms.law/en/int/service-area/technology-media-telecommunications/cybersecurity-data-protection/rss",
+    source: "CMS Law Privacy",
+    domain: "cms.law",
+    defaultCategory: "global",
+    regulator: "CMS Law",
+  },
+  {
+    url: "https://www.cliffordchance.com/insights/resources/blogs/data-and-privacy/rss.xml",
+    source: "Clifford Chance Privacy",
+    domain: "cliffordchance.com",
+    defaultCategory: "global",
+    regulator: "Clifford Chance LLP",
+  },
+  {
+    url: "https://www.aoshearman.com/en/insights/data-tech-cyber/rss",
+    source: "A&O Shearman Privacy",
+    domain: "aoshearman.com",
+    defaultCategory: "global",
+    regulator: "A&O Shearman LLP",
+  },
+  {
+    url: "https://www.freshfields.com/en/our-thinking/practice-areas/data-and-technology/rss",
+    source: "Freshfields Privacy",
+    domain: "freshfields.com",
+    defaultCategory: "global",
+    regulator: "Freshfields Bruckhaus Deringer LLP",
+  },
+  {
+    url: "https://hsfnotes.com/data/feed/",
+    source: "HSF Data Notes",
+    domain: "hsfnotes.com",
+    defaultCategory: "global",
+    regulator: "Herbert Smith Freehills LLP",
+  },
+
+  // ── Additional EU DPA & Civil Society (auto-translated, Batch 3) ────
+  {
+    url: "https://www.bsi.bund.de/SiteGlobals/Functions/RSSFeed/RSSNewsfeed/RSSNewsfeed.xml",
+    source: "BSI Germany",
+    domain: "bsi.bund.de",
+    defaultCategory: "eu-uk",
+    regulator: "Bundesamt für Sicherheit in der Informationstechnik (Germany)",
+    language: "de",
+  },
+  {
+    url: "https://www.imy.se/en/news/rss",
+    source: "IMY Sweden",
+    domain: "imy.se",
+    defaultCategory: "eu-uk",
+    regulator: "Integritetsskyddsmyndigheten (Swedish DPA)",
+  },
+  {
+    url: "https://www.uoou.cz/rss.php?rss=zpravy",
+    source: "UOOU Czech",
+    domain: "uoou.cz",
+    defaultCategory: "eu-uk",
+    regulator: "Úřad pro ochranu osobních údajů (Czech DPA)",
+    language: "cs",
+  },
+  {
+    url: "https://www.bitsoffreedom.nl/feed/",
+    source: "Bits of Freedom",
+    domain: "bitsoffreedom.nl",
+    defaultCategory: "eu-uk",
+    regulator: "Bits of Freedom",
+    language: "nl",
+  },
+
   // ── AdTech & Advertising Privacy ─────────────────────────────────────
   {
     url: "https://www.adexchanger.com/feed/",
@@ -961,7 +1140,7 @@ AdTech: IAB TCF, GDPR consent for tracking cookies, DPA cookie enforcement (CNIL
 Healthcare: HIPAA Privacy and Security Rules, HITECH, GDPR Article 9 special category health data, EDPB health data guidance, FDA digital health, state health privacy laws (Washington My Health MY Data, Nevada, Connecticut, Montana, Oregon, Texas consumer health data laws).
 AI governance: EU AI Act prohibited practices, high-risk systems and GPAI obligations, GDPR Article 22 automated decision-making, FTC AI enforcement, NIST AI RMF, algorithmic accountability, AI training data and scraping, biometric data in AI systems.
 Financial services: GLBA Privacy and Safeguards Rules, CFPB Section 1033, DORA, SEC cybersecurity disclosure rules, NY DFS Part 500, PCI DSS.
-Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysis — treat as Commentary legal weight.
+Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysis, noyb, EDRi, Open Rights Group, Statewatch, Access Now, Bits of Freedom — treat as Commentary legal weight. Law firm blog analysis (Out-Law, Bird & Bird, Linklaters, Fieldfisher, DLA Piper, CMS Law, Clifford Chance, A&O Shearman, Freshfields, Herbert Smith Freehills, etc.) — treat as Soft Guidance legal weight.
 Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
 Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
 Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
@@ -1251,6 +1430,54 @@ Description: ${description || ""}`,
     return { title, description };
   }
 }
+
+// Batch 2 — Per-feed declared-language translation. Used when a feed entry
+// declares a `language` other than "en". Translates title + description via Haiku
+// before relevance / enrichment / storage.
+async function translateIfNeeded(
+  title: string,
+  description: string,
+  language: string,
+  apiKey: string
+): Promise<{ title: string; description: string }> {
+  if (!language || language === "en") return { title, description };
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 800,
+        messages: [{
+          role: "user",
+          content: `Translate this privacy/data protection article from ${language} to English.
+Return ONLY valid JSON: {"title": "...", "description": "..."}.
+Preserve all proper nouns, regulator names, fine amounts, and legal references exactly.
+Title: ${title}
+Description: ${(description || "").substring(0, 1000)}`,
+        }],
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!resp.ok) return { title, description };
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return { title, description };
+    const parsed = JSON.parse(match[0]);
+    return {
+      title: parsed.title || title,
+      description: parsed.description || description,
+    };
+  } catch {
+    return { title, description };
+  }
+}
+
 import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
 
 Deno.serve(async (req) => {
@@ -1261,9 +1488,26 @@ Deno.serve(async (req) => {
   // No auth check needed — this function only ingests public RSS data
   // and writes via service_role. Rate-limited by cron schedule.
 
-  const run = await startRun(supabase, "fetch-updates", { sources: RSS_SOURCES.length });
+  // Sharding: caller may pass ?shard=N&shards=M (1-indexed) to process only a
+  // slice of RSS_SOURCES. Cron fans out multiple staggered invocations so each
+  // one fits comfortably under the edge-runtime wall-clock limit.
+  const url = new URL(req.url);
+  const shards = Math.max(1, Math.min(10, parseInt(url.searchParams.get("shards") || "1", 10) || 1));
+  const shard = Math.max(1, Math.min(shards, parseInt(url.searchParams.get("shard") || "1", 10) || 1));
+  const sliceSize = Math.ceil(RSS_SOURCES.length / shards);
+  const sliceStart = (shard - 1) * sliceSize;
+  const sliceEnd = Math.min(RSS_SOURCES.length, sliceStart + sliceSize);
+  const sourcesForRun = shards === 1 ? RSS_SOURCES : RSS_SOURCES.slice(sliceStart, sliceEnd);
+
+  const run = await startRun(supabase, "fetch-updates", {
+    sources: sourcesForRun.length,
+    shard,
+    shards,
+  });
   const startedMs = Date.now();
-  const maxRuntimeMs = 240_000;
+  // Stay safely under the edge-runtime wall-clock cap (~150s) so finishRun()
+  // always gets to record completion. With sharding, 120s per shard is plenty.
+  const maxRuntimeMs = 120_000;
   const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, stopped_due_to_time_budget: false, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
@@ -1276,7 +1520,7 @@ Deno.serve(async (req) => {
     .select("url");
   const existingUrls = new Set((existingRows || []).map((r: { url: string }) => r.url));
 
-  for (const source of RSS_SOURCES) {
+  for (const source of sourcesForRun) {
     if (Date.now() - startedMs > maxRuntimeMs) {
       results.stopped_due_to_time_budget = true;
       break;
@@ -1303,8 +1547,16 @@ Deno.serve(async (req) => {
         if (!title || !link || !link.startsWith("http")) continue;
         if (existingUrls.has(link)) { results.skipped_existing++; continue; }
 
-        // Translate non-English content to English before processing
-        if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
+        // Per-feed declared-language translation (Batch 2). Runs first when the
+        // feed config explicitly sets `language`, so we get reliable translation
+        // for non-English DPAs. The heuristic fallback below covers feeds with
+        // no declared language that still emit non-English items.
+        const declaredLang = (source as { language?: string }).language;
+        if (anthropicKey && declaredLang && declaredLang !== "en") {
+          const translated = await translateIfNeeded(title, description, declaredLang, anthropicKey);
+          title = translated.title;
+          description = translated.description;
+        } else if (anthropicKey && isLikelyNonEnglish(title + " " + description)) {
           const translated = await translateToEnglish(title, description, anthropicKey);
           title = translated.title;
           description = translated.description;
@@ -1313,7 +1565,9 @@ Deno.serve(async (req) => {
         if (!isRelevant(title, description)) { results.skipped++; continue; }
 
         const category = categorize(title, description, source.defaultCategory);
-        const imageUrl = await extractOgImage(link) || FALLBACK_IMAGES[category];
+        // Use the article's own OG image if available; otherwise leave null and
+        // let assign-fallback-images apply the curated pool / EUP brand tile.
+        const imageUrl = (await extractOgImage(link)) || null;
 
         // Compute direct_jurisdictions from DPA source mapping
         const sourceDomain = extractDomain(link);
@@ -1443,7 +1697,7 @@ Deno.serve(async (req) => {
     enrichmentFailed429: results.enrichment_failed_429,
     enrichmentFailedOther: results.enrichment_failed_other,
     status: results.stopped_due_to_time_budget ? "partial" : undefined,
-    metadata: { errors: results.errors.slice(0, 10), sources: RSS_SOURCES.length, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
+    metadata: { errors: results.errors.slice(0, 10), sources: sourcesForRun.length, total_sources: RSS_SOURCES.length, shard, shards, skipped_existing: results.skipped_existing, stopped_due_to_time_budget: results.stopped_due_to_time_budget },
   });
 
   return new Response(JSON.stringify(results), {

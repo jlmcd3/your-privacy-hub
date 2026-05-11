@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
@@ -107,6 +109,23 @@ const DPIAFramework = () => {
     const err = validate();
     if (err) { toast({ title: "Please complete the form first", description: err, variant: "destructive" }); return; }
     if (!user) { setAuthGateOpen(true); return; }
+
+    // For $0 (included with Platform), bypass Stripe entirely
+    if (pricing.price === 0) {
+      setPurchasing(true);
+      const { data, error } = await supabase.functions.invoke(
+        "run-dpia-framework",
+        { body: { intake_data: buildIntake(), user_id: user.id } }
+      );
+      setPurchasing(false);
+      if (error || !data?.id) {
+        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      navigate(`/dpia-framework/result/${data.id}?purchased=true`);
+      return;
+    }
+
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured. Please check back soon.", variant: "destructive" });
       return;
@@ -126,8 +145,13 @@ const DPIAFramework = () => {
           <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements.</p>
         </div>
       </header>
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+          <ToolTierNote />
+        </div>
+
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <ActiveClientLabel />
         <div className="p-4 bg-purple-50 dark:bg-purple-950/30 border-l-4 border-purple-500 rounded text-sm">
           This tool produces an Impact Assessment document — a structured starting point for your organisation's Data Protection Officer or legal counsel to complete and own. It is not a finished Data Protection Impact Assessment (DPIA) and does not satisfy the requirements of GDPR Article 35 on its own. Qualified legal review is required before relying on this document.
         </div>

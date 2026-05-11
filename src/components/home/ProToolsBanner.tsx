@@ -15,6 +15,11 @@ import {
   Siren,
   Sparkles,
   ClipboardList,
+  Database,
+  FileText,
+  Globe,
+  ShieldAlert,
+  Lock,
 } from "lucide-react";
 
 type Tool = {
@@ -47,7 +52,7 @@ const TOOLS: Tool[] = [
     icon: Scale,
     title: "Legitimate Interest Assessment",
     blurb: "Build a defensible three-part LIA, with prompts tuned to your specific processing activity.",
-    price: "From $35 — subscribers · $79 standalone",
+    price: "From $35 — subscribers · $69 standalone",
     cta: "Build LIA",
     href: "/li-assessment",
   },
@@ -82,6 +87,46 @@ const TOOLS: Tool[] = [
     price: "Subscriber credit · standalone available",
     cta: "Build playbook",
     href: "/ir-playbook",
+  },
+  {
+    icon: Database,
+    title: "RoPA Builder",
+    blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
+    price: "Included with Annual Platform · standalone available",
+    cta: "Build RoPA",
+    href: "/ropa-builder",
+  },
+  {
+    icon: FileText,
+    title: "U.S. Privacy Notice Builder",
+    blurb: "Generate state-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state laws.",
+    price: "Included with Annual Platform · standalone available",
+    cta: "Build U.S. notice",
+    href: "/us-notices",
+  },
+  {
+    icon: Globe,
+    title: "EU/UK Privacy Notice Builder",
+    blurb: "GDPR & UK GDPR-aligned notices with Article 13/14 disclosures and international transfer language.",
+    price: "Included with Annual Platform · standalone available",
+    cta: "Build EU/UK notice",
+    href: "/eu-notices",
+  },
+  {
+    icon: ShieldAlert,
+    title: "CPPA Risk Assessment",
+    blurb: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
+    price: "Subscriber rate · standalone available",
+    cta: "Run CPPA assessment",
+    href: "/cppa-risk-assessment",
+  },
+  {
+    icon: Lock,
+    title: "CPPA Cybersecurity Audit",
+    blurb: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit requirements.",
+    price: "Subscriber rate · standalone available",
+    cta: "Run cybersecurity audit",
+    href: "/cppa-cybersecurity",
   },
 ];
 

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
@@ -9,12 +8,8 @@ import AdBanner from "@/components/AdBanner";
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const Glossary = () => {
-  const [search, setSearch] = useState("");
-
   const sorted = [...glossaryData].sort((a, b) => a.term.localeCompare(b.term));
-  const filtered = search
-    ? sorted.filter((t) => t.term.toLowerCase().includes(search.toLowerCase()) || t.definition.toLowerCase().includes(search.toLowerCase()))
-    : sorted;
+  const filtered = sorted;
 
   const grouped = alphabet.reduce((acc, letter) => {
     const terms = filtered.filter((t) => t.term[0].toUpperCase() === letter);
@@ -44,14 +39,6 @@ const Glossary = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        <input
-          type="text"
-          placeholder="Search terms…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md px-4 py-2.5 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors mb-8"
-        />
-
         {/* Alphabet nav */}
         <div className="flex flex-wrap gap-1 mb-8">
           {alphabet.map((l) => (
@@ -96,10 +83,6 @@ const Glossary = () => {
             )}
           </div>
         ))}
-
-        {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-12">No terms found matching "{search}"</p>
-        )}
       </div>
 
       <Footer />
