@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import { getSeverityLabel } from "@/lib/severity";
 
 interface AnonymousUpdatesCardItem {
   id: string;
@@ -11,7 +12,7 @@ interface AnonymousUpdatesCardItem {
   source_name?: string | null;
   image_url?: string | null;
   why_it_matters_short?: string | null;
-  ai_summary?: { why_it_matters_short?: string | null } | null;
+  ai_summary?: { why_it_matters_short?: string | null; urgency?: string | null; legal_weight?: string | null } | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -80,6 +81,14 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
               {catLabel}
             </span>
           )}
+          {(() => {
+            const sev = getSeverityLabel(item.ai_summary);
+            return sev ? (
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                {sev.label}
+              </span>
+            ) : null;
+          })()}
         </div>
         <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
           {normalizeTitle(item.title)}

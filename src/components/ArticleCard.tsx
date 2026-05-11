@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { fmtDate } from "@/lib/dates";
+import { getSeverityLabel } from "@/lib/severity";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
@@ -66,6 +67,7 @@ export interface ArticleItem {
   affected_sectors?: string[] | null;
   regulatory_theory?: string | null;
   related_development?: string | null;
+  precedent_novelty?: "new_theory" | "confirms" | "reverses" | "routine" | string | null;
   enrichment_version?: number | null;
   image_url?: string | null;
   is_premium?: boolean;
@@ -288,6 +290,14 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
               {categoryLabel(item.category)}
             </span>
           )}
+          {(() => {
+            const sev = getSeverityLabel(item.ai_summary);
+            return sev ? (
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                {sev.label}
+              </span>
+            ) : null;
+          })()}
           {enriched && weight && WEIGHT_COLORS[weight] && (
             <span className={`font-mono-code text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
               {weight}
@@ -300,6 +310,12 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
+        {/* Paid-only: regulatory theory shown as italic label below title */}
+        {isPremium && item.regulatory_theory && (
+          <p className="text-[11.5px] italic text-slate mb-1">
+            Legal doctrine: {item.regulatory_theory}
+          </p>
+        )}
         {/* Article excerpt — first two lines of the source article */}
         {item.summary && (
           <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
@@ -631,6 +647,14 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
                 {categoryLabel(item.category)}
               </span>
             )}
+            {(() => {
+              const sev = getSeverityLabel(item.ai_summary);
+              return sev ? (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                  {sev.label}
+                </span>
+              ) : null;
+            })()}
           </div>
           <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
             {normalizeTitle(item.title)}
