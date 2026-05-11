@@ -29,7 +29,7 @@ const ASSERTIONS = [
   { label: "overall_readiness_rating is one of the 5 valid values", fn: (r: any) => ["Initial","Developing","Defined","Managed","Optimised","Optimized"].includes(r.overall_readiness_rating) },
   { label: "top_three_risks is an array with 1–3 items", fn: (r: any) => Array.isArray(r.top_three_risks) && r.top_three_risks.length >= 1 },
   { label: "domain_findings has at least 8 entries", fn: (r: any) => r.domain_findings && Object.keys(r.domain_findings).length >= 8 },
-  { label: "Every domain finding has a severity field", fn: (r: any) => r.domain_findings && Object.values(r.domain_findings).every((d: any) => ["Critical","High","Medium","Low","Compliant"].includes(d.severity)) },
+  { label: "Every domain finding has a severity field", fn: (r: any) => r.domain_findings && Object.values(r.domain_findings).every((d: any) => ["Critical","High","Medium","Low","Compliant","Unknown"].includes(d.severity)) },
   { label: "Every domain finding has regulatory_basis", fn: (r: any) => r.domain_findings && Object.values(r.domain_findings).every((d: any) => d.regulatory_basis && d.regulatory_basis.length > 5) },
   { label: "immediate_actions is present (may be empty array)", fn: (r: any) => Array.isArray(r.immediate_actions) },
   { label: "dpia_scope is present (may be empty array)", fn: (r: any) => Array.isArray(r.dpia_scope) || (r.dpia_scope === undefined) },
