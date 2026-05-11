@@ -142,7 +142,9 @@ Domains to assess (one object per domain):
 7. Third-Party Contracts and Data Sharing Agreements
 8. Incident Response and Breach Notification
 9. Employee Training and Awareness
-10. CPPA Audit Readiness`;
+10. CPPA Audit Readiness
+
+Key regulatory deadline: CPPA cybersecurity audit regulations take effect for highest-risk businesses by December 31, 2027. This deadline must be referenced in applicable_deadlines and in at least one domain finding.`;
 
     const text = await callAnthropic(system, userPrompt);
     let report: any = {};

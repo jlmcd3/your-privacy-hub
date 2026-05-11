@@ -43,7 +43,7 @@ async function aiGenerate(prompt: string): Promise<string> {
         {
           role: "system",
           content:
-            "You are a privacy compliance expert drafting jurisdiction-specific filings. Output clean Markdown only — no preamble, no chat. Use real authority names, real laws, realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of.",
+            "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean Markdown only — no preamble, no chat, no translated text. Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of.",
         },
         { role: "user", content: prompt },
       ],

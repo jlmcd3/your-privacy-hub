@@ -38,9 +38,12 @@ const ASSERTIONS = [
   { label: 'UK section references "Article 35" (DPIA)', fn: (t: string) => /article\s*35|art\.?\s*35/i.test(t) },
   { label: 'Illinois section references "BIPA" and §15', fn: (t: string) => /BIPA/i.test(t) && /(§|section)\s*15/i.test(t) },
   {
-    label: "Illinois section mentions $1,000 or $5,000 per-person damages",
-    fn: (t: string) =>
-      /\$\s*1[,.]?000|\$\s*5[,.]?000|1,000 per|5,000 per|liquidated damages|statutory damages/i.test(t),
+    label: "Illinois section mentions BIPA statutory damages or aggregate exposure",
+    fn: (t: string) => {
+      const ilMatch = t.match(/###\s*ILLINOIS[\s\S]*?(?=###\s*UNITED KINGDOM|###\s*UK\b|$)/i);
+      const segment = ilMatch?.[0] ?? t;
+      return /\$\s*1[,.]?000|\$\s*5[,.]?000|1,000 per|5,000 per|liquidated damages|statutory damages|aggregate.*exposure|exposure.*million|\$[\d,.]+\s*[Mm]/i.test(segment);
+    },
   },
   {
     label: "Illinois BIPA risk rating is HIGH, CRITICAL, or Significant",

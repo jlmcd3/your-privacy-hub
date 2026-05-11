@@ -225,7 +225,11 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   sections.push({ title: "Purposes of processing", html: `<p>${escapeHtml(purposes)}</p>` });
   sections.push({
     title: "Lawful basis",
-    html: `<p>We rely on the following lawful basis (or bases) for our processing: ${escapeHtml(lawfulBasis)}.</p>`,
+    html: `<p>We rely on the following lawful basis (or bases) for our processing: ${escapeHtml(lawfulBasis)}.</p>${
+      (fw.framework_code === "EU_GDPR" || fw.framework_code === "UK_GDPR")
+        ? `\n<p>Where we process special category personal data (such as health, biometric, racial or ethnic origin, religious beliefs, trade union membership, sexual orientation, or political opinions), we additionally rely on a condition under <strong>Article 9</strong> of the ${escapeHtml(lawName)} — typically your explicit consent, or another applicable Article 9 condition.</p>`
+        : ""
+    }`,
   });
   sections.push({
     title: "Recipients of personal data",
@@ -241,9 +245,15 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
 
   sections.push({ title: "Retention", html: `<p>${escapeHtml(retention)}</p>` });
 
+  const complaintHtml = fw.framework_code === "UK_GDPR"
+    ? `<p>You also have the right to lodge a complaint with the supervisory authority. In the United Kingdom, this is the <strong>Information Commissioner's Office (ICO)</strong> — <a href="https://ico.org.uk">ico.org.uk</a>.</p>`
+    : fw.framework_code === "EU_GDPR"
+    ? `<p>You also have the right to lodge a complaint with your national data protection authority (your supervisory authority under the GDPR). For organisations established in Ireland, this is the <strong>Data Protection Commission (DPC)</strong> — <a href="https://www.dataprotection.ie">dataprotection.ie</a>. For other EU/EEA Member States, contact the supervisory authority where you live, work, or where the alleged infringement took place.</p>`
+    : `<p>You also have the right to lodge a complaint with the relevant supervisory authority in your jurisdiction.</p>`;
+
   sections.push({
     title: "Your rights",
-    html: `<p>Under the ${escapeHtml(lawName)}, you have rights including access, rectification, erasure, restriction, portability, and objection. You may also lodge a complaint with the relevant supervisory authority.</p>`,
+    html: `<p>Under the ${escapeHtml(lawName)}, you have rights including access, rectification, erasure, restriction, portability, and objection.</p>\n${complaintHtml}`,
   });
 
   if (automatedYes) {

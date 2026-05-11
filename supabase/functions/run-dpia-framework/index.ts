@@ -186,18 +186,21 @@ Return JSON with this exact DPIA structure:
   },
   "framework_disclaimer": "This DPIA framework document is provided as a compliance framework tool to assist organisations in structuring their Data Protection Impact Assessment process. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. The organisation's qualified Data Protection Officer or legal counsel must review, complete, and own this document. This framework does not constitute legal advice."
 }`,
-      5000
+      8000
     );
 
     let reportData: any = {};
-    try {
-      const m = reportText.match(/\{[\s\S]*\}/);
-      if (m) reportData = JSON.parse(m[0]);
-    } catch {
-      reportData = {
-        framework_disclaimer: "This is a compliance framework tool, not legal advice.",
-        error: "Report generation encountered an issue. Please retry."
-      };
+    const m = reportText.match(/\{[\s\S]*\}/);
+    if (!m) {
+      console.error("[DPIA] No JSON found. Response length:", reportText.length, "Preview:", reportText.slice(0, 500));
+      reportData = { framework_disclaimer: "This is a compliance framework tool, not legal advice.", error: "Report generation encountered an issue. Please retry." };
+    } else {
+      try {
+        reportData = JSON.parse(m[0]);
+      } catch (e) {
+        console.error("[DPIA] JSON parse error:", e, "Tail:", reportText.slice(-300));
+        reportData = { framework_disclaimer: "This is a compliance framework tool, not legal advice.", error: "Report generation encountered an issue. Please retry." };
+      }
     }
 
     reportData.generated_at = new Date().toISOString();

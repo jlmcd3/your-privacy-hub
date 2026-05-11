@@ -178,7 +178,18 @@ Return JSON:
     try {
       const m = synthesisText.match(/\{[\s\S]*\}/);
       if (m) synthesis = JSON.parse(m[0]);
-    } catch { synthesis = { executive_summary: "Assessment complete. Review domain findings.", dpia_scope: [] }; }
+    } catch (e) {
+      console.error("[Governance] Synthesis parse error:", e);
+      synthesis = {
+        executive_summary: "Assessment complete. Review domain findings above for full detail.",
+        top_three_risks: [],
+        immediate_actions: [],
+        overall_readiness_rating: "Initial",
+        readiness_rationale: "Synthesis could not be completed.",
+        interaction_effects: "",
+        dpia_scope: []
+      };
+    }
 
     // Fetch enforcement precedents (3-5) relevant to this org's profile
     let enforcementPrecedents: any[] = [];

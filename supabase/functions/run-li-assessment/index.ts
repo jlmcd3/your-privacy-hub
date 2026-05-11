@@ -67,36 +67,15 @@ Deno.serve(async (req) => {
     // ── STAGE 1: Classify use case ──
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
 
-    const classifyText = await callAnthropic(
-      "claude-haiku-4-5-20251001",
-      classifySystem,
-      `Classify this processing activity for legitimate interest analysis:
-Description: ${assessment.processing_description}
-Data categories: ${(assessment.data_categories || []).join(", ")}
-Relationship type: ${assessment.relationship_type || "not specified"}
-Sector: ${assessment.sector || "not specified"}
-
-Return JSON:
-{
-  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",
-  "primary_data_categories": ["list of data categories involved"],
-  "special_category_data": true or false,
-  "relationship_exists": true or false,
-  "jurisdictions_scope": ["list of relevant jurisdictions"]
-}`,
-      500
-    );
-
-    let classification: any = {};
-    try {
-      const m = classifyText.match(/\{[\s\S]*\}/);
-      if (m) classification = JSON.parse(m[0]);
-    } catch { classification = { use_case_category: "other" }; }
-
-    // Fetch enforcement precedents (3-5) from get-enforcement-context
-    let enforcementPrecedents: any[] = [];
-    try {
-      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
+    // Run classification and enforcement context fetch in parallel
+    const [classifyText, enforcementCtxResult] = await Promise.all([
+      callAnthropic(
+        "claude-haiku-4-5-20251001",
+        classifySystem,
+        `Classify this processing activity for legitimate interest analysis:\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
+        500
+      ),
+      supabase.functions.invoke("get-enforcement-context", {
         body: {
           tool: "LIA",
           data_categories: assessment.data_categories || [],
@@ -104,11 +83,19 @@ Return JSON:
           sector: assessment.sector || undefined,
           limit: 5,
         },
-      });
-      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
-    } catch (e) {
-      console.error("get-enforcement-context failed (non-fatal):", e);
-    }
+      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; })
+    ]);
+
+    let classification: any = {};
+    try {
+      const m = classifyText.match(/\{[\s\S]*\}/);
+      if (m) classification = JSON.parse(m[0]);
+    } catch { classification = { use_case_category: "other" }; }
+
+    let enforcementPrecedents: any[] = [];
+    try {
+      enforcementPrecedents = ((enforcementCtxResult as any)?.data?.results || []).slice(0, 5);
+    } catch { /* non-fatal */ }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) =>
@@ -225,7 +212,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
   }
 }`,
-      5000
+      4500
     );
 
     let analysis: any = {};
@@ -283,7 +270,7 @@ Return JSON:
   ],
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`,
-      4000
+      3000
     );
 
     let docRecs: any = {};

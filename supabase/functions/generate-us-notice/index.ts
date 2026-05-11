@@ -219,12 +219,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Ownership check using user-scoped client.
-    const { data: ownsData, error: ownsErr } = await userClient.rpc(
-      "owns_client",
-      { _client_id: (session as SessionRow).client_id },
-    );
-    if (ownsErr || ownsData !== true) {
+    // Check ownership: try RPC first, fall back to direct admin check
+    let ownsClient = false;
+    try {
+      const { data: ownsData, error: ownsErr } = await userClient.rpc(
+        "owns_client",
+        { _client_id: (session as SessionRow).client_id },
+      );
+      if (!ownsErr) ownsClient = ownsData === true;
+    } catch { /* fall through to admin check */ }
+
+    if (!ownsClient) {
+      const userId = claimsData?.user?.id;
+      if (userId) {
+        const { data: clientCheck } = await admin
+          .from("clients")
+          .select("id")
+          .eq("id", (session as SessionRow).client_id)
+          .eq("owner_id", userId)
+          .maybeSingle();
+        ownsClient = !!clientCheck;
+      }
+    }
+
+    if (!ownsClient) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
