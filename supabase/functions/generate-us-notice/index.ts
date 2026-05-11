@@ -372,7 +372,7 @@ ${states
         session_id: sessionId,
         client_id: (session as SessionRow).client_id,
         state_code: null,
-        framework_type: null,
+        framework_type: "pending",
         is_combined: true,
         version_number: nextVersion,
         document_format: "html",
