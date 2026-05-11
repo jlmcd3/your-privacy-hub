@@ -204,12 +204,12 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     let partA: any = {};
     let partB: any = {};
     try {
-      const mA = textA.match(/\{[\s\S]*\}/);
+      const mA = textA.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
       if (mA) partA = JSON.parse(mA[0]);
       else console.error("[DPIA] No JSON in part A. Length:", textA.length, "Preview:", textA.slice(0, 300));
     } catch (e) { console.error("[DPIA] Part A parse error:", e, "Tail:", textA.slice(-200)); }
     try {
-      const mB = textB.match(/\{[\s\S]*\}/);
+      const mB = textB.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
       if (mB) partB = JSON.parse(mB[0]);
       else console.error("[DPIA] No JSON in part B. Length:", textB.length, "Preview:", textB.slice(0, 300));
     } catch (e) { console.error("[DPIA] Part B parse error:", e, "Tail:", textB.slice(-200)); }
