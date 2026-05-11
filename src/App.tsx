@@ -57,6 +57,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import TestGovernanceAssessment from "./pages/admin/TestGovernanceAssessment";
 import TestLIA from "./pages/admin/TestLIA";
 import TestDPIA from "./pages/admin/TestDPIA";
+import TestDPA from "./pages/admin/TestDPA";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -375,6 +376,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestDPIA />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-dpa"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestDPA />
                   </AdminOnly>
                 </ProtectedRoute>
               }
