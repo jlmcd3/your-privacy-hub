@@ -134,7 +134,10 @@ function buildNoticeHtml(
   <p>${escapeHtml(retention)}</p>
 
   <h2>5. Your rights</h2>
-  <p>As a ${escapeHtml(state.state_name)} resident, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; and (d) opt out of certain processing. You may also designate an authorised agent to exercise these rights on your behalf.</p>
+  ${state.framework_type === "ccpa"
+    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorised agent to exercise these rights on your behalf. To exercise any right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`
+    : `<p>As a ${escapeHtml(state.state_name)} resident, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; and (d) opt out of certain processing. You may also designate an authorised agent to exercise these rights on your behalf.</p>`
+  }
 
   <h2>6. How to contact us</h2>
   <p>To exercise any of these rights or for questions about this notice, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
