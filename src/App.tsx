@@ -468,6 +468,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/test-eu-notice"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestEUNotice />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
             <Route path="/li-assessment" element={<LIAssessment />} />
             <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />
             <Route
