@@ -131,13 +131,13 @@ Return JSON:
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
 }`,
-          800
+          1200
         );
         try {
           const m = text.match(/\{[\s\S]*\}/);
           if (m) return { key: domain.key, result: JSON.parse(m[0]) };
         } catch { /* fall through */ }
-        return { key: domain.key, result: { domain_id: domain.id, severity: "Unknown" } };
+        return { key: domain.key, result: { domain_id: domain.id, severity: "Unknown", regulatory_basis: "Could not be determined — assessment incomplete", current_state: "Assessment parse error", gap_description: null, recommended_action: "Re-run assessment", suggested_owner: "DPO", suggested_timeline: "This quarter" } };
       })
     );
 
