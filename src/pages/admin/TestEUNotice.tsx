@@ -159,13 +159,13 @@ export default function TestEUNotice() {
       addLog(`✓ Client ${clientId}`);
 
       // 2. Create eu_notice_session (status=review allowed)
-      addLog("▶ Creating eu_notice_session (scope=multi)...");
+      addLog("▶ Creating eu_notice_session (scope=suite)...");
       const { data: session, error: sessErr } = await supabase
         .from("eu_notice_sessions")
         .insert({
           client_id: clientId,
           status: "review",
-          scope: "multi",
+          scope: "suite",
           mode: "standalone",
           payment_confirmed: true,
           paid_at: new Date().toISOString(),

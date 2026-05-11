@@ -96,28 +96,43 @@ export default function TestDPIA() {
     addLog("▶ Starting Impact Assessment Builder test...");
     addLog("▶ Activity: AI-Powered Patient Risk Stratification (Meridian Health Analytics)");
     addLog(`▶ Logged in as: ${user.email}`);
-    addLog("▶ Invoking run-dpia-framework (expect 30–90s)...");
 
-    const { data: invokeData, error: fnErr } = await supabase.functions.invoke(
-      "run-dpia-framework",
-      { body: { intake_data: intakePayload, user_id: user.id } }
-    );
+    addLog("▶ Inserting dpia_frameworks record...");
+    const { data: rec, error: insErr } = await supabase
+      .from("dpia_frameworks")
+      .insert({
+        user_id: user.id,
+        status: "pending",
+        intake_data: intakePayload,
+        is_subscriber_credit: true,
+      })
+      .select("id")
+      .single();
 
-    if (fnErr || !invokeData?.id) {
-      addLog(`❌ Edge function error: ${fnErr?.message || "no id returned"}`);
+    if (insErr || !rec) {
+      addLog(`❌ DB insert failed: ${insErr?.message}`);
       setStatus("failed");
       return;
     }
+    setAssessmentId(rec.id);
+    addLog(`✓ Record created: ${rec.id}`);
 
-    const recId = invokeData.id as string;
-    setAssessmentId(recId);
-    addLog(`✓ Record id: ${recId}`);
-    addLog("✓ Polling dpia_frameworks for completion...");
+    addLog("▶ Invoking run-dpia-framework (expect 30–90s)...");
+    const { error: fnErr } = await supabase.functions.invoke("run-dpia-framework", {
+      body: { dpia_id: rec.id },
+    });
+
+    if (fnErr) {
+      addLog(`❌ Edge function error: ${fnErr.message}`);
+      setStatus("failed");
+      return;
+    }
+    addLog("✓ Edge function returned. Polling dpia_frameworks for completion...");
 
     let polls = 0;
     const poll = async () => {
       setElapsed(Math.round((Date.now() - startTime) / 1000));
-      const { data } = await supabase.from("dpia_frameworks").select("*").eq("id", recId).single();
+      const { data } = await supabase.from("dpia_frameworks").select("*").eq("id", rec.id).single();
       if (data?.status === "complete") {
         addLog(`✅ Complete after ${Math.round((Date.now() - startTime) / 1000)}s`);
         setResult(data.report_data);
@@ -129,11 +144,11 @@ export default function TestDPIA() {
         addLog(`... poll ${polls}/40 (status: ${data?.status})`);
         setTimeout(poll, 4000);
       } else {
-        addLog("❌ Timed out (160s).");
+        addLog("❌ Timed out (160s). Edge function may have exceeded Supabase timeout.");
         setStatus("failed");
       }
     };
-    setTimeout(poll, 4000);
+    setTimeout(poll, 8000);
   }, [user, addLog, startTime]);
 
   useEffect(() => {

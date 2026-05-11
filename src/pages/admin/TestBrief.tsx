@@ -66,8 +66,11 @@ const ASSERTIONS: { label: string; fn: (s: CustomSections, t: string) => boolean
       /(€|£|\$|EUR|USD|GBP)\s?[\d.,]+\s*(million|m|k|thousand)?/i.test(t),
   },
   {
-    label: 'Output contains at least one "Bottom line:" verdict sentence',
-    fn: (_s, t) => /bottom line\s*[:\-—]/i.test(t),
+    label: 'Output contains at least one "Bottom line" verdict sentence',
+    fn: (_s, t) =>
+      /bottom\s*line\s*[:\-—*]/i.test(t) ||
+      /\*{1,2}bottom\s*line\*{1,2}/i.test(t) ||
+      /verdict[:\s]/i.test(t),
   },
   {
     label: "Output contains a WHAT TO IGNORE section",

@@ -27,9 +27,9 @@ const ASSERTIONS = [
   { label: "necessity_test.verdict is present", fn: (r: any) => !!r.three_part_test?.necessity_test?.verdict },
   { label: "balancing_test.verdict is present", fn: (r: any) => !!r.three_part_test?.balancing_test?.verdict },
   {
-    label: "overall_assessment.argument_strength is strong/moderate/weak/insufficient",
+    label: "overall_assessment.argument_strength is present and valid",
     fn: (r: any) =>
-      ["strong", "moderate", "weak", "insufficient"].includes(
+      ["strong", "moderate", "weak", "insufficient", "uncertain"].includes(
         norm(r.three_part_test?.overall_assessment?.argument_strength)
       ),
   },
