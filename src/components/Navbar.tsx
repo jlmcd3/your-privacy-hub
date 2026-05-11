@@ -420,9 +420,9 @@ const Navbar = () => {
                       className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain max-w-[calc(100vw-2rem)] ${
                         item.wide
                           ? item.columns === 3
-                            ? "w-[min(840px,calc(100vw-2rem))] lg:grid lg:grid-cols-3 gap-x-3 items-start"
-                            : "w-[min(640px,calc(100vw-2rem))] lg:grid lg:grid-cols-2 gap-x-3 items-start"
-                          : "w-[min(320px,calc(100vw-2rem))] min-w-[280px]"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-start"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-start"
+                          : "min-w-[280px]"
                       }`}
                     >
                       {(() => {
