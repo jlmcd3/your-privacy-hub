@@ -496,14 +496,14 @@ const Navbar = () => {
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 🧠 My Dashboard
               </Link>
               {!isPremium && (
                 <Link
                   to="/subscribe"
-                  className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
+                  className="text-[12px] font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
                 >
                   ⭐ See plans
                 </Link>
@@ -519,7 +519,7 @@ const Navbar = () => {
                 </span>
               )}
               {tier === "free" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
                   FREE PLAN
                 </span>
               )}
@@ -529,19 +529,19 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
+                className="text-[12px] font-medium text-white/80 hover:text-white no-underline transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
-                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-100 transition-colors no-underline"
+                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
               >
                 Sign up free
               </Link>
               <Link
                 to="/subscribe"
-                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 See Plans →
               </Link>
@@ -551,7 +551,7 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-navy bg-transparent border-none cursor-pointer"
+          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -560,7 +560,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+        <div className="md:hidden border-t border-white/10 bg-[#0D1F35] px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
           {navItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
