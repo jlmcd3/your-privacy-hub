@@ -310,20 +310,19 @@ const Updates = () => {
 
     const clearAllFilters = () => {
         setActiveSectors([]);
-        // (activeAttention removed)
         setUrgencyFilter("all");
         setLegalWeightFilter("all");
         setCrossJurisdictionOnly(false);
         setActiveSource(null);
-        setActiveFilter("all");
         setSearchTerm("");
         setDateRange("all");
-        // Clear region/topic from URL too so history stays consistent
         const next = new URLSearchParams(searchParams);
         next.delete("region");
         next.delete("topic");
         setSearchParams(next);
     };
+
+    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
