@@ -159,7 +159,7 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
     "completion_guidance": "What the organisation must complete in this section"
   }
 }`,
-        4000
+        6000
       ),
       callAnthropic("claude-sonnet-4-6", system,
         `${sharedContext}
