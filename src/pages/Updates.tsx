@@ -114,36 +114,38 @@ const Updates = () => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [page, setPage] = useState(0);
-    const [activeFilter, setActiveFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
     const [dateRange, setDateRange] = useState("all");
     const [sourcePills, setSourcePills] = useState<string[]>([]);
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
-    // (Attention filter state removed — Attention badge no longer surfaced)
     const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
-    
+
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    // Write the selected pill into the URL (region/topic) so back/forward stays in sync.
-    // Uses push (not replace) so each pill click is its own history entry.
-    const selectFilter = useCallback((key: string) => {
+    const activeRegion = searchParams.get("region") || "all";
+    const activeTopic = searchParams.get("topic") || "all";
+
+    // Independent setters: region and topic are additive in the URL.
+    const selectRegion = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        next.delete("region");
-        next.delete("topic");
-        if (key && key !== "all") {
-            const isLocation = LOCATION_FILTERS.some(f => f.key === key);
-            next.set(isLocation ? "region" : "topic", key);
-        }
+        if (!key || key === "all") next.delete("region");
+        else next.set("region", key);
+        setSearchParams(next);
+    }, [searchParams, setSearchParams]);
+
+    const selectTopic = useCallback((key: string) => {
+        const next = new URLSearchParams(searchParams);
+        if (!key || key === "all") next.delete("topic");
+        else next.set("topic", key);
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
     const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
       if (!user) {
         setShowFilterGate(filterLabel);
-        // Auto-hide after 4 seconds
         setTimeout(() => setShowFilterGate(null), 4000);
       } else {
         action();
@@ -154,15 +156,6 @@ const Updates = () => {
     const [urgencyFilter, setUrgencyFilter] = useState("all");
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
-
-    // Sync active pill with ?region= / ?topic= query param (resets to "all" when cleared)
-    useEffect(() => {
-        const region = searchParams.get("region");
-        const topic = searchParams.get("topic");
-        if (topic) setActiveFilter(topic);
-        else if (region) setActiveFilter(region);
-        else setActiveFilter("all");
-    }, [searchParams]);
 
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
