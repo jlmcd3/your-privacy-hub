@@ -59,6 +59,7 @@ import TestLIA from "./pages/admin/TestLIA";
 import TestDPIA from "./pages/admin/TestDPIA";
 import TestDPA from "./pages/admin/TestDPA";
 import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
+import TestBiometric from "./pages/admin/TestBiometric";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
