@@ -17,10 +17,11 @@
     --fog: 210 30% 93%;
     --white: 0 0% 100%;
     --paper: 210 40% 94%;
-    --accent: 155 68% 37%;
-    --accent-light: 155 68% 43%;
+    --accent: 36 57% 47%;          /* #C8922A gold — CTAs, primary buttons, active nav underlines */
+    --accent-light: 36 57% 55%;    /* slightly lighter hover state */
+    --cobalt: 221 84% 53%;         /* #2563EB — interactive elements, active sidebar items, inline links */
     --warn: 16 74% 52%;
-    --gold: 40 85% 38%;
+    --gold: 36 57% 47%;
 
     --background: 210 40% 94%;
     --foreground: 210 55% 13%;
@@ -34,7 +35,7 @@
     --secondary-foreground: 210 55% 13%;
     --muted: 210 30% 93%;
     --muted-foreground: 215 16% 47%;
-    --accent: 155 68% 37%;
+    --accent: 36 57% 47%;
     --accent-foreground: 0 0% 100%;
     --destructive: 16 74% 52%;
     --destructive-foreground: 0 0% 100%;
@@ -66,7 +67,9 @@
     --secondary-foreground: 210 47% 97%;
     --muted: 210 52% 24%;
     --muted-foreground: 215 18% 65%;
-    --accent: 155 68% 43%;
+    --accent: 36 70% 60%;          /* gold lifted for dark backgrounds */
+    --accent-light: 36 70% 68%;
+    --cobalt: 221 90% 65%;         /* cobalt lifted for dark backgrounds */
     --accent-foreground: 210 55% 13%;
     --destructive: 16 74% 52%;
     --destructive-foreground: 210 47% 97%;
