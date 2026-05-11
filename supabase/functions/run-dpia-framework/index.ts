@@ -19,7 +19,7 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
       "content-type": "application/json",
     },
     body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(50000),
+    signal: AbortSignal.timeout(120000),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
