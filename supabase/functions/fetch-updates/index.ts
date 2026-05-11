@@ -1686,7 +1686,8 @@ Deno.serve(async (req) => {
         // Generate AI summary only for new articles; existing URLs are skipped above.
         if (anthropicKey) {
           try {
-            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey);
+            const sourceTier = inferSourceTier(source);
+            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey, sourceTier);
             if (aiSummary) {
               row.ai_summary = aiSummary;
               // Extract affected_jurisdictions from AI response into dedicated column
@@ -1717,6 +1718,25 @@ Deno.serve(async (req) => {
               if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
                 row.defense_considerations = aiSummary.defense_considerations;
               }
+
+              // Batch 4C — quality validation
+              const quality = assessEnrichmentQuality(aiSummary, aiSummary.entities);
+              row.enrichment_quality = quality;
+              if (quality === "low") {
+                console.warn(`[fetch-updates] Low quality enrichment for: ${String(row.title ?? "").slice(0, 60)}`);
+              }
+
+              // Batch 4D — contextual teaser for tier-1 sources with usable enrichment
+              if (
+                sourceTier === 1 &&
+                quality !== "low" &&
+                typeof aiSummary.why_it_matters_short === "string" &&
+                aiSummary.why_it_matters_short.trim()
+              ) {
+                const teaser = await generateContextualTeaser(aiSummary.why_it_matters_short, anthropicKey);
+                if (teaser) row.contextual_teaser = teaser;
+              }
+
               results.summaries_generated++;
             }
           } catch (enrichErr: any) {
