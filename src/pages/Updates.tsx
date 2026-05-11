@@ -253,21 +253,19 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
-        if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
+        // Region filter
+        if (activeRegion !== "all" && u.category !== activeRegion) return false;
 
-        // Location filter
-        const locationFilter = LOCATION_FILTERS.find(f => f.key === activeFilter);
-        if (locationFilter && activeFilter !== "all" && u.category !== activeFilter) return false;
-
-        // Topic filter
-        const topicFilter = TOPIC_FILTERS.find(f => f.key === activeFilter);
-        if (topicFilter) {
-            if (topicFilter.match === 'category' && u.category !== topicFilter.key) return false;
-            if (topicFilter.match === 'keyword' && topicFilter.terms) {
-                const terms = topicFilter.terms.map(t => t.toLowerCase());
-                const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
-                if (!terms.some(term => text.includes(term))) return false;
+        // Topic filter (independent / additive with region)
+        if (activeTopic !== "all") {
+            const t = TOPIC_FILTERS.find(f => f.key === activeTopic);
+            if (t) {
+                if (t.match === 'category' && u.category !== t.key) return false;
+                if (t.match === 'keyword' && t.terms) {
+                    const terms = t.terms.map(x => x.toLowerCase());
+                    const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
+                    if (!terms.some(term => text.includes(term))) return false;
+                }
             }
         }
 
