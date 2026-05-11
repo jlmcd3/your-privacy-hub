@@ -62,7 +62,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
       }
     }
 
-    const system = `You are a senior privacy lawyer producing a structured DPIA framework document. The document must follow the structure required by GDPR Article 35 and applicable supervisory authority templates (EDPB, ICO). Be specific about provisions and standards. This is a framework document for the organisation's own legal or privacy team to complete and own — not a finished DPIA. Include explicit guidance notes explaining what Article 35 requires in each section. All analysis is structured as guidance and framework, not legal opinion. Return ONLY valid JSON, no preamble.`;
+    const system = `You are a senior privacy lawyer producing a structured DPIA framework document. The document must follow the structure required by GDPR Article 35 and applicable supervisory authority templates (EDPB, ICO). Be specific but CONCISE: every string value must be at most 2 sentences (<= 300 characters). Risk arrays must contain at most 4 items; measure arrays at most 4 items. This is a framework document for the organisation's own legal or privacy team to complete and own — not a finished DPIA. All analysis is structured as guidance and framework, not legal opinion. Return ONLY valid JSON, no preamble, no markdown fences. Ensure the JSON is complete and well-formed.`;
 
     const processingDesc = intake.processing_description || "Not provided";
     const purpose = intake.purpose || "Not provided";
@@ -159,7 +159,7 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
     "completion_guidance": "What the organisation must complete in this section"
   }
 }`,
-        4000
+        6000
       ),
       callAnthropic("claude-sonnet-4-6", system,
         `${sharedContext}
@@ -197,7 +197,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
   },
   "framework_disclaimer": "This DPIA framework document is provided as a compliance framework tool to assist organisations in structuring their Data Protection Impact Assessment process. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. The organisation's qualified Data Protection Officer or legal counsel must review, complete, and own this document. This framework does not constitute legal advice."
 }`,
-        4000
+        6000
       )
     ]);
 
