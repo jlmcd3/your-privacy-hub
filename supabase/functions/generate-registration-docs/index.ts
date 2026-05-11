@@ -114,18 +114,15 @@ Output Markdown with clear headings, bullet points, and signature blocks where r
       );
 
       for (const { docDef, content } of results) {
-        await supabase.from("registration_documents").upsert(
-          {
-            order_id,
-            jurisdiction_code: r.jurisdiction_code,
-            document_type: docDef.type,
-            language: (r.language_requirements || ["en"])[0],
-            content_text: content,
-            generation_model: MODEL,
-            status: "ready",
-          },
-          { onConflict: "order_id,jurisdiction_code,document_type,version" }
-        );
+        await supabase.from("registration_documents").insert({
+          order_id,
+          jurisdiction_code: r.jurisdiction_code,
+          document_type: docDef.type,
+          language: (r.language_requirements || ["en"])[0],
+          content_text: content,
+          generation_model: MODEL,
+          status: "ready",
+        });
         generated.push({ jurisdiction_code: r.jurisdiction_code, document_type: docDef.type });
       }
     }
