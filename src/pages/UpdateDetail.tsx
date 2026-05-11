@@ -381,9 +381,9 @@ const UpdateDetail = () => {
                   {(() => {
                     const entities = ai?.entities;
                     const chips: { label: string; tone: string }[] = [];
-                    entities?.regulators?.forEach(r => chips.push({ label: r, tone: "bg-blue-50 text-blue-800 border-blue-200" }));
-                    entities?.laws?.forEach(l => chips.push({ label: l, tone: "bg-violet-50 text-violet-800 border-violet-200" }));
-                    entities?.cases?.forEach(c => chips.push({ label: c, tone: "bg-amber-50 text-amber-800 border-amber-200" }));
+                    entities?.regulators?.forEach(r => chips.push({ label: r, tone: "bg-[hsl(var(--cobalt)/0.08)] text-[hsl(var(--cobalt))] border-[hsl(var(--cobalt)/0.25)]" }));
+                    entities?.laws?.forEach(l => chips.push({ label: l, tone: "bg-muted text-foreground border-border" }));
+                    entities?.cases?.forEach(c => chips.push({ label: c, tone: "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.3)]" }));
                     if (chips.length === 0) return null;
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
