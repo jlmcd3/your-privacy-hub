@@ -98,6 +98,7 @@ const navItems: NavItem[] = [
   {
     label: "Privacy Intelligence Feed",
     href: "/updates",
+    directLink: true,
   },
   {
     label: "Compliance Tools",
