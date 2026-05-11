@@ -62,7 +62,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
       }
     }
 
-    const system = `You are a senior privacy lawyer producing a structured DPIA framework document. The document must follow the structure required by GDPR Article 35 and applicable supervisory authority templates (EDPB, ICO). Be specific about provisions and standards. This is a framework document for the organisation's own legal or privacy team to complete and own — not a finished DPIA. Include explicit guidance notes explaining what Article 35 requires in each section. All analysis is structured as guidance and framework, not legal opinion. Return ONLY valid JSON, no preamble.`;
+    const system = `You are a senior privacy lawyer producing a structured DPIA framework document. The document must follow the structure required by GDPR Article 35 and applicable supervisory authority templates (EDPB, ICO). Be specific but CONCISE: every string value must be at most 2 sentences (<= 300 characters). Risk arrays must contain at most 4 items; measure arrays at most 4 items. This is a framework document for the organisation's own legal or privacy team to complete and own — not a finished DPIA. All analysis is structured as guidance and framework, not legal opinion. Return ONLY valid JSON, no preamble, no markdown fences. Ensure the JSON is complete and well-formed.`;
 
     const processingDesc = intake.processing_description || "Not provided";
     const purpose = intake.purpose || "Not provided";
