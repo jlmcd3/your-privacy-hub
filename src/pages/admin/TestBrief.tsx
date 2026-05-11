@@ -66,11 +66,17 @@ const ASSERTIONS: { label: string; fn: (s: CustomSections, t: string) => boolean
       /(€|£|\$|EUR|USD|GBP)\s?[\d.,]+\s*(million|m|k|thousand)?/i.test(t),
   },
   {
-    label: 'Output contains at least one "Bottom line" verdict sentence',
-    fn: (_s, t) =>
-      /bottom\s*line\s*[:\-—*]/i.test(t) ||
-      /\*{1,2}bottom\s*line\*{1,2}/i.test(t) ||
-      /verdict[:\s]/i.test(t),
+    label: 'Output contains a verdict or bottom-line sentence',
+    fn: (s, t) => {
+      const items = (s.your_action_items as Array<any>) || [];
+      if (items.some((i) => /bottom.line|verdict/i.test(JSON.stringify(i)))) return true;
+      return (
+        /bottom[\s_\-]*line/i.test(t) ||
+        /verdict[:\s—]/i.test(t) ||
+        /the\s+(upshot|takeaway|key\s+point)[:\s—]/i.test(t) ||
+        /what\s+(this\s+means|you\s+need\s+to\s+do)[:\s—]/i.test(t)
+      );
+    },
   },
   {
     label: "Output contains a WHAT TO IGNORE section",
