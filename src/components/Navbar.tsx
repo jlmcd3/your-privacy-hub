@@ -57,6 +57,10 @@ interface NavItem {
   wide?: boolean;
   columns?: 2 | 3;
   sections?: NavSection[];
+  /** Visually de-emphasize this top-level item (secondary nav). */
+  dim?: boolean;
+  /** Mark as a direct link (not a dropdown) with a small cobalt indicator dot. */
+  directLink?: boolean;
 }
 
 const navItems: NavItem[] = [
