@@ -63,6 +63,7 @@ import TestBiometric from "./pages/admin/TestBiometric";
 import TestCPPAScope from "./pages/admin/TestCPPAScope";
 import TestCPPARisk from "./pages/admin/TestCPPARisk";
 import TestCPPACyber from "./pages/admin/TestCPPACyber";
+import TestRoPA from "./pages/admin/TestRoPA";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
