@@ -391,7 +391,7 @@ ${states
     for (const state of states) {
       const html = buildNoticeHtml(state, answers, generatedAtHuman);
       const bytes = new TextEncoder().encode(html);
-      const path = `${sessionId}/v${nextVersion}/${state.state_code}.html`;
+      const path = `${(session as SessionRow).client_id}/${sessionId}/v${nextVersion}/${state.state_code}.html`;
 
       const { error: uploadErr } = await admin.storage
         .from("us-notices")
