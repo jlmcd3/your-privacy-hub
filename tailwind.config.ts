@@ -80,7 +80,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ["'DM Serif Display'", "Georgia", "serif"],
+        display: ["Georgia", "'Times New Roman'", "serif"],
         body: ["'DM Sans'", "system-ui", "sans-serif"],
         sans: ["'DM Sans'", "system-ui", "sans-serif"],
         mono: ["'DM Mono'", "ui-monospace", "monospace"],

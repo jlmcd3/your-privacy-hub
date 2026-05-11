@@ -390,7 +390,7 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-card border-b border-fog sticky top-0 z-50">
+    <nav className="bg-[#0D1F35] border-b border-[#0D1F35] sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
@@ -399,11 +399,18 @@ const Navbar = () => {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
           {navItems.map((item) => {
-            const isActive = item.href ? location.pathname === item.href : false;
-            const baseTopClasses = "flex items-center gap-1 px-2 py-2 transition-colors no-underline font-semibold text-[15px]";
+            const isActive = item.href
+              ? location.pathname === item.href
+              : item.sections?.some((s) =>
+                  s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
+                ) ?? false;
+            const baseTopClasses = "relative flex items-center gap-1 px-2 py-2 transition-colors no-underline font-semibold text-[15px]";
+            const activeUnderline = isActive
+              ? "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
+              : "";
             const colorClasses = item.accent
-              ? `text-amber-500 hover:text-amber-400 ${isActive ? "underline underline-offset-4" : ""}`
-              : "text-slate hover:text-navy";
+              ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
+              : `${isActive ? "text-white" : "text-white/80 hover:text-white"}`;
             return (
               <div
                 key={item.label}
@@ -412,14 +419,14 @@ const Navbar = () => {
                 onMouseLeave={() => setOpenDropdown(null)}
               >
                 {item.href ? (
-                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses}`}>
+                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline}`}>
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                   </Link>
                 ) : (
                   <button
                     type="button"
-                    className={`${baseTopClasses} ${colorClasses} cursor-pointer bg-transparent border-none`}
+                    className={`${baseTopClasses} ${colorClasses} ${activeUnderline} cursor-pointer bg-transparent border-none`}
                   >
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
@@ -489,14 +496,14 @@ const Navbar = () => {
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 🧠 My Dashboard
               </Link>
               {!isPremium && (
                 <Link
                   to="/subscribe"
-                  className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
+                  className="text-[12px] font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
                 >
                   ⭐ See plans
                 </Link>
@@ -512,7 +519,7 @@ const Navbar = () => {
                 </span>
               )}
               {tier === "free" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
                   FREE PLAN
                 </span>
               )}
@@ -522,19 +529,19 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
+                className="text-[12px] font-medium text-white/80 hover:text-white no-underline transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
-                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-100 transition-colors no-underline"
+                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
               >
                 Sign up free
               </Link>
               <Link
                 to="/subscribe"
-                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 See Plans →
               </Link>
@@ -544,7 +551,7 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-navy bg-transparent border-none cursor-pointer"
+          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
