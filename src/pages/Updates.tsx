@@ -351,22 +351,95 @@ const Updates = () => {
                 </div>
             </section>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
-                {topicFilter && (
-                    <div className="mb-3">
-                        <div className="flex items-center mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">
-                                ← {lastIngestionLabel(updates)}
-                            </Link>
-                        </div>
-                        <h2 className="text-[15px] font-medium text-foreground m-0">
-                            {formatFilterLabel(topicFilter)}
-                        </h2>
-                        <p className="text-[11px] text-muted-foreground m-0">
-                            {filtered.length} updates in view
-                        </p>
+            {/* Jurisdiction subnav (cobalt underline on active) */}
+            <div className="border-b border-border bg-card">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+                    <div className="flex items-center gap-1 overflow-x-auto -mb-px">
+                        {LOCATION_FILTERS.map((f) => {
+                            const isActive = activeRegion === f.key;
+                            return (
+                                <button
+                                    key={f.key}
+                                    onClick={() => selectRegion(f.key)}
+                                    className={`relative whitespace-nowrap px-3 py-3 text-[13px] font-semibold transition-colors border-b-2 ${
+                                        isActive
+                                            ? "text-foreground border-[hsl(var(--cobalt))]"
+                                            : "text-muted-foreground hover:text-foreground border-transparent"
+                                    }`}
+                                >
+                                    {f.label}
+                                    {f.key === "all" && updates.length > 0 && (
+                                        <span className="ml-1.5 text-[10px] opacity-60">{updates.length}</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-6">
+                {/* Left: Topics sidebar */}
+                <aside className="hidden md:block">
+                    <div className="sticky top-20">
+                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
+                        <nav className="flex flex-col">
+                            {TOPIC_FILTERS.map((t) => {
+                                const isActive = activeTopic === t.key;
+                                return (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => selectTopic(t.key)}
+                                        className={`text-left text-[13px] px-3 py-2 transition-colors border-l-2 ${
+                                            isActive
+                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
+                                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                                        }`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </aside>
+
+                {/* Main feed column */}
+                <div>
+                {/* Mobile: topics as scrollable pills */}
+                <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
+                    <div className="flex items-center gap-2 px-4">
+                        {TOPIC_FILTERS.map((t) => {
+                            const isActive = activeTopic === t.key;
+                            return (
+                                <button
+                                    key={t.key}
+                                    onClick={() => selectTopic(t.key)}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                        isActive
+                                            ? "bg-[hsl(var(--cobalt))] text-white"
+                                            : "bg-muted text-foreground hover:bg-muted/80"
+                                    }`}
+                                >
+                                    {t.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {hasJurisdictionOrTopic && (
+                    <div className="mb-3 flex items-center gap-2 text-[12px]">
+                        <span className="text-muted-foreground">{filtered.length} updates</span>
+                        <button
+                            onClick={clearAllFilters}
+                            className="text-[hsl(var(--cobalt))] hover:underline font-medium"
+                        >
+                            Clear filters
+                        </button>
                     </div>
                 )}
+
                 <Link
                   to="/get-intelligence"
                   aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
@@ -376,46 +449,6 @@ const Updates = () => {
                     Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
                   </p>
                 </Link>
-                {/* Enrichment stats strip */}
-
-                {/* Filters bar — two-group layout. Region + topic are open to all
-                    visitors (matches the homepage CTA promise). Sectors and date
-                    range remain gated to anon users below. */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {/* Location filters */}
-                    {LOCATION_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => selectFilter(f.key)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                activeFilter === f.key
-                                    ? "bg-navy text-white"
-                                    : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-
-                    {/* Separator */}
-                    <span className="w-px h-5 bg-border mx-1" />
-
-                    {/* Topic filters */}
-                    {TOPIC_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => selectFilter(f.key)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                activeFilter === f.key
-                                    ? "bg-navy text-white"
-                                    : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-
-                </div>
 
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
