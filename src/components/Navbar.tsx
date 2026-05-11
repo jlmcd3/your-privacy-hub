@@ -374,7 +374,10 @@ const Navbar = () => {
         </Link>
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-2">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
+            // Right-align dropdowns for items in the right half of the nav so
+            // wide panels don't overflow the viewport.
+            const alignRight = idx >= Math.ceil(navItems.length / 2);
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
