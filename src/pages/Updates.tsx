@@ -38,11 +38,11 @@ interface Update {
 const PAGE_SIZE = 50;
 
 const LOCATION_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "us-federal", label: "🇺🇸 U.S. Federal" },
-  { key: "us-states", label: "🗺️ U.S. States" },
-  { key: "eu-uk", label: "🇪🇺 EU & UK" },
-  { key: "global", label: "🌐 Global" },
+  { key: "all", label: "All Updates" },
+  { key: "us-federal", label: "U.S. Federal" },
+  { key: "us-states", label: "U.S. States" },
+  { key: "eu-uk", label: "EU & UK" },
+  { key: "global", label: "Global" },
 ];
 
 interface TopicFilter {
@@ -53,16 +53,17 @@ interface TopicFilter {
 }
 
 const TOPIC_FILTERS: TopicFilter[] = [
-  { key: "enforcement", label: "⚖️ Enforcement", match: 'category' },
-  { key: "ai-privacy", label: "🤖 AI & Privacy", match: 'category' },
-  { key: "adtech", label: "📡 AdTech & Advertising", match: 'category' },
-  { key: "health-hipaa", label: "🏥 Health & HIPAA", match: 'keyword', terms: ['HIPAA', 'health', 'medical'] },
-  { key: "children-privacy", label: "👶 Children's Privacy", match: 'keyword', terms: ['children', 'COPPA', 'minor', 'age verification'] },
-  { key: "data-breaches", label: "🔒 Data Breaches", match: 'keyword', terms: ['breach', 'data breach', 'incident'] },
-  { key: "cross-border", label: "🌐 Cross-Border Transfers", match: 'keyword', terms: ['transfer', 'SCC', 'adequacy', 'DPF'] },
-  { key: "biometric-data", label: "🧬 Biometric Data", match: 'keyword', terms: ['biometric', 'facial', 'BIPA', 'fingerprint'] },
-  { key: "employee-privacy", label: "💼 Employee Privacy", match: 'keyword', terms: ['employee', 'workplace', 'worker', 'HR'] },
-  { key: "cookie-consent", label: "🍪 Cookie Consent", match: 'keyword', terms: ['cookie', 'consent', 'TCF', 'ePrivacy'] },
+  { key: "all", label: "All Topics", match: 'category' },
+  { key: "enforcement", label: "Enforcement", match: 'category' },
+  { key: "ai-privacy", label: "AI & Privacy", match: 'category' },
+  { key: "adtech", label: "AdTech & Advertising", match: 'category' },
+  { key: "health-hipaa", label: "Health & HIPAA", match: 'keyword', terms: ['HIPAA', 'health', 'medical'] },
+  { key: "children-privacy", label: "Children's Privacy", match: 'keyword', terms: ['children', 'COPPA', 'minor', 'age verification'] },
+  { key: "data-breaches", label: "Data Breaches", match: 'keyword', terms: ['breach', 'data breach', 'incident'] },
+  { key: "cross-border", label: "Cross-Border Transfers", match: 'keyword', terms: ['transfer', 'SCC', 'adequacy', 'DPF'] },
+  { key: "biometric-data", label: "Biometric Data", match: 'keyword', terms: ['biometric', 'facial', 'BIPA', 'fingerprint'] },
+  { key: "employee-privacy", label: "Employee Privacy", match: 'keyword', terms: ['employee', 'workplace', 'worker', 'HR'] },
+  { key: "cookie-consent", label: "Cookie Consent", match: 'keyword', terms: ['cookie', 'consent', 'TCF', 'ePrivacy'] },
 ];
 
 const ENRICHMENT_FILTERS = [
@@ -113,36 +114,38 @@ const Updates = () => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [page, setPage] = useState(0);
-    const [activeFilter, setActiveFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
     const [dateRange, setDateRange] = useState("all");
     const [sourcePills, setSourcePills] = useState<string[]>([]);
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
-    // (Attention filter state removed — Attention badge no longer surfaced)
     const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
-    
+
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    // Write the selected pill into the URL (region/topic) so back/forward stays in sync.
-    // Uses push (not replace) so each pill click is its own history entry.
-    const selectFilter = useCallback((key: string) => {
+    const activeRegion = searchParams.get("region") || "all";
+    const activeTopic = searchParams.get("topic") || "all";
+
+    // Independent setters: region and topic are additive in the URL.
+    const selectRegion = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        next.delete("region");
-        next.delete("topic");
-        if (key && key !== "all") {
-            const isLocation = LOCATION_FILTERS.some(f => f.key === key);
-            next.set(isLocation ? "region" : "topic", key);
-        }
+        if (!key || key === "all") next.delete("region");
+        else next.set("region", key);
+        setSearchParams(next);
+    }, [searchParams, setSearchParams]);
+
+    const selectTopic = useCallback((key: string) => {
+        const next = new URLSearchParams(searchParams);
+        if (!key || key === "all") next.delete("topic");
+        else next.set("topic", key);
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
     const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
       if (!user) {
         setShowFilterGate(filterLabel);
-        // Auto-hide after 4 seconds
         setTimeout(() => setShowFilterGate(null), 4000);
       } else {
         action();
@@ -153,15 +156,6 @@ const Updates = () => {
     const [urgencyFilter, setUrgencyFilter] = useState("all");
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
-
-    // Sync active pill with ?region= / ?topic= query param (resets to "all" when cleared)
-    useEffect(() => {
-        const region = searchParams.get("region");
-        const topic = searchParams.get("topic");
-        if (topic) setActiveFilter(topic);
-        else if (region) setActiveFilter(region);
-        else setActiveFilter("all");
-    }, [searchParams]);
 
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
@@ -259,21 +253,19 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
-        if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
+        // Region filter
+        if (activeRegion !== "all" && u.category !== activeRegion) return false;
 
-        // Location filter
-        const locationFilter = LOCATION_FILTERS.find(f => f.key === activeFilter);
-        if (locationFilter && activeFilter !== "all" && u.category !== activeFilter) return false;
-
-        // Topic filter
-        const topicFilter = TOPIC_FILTERS.find(f => f.key === activeFilter);
-        if (topicFilter) {
-            if (topicFilter.match === 'category' && u.category !== topicFilter.key) return false;
-            if (topicFilter.match === 'keyword' && topicFilter.terms) {
-                const terms = topicFilter.terms.map(t => t.toLowerCase());
-                const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
-                if (!terms.some(term => text.includes(term))) return false;
+        // Topic filter (independent / additive with region)
+        if (activeTopic !== "all") {
+            const t = TOPIC_FILTERS.find(f => f.key === activeTopic);
+            if (t) {
+                if (t.match === 'category' && u.category !== t.key) return false;
+                if (t.match === 'keyword' && t.terms) {
+                    const terms = t.terms.map(x => x.toLowerCase());
+                    const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
+                    if (!terms.some(term => text.includes(term))) return false;
+                }
             }
         }
 
@@ -318,20 +310,19 @@ const Updates = () => {
 
     const clearAllFilters = () => {
         setActiveSectors([]);
-        // (activeAttention removed)
         setUrgencyFilter("all");
         setLegalWeightFilter("all");
         setCrossJurisdictionOnly(false);
         setActiveSource(null);
-        setActiveFilter("all");
         setSearchTerm("");
         setDateRange("all");
-        // Clear region/topic from URL too so history stays consistent
         const next = new URLSearchParams(searchParams);
         next.delete("region");
         next.delete("topic");
         setSearchParams(next);
     };
+
+    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -360,22 +351,95 @@ const Updates = () => {
                 </div>
             </section>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
-                {topicFilter && (
-                    <div className="mb-3">
-                        <div className="flex items-center mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">
-                                ← {lastIngestionLabel(updates)}
-                            </Link>
-                        </div>
-                        <h2 className="text-[15px] font-medium text-foreground m-0">
-                            {formatFilterLabel(topicFilter)}
-                        </h2>
-                        <p className="text-[11px] text-muted-foreground m-0">
-                            {filtered.length} updates in view
-                        </p>
+            {/* Jurisdiction subnav (cobalt underline on active) */}
+            <div className="border-b border-border bg-card">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+                    <div className="flex items-center gap-1 overflow-x-auto -mb-px">
+                        {LOCATION_FILTERS.map((f) => {
+                            const isActive = activeRegion === f.key;
+                            return (
+                                <button
+                                    key={f.key}
+                                    onClick={() => selectRegion(f.key)}
+                                    className={`relative whitespace-nowrap px-3 py-3 text-[13px] font-semibold transition-colors border-b-2 ${
+                                        isActive
+                                            ? "text-foreground border-[hsl(var(--cobalt))]"
+                                            : "text-muted-foreground hover:text-foreground border-transparent"
+                                    }`}
+                                >
+                                    {f.label}
+                                    {f.key === "all" && updates.length > 0 && (
+                                        <span className="ml-1.5 text-[10px] opacity-60">{updates.length}</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-6">
+                {/* Left: Topics sidebar */}
+                <aside className="hidden md:block">
+                    <div className="sticky top-20">
+                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
+                        <nav className="flex flex-col">
+                            {TOPIC_FILTERS.map((t) => {
+                                const isActive = activeTopic === t.key;
+                                return (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => selectTopic(t.key)}
+                                        className={`text-left text-[13px] px-3 py-2 transition-colors border-l-2 ${
+                                            isActive
+                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
+                                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                                        }`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </aside>
+
+                {/* Main feed column */}
+                <div>
+                {/* Mobile: topics as scrollable pills */}
+                <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
+                    <div className="flex items-center gap-2 px-4">
+                        {TOPIC_FILTERS.map((t) => {
+                            const isActive = activeTopic === t.key;
+                            return (
+                                <button
+                                    key={t.key}
+                                    onClick={() => selectTopic(t.key)}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                        isActive
+                                            ? "bg-[hsl(var(--cobalt))] text-white"
+                                            : "bg-muted text-foreground hover:bg-muted/80"
+                                    }`}
+                                >
+                                    {t.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {hasJurisdictionOrTopic && (
+                    <div className="mb-3 flex items-center gap-2 text-[12px]">
+                        <span className="text-muted-foreground">{filtered.length} updates</span>
+                        <button
+                            onClick={clearAllFilters}
+                            className="text-[hsl(var(--cobalt))] hover:underline font-medium"
+                        >
+                            Clear filters
+                        </button>
                     </div>
                 )}
+
                 <Link
                   to="/get-intelligence"
                   aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
@@ -385,46 +449,6 @@ const Updates = () => {
                     Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
                   </p>
                 </Link>
-                {/* Enrichment stats strip */}
-
-                {/* Filters bar — two-group layout. Region + topic are open to all
-                    visitors (matches the homepage CTA promise). Sectors and date
-                    range remain gated to anon users below. */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {/* Location filters */}
-                    {LOCATION_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => selectFilter(f.key)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                activeFilter === f.key
-                                    ? "bg-navy text-white"
-                                    : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-
-                    {/* Separator */}
-                    <span className="w-px h-5 bg-border mx-1" />
-
-                    {/* Topic filters */}
-                    {TOPIC_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => selectFilter(f.key)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                activeFilter === f.key
-                                    ? "bg-navy text-white"
-                                    : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-
-                </div>
 
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
@@ -592,6 +616,7 @@ const Updates = () => {
                 </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
+                </div>
             </div>
 
             <Footer />

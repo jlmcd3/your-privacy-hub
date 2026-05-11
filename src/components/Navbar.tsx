@@ -92,38 +92,8 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    label: "Updates",
-    wide: true,
-    columns: 2,
-    sections: [
-      {
-        header: "Browse by region",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
-        column: 1,
-        items: [
-          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
-          { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
-          { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
-          { icon: "🌐", label: "Global", href: "/updates?region=global" },
-          { icon: "📰", label: "Privacy Intelligence Feed", href: "/updates?region=all" },
-        ],
-      },
-      {
-        header: "Browse by topic",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
-        column: 2,
-        items: [
-          { icon: "🤖", label: "AI & Privacy", href: "/updates?topic=ai-privacy" },
-          { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement" },
-          { icon: "📱", label: "AdTech & Consent", href: "/updates?topic=adtech" },
-          { icon: "👤", label: "Biometric Data", href: "/updates?topic=biometric-data" },
-          { icon: "🌐", label: "Data Transfers", href: "/updates?topic=cross-border" },
-          { icon: "🧒", label: "Children's Privacy", href: "/updates?topic=children-privacy" },
-        ],
-      },
-    ],
+    label: "Privacy Intelligence Feed",
+    href: "/updates",
   },
   {
     label: "Compliance Tools",
