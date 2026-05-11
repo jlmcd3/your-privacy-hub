@@ -45,9 +45,9 @@ const ASSERTIONS = [
   {
     label: "Illinois BIPA risk rating is HIGH, CRITICAL, or Significant",
     fn: (t: string) => {
-      const il = t.split(/illinois/i)[1] ?? "";
-      const segment = il.split(/united kingdom/i)[0] ?? il;
-      return /(HIGH|CRITICAL|Significant|severe|substantial)/i.test(segment);
+      const ilMatch = t.match(/###\s*ILLINOIS[\s\S]*?(?=###\s*UNITED KINGDOM|###\s*UK\b|$)/i);
+      const segment = ilMatch?.[0] ?? t;
+      return /(HIGH|CRITICAL|Significant|severe|substantial|CRITICAL\s*$)/i.test(segment);
     },
   },
   {
@@ -60,16 +60,15 @@ const ASSERTIONS = [
   {
     label: "Each jurisdiction section contains ≥3 action items or recommendations",
     fn: (t: string) => {
-      const sections = t.split(/#{1,3}\s*(illinois|united kingdom|UK\b)/i).slice(1);
-      if (sections.length < 2) {
+      const ilMatch = t.match(/###\s*ILLINOIS[\s\S]*?(?=###\s*UNITED KINGDOM|###\s*UK\b|$)/i);
+      const ukMatch = t.match(/###\s*UNITED KINGDOM[\s\S]*?(?=###\s*ILLINOIS|$)/i);
+      if (!ilMatch || !ukMatch) {
         return (t.match(/^\s*\d+[\.\)]/gm) || []).length >= 6;
       }
-      return sections.every((section) => {
-        const items =
-          (section.match(/^\s*\d+[\.\)]/gm) || []).length +
-          (section.match(/^\s*[-*•]/gm) || []).length;
-        return items >= 3;
-      });
+      const countItems = (s: string) =>
+        (s.match(/^\s*\d+[\.\)]/gm) || []).length +
+        (s.match(/^\s*[-*•]\s/gm) || []).length;
+      return countItems(ilMatch[0]) >= 3 && countItems(ukMatch[0]) >= 3;
     },
   },
   { label: 'Contains "Article 9" (special category biometric data)', fn: (t: string) => /article\s*9|art\.?\s*9/i.test(t) },
