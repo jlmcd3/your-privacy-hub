@@ -317,8 +317,6 @@ const UpdateDetail = () => {
                 {(ai?.why_it_matters_short || ai?.why_it_matters) && (
                   <div
                     className="border-l-4 px-4 py-3 mb-5 rounded-r"
-                  <div
-                    className="border-l-4 px-4 py-3 mb-4 rounded-r"
                     style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                   >
                     <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
