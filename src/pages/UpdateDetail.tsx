@@ -361,7 +361,7 @@ const UpdateDetail = () => {
                   {ai?.why_it_matters && (
                     <div
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
-                      style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                      style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
                       <p className="text-[14px] leading-relaxed text-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
