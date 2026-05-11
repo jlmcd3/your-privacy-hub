@@ -278,7 +278,7 @@ const UpdateDetail = () => {
             <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground mb-6">
+            <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground mb-4">
               {article.source_name && <span>{article.source_name}</span>}
               {article.source_name && article.published_at && <span>·</span>}
               {article.published_at && <span>{formatDate(article.published_at)}</span>}
@@ -288,110 +288,254 @@ const UpdateDetail = () => {
                   <span>{article.regulator}</span>
                 </>
               )}
+              {(() => {
+                const sev = getSeverityLabel(ai);
+                return sev ? (
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                    {sev.label}
+                  </span>
+                ) : null;
+              })()}
+              {/* Precedent novelty badge — paid only (3D) */}
+              {isPremium && (() => {
+                const pn = (article as any).precedent_novelty as string | null | undefined;
+                if (!pn) return null;
+                const map: Record<string, { label: string; className: string }> = {
+                  new_theory: { label: "New legal theory", className: "bg-amber-100 text-amber-800 border border-amber-300" },
+                  confirms: { label: "Confirms precedent", className: "bg-emerald-100 text-emerald-800 border border-emerald-300" },
+                  reverses: { label: "Reverses prior position", className: "bg-red-100 text-red-800 border border-red-300" },
+                  routine: { label: "Routine", className: "bg-slate-100 text-slate-700 border border-slate-200" },
+                };
+                const m = map[pn];
+                return m ? (
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${m.className}`}>
+                    {m.label}
+                  </span>
+                ) : null;
+              })()}
             </div>
 
             {/* ============================================================
-                SECTION 2 — BRIEFED (tiered)
-                  • Anon         → why_it_matters teaser only + sign-in CTA
-                  • Free signed  → why_it_matters + key takeaways + Pro CTA
-                  • Pro          → all Briefed fields
+                ANONYMOUS gate — show why_it_matters_short + severity (already
+                in metadata) and a single locked row covering all 4 sections.
                 ============================================================ */}
-            {hasBriefed && (
-              <section aria-labelledby="section-briefed" className="mb-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Briefed</span>
-                  <span className="text-[10px] text-muted-foreground/60">Summary &amp; takeaways</span>
-                </div>
-                <hr className="border-border mb-4" />
-
-                {/* Anonymous: short why + first sentence teaser + hard register gate */}
-                {!user && (
-                  <>
-                    {(ai as any)?.why_it_matters_short && (
-                      <div
-                        className="border-l-4 px-4 py-3 mb-3 rounded-r"
-                        style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
-                      >
-                        <div
-                          className="text-[10px] uppercase tracking-wide font-semibold mb-1"
-                          style={{ color: '#4A6FA5' }}
-                        >
-                          Why it matters
-                        </div>
-                        <p className="text-[14px] leading-relaxed text-navy">
-                          {(ai as any).why_it_matters_short}
-                        </p>
-                      </div>
-                    )}
-                    {ai?.why_it_matters && (
-                      <p className="text-[14px] text-muted-foreground leading-relaxed mt-3">
-                        {ai.why_it_matters.split('. ')[0]}…
-                      </p>
-                    )}
-                    <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center">
-                      <p className="text-[15px] font-semibold text-foreground mb-1">
-                        Create a free account to read the full analysis
-                      </p>
-                      <p className="text-[13px] text-muted-foreground mb-4 leading-relaxed">
-                        Key takeaways, regulatory theory, compliance impact, and action intelligence — on every update.
-                      </p>
-                      <div className="flex gap-3 justify-center flex-wrap">
-                        <Link
-                          to="/signup"
-                          className="text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline"
-                        >
-                          Register free →
-                        </Link>
-                        <Link
-                          to="/subscribe"
-                          className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-lg hover:bg-muted transition-colors no-underline"
-                        >
-                          See plans →
-                        </Link>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Pro: full why_it_matters */}
-                {user && isPremium && ai?.why_it_matters && (
+            {!user ? (
+              <>
+                {(ai?.why_it_matters_short || ai?.why_it_matters) && (
                   <div
                     className="border-l-4 px-4 py-3 mb-5 rounded-r"
                     style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
                   >
-                    <div
-                      className="text-[10px] uppercase tracking-wide font-semibold mb-1"
-                      style={{ color: '#4A6FA5' }}
-                    >
+                    <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: '#4A6FA5' }}>
                       Why it matters
                     </div>
-                    <p className="text-[14px] leading-relaxed text-navy">{ai.why_it_matters}</p>
+                    <p className="text-[14px] leading-relaxed text-navy">
+                      {ai?.why_it_matters_short || (ai?.why_it_matters?.split('. ')[0] + '…')}
+                    </p>
+                  </div>
+                )}
+                <div className="rounded-xl border border-border bg-muted/30 p-5 flex items-start gap-3 mb-8">
+                  <Lock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-[14px] font-semibold text-foreground mb-1">
+                      The Brief, Next Steps, Watch, and Contextual Record are available to registered users.
+                    </p>
+                    <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
+                      Sign up free to see analysis on every update.
+                    </p>
+                    <Link
+                      to="/signup"
+                      className="inline-block text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline"
+                    >
+                      Sign up free →
+                    </Link>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* ========================================================
+                    SECTION 1 — THE BRIEF (free registered + paid)
+                    ======================================================== */}
+                <section aria-label="The Brief" className="mb-8">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">The Brief</span>
+                    <span className="text-[10px] text-muted-foreground/60">Why it matters &amp; key takeaways</span>
+                  </div>
+                  <hr className="border-border mb-4" />
+
+                  {ai?.why_it_matters && (
+                    <div
+                      className="border-l-4 px-4 py-3 mb-4 rounded-r"
+                      style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+                    >
+                      <p className="text-[14px] leading-relaxed text-navy m-0">
+                        {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {ai?.takeaways && ai.takeaways.length > 0 && (
+                    <ul className="list-disc pl-5 space-y-1.5 mb-4">
+                      {ai.takeaways.slice(0, 2).map((item, i) => (
+                        <li key={i} className="text-[14px] text-foreground leading-relaxed">{item}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Entity chips + scope row */}
+                  {(() => {
+                    const entities = ai?.entities;
+                    const chips: { label: string; tone: string }[] = [];
+                    entities?.regulators?.forEach(r => chips.push({ label: r, tone: "bg-blue-50 text-blue-800 border-blue-200" }));
+                    entities?.laws?.forEach(l => chips.push({ label: l, tone: "bg-violet-50 text-violet-800 border-violet-200" }));
+                    entities?.cases?.forEach(c => chips.push({ label: c, tone: "bg-amber-50 text-amber-800 border-amber-200" }));
+                    if (chips.length === 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {chips.map((c, i) => (
+                          <span key={i} className={`text-[11px] px-2 py-0.5 rounded-full border ${c.tone}`}>{c.label}</span>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
+                  {(() => {
+                    const scope: { label: string; value: string }[] = [];
+                    if (ai?.who_should_care) scope.push({ label: "Who should care", value: ai.who_should_care });
+                    const aj = ai?.affected_jurisdictions;
+                    if (aj) scope.push({ label: "Jurisdictions", value: Array.isArray(aj) ? aj.join(", ") : String(aj) });
+                    if (ai?.key_date) scope.push({ label: "Key date", value: ai.key_date });
+                    if (scope.length === 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground border-t border-border pt-2">
+                        {scope.map((s, i) => (
+                          <span key={i}>
+                            <span className="font-semibold text-foreground">{s.label}:</span> {s.value}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </section>
+
+                {/* ========================================================
+                    Free registered: single locked row covering 2-4
+                    ======================================================== */}
+                {!isPremium && (
+                  <div className="rounded-xl border border-border bg-muted/30 p-5 flex items-start gap-3 mb-8">
+                    <Lock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-[14px] font-semibold text-foreground mb-1">
+                        Next Steps, Watch, and the full Contextual Record are available on the Annual Platform plan.
+                      </p>
+                      <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
+                        Action items by role and timeframe, related signals across the corpus, and contextual analysis.
+                      </p>
+                      <Link
+                        to="/subscribe"
+                        className="inline-block text-[13px] font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors"
+                        style={{ background: 'hsl(var(--accent))' }}
+                      >
+                        Upgrade →
+                      </Link>
+                    </div>
                   </div>
                 )}
 
-                {/* Key takeaways — all signed-in users */}
-                {user && ai?.takeaways && ai.takeaways.length > 0 && (
-                  <div className="mb-5">
-                    <h3 className="text-foreground font-bold text-[14px] mb-2">Key takeaways</h3>
-                    <ul className="list-disc pl-5 space-y-1.5">
-                      {ai.takeaways.map((item, i) => (
-                        <li key={i} className="text-[14px] text-muted-foreground leading-relaxed">
-                          {item}
+                {/* ========================================================
+                    SECTION 2 — NEXT STEPS (paid only)
+                    ======================================================== */}
+                {isPremium && article.action_items && article.action_items.length > 0 && (() => {
+                  const groups: Record<"now" | "quarter" | "ongoing", ActionItem[]> = { now: [], quarter: [], ongoing: [] };
+                  article.action_items.forEach(a => {
+                    const tf = String(a.timeframe ?? "").toLowerCase();
+                    if (tf.includes("immediate") || tf.includes("7 day")) groups.now.push(a);
+                    else if (tf.includes("quarter")) groups.quarter.push(a);
+                    else if (tf.includes("monitor") || tf.includes("ongoing")) groups.ongoing.push(a);
+                    else groups.ongoing.push(a);
+                  });
+                  const bands: { key: keyof typeof groups; label: string }[] = [
+                    { key: "now", label: "Now" },
+                    { key: "quarter", label: "This Quarter" },
+                    { key: "ongoing", label: "Ongoing" },
+                  ];
+                  return (
+                    <section aria-label="Next Steps" className="mb-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Next Steps</span>
+                        <span className="text-[10px] text-muted-foreground/60">Actions by timeframe</span>
+                      </div>
+                      <hr className="border-border mb-4" />
+                      <div className="space-y-3">
+                        {bands.filter(b => groups[b.key].length > 0).map(b => (
+                          <div key={b.key} className="grid grid-cols-[90px_1fr] gap-3 items-start">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 pt-0.5">{b.label}</span>
+                            <ul className="space-y-1.5">
+                              {groups[b.key].map((a, i) => (
+                                <li key={i} className="text-[13.5px] text-foreground leading-relaxed">
+                                  {a.role && <span className="font-semibold">{a.role}: </span>}
+                                  {a.action}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })()}
+
+                {/* ========================================================
+                    SECTION 3 — WATCH (paid only) — related_signals
+                    ======================================================== */}
+                {isPremium && (article as any).related_signals && (article as any).related_signals.length > 0 && (
+                  <section aria-label="Watch" className="mb-8">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
+                      <span className="text-[10px] text-muted-foreground/60">Related signals</span>
+                    </div>
+                    <hr className="border-border mb-4" />
+                    <ul className="space-y-2">
+                      {((article as any).related_signals as RelatedSignal[]).map((sig, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-[13.5px] text-foreground leading-relaxed">
+                          <span
+                            className="inline-block w-2 h-2 rounded-full mt-1.5 shrink-0"
+                            style={{ background: 'hsl(var(--cobalt))' }}
+                          />
+                          <span>{sig.label}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </section>
                 )}
 
-                {/* Regulatory theory & related development — Pro only */}
-                {user && isPremium && (article.regulatory_theory || article.related_development) && (
-                  <div className="space-y-3 mb-5">
+                {/* ========================================================
+                    SECTION 4 — CONTEXTUAL RECORD (paid only — placeholder)
+                    ======================================================== */}
+                {isPremium && (
+                  <section aria-label="Contextual Record" className="mb-8">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Contextual Record</span>
+                    </div>
+                    <hr className="border-border mb-4" />
+                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
+                      <p className="text-[13px] italic text-muted-foreground m-0">
+                        Contextual intelligence drawing on the enforcement corpus will appear here once the enrichment pipeline update is deployed.
+                      </p>
+                    </div>
+                  </section>
+                )}
+
+                {/* Pro: regulatory theory & related development (kept) */}
+                {isPremium && (article.regulatory_theory || article.related_development) && (
+                  <section aria-label="Regulatory context" className="mb-8 space-y-3">
                     {article.regulatory_theory && (
                       <div className="border border-border rounded-lg p-3">
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Regulatory theory
                         </div>
-                        <p className="text-[14px] leading-relaxed text-foreground">{article.regulatory_theory}</p>
+                        <p className="text-[14px] leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
                       </div>
                     )}
                     {article.related_development && (
@@ -399,96 +543,14 @@ const UpdateDetail = () => {
                         <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Related development
                         </div>
-                        <p className="text-[14px] leading-relaxed text-foreground">{article.related_development}</p>
+                        <p className="text-[14px] leading-relaxed text-foreground m-0">{article.related_development}</p>
                       </div>
                     )}
-                  </div>
+                  </section>
                 )}
-
-                {/* Action Brief — signed-in users only (blurred for free, full for Pro) */}
-                {user && (ai?.compliance_impact || ai?.urgency) && (
-                  <div className="mb-2">
-                    <ActionBrief
-                      urgency={ai?.urgency ?? null}
-                      who_should_care={ai?.who_should_care ?? null}
-                      compliance_impact={ai?.compliance_impact ?? null}
-                      action_items={article.action_items ?? null}
-                      risk_level={ai?.risk_level ?? null}
-                      isPremium={isPremium}
-                      articleId={article.id}
-                    />
-                  </div>
-                )}
-
-                {/* Upgrade CTA — free signed-in only */}
-                {user && !isPremium && (
-                  <div className="mt-4 rounded-xl border border-blue/20 bg-white px-4 py-4 text-center">
-                    <p className="text-[14px] font-semibold text-navy mb-1">
-                      Upgrade to Platform for full action intelligence
-                    </p>
-                    <p className="text-[12px] text-slate mb-3 leading-relaxed">
-                      Compliance impact, action items by role, regulatory theory, and deep analysis on every update.
-                    </p>
-                    <Link
-                      to="/subscribe"
-                      className="inline-block text-[13px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
-                    >
-                      Upgrade to Platform →
-                    </Link>
-                  </div>
-                )}
-              </section>
+              </>
             )}
 
-            {/* ============================================================
-                SECTION 3 — ANALYZED (Pro-only deep analysis)
-                ============================================================ */}
-            {isPremium && (
-              <section aria-labelledby="section-analyzed" className="mb-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Analyzed</span>
-                  <span className="text-[9px] bg-purple-700 text-white px-1.5 py-0.5 rounded font-semibold">PRO</span>
-                  <span className="text-[10px] text-muted-foreground/60">Deep regulatory analysis</span>
-                </div>
-                <hr className="border-border mb-4" />
-
-                {!hasAnalyzed ? (
-                  <p className="text-[14px] italic text-muted-foreground">
-                    No deep analysis available for this article yet.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {article.attention_level && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Attention level
-                        </div>
-                        <span className="inline-block text-[12px] px-2 py-0.5 rounded bg-muted text-foreground capitalize">
-                          {article.attention_level}
-                        </span>
-                      </div>
-                    )}
-                    {article.affected_sectors && article.affected_sectors.length > 0 && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">
-                          Affected sectors
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {article.affected_sectors.map((s) => (
-                            <span
-                              key={s}
-                              className="text-[12px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
-                            >
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </section>
-            )}
 
             {/* Topic tags */}
             {article.topic_tags && article.topic_tags.length > 0 && (
