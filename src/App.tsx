@@ -58,6 +58,7 @@ import TestGovernanceAssessment from "./pages/admin/TestGovernanceAssessment";
 import TestLIA from "./pages/admin/TestLIA";
 import TestDPIA from "./pages/admin/TestDPIA";
 import TestDPA from "./pages/admin/TestDPA";
+import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -386,6 +387,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestDPA />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-ir-playbook"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestIRPlaybook />
                   </AdminOnly>
                 </ProtectedRoute>
               }
