@@ -65,6 +65,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
+    label: "Privacy Intelligence Feed",
+    href: "/updates",
+    directLink: true,
+  },
+  {
     label: "Intelligence",
     wide: true,
     columns: 2,
