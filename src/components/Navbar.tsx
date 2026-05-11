@@ -380,13 +380,18 @@ const Navbar = () => {
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const baseTopClasses = "relative flex items-center gap-1 px-2 py-2 transition-colors no-underline font-semibold text-[15px]";
+            const basePadX = item.directLink ? "px-4" : "px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[15px]`;
             const activeUnderline = isActive
-              ? "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
+              ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
             const colorClasses = item.accent
               ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
               : `${isActive ? "text-white" : "text-white/80 hover:text-white"}`;
+            const dimClass = item.dim ? "opacity-80 hover:opacity-100" : "";
+            const directDot = item.directLink
+              ? "before:content-[''] before:absolute before:left-1 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[hsl(var(--cobalt))]"
+              : "";
             return (
               <div
                 key={item.label}
@@ -395,14 +400,14 @@ const Navbar = () => {
                 onMouseLeave={() => setOpenDropdown(null)}
               >
                 {item.href ? (
-                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline}`}>
+                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} ${directDot}`}>
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                   </Link>
                 ) : (
                   <button
                     type="button"
-                    className={`${baseTopClasses} ${colorClasses} ${activeUnderline} cursor-pointer bg-transparent border-none`}
+                    className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} cursor-pointer bg-transparent border-none`}
                   >
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
