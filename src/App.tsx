@@ -66,6 +66,7 @@ import TestCPPACyber from "./pages/admin/TestCPPACyber";
 import TestRoPA from "./pages/admin/TestRoPA";
 import TestUSNotice from "./pages/admin/TestUSNotice";
 import TestEUNotice from "./pages/admin/TestEUNotice";
+import TestRegistration from "./pages/admin/TestRegistration";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -474,6 +475,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestEUNotice />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-registration"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestRegistration />
                   </AdminOnly>
                 </ProtectedRoute>
               }
