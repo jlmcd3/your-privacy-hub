@@ -197,7 +197,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
   },
   "framework_disclaimer": "This DPIA framework document is provided as a compliance framework tool to assist organisations in structuring their Data Protection Impact Assessment process. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. The organisation's qualified Data Protection Officer or legal counsel must review, complete, and own this document. This framework does not constitute legal advice."
 }`,
-        4000
+        6000
       )
     ]);
 
