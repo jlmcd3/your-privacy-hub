@@ -545,7 +545,7 @@ Deno.serve(async (req) => {
         generatedAtHuman,
       );
       const combinedBytes = new TextEncoder().encode(combinedHtml);
-      const combinedPath = `${sessionId}/v${nextVersion}/_international.html`;
+      const combinedPath = `${sessionRow.client_id}/${sessionId}/v${nextVersion}/_international.html`;
       const { error: upErr } = await admin.storage
         .from("eu-notices")
         .upload(combinedPath, combinedBytes, {
