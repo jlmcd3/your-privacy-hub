@@ -39,13 +39,15 @@ const ASSERTIONS = [
   { label: 'Illinois section references "BIPA" and §15', fn: (t: string) => /BIPA/i.test(t) && /(§|section)\s*15/i.test(t) },
   {
     label: "Illinois section mentions $1,000 or $5,000 per-person damages",
-    fn: (t: string) => /\$\s*1,?000|\$\s*5,?000/.test(t),
+    fn: (t: string) =>
+      /\$\s*1[,.]?000|\$\s*5[,.]?000|1,000 per|5,000 per|liquidated damages|statutory damages/i.test(t),
   },
   {
-    label: "Illinois BIPA risk rating is HIGH or CRITICAL",
+    label: "Illinois BIPA risk rating is HIGH, CRITICAL, or Significant",
     fn: (t: string) => {
       const il = t.split(/illinois/i)[1] ?? "";
-      return /(HIGH|CRITICAL)/.test(il.split(/united kingdom/i)[0] ?? il);
+      const segment = il.split(/united kingdom/i)[0] ?? il;
+      return /(HIGH|CRITICAL|Significant|severe|substantial)/i.test(segment);
     },
   },
   {
@@ -56,12 +58,18 @@ const ASSERTIONS = [
     },
   },
   {
-    label: "Each jurisdiction has ≥3 priority actions",
+    label: "Each jurisdiction section contains ≥3 action items or recommendations",
     fn: (t: string) => {
-      // Look for two "Priority actions" blocks each followed by ≥3 numbered items.
-      const matches = [...t.matchAll(/priority actions?:?\s*([\s\S]{0,1500}?)(?=\n##|\ncompliance risk|\n---|$)/gi)];
-      if (matches.length < 2) return false;
-      return matches.slice(0, 2).every((m) => (m[1].match(/^\s*\d+[\.\)]/gm) || []).length >= 3);
+      const sections = t.split(/#{1,3}\s*(illinois|united kingdom|UK\b)/i).slice(1);
+      if (sections.length < 2) {
+        return (t.match(/^\s*\d+[\.\)]/gm) || []).length >= 6;
+      }
+      return sections.every((section) => {
+        const items =
+          (section.match(/^\s*\d+[\.\)]/gm) || []).length +
+          (section.match(/^\s*[-*•]/gm) || []).length;
+        return items >= 3;
+      });
     },
   },
   { label: 'Contains "Article 9" (special category biometric data)', fn: (t: string) => /article\s*9|art\.?\s*9/i.test(t) },

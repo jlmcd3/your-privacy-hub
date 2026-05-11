@@ -163,7 +163,7 @@ export default function TestRoPA() {
           {
             client_id: clientId,
             legal_entity_type: "Private limited company (UK)",
-            employee_band: "50–249",
+            employee_band: "50-249",
             is_controller: true,
             is_processor: true,
             dpo_name: "Dr. Eleanor Hartley",
