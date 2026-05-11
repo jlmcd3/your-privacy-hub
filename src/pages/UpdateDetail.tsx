@@ -457,14 +457,14 @@ const UpdateDetail = () => {
                   return (
                     <section aria-label="Next Steps" className="mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Next Steps</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
                         <span className="text-[10px] text-muted-foreground/60">Actions by timeframe</span>
                       </div>
                       <hr className="border-border mb-4" />
                       <div className="space-y-3">
                         {bands.filter(b => groups[b.key].length > 0).map(b => (
                           <div key={b.key} className="grid grid-cols-[90px_1fr] gap-3 items-start">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 pt-0.5">{b.label}</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
                                 <li key={i} className="text-[13.5px] text-foreground leading-relaxed">
