@@ -510,7 +510,7 @@ const UpdateDetail = () => {
                 {isPremium && (
                   <section aria-label="Contextual Record" className="mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Contextual Record</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Contextual Record</span>
                     </div>
                     <hr className="border-border mb-4" />
                     <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
