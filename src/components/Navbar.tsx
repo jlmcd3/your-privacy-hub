@@ -160,6 +160,7 @@ const navItems: NavItem[] = [
     label: "Research",
     wide: true,
     columns: 2,
+    dim: true,
     sections: [
       {
         header: "Laws & frameworks",
