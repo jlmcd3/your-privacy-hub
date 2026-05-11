@@ -60,6 +60,7 @@ import TestDPIA from "./pages/admin/TestDPIA";
 import TestDPA from "./pages/admin/TestDPA";
 import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
 import TestBiometric from "./pages/admin/TestBiometric";
+import TestCPPAScope from "./pages/admin/TestCPPAScope";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -408,6 +409,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestBiometric />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-cppa-scope"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestCPPAScope />
                   </AdminOnly>
                 </ProtectedRoute>
               }
