@@ -248,11 +248,20 @@ Deno.serve(async (req) => {
   }
 
   // Get recent articles (60 instead of 40)
-  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  // Same Sunday midnight anchor as generate-weekly-brief for consistency
+  const now = new Date();
+  const dayOfWeek = now.getUTCDay();
+  const daysSinceSunday = dayOfWeek === 0 ? 7 : dayOfWeek;
+  const weekStart = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - daysSinceSunday,
+    0, 0, 0, 0
+  ));
   const { data: recentArticles } = await supabase
     .from("updates")
     .select("title, category, summary, source_name, published_at, topic_tags, regulator, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, legal_weight, urgency, affected_jurisdictions")
-    .gte("published_at", oneWeekAgo)
+    .gte("published_at", weekStart.toISOString())
     .order("published_at", { ascending: false })
     .limit(60);
 
