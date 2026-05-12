@@ -75,7 +75,7 @@ function getBriefItems(
     .filter(Boolean) as BriefItem[];
 }
 
-export default function BriefBuilder({ onBriefGenerated }: { onBriefGenerated?: () => void } = {}) {
+export default function BriefBuilder() {
   const [jurisdiction, setJurisdiction] = useState("");
   const [role,         setRole]         = useState("");
   const [tracks,       setTracks]       = useState<string[]>([]);
@@ -229,7 +229,7 @@ export default function BriefBuilder({ onBriefGenerated }: { onBriefGenerated?: 
           <button
             type="button"
             disabled={!canGenerate}
-            onClick={() => { setBriefShown(true); onBriefGenerated?.(); }}
+            onClick={() => setBriefShown(true)}
             className="px-8 py-3 rounded-xl text-[14px] font-bold bg-navy text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Generate Brief →
