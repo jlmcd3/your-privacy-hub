@@ -67,8 +67,8 @@ const ASSERTIONS: { label: string; fn: (t: string) => boolean }[] = [
     fn: (t: string) => t.includes(a.activity_name),
   })),
   {
-    label: 'Output references "Article 30"',
-    fn: (t) => /article\s*30/i.test(t),
+    label: 'Output references "Article 30" or "Record of Processing Activities"',
+    fn: (t) => /article\s*30/i.test(t) || /record of processing activities/i.test(t),
   },
   {
     label: "Output contains controller identification (client/controller section)",
