@@ -102,13 +102,23 @@ Deno.serve(async (req) => {
   // ── End authentication ────────────────────────────────────────────────────
 
   try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    // Anchor to previous Sunday midnight UTC for a consistent weekly window.
+    // Every brief generated on Monday covers Sun 00:00:00 UTC → now,
+    // regardless of what time Monday the brief runs.
+    const now = new Date();
+    const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const daysSinceSunday = dayOfWeek === 0 ? 7 : dayOfWeek;
+    const weekStart = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - daysSinceSunday,
+      0, 0, 0, 0
+    ));
 
     const { data: articles, error: fetchError } = await supabase
       .from("updates")
       .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
-      .gte("published_at", sevenDaysAgo.toISOString())
+      .gte("published_at", weekStart.toISOString())
       .order("published_at", { ascending: false })
       .limit(40);
 
