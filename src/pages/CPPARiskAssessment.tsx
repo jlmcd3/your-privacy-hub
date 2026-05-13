@@ -14,6 +14,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
 const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
@@ -228,6 +229,8 @@ export default function CPPARiskAssessment() {
           )}
 
           {summaryStep && <SummaryTable intake={intake} />}
+
+          <ToolDisclaimer />
 
           <div className="flex justify-between pt-4 border-t flex-wrap gap-3">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>

@@ -15,6 +15,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
@@ -193,6 +194,7 @@ const DPIAFramework = () => {
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
           </div>
+          <ToolDisclaimer />
         </form>
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />

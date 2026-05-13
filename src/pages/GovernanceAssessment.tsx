@@ -15,6 +15,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -335,6 +336,8 @@ const GovernanceAssessment = () => {
               </>
             );
           })()}
+
+          <ToolDisclaimer />
 
           <div className="flex justify-between pt-4 border-t">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>

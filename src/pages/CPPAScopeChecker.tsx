@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -249,6 +250,8 @@ export default function CPPAScopeChecker() {
                 />
               </div>
             </div>
+
+            <ToolDisclaimer />
 
             <div className="flex justify-end pt-4 border-t">
               <Button onClick={handleCheck} disabled={!allAnswered}>

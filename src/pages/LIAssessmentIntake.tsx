@@ -12,6 +12,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 
@@ -377,6 +378,7 @@ const LIAssessmentIntake = () => {
 
         <section className="bg-card border rounded-lg p-6">
           <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+          <ToolDisclaimer />
 
           <button
             onClick={handleSubmit}
