@@ -14,6 +14,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 const MATURITY = [
   "Not implemented",
@@ -173,6 +174,8 @@ export default function CPPACybersecurity() {
             </div>
           ))}
         </section>
+
+        <ToolDisclaimer />
 
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">
           {isSuite ? (
