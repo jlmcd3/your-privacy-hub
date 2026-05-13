@@ -1,8 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import WatchlistManager from "@/components/watchlist/WatchlistManager";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
@@ -14,8 +11,6 @@ export default function Watchlist() {
       <Helmet>
         <title>Watchlist | End User Privacy</title>
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
       <PageContainer>
         <div className="py-6 max-w-3xl">
           <div className="mb-6">
@@ -27,7 +22,6 @@ export default function Watchlist() {
           <WatchlistManager isPremium={isPremium} />
         </div>
       </PageContainer>
-      <Footer />
     </div>
   );
 }

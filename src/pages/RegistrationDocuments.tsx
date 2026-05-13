@@ -4,8 +4,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,11 +59,9 @@ export default function RegistrationDocuments() {
   if (loading) {
     return (
       <div className="min-h-screen bg-paper">
-        <Navbar />
         <PageContainer>
           <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
         </PageContainer>
-        <Footer />
       </div>
     );
   }
@@ -73,14 +69,12 @@ export default function RegistrationDocuments() {
   if (!order) {
     return (
       <div className="min-h-screen bg-paper">
-        <Navbar />
         <PageContainer>
           <div className="py-20 text-center">
             <p className="text-slate">Order not found.</p>
             <Button asChild className="mt-4"><Link to="/registration-manager/my-filings">Back to My Filings</Link></Button>
           </div>
         </PageContainer>
-        <Footer />
       </div>
     );
   }
@@ -90,7 +84,6 @@ export default function RegistrationDocuments() {
       <Helmet>
         <title>Registration Documents | End User Privacy</title>
       </Helmet>
-      <Navbar />
       <PageContainer>
         <div className="py-6">
           <Button asChild variant="ghost" size="sm" className="mb-4">
@@ -198,7 +191,6 @@ export default function RegistrationDocuments() {
           </div>
         </div>
       </PageContainer>
-      <Footer />
     </div>
   );
 }

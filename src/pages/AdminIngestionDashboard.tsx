@@ -3,8 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import ImagePoolPanel from "@/components/admin/ImagePoolPanel";
 
 interface RunRow {
@@ -147,7 +145,6 @@ export default function AdminIngestionDashboard() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
           <h1 className="font-display text-2xl text-foreground mb-3">Admin access required</h1>
           <p className="text-muted-foreground text-sm mb-6">
@@ -156,7 +153,6 @@ export default function AdminIngestionDashboard() {
           </p>
           <Link to="/" className="text-primary text-sm font-semibold">← Back to home</Link>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -178,7 +174,6 @@ export default function AdminIngestionDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet><title>Ingestion Dashboard — Admin</title></Helmet>
-      <Navbar />
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
@@ -448,7 +443,6 @@ export default function AdminIngestionDashboard() {
         </section>
 
       </main>
-      <Footer />
     </div>
   );
 }

@@ -4,8 +4,6 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -138,7 +136,6 @@ export default function AdminLawUpdates() {
       <Helmet>
         <title>Law Update Candidates | Admin | End User Privacy</title>
       </Helmet>
-      <Navbar />
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="font-display text-2xl text-navy mb-2">State Privacy Law Updates</h1>
         <p className="text-sm text-slate mb-8">
@@ -285,7 +282,6 @@ export default function AdminLawUpdates() {
         </DialogContent>
       </Dialog>
 
-      <Footer />
     </div>
   );
 }

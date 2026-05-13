@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,7 +90,6 @@ export default function RegistrationOrder() {
       <Helmet>
         <title>Registration Order — End User Privacy</title>
       </Helmet>
-      <Navbar />
       <main>
         <PageContainer>
           <div className="max-w-4xl mx-auto py-10">
@@ -159,7 +156,6 @@ export default function RegistrationOrder() {
           </div>
         </PageContainer>
       </main>
-      <Footer />
     </>
   );
 }

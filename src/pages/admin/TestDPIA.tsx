@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
 
 const MOCK_INTAKE = {
   activity_name: "AI-Powered Patient Risk Stratification",
@@ -197,7 +196,6 @@ export default function TestDPIA() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
           <h1 className="font-serif text-3xl mb-2">🧪 TEST: Impact Assessment Builder (DPIA)</h1>

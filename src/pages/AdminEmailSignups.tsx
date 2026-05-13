@@ -3,8 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 interface SignupRow {
   id: string;
@@ -129,9 +127,7 @@ export default function AdminEmailSignups() {
   if (authLoading || isAdmin === null) {
     return (
       <div className="min-h-screen bg-paper">
-        <Navbar />
         <div className="max-w-6xl mx-auto px-4 py-16 text-center text-sm text-slate">Loading…</div>
-        <Footer />
       </div>
     );
   }
@@ -141,7 +137,6 @@ export default function AdminEmailSignups() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Email Signups — Admin</title></Helmet>
-      <Navbar />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -256,7 +251,6 @@ export default function AdminEmailSignups() {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

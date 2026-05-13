@@ -3,8 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -115,14 +113,12 @@ export default function AdminArticles() {
   if (!allowed) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
           <h1 className="text-2xl font-semibold mb-2">Not authorized</h1>
           <p className="text-muted-foreground">
             You need an admin or moderator role to access this page.
           </p>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -133,7 +129,6 @@ export default function AdminArticles() {
         <title>Article Moderation · Admin</title>
         <meta name="robots" content="noindex,nofollow" />
       </Helmet>
-      <Navbar />
       <main className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
@@ -252,7 +247,6 @@ export default function AdminArticles() {
           </Table>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

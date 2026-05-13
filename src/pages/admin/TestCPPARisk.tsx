@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
 
 const MOCK_INTAKE = {
   profile: {
@@ -226,7 +225,6 @@ export default function TestCPPARisk() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
           <h1 className="font-serif text-3xl mb-2">🧪 TEST: CPPA Risk Assessment (Module 1)</h1>

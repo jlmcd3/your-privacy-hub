@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { FlagIcon } from "@/components/FlagIcon";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 import OnboardingModal from "@/components/OnboardingModal";
 
@@ -18,7 +16,6 @@ import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 
@@ -284,11 +281,9 @@ const Dashboard = () => {
           <title>Intelligence Dashboard | End User Privacy</title>
           <meta name="description" content="Your personalized privacy intelligence dashboard." />
         </Helmet>
-        <Navbar />
         <div className="flex items-center justify-center py-24">
           <span className="text-muted-foreground text-sm">Loading…</span>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -320,7 +315,6 @@ const Dashboard = () => {
         <Helmet>
           <title>Intelligence Dashboard | End User Privacy</title>
         </Helmet>
-        <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Premium upsell banner */}
           <div className="mb-6">
@@ -422,7 +416,6 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        <Footer />
       </div>
     );
   }
@@ -433,8 +426,6 @@ const Dashboard = () => {
         <title>Intelligence Brief | End User Privacy</title>
         <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
@@ -830,7 +821,6 @@ const Dashboard = () => {
 
       </div>
 
-      <Footer />
     </div>
   );
 };

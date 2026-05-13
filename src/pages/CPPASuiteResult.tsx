@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -184,7 +182,6 @@ export default function CPPASuiteResult() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>CPPA Audit Readiness Suite | End User Privacy</title></Helmet>
-      <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         {purchased && (
@@ -224,7 +221,6 @@ export default function CPPASuiteResult() {
           <Button asChild variant="outline"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

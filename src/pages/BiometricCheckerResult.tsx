@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,7 +82,6 @@ export default function BiometricCheckerResult() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Compliance Assessment | End User Privacy</title></Helmet>
-      <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
         <ClientContextBadge />
@@ -111,7 +108,6 @@ export default function BiometricCheckerResult() {
           </ReportShell>
         )}
       </main>
-      <Footer />
     </div>
   );
 }
