@@ -68,15 +68,15 @@ export default function RegistrationOrder() {
 
   if (loading) {
     return (
-      <><Navbar /><PageContainer><div className="py-20 text-center text-muted-foreground">
+      <PageContainer><div className="py-20 text-center text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3" />Loading order…
-      </div></PageContainer><Footer /></>
+      </div></PageContainer>
     );
   }
 
   if (!order) {
     return (
-      <><Navbar /><PageContainer><div className="py-20 text-center">Order not found.</div></PageContainer><Footer /></>
+      <PageContainer><div className="py-20 text-center">Order not found.</div></PageContainer>
     );
   }
 
