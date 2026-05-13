@@ -5,11 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { Helmet } from "react-helmet-async";
 import { Check, ChevronRight } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import {
   AccountClientsSection,
   ComplianceDocumentsSection,
@@ -148,8 +145,6 @@ export default function Account() {
       <Helmet>
         <title>My Account | End User Privacy</title>
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
@@ -392,7 +387,6 @@ export default function Account() {
         </button>
       </div>
 
-      <Footer />
 
       <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
         <AlertDialogContent>

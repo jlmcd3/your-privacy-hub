@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +13,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Calendar, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 
 export default function RegistrationMyFilings() {
   const { user } = useAuth();
@@ -52,8 +49,6 @@ export default function RegistrationMyFilings() {
       <Helmet>
         <title>My Filings | Registration Manager | End User Privacy</title>
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
       <PageContainer>
         <div className="py-6">
           <div className="flex items-center justify-between mb-6">
@@ -152,7 +147,6 @@ export default function RegistrationMyFilings() {
           </div>
         </div>
       </PageContainer>
-      <Footer />
     </div>
   );
 }

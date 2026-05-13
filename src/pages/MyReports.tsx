@@ -4,8 +4,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight } from "lucide-react";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 
 type ReportRow = {
   id: string;
@@ -174,8 +171,6 @@ export default function MyReports() {
         <title>My Reports | End User Privacy</title>
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
@@ -239,7 +234,6 @@ export default function MyReports() {
           )}
         </div>
       </PageContainer>
-      <Footer />
     </div>
   );
 }

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
@@ -72,7 +70,6 @@ const DPIAFrameworkResult = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Impact Assessment Builder | End User Privacy</title></Helmet>
-      <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
@@ -245,7 +242,6 @@ const DPIAFrameworkResult = () => {
           </>
         )}
       </main>
-      <Footer />
     </div>
   );
 };

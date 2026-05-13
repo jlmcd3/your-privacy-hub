@@ -1,6 +1,4 @@
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import NavReportButton from "@/components/admin/NavReportButton";
 import report from "@/data/gating-leak-report.json";
 
@@ -39,7 +37,6 @@ export default function AdminGatingLeaks() {
         <title>Gating Leak Scanner — Admin</title>
         <meta name="robots" content="noindex,nofollow" />
       </Helmet>
-      <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
@@ -134,7 +131,6 @@ export default function AdminGatingLeaks() {
           );
         })}
       </main>
-      <Footer />
     </>
   );
 }

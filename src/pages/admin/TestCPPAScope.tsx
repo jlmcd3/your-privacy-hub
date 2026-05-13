@@ -1,7 +1,6 @@
 // Frontend-only test for CPPA Scope Checker determination logic.
 // Replicates the logic in src/pages/CPPAScopeChecker.tsx (not exported).
 import { useMemo } from "react";
-import Navbar from "@/components/Navbar";
 
 type Answers = {
   q1: string;
@@ -192,7 +191,6 @@ export default function TestCPPAScope() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
           <h1 className="font-serif text-3xl mb-2">🧪 TEST: CPPA Scope Checker (frontend logic)</h1>
