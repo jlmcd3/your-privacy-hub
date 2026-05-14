@@ -150,7 +150,6 @@ export default function RegistrationMyFilings() {
           </div>
         </div>
       </PageContainer>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }
