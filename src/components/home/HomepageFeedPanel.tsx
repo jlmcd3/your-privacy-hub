@@ -235,7 +235,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
           </div>
         </div>
 
-        <div className="w-[300px] xl:w-[340px] flex-shrink-0 hidden lg:block sticky top-20 self-start">
+        <div className="w-[280px] xl:w-[340px] flex-shrink-0 hidden md:block sticky top-20 self-start">
           <IntelligencePanel
             selectedArticle={selectedArticle}
             isPremium={isPremium}
