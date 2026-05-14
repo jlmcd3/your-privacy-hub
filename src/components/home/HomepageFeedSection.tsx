@@ -1,11 +1,11 @@
 import { useAuth } from "@/hooks/useAuth";
-import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { HomepageFeedPanel } from "./HomepageFeedPanel";
 import SectionShell from "./SectionShell";
 
 export default function HomepageFeedSection() {
   const { user } = useAuth();
-  const { isPremium } = usePremiumStatus();
+  const { isPremium } = useSubscriptionTier();
 
   return (
     <SectionShell
