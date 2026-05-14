@@ -221,8 +221,47 @@ function NavSection({
   );
 }
 
+function FeedSection({ pathname, search }: { pathname: string; search: string }) {
+  const feedActive = pathname === "/updates" || pathname.startsWith("/updates");
+  const currentFull = pathname + (search || "");
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={feedActive && !search}>
+        <Link to="/updates">
+          <span className="relative inline-flex items-center justify-center w-4 h-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse-dot" />
+          </span>
+          <span>Privacy Intelligence Feed</span>
+        </Link>
+      </SidebarMenuButton>
+      <SidebarMenuSub>
+        {FEED_REGIONS.map((region) => {
+          const regionActive = currentFull === region.href;
+          return (
+            <SidebarMenuSubItem key={region.href}>
+              <SidebarMenuSubButton asChild isActive={regionActive}>
+                <Link to={region.href}>{region.label}</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          );
+        })}
+      </SidebarMenuSub>
+    </SidebarMenuItem>
+  );
+}
+
 function ResearchSection({ pathname }: { pathname: string }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
+  const subgroup = (label: string, items: NavItemDef[]) => (
+    <React.Fragment key={label}>
+      <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">
+        {label}
+      </div>
+      {items.map((item) => (
+        <NavItem key={item.href} item={item} pathname={pathname} />
+      ))}
+    </React.Fragment>
+  );
   return (
     <SidebarGroup>
       <Collapsible open={open} onOpenChange={setOpen}>
@@ -241,9 +280,9 @@ function ResearchSection({ pathname }: { pathname: string }) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenu>
-            {RESEARCH.map((item) => (
-              <NavItem key={item.href} item={item} pathname={pathname} />
-            ))}
+            {subgroup("Laws & Frameworks", RESEARCH.slice(0, 5))}
+            {subgroup("Directories", RESEARCH.slice(5, 8))}
+            {subgroup("Practitioner Guides", RESEARCH.slice(8))}
           </SidebarMenu>
         </CollapsibleContent>
       </Collapsible>
