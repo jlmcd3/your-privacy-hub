@@ -2,6 +2,7 @@
 // Mirrors RegistrationOrder but focuses on document browsing.
 
 import { useEffect, useState } from "react";
+import WizardProgress from "@/components/layout/WizardProgress";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import PageContainer from "@/components/PageContainer";
@@ -59,6 +60,8 @@ export default function RegistrationDocuments() {
   if (loading) {
     return (
       <div className="min-h-screen bg-paper">
+      <WizardProgress steps={["Order","Documents"]} currentStep={1} />
+      
         <PageContainer>
           <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
         </PageContainer>

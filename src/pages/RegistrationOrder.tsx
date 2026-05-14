@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import WizardProgress from "@/components/layout/WizardProgress";
 import { Helmet } from "react-helmet-async";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +69,9 @@ export default function RegistrationOrder() {
 
   if (loading) {
     return (
-      <PageContainer><div className="py-20 text-center text-muted-foreground">
+      <PageContainer>
+      <WizardProgress steps={["Order","Documents"]} currentStep={0} />
+      <div className="py-20 text-center text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3" />Loading order…
       </div></PageContainer>
     );

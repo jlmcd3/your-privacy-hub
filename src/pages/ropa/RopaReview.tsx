@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import WizardProgress from "@/components/layout/WizardProgress";
 import { CheckCircle2, AlertTriangle, ChevronDown, ChevronRight, Loader2, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -230,6 +231,8 @@ export default function RopaReview() {
   if (loading) {
     return (
       <RopaShell title="Review your RoPA" heading="Review your RoPA">
+      <WizardProgress steps={["Setup","Activities","Review","Documents"]} currentStep={2} />
+      
         <div className="flex items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading review…
         </div>

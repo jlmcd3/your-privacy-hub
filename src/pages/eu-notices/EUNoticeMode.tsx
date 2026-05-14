@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import WizardProgress from "@/components/layout/WizardProgress";
 import { FileText, ClipboardList, ArrowRight, Loader2 } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -110,6 +111,8 @@ export default function EUNoticeMode() {
 
   return (
     <EUNoticeShell title="Choose Your Path — EU & Global Notice Builder" heading="EU & Global Notice Builder" step="mode">
+      <WizardProgress steps={["Mode","Frameworks","Questions","Review","Documents"]} currentStep={0} />
+      
       <p className="text-muted-foreground text-base mb-2">Choose how you'd like to start.</p>
       {clientName && (
         <p className="text-xs text-muted-foreground mb-8">
