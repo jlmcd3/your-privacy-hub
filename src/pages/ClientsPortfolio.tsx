@@ -9,7 +9,7 @@ import { AddClientModal } from '@/components/clients/AddClientModal';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import DashboardSubnav from '@/components/dashboard/DashboardSubnav';
+import WorkspaceLayout from '@/components/dashboard/WorkspaceLayout';
 
 interface PerClientCounts {
   clientId: string;
