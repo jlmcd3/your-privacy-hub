@@ -10,6 +10,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 
 import DigestPreferences from "@/components/DigestPreferences";
 import PremiumGate from "@/components/PremiumGate";
+import AdBanner from "@/components/AdBanner";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
@@ -79,7 +80,7 @@ function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: str
   if (!content) return null;
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
-      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
+      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-1">
         <span className="mr-2"><FlagIcon icon={icon} /></span>{title}
       </h3>
       {subtitle && (
@@ -317,9 +318,10 @@ const Dashboard = () => {
         </Helmet>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Premium upsell banner */}
+          <AdBanner variant="leaderboard" className="mb-6" />
           <div className="mb-6">
-            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
+            <div className="bg-navy rounded-2xl p-6 text-center">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-gold mb-2">
                 ⭐ Get Intelligence
               </div>
               <h3 className="font-display font-bold text-white text-[18px] mb-2">
@@ -332,7 +334,7 @@ const Dashboard = () => {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/subscribe"
-                  className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
+                  className="bg-gold text-white font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
                   Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
                 </Link>
@@ -342,7 +344,7 @@ const Dashboard = () => {
 
           {/* Digest preferences prompt */}
           {!digestPrefsSet && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4">
+            <div className="bg-gold/10 border border-gold/20 rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p className="font-semibold text-navy text-[14px] mb-1">Set up your weekly digest</p>
                 <p className="text-slate text-[13px]">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
@@ -356,9 +358,9 @@ const Dashboard = () => {
           {/* Digest card */}
           {digestPrefsSet && (
             <div className="bg-card border border-fog rounded-2xl overflow-hidden">
-              <div className="bg-navy px-6 py-4 flex items-center justify-between">
+              <div className="bg-navy rounded-t-2xl px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Your Weekly Digest</p>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-gold mb-0.5">Your Weekly Digest</p>
                   <p className="text-white text-[13px]">{freeDigest ? freeDigest.week_label : "Your first digest arrives Monday"}</p>
                 </div>
                 <button onClick={() => setShowDigestPrefs(true)} className="text-[11px] text-blue-200/60 hover:text-blue-200 bg-transparent border-none cursor-pointer transition-colors">Edit preferences</button>
@@ -411,7 +413,7 @@ const Dashboard = () => {
 
               <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
                 <p className="text-[13px] text-slate">Get full intelligence for analysis, priorities, and action items.</p>
-                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
+                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-white bg-gold hover:opacity-90 px-4 py-2 rounded-xl no-underline transition-colors">Get full intelligence →</Link>
               </div>
             </div>
           )}
@@ -600,7 +602,7 @@ const Dashboard = () => {
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
 
                 {/* Document header */}
-                <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
+                <div className="bg-navy px-6 py-5">
                   <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
                       ⭐ End User Privacy Intelligence Report
@@ -622,7 +624,7 @@ const Dashboard = () => {
 
                   {/* Executive Summary */}
                   <section className="py-7 border-b border-slate-100">
-                    <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
+                    <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-4">Executive Summary</h3>
                     <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                       <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
                     </div>
@@ -643,7 +645,7 @@ const Dashboard = () => {
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-4">
                         ⚖️ Enforcement Actions This Week
                       </h3>
                       <div className="overflow-x-auto rounded-xl border border-slate-100">
@@ -683,7 +685,7 @@ const Dashboard = () => {
                   {/* Top 10 enforcement signals — ranked by significance + recency */}
                   {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-1">
                         🔝 Top 10 Enforcement Signals
                       </h3>
                       <p className="text-[12px] text-slate-500 mb-4">
