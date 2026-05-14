@@ -3,8 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
@@ -330,8 +328,6 @@ const Updates = () => {
                 <title>Privacy Intelligence Feed | End User Privacy</title>
                 <meta name="description" content="Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
-            <Navbar />
-
             <div className="px-4 sm:px-6 py-4 border-b border-fog">
                 <div className="max-w-[1280px] mx-auto">
                     {(topicFilter || regionFilter) && (
@@ -622,7 +618,6 @@ const Updates = () => {
                 </div>
             </div>
 
-            <Footer />
         </div>
     );
 };

@@ -3,8 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import StarField from "@/components/layout/StarField";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
@@ -58,7 +56,6 @@ const Signup = () => {
         <title>Create Account | End User Privacy</title>
         <meta name="description" content={`Create a free End User Privacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
-      <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
 
         {/* Left panel — hidden on mobile */}
@@ -199,7 +196,6 @@ const Signup = () => {
         </div>
 
       </div>
-      <Footer />
     </div>
   );
 };

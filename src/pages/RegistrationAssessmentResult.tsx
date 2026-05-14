@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,14 +113,12 @@ export default function RegistrationAssessmentResult() {
   if (loading) {
     return (
       <>
-        <Navbar />
         <PageContainer>
           <div className="py-20 text-center text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3" />
             Loading your assessment…
           </div>
         </PageContainer>
-        <Footer />
       </>
     );
   }
@@ -130,11 +126,9 @@ export default function RegistrationAssessmentResult() {
   if (!assessment) {
     return (
       <>
-        <Navbar />
         <PageContainer>
           <div className="py-20 text-center">Assessment not found.</div>
         </PageContainer>
-        <Footer />
       </>
     );
   }
@@ -171,7 +165,6 @@ export default function RegistrationAssessmentResult() {
     return (
       <>
         <Helmet><title>Your Registration Map — End User Privacy</title></Helmet>
-        <Navbar />
         <main>
           <PageContainer>
             <div className="max-w-md mx-auto py-16">
@@ -209,7 +202,6 @@ export default function RegistrationAssessmentResult() {
             </div>
           </PageContainer>
         </main>
-        <Footer />
       </>
     );
   }
@@ -220,7 +212,6 @@ export default function RegistrationAssessmentResult() {
         <title>Your Registration Map — End User Privacy</title>
         <meta name="description" content="Your jurisdiction-by-jurisdiction privacy registration map with required DPO appointments, DPA filings, AI Act registrations, and renewal timelines." />
       </Helmet>
-      <Navbar />
       <main>
         <PageContainer>
           <div className="max-w-5xl mx-auto py-10">
@@ -340,7 +331,6 @@ export default function RegistrationAssessmentResult() {
           </div>
         </PageContainer>
       </main>
-      <Footer />
       <RegistrationCheckoutModal
         open={checkoutTier !== null}
         tier={checkoutTier ?? "diy"}

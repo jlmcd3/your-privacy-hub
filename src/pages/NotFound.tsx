@@ -1,9 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
 const destinations = [
   { icon: "📰", title: "Latest Updates", desc: "Today's privacy regulatory developments", href: "/updates" },
   { icon: "🗺️", title: "Global Law Map", desc: "150+ jurisdictions mapped and profiled", href: "/jurisdictions" },
@@ -23,8 +20,6 @@ const NotFound = () => {
       <Helmet>
         <title>Page Not Found | End User Privacy</title>
       </Helmet>
-      <Navbar />
-
       <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-[560px] w-full text-center">
           <p className="text-[48px] font-bold text-navy mb-2">404</p>
@@ -60,7 +55,6 @@ const NotFound = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -134,8 +132,6 @@ const GDPREnforcement = () => {
         <meta property="og:title" content="GDPR & UK Privacy | End User Privacy" />
         <meta property="og:description" content="Track GDPR and UK GDPR enforcement decisions, DPA activity, major fines, and the UK ICO framework." />
       </Helmet>
-      <Navbar />
-
       {/* Header */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
@@ -389,7 +385,6 @@ const GDPREnforcement = () => {
           </Link>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

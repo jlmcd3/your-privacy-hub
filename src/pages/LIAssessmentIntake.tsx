@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -105,9 +103,7 @@ const LIAssessmentIntake = () => {
   if (loading || !row) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
         <main className="flex-1 flex items-center justify-center text-muted-foreground">Loading…</main>
-        <Footer />
       </div>
     );
   }
@@ -188,8 +184,6 @@ const LIAssessmentIntake = () => {
         <title>{`Full Legitimate Interest Assessment — $${pricing.price} | End User Privacy`}</title>
         <meta name="description" content="Adaptive three-part legitimate interest assessment. Defensible documentation reviewed with counsel." />
       </Helmet>
-      <Navbar />
-
       <header className="bg-slate-900 text-white py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
@@ -410,7 +404,6 @@ const LIAssessmentIntake = () => {
         />
       </main>
 
-      <Footer />
     </div>
   );
 };

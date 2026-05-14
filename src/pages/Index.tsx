@@ -1,8 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import Navbar from "@/components/Navbar";
 import LatestUpdates from "@/components/LatestUpdates";
-import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import AdBanner from "@/components/AdBanner";
@@ -27,7 +25,6 @@ const Index = () => {
         <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform at ${PLATFORM_PRICING.standard()} — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
 
-      <Navbar />
       <BreakingNewsBanner />
       <SearchFirstHero />
       <div className="max-w-[1280px] mx-auto px-4 md:px-8">
@@ -121,7 +118,6 @@ const Index = () => {
         <ToolsStrip />
       </div>
 
-      <Footer />
     </div>
   );
 };

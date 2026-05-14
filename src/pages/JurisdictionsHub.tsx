@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
 import AdBanner from "@/components/AdBanner";
 
@@ -152,8 +150,6 @@ export default function JurisdictionsHub() {
       </Helmet>
 
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-
         <main className="flex-1">
           {/* Page header */}
           <div className="bg-navy text-white py-6 md:py-7 px-4">
@@ -247,7 +243,6 @@ export default function JurisdictionsHub() {
 
         </main>
 
-        <Footer />
       </div>
     </>
   );

@@ -1,7 +1,4 @@
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
 const Contact = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -9,7 +6,6 @@ const Contact = () => {
         <title>Contact | End User Privacy</title>
         <meta name="description" content="Contact End User Privacy for general inquiries, subscription questions, or data and privacy questions." />
       </Helmet>
-      <Navbar />
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
@@ -39,7 +35,6 @@ const Contact = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };

@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
 const faqs = [
   {
     q: "How often is the platform updated?",
@@ -49,8 +46,6 @@ const FAQ = () => {
         <title>FAQ | End User Privacy — Privacy Intelligence Platform</title>
         <meta name="description" content="Common questions about End User Privacy — coverage across 150+ jurisdictions, AI analysis methodology, update frequency, pricing, and cancellation." />
       </Helmet>
-      <Navbar />
-
       {/* Hero */}
       <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4 text-center">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
@@ -105,7 +100,6 @@ const FAQ = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

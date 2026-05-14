@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { AlertTriangle, Filter, LogIn, Lock, RefreshCw, Search, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -314,8 +312,6 @@ export default function Enforcement() {
           }
         />
       </Helmet>
-      <Navbar />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
           <h1 className="font-serif text-4xl md:text-5xl mb-3">
@@ -707,7 +703,6 @@ export default function Enforcement() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }

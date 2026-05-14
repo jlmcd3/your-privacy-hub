@@ -4,8 +4,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -145,8 +143,6 @@ export default function CPPAScopeChecker() {
           content="Free 2-minute check to determine whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA enforcement obligations apply to your business."
         />
       </Helmet>
-      <Navbar />
-
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 mb-3">
@@ -276,7 +272,6 @@ export default function CPPAScopeChecker() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }

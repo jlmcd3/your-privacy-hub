@@ -3,8 +3,6 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import StarField from "@/components/layout/StarField";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
@@ -76,7 +74,6 @@ const Login = () => {
         <title>Log In | End User Privacy</title>
         <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
-      <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">
 
         {/* Left panel — hidden on mobile */}
@@ -192,7 +189,6 @@ const Login = () => {
         </div>
 
       </div>
-      <Footer />
     </div>
   );
 };

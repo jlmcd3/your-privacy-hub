@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -205,8 +203,6 @@ const UpdateDetail = () => {
           <title>Article Not Found | End User Privacy</title>
         </Helmet>
       )}
-      <Navbar />
-
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {loading && (
           <div className="space-y-4">
@@ -610,7 +606,6 @@ const UpdateDetail = () => {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 };

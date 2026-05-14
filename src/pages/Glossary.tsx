@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -26,8 +24,6 @@ const Glossary = () => {
         <title>Privacy Law Glossary 2026 — GDPR, CCPA &amp; Data Protection Terms | End User Privacy</title>
         <meta name="description" content="Plain-English definitions of key privacy and data protection terms. GDPR, CCPA, AI Act, biometric data, data subject rights, and 80+ more terms with legal citations." />
       </Helmet>
-      <Navbar />
-
       <div className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📖 Reference</p>
@@ -85,7 +81,6 @@ const Glossary = () => {
         ))}
       </div>
 
-      <Footer />
     </div>
   );
 };

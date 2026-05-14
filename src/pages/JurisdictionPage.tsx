@@ -4,8 +4,6 @@ import { ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
@@ -346,23 +344,19 @@ const JurisdictionPage = () => {
     if (fallbackLoading) {
       return (
         <div className="min-h-screen bg-paper">
-          <Navbar />
           <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
             <p className="text-slate">Loading jurisdiction…</p>
           </div>
-          <Footer />
         </div>
       );
     }
     return (
       <div className="min-h-screen bg-paper">
-        <Navbar />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-3xl text-navy mb-4">Jurisdiction Not Found</h1>
           <p className="text-slate mb-6">The jurisdiction you're looking for is not yet in our database.</p>
           <Link to="/global-privacy-authorities" className="text-blue hover:underline">Browse all jurisdictions →</Link>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -376,7 +370,6 @@ const JurisdictionPage = () => {
         <title>{jurisdiction.name} Privacy Law & Regulatory Updates | End User Privacy</title>
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
       </Helmet>
-      <Navbar />
       {(() => {
         const isUSState = jurisdiction.region === "United States" && slug !== "united-states";
         const crumbHref = isUSState ? "/us-privacy-laws" : "/global-privacy-laws";
@@ -767,7 +760,6 @@ const JurisdictionPage = () => {
           </p>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdBanner from "@/components/AdBanner";
@@ -179,7 +177,6 @@ export default function GlobalJurisdictionComparison() {
         <meta name="description" content="Side-by-side comparison of global privacy laws across 10+ jurisdictions. Compare GDPR, LGPD, PIPL, CCPA and more." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <h1 className="font-display font-bold text-foreground text-2xl md:text-3xl mb-2">
             Jurisdiction Comparison
@@ -263,7 +260,6 @@ export default function GlobalJurisdictionComparison() {
             Hover any ✓ to see the applicable statute or article. Click to open the source law in a new tab. Data reflects best available information as of March 2026.
           </p>
         </main>
-        <Footer />
       </div>
     </>
   );

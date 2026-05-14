@@ -3,8 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,13 +134,11 @@ export default function EnforcementActionDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-12 w-3/4" />
           <Skeleton className="h-64 w-full" />
         </main>
-        <Footer />
       </div>
     );
   }
@@ -150,12 +146,10 @@ export default function EnforcementActionDetail() {
   if (!action) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h1 className="font-serif text-3xl mb-4">Action not found</h1>
           <Link to="/enforcement" className="text-primary hover:underline">← Back to Enforcement</Link>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -171,8 +165,6 @@ export default function EnforcementActionDetail() {
         <meta name="description" content={desc} />
         <link rel="canonical" href={`https://enduserprivacy.com/enforcement-intelligence/${action.id}`} />
       </Helmet>
-      <Navbar />
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to="/enforcement-intelligence" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4" /> Back to Enforcement Intelligence
@@ -343,7 +335,6 @@ export default function EnforcementActionDetail() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }
