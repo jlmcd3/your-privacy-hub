@@ -18,7 +18,7 @@ import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 
