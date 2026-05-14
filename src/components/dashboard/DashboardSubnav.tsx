@@ -137,7 +137,6 @@ export default function DashboardSubnav() {
   const rawPath = location.pathname.toLowerCase();
   const isSuppressed =
     SUPPRESS_PATHS.some(p => rawPath === p || rawPath.startsWith(p + '/')) ||
-    APPSHELL_PREFIXES.some(p => rawPath.startsWith(p)) ||
     rawPath.startsWith('/updates/') ||
     rawPath.startsWith('/jurisdiction/') ||
     rawPath.startsWith('/regulator/') ||
