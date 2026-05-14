@@ -356,25 +356,25 @@ const Updates = () => {
                 </div>
             </div>
 
-            {/* Jurisdiction subnav (cobalt underline on active) */}
+            {/* Jurisdiction subnav (pill style) */}
             <div className="border-b border-border bg-card">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-                    <div className="flex items-center gap-1 overflow-x-auto -mb-px">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
+                    <div className="flex items-center gap-2 overflow-x-auto">
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = activeRegion === f.key;
                             return (
                                 <button
                                     key={f.key}
                                     onClick={() => selectRegion(f.key)}
-                                    className={`relative whitespace-nowrap px-3 py-3 text-[13px] font-semibold transition-colors border-b-2 ${
+                                    className={
                                         isActive
-                                            ? "text-foreground border-[hsl(var(--cobalt))]"
-                                            : "text-muted-foreground hover:text-foreground border-transparent"
-                                    }`}
+                                            ? "bg-navy text-white rounded-full px-4 py-1.5 text-[13px] font-medium cursor-pointer border border-navy whitespace-nowrap"
+                                            : "border border-fog bg-transparent text-slate hover:bg-fog rounded-full px-4 py-1.5 text-[13px] font-medium cursor-pointer transition-colors whitespace-nowrap"
+                                    }
                                 >
                                     {f.label}
                                     {f.key === "all" && updates.length > 0 && (
-                                        <span className="ml-1.5 text-[10px] opacity-60">{updates.length}</span>
+                                        <span className="ml-1.5 text-[10px] opacity-70">{updates.length}</span>
                                     )}
                                 </button>
                             );
