@@ -390,7 +390,7 @@ export default function Account() {
         </button>
       </div>
 
-      <Footer />
+
 
       <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
         <AlertDialogContent>
