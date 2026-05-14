@@ -1,6 +1,24 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
+const TEST_ROUTES = [
+  { label: 'Governance', href: '/admin/test-governance' },
+  { label: 'LIA', href: '/admin/test-lia' },
+  { label: 'DPIA', href: '/admin/test-dpia' },
+  { label: 'DPA', href: '/admin/test-dpa' },
+  { label: 'IR Playbook', href: '/admin/test-ir-playbook' },
+  { label: 'Biometric', href: '/admin/test-biometric' },
+  { label: 'CPPA Scope', href: '/admin/test-cppa-scope' },
+  { label: 'CPPA Risk', href: '/admin/test-cppa-risk' },
+  { label: 'CPPA Cyber', href: '/admin/test-cppa-cyber' },
+  { label: 'RoPA', href: '/admin/test-ropa' },
+  { label: 'US Notice', href: '/admin/test-us-notice' },
+  { label: 'EU Notice', href: '/admin/test-eu-notice' },
+  { label: 'Registration', href: '/admin/test-registration' },
+  { label: 'Brief', href: '/admin/test-brief' },
+];
 
 const MOCK_INTAKE = {
   sector: "Healthcare/Life Sciences",
@@ -112,6 +130,16 @@ export default function TestGovernanceAssessment() {
   return (
     <div className="min-h-screen bg-paper">
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+        <nav>
+          <h2 className="text-section-h2 text-navy mb-3">Test Suite</h2>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {TEST_ROUTES.map(({ label, href }) => (
+              <Link key={href} to={href} className="text-xs px-3 py-1.5 border border-fog rounded-full text-slate hover:bg-fog no-underline">
+                {label}
+              </Link>
+            ))}
+          </div>
+        </nav>
         <div>
           <h1 className="font-serif text-3xl mb-2">🧪 TEST: Privacy Programme Assessment</h1>
           <p className="text-sm text-muted-foreground">Meridian Health Analytics Ltd · Healthcare SaaS · EU+UK+CA · Health data · AI tools</p>
