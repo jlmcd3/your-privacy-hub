@@ -48,12 +48,10 @@ export default function RegistrationMyFilings() {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <WorkspaceLayout>
       <Helmet>
         <title>My Filings | Registration Manager | End User Privacy</title>
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
       <PageContainer>
         <div className="py-6">
           <div className="flex items-center justify-between mb-6">
