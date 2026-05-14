@@ -400,8 +400,7 @@ export default function BriefPreferences() {
             <p className="text-slate text-xs">Saved preferences take effect with the next Monday report.</p>
           </div>
         </main>
-        <Footer />
-      </div>
+      </WorkspaceLayout>
     </>
   );
 }
