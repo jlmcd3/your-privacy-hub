@@ -124,7 +124,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const fetchArticles = async () => {
       const { data: spotlight } = await supabase
@@ -159,21 +159,30 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         return;
       }
 
-      const { data } = await supabase
+      const { data, error: dataError } = await supabase
         .from("updates")
         .select(
-          `id, title, summary, source_name, source_url:url, published_at,
+          `id, title, summary, source_name, url, published_at,
            direct_jurisdictions, affected_jurisdictions,
            category, attention_level, image_url, why_it_matters_short,
            ai_summary, action_items, related_signals`
         )
         .in("id", ids);
 
+      if (dataError) {
+        console.error("HomepageFeedPanel article fetch error:", dataError);
+        setLoading(false);
+        return;
+      }
+
       if (data) {
         const ordered = ids
-          .map((id) => data.find((a: any) => a.id === id))
-          .filter(Boolean)
-          .map((row) => toArticleItem(row as UpdateArticleRow));
+          .map((id) => {
+            const a = data.find((item: any) => item.id === id);
+            if (!a) return null;
+            return toArticleItem({ ...a, source_url: (a as any).url } as UpdateArticleRow);
+          })
+          .filter(Boolean) as ArticleItem[];
         setArticles(ordered);
         if (ordered.length > 0) {
           setSelectedArticle(ordered[0]);
