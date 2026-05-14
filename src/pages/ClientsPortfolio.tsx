@@ -390,10 +390,8 @@ export default function ClientsPortfolio() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <DashboardSubnav />
-      <main className="flex-1 max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <WorkspaceLayout className="bg-background">
+      <main className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-navy">{heading}</h1>
