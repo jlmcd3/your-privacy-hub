@@ -1106,6 +1106,38 @@ export type Database = {
           },
         ]
       }
+      homepage_spotlight: {
+        Row: {
+          created_at: string
+          id: string
+          slot: number
+          spotlight_date: string
+          update_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          slot: number
+          spotlight_date: string
+          update_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          slot?: number
+          spotlight_date?: string
+          update_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homepage_spotlight_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horizon_intelligence: {
         Row: {
           anticipated_development: string
