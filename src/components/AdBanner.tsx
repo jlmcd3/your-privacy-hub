@@ -10,6 +10,9 @@
  */
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
+// Set to true when an ad network (e.g. Google Ad Manager) is configured and live.
+const ADS_CONFIGURED = false;
+
 interface AdBannerProps {
   variant?: "leaderboard" | "sidebar" | "inline" | "infeed";
   className?: string;
@@ -25,6 +28,7 @@ const AdBanner = ({
   googleAdClient,
   googleAdSlot,
 }: AdBannerProps) => {
+  if (!ADS_CONFIGURED) return null;
   const { isPremium } = usePremiumStatus();
   if (isPremium) return null;
 
