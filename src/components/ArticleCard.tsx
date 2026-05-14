@@ -289,8 +289,50 @@ const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
   );
 };
 
+// Title link helper — prefers source_url (opens in new tab), falls back to internal /updates/:id
+const TitleLink = ({
+  item,
+  className,
+  children,
+}: {
+  item: ArticleItem;
+  className?: string;
+  children: React.ReactNode;
+}) =>
+  item.source_url ? (
+    <a
+      href={item.source_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
+      {children}
+    </a>
+  ) : (
+    <Link to={`/updates/${item.id}`} className={className}>
+      {children}
+    </Link>
+  );
+
 // — FULL variant ——————————————————————————————————
-const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { item: ArticleItem; isPremium?: boolean; userSalutation?: string }) => {
+const FullCard = ({
+  item,
+  isPremium = false,
+  userSalutation = 'your team',
+  panelMode = false,
+  isSelected = false,
+  onSelect,
+}: {
+  item: ArticleItem;
+  isPremium?: boolean;
+  userSalutation?: string;
+  /** When true: show minimal card (title + 1 sentence). Enrichment lives in the intelligence panel. */
+  panelMode?: boolean;
+  /** Whether this card is currently selected in the intelligence panel */
+  isSelected?: boolean;
+  /** Called when the card body is clicked (to load enrichment in the panel) */
+  onSelect?: () => void;
+}) => {
   const { user } = useAuth();
   const tier: 'paid' | 'free' | 'anonymous' = isPremium ? 'paid' : user ? 'free' : 'anonymous';
   const enriched = isEnriched(item);
@@ -314,8 +356,15 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
 
   return (
     <div
-      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
-      style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground && !panelMode ? 'px-4 rounded-lg my-1' : ''}
+        ${panelMode && onSelect ? 'cursor-pointer hover:bg-fog/30 rounded-lg px-2 -mx-2 transition-colors' : ''}
+        ${isSelected ? 'bg-blue-50/60 rounded-lg px-2 -mx-2 border-l-[3px] border-gold' : ''}
+      `}
+      style={accentBackground && !panelMode ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      onClick={panelMode && onSelect ? (e) => {
+        if ((e.target as HTMLElement).closest('a')) return;
+        onSelect();
+      } : undefined}
     >
       {/* Article thumbnail — falls back to EUP brand tile when missing */}
       <img
@@ -354,70 +403,85 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           )}
           <AdminHideButton articleId={item.id} />
         </div>
-        {/* Title */}
-        <Link to={`/updates/${item.id}`}
-          className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
+        {/* Title — prefers source_url (new tab), falls back to internal route */}
+        <TitleLink
+          item={item}
+          className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors"
+        >
           {normalizeTitle(item.title)}
-        </Link>
-        {/* Tier-based enrichment — three tiers, one prose block each */}
+          {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
+        </TitleLink>
 
-        {/* ANONYMOUS — one sentence + brief builder CTA */}
-        {tier === 'anonymous' && (() => {
-          const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
-          if (!shortWhy) return null;
-          return (
-            <div className="mt-2">
-              <p className="text-[13px] text-slate leading-relaxed">{shortWhy}</p>
-              <BriefBuilderCTA item={item} />
-            </div>
-          );
-        })()}
+        {panelMode ? (
+          (() => {
+            const s = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+            return s ? (
+              <p className="text-[12px] text-slate/70 leading-snug mt-1 line-clamp-2">{s}</p>
+            ) : null;
+          })()
+        ) : (
+          <>
+            {/* Tier-based enrichment — three tiers, one prose block each */}
 
-        {/* FREE REGISTERED — full why-it-matters paragraph + soft upgrade gate */}
-        {tier === 'free' && (() => {
-          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
-          if (!why) return null;
-          return (
-            <div className="mt-2">
-              <p className="text-[13px] text-slate leading-relaxed mb-2">{why}</p>
-              <div className="rounded-lg bg-paper border border-fog px-3 py-2">
-                <p className="text-[12px] text-slate/70 italic">
-                  Platform subscribers see what to do about this and what to watch for next.{' '}
-                  <Link to="/subscribe" className="text-gold font-semibold no-underline hover:underline">
-                    See Platform →
-                  </Link>
-                </p>
-              </div>
-            </div>
-          );
-        })()}
+            {/* ANONYMOUS — one sentence + brief builder CTA */}
+            {tier === 'anonymous' && (() => {
+              const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+              if (!shortWhy) return null;
+              return (
+                <div className="mt-2">
+                  <p className="text-[13px] text-slate leading-relaxed">{shortWhy}</p>
+                  <BriefBuilderCTA item={item} />
+                </div>
+              );
+            })()}
 
-        {/* PAID — three flowing paragraphs, no section labels */}
-        {tier === 'paid' && (() => {
-          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short;
-          const impact = item.ai_summary?.compliance_impact;
-          if (!why && !impact && !actionProse && !watchProse) return null;
-          return (
-            <div className="mt-2 space-y-2">
-              {why && (
-                <p className="text-[13px] text-slate leading-relaxed">{why}</p>
-              )}
-              {impact && (
-                <p className="text-[13px] text-slate leading-relaxed">{impact}</p>
-              )}
-              {(actionProse || watchProse) && (
-                <p className="text-[13px] text-slate leading-relaxed">
-                  {actionProse}
-                  {actionProse && watchProse && ' '}
-                  {watchProse && <span className="italic">{watchProse}</span>}
-                </p>
-              )}
-            </div>
-          );
-        })()}
+            {/* FREE REGISTERED — full why-it-matters paragraph + soft upgrade gate */}
+            {tier === 'free' && (() => {
+              const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+              if (!why) return null;
+              return (
+                <div className="mt-2">
+                  <p className="text-[13px] text-slate leading-relaxed mb-2">{why}</p>
+                  <div className="rounded-lg bg-paper border border-fog px-3 py-2">
+                    <p className="text-[12px] text-slate/70 italic">
+                      Platform subscribers see what to do about this and what to watch for next.{' '}
+                      <Link to="/subscribe" className="text-gold font-semibold no-underline hover:underline">
+                        See Platform →
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* PAID — three flowing paragraphs, no section labels */}
+            {tier === 'paid' && (() => {
+              const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short;
+              const impact = item.ai_summary?.compliance_impact;
+              if (!why && !impact && !actionProse && !watchProse) return null;
+              return (
+                <div className="mt-2 space-y-2">
+                  {why && (
+                    <p className="text-[13px] text-slate leading-relaxed">{why}</p>
+                  )}
+                  {impact && (
+                    <p className="text-[13px] text-slate leading-relaxed">{impact}</p>
+                  )}
+                  {(actionProse || watchProse) && (
+                    <p className="text-[13px] text-slate leading-relaxed">
+                      {actionProse}
+                      {actionProse && watchProse && ' '}
+                      {watchProse && <span className="italic">{watchProse}</span>}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+          </>
+        )}
       </div>
-      {/* External link */}
-      {item.source_url && (
+      {/* External link icon — only shown when not in panel mode (title already has indicator) */}
+      {!panelMode && item.source_url && (
         <a href={item.source_url} target="_blank" rel="noopener noreferrer"
           className="flex-shrink-0 text-slate-light hover:text-blue transition-colors mt-1">
           <ExternalLink className="w-4 h-4" />
@@ -733,9 +797,20 @@ interface ArticleCardProps {
   isPremium?: boolean;
   userSalutation?: string;
   onOpenDrawer?: (item: ArticleItem) => void;
+  panelMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSalutation }: ArticleCardProps) => {
+export const ArticleCard = ({
+  item,
+  variant = 'full',
+  isPremium = false,
+  userSalutation,
+  panelMode = false,
+  isSelected = false,
+  onSelect,
+}: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
@@ -743,7 +818,16 @@ export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSal
     case 'newsfeed':    return <NewsfeedCard item={item} />;
     case 'preview':     return <PreviewCard item={item} />;
     case 'homepage':    return <HomepageCard item={item} />;
-    default:            return <FullCard item={item} isPremium={isPremium} userSalutation={userSalutation} />;
+    default:            return (
+      <FullCard
+        item={item}
+        isPremium={isPremium}
+        userSalutation={userSalutation}
+        panelMode={panelMode}
+        isSelected={isSelected}
+        onSelect={onSelect}
+      />
+    );
   }
 };
 

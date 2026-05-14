@@ -7,19 +7,20 @@ import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface TieredFeedProps {
   articles: ArticleItem[];
-  /** When true, anonymous users get load-more pagination on the newsfeed section.
-   *  When false (homepage), anonymous users see a fixed slice. */
   paginated?: boolean;
-  /** For homepage: max cards shown to anonymous users before "See all →" */
   newsfeedCap?: number;
-  /** Deprecated — kept for prop compatibility, no longer used. */
   previewCount?: number;
   seeAllHref?: string;
   showSeeAll?: boolean;
-  /** Passed through from parent for paginated mode */
   hasMore?: boolean;
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
+  /** The currently selected article (shown in the intelligence panel) */
+  selectedArticle?: ArticleItem | null;
+  /** Called when the user clicks a card body to select it */
+  onSelectArticle?: (article: ArticleItem) => void;
+  /** When true, cards show in minimal panel mode (no inline enrichment) */
+  panelMode?: boolean;
 }
 
 export function TieredFeed({
@@ -31,6 +32,9 @@ export function TieredFeed({
   hasMore = false,
   onLoadMore,
   isLoadingMore = false,
+  selectedArticle = null,
+  onSelectArticle,
+  panelMode = false,
 }: TieredFeedProps) {
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
@@ -52,6 +56,27 @@ export function TieredFeed({
     </div>
   );
 
+  // ── PANEL MODE — uniform minimal cards with selection (any tier) ─────────
+  if (panelMode) {
+    return (
+      <div>
+        {articles.map(a => (
+          <ArticleCard
+            key={a.id}
+            item={a}
+            variant="full"
+            isPremium={isPremium}
+            userSalutation={userProfile?.action_brief_salutation}
+            panelMode
+            isSelected={selectedArticle?.id === a.id}
+            onSelect={onSelectArticle ? () => onSelectArticle(a) : undefined}
+          />
+        ))}
+        {loadMoreButton}
+      </div>
+    );
+  }
+
   // ── INTELLIGENCE SUBSCRIBER ──────────────────────────────────────────────
   if (user && isPremium) {
     return (
@@ -72,7 +97,6 @@ export function TieredFeed({
   }
 
   // ── FREE REGISTERED USER ─────────────────────────────────────────────────
-  // ActionBrief inside each FullCard is the upgrade nudge — no bottom strip.
   if (user && !isPremium) {
     return (
       <div>
@@ -104,7 +128,6 @@ export function TieredFeed({
 
       {loadMoreButton}
 
-      {/* Bottom gate — always shown to anonymous users */}
       <div className="mt-5 p-4 rounded-xl border border-dashed border-fog bg-slate-50 text-center">
         <p className="text-[13px] font-medium text-navy mb-1">
           See analysis like this on every regulatory update
