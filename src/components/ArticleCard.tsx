@@ -262,7 +262,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           </span>
         )}
       </div>
-    </Link>
+    </Wrapper>
   );
 };
 
