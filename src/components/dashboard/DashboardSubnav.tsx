@@ -130,7 +130,26 @@ const ITEMS: Item[] = [
 ];
 
 export default function DashboardSubnav() {
+  const { user } = useAuth();
   const location = useLocation();
+  if (!user) return null;
+
+  const rawPath = location.pathname.toLowerCase();
+  const isSuppressed =
+    SUPPRESS_PATHS.some(p => rawPath === p || rawPath.startsWith(p + '/')) ||
+    APPSHELL_PREFIXES.some(p => rawPath.startsWith(p)) ||
+    rawPath.startsWith('/updates/') ||
+    rawPath.startsWith('/jurisdiction/') ||
+    rawPath.startsWith('/regulator/') ||
+    rawPath.startsWith('/category/') ||
+    rawPath.startsWith('/topics/') ||
+    rawPath.startsWith('/glossary/') ||
+    rawPath.startsWith('/timelines/') ||
+    rawPath.startsWith('/compare/') ||
+    rawPath.startsWith('/enforcement/') ||
+    rawPath.startsWith('/subscribe/');
+  if (isSuppressed) return null;
+
   const pathname = normalizePath(location.pathname);
   const hash = normalizeHash(location.hash);
 
