@@ -3,7 +3,7 @@ import { ArticleCard, HomepageCard, type ArticleItem } from "@/components/Articl
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
 
 interface TieredFeedProps {
   articles: ArticleItem[];
@@ -127,29 +127,6 @@ export function TieredFeed({
       </div>
 
       {loadMoreButton}
-
-      <div className="mt-5 p-4 rounded-xl border border-dashed border-fog bg-slate-50 text-center">
-        <p className="text-[13px] font-medium text-navy mb-1">
-          See analysis like this on every regulatory update
-        </p>
-        <p className="text-[12px] text-slate mb-3">
-          Why it matters, urgency ratings, cross-jurisdiction signals, and action intelligence — free account gets you started.
-        </p>
-        <div className="flex gap-2 justify-center flex-wrap">
-          <Link
-            to="/signup"
-            className="text-[12px] px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors no-underline"
-          >
-            Register free
-          </Link>
-          <Link
-            to="/subscribe"
-            className="text-[12px] px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
-          >
-            Intelligence plan — {INTELLIGENCE_PRICING.monthly()}
-          </Link>
-        </div>
-      </div>
 
       {showSeeAll && !paginated && (
         <div className="text-right mt-3">

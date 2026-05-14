@@ -223,7 +223,7 @@ export default function HomepageSpotlight() {
           .select("id, attention_level")
           .gte("created_at", cutoff)
           .eq("is_hidden", false)
-          .not("ai_summary", "is", null)
+          
           .order("published_at", { ascending: false })
           .limit(50);
 
