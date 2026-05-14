@@ -272,6 +272,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
               isSelected={selectedArticle?.id === article.id}
               onSelect={() => setSelectedArticle(article)}
               tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
+              hideWhyItMatters={showTierLabels && i === 0}
             />
           ))}
 
@@ -290,6 +291,14 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
             selectedArticle={selectedArticle}
             isPremium={isPremium}
             isAuthenticated={isAuthenticated}
+            forceTier={
+              showTierLabels && selectedArticle
+                ? (() => {
+                    const idx = articles.findIndex((a) => a.id === selectedArticle.id);
+                    return idx === 2 ? "paid" : idx === 1 ? "free" : "anonymous";
+                  })()
+                : undefined
+            }
           />
         </div>
       </div>
