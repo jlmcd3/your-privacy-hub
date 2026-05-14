@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
@@ -160,6 +161,7 @@ const LIAssessment = () => {
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest, with regulator precedents. Optional full three-part test." />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
 
       {/* Header — matches LI Tracker */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">

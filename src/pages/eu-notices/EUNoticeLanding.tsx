@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function EUNoticeLanding() {
         <link rel="canonical" href="https://www.enduserprivacy.com/eu-global-notice-builder" />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,7 @@ const GovernanceAssessment = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
       <Navbar />
+      <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">

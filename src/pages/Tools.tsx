@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
@@ -452,6 +453,7 @@ export default function Tools() {
         <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Assessments, compliance documents, and CPPA tools. Included with Annual Platform at $399/yr." />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-16 px-4 text-center">

@@ -5,6 +5,7 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -59,6 +60,7 @@ export default function RegistrationLanding() {
       </Helmet>
 
       <Navbar />
+      <DashboardSubnav />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (
