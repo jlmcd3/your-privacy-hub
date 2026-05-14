@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
  * added at least one real client. Indicates the active workspace
  * (Personal vs. a Client) and lets them switch between them.
  */
-export default function ClientContextBar() {
+export default function ClientContextBar({ compact = false }: { compact?: boolean } = {}) {
   const { user } = useAuth();
   const clients = useClientStore((s) => s.clients);
   const personal = useClientStore((s) => s.personal);
