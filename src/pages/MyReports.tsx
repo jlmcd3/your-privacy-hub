@@ -237,7 +237,6 @@ export default function MyReports() {
           )}
         </div>
       </PageContainer>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }
