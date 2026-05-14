@@ -172,86 +172,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <ScrollToTopButton />
           <PaymentTestModeBanner />
           <BlankScreenDiagnostic />
-          <ClientContextBar />
           <Routes>
-            {/* Public / unshelled routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
-            <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
-            <Route path="/enforcement" element={<Enforcement />} />
-            <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
-            <Route path="/enforcement-tracker" element={<Navigate to="/enforcement" replace />} />
-            <Route path="/enforcement-intelligence" element={<Navigate to="/enforcement" replace />} />
-            <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
-            <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
-            <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
-            <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
-            <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
-            <Route path="/ai-privacy-regulations" element={<AIPrivacyRegulations />} />
-            <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
-            <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
-            <Route path="/jurisdictions" element={<JurisdictionsHub />} />
-            <Route path="/regulator/:slug" element={<RegulatorPage />} />
-            <Route path="/category/:slug" element={<CategoryRedirect />} />
-            <Route path="/topics/:slug" element={<TopicRedirect />} />
-            <Route path="/glossary" element={<Glossary />} />
-            <Route path="/glossary/:slug" element={<GlossaryTerm />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/timelines" element={<Timelines />} />
-            <Route path="/timelines/:slug" element={<TimelineDetail />} />
-            <Route path="/compare/us-states" element={<USStateComparison />} />
-            <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
-            <Route path="/legislation-tracker" element={<LegislationTracker />} />
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/cookie-consent" element={<CookieConsent />} />
-            <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
-            <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
-            <Route path="/breach-notification" element={<BreachNotification />} />
-            <Route path="/cross-border-transfers" element={<CrossBorderTransfers />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/check-email" element={<CheckEmail />} />
-            <Route path="/onboarding-profile" element={Protected(<OnboardingProfile />)} />
-            <Route path="/subscribe" element={<Subscribe />} />
-            <Route path="/subscribe/success" element={Protected(<SubscribeSuccess />)} />
-            <Route path="/get-intelligence" element={<GetIntelligence />} />
-            <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
-            <Route path="/li-assessment" element={<LIAssessment />} />
-            <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />
-            <Route path="/governance-assessment" element={<GovernanceAssessment />} />
-            <Route path="/dpia-framework" element={<DPIAFramework />} />
-            <Route path="/dpa-generator" element={<DPAGenerator />} />
-            <Route path="/ir-playbook" element={<IRPlaybook />} />
-            <Route path="/biometric-checker" element={<BiometricChecker />} />
-            <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
-            <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
-            <Route path="/cppa-cybersecurity" element={<CPPACybersecurity />} />
-            <Route path="/horizon" element={<Horizon />} />
-            <Route path="/ropa-builder" element={<RopaLanding />} />
-            <Route path="/rofa" element={<Navigate to="/ropa-builder" replace />} />
-            <Route path="/ropa-builder/home" element={<Navigate to="/ropa-builder" replace />} />
-            <Route path="/article-30" element={<Navigate to="/ropa-builder" replace />} />
-            <Route path="/us-notice-builder" element={<USNoticeLanding />} />
-            <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
-            <Route path="/registration-manager" element={<RegistrationLanding />} />
-            <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
-            <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
-            <Route path="/updates" element={<Updates />} />
-            <Route path="/updates/:id" element={<UpdateDetail />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/laws" element={<Navigate to="/gdpr-enforcement" replace />} />
-            <Route path="/assessments" element={<Navigate to="/tools" replace />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/sample-brief" element={<Navigate to="/#brief" replace />} />
-
             {/* Payment return redirects — must stay outside AppShell */}
             <Route path="/ropa-initial/result/:id" element={Protected(<PaymentReturnRedirect to="/ropa/review" />)} />
             <Route path="/ropa-refresh/result/:id" element={Protected(<PaymentReturnRedirect to="/ropa/review" />)} />
@@ -262,8 +185,82 @@ const App = () => (
             <Route path="/eu-notice-full-international/result/:id" element={Protected(<PaymentReturnRedirect to="/eu-notices/review" />)} />
             <Route path="/eu-notice-refresh/result/:id" element={Protected(<PaymentReturnRedirect to="/eu-notices/review" />)} />
 
-            {/* App Shell layout group */}
+            {/* App Shell layout group — wraps all user-facing routes */}
             <Route element={<AppShell />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
+              <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
+              <Route path="/enforcement" element={<Enforcement />} />
+              <Route path="/enforcement/:id" element={<EnforcementActionDetail />} />
+              <Route path="/enforcement-tracker" element={<Navigate to="/enforcement" replace />} />
+              <Route path="/enforcement-intelligence" element={<Navigate to="/enforcement" replace />} />
+              <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
+              <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
+              <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
+              <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
+              <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
+              <Route path="/ai-privacy-regulations" element={<AIPrivacyRegulations />} />
+              <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
+              <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
+              <Route path="/jurisdictions" element={<JurisdictionsHub />} />
+              <Route path="/regulator/:slug" element={<RegulatorPage />} />
+              <Route path="/category/:slug" element={<CategoryRedirect />} />
+              <Route path="/topics/:slug" element={<TopicRedirect />} />
+              <Route path="/glossary" element={<Glossary />} />
+              <Route path="/glossary/:slug" element={<GlossaryTerm />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/timelines" element={<Timelines />} />
+              <Route path="/timelines/:slug" element={<TimelineDetail />} />
+              <Route path="/compare/us-states" element={<USStateComparison />} />
+              <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
+              <Route path="/legislation-tracker" element={<LegislationTracker />} />
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/cookie-consent" element={<CookieConsent />} />
+              <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
+              <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
+              <Route path="/breach-notification" element={<BreachNotification />} />
+              <Route path="/cross-border-transfers" element={<CrossBorderTransfers />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/check-email" element={<CheckEmail />} />
+              <Route path="/onboarding-profile" element={Protected(<OnboardingProfile />)} />
+              <Route path="/subscribe" element={<Subscribe />} />
+              <Route path="/subscribe/success" element={Protected(<SubscribeSuccess />)} />
+              <Route path="/get-intelligence" element={<GetIntelligence />} />
+              <Route path="/legitimate-interest-tracker" element={<LegitimateInterestTracker />} />
+              <Route path="/li-assessment" element={<LIAssessment />} />
+              <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />
+              <Route path="/governance-assessment" element={<GovernanceAssessment />} />
+              <Route path="/dpia-framework" element={<DPIAFramework />} />
+              <Route path="/dpa-generator" element={<DPAGenerator />} />
+              <Route path="/ir-playbook" element={<IRPlaybook />} />
+              <Route path="/biometric-checker" element={<BiometricChecker />} />
+              <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
+              <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
+              <Route path="/cppa-cybersecurity" element={<CPPACybersecurity />} />
+              <Route path="/horizon" element={<Horizon />} />
+              <Route path="/ropa-builder" element={<RopaLanding />} />
+              <Route path="/rofa" element={<Navigate to="/ropa-builder" replace />} />
+              <Route path="/ropa-builder/home" element={<Navigate to="/ropa-builder" replace />} />
+              <Route path="/article-30" element={<Navigate to="/ropa-builder" replace />} />
+              <Route path="/us-notice-builder" element={<USNoticeLanding />} />
+              <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
+              <Route path="/registration-manager" element={<RegistrationLanding />} />
+              <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
+              <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
+              <Route path="/updates" element={<Updates />} />
+              <Route path="/updates/:id" element={<UpdateDetail />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/laws" element={<Navigate to="/gdpr-enforcement" replace />} />
+              <Route path="/assessments" element={<Navigate to="/tools" replace />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/sample-brief" element={<Navigate to="/#brief" replace />} />
+
               {/* Dashboard / Reports */}
               <Route path="/dashboard" element={Protected(<Dashboard />)} />
               <Route path="/dashboard/reports" element={Protected(<MyReports />)} />
@@ -348,9 +345,9 @@ const App = () => (
               <Route path="/admin/test-eu-notice" element={AdminProtected(<TestEUNotice />)} />
               <Route path="/admin/test-registration" element={AdminProtected(<TestRegistration />)} />
               <Route path="/admin/test-brief" element={AdminProtected(<TestBrief />)} />
-            </Route>
 
-            <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
