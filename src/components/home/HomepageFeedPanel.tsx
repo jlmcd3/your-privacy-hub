@@ -124,7 +124,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const fetchArticles = async () => {
       const { data: spotlight } = await supabase
