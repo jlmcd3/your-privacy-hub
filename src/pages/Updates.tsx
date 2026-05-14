@@ -549,19 +549,6 @@ const Updates = () => {
 
                 <AdBanner />
 
-                {/* Anonymous: prominent register CTA above the article list */}
-                {!user && (
-                    <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 mb-4 text-[13px] font-medium text-navy text-center flex items-center justify-center gap-3 flex-wrap">
-                        <span>Register free to see why each item matters — analysis on every article</span>
-                        <Link
-                            to="/signup"
-                            className="text-[12px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
-                        >
-                            Register free →
-                        </Link>
-                    </div>
-                )}
-
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
                     <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
@@ -572,56 +559,33 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* Newsfeed */}
+                {/* Newsfeed — minimal cards; enrichment lives in the right-column IntelligencePanel */}
                 <div>
-                    {user && isPremium ? (
-                        /* Intelligence subscribers: full paginated experience */
-                        <NewsfeedList
-                            articles={filtered}
-                            isLoading={loading || loadingMore}
-                            hasMore={hasMore}
-                            onLoadMore={handleLoadMore}
-                            renderArticle={(article, _i, isPremiumCard) => (
-                                <ArticleCard
-                                    key={article.id}
-                                    item={{...article, source_url: article.url} as unknown as ArticleItem}
-                                    variant='full'
-                                    isPremium={isPremiumCard}
-                                />
-                            )}
-                        />
-                    ) : user && !isPremium ? (
-                        /* Free registered: TieredFeed (FullCard + blurred ActionBrief on every card) */
-                        <TieredFeed
-                            articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
-                            paginated={true}
-                            seeAllHref="/updates"
-                            showSeeAll={false}
-                            hasMore={hasMore}
-                            onLoadMore={handleLoadMore}
-                            isLoadingMore={loadingMore}
-                        />
-                    ) : (
-                        /* Anonymous: minimal internal-link news cards, no enrichment */
-                        <div>
-                            {filtered.map(a => (
-                                <AnonymousUpdatesCard key={a.id} item={a} />
-                            ))}
-                            {hasMore && (
-                                <button
-                                    onClick={handleLoadMore}
-                                    disabled={loadingMore}
-                                    className="mt-4 w-full text-[12px] px-4 py-2.5 rounded-lg border border-fog text-slate hover:bg-slate-50 transition-colors disabled:opacity-50"
-                                >
-                                    {loadingMore ? "Loading…" : "Load more"}
-                                </button>
-                            )}
-                        </div>
-                    )}
+                    <TieredFeed
+                        articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
+                        paginated={true}
+                        seeAllHref="/updates"
+                        showSeeAll={false}
+                        hasMore={hasMore}
+                        onLoadMore={handleLoadMore}
+                        isLoadingMore={loadingMore}
+                        selectedArticle={selectedArticle}
+                        onSelectArticle={setSelectedArticle}
+                        panelMode={true}
+                    />
                 </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
                 </div>
+
+                {/* Right column: Intelligence panel — desktop only, sticky */}
+                <aside className="hidden lg:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
+                    <IntelligencePanel
+                        selectedArticle={selectedArticle}
+                        isPremium={isPremium}
+                        isAuthenticated={!!user}
+                    />
+                </aside>
             </div>
 
             <Footer />
