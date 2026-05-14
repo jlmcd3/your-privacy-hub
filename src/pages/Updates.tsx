@@ -6,9 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import NewsfeedList from "@/components/NewsfeedList";
-import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
-import AnonymousUpdatesCard from "@/components/AnonymousUpdatesCard";
+import { type ArticleItem } from "@/components/ArticleCard";
+import { IntelligencePanel } from "@/components/IntelligencePanel";
 
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
