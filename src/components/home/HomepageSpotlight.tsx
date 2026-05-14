@@ -53,7 +53,7 @@ const SpotlightCard = ({
     return labels ? `Watch: ${labels}.` : null;
   })();
 
-  const jur = article.jurisdiction ?? "";
+  const jur = Array.isArray(article.jurisdiction) ? (article.jurisdiction[0] ?? "") : (article.jurisdiction ?? "");
   const cat = article.category ?? "";
   const briefParams = new URLSearchParams();
   if (jur) briefParams.set("pre_jurisdiction", jur);
