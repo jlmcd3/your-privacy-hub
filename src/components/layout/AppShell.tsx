@@ -23,6 +23,16 @@ import {
   Map as MapIcon,
   ListChecks,
   CalendarDays,
+  GitCompare,
+  Scale,
+  ShieldCheck,
+  Building,
+  ArrowLeftRight,
+  Fingerprint,
+  Activity,
+  AlertTriangle,
+  Cookie,
+  Flag,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +44,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarProvider,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -97,18 +110,41 @@ const INTELLIGENCE_TAIL: NavItemDef[] = [
   { label: "Regulatory Forecast", href: "/horizon", icon: Telescope },
 ];
 
+const FEED_REGIONS: NavItemDef[] = [
+  { label: "U.S. Federal", href: "/updates?region=us-federal", icon: Flag },
+  { label: "U.S. States", href: "/updates?region=us-states", icon: MapIcon },
+  { label: "EU & UK", href: "/updates?region=eu-uk", icon: Globe2 },
+  { label: "Global", href: "/updates?region=global", icon: Globe2 },
+];
+
+const FREE_TOOLS: NavItemDef[] = [
+  { label: "Interactive Global Map", href: "/jurisdictions", icon: MapIcon },
+  { label: "State Law Comparison", href: "/compare/us-states", icon: GitCompare },
+  { label: "LI Enforcement Tracker", href: "/legitimate-interest-tracker", icon: Scale },
+  { label: "CPPA Scope Checker", href: "/cppa-scope-checker", icon: ShieldCheck },
+];
+
 const TOOLS: NavItemDef[] = [
   { label: "All Tools", href: "/tools", icon: LayoutGrid },
 ];
 
 const RESEARCH: NavItemDef[] = [
+  // Laws & Frameworks
   { label: "U.S. Privacy Laws", href: "/us-privacy-laws", icon: ScrollText },
   { label: "GDPR & UK GDPR", href: "/gdpr-enforcement", icon: BookOpen },
   { label: "Global Privacy Laws", href: "/global-privacy-laws", icon: Globe2 },
   { label: "AI Privacy Regulations", href: "/ai-privacy-regulations", icon: Cpu },
-  { label: "Jurisdictions Map", href: "/jurisdictions", icon: MapIcon },
   { label: "Legislation Tracker", href: "/legislation-tracker", icon: ListChecks },
+  // Directories
+  { label: "Global Authorities", href: "/global-privacy-authorities", icon: Building },
+  { label: "Jurisdictions Map", href: "/jurisdictions", icon: MapIcon },
   { label: "Glossary", href: "/glossary", icon: BookOpen },
+  // Practitioner Guides
+  { label: "Cross-Border Transfers", href: "/cross-border-transfers", icon: ArrowLeftRight },
+  { label: "Biometric Privacy", href: "/biometric-privacy", icon: Fingerprint },
+  { label: "Health Data Privacy", href: "/health-data-privacy", icon: Activity },
+  { label: "Cookie Consent", href: "/cookie-consent", icon: Cookie },
+  { label: "Breach Notification", href: "/breach-notification", icon: AlertTriangle },
   { label: "Compliance Calendar", href: "/calendar", icon: CalendarDays },
 ];
 
@@ -185,8 +221,47 @@ function NavSection({
   );
 }
 
+function FeedSection({ pathname, search }: { pathname: string; search: string }) {
+  const feedActive = pathname === "/updates" || pathname.startsWith("/updates");
+  const currentFull = pathname + (search || "");
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={feedActive && !search}>
+        <Link to="/updates">
+          <span className="relative inline-flex items-center justify-center w-4 h-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse-dot" />
+          </span>
+          <span>Privacy Intelligence Feed</span>
+        </Link>
+      </SidebarMenuButton>
+      <SidebarMenuSub>
+        {FEED_REGIONS.map((region) => {
+          const regionActive = currentFull === region.href;
+          return (
+            <SidebarMenuSubItem key={region.href}>
+              <SidebarMenuSubButton asChild isActive={regionActive}>
+                <Link to={region.href}>{region.label}</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          );
+        })}
+      </SidebarMenuSub>
+    </SidebarMenuItem>
+  );
+}
+
 function ResearchSection({ pathname }: { pathname: string }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
+  const subgroup = (label: string, items: NavItemDef[]) => (
+    <React.Fragment key={label}>
+      <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">
+        {label}
+      </div>
+      {items.map((item) => (
+        <NavItem key={item.href} item={item} pathname={pathname} />
+      ))}
+    </React.Fragment>
+  );
   return (
     <SidebarGroup>
       <Collapsible open={open} onOpenChange={setOpen}>
@@ -205,9 +280,9 @@ function ResearchSection({ pathname }: { pathname: string }) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenu>
-            {RESEARCH.map((item) => (
-              <NavItem key={item.href} item={item} pathname={pathname} />
-            ))}
+            {subgroup("Laws & Frameworks", RESEARCH.slice(0, 5))}
+            {subgroup("Directories", RESEARCH.slice(5, 8))}
+            {subgroup("Practitioner Guides", RESEARCH.slice(8))}
           </SidebarMenu>
         </CollapsibleContent>
       </Collapsible>
@@ -265,9 +340,9 @@ export default function AppShell() {
       </span>
     ) : null;
 
-  const intelligenceItems = user
-    ? [INTELLIGENCE_PUBLIC[0], ...INTELLIGENCE_AUTH_EXTRA, ...INTELLIGENCE_TAIL]
-    : [...INTELLIGENCE_PUBLIC, ...INTELLIGENCE_TAIL];
+  const intelligenceTailItems: NavItemDef[] = user
+    ? [...INTELLIGENCE_AUTH_EXTRA, ...INTELLIGENCE_TAIL]
+    : [...INTELLIGENCE_TAIL];
 
   return (
     <AppShellContext.Provider value={{ setTitle, setSubtitle }}>
@@ -289,7 +364,30 @@ export default function AppShell() {
             </SidebarHeader>
 
             <SidebarContent>
-              <NavSection label="Intelligence" items={intelligenceItems} pathname={location.pathname} />
+              <SidebarGroup>
+                <SidebarGroupLabel>Intelligence</SidebarGroupLabel>
+                <SidebarMenu>
+                  <FeedSection pathname={location.pathname} search={location.search} />
+                  {intelligenceTailItems.map((item) => (
+                    <NavItem key={item.href} item={item} pathname={location.pathname} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroup>
+
+              <SidebarGroup>
+                <SidebarGroupLabel className="flex items-center gap-2">
+                  <span>Free Tools</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    FREE
+                  </span>
+                </SidebarGroupLabel>
+                <SidebarMenu>
+                  {FREE_TOOLS.map((item) => (
+                    <NavItem key={item.href} item={item} pathname={location.pathname} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroup>
+
               <NavSection label="Compliance Tools" items={TOOLS} pathname={location.pathname} />
               <ResearchSection pathname={location.pathname} />
               {user && (
@@ -315,7 +413,7 @@ export default function AppShell() {
                 </div>
               )}
 
-              {user && <ClientContextBar />}
+              {user && <ClientContextBar compact />}
 
               {user ? (
                 <>
