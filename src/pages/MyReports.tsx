@@ -169,13 +169,11 @@ export default function MyReports() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-paper">
+    <WorkspaceLayout>
       <Helmet>
         <title>My Reports | End User Privacy</title>
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
