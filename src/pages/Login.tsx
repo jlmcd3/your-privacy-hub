@@ -3,8 +3,6 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import StarField from "@/components/layout/StarField";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const Login = () => {
   const [email, setEmail] = useState("");
