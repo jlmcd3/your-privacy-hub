@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
