@@ -377,47 +377,21 @@ const Updates = () => {
                 </div>
             </div>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-6">
-                {/* Left: Topics sidebar */}
-                <aside className="hidden md:block">
-                    <div className="sticky top-20">
-                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
-                        <nav className="flex flex-col">
-                            {TOPIC_FILTERS.map((t) => {
-                                const isActive = activeTopic === t.key;
-                                return (
-                                    <button
-                                        key={t.key}
-                                        onClick={() => selectTopic(t.key)}
-                                        className={`text-left text-[13px] px-3 py-2 transition-colors border-l-2 ${
-                                            isActive
-                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
-                                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
-                                        }`}
-                                    >
-                                        {t.label}
-                                    </button>
-                                );
-                            })}
-                        </nav>
-                    </div>
-                </aside>
-
-                {/* Main feed column */}
-                <div>
-                {/* Mobile: topics as scrollable pills */}
-                <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
-                    <div className="flex items-center gap-2 px-4">
+            {/* Topics horizontal pill bar */}
+            <div className="border-b border-fog bg-card">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                        <span className="text-eyebrow text-muted-foreground mr-1 whitespace-nowrap">Topics:</span>
                         {TOPIC_FILTERS.map((t) => {
                             const isActive = activeTopic === t.key;
                             return (
                                 <button
                                     key={t.key}
                                     onClick={() => selectTopic(t.key)}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                    className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
                                         isActive
-                                            ? "bg-[hsl(var(--cobalt))] text-white"
-                                            : "bg-muted text-foreground hover:bg-muted/80"
+                                            ? "bg-[hsl(var(--cobalt))] text-white border border-[hsl(var(--cobalt))]"
+                                            : "border border-fog bg-card text-slate hover:bg-fog"
                                     }`}
                                 >
                                     {t.label}
@@ -426,6 +400,11 @@ const Updates = () => {
                         })}
                     </div>
                 </div>
+            </div>
+
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
+                {/* Main feed column */}
+                <div>
 
                 {hasJurisdictionOrTopic && (
                     <div className="mb-3 flex items-center gap-2 text-[12px]">
