@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import {
   AccountClientsSection,
   ComplianceDocumentsSection,
