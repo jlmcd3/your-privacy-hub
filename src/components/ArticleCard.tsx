@@ -332,10 +332,10 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           <AdminHideButton articleId={item.id} />
         </div>
         {/* Title */}
-        <Link to={`/updates/${item.id}`}
+        <TitleLink item={item}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
-        </Link>
+        </TitleLink>
         {/* Paid-only: regulatory theory shown as italic label below title */}
         {isPremium && item.regulatory_theory && (
           <p className="text-[11.5px] italic text-slate mb-1">
@@ -435,10 +435,10 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
         <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
       )}
     </div>
-    <Link to={`/updates/${item.id}`}
+    <TitleLink item={item}
       className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
       {normalizeTitle(item.title)}
-    </Link>
+    </TitleLink>
     {(item.summary || item.ai_summary?.why_it_matters) && (
       <p className="text-[13px] text-blue-200 leading-relaxed line-clamp-3">
         {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
@@ -459,10 +459,10 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
       style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
       <div className="flex-1 min-w-0">
-        <Link to={`/updates/${item.id}`}
+        <TitleLink item={item}
           className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
-        </Link>
+        </TitleLink>
         {item.summary && (
           <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
