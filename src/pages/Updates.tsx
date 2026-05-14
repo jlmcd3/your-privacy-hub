@@ -559,9 +559,9 @@ const Updates = () => {
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
-                    <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
+                    <div className="text-[11px] text-navy bg-gold/10 border border-gold/40 px-3 py-2 rounded-lg mb-4">
                         Showing analysis on every update.{" "}
-                        <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
+                        <Link to="/subscribe" className="underline font-semibold hover:text-gold">
                             Upgrade to Platform to unlock Action Briefs →
                         </Link>
                     </div>

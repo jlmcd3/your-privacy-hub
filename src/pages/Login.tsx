@@ -79,8 +79,8 @@ const Login = () => {
       <div className="flex-1 flex flex-col lg:flex-row">
 
         {/* Left panel — hidden on mobile */}
-        <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-navy to-steel flex-col justify-center px-12 py-16">
-          <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">End User Privacy</div>
+        <div className="hidden lg:flex lg:w-[420px] bg-navy star-field relative flex-col justify-center px-12 py-16">
+          <div className="text-gold text-[11px] font-bold uppercase tracking-widest mb-4 relative">End User Privacy</div>
           <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6">
             Global privacy law, tracked daily.
           </h2>
@@ -92,7 +92,7 @@ const Login = () => {
               `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
-                <span className="text-accent font-bold">✓</span>
+                <span className="text-gold font-bold">✓</span>
                 {item}
               </div>
             ))}
@@ -166,7 +166,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
+                className="w-full py-3 text-[14px] font-semibold text-navy bg-gold rounded-lg shadow-[0_2px_8px_rgba(200,146,42,0.35)] hover:bg-gold/90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
               >
                 {loading ? "Signing in…" : "Sign In"}
               </button>
