@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import LatestUpdates from "@/components/LatestUpdates";
+import HomepageSpotlight from "@/components/home/HomepageSpotlight";
 import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
