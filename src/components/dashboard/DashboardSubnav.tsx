@@ -14,6 +14,55 @@ import { NavLink, useLocation } from "react-router-dom";
 import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
+const SUPPRESS_PATHS = [
+  '/',
+  '/updates',
+  '/enforcement',
+  '/horizon',
+  '/subscribe',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/check-email',
+  '/onboarding-profile',
+  '/about',
+  '/contact',
+  '/faq',
+  '/terms',
+  '/privacy-policy',
+  '/get-intelligence',
+  '/us-privacy-laws',
+  '/gdpr-enforcement',
+  '/global-privacy-laws',
+  '/ai-privacy-regulations',
+  '/jurisdictions',
+  '/legislation-tracker',
+  '/glossary',
+  '/calendar',
+  '/timelines',
+  '/global-privacy-authorities',
+  '/cross-border-transfers',
+  '/biometric-privacy',
+  '/health-data-privacy',
+  '/cookie-consent',
+  '/breach-notification',
+  '/legitimate-interest-tracker',
+];
+
+const APPSHELL_PREFIXES = [
+  '/dashboard',
+  '/watchlist',
+  '/clients',
+  '/brief-preferences',
+  '/account',
+  '/ropa',
+  '/us-notices',
+  '/eu-notices',
+  '/admin',
+];
 
 type Item = {
   to: string;
