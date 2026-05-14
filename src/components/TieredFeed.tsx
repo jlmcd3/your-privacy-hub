@@ -3,7 +3,7 @@ import { ArticleCard, HomepageCard, type ArticleItem } from "@/components/Articl
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
 
 interface TieredFeedProps {
   articles: ArticleItem[];
