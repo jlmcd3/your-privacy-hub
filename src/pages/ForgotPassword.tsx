@@ -2,9 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +27,6 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Reset Password | End User Privacy</title></Helmet>
-      <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           {!sent ? (
@@ -99,7 +95,6 @@ export default function ForgotPassword() {
           )}
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

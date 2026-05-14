@@ -1,7 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 
 import gdprData from "@/data/timelines/gdpr-enforcement.json";
@@ -45,12 +43,10 @@ const TimelineDetail = () => {
   if (!meta) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Timeline Not Found</h1>
           <Link to="/timelines" className="text-primary hover:underline">Back to Timelines →</Link>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -64,8 +60,6 @@ const TimelineDetail = () => {
         <title>{meta.title} | End User Privacy</title>
         <meta name="description" content={meta.description} />
       </Helmet>
-      <Navbar />
-
       <div className="border-b border-border bg-card">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <Link to="/timelines" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors no-underline mb-4 inline-block">
@@ -135,7 +129,6 @@ const TimelineDetail = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

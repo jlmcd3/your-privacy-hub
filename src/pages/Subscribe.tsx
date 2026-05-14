@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
@@ -111,8 +109,6 @@ const Subscribe = () => {
           content={`Privacy Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()}. Annual Platform at ${PLATFORM_PRICING.standard()} — all compliance tools included.`}
         />
       </Helmet>
-      <Navbar />
-
       {/* Two-product hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="star-field" ref={starRef} />
@@ -471,7 +467,6 @@ const Subscribe = () => {
           <span>✓ No ads for subscribers</span>
         </div>
       </div>
-      <Footer />
       <UIDebugOverlay label="Subscribe UI debug" />
       <SubscribeCheckoutModal
         open={checkoutOpen}

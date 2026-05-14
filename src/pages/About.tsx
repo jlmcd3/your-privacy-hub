@@ -1,6 +1,4 @@
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const About = () => {
@@ -10,7 +8,6 @@ const About = () => {
         <title>About End User Privacy | Privacy Regulatory Intelligence Platform</title>
         <meta name="description" content="End User Privacy monitors 119 regulatory authorities daily and delivers weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
       </Helmet>
-      <Navbar />
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
@@ -182,7 +179,6 @@ const About = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };

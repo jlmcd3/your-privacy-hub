@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import PremiumGate from "@/components/PremiumGate";
 import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
@@ -174,8 +172,6 @@ export default function Horizon() {
           content="Forward-looking intelligence on anticipated privacy law and enforcement developments — filtered to the jurisdictions and topics you follow. Updated weekly."
         />
       </Helmet>
-      <Navbar />
-
       <header className="bg-gradient-to-br from-navy to-steel text-white py-12 px-4">
         <div className="max-w-[1080px] mx-auto">
           <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-3">
@@ -305,7 +301,6 @@ export default function Horizon() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }

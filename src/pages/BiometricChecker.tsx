@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -80,7 +78,6 @@ export default function BiometricChecker() {
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
         <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Annual Platform." /></Helmet>
-      <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <header className="mb-8">
@@ -190,7 +187,6 @@ export default function BiometricChecker() {
           if (id) navigate(`/biometric-checker/result/${id}?purchased=true`);
         }}
       />
-      <Footer />
     </div>
   );
 }

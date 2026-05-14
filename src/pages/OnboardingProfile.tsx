@@ -3,8 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { JURISDICTION_OPTIONS } from "@/data/registration_jurisdictions";
 
 interface UserRoleRow {
@@ -106,7 +104,6 @@ export default function OnboardingProfile() {
         <title>Personalise your intelligence feed | End User Privacy</title>
         <meta name="description" content="Tell us your role, jurisdiction, and sector so we can personalise your Action Brief on every article." />
       </Helmet>
-      <Navbar />
       <div className="flex-1 flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-lg bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           <h1 className="font-display text-[26px] text-navy mb-2">
@@ -195,7 +192,6 @@ export default function OnboardingProfile() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

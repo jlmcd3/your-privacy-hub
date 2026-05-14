@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -105,7 +103,6 @@ export default function DPAGenerator() {
     <div className="min-h-screen bg-paper">
       <Helmet><title>Your Custom DPA | End User Privacy</title>
         <meta name="description" content="Generate your custom GDPR Article 28-compliant Data Protection Agreement, calibrated to live enforcement precedents." /></Helmet>
-      <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
@@ -184,7 +181,6 @@ export default function DPAGenerator() {
           if (id) navigate(`/dpa-generator/result/${id}?purchased=true`);
         }}
       />
-      <Footer />
     </div>
   );
 }

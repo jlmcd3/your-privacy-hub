@@ -10,6 +10,9 @@
  */
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
+// Set to true when Google Ad Manager (or similar) is configured.
+const ADS_CONFIGURED = false;
+
 interface AdBannerProps {
   variant?: "leaderboard" | "sidebar" | "inline" | "infeed";
   className?: string;
@@ -26,7 +29,7 @@ const AdBanner = ({
   googleAdSlot,
 }: AdBannerProps) => {
   const { isPremium } = usePremiumStatus();
-  if (isPremium) return null;
+  if (isPremium || !ADS_CONFIGURED) return null;
 
   const dimensions = {
     leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },

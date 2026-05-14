@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,7 +32,6 @@ export default function EUNoticeLanding() {
         <meta name="description" content="Generate GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA and 4 more privacy notices in one session." />
         <link rel="canonical" href="https://www.enduserprivacy.com/eu-global-notice-builder" />
       </Helmet>
-      <Navbar />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (
@@ -115,7 +112,6 @@ export default function EUNoticeLanding() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }
