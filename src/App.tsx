@@ -80,10 +80,8 @@ import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 
 import ScrollToTop from "./components/ScrollToTop.tsx";
-import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import BlankScreenDiagnostic from "./components/BlankScreenDiagnostic.tsx";
-import ClientContextBar from "./components/ClientContextBar.tsx";
 import { AppShell } from "./components/layout";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
 import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
