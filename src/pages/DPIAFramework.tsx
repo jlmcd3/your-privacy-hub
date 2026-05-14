@@ -16,6 +16,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import AdBanner from "@/components/AdBanner";
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
@@ -148,6 +149,7 @@ const DPIAFramework = () => {
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
+          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 
