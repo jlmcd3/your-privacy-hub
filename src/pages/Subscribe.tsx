@@ -114,8 +114,9 @@ const Subscribe = () => {
       <Navbar />
 
       {/* Two-product hero */}
-      <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
-        <div className="max-w-[800px] mx-auto text-center">
+      <div className="relative overflow-hidden bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
+        <div className="star-field" ref={starRef} />
+        <div className="relative max-w-[800px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
