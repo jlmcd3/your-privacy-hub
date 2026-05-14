@@ -340,9 +340,9 @@ export default function AppShell() {
       </span>
     ) : null;
 
-  const intelligenceItems = user
-    ? [INTELLIGENCE_PUBLIC[0], ...INTELLIGENCE_AUTH_EXTRA, ...INTELLIGENCE_TAIL]
-    : [...INTELLIGENCE_PUBLIC, ...INTELLIGENCE_TAIL];
+  const intelligenceTailItems: NavItemDef[] = user
+    ? [...INTELLIGENCE_AUTH_EXTRA, ...INTELLIGENCE_TAIL]
+    : [...INTELLIGENCE_TAIL];
 
   return (
     <AppShellContext.Provider value={{ setTitle, setSubtitle }}>
