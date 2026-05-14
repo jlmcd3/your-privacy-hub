@@ -145,7 +145,8 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
       const { data } = await supabase
         .from("updates")
         .select(
-          `id, title, source_name, source_url:url, published_at, jurisdiction,
+          `id, title, source_name, source_url:url, published_at,
+           direct_jurisdictions, affected_jurisdictions,
            category, attention_level, image_url, why_it_matters_short,
            ai_summary, action_items, related_signals`
         )
