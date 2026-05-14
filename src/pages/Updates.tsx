@@ -332,39 +332,42 @@ const Updates = () => {
             </Helmet>
             <Navbar />
 
-            <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-6 px-4 md:px-8">
-                <div className="max-w-[1280px] mx-auto text-center">
+            <div className="px-4 sm:px-6 py-4 border-b border-fog">
+                <div className="max-w-[1280px] mx-auto">
                     {(topicFilter || regionFilter) && (
-                        <div className="flex items-center justify-center mb-1">
-                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">
-                                ← {lastIngestionLabel(updates)}
-                            </Link>
-                        </div>
+                        <Link to="/updates" className="text-[11px] text-slate hover:text-navy transition-colors no-underline block mb-1">
+                            ← {lastIngestionLabel(updates)}
+                        </Link>
                     )}
-                    <h1 className="font-display text-[24px] md:text-[30px] tracking-tight text-white m-0">
+                    <h2 className="text-section-h2 text-navy m-0">
                         {regionFilter
                             ? formatFilterLabel(regionFilter)
                             : topicFilter
                                 ? formatFilterLabel(topicFilter)
-                                : lastIngestionLabel(updates)}
-                    </h1>
+                                : 'Privacy Intelligence Feed'}
+                    </h2>
+                    {!regionFilter && !topicFilter && updates[0]?.published_at && (
+                        <p className="text-meta mt-0.5 text-slate">
+                            Through {new Date(updates[0].published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                    )}
                 </div>
-            </section>
+            </div>
 
-            {/* Jurisdiction subnav (cobalt underline on active) */}
-            <div className="border-b border-border bg-card">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-                    <div className="flex items-center gap-1 overflow-x-auto -mb-px">
+            {/* Jurisdiction pill tabs */}
+            <div className="border-b border-fog bg-card">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
+                    <div className="flex items-center gap-2 overflow-x-auto">
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = activeRegion === f.key;
                             return (
                                 <button
                                     key={f.key}
                                     onClick={() => selectRegion(f.key)}
-                                    className={`relative whitespace-nowrap px-3 py-3 text-[13px] font-semibold transition-colors border-b-2 ${
+                                    className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
                                         isActive
-                                            ? "text-foreground border-[hsl(var(--cobalt))]"
-                                            : "text-muted-foreground hover:text-foreground border-transparent"
+                                            ? "bg-navy text-white border border-navy"
+                                            : "border border-fog bg-card text-slate hover:bg-fog"
                                     }`}
                                 >
                                     {f.label}
