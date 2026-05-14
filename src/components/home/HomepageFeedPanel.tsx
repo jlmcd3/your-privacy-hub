@@ -114,9 +114,10 @@ const HomepageArticleCard = ({
 interface HomepageFeedPanelProps {
   isPremium: boolean;
   isAuthenticated: boolean;
+  embedded?: boolean;
 }
 
-export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPanelProps) {
+export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false }: HomepageFeedPanelProps) {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -189,7 +190,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
 
   if (loading) {
     return (
-      <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+      <section className={embedded ? "px-5 py-5" : "max-w-[1280px] mx-auto px-4 md:px-8 py-10"}>
         <div className="flex gap-6">
           <div className="flex-1 space-y-4">
             {[0, 1, 2].map((i) => (
@@ -233,7 +234,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
   }
 
   return (
-    <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+    <section className={embedded ? "px-5 py-5" : "max-w-[1280px] mx-auto px-4 md:px-8 py-10"}>
       <div className="mb-5">
         <p className="text-[11px] font-bold uppercase tracking-widest text-slate/60 mb-1">
           Today's regulatory developments
