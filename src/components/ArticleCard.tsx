@@ -9,6 +9,7 @@ import eupTile from "@/assets/eup-intelligence-tile.jpg";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { fmtDate } from "@/lib/dates";
 import { getSeverityLabel } from "@/lib/severity";
+import { useAuth } from "@/hooks/useAuth";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
