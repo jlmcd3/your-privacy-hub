@@ -294,6 +294,40 @@ export default function HomepageSpotlight() {
     );
   }
 
+  const hasArticles = articles.some(a => a !== null);
+
+  if (!hasArticles) {
+    return (
+      <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+        <div className="rounded-2xl border border-dashed border-fog bg-slate-50/60 px-6 py-12 text-center">
+          <Sparkles className="w-8 h-8 mx-auto text-slate/40 mb-3" aria-hidden />
+          <h2 className="font-display text-[20px] font-bold text-navy mb-2">
+            No new developments yet today
+          </h2>
+          <p className="text-[13.5px] text-slate max-w-md mx-auto mb-5 leading-relaxed">
+            Our monitoring tracks privacy regulations across U.S. Federal, EU & UK,
+            and global jurisdictions. New analysis appears here as soon as it's
+            published.
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Link
+              to="/updates"
+              className="text-[12.5px] px-4 py-2 rounded-lg bg-navy text-white font-medium hover:bg-navy/90 transition-colors no-underline"
+            >
+              Browse the full feed →
+            </Link>
+            <Link
+              to="/#brief"
+              className="text-[12.5px] px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
+            >
+              Build an Intelligence Brief
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
       <div className="mb-6">
