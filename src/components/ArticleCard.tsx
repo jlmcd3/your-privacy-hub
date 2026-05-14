@@ -722,71 +722,47 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
 // — HOMEPAGE variant (anonymous users — uniform internal-link card) ——
 export const HomepageCard = ({ item }: { item: ArticleItem }) => {
-  const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
   return (
-    <Link
-      to={`/updates/${item.id}`}
-      className="block group py-4 border-b border-fog last:border-0 no-underline"
-    >
-      <div className="flex gap-3">
-        <img
-          src={item.image_url || EUP_TILE}
-          alt=""
-          loading="lazy"
-          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            {item.source_name && (
-              <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
-            )}
-            {item.published_at && (
-              <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
-            )}
-            {item.category && (
-              <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
-                {categoryLabel(item.category)}
-              </span>
-            )}
-            {(() => {
-              const sev = getSeverityLabel(item.ai_summary);
-              return sev ? (
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
-                  {sev.label}
-                </span>
-              ) : null;
-            })()}
-          </div>
-          <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
-            {normalizeTitle(item.title)}
-          </p>
-          {item.summary && (
-            <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">
-              {stripHtml(item.summary)}
-            </p>
+    <div className="flex gap-3 items-start py-3 border-b border-fog last:border-0">
+      <img
+        src={item.image_url || EUP_TILE}
+        alt=""
+        loading="lazy"
+        className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
+        onError={(e) => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+          {item.source_name && (
+            <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
+              {item.source_name}
+            </span>
           )}
-          {shortWhy && (
-            <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
-                Why it matters
-              </p>
-              <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
-            </div>
+          {item.published_at && (
+            <span className="text-[10px] text-slate-light">{fmtDate(item.published_at)}</span>
           )}
-          <div className="mt-2 flex items-center gap-2">
-            <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
-            <Link
-              to="/signup"
-              onClick={(e) => e.stopPropagation()}
-              className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
-            >
-              Register free →
-            </Link>
-          </div>
+          {item.category && (
+            <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
+              {categoryLabel(item.category)}
+            </span>
+          )}
+          <AdminHideButton articleId={item.id} />
         </div>
+        <TitleLink
+          item={item}
+          className="text-[13px] font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+        >
+          {normalizeTitle(item.title)}
+          {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}
+        </TitleLink>
+        {(() => {
+          const s = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          return s ? (
+            <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
+          ) : null;
+        })()}
       </div>
-    </Link>
+    </div>
   );
 };
 
