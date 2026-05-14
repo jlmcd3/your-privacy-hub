@@ -250,7 +250,6 @@ export default function BriefBuilder() {
                     : "bg-white border-fog hover:border-navy/40"
                 }`}
               >
-                <span className="text-[18px] flex-shrink-0 mt-0.5">{track.icon}</span>
                 <div className="min-w-0 flex-1">
                   <p className={`text-[13px] font-semibold leading-tight ${sel ? "text-white" : "text-navy"}`}>
                     {track.label}
@@ -335,7 +334,6 @@ export default function BriefBuilder() {
                 className="bg-gradient-to-br from-navy to-steel rounded-xl p-5 text-white"
               >
                 <div className="flex items-center gap-1.5 mb-3">
-                  <span className="text-[14px]">{item.trackIcon}</span>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300/80">
                     {item.trackLabel}
                   </span>
