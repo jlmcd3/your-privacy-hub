@@ -13,7 +13,7 @@ interface SpotlightArticle {
   source_name: string | null;
   source_url: string | null;
   published_at: string | null;
-  jurisdiction: string | null;
+  jurisdiction: string[] | null;
   category: string | null;
   attention_level: string | null;
   image_url: string | null;
