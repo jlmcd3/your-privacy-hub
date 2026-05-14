@@ -823,9 +823,7 @@ const Dashboard = () => {
         )}
 
       </div>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 };
 
