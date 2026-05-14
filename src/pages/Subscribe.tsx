@@ -87,6 +87,19 @@ const Subscribe = () => {
     navigate("/account?subscribed=1");
   };
 
+  const starRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = starRef.current;
+    if (!container) return;
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('span');
+      const size = Math.random() * 2 + 1;
+      s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random() * 100}%;top:${Math.random() * 100}%;--star-duration:${(Math.random() * 4 + 2).toFixed(1)}s;--star-delay:${(Math.random() * 5).toFixed(1)}s;`;
+      container.appendChild(s);
+    }
+    return () => { if (container) container.innerHTML = ''; };
+  }, []);
+
 
 
   return (
