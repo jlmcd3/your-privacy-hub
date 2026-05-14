@@ -1,4 +1,6 @@
 import { useEffect, type ReactNode } from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { RopaErrorBoundary } from "@/components/ropa/RopaErrorBoundary";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import {
@@ -29,6 +31,7 @@ export function EUNoticeShell({
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
       <main className="flex-1 max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <RopaErrorBoundary>
           {breadcrumb && (
@@ -47,6 +50,7 @@ export function EUNoticeShell({
           )}
         </RopaErrorBoundary>
       </main>
+      <Footer />
     </div>
   );
 }

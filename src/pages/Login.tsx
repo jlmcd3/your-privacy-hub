@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -67,13 +70,37 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-full bg-paper">
+    <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
         <title>Log In | End User Privacy</title>
         <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
-      <div className="flex items-center justify-center min-h-full py-16 px-4">
+      <Navbar />
+      <div className="flex-1 flex flex-col lg:flex-row">
 
+        {/* Left panel — hidden on mobile */}
+        <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-navy to-steel flex-col justify-center px-12 py-16">
+          <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">End User Privacy</div>
+          <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6">
+            Global privacy law, tracked daily.
+          </h2>
+          <div className="space-y-4">
+            {[
+              '119 regulatory authorities monitored',
+              '150+ jurisdictions covered',
+              'Weekly digest — free',
+              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
+            ].map(item => (
+              <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
+                <span className="text-accent font-bold">✓</span>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right panel — form */}
+        <div className="flex-1 flex items-center justify-center py-16 px-4 bg-paper">
           <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
             <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Sign In</h1>
             <p className="text-sm text-slate text-center mb-7">
@@ -139,7 +166,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-[14px] font-semibold text-navy bg-gold rounded-lg shadow-[0_2px_8px_rgba(200,146,42,0.35)] hover:bg-gold/90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
+                className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
               >
                 {loading ? "Signing in…" : "Sign In"}
               </button>
@@ -160,7 +187,10 @@ const Login = () => {
               </Link>
             </div>
           </div>
+        </div>
+
       </div>
+      <Footer />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
@@ -91,6 +93,8 @@ export default function SubscribeSuccess() {
       <Helmet>
         <title>{hasToolAccess ? "Welcome to the Compliance Platform" : "Welcome to Intelligence"} | End User Privacy</title>
       </Helmet>
+      <Navbar />
+
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
 
         {/* Celebration header */}
@@ -174,6 +178,7 @@ export default function SubscribeSuccess() {
         </p>
       </div>
 
+      <Footer />
     </div>
   );
 }

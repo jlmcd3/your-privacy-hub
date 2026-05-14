@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
@@ -85,19 +87,6 @@ const Subscribe = () => {
     navigate("/account?subscribed=1");
   };
 
-  const starRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const container = starRef.current;
-    if (!container) return;
-    for (let i = 0; i < 60; i++) {
-      const s = document.createElement('span');
-      const size = Math.random() * 2 + 1;
-      s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random() * 100}%;top:${Math.random() * 100}%;--star-duration:${(Math.random() * 4 + 2).toFixed(1)}s;--star-delay:${(Math.random() * 5).toFixed(1)}s;`;
-      container.appendChild(s);
-    }
-    return () => { if (container) container.innerHTML = ''; };
-  }, []);
-
 
 
   return (
@@ -109,10 +98,11 @@ const Subscribe = () => {
           content={`Privacy Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()}. Annual Platform at ${PLATFORM_PRICING.standard()} — all compliance tools included.`}
         />
       </Helmet>
+      <Navbar />
+
       {/* Two-product hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
-        <div className="star-field" ref={starRef} />
-        <div className="relative max-w-[800px] mx-auto text-center">
+      <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
+        <div className="max-w-[800px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
@@ -156,8 +146,8 @@ const Subscribe = () => {
             </div>
 
             {/* Compliance Platform card */}
-            <div className="bg-gold/10 border-2 border-gold rounded-2xl p-6 relative">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gold mb-2">
+            <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
                 Compliance Platform
               </p>
               <div className="flex items-baseline gap-2 mb-1">
@@ -181,14 +171,14 @@ const Subscribe = () => {
                   "Your documents saved permanently",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white">
-                    <span className="text-gold font-bold">✓</span> {item}
+                    <span className="text-amber-400 font-bold">✓</span> {item}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => startCheckout("year")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-[13px] font-bold bg-gold text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-[13px] font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start Platform — {PLATFORM_PRICING.standard()} →
               </button>
@@ -263,7 +253,7 @@ const Subscribe = () => {
                     <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-sky w-[170px]">
                       Intelligence ({INTELLIGENCE_PRICING.monthlyShort()})
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-gold w-[200px]">
+                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
                       Platform ({PLATFORM_PRICING.standard()})
                     </th>
                   </tr>
@@ -286,7 +276,7 @@ const Subscribe = () => {
                       if (val === true) {
                         const cls =
                           color === "platform"
-                            ? "text-gold"
+                            ? "text-amber-500"
                             : color === "intel"
                               ? "text-sky"
                               : "text-accent";
@@ -296,7 +286,7 @@ const Subscribe = () => {
                       if (val === "Included") {
                         return <span className="text-[11px] font-semibold text-green-600">Included</span>;
                       }
-                      const cls = color === "platform" ? "text-gold" : "text-slate";
+                      const cls = color === "platform" ? "text-amber-700" : "text-slate";
                       return <span className={`text-[11px] font-medium ${cls}`}>{val}</span>;
                     };
                     const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
@@ -467,6 +457,7 @@ const Subscribe = () => {
           <span>✓ No ads for subscribers</span>
         </div>
       </div>
+      <Footer />
       <UIDebugOverlay label="Subscribe UI debug" />
       <SubscribeCheckoutModal
         open={checkoutOpen}

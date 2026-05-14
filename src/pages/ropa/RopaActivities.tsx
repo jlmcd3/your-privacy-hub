@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
@@ -219,8 +218,6 @@ export default function RopaActivities() {
   if (!clientId) {
     return (
       <RopaShell title="Select Activities — RoPA Builder" heading="Select Activities">
-      <WizardProgress steps={["Setup","Activities","Review","Documents"]} currentStep={1} />
-      
         <p className="text-muted-foreground">
           Select an organisation from the switcher to begin.
         </p>

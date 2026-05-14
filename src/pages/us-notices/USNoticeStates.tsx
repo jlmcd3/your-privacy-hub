@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { ArrowRight, Loader2, Info, Check } from "lucide-react";
 import { USNoticeShell } from "@/components/us-notices/USNoticeShell";
 import { Button } from "@/components/ui/button";
@@ -265,8 +264,6 @@ export default function USNoticeStates() {
         step="states"
         sessionId={sessionId}
       >
-      <WizardProgress steps={["Mode","States","Questions","Review","Documents"]} currentStep={1} />
-      
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-48 w-full" />
       </USNoticeShell>

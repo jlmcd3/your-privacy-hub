@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import AISummaryPanel from "@/components/AISummaryPanel";
 import NewsfeedList from "@/components/NewsfeedList";
 import EmailSignup from "@/components/EmailSignup";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 
 interface Update {
@@ -112,12 +114,14 @@ const CategoryPage = () => {
   if (!meta) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Category Not Found</h1>
           <Link to="/" className="text-primary hover:underline">
             Return to homepage →
           </Link>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -128,6 +132,8 @@ const CategoryPage = () => {
         <title>{meta.title} Updates | End User Privacy</title>
         <meta name="description" content={meta.description.substring(0, 155) + "…"} />
       </Helmet>
+      <Navbar />
+
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
@@ -257,6 +263,7 @@ const CategoryPage = () => {
 
       <AdBanner variant="leaderboard" adSlot="eup-category-bottom" className="py-3" />
 
+      <Footer />
     </div>
   );
 };

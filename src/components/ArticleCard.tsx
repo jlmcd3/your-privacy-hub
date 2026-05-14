@@ -89,32 +89,6 @@ export interface ArticleItem {
 // Variant controls the density and context of display
 export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview' | 'homepage';
 
-// Title link: prefers the external source URL (opens in new tab) and falls
-// back to the internal article detail route when no source URL is available.
-const TitleLink = ({
-  item,
-  className,
-  children,
-}: {
-  item: ArticleItem;
-  className?: string;
-  children: React.ReactNode;
-}) => {
-  const external = item.source_url || (item as any).url;
-  if (external) {
-    return (
-      <a href={external} target="_blank" rel="noopener noreferrer" className={className}>
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link to={`/updates/${item.id}`} className={className}>
-      {children}
-    </Link>
-  );
-};
-
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
   if (!item.ai_summary) return false;
@@ -332,10 +306,10 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           <AdminHideButton articleId={item.id} />
         </div>
         {/* Title */}
-        <TitleLink item={item}
+        <Link to={`/updates/${item.id}`}
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
-        </TitleLink>
+        </Link>
         {/* Paid-only: regulatory theory shown as italic label below title */}
         {isPremium && item.regulatory_theory && (
           <p className="text-[11.5px] italic text-slate mb-1">
@@ -435,10 +409,10 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
         <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
       )}
     </div>
-    <TitleLink item={item}
+    <Link to={`/updates/${item.id}`}
       className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
       {normalizeTitle(item.title)}
-    </TitleLink>
+    </Link>
     {(item.summary || item.ai_summary?.why_it_matters) && (
       <p className="text-[13px] text-blue-200 leading-relaxed line-clamp-3">
         {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
@@ -459,10 +433,10 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
       style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
       <div className="flex-1 min-w-0">
-        <TitleLink item={item}
+        <Link to={`/updates/${item.id}`}
           className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
-        </TitleLink>
+        </Link>
         {item.summary && (
           <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}

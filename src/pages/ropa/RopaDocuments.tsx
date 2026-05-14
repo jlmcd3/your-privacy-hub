@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
@@ -176,8 +175,6 @@ export default function RopaDocuments() {
 
   return (
     <RopaShell title="My RoPA Documents — End User Privacy" heading="My RoPA Documents">
-      <WizardProgress steps={["Setup","Activities","Review","Documents"]} currentStep={3} />
-      
       {(() => {
         const { steps, currentIndex } = getRopaSteps("documents");
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;

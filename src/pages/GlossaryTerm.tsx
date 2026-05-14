@@ -1,6 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
@@ -12,10 +14,12 @@ const GlossaryTerm = () => {
   if (!term) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
           <h1 className="text-2xl font-bold text-foreground mb-4">Term Not Found</h1>
           <Link to="/glossary" className="text-primary hover:underline">Back to Glossary →</Link>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -30,6 +34,8 @@ const GlossaryTerm = () => {
         <title>{term.term} — Privacy Law Definition | End User Privacy</title>
         <meta name="description" content={`What does "${term.term}" mean in privacy law? Plain-English definition, related regulations (${term.regulations.join(", ")}), and linked terms.`} />
       </Helmet>
+      <Navbar />
+
       <div className="border-b border-border bg-card">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <Link to="/glossary" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors no-underline mb-4 inline-block">
@@ -170,6 +176,7 @@ const GlossaryTerm = () => {
         )}
       </div>
 
+      <Footer />
     </div>
   );
 };

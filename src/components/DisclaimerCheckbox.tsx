@@ -13,7 +13,7 @@ interface DisclaimerCheckboxProps {
  */
 export default function DisclaimerCheckbox({ checked, onChange }: DisclaimerCheckboxProps) {
   return (
-    <label className="flex items-start gap-2.5 cursor-pointer mt-4 p-3 bg-gold/10 border border-gold/20 rounded-xl">
+    <label className="flex items-start gap-2.5 cursor-pointer mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
       <input
         type="checkbox"
         checked={checked}

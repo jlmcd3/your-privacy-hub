@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import {
   ArrowLeft,
   ArrowRight,
@@ -365,8 +364,6 @@ export default function EUNoticeReview() {
         step="review"
         sessionId={sessionId}
       >
-      <WizardProgress steps={["Mode","Frameworks","Questions","Review","Documents"]} currentStep={3} />
-      
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-48 w-full" />
       </EUNoticeShell>

@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import InFeedAd from "@/components/InFeedAd";
 import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
@@ -90,6 +92,7 @@ export default function LegislationTracker() {
         <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US, UK, EU, Canada, Australia, Brazil — refreshed daily from official government sources." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
             📜 Legislation Status Tracker
@@ -220,6 +223,7 @@ export default function LegislationTracker() {
             )}
           </div>
         </main>
+        <Footer />
       </div>
     </>
   );

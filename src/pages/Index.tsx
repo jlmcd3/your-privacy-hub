@@ -1,9 +1,10 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
+import Navbar from "@/components/Navbar";
 import LatestUpdates from "@/components/LatestUpdates";
+import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import AdBanner from "@/components/AdBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import HomepageTriptych from "@/components/home/HomepageTriptych";
@@ -25,28 +26,9 @@ const Index = () => {
         <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform at ${PLATFORM_PRICING.standard()} — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
 
+      <Navbar />
       <BreakingNewsBanner />
       <SearchFirstHero />
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-        <AdBanner variant="leaderboard" className="my-6" />
-      </div>
-      {/* ── Updates (above the brief) ─────────── */}
-      <div id="updates" className="scroll-mt-16 py-12">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 mb-6">
-          <h2 className="font-display text-[24px] font-bold text-navy mb-2">
-            Today's regulatory developments
-          </h2>
-          <p className="text-[14px] text-slate">
-            Live intelligence from 119 monitored authorities, enriched with compliance analysis.
-          </p>
-        </div>
-        <section className="px-4">
-          <div className="max-w-[1280px] mx-auto">
-            <LatestUpdates />
-          </div>
-        </section>
-      </div>
-
       <IntelligenceBriefSection>
         <div id="brief" className="scroll-mt-16">
           <div className="max-w-3xl mx-auto mb-6">
@@ -74,10 +56,10 @@ const Index = () => {
                     Key takeaways, compliance impact, and action intelligence on every update.
                   </p>
                   <div className="flex gap-3 justify-center flex-wrap">
-                    <Link to="/signup" className="text-[13px] font-semibold bg-gold text-white px-4 py-2 rounded-xl hover:opacity-90 transition-all no-underline">
+                    <Link to="/signup" className="text-[13px] font-semibold bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors no-underline">
                       Register free →
                     </Link>
-                    <Link to="/subscribe" className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-xl hover:bg-muted transition-colors no-underline">
+                    <Link to="/subscribe" className="text-[13px] font-semibold border border-border text-foreground px-4 py-2 rounded-lg hover:bg-muted transition-colors no-underline">
                       See plans →
                     </Link>
                   </div>
@@ -92,7 +74,7 @@ const Index = () => {
                   <p className="text-[12px] text-slate mb-3 leading-relaxed">
                     Compliance impact, action items by role, regulatory theory, and deep analysis on every update.
                   </p>
-                  <Link to="/subscribe" className="inline-block text-[13px] font-semibold bg-gold text-white px-4 py-2 rounded-xl hover:opacity-90 transition-all no-underline">
+                  <Link to="/subscribe" className="inline-block text-[13px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline">
                     Upgrade to Platform →
                   </Link>
                 </div>
@@ -101,6 +83,23 @@ const Index = () => {
           </div>
         </div>
       </IntelligenceBriefSection>
+
+      {/* ── Updates ─────────────────────────── */}
+      <div id="updates" className="scroll-mt-16 py-16">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8 mb-6">
+          <h2 className="font-display text-[24px] font-bold text-navy mb-2">
+            Today's regulatory developments
+          </h2>
+          <p className="text-[14px] text-slate">
+            Live intelligence from 119 monitored authorities, enriched with compliance analysis.
+          </p>
+        </div>
+        <section className="px-4">
+          <div className="max-w-[1280px] mx-auto">
+            <LatestUpdates />
+          </div>
+        </section>
+      </div>
 
       {/* ── Tools ─────────────────────────── */}
       <div id="tools" className="scroll-mt-16 py-16">
@@ -118,6 +117,7 @@ const Index = () => {
         <ToolsStrip />
       </div>
 
+      <Footer />
     </div>
   );
 };

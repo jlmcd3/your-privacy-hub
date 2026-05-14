@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
@@ -113,8 +112,6 @@ export default function RopaActivity() {
   if (!currentActivity) {
     return (
       <RopaShell title="Activity — RoPA Builder" heading="Loading activity…">
-      <WizardProgress steps={["Setup","Activities","Review","Documents"]} currentStep={1} />
-      
         <p className="text-muted-foreground text-sm">Loading…</p>
       </RopaShell>
     );

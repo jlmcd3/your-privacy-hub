@@ -1,5 +1,8 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
 export default function CheckEmail() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email");
@@ -7,6 +10,7 @@ export default function CheckEmail() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Check Your Email | End User Privacy</title></Helmet>
+      <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8 text-center">
           <div className="text-5xl mb-5">📧</div>
@@ -43,6 +47,7 @@ export default function CheckEmail() {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

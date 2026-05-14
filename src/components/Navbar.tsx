@@ -4,7 +4,7 @@ import { Menu, X, ChevronDown, ChevronRight, UserCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-
+import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 // Helper component for icon images with fallback
@@ -381,33 +381,32 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-navy border-b border-navy-mid sticky top-0 z-50">
+    <>
+    <nav className="bg-[#0D1F35] border-b border-[#0D1F35] sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
-        <Link to="/" className="no-underline flex items-center flex-shrink-0">
-          <span className="bg-white rounded-md px-2 py-1 inline-flex items-center">
-            <img src="/logo.png" alt="End User Privacy" className="h-7 md:h-8 w-auto" />
-          </span>
+        <Link to="/" className="no-underline flex items-center">
+          <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-0.5 xl:gap-2 min-w-0">
+        <div className="hidden md:flex items-center gap-2">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const basePadX = item.directLink ? "px-3 xl:px-4" : "px-2 xl:px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[13px] xl:text-[15px] whitespace-nowrap`;
+            const basePadX = item.directLink ? "px-4" : "px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[15px]`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
             const colorClasses = item.accent
               ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
-              : `text-white/75 hover:text-white`;
+              : `text-white hover:text-white`;
             const dimClass = item.dim ? "opacity-80 hover:opacity-100" : "";
             const directDot = item.directLink
-              ? "before:content-[''] before:absolute before:left-1 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[hsl(var(--accent))] before:animate-pulse-dot"
+              ? "before:content-[''] before:absolute before:left-1 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[hsl(var(--cobalt))]"
               : "";
             return (
               <div
@@ -419,7 +418,7 @@ const Navbar = () => {
                 {item.href ? (
                   <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} ${directDot}`}>
                     {item.label}
-                    {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-white/60" />}
+                    {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                   </Link>
                 ) : (
                   <button
@@ -427,7 +426,7 @@ const Navbar = () => {
                     className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} cursor-pointer bg-transparent border-none`}
                   >
                     {item.label}
-                    {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-white/60" />}
+                    {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                   </button>
                 )}
 
@@ -488,20 +487,20 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="hidden lg:flex items-center gap-1.5 xl:gap-3 flex-shrink-0 [&_a]:whitespace-nowrap [&_span]:whitespace-nowrap">
+        <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[12px] font-semibold text-white bg-gold hover:opacity-90 px-3 xl:px-4 py-2 rounded-xl no-underline transition-all"
+                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 🧠 My Dashboard
               </Link>
               {!isPremium && (
                 <Link
                   to="/subscribe"
-                  className="text-[12px] font-semibold text-gold hover:text-gold/80 no-underline transition-colors flex items-center gap-1"
+                  className="text-[12px] font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
                 >
                   ⭐ See plans
                 </Link>
@@ -527,19 +526,19 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="text-[15px] font-semibold text-white/75 hover:text-white no-underline transition-colors px-3 py-2"
+                className="text-[15px] font-semibold text-white/80 hover:text-white no-underline transition-colors px-3 py-2"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
-                className="text-xs font-medium px-3 py-1.5 rounded-md border border-white/30 text-white bg-transparent hover:bg-white/10 no-underline transition-colors"
+                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
               >
                 Sign up free
               </Link>
               <Link
                 to="/subscribe"
-                className="text-[12px] font-semibold text-white bg-gold hover:opacity-90 px-3 xl:px-4 py-2 rounded-xl no-underline transition-all"
+                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 See Plans →
               </Link>
@@ -549,7 +548,7 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="lg:hidden p-2 text-white bg-transparent border-none cursor-pointer"
+          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -558,7 +557,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+        <div className="md:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
           {navItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
@@ -566,7 +565,7 @@ const Navbar = () => {
                   to={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium no-underline ${
-                    item.accent ? "text-gold" : "text-navy"
+                    item.accent ? "text-amber-500" : "text-navy"
                   }`}
                 >
                   {item.label}
@@ -622,7 +621,7 @@ const Navbar = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="block text-center text-[13px] font-semibold text-white bg-gold hover:opacity-90 px-4 py-2.5 rounded-xl no-underline transition-all"
+                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => {
                     setMobileOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -633,7 +632,7 @@ const Navbar = () => {
                 {!isPremium && (
                   <Link
                     to="/subscribe"
-                    className="block text-center text-[13px] font-semibold text-gold hover:text-gold/80 bg-gold/10 border border-gold/20 px-4 py-2.5 rounded-xl no-underline"
+                    className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
                     ⭐ See plans
@@ -667,7 +666,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/subscribe"
-                  className="block text-center text-[13px] font-semibold text-white bg-gold hover:opacity-90 px-4 py-2.5 rounded-xl no-underline transition-all"
+                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   See Plans →
@@ -678,6 +677,8 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    <ClientContextBar />
+    </>
   );
 };
 

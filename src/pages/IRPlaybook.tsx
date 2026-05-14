@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
+import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -15,7 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { toast } from "sonner";
 import ToolTierNote from "@/components/tools/ToolTierNote";
-import AdBanner from "@/components/AdBanner";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -84,18 +85,16 @@ export default function IRPlaybook() {
     <div className="min-h-screen bg-paper">
       <Helmet><title>Your Breach Response Playbook | End User Privacy</title>
         <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
-      <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold mb-2">Your Breach Response Playbook</h1>
-          <p className="text-slate-300 text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
-        </div>
-      </header>
+      <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
+        <header className="mb-8">
+          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
+          <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
+        </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
-          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 
@@ -164,6 +163,7 @@ export default function IRPlaybook() {
           if (id) navigate(`/ir-playbook/result/${id}?purchased=true`);
         }}
       />
+      <Footer />
     </div>
   );
 }

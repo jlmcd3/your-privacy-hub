@@ -330,7 +330,6 @@ function buildHtml(d: AssembledData): string {
   <section class="cover">
     <h1>${escapeHtml(d.client?.name ?? "")}</h1>
     <div style="font-size: 16px; color: #555; margin-top: 4px;">Records of Processing Activities</div>
-    <div style="font-size: 13px; color: #555; margin-top: 4px;">Maintained in accordance with Article 30 of the GDPR</div>
     <div class="meta">${escapeHtml(d.settings.documentDate)}</div>
     <div class="meta">Jurisdictions: ${escapeHtml(d.jurisdictions.join(", ") || "—")}</div>
     <div class="meta">Author: ${escapeHtml(d.settings.authorName)} · Version ${d.session.version_number}</div>

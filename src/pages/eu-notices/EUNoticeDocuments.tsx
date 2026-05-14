@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { ArrowLeft, Download, FileText, Loader2, RefreshCw, Globe2 } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
 import { Button } from "@/components/ui/button";
@@ -85,8 +84,6 @@ export default function EUNoticeDocuments() {
 
   return (
     <EUNoticeShell title="Documents — EU & Global Notice Builder" heading="Your generated notices" step="documents">
-      <WizardProgress steps={["Mode","Frameworks","Questions","Review","Documents"]} currentStep={4} />
-      
       <div className="mb-6 flex items-center justify-between">
         <Button asChild variant="ghost" size="sm">
           <Link to="/eu-notices"><ArrowLeft className="h-4 w-4 mr-1.5" /> Back to dashboard</Link>

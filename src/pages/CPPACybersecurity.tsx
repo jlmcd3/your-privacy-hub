@@ -2,7 +2,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,8 +14,6 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
-import AdBanner from "@/components/AdBanner";
 
 const MATURITY = [
   "Not implemented",
@@ -96,6 +96,7 @@ export default function CPPACybersecurity() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>
+      <Navbar />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
@@ -109,7 +110,6 @@ export default function CPPACybersecurity() {
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote isCppa={true} />
-          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 
@@ -174,8 +174,6 @@ export default function CPPACybersecurity() {
           ))}
         </section>
 
-        <ToolDisclaimer />
-
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">
           {isSuite ? (
             <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Please complete all 18 controls.", variant: "destructive" }); return; } if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
@@ -214,6 +212,7 @@ export default function CPPACybersecurity() {
           }}
         />
       </main>
+      <Footer />
     </div>
   );
 }

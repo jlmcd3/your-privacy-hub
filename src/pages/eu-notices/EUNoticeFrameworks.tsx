@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
 import { Button } from "@/components/ui/button";
@@ -120,8 +119,6 @@ export default function EUNoticeFrameworks() {
   if (verifying || loading) {
     return (
       <EUNoticeShell title="Frameworks — EU & Global Notice Builder" heading="Pick your frameworks" step="frameworks" sessionId={sessionId}>
-      <WizardProgress steps={["Mode","Frameworks","Questions","Review","Documents"]} currentStep={1} />
-      
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-48 w-full" />
       </EUNoticeShell>

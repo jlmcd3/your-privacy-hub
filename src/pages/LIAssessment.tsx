@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
+import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import ToolTierNote from "@/components/tools/ToolTierNote";
-import AdBanner from "@/components/AdBanner";
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -158,6 +159,8 @@ const LIAssessment = () => {
         <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest, with regulator precedents. Optional full three-part test." />
       </Helmet>
+      <Navbar />
+
       {/* Header — matches LI Tracker */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
@@ -177,7 +180,6 @@ const LIAssessment = () => {
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ToolTierNote className="mb-6" />
-          <AdBanner variant="inline" className="mb-6" />
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
@@ -385,6 +387,7 @@ const LIAssessment = () => {
         )}
       </main>
 
+      <Footer />
     </div>
   );
 };

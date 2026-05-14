@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,8 +15,6 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
-import AdBanner from "@/components/AdBanner";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -178,6 +178,7 @@ const GovernanceAssessment = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
+      <Navbar />
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
@@ -192,7 +193,6 @@ const GovernanceAssessment = () => {
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
-          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 
@@ -336,8 +336,6 @@ const GovernanceAssessment = () => {
             );
           })()}
 
-          <ToolDisclaimer />
-
           <div className="flex justify-between pt-4 border-t">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
             {!summaryStep ? (
@@ -383,6 +381,7 @@ const GovernanceAssessment = () => {
         />
       </main>
 
+      <Footer />
     </div>
   );
 };

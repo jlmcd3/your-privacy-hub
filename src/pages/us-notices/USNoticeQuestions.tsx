@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle, Lightbulb } from "lucide-react";
 import { USNoticeShell } from "@/components/us-notices/USNoticeShell";
 import { Button } from "@/components/ui/button";
@@ -228,8 +227,6 @@ export default function USNoticeQuestions() {
   if (loading) {
     return (
       <USNoticeShell title="Questions — US Notice Builder" heading="Questions" step="questions" sessionId={sessionId}>
-      <WizardProgress steps={["Mode","States","Questions","Review","Documents"]} currentStep={2} />
-      
         <Skeleton className="h-3 w-full mb-6" />
         <Skeleton className="h-40 w-full" />
       </USNoticeShell>

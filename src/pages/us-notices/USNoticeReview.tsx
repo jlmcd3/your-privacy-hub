@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import {
   ArrowLeft,
   ArrowRight,
@@ -345,8 +344,6 @@ export default function USNoticeReview() {
   if (loading) {
     return (
       <USNoticeShell title="Review Your Notices — End User Privacy" heading="Review your notices" step="review" sessionId={sessionId}>
-      <WizardProgress steps={["Mode","States","Questions","Review","Documents"]} currentStep={3} />
-      
         <Skeleton className="h-24 w-full mb-6" />
         <Skeleton className="h-64 w-full" />
       </USNoticeShell>

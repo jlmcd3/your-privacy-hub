@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import WizardProgress from "@/components/layout/WizardProgress";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,17 +70,15 @@ export default function RegistrationOrder() {
 
   if (loading) {
     return (
-      <PageContainer>
-      <WizardProgress steps={["Order","Documents"]} currentStep={0} />
-      <div className="py-20 text-center text-muted-foreground">
+      <><Navbar /><PageContainer><div className="py-20 text-center text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3" />Loading order…
-      </div></PageContainer>
+      </div></PageContainer><Footer /></>
     );
   }
 
   if (!order) {
     return (
-      <PageContainer><div className="py-20 text-center">Order not found.</div></PageContainer>
+      <><Navbar /><PageContainer><div className="py-20 text-center">Order not found.</div></PageContainer><Footer /></>
     );
   }
 
@@ -93,6 +92,7 @@ export default function RegistrationOrder() {
       <Helmet>
         <title>Registration Order — End User Privacy</title>
       </Helmet>
+      <Navbar />
       <main>
         <PageContainer>
           <div className="max-w-4xl mx-auto py-10">
@@ -159,6 +159,7 @@ export default function RegistrationOrder() {
           </div>
         </PageContainer>
       </main>
+      <Footer />
     </>
   );
 }

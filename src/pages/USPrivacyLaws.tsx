@@ -5,6 +5,8 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { TieredFeed } from "@/components/TieredFeed";
 import type { ArticleItem } from "@/components/ArticleCard";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import usStatesRaw from "@/data/us_state_privacy_authorities.json";
@@ -170,6 +172,8 @@ const USPrivacyLaws = () => {
           content="Federal & state privacy law guide covering FTC, FCC, CFPB, HHS/OCR, SPPO, CPPA and all 50 state privacy statutes."
         />
       </Helmet>
+      <Navbar />
+
       {/* Page Header */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
@@ -478,6 +482,7 @@ const USPrivacyLaws = () => {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

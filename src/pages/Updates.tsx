@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import NewsfeedList from "@/components/NewsfeedList";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
@@ -328,42 +330,41 @@ const Updates = () => {
                 <title>Privacy Intelligence Feed | End User Privacy</title>
                 <meta name="description" content="Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
-            <div className="px-4 sm:px-6 py-4 border-b border-fog">
-                <div className="max-w-[1280px] mx-auto">
+            <Navbar />
+
+            <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-6 px-4 md:px-8">
+                <div className="max-w-[1280px] mx-auto text-center">
                     {(topicFilter || regionFilter) && (
-                        <Link to="/updates" className="text-[11px] text-slate hover:text-navy transition-colors no-underline block mb-1">
-                            ← {lastIngestionLabel(updates)}
-                        </Link>
+                        <div className="flex items-center justify-center mb-1">
+                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">
+                                ← {lastIngestionLabel(updates)}
+                            </Link>
+                        </div>
                     )}
-                    <h2 className="text-section-h2 text-navy m-0">
+                    <h1 className="font-display text-[24px] md:text-[30px] tracking-tight text-white m-0">
                         {regionFilter
                             ? formatFilterLabel(regionFilter)
                             : topicFilter
                                 ? formatFilterLabel(topicFilter)
-                                : 'Privacy Intelligence Feed'}
-                    </h2>
-                    {!regionFilter && !topicFilter && updates[0]?.published_at && (
-                        <p className="text-meta mt-0.5 text-slate">
-                            Through {new Date(updates[0].published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
-                    )}
+                                : lastIngestionLabel(updates)}
+                    </h1>
                 </div>
-            </div>
+            </section>
 
-            {/* Jurisdiction pill tabs */}
-            <div className="border-b border-fog bg-card">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-                    <div className="flex items-center gap-2 overflow-x-auto">
+            {/* Jurisdiction subnav (cobalt underline on active) */}
+            <div className="border-b border-border bg-card">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+                    <div className="flex items-center gap-1 overflow-x-auto -mb-px">
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = activeRegion === f.key;
                             return (
                                 <button
                                     key={f.key}
                                     onClick={() => selectRegion(f.key)}
-                                    className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+                                    className={`relative whitespace-nowrap px-3 py-3 text-[13px] font-semibold transition-colors border-b-2 ${
                                         isActive
-                                            ? "bg-navy text-white border border-navy"
-                                            : "border border-fog bg-card text-slate hover:bg-fog"
+                                            ? "text-foreground border-[hsl(var(--cobalt))]"
+                                            : "text-muted-foreground hover:text-foreground border-transparent"
                                     }`}
                                 >
                                     {f.label}
@@ -377,21 +378,47 @@ const Updates = () => {
                 </div>
             </div>
 
-            {/* Topics horizontal pill bar */}
-            <div className="border-b border-fog bg-card">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-                    <div className="flex items-center gap-2 overflow-x-auto">
-                        <span className="text-eyebrow text-muted-foreground mr-1 whitespace-nowrap">Topics:</span>
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-6">
+                {/* Left: Topics sidebar */}
+                <aside className="hidden md:block">
+                    <div className="sticky top-20">
+                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
+                        <nav className="flex flex-col">
+                            {TOPIC_FILTERS.map((t) => {
+                                const isActive = activeTopic === t.key;
+                                return (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => selectTopic(t.key)}
+                                        className={`text-left text-[13px] px-3 py-2 transition-colors border-l-2 ${
+                                            isActive
+                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
+                                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                                        }`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </aside>
+
+                {/* Main feed column */}
+                <div>
+                {/* Mobile: topics as scrollable pills */}
+                <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
+                    <div className="flex items-center gap-2 px-4">
                         {TOPIC_FILTERS.map((t) => {
                             const isActive = activeTopic === t.key;
                             return (
                                 <button
                                     key={t.key}
                                     onClick={() => selectTopic(t.key)}
-                                    className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                         isActive
-                                            ? "bg-[hsl(var(--cobalt))] text-white border border-[hsl(var(--cobalt))]"
-                                            : "border border-fog bg-card text-slate hover:bg-fog"
+                                            ? "bg-[hsl(var(--cobalt))] text-white"
+                                            : "bg-muted text-foreground hover:bg-muted/80"
                                     }`}
                                 >
                                     {t.label}
@@ -400,11 +427,6 @@ const Updates = () => {
                         })}
                     </div>
                 </div>
-            </div>
-
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
-                {/* Main feed column */}
-                <div>
 
                 {hasJurisdictionOrTopic && (
                     <div className="mb-3 flex items-center gap-2 text-[12px]">
@@ -537,9 +559,9 @@ const Updates = () => {
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
-                    <div className="text-[11px] text-navy bg-gold/10 border border-gold/40 px-3 py-2 rounded-lg mb-4">
+                    <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
                         Showing analysis on every update.{" "}
-                        <Link to="/subscribe" className="underline font-semibold hover:text-gold">
+                        <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
                             Upgrade to Platform to unlock Action Briefs →
                         </Link>
                     </div>
@@ -597,6 +619,7 @@ const Updates = () => {
                 </div>
             </div>
 
+            <Footer />
         </div>
     );
 };

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
@@ -26,6 +28,7 @@ const GlobalAuthorities = () => {
         <title>Global Privacy Authority Directory — 119+ DPAs | End User Privacy</title>
         <meta name="description" content="Directory of 119+ data protection authorities worldwide. Find DPA names, legislation, websites, and complaint portals organized by region." />
       </Helmet>
+      <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">
         <div className="max-w-[1280px] mx-auto">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
@@ -161,6 +164,7 @@ const GlobalAuthorities = () => {
         </div>
         <AdBanner variant="leaderboard" className="py-6" />
       </div>
+      <Footer />
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,6 +169,7 @@ export default function RegistrationAssessment() {
         <meta name="description" content="Free assessment that maps your organization to required DPA registrations, DPO appointments, EU representative obligations, and EU AI Act filings across 50+ jurisdictions." />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
+      <Navbar />
       <main>
         <PageContainer>
           <div className="max-w-3xl mx-auto py-10">
@@ -425,6 +428,7 @@ export default function RegistrationAssessment() {
           </div>
         </PageContainer>
       </main>
+      <Footer />
     </>
   );
 }

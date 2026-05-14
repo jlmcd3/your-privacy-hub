@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 
 import globalAuthorities from "@/data/global_privacy_authorities.json";
@@ -87,11 +89,13 @@ const RegulatorPage = () => {
   if (!regulator) {
     return (
       <div className="min-h-screen bg-paper">
+        <Navbar />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-3xl text-navy mb-4">Regulator Not Found</h1>
           <p className="text-slate mb-6">The regulator you're looking for is not yet in our database.</p>
           <Link to="/global-privacy-authorities" className="text-blue hover:underline">Browse all regulators →</Link>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -105,6 +109,7 @@ const RegulatorPage = () => {
         <title>{regulator.name}{regulator.abbreviation && !regulator.name.includes(`(${regulator.abbreviation})`) ? ` (${regulator.abbreviation})` : ''} — Regulator Profile | End User Privacy</title>
         <meta name="description" content={`${regulator.name} (${regulator.abbreviation}) profile: ${regulator.country} data protection authority. Legislation, enforcement updates, complaint portal, and monitoring tier.`} />
       </Helmet>
+      <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
@@ -296,6 +301,7 @@ const RegulatorPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

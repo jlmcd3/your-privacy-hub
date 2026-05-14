@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo, Fragment } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import InFeedAd from "@/components/InFeedAd";
 import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import {
@@ -86,6 +88,8 @@ const LegitimateInterestTracker = () => {
         <title>Legitimate Interest Tracker — GDPR & UK GDPR Article 6(1)(f) | End User Privacy</title>
         <meta name="description" content="Track what EU and UK data protection authorities have accepted, rejected, and conditioned under GDPR and UK GDPR legitimate interest. Updated weekly from regulatory decisions and guidance." />
       </Helmet>
+      <Navbar />
+
       {/* Header */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
@@ -279,6 +283,7 @@ const LegitimateInterestTracker = () => {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

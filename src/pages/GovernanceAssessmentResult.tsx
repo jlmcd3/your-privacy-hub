@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import AdBanner from "@/components/AdBanner";
 import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
@@ -88,9 +89,9 @@ const GovernanceAssessmentResult = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
+      <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <AdBanner variant="leaderboard" className="mb-4" />
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
         {purchased && (
@@ -312,6 +313,7 @@ const GovernanceAssessmentResult = () => {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 };

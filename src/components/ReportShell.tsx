@@ -49,7 +49,7 @@ export default function ReportShell({
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Navy header band — matches site header convention */}
-      <header className="bg-navy text-white px-6 py-6 sm:px-8 sm:py-7">
+      <header className="bg-slate-900 text-white px-6 py-6 sm:px-8 sm:py-7">
         {/* Logo plate — keeps the brand colors readable on the navy band */}
         <Link to="/" className="inline-block mb-4 bg-white rounded-md px-3 py-1.5 shadow-sm">
           <img

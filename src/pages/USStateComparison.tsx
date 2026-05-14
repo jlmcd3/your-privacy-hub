@@ -4,6 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import comparisonData from "@/data/us_state_comparison.json";
 import { STATUTES } from "@/data/statutes";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 
 const STATE_FLAGS: Record<string, string> = {
@@ -39,6 +41,8 @@ const USStateComparison = () => {
         <meta name="description" content="Compare all 20 enacted US comprehensive state privacy laws side by side across 12 key provisions. CCPA, CPRA, Texas TDPSA, Virginia VCDPA, Colorado CPA and more. Free." />
         <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Dataset","name":"US State Privacy Law Comparison","description":"Side-by-side comparison of all 20 enacted US state comprehensive privacy laws across 12 provisions","url":"https://enduserprivacy.com/compare/us-states","publisher":{"@type":"Organization","name":"End User Privacy"}}`}</script>
       </Helmet>
+      <Navbar />
+
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📊 Comparison Tool</p>
@@ -154,6 +158,7 @@ const USStateComparison = () => {
         <AdBanner variant="inline" adSlot="eup-comparison-bottom" className="py-3" />
       </div>
 
+      <Footer />
     </div>
   );
 };

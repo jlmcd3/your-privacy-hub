@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
@@ -165,6 +167,7 @@ const GetIntelligence = () => {
 
   return (
     <div className="min-h-screen bg-paper">
+      <Navbar />
       <Helmet>
         <title>Get Your Privacy Intelligence | End User Privacy</title>
         <meta name="description" content="Personalized privacy intelligence for your jurisdiction and practice. Built from 67 regulatory sources. Takes 60 seconds." />
@@ -444,6 +447,7 @@ const GetIntelligence = () => {
         )}
 
       </div>
+      <Footer />
     </div>
   );
 };
