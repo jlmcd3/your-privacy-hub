@@ -83,6 +83,53 @@ export default function BriefBuilder() {
   const [showCollapsePill, setShowCollapsePill] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
+  // Pre-seed jurisdiction & topic from URL params (supports both ?p=v
+  // and hash-style /#brief?p=v that ArticleCard's BriefBuilderCTA emits).
+  useEffect(() => {
+    const readParams = (): URLSearchParams => {
+      if (typeof window === "undefined") return new URLSearchParams();
+      const search = window.location.search || "";
+      const hash = window.location.hash || "";
+      const hashQ = hash.includes("?") ? hash.slice(hash.indexOf("?")) : "";
+      return new URLSearchParams((search || hashQ).replace(/^\?/, ""));
+    };
+    const params = readParams();
+    const preJ = (params.get("pre_jurisdiction") || "").toLowerCase().trim();
+    const preT = (params.get("pre_topic") || "").toLowerCase().trim();
+
+    if (preJ) {
+      let mapped = "";
+      if (JURISDICTIONS.some(j => j.value === preJ)) mapped = preJ;
+      else if (/eu|uk|gdpr|europe/.test(preJ)) mapped = "eu";
+      else if (/us|united states|federal|state/.test(preJ)) mapped = "us";
+      else if (/global|multi/.test(preJ)) mapped = "global";
+      else if (/apac|asia|pacific/.test(preJ)) mapped = "apac";
+      if (mapped) setJurisdiction(mapped);
+    }
+
+    if (preT) {
+      const topicMap: Record<string, string> = {
+        "enforcement": "gdpr",
+        "ai-privacy": "ai_act",
+        "adtech": "adtech_cookies",
+        "us-federal": "us_state",
+        "us-states": "us_state",
+        "eu-uk": "gdpr",
+        "children-privacy": "childrens",
+        "data-breaches": "breach",
+        "cross-border": "cross_border",
+        "biometric-data": "biometric",
+        "health-hipaa": "health_hipaa",
+        "cookie-consent": "adtech_cookies",
+        "employee-privacy": "us_state",
+      };
+      const mapped = topicMap[preT] || (TRACKS.some(t => t.value === preT) ? preT : "");
+      if (mapped) setTracks([mapped]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const toggleTrack = (t: string) =>
     setTracks((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
