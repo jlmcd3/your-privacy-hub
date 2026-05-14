@@ -253,8 +253,9 @@ export default function HomepageSpotlight() {
         .in("id", updateIds);
 
       if (updateData) {
+        const list = updateData as unknown as SpotlightArticle[];
         const ordered = updateIds
-          .map(id => updateData.find(a => a.id === id) ?? null)
+          .map(id => list.find(a => a.id === id) ?? null)
           .filter(Boolean) as SpotlightArticle[];
         setArticles([ordered[0] ?? null, ordered[1] ?? null, ordered[2] ?? null]);
       }
