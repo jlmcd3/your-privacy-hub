@@ -383,7 +383,7 @@ const Updates = () => {
                 </div>
             </div>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] lg:grid-cols-[180px_1fr_320px] xl:grid-cols-[180px_1fr_360px] gap-6 items-start">
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr_280px] xl:grid-cols-[180px_1fr_360px] gap-6 items-start">
                 {/* Left: Topics sidebar */}
                 <aside className="hidden md:block">
                     <div className="sticky top-20">
@@ -579,7 +579,7 @@ const Updates = () => {
                 </div>
 
                 {/* Right column: Intelligence panel — desktop only, sticky */}
-                <aside className="hidden lg:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
+                <aside className="hidden md:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
                     <IntelligencePanel
                         selectedArticle={selectedArticle}
                         isPremium={isPremium}
