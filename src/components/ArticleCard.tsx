@@ -226,9 +226,6 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
     enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-fog/40'
   }`;
   const wrapperStyle = enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined;
-  const inner = (
-    <></>
-  );
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     item.source_url ? (
       <a href={item.source_url} target="_blank" rel="noopener noreferrer" className={wrapperClass} style={wrapperStyle}>
