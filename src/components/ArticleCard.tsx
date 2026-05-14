@@ -89,6 +89,32 @@ export interface ArticleItem {
 // Variant controls the density and context of display
 export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview' | 'homepage';
 
+// Title link: prefers the external source URL (opens in new tab) and falls
+// back to the internal article detail route when no source URL is available.
+const TitleLink = ({
+  item,
+  className,
+  children,
+}: {
+  item: ArticleItem;
+  className?: string;
+  children: React.ReactNode;
+}) => {
+  const external = item.source_url || (item as any).url;
+  if (external) {
+    return (
+      <a href={external} target="_blank" rel="noopener noreferrer" className={className}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link to={`/updates/${item.id}`} className={className}>
+      {children}
+    </Link>
+  );
+};
+
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
   if (!item.ai_summary) return false;
