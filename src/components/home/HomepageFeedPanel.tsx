@@ -36,11 +36,13 @@ const HomepageArticleCard = ({
   isSelected,
   onSelect,
   tierLabel,
+  hideWhyItMatters,
 }: {
   article: ArticleItem;
   isSelected: boolean;
   onSelect: () => void;
   tierLabel?: typeof SLOT_LABELS[0];
+  hideWhyItMatters?: boolean;
 }) => (
   <div
     className={`py-3.5 border-b border-fog last:border-0 cursor-pointer rounded-lg transition-colors
@@ -100,7 +102,7 @@ const HomepageArticleCard = ({
             {normalizeTitle(article.title)}
           </p>
         )}
-        {(() => {
+        {!hideWhyItMatters && (() => {
           const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
           return s ? (
             <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
