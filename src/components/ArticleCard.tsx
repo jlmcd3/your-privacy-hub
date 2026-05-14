@@ -289,8 +289,50 @@ const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
   );
 };
 
+// Title link helper — prefers source_url (opens in new tab), falls back to internal /updates/:id
+const TitleLink = ({
+  item,
+  className,
+  children,
+}: {
+  item: ArticleItem;
+  className?: string;
+  children: React.ReactNode;
+}) =>
+  item.source_url ? (
+    <a
+      href={item.source_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
+      {children}
+    </a>
+  ) : (
+    <Link to={`/updates/${item.id}`} className={className}>
+      {children}
+    </Link>
+  );
+
 // — FULL variant ——————————————————————————————————
-const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { item: ArticleItem; isPremium?: boolean; userSalutation?: string }) => {
+const FullCard = ({
+  item,
+  isPremium = false,
+  userSalutation = 'your team',
+  panelMode = false,
+  isSelected = false,
+  onSelect,
+}: {
+  item: ArticleItem;
+  isPremium?: boolean;
+  userSalutation?: string;
+  /** When true: show minimal card (title + 1 sentence). Enrichment lives in the intelligence panel. */
+  panelMode?: boolean;
+  /** Whether this card is currently selected in the intelligence panel */
+  isSelected?: boolean;
+  /** Called when the card body is clicked (to load enrichment in the panel) */
+  onSelect?: () => void;
+}) => {
   const { user } = useAuth();
   const tier: 'paid' | 'free' | 'anonymous' = isPremium ? 'paid' : user ? 'free' : 'anonymous';
   const enriched = isEnriched(item);
