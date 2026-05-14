@@ -10,6 +10,9 @@
  */
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
+// Set to true when Google Ad Manager (or similar) is configured.
+const ADS_CONFIGURED = false;
+
 interface AdBannerProps {
   variant?: "leaderboard" | "sidebar" | "inline" | "infeed";
   className?: string;
