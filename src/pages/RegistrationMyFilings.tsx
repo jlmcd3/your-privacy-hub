@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Calendar, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 
 export default function RegistrationMyFilings() {
   const { user } = useAuth();
