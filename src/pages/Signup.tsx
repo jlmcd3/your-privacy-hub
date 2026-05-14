@@ -56,32 +56,10 @@ const Signup = () => {
         <title>Create Account | End User Privacy</title>
         <meta name="description" content={`Create a free End User Privacy account. Get a personalized weekly digest covering your regions and topics. Intelligence Briefs from ${INTELLIGENCE_PRICING.monthly()}.`} />
       </Helmet>
-      <div className="flex-1 flex flex-col lg:flex-row">
+      <div className="flex items-center justify-center min-h-full py-16 px-4">
 
-        {/* Left panel — hidden on mobile */}
-        <div className="hidden lg:flex lg:w-[420px] bg-navy relative overflow-hidden flex-col justify-center px-12 py-16">
-          <StarField />
-          <div className="text-gold text-[11px] font-bold uppercase tracking-widest mb-4 relative">End User Privacy</div>
-          <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6 relative">
-            Global privacy law, tracked daily.
-          </h2>
-          <div className="space-y-4 relative">
-            {[
-              '119 regulatory authorities monitored',
-              '150+ jurisdictions covered',
-              'Weekly digest — free',
-              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
-            ].map(item => (
-              <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
-                <span className="text-gold font-bold">✓</span>
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right panel — form */}
-        <div className="flex-1 flex items-center justify-center py-16 px-4 bg-paper">
+        {/* Form panel */}
+        <div className="w-full flex items-center justify-center bg-paper">
           <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
             <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Create Account</h1>
             <p className="text-sm text-slate text-center mb-7">
