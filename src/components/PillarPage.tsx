@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { TieredFeed } from "@/components/TieredFeed";
 import type { ArticleItem } from "@/components/ArticleCard";
@@ -140,8 +138,6 @@ const PillarPage = ({
         <meta property="og:title" content={`${title} | End User Privacy`} />
         <meta property="og:description" content={subtitle} />
       </Helmet>
-      <Navbar />
-
       {/* Hero */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
@@ -403,7 +399,6 @@ const PillarPage = ({
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 };
