@@ -185,7 +185,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
               </div>
             ))}
           </div>
-          <div className="w-[300px] xl:w-[340px] flex-shrink-0 hidden lg:block">
+          <div className="w-[280px] xl:w-[340px] flex-shrink-0 hidden md:block">
             <div className="animate-pulse h-64 bg-slate-100 rounded-xl" />
           </div>
         </div>
