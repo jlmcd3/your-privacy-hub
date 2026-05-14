@@ -3,9 +3,11 @@ import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 import StarFieldBackground from "@/components/globe/StarFieldBackground";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SearchFirstHero() {
   const { isPremium } = usePremiumStatus();
+  const { user } = useAuth();
   return (
     <div className="relative bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
       <StarFieldBackground />
