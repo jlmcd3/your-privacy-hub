@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +87,19 @@ const Subscribe = () => {
     navigate("/account?subscribed=1");
   };
 
+  const starRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = starRef.current;
+    if (!container) return;
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('span');
+      const size = Math.random() * 2 + 1;
+      s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random() * 100}%;top:${Math.random() * 100}%;--star-duration:${(Math.random() * 4 + 2).toFixed(1)}s;--star-delay:${(Math.random() * 5).toFixed(1)}s;`;
+      container.appendChild(s);
+    }
+    return () => { if (container) container.innerHTML = ''; };
+  }, []);
+
 
 
   return (
@@ -101,8 +114,9 @@ const Subscribe = () => {
       <Navbar />
 
       {/* Two-product hero */}
-      <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
-        <div className="max-w-[800px] mx-auto text-center">
+      <div className="relative overflow-hidden bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
+        <div className="star-field" ref={starRef} />
+        <div className="relative max-w-[800px] mx-auto text-center">
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
