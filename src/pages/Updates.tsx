@@ -19,6 +19,8 @@ interface Update {
     title: string;
     summary: string | null;
     url: string;
+    direct_jurisdictions?: string[] | null;
+    affected_jurisdictions?: string[] | null;
     source_name: string | null;
     source_domain: string | null;
     image_url: string | null;
@@ -324,6 +326,14 @@ const Updates = () => {
 
     const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
 
+    const articlesForPanel = filtered.map((a) => ({
+        ...a,
+        source_url: (a as any).source_url || a.url,
+        jurisdiction: a.direct_jurisdictions?.[0] ?? a.affected_jurisdictions?.[0] ?? null,
+    } as unknown as ArticleItem));
+
+    const panelArticle = selectedArticle ?? articlesForPanel[0] ?? null;
+
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
@@ -562,14 +572,14 @@ const Updates = () => {
                 {/* Newsfeed — minimal cards; enrichment lives in the right-column IntelligencePanel */}
                 <div>
                     <TieredFeed
-                        articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
+                        articles={articlesForPanel}
                         paginated={true}
                         seeAllHref="/updates"
                         showSeeAll={false}
                         hasMore={hasMore}
                         onLoadMore={handleLoadMore}
                         isLoadingMore={loadingMore}
-                        selectedArticle={selectedArticle}
+                        selectedArticle={panelArticle}
                         onSelectArticle={setSelectedArticle}
                         panelMode={true}
                     />
@@ -581,7 +591,7 @@ const Updates = () => {
                 {/* Right column: Intelligence panel — desktop only, sticky */}
                 <aside className="hidden md:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
                     <IntelligencePanel
-                        selectedArticle={selectedArticle}
+                        selectedArticle={panelArticle}
                         isPremium={isPremium}
                         isAuthenticated={!!user}
                     />
