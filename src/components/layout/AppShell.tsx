@@ -413,7 +413,7 @@ export default function AppShell() {
                 </div>
               )}
 
-              {user && <ClientContextBar />}
+              {user && <ClientContextBar compact />}
 
               {user ? (
                 <>
