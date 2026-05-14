@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Globe,
   FileText,
   Rss,
+  Gavel,
+  Telescope,
   FolderOpen,
   Bookmark,
   FileCheck,
@@ -12,6 +13,16 @@ import {
   SlidersHorizontal,
   Settings,
   Shield,
+  ChevronDown,
+  ChevronRight,
+  Menu,
+  BookOpen,
+  ScrollText,
+  Globe2,
+  Cpu,
+  Map as MapIcon,
+  ListChecks,
+  CalendarDays,
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,8 +35,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import AdminOnly from "@/components/AdminOnly";
+import ClientContextBar from "@/components/ClientContextBar";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,22 +81,42 @@ interface NavItemDef {
   label: string;
   href: string;
   icon: React.ElementType;
+  pulse?: boolean;
 }
 
-const INTELLIGENCE: NavItemDef[] = [
-  { label: "Intelligence Report", href: "/dashboard", icon: FileText },
-  { label: "Privacy Intelligence Feed", href: "/updates", icon: Rss },
+const INTELLIGENCE_PUBLIC: NavItemDef[] = [
+  { label: "Privacy Intelligence Feed", href: "/updates", icon: Rss, pulse: true },
 ];
 
-const WORKSPACE: NavItemDef[] = [
-  { label: "Reports", href: "/dashboard/reports", icon: FolderOpen },
-  { label: "Watchlist", href: "/watchlist", icon: Bookmark },
-  { label: "Filings", href: "/registration-manager/my-filings", icon: FileCheck },
-  { label: "Clients", href: "/clients", icon: Building2 },
+const INTELLIGENCE_AUTH_EXTRA: NavItemDef[] = [
+  { label: "Intelligence Report", href: "/dashboard", icon: FileText },
+];
+
+const INTELLIGENCE_TAIL: NavItemDef[] = [
+  { label: "Enforcement Database", href: "/enforcement", icon: Gavel },
+  { label: "Regulatory Forecast", href: "/horizon", icon: Telescope },
 ];
 
 const TOOLS: NavItemDef[] = [
   { label: "All Tools", href: "/tools", icon: LayoutGrid },
+];
+
+const RESEARCH: NavItemDef[] = [
+  { label: "U.S. Privacy Laws", href: "/us-privacy-laws", icon: ScrollText },
+  { label: "GDPR & UK GDPR", href: "/gdpr-enforcement", icon: BookOpen },
+  { label: "Global Privacy Laws", href: "/global-privacy-laws", icon: Globe2 },
+  { label: "AI Privacy Regulations", href: "/ai-privacy-regulations", icon: Cpu },
+  { label: "Jurisdictions Map", href: "/jurisdictions", icon: MapIcon },
+  { label: "Legislation Tracker", href: "/legislation-tracker", icon: ListChecks },
+  { label: "Glossary", href: "/glossary", icon: BookOpen },
+  { label: "Compliance Calendar", href: "/calendar", icon: CalendarDays },
+];
+
+const WORKSPACE: NavItemDef[] = [
+  { label: "My Reports", href: "/dashboard/reports", icon: FolderOpen },
+  { label: "Watchlist", href: "/watchlist", icon: Bookmark },
+  { label: "Filings", href: "/registration-manager/my-filings", icon: FileCheck },
+  { label: "Clients", href: "/clients", icon: Building2 },
 ];
 
 const ACCOUNT: NavItemDef[] = [
@@ -104,6 +143,27 @@ function isItemActive(item: NavItemDef, pathname: string): boolean {
   return false;
 }
 
+function NavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
+  const active = isItemActive(item, pathname);
+  const Icon = item.icon;
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={active}>
+        <Link to={item.href}>
+          {item.pulse ? (
+            <span className="relative inline-flex items-center justify-center w-4 h-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse-dot" />
+            </span>
+          ) : (
+            <Icon className="w-4 h-4" />
+          )}
+          <span>{item.label}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
 function NavSection({
   label,
   items,
@@ -117,22 +177,55 @@ function NavSection({
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => {
-          const active = isItemActive(item, pathname);
-          const Icon = item.icon;
-          return (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton asChild isActive={active}>
-                <Link to={item.href}>
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+        {items.map((item) => (
+          <NavItem key={item.href} item={item} pathname={pathname} />
+        ))}
       </SidebarMenu>
     </SidebarGroup>
+  );
+}
+
+function ResearchSection({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <SidebarGroup>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground bg-transparent border-none cursor-pointer"
+          >
+            <span>Research</span>
+            {open ? (
+              <ChevronDown className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5" />
+            )}
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenu>
+            {RESEARCH.map((item) => (
+              <NavItem key={item.href} item={item} pathname={pathname} />
+            ))}
+          </SidebarMenu>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarGroup>
+  );
+}
+
+function MobileMenuButton() {
+  const { toggleSidebar } = useSidebar();
+  return (
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      className="md:hidden p-1 text-slate hover:text-navy bg-transparent border-none cursor-pointer"
+      aria-label="Toggle navigation"
+    >
+      <Menu className="w-5 h-5" />
+    </button>
   );
 }
 
@@ -172,66 +265,131 @@ export default function AppShell() {
       </span>
     ) : null;
 
+  const intelligenceItems = user
+    ? [INTELLIGENCE_PUBLIC[0], ...INTELLIGENCE_AUTH_EXTRA, ...INTELLIGENCE_TAIL]
+    : [...INTELLIGENCE_PUBLIC, ...INTELLIGENCE_TAIL];
+
   return (
     <AppShellContext.Provider value={{ setTitle, setSubtitle }}>
       <SidebarProvider>
         <div className="flex h-screen w-full overflow-hidden">
           <Sidebar className="w-[220px]">
             <SidebarHeader>
-              <Link to="/dashboard" className="flex items-center gap-2 px-2 py-1.5 no-underline">
-                <span className="bg-gold w-7 h-7 rounded-md flex items-center justify-center">
-                  <Globe className="w-4 h-4 text-white" />
+              <Link
+                to="/"
+                className="flex items-center gap-2 px-2 py-2 no-underline hover:opacity-80 transition-opacity"
+              >
+                <span className="bg-white rounded-md px-2 py-1 inline-flex items-center flex-shrink-0">
+                  <img src="/logo.png" alt="End User Privacy" className="h-6 w-auto" />
                 </span>
-                <span className="font-semibold text-navy text-sm">End User Privacy</span>
+                <span className="font-semibold text-navy text-sm leading-tight">
+                  End User Privacy
+                </span>
               </Link>
             </SidebarHeader>
 
             <SidebarContent>
-              <NavSection label="Intelligence" items={INTELLIGENCE} pathname={location.pathname} />
-              <NavSection label="Workspace" items={WORKSPACE} pathname={location.pathname} />
+              <NavSection label="Intelligence" items={intelligenceItems} pathname={location.pathname} />
               <NavSection label="Compliance Tools" items={TOOLS} pathname={location.pathname} />
-              <NavSection label="Account" items={ACCOUNT} pathname={location.pathname} />
+              <ResearchSection pathname={location.pathname} />
+              {user && (
+                <>
+                  <NavSection label="Workspace" items={WORKSPACE} pathname={location.pathname} />
+                  <NavSection label="Account" items={ACCOUNT} pathname={location.pathname} />
+                </>
+              )}
               <AdminOnly>
                 <NavSection label="Admin" items={ADMIN} pathname={location.pathname} />
               </AdminOnly>
             </SidebarContent>
 
             <SidebarFooter>
-              <div className="flex items-center gap-2 px-2 py-2">
-                <span className="bg-gold text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                  {initial}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium text-navy truncate">
-                    {user?.email ?? ""}
-                  </div>
-                  {tierBadge && <div className="mt-0.5">{tierBadge}</div>}
+              {!user && (
+                <div className="px-3 pt-3 pb-1 border-t border-fog">
+                  <Link
+                    to="/subscribe"
+                    className="block text-center bg-gold text-white rounded-xl py-2 text-sm font-semibold no-underline hover:opacity-90 transition-all"
+                  >
+                    See Plans → $29/mo or $399/yr
+                  </Link>
                 </div>
+              )}
+
+              {user && <ClientContextBar />}
+
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 px-2 py-2">
+                    <span className="bg-gold text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                      {initial}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-navy truncate">
+                        {user.email ?? ""}
+                      </div>
+                      {tierBadge && <div className="mt-0.5">{tierBadge}</div>}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full text-left px-3 py-1.5 text-xs text-slate hover:text-navy hover:bg-fog/60 rounded-md bg-transparent border-none cursor-pointer transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <div className="px-3 py-3 flex flex-col gap-2">
+                  <Link
+                    to="/signup"
+                    className="block text-center bg-gold text-white rounded-xl py-2 text-sm font-semibold no-underline hover:opacity-90"
+                  >
+                    Sign up free
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="block text-center border border-fog text-navy rounded-xl py-2 text-sm font-semibold no-underline hover:bg-fog"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              )}
+
+              <div className="px-3 py-2 flex gap-3 flex-wrap border-t border-fog">
+                {[
+                  { label: "Terms", href: "/terms" },
+                  { label: "Privacy", href: "/privacy-policy" },
+                  { label: "About", href: "/about" },
+                  { label: "Contact", href: "/contact" },
+                ].map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    to={href}
+                    className="text-[10px] text-slate hover:text-navy no-underline"
+                  >
+                    {label}
+                  </Link>
+                ))}
               </div>
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="w-full text-left px-3 py-1.5 text-xs text-slate hover:text-navy hover:bg-fog/60 rounded-md bg-transparent border-none cursor-pointer transition-colors"
-              >
-                Sign out
-              </button>
             </SidebarFooter>
           </Sidebar>
 
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="h-[46px] bg-card border-b border-fog flex items-center px-5 gap-3 flex-shrink-0">
+            <div className="h-[40px] bg-card border-b border-fog flex items-center px-4 gap-3 flex-shrink-0">
+              <MobileMenuButton />
               {title && (
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-semibold text-navy text-base truncate">{title}</span>
+                  <span className="font-semibold text-navy text-sm truncate">{title}</span>
                   {subtitle && <span className="text-xs text-slate truncate">{subtitle}</span>}
                 </div>
               )}
             </div>
             <main
               ref={contentRef}
-              className="flex-1 overflow-y-auto bg-background"
+              className="flex-1 overflow-y-auto bg-background relative"
             >
               <Outlet />
+              <ScrollToTopButton />
             </main>
           </div>
         </div>
