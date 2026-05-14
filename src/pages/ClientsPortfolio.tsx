@@ -518,7 +518,6 @@ export default function ClientsPortfolio() {
         onClose={() => setShowAdd(false)}
       />
       </main>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }
