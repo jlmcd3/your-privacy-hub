@@ -797,9 +797,20 @@ interface ArticleCardProps {
   isPremium?: boolean;
   userSalutation?: string;
   onOpenDrawer?: (item: ArticleItem) => void;
+  panelMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSalutation }: ArticleCardProps) => {
+export const ArticleCard = ({
+  item,
+  variant = 'full',
+  isPremium = false,
+  userSalutation,
+  panelMode = false,
+  isSelected = false,
+  onSelect,
+}: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
@@ -807,7 +818,16 @@ export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSal
     case 'newsfeed':    return <NewsfeedCard item={item} />;
     case 'preview':     return <PreviewCard item={item} />;
     case 'homepage':    return <HomepageCard item={item} />;
-    default:            return <FullCard item={item} isPremium={isPremium} userSalutation={userSalutation} />;
+    default:            return (
+      <FullCard
+        item={item}
+        isPremium={isPremium}
+        userSalutation={userSalutation}
+        panelMode={panelMode}
+        isSelected={isSelected}
+        onSelect={onSelect}
+      />
+    );
   }
 };
 
