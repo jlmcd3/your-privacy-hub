@@ -10,14 +10,17 @@ interface IntelligencePanelProps {
   selectedArticle: ArticleItem | null;
   isPremium: boolean;
   isAuthenticated: boolean;
+  /** Force tier display regardless of auth — used on the homepage to demo each tier per slot. */
+  forceTier?: "anonymous" | "free" | "paid";
 }
 
 export function IntelligencePanel({
   selectedArticle,
   isPremium,
   isAuthenticated,
+  forceTier,
 }: IntelligencePanelProps) {
-  const tier = isPremium ? "paid" : isAuthenticated ? "free" : "anonymous";
+  const tier = forceTier ?? (isPremium ? "paid" : isAuthenticated ? "free" : "anonymous");
 
   const actionProse = (() => {
     const items = selectedArticle?.action_items ?? [];
