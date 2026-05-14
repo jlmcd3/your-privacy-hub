@@ -264,14 +264,53 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   );
 };
 
+// — Brief Builder CTA — pre-seeds jurisdiction/topic from the article context
+const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
+  const jur = item.jurisdiction ?? '';
+  const cat = item.category ?? '';
+  const params = new URLSearchParams();
+  if (jur) params.set('pre_jurisdiction', jur);
+  if (cat) params.set('pre_topic', cat);
+  const qs = params.toString();
+  const href = qs ? `/#brief?${qs}` : '/#brief';
+  const label = jur
+    ? `Build a sample ${jur} Intelligence Brief →`
+    : 'Build a sample Intelligence Brief →';
+  return (
+    <div className="mt-2">
+      <Link
+        to={href}
+        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold hover:underline no-underline"
+      >
+        <Sparkles className="w-3 h-3" />
+        {label}
+      </Link>
+    </div>
+  );
+};
+
 // — FULL variant ——————————————————————————————————
 const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { item: ArticleItem; isPremium?: boolean; userSalutation?: string }) => {
+  const { user } = useAuth();
+  const tier: 'paid' | 'free' | 'anonymous' = isPremium ? 'paid' : user ? 'free' : 'anonymous';
   const enriched = isEnriched(item);
   const weight = item.ai_summary?.legal_weight;
-  const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
-  // Both registered tiers see the short why-it-matters; paid tier additionally
-  // gets the expandable Intelligence Card. Anonymous users use the newsfeed variant.
   const accentBackground = enriched && isPremium;
+
+  const actionProse = (() => {
+    const items = item.action_items ?? [];
+    if (items.length === 0) return null;
+    const sentences = items.slice(0, 2).map(a => a.action).filter(Boolean).join('. ');
+    return sentences ? sentences + '.' : null;
+  })();
+
+  const watchProse = (() => {
+    const signals = item.related_signals ?? [];
+    if (signals.length === 0) return null;
+    const labels = signals.map(s => s.label).filter(Boolean).join('; ');
+    return labels ? `Watch: ${labels}.` : null;
+  })();
+
 
   return (
     <div
