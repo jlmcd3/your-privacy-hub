@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight } from "lucide-react";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 
 type ReportRow = {
   id: string;
