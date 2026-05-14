@@ -29,7 +29,7 @@ const AdBanner = ({
   googleAdSlot,
 }: AdBannerProps) => {
   const { isPremium } = usePremiumStatus();
-  if (isPremium) return null;
+  if (isPremium || !ADS_CONFIGURED) return null;
 
   const dimensions = {
     leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
