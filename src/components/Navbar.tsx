@@ -385,7 +385,9 @@ const Navbar = () => {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
-          <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" style={{ filter: 'brightness(0) invert(1)' }} />
+          <span className="bg-white rounded-md px-2 py-1 inline-flex items-center">
+            <img src="/logo.png" alt="End User Privacy" className="h-7 md:h-8 w-auto" />
+          </span>
         </Link>
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-2">
