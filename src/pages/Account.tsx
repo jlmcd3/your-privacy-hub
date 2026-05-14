@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import {
   AccountClientsSection,
   ComplianceDocumentsSection,
@@ -144,12 +144,10 @@ export default function Account() {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <WorkspaceLayout>
       <Helmet>
         <title>My Account | End User Privacy</title>
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
@@ -392,7 +390,7 @@ export default function Account() {
         </button>
       </div>
 
-      <Footer />
+
 
       <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
         <AlertDialogContent>
@@ -423,6 +421,6 @@ export default function Account() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </WorkspaceLayout>
   );
 }

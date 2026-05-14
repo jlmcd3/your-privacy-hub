@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight } from "lucide-react";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 
 type ReportRow = {
   id: string;
@@ -169,13 +169,11 @@ export default function MyReports() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-paper">
+    <WorkspaceLayout>
       <Helmet>
         <title>My Reports | End User Privacy</title>
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
@@ -239,7 +237,6 @@ export default function MyReports() {
           )}
         </div>
       </PageContainer>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }

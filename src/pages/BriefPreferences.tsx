@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
@@ -257,8 +256,7 @@ export default function BriefPreferences() {
       <Helmet>
         <title>Configure Your Privacy Intelligence Report | End User Privacy Intelligence</title>
       </Helmet>
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
+      <WorkspaceLayout className="bg-background">
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
             <div className="mb-8 bg-gradient-to-r from-navy to-steel rounded-2xl p-5 text-white">
@@ -402,8 +400,7 @@ export default function BriefPreferences() {
             <p className="text-slate text-xs">Saved preferences take effect with the next Monday report.</p>
           </div>
         </main>
-        <Footer />
-      </div>
+      </WorkspaceLayout>
     </>
   );
 }
