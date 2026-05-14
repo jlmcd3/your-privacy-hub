@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import AdBanner from "@/components/AdBanner";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -161,6 +162,7 @@ export default function CPPAScopeChecker() {
           </p>
         </div>
       </header>
+        <AdBanner variant="inline" className="mb-6" />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         {!showResults && (

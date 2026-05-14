@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { toast } from "sonner";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import AdBanner from "@/components/AdBanner";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -95,6 +96,7 @@ export default function IRPlaybook() {
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
+          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 

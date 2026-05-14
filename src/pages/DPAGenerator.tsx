@@ -15,6 +15,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import AdBanner from "@/components/AdBanner";
 
 const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
@@ -114,6 +115,7 @@ export default function DPAGenerator() {
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
+          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 

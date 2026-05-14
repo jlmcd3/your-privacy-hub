@@ -15,6 +15,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import AdBanner from "@/components/AdBanner";
 
 const MATURITY = [
   "Not implemented",
@@ -111,6 +112,7 @@ export default function CPPACybersecurity() {
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote isCppa={true} />
+          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 

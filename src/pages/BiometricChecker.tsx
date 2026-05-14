@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import AdBanner from "@/components/AdBanner";
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
@@ -88,6 +89,7 @@ export default function BiometricChecker() {
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
+          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 

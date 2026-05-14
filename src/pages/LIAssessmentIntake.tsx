@@ -15,6 +15,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import AdBanner from "@/components/AdBanner";
 
 interface PreviewRow {
   id: string;
@@ -203,6 +204,7 @@ const LIAssessmentIntake = () => {
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
+          <AdBanner variant="inline" className="mb-6" />
         </div>
 
 
