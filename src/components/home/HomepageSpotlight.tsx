@@ -13,7 +13,7 @@ interface SpotlightArticle {
   source_name: string | null;
   source_url: string | null;
   published_at: string | null;
-  jurisdiction: string | null;
+  jurisdiction: string[] | null;
   category: string | null;
   attention_level: string | null;
   image_url: string | null;
@@ -53,7 +53,7 @@ const SpotlightCard = ({
     return labels ? `Watch: ${labels}.` : null;
   })();
 
-  const jur = article.jurisdiction ?? "";
+  const jur = Array.isArray(article.jurisdiction) ? (article.jurisdiction[0] ?? "") : (article.jurisdiction ?? "");
   const cat = article.category ?? "";
   const briefParams = new URLSearchParams();
   if (jur) briefParams.set("pre_jurisdiction", jur);
@@ -246,7 +246,8 @@ export default function HomepageSpotlight() {
       const { data: updateData } = await supabase
         .from("updates")
         .select(
-          `id, title, source_name, source_url:url, published_at, jurisdiction,
+          `id, title, source_name, source_url:url, published_at,
+           jurisdiction:direct_jurisdictions,
            category, attention_level, image_url, why_it_matters_short,
            ai_summary, action_items, related_signals`
         )
