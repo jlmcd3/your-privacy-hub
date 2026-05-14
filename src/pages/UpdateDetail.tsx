@@ -198,11 +198,13 @@ const UpdateDetail = () => {
         <Helmet>
           <title>{article.title} | End User Privacy</title>
           <meta name="description" content={metaDesc} />
+          <meta name="robots" content="noindex, nofollow" />
         </Helmet>
       )}
       {!article && !loading && (
         <Helmet>
           <title>Article Not Found | End User Privacy</title>
+          <meta name="robots" content="noindex, nofollow" />
         </Helmet>
       )}
       <Navbar />
