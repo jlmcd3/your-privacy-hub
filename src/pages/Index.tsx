@@ -29,6 +29,10 @@ const Index = () => {
       <Navbar />
       <BreakingNewsBanner />
       <SearchFirstHero />
+
+      {/* Three-article daily spotlight with tier demonstration */}
+      <HomepageSpotlight />
+
       <IntelligenceBriefSection>
         <div id="brief" className="scroll-mt-16">
           <div className="max-w-3xl mx-auto mb-6">
@@ -84,22 +88,6 @@ const Index = () => {
         </div>
       </IntelligenceBriefSection>
 
-      {/* ── Updates ─────────────────────────── */}
-      <div id="updates" className="scroll-mt-16 py-16">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 mb-6">
-          <h2 className="font-display text-[24px] font-bold text-navy mb-2">
-            Today's regulatory developments
-          </h2>
-          <p className="text-[14px] text-slate">
-            Live intelligence from 119 monitored authorities, enriched with compliance analysis.
-          </p>
-        </div>
-        <section className="px-4">
-          <div className="max-w-[1280px] mx-auto">
-            <LatestUpdates />
-          </div>
-        </section>
-      </div>
 
       {/* ── Tools ─────────────────────────── */}
       <div id="tools" className="scroll-mt-16 py-16">
