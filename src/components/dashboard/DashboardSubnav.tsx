@@ -12,7 +12,6 @@
 
 import { NavLink, useLocation } from "react-router-dom";
 import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
-import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -132,9 +131,21 @@ const ITEMS: Item[] = [
 export default function DashboardSubnav() {
   const { user } = useAuth();
   const location = useLocation();
-  if (!user) return null;
 
   const rawPath = location.pathname.toLowerCase();
+  const pathname = normalizePath(location.pathname);
+  const hash = normalizeHash(location.hash);
+
+  // First-match-wins so exactly one workspace tab can be active at a time.
+  const activeTo = (() => {
+    for (const item of ITEMS) {
+      if (item.match(pathname, hash)) return item.to;
+    }
+    return null;
+  })();
+
+  if (!user) return null;
+
   const isSuppressed =
     SUPPRESS_PATHS.some(p => rawPath === p || rawPath.startsWith(p + '/')) ||
     rawPath.startsWith('/updates/') ||
@@ -148,17 +159,6 @@ export default function DashboardSubnav() {
     rawPath.startsWith('/enforcement/') ||
     rawPath.startsWith('/subscribe/');
   if (isSuppressed) return null;
-
-  const pathname = normalizePath(location.pathname);
-  const hash = normalizeHash(location.hash);
-
-  // First-match-wins so exactly one workspace tab can be active at a time.
-  const activeTo = useMemo(() => {
-    for (const item of ITEMS) {
-      if (item.match(pathname, hash)) return item.to;
-    }
-    return null;
-  }, [pathname, hash]);
 
   // Account highlights only when no workspace tab claimed the route.
   const accountActive = activeTo === null && pathname === "/account";
