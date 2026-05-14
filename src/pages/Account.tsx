@@ -421,6 +421,6 @@ export default function Account() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </WorkspaceLayout>
   );
 }
