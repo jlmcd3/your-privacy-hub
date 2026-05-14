@@ -279,17 +279,15 @@ const Dashboard = () => {
 
   if (authLoading || isPremium === null) {
     return (
-      <div className="min-h-screen bg-background">
+      <WorkspaceLayout>
         <Helmet>
           <title>Intelligence Dashboard | End User Privacy</title>
           <meta name="description" content="Your personalized privacy intelligence dashboard." />
         </Helmet>
-        <Navbar />
         <div className="flex items-center justify-center py-24">
           <span className="text-muted-foreground text-sm">Loading…</span>
         </div>
-        <Footer />
-      </div>
+      </WorkspaceLayout>
     );
   }
 
