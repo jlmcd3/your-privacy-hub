@@ -23,6 +23,16 @@ import {
   Map as MapIcon,
   ListChecks,
   CalendarDays,
+  GitCompare,
+  Scale,
+  ShieldCheck,
+  Building,
+  ArrowLeftRight,
+  Fingerprint,
+  Activity,
+  AlertTriangle,
+  Cookie,
+  Flag,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +44,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarProvider,
   useSidebar,
 } from "@/components/ui/sidebar";
