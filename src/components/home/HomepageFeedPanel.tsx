@@ -275,6 +275,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
               onSelect={() => setSelectedArticle(article)}
               tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
               hideWhyItMatters={showTierLabels && i === 0}
+              evenRow={i % 2 === 1}
             />
           ))}
 
