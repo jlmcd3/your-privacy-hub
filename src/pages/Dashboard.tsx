@@ -742,7 +742,7 @@ const Dashboard = () => {
 
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-4">
                         🌐 Cross-Jurisdiction Patterns
                       </h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
@@ -754,7 +754,7 @@ const Dashboard = () => {
                   {/* Trend signal */}
                   {brief.trend_signal && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
+                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-4">📡 Trend Signal</h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                         <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
                       </div>
@@ -766,7 +766,7 @@ const Dashboard = () => {
                   {brief.why_this_matters && (
                     <section className="py-7">
                       <div className="bg-navy rounded-xl p-6">
-                        <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-amber-400 mb-5">
+                        <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-5">
                           🎯 Action Items for This Week
                         </h3>
                         <div className="text-[14px] text-blue-100 leading-relaxed space-y-3">
@@ -785,7 +785,7 @@ const Dashboard = () => {
             {brief.source_map && Object.keys(brief.source_map).length > 0 && (
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
-                  <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
+                  <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-gold mb-3 flex items-center gap-2">
                     <span>📚</span> All source articles for this report
                   </h3>
                   <p className="text-[12px] text-slate-400 mb-4">
