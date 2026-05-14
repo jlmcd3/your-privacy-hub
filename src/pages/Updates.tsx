@@ -332,44 +332,49 @@ const Updates = () => {
             </Helmet>
             <Navbar />
 
-            <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-6 px-4 md:px-8">
-                <div className="max-w-[1280px] mx-auto text-center">
+            <div className="px-4 sm:px-6 py-5 border-b border-fog bg-card">
+                <div className="max-w-[1280px] mx-auto">
                     {(topicFilter || regionFilter) && (
-                        <div className="flex items-center justify-center mb-1">
-                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">
-                                ← {lastIngestionLabel(updates)}
+                        <div className="mb-1">
+                            <Link to="/updates" className="text-[11px] text-slate hover:text-navy transition-colors no-underline">
+                                ← Back to all updates
                             </Link>
                         </div>
                     )}
-                    <h1 className="font-display text-[24px] md:text-[30px] tracking-tight text-white m-0">
+                    <h1 className="font-display text-[24px] font-bold text-navy leading-tight m-0">
                         {regionFilter
                             ? formatFilterLabel(regionFilter)
                             : topicFilter
                                 ? formatFilterLabel(topicFilter)
-                                : lastIngestionLabel(updates)}
+                                : "Privacy Intelligence Feed"}
                     </h1>
+                    <p className="text-[13px] text-slate mt-0.5">
+                        {updates[0]?.published_at
+                            ? `Through ${formatDate(updates[0].published_at)} · Updated daily`
+                            : "Updated daily"}
+                    </p>
                 </div>
-            </section>
+            </div>
 
-            {/* Jurisdiction subnav (cobalt underline on active) */}
+            {/* Jurisdiction subnav (pill style) */}
             <div className="border-b border-border bg-card">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-                    <div className="flex items-center gap-1 overflow-x-auto -mb-px">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
+                    <div className="flex items-center gap-2 overflow-x-auto">
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = activeRegion === f.key;
                             return (
                                 <button
                                     key={f.key}
                                     onClick={() => selectRegion(f.key)}
-                                    className={`relative whitespace-nowrap px-3 py-3 text-[13px] font-semibold transition-colors border-b-2 ${
+                                    className={
                                         isActive
-                                            ? "text-foreground border-[hsl(var(--cobalt))]"
-                                            : "text-muted-foreground hover:text-foreground border-transparent"
-                                    }`}
+                                            ? "bg-navy text-white rounded-full px-4 py-1.5 text-[13px] font-medium cursor-pointer border border-navy whitespace-nowrap"
+                                            : "border border-fog bg-transparent text-slate hover:bg-fog rounded-full px-4 py-1.5 text-[13px] font-medium cursor-pointer transition-colors whitespace-nowrap"
+                                    }
                                 >
                                     {f.label}
                                     {f.key === "all" && updates.length > 0 && (
-                                        <span className="ml-1.5 text-[10px] opacity-60">{updates.length}</span>
+                                        <span className="ml-1.5 text-[10px] opacity-70">{updates.length}</span>
                                     )}
                                 </button>
                             );

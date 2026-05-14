@@ -222,13 +222,22 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
 // — COMPACT variant ——————————————————————————————————
 const CompactCard = ({ item }: { item: ArticleItem }) => {
   const enriched = isEnriched(item);
+  const wrapperClass = `block group rounded-xl px-3 py-2.5 -mx-3 transition-colors no-underline ${
+    enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-fog/40'
+  }`;
+  const wrapperStyle = enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined;
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    item.source_url ? (
+      <a href={item.source_url} target="_blank" rel="noopener noreferrer" className={wrapperClass} style={wrapperStyle}>
+        {children}
+      </a>
+    ) : (
+      <Link to={`/updates/${item.id}`} className={wrapperClass} style={wrapperStyle}>
+        {children}
+      </Link>
+    );
   return (
-    <Link to={`/updates/${item.id}`}
-      className={`block group rounded-xl px-3 py-2.5 -mx-3 transition-colors no-underline ${
-        enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-fog/40'
-      }`}
-      style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
-    >
+    <Wrapper>
       <div className="flex items-start gap-2">
         <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
@@ -250,7 +259,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           </span>
         )}
       </div>
-    </Link>
+    </Wrapper>
   );
 };
 
