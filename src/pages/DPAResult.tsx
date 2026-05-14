@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import AdBanner from "@/components/AdBanner";
 import { Helmet } from "react-helmet-async";
 import CopyButton from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export default function DPAResult() {
             <p className="text-muted-foreground text-sm mt-1">Usually completes in 15–25 seconds.</p>
           </div>
         ) : (
+          <AdBanner variant="leaderboard" className="mb-4" />
           <ReportShell
             title={`Your Custom DPA — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`}
             meta={

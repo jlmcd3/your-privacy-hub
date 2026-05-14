@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
+import AdBanner from "@/components/AdBanner";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";

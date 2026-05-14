@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import AdBanner from "@/components/AdBanner";
 import { Helmet } from "react-helmet-async";
 import CopyButton from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ export default function IRPlaybookResult() {
             <p className="text-foreground">Your playbook is being generated.</p>
           </div>
         ) : (
+          <AdBanner variant="leaderboard" className="mb-4" />
           <ReportShell
             topDisclaimer={
               <>
