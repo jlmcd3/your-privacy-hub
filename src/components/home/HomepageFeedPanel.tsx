@@ -141,6 +141,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         const { data: fallback } = await supabase
           .from("updates")
           .select("id, attention_level")
+          .gte("created_at", cutoff)
           .eq("is_hidden", false)
           .order("published_at", { ascending: false })
           .limit(50);
@@ -150,7 +151,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           const sorted = [...fallback].sort(
             (a, b) => (order[a.attention_level ?? ""] ?? 2) - (order[b.attention_level ?? ""] ?? 2)
           );
-          ids = sorted.slice(0, 5).map((a) => a.id);
+          ids = sorted.slice(0, 3).map((a) => a.id);
         }
       }
 
