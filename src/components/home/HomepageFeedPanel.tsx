@@ -8,6 +8,23 @@ import { IntelligencePanel } from "@/components/IntelligencePanel";
 import type { ArticleItem } from "@/components/ArticleCard";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
+type UpdateArticleRow = ArticleItem & {
+  url?: string | null;
+  direct_jurisdictions?: string[] | null;
+  affected_jurisdictions?: string[] | null;
+};
+
+const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
+  const direct = Array.isArray(row.direct_jurisdictions) ? row.direct_jurisdictions : [];
+  const affected = Array.isArray(row.affected_jurisdictions) ? row.affected_jurisdictions : [];
+
+  return {
+    ...row,
+    source_url: row.source_url ?? row.url ?? null,
+    jurisdiction: row.jurisdiction ?? direct[0] ?? affected[0] ?? null,
+  };
+};
+
 const SLOT_LABELS = [
   { icon: "👁", text: "What any visitor sees", className: "text-slate/50 text-[10px]" },
   { icon: "✉", text: "Free account view", className: "text-blue text-[10px] font-medium" },
@@ -123,7 +140,6 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
         const { data: fallback } = await supabase
           .from("updates")
           .select("id, attention_level")
-          .gte("created_at", cutoff)
           .eq("is_hidden", false)
           .order("published_at", { ascending: false })
           .limit(50);
@@ -145,7 +161,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
       const { data } = await supabase
         .from("updates")
         .select(
-          `id, title, source_name, source_url:url, published_at,
+          `id, title, summary, source_name, source_url:url, published_at,
            direct_jurisdictions, affected_jurisdictions,
            category, attention_level, image_url, why_it_matters_short,
            ai_summary, action_items, related_signals`
@@ -155,9 +171,10 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
       if (data) {
         const ordered = ids
           .map((id) => data.find((a: any) => a.id === id))
-          .filter(Boolean) as unknown as ArticleItem[];
+          .filter(Boolean)
+          .map((row) => toArticleItem(row as UpdateArticleRow));
         setArticles(ordered);
-        if (isAuthenticated && ordered.length > 0) {
+        if (ordered.length > 0) {
           setSelectedArticle(ordered[0]);
         }
       }
@@ -194,7 +211,26 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
     );
   }
 
-  if (!articles.length) return null;
+  if (!articles.length) {
+    return (
+      <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+        <div className="rounded-xl border border-dashed border-fog bg-card px-6 py-10 text-center">
+          <h2 className="font-display text-[20px] font-bold text-navy mb-2">
+            No developments available yet
+          </h2>
+          <p className="text-[13px] text-slate max-w-md mx-auto mb-5 leading-relaxed">
+            The homepage feed will refresh as soon as monitored privacy developments are available.
+          </p>
+          <Link
+            to="/updates"
+            className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-[13px] px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+          >
+            Open the full Privacy Intelligence Feed →
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
@@ -214,7 +250,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
         )}
       </div>
 
-      <div className="flex gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.38fr)_minmax(280px,1fr)] gap-6 items-start">
         <div className="flex-1 min-w-0">
           {articles.map((article, i) => (
             <HomepageArticleCard
@@ -236,7 +272,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated }: HomepageFeedPa
           </div>
         </div>
 
-        <div className="w-[280px] xl:w-[340px] flex-shrink-0 hidden md:block sticky top-20 self-start">
+        <div className="hidden md:block sticky top-20 self-start">
           <IntelligencePanel
             selectedArticle={selectedArticle}
             isPremium={isPremium}
