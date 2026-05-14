@@ -384,7 +384,7 @@ const Navbar = () => {
     <nav className="bg-navy border-b border-navy-mid sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
-        <Link to="/" className="no-underline flex items-center">
+        <Link to="/" className="no-underline flex items-center flex-shrink-0">
           <span className="bg-white rounded-md px-2 py-1 inline-flex items-center">
             <img src="/logo.png" alt="End User Privacy" className="h-7 md:h-8 w-auto" />
           </span>
