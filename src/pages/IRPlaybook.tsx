@@ -84,13 +84,15 @@ export default function IRPlaybook() {
     <div className="min-h-screen bg-paper">
       <Helmet><title>Your Breach Response Playbook | End User Privacy</title>
         <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold mb-2">Your Breach Response Playbook</h1>
+          <p className="text-slate-300 text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
+        </div>
+      </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
-        <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
-          <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
-        </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
           <AdBanner variant="inline" className="mb-6" />
