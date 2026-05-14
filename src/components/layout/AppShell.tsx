@@ -110,18 +110,41 @@ const INTELLIGENCE_TAIL: NavItemDef[] = [
   { label: "Regulatory Forecast", href: "/horizon", icon: Telescope },
 ];
 
+const FEED_REGIONS: NavItemDef[] = [
+  { label: "U.S. Federal", href: "/updates?region=us-federal", icon: Flag },
+  { label: "U.S. States", href: "/updates?region=us-states", icon: MapIcon },
+  { label: "EU & UK", href: "/updates?region=eu-uk", icon: Globe2 },
+  { label: "Global", href: "/updates?region=global", icon: Globe2 },
+];
+
+const FREE_TOOLS: NavItemDef[] = [
+  { label: "Interactive Global Map", href: "/jurisdictions", icon: MapIcon },
+  { label: "State Law Comparison", href: "/compare/us-states", icon: GitCompare },
+  { label: "LI Enforcement Tracker", href: "/legitimate-interest-tracker", icon: Scale },
+  { label: "CPPA Scope Checker", href: "/cppa-scope-checker", icon: ShieldCheck },
+];
+
 const TOOLS: NavItemDef[] = [
   { label: "All Tools", href: "/tools", icon: LayoutGrid },
 ];
 
 const RESEARCH: NavItemDef[] = [
+  // Laws & Frameworks
   { label: "U.S. Privacy Laws", href: "/us-privacy-laws", icon: ScrollText },
   { label: "GDPR & UK GDPR", href: "/gdpr-enforcement", icon: BookOpen },
   { label: "Global Privacy Laws", href: "/global-privacy-laws", icon: Globe2 },
   { label: "AI Privacy Regulations", href: "/ai-privacy-regulations", icon: Cpu },
-  { label: "Jurisdictions Map", href: "/jurisdictions", icon: MapIcon },
   { label: "Legislation Tracker", href: "/legislation-tracker", icon: ListChecks },
+  // Directories
+  { label: "Global Authorities", href: "/global-privacy-authorities", icon: Building },
+  { label: "Jurisdictions Map", href: "/jurisdictions", icon: MapIcon },
   { label: "Glossary", href: "/glossary", icon: BookOpen },
+  // Practitioner Guides
+  { label: "Cross-Border Transfers", href: "/cross-border-transfers", icon: ArrowLeftRight },
+  { label: "Biometric Privacy", href: "/biometric-privacy", icon: Fingerprint },
+  { label: "Health Data Privacy", href: "/health-data-privacy", icon: Activity },
+  { label: "Cookie Consent", href: "/cookie-consent", icon: Cookie },
+  { label: "Breach Notification", href: "/breach-notification", icon: AlertTriangle },
   { label: "Compliance Calendar", href: "/calendar", icon: CalendarDays },
 ];
 
