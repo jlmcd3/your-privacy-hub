@@ -359,73 +359,62 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
           className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
           {normalizeTitle(item.title)}
         </Link>
-        {/* Paid-only: regulatory theory shown as italic label below title */}
-        {isPremium && item.regulatory_theory && (
-          <p className="text-[11.5px] italic text-slate mb-1">
-            Legal doctrine: {item.regulatory_theory}
-          </p>
-        )}
-        {/* Article excerpt — first two lines of the source article */}
-        {item.summary && (
-          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
-            {stripHtml(item.summary)}
-          </p>
-        )}
-        {/* Why it matters — bordered block (consistent across cards & detail page) */}
-        {(isPremium && item.ai_summary?.why_it_matters) || shortWhy ? (
-          <div
-            className="mt-2 border-l-4 px-3 py-2 rounded-r-lg"
-            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
-          >
-            <p
-              className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
-              style={{ color: '#4A6FA5' }}
-            >
-              Why it matters
-            </p>
-            <p className="text-[12.5px] text-navy leading-relaxed">
-              {stripHtml(
-                (isPremium && item.ai_summary?.why_it_matters) ||
-                  shortWhy ||
-                  '',
+        {/* Tier-based enrichment — three tiers, one prose block each */}
+
+        {/* ANONYMOUS — one sentence + brief builder CTA */}
+        {tier === 'anonymous' && (() => {
+          const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          if (!shortWhy) return null;
+          return (
+            <div className="mt-2">
+              <p className="text-[13px] text-slate leading-relaxed">{shortWhy}</p>
+              <BriefBuilderCTA item={item} />
+            </div>
+          );
+        })()}
+
+        {/* FREE REGISTERED — full why-it-matters paragraph + soft upgrade gate */}
+        {tier === 'free' && (() => {
+          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          if (!why) return null;
+          return (
+            <div className="mt-2">
+              <p className="text-[13px] text-slate leading-relaxed mb-2">{why}</p>
+              <div className="rounded-lg bg-paper border border-fog px-3 py-2">
+                <p className="text-[12px] text-slate/70 italic">
+                  Platform subscribers see what to do about this and what to watch for next.{' '}
+                  <Link to="/subscribe" className="text-gold font-semibold no-underline hover:underline">
+                    See Platform →
+                  </Link>
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* PAID — three flowing paragraphs, no section labels */}
+        {tier === 'paid' && (() => {
+          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short;
+          const impact = item.ai_summary?.compliance_impact;
+          if (!why && !impact && !actionProse && !watchProse) return null;
+          return (
+            <div className="mt-2 space-y-2">
+              {why && (
+                <p className="text-[13px] text-slate leading-relaxed">{why}</p>
               )}
-            </p>
-          </div>
-        ) : null}
-        {/* Inline takeaways — Pro only */}
-        {isPremium && item.ai_summary?.takeaways && item.ai_summary.takeaways.length > 0 && (
-          <ul className="mt-2 space-y-1 pl-4 list-disc">
-            {item.ai_summary.takeaways.map((t, i) => (
-              <li key={i} className="text-[12px] text-slate leading-relaxed">{t}</li>
-            ))}
-          </ul>
-        )}
-        {/* Action Brief — both registered tiers (blurred for free, full for Pro) */}
-        {(item.ai_summary?.compliance_impact || item.ai_summary?.urgency) && (
-          <ActionBrief
-            urgency={item.ai_summary?.urgency ?? null}
-            who_should_care={(item.ai_summary as any)?.who_should_care ?? null}
-            compliance_impact={item.ai_summary?.compliance_impact ?? null}
-            action_items={item.action_items ?? null}
-            risk_level={item.ai_summary?.risk_level ?? null}
-            isPremium={isPremium}
-            articleId={item.id}
-          />
-        )}
-        {/* Upgrade CTA — free signed-in only */}
-        {!isPremium && (
-          <div className="mt-2 flex items-center gap-2">
-            <p className="text-[11px] text-slate flex-1">Unlock action items, compliance impact, and full analysis</p>
-            <Link
-              to="/subscribe"
-              className="flex-shrink-0 text-[11px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
-            >
-              Upgrade to Platform →
-            </Link>
-          </div>
-        )}
-        {/* Intelligence Card — paid only, collapsed by default */}
-        {isPremium && <IntelligenceCard item={item} />}
+              {impact && (
+                <p className="text-[13px] text-slate leading-relaxed">{impact}</p>
+              )}
+              {(actionProse || watchProse) && (
+                <p className="text-[13px] text-slate leading-relaxed">
+                  {actionProse}
+                  {actionProse && watchProse && ' '}
+                  {watchProse && <span className="italic">{watchProse}</span>}
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </div>
       {/* External link */}
       {item.source_url && (
