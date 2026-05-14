@@ -364,7 +364,30 @@ export default function AppShell() {
             </SidebarHeader>
 
             <SidebarContent>
-              <NavSection label="Intelligence" items={intelligenceItems} pathname={location.pathname} />
+              <SidebarGroup>
+                <SidebarGroupLabel>Intelligence</SidebarGroupLabel>
+                <SidebarMenu>
+                  <FeedSection pathname={location.pathname} search={location.search} />
+                  {intelligenceTailItems.map((item) => (
+                    <NavItem key={item.href} item={item} pathname={location.pathname} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroup>
+
+              <SidebarGroup>
+                <SidebarGroupLabel className="flex items-center gap-2">
+                  <span>Free Tools</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    FREE
+                  </span>
+                </SidebarGroupLabel>
+                <SidebarMenu>
+                  {FREE_TOOLS.map((item) => (
+                    <NavItem key={item.href} item={item} pathname={location.pathname} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroup>
+
               <NavSection label="Compliance Tools" items={TOOLS} pathname={location.pathname} />
               <ResearchSection pathname={location.pathname} />
               {user && (
