@@ -37,18 +37,20 @@ const HomepageArticleCard = ({
   onSelect,
   tierLabel,
   hideWhyItMatters,
+  evenRow,
 }: {
   article: ArticleItem;
   isSelected: boolean;
   onSelect: () => void;
   tierLabel?: typeof SLOT_LABELS[0];
   hideWhyItMatters?: boolean;
+  evenRow?: boolean;
 }) => (
   <div
-    className={`py-3.5 border-b border-fog last:border-0 cursor-pointer rounded-lg transition-colors
+    className={`px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
       ${isSelected
-        ? "bg-blue-50/60 border-l-[3px] border-gold px-2 -mx-2"
-        : "hover:bg-fog/30 px-2 -mx-2"
+        ? "bg-blue-50/60 border-l-[3px] border-gold"
+        : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-fog/40`
       }`}
     onClick={(e) => {
       if ((e.target as HTMLElement).closest("a")) return;
