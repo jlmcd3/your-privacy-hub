@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import StarField from "@/components/layout/StarField";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 const Login = () => {
@@ -79,12 +80,13 @@ const Login = () => {
       <div className="flex-1 flex flex-col lg:flex-row">
 
         {/* Left panel — hidden on mobile */}
-        <div className="hidden lg:flex lg:w-[420px] bg-navy star-field relative flex-col justify-center px-12 py-16">
+        <div className="hidden lg:flex lg:w-[420px] bg-navy relative overflow-hidden flex-col justify-center px-12 py-16">
+          <StarField />
           <div className="text-gold text-[11px] font-bold uppercase tracking-widest mb-4 relative">End User Privacy</div>
-          <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6">
+          <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6 relative">
             Global privacy law, tracked daily.
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-4 relative">
             {[
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
