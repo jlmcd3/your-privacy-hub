@@ -419,19 +419,16 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        <Footer />
-      </div>
+      </WorkspaceLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <WorkspaceLayout>
       <Helmet>
         <title>Intelligence Brief | End User Privacy</title>
         <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
