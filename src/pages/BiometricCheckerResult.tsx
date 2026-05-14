@@ -99,8 +99,9 @@ export default function BiometricCheckerResult() {
             <p className="text-foreground">Your assessment is being generated.</p>
           </div>
         ) : (
-          <AdBanner variant="leaderboard" className="mb-4" />
-          <ReportShell
+          <>
+            <AdBanner variant="leaderboard" className="mb-4" />
+            <ReportShell
             title="Biometric Compliance Assessment"
             meta={meta}
             actions={actions}
@@ -108,6 +109,7 @@ export default function BiometricCheckerResult() {
           >
             <AssessmentReport text={text || ""} />
           </ReportShell>
+          </>
         )}
       </main>
     </div>

@@ -55,8 +55,9 @@ export default function IRPlaybookResult() {
             <p className="text-foreground">Your playbook is being generated.</p>
           </div>
         ) : (
-          <AdBanner variant="leaderboard" className="mb-4" />
-          <ReportShell
+          <>
+            <AdBanner variant="leaderboard" className="mb-4" />
+            <ReportShell
             topDisclaimer={
               <>
                 This is an operational incident response guide to assist during a live
@@ -92,6 +93,7 @@ export default function IRPlaybookResult() {
           >
             <AssessmentReport text={row.playbook_text || ""} sectionChipLabel={null} />
           </ReportShell>
+          </>
         )}
       </main>
     </div>
