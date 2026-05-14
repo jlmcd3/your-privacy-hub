@@ -383,7 +383,7 @@ const Updates = () => {
                 </div>
             </div>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-6">
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[180px_1fr] lg:grid-cols-[180px_1fr_320px] xl:grid-cols-[180px_1fr_360px] gap-6 items-start">
                 {/* Left: Topics sidebar */}
                 <aside className="hidden md:block">
                     <div className="sticky top-20">
