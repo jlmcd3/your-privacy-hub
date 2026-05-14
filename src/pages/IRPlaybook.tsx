@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
@@ -86,6 +87,7 @@ export default function IRPlaybook() {
       <Helmet><title>Your Breach Response Playbook | End User Privacy</title>
         <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
       <Navbar />
+      <DashboardSubnav />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
