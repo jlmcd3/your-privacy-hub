@@ -390,15 +390,15 @@ const Navbar = () => {
           </span>
         </Link>
         {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-0.5 xl:gap-2 min-w-0">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const basePadX = item.directLink ? "px-4" : "px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[15px]`;
+            const basePadX = item.directLink ? "px-3 xl:px-4" : "px-2 xl:px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[13px] xl:text-[15px] whitespace-nowrap`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
@@ -488,13 +488,13 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-1.5 xl:gap-3 flex-shrink-0 [&_a]:whitespace-nowrap [&_span]:whitespace-nowrap">
           {user ? (
             <>
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[12px] font-semibold text-white bg-gold hover:opacity-90 px-4 py-2 rounded-xl no-underline transition-all"
+                className="text-[12px] font-semibold text-white bg-gold hover:opacity-90 px-3 xl:px-4 py-2 rounded-xl no-underline transition-all"
               >
                 🧠 My Dashboard
               </Link>
@@ -539,7 +539,7 @@ const Navbar = () => {
               </Link>
               <Link
                 to="/subscribe"
-                className="text-[12px] font-semibold text-white bg-gold hover:opacity-90 px-4 py-2 rounded-xl no-underline transition-all"
+                className="text-[12px] font-semibold text-white bg-gold hover:opacity-90 px-3 xl:px-4 py-2 rounded-xl no-underline transition-all"
               >
                 See Plans →
               </Link>
