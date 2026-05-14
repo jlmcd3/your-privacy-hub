@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
+import AdBanner from "@/components/AdBanner";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,6 +73,7 @@ const DPIAFrameworkResult = () => {
       <Helmet><title>Impact Assessment Builder | End User Privacy</title></Helmet>
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <AdBanner variant="leaderboard" className="mb-4" />
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
         {purchased && (

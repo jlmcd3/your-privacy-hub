@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import WizardProgress from "@/components/layout/WizardProgress";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
 import { Button } from "@/components/ui/button";
@@ -133,6 +134,8 @@ export default function EUNoticeQuestions() {
   if (loading || !currentQ) {
     return (
       <EUNoticeShell title="Questions — EU & Global Notice Builder" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
+      <WizardProgress steps={["Mode","Frameworks","Questions","Review","Documents"]} currentStep={2} />
+      
         <Skeleton className="h-48 w-full" />
       </EUNoticeShell>
     );

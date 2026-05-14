@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import WizardProgress from "@/components/layout/WizardProgress";
 import {
   ArrowLeft,
   Download,
@@ -237,6 +238,8 @@ export default function USNoticeDocuments() {
         step="documents"
         sessionId={sessionId}
       >
+      <WizardProgress steps={["Mode","States","Questions","Review","Documents"]} currentStep={4} />
+      
         <Skeleton className="h-24 w-full mb-6" />
         <Skeleton className="h-64 w-full" />
       </USNoticeShell>

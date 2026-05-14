@@ -1,8 +1,11 @@
+import { Link } from "react-router-dom";
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 import StarFieldBackground from "@/components/globe/StarFieldBackground";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 export default function SearchFirstHero() {
+  const { isPremium } = usePremiumStatus();
   return (
     <div className="relative bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
       <StarFieldBackground />
@@ -22,21 +25,39 @@ export default function SearchFirstHero() {
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-3xl mt-2">
-              {/* Card 1 — Intelligence Brief (Primary) */}
-              <a
-                href="#brief"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-teal-600 hover:bg-teal-500 border border-teal-600 hover:border-teal-500 transition-all duration-200"
-              >
-                <p className="text-[9px] font-bold uppercase tracking-widest text-teal-100 mb-1.5">
-                  Intelligence Brief
-                </p>
-                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
-                  Your Privacy Intelligence Report — to save you time
-                </p>
-                <p className="text-[12px] text-teal-100 leading-snug">
-                  Personalized to your jurisdiction, role, and tracked topics. Every Monday.
-                </p>
-              </a>
+              {isPremium ? (
+                <Link
+                  to="/dashboard"
+                  className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-navy hover:opacity-90 border border-navy transition-all duration-200"
+                >
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-gold mb-1.5">
+                    Intelligence Brief
+                  </p>
+                  <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                    Your Privacy Intelligence Report
+                  </p>
+                  <p className="text-[12px] text-white/80 leading-snug">
+                    Your personalized weekly brief — read this week's analysis.
+                  </p>
+                  <span className="inline-block mt-3 bg-gold text-white rounded-xl px-3 py-1 text-xs font-semibold">Read your brief →</span>
+                </Link>
+              ) : (
+                <Link
+                  to="/#brief"
+                  className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-navy/80 hover:opacity-90 border border-white/20 transition-all duration-200"
+                >
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-gold mb-1.5">
+                    Intelligence Brief
+                  </p>
+                  <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                    Build your sample brief
+                  </p>
+                  <p className="text-[12px] text-white/80 leading-snug">
+                    Select your jurisdiction and role to generate a representative Intelligence Brief.
+                  </p>
+                  <span className="inline-block mt-3 bg-gold text-white rounded-xl px-3 py-1 text-xs font-semibold">Build sample brief →</span>
+                </Link>
+              )}
 
               {/* Card 2 — Privacy Updates (Secondary) */}
               <a

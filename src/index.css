@@ -313,3 +313,30 @@ dt {
 /* Smooth scroll for in-page anchor jumps */
 html { scroll-behavior: smooth; }
 
+
+/* ── Star field animation for hero sections ───────────────────── */
+@keyframes eup-star-twinkle {
+  0%, 100% { opacity: 0.08; transform: scale(0.8); }
+  50%       { opacity: 0.85; transform: scale(1.3); }
+}
+
+.star-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.star-field > span {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: eup-star-twinkle var(--star-duration, 4s) ease-in-out var(--star-delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-field > span {
+    animation: none !important;
+    opacity: 0.2;
+  }
+}
