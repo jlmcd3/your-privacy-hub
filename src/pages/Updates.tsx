@@ -579,7 +579,7 @@ const Updates = () => {
                 </div>
 
                 {/* Right column: Intelligence panel — desktop only, sticky */}
-                <aside className="hidden lg:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
+                <aside className="hidden md:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
                     <IntelligencePanel
                         selectedArticle={selectedArticle}
                         isPremium={isPremium}
