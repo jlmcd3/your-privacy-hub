@@ -370,7 +370,7 @@ export default function ClientsPortfolio() {
 
   function handleOpen(c: Client) {
     setActiveClient(c);
-    navigate('/clients');
+    navigate('/dashboard');
   }
 
   function handleOpenUsNotices(c: Client) {
