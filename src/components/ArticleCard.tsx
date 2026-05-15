@@ -449,7 +449,7 @@ const FullCard = ({
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
-            <p className="text-sm text-slate leading-relaxed mt-2">
+            <p className="text-body text-slate mt-2">
               <span className="font-semibold text-steel">Context: </span>{why}
             </p>
           );
