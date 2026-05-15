@@ -355,7 +355,7 @@ const Navbar = () => {
             )}
           </span>
           {sub.description && (
-            <span className="block text-[12px] text-slate-light mt-0.5 leading-snug">
+            <span className="block text-meta text-slate-light mt-0.5 leading-snug">
               {sub.description}
             </span>
           )}
@@ -397,7 +397,7 @@ const Navbar = () => {
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
             const basePadX = item.directLink ? "px-4" : "px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline font-semibold text-[15px]`;
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
@@ -447,7 +447,7 @@ const Navbar = () => {
                             {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
                             {section.header && (
                               <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                                <span className="text-[11px] font-bold tracking-widest uppercase text-slate-light">
+                                <span className="text-eyebrow text-slate-light">
                                   {section.header}
                                 </span>
                                 {section.headerBadge && (
@@ -591,7 +591,7 @@ const Navbar = () => {
                         <div key={si}>
                           {section.header && (
                             <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-light">
+                              <span className="text-eyebrow text-slate-light">
                                 {section.header}
                               </span>
                               {section.headerBadge && (

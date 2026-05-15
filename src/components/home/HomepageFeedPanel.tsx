@@ -80,7 +80,7 @@ const HomepageArticleCard = ({
 
   const renderEnrichment = () => {
     const excerpt = article.summary ? (
-      <p className="text-[12px] text-slate leading-relaxed mt-1 line-clamp-2">
+      <p className="text-meta text-slate mt-1 line-clamp-2 leading-relaxed">
         {stripHtml(article.summary)}
       </p>
     ) : null;
@@ -88,7 +88,7 @@ const HomepageArticleCard = ({
     const shortWhy = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
     const sentence = shortWhy ? (shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy) : null;
     const alertNode = sentence ? (
-      <p className="text-[12px] text-slate leading-relaxed mt-1.5">
+      <p className="text-meta text-slate mt-1.5 leading-relaxed">
         <span className="font-semibold text-warn">Alert: </span>{sentence}
       </p>
     ) : null;
@@ -98,7 +98,7 @@ const HomepageArticleCard = ({
       article.why_it_matters_short ??
       article.ai_summary?.why_it_matters_short;
     const contextNode = why ? (
-      <p className="text-[12px] text-slate leading-relaxed mt-1.5">
+      <p className="text-meta text-slate mt-1.5 leading-relaxed">
         <span className="font-semibold text-steel">Context: </span>{why}
       </p>
     ) : null;
@@ -144,7 +144,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           {(impact || actionProse || watchProse) && (
-            <p className="text-[12px] text-slate leading-relaxed">
+            <p className="text-meta text-slate leading-relaxed">
               <span className="font-semibold text-gold">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
@@ -201,17 +201,17 @@ const HomepageArticleCard = ({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1 mb-1">
             {article.source_name && (
-              <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+              <span className="text-meta font-semibold text-slate uppercase tracking-wide">
                 {article.source_name}
               </span>
             )}
             {article.published_at && (
-              <span className="text-[11px] text-slate-light">
+              <span className="text-meta text-slate-light">
                 {fmtDate(article.published_at)}
               </span>
             )}
             {article.attention_level === "WATCH CLOSELY" && (
-              <span className="text-[11px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+              <span className="text-eyebrow px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
                 Watch Closely
               </span>
             )}
@@ -221,13 +221,13 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+              className="text-card-title text-navy hover:text-blue block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
             </a>
           ) : (
-            <p className="text-sm font-semibold text-navy leading-snug">
+            <p className="text-card-title text-navy">
               {normalizeTitle(article.title)}
             </p>
           )}
@@ -373,16 +373,16 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
   return (
     <section className={embedded ? "px-5 py-5" : "max-w-[1280px] mx-auto px-4 md:px-8 py-10"}>
       <div className="mb-5">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate/60 mb-1">
+        <p className="text-eyebrow text-slate/60 mb-1">
           Today's regulatory developments
         </p>
-        <h2 className="font-display text-[22px] font-bold text-navy">
+        <h2 className="text-section-h2 text-navy">
           {isAuthenticated
             ? "Today's intelligence"
             : "What you see — and what you're missing"}
         </h2>
         {!isAuthenticated && (
-          <p className="text-sm text-slate mt-1">
+          <p className="text-base text-slate mt-1">
             Three levels of intelligence. Register free for the second. Subscribe for the third.
           </p>
         )}
