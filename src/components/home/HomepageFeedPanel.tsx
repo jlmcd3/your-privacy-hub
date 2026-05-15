@@ -82,16 +82,20 @@ const HomepageArticleCard = ({
     if (demoTier === "anonymous") {
       const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
       if (!s) return null;
-      const firstSentence = s.split(/(?<=[.!?])\s/)[0] ?? s;
+      const sentence = s.split(/(?<=[.!?])\s/)[0] ?? s;
       return (
-        <div className="mt-2">
-          <p className="text-[12px] text-slate leading-relaxed">{firstSentence}</p>
-          <Link
-            to="/signup"
-            className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-gold no-underline hover:underline"
-          >
-            Register free to see the full analysis →
-          </Link>
+        <div className="mt-1.5">
+          <p className="text-[12px] text-slate leading-relaxed">
+            <span className="font-semibold text-warn">Alert: </span>{sentence}
+          </p>
+          <div className="flex flex-col gap-1 mt-1">
+            <Link to="/signup" className="text-[11px] font-semibold text-steel hover:underline no-underline">
+              Register free to see Context →
+            </Link>
+            <Link to="/subscribe" className="text-[11px] font-semibold text-gold hover:underline no-underline">
+              Subscribe to see Analysis and Guidance →
+            </Link>
+          </div>
         </div>
       );
     }
@@ -103,20 +107,13 @@ const HomepageArticleCard = ({
         article.ai_summary?.why_it_matters_short;
       if (!why) return null;
       return (
-        <div className="mt-2">
-          <p className="text-[12px] text-slate leading-relaxed">{why}</p>
-          <div className="mt-2 rounded-md bg-paper border border-fog px-2.5 py-2">
-            <p className="text-[11px] italic text-slate/70 leading-relaxed">
-              Platform subscribers see what to do about this and what to watch
-              for next.{" "}
-              <Link
-                to="/subscribe"
-                className="text-gold font-semibold no-underline hover:underline not-italic"
-              >
-                See Platform →
-              </Link>
-            </p>
-          </div>
+        <div className="mt-1.5">
+          <p className="text-[12px] text-slate leading-relaxed mb-1.5">
+            <span className="font-semibold text-steel">Context: </span>{why}
+          </p>
+          <Link to="/subscribe" className="text-[11px] font-semibold text-gold hover:underline no-underline">
+            Subscribe to see Analysis and Guidance →
+          </Link>
         </div>
       );
     }
@@ -124,9 +121,14 @@ const HomepageArticleCard = ({
     if (demoTier === "paid") {
       const why = article.ai_summary?.why_it_matters ?? article.why_it_matters_short;
       const impact = article.ai_summary?.compliance_impact;
+      const toolCTA = getToolCTA(article);
       return (
-        <div className="mt-2 space-y-2">
-          {why && <p className="text-[12px] text-slate leading-relaxed">{why}</p>}
+        <div className="mt-1.5 space-y-1.5">
+          {why && (
+            <p className="text-[12px] text-slate leading-relaxed">
+              <span className="font-semibold text-gold">Analysis and Guidance: </span>{why}
+            </p>
+          )}
           {impact && <p className="text-[12px] text-slate leading-relaxed">{impact}</p>}
           {(actionProse || watchProse) && (
             <p className="text-[12px] text-slate leading-relaxed">
@@ -135,9 +137,11 @@ const HomepageArticleCard = ({
               {watchProse && <span className="italic">{watchProse}</span>}
             </p>
           )}
-          <p className="text-[11px] italic text-slate/60 pt-1">
-            This is what Platform subscribers see on every development, every day.
-          </p>
+          <div className="pt-1.5 border-t border-fog">
+            <Link to={toolCTA.href} className="text-[11px] font-semibold text-gold hover:underline no-underline">
+              {toolCTA.label}
+            </Link>
+          </div>
         </div>
       );
     }
