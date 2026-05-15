@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, EyeOff } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2 } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -405,6 +405,22 @@ const FullCard = ({
           )}
           <AdminHideButton articleId={item.id} />
         </div>
+        {/* Sector tags — show up to 2 if sectors are present */}
+        {((item.affected_sectors?.length ?? 0) > 0 || ((item.ai_summary as any)?.affected_sectors?.length ?? 0) > 0) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {(item.affected_sectors || (item.ai_summary as any)?.affected_sectors || [])
+              .slice(0, 2)
+              .map((sector: string, i: number) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600"
+                >
+                  <Building2 className="w-3 h-3 flex-shrink-0" />
+                  {sector}
+                </span>
+              ))}
+          </div>
+        )}
         {/* Title */}
         <TitleLink
           item={item}
