@@ -72,7 +72,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
-        <title>Log In | End User Privacy</title>
+        <title>Sign In | End User Privacy</title>
         <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
       <Navbar />
