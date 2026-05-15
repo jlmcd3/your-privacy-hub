@@ -550,7 +550,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
           {normalizeTitle(item.title)}
         </Link>
         {item.summary && (
-          <p className="text-xs text-gray-600 leading-snug mt-1 line-clamp-2">
+          <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
