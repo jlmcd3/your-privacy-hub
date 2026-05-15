@@ -240,13 +240,13 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   return (
     <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-sm font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
+        <p className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
       </div>
       {item.summary && (
-        <p className="text-xs text-slate leading-snug mt-1 line-clamp-2">
+        <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
           {stripHtml(item.summary)}
         </p>
       )}
@@ -407,7 +407,7 @@ const FullCard = ({
         {/* Title */}
         <TitleLink
           item={item}
-          className="text-card-title text-navy hover:text-blue block mb-1 no-underline transition-colors"
+          className="text-card-title text-gray-900 hover:text-blue block mb-1 no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
@@ -415,7 +415,7 @@ const FullCard = ({
 
         {/* Article excerpt — first two lines of the source summary */}
         {item.summary && (
-          <p className="text-body text-slate mt-1.5 line-clamp-2">
+          <p className="text-body text-gray-600 mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -426,7 +426,7 @@ const FullCard = ({
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
-            <p className="text-body text-slate mt-2">
+            <p className="text-body text-gray-600 mt-2">
               <span className="font-semibold text-warn">Alert: </span>{firstSentence}
             </p>
           );
@@ -435,10 +435,10 @@ const FullCard = ({
         {/* ── ANONYMOUS CTAs ─────────── */}
         {tier === 'anonymous' && (
           <div className="flex flex-col gap-1 mt-1.5">
-            <Link to="/signup" className="text-[12px] font-semibold text-steel hover:underline no-underline">
+            <Link to="/signup" className="text-xs font-semibold text-steel hover:underline no-underline">
               Register free to see Context →
             </Link>
-            <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-xs font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -449,7 +449,7 @@ const FullCard = ({
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
-            <p className="text-body text-slate mt-2">
+            <p className="text-body text-gray-600 mt-2">
               <span className="font-semibold text-steel">Context: </span>{why}
             </p>
           );
@@ -458,7 +458,7 @@ const FullCard = ({
         {/* ── FREE CTA ─────────── */}
         {tier === 'free' && (
           <div className="mt-1.5">
-            <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-xs font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -471,7 +471,7 @@ const FullCard = ({
             const toolCTA = getToolCTA(item);
             return (
               <div className="mt-2 pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
@@ -480,7 +480,7 @@ const FullCard = ({
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-body text-slate">
+              <p className="text-body text-gray-600">
                 <span className="font-semibold text-gold">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}
@@ -489,7 +489,7 @@ const FullCard = ({
                 {watchProse && <span className="italic">{watchProse}</span>}
               </p>
               <div className="pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
@@ -546,11 +546,11 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
     >
       <div className="flex-1 min-w-0">
         <Link to={`/updates/${item.id}`}
-          className="text-sm font-semibold text-navy hover:text-blue no-underline leading-snug block">
+          className="text-sm font-semibold text-gray-900 hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </Link>
         {item.summary && (
-          <p className="text-xs text-slate leading-snug mt-1 line-clamp-2">
+          <p className="text-xs text-gray-600 leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -604,11 +604,11 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               </span>
             )}
           </div>
-          <p className="text-sm font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          <p className="text-sm font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
             {normalizeTitle(item.title)}
           </p>
           {item.summary && (
-            <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
           )}
         </div>
       </Link>
@@ -681,9 +681,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
+            <p className="text-[14px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
-              <p className="text-xs text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
             )}
           </div>
         </div>
@@ -699,7 +699,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             >
               Why it matters
             </p>
-            <p className="text-[12px] text-navy leading-relaxed">{stripHtml(s.why_it_matters)}</p>
+            <p className="text-sm text-gray-800 leading-relaxed">{stripHtml(s.why_it_matters)}</p>
           </div>
         )}
 
@@ -760,7 +760,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-sm font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+          className="text-sm font-semibold text-gray-900 hover:text-blue leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}
@@ -768,7 +768,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         {(() => {
           const s = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           return s ? (
-            <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">{s}</p>
           ) : null;
         })()}
       </div>
