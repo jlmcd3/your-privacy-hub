@@ -459,7 +459,7 @@ const FullCard = ({
         {/* ── FREE CTA ─────────── */}
         {tier === 'free' && (
           <div className="mt-1.5">
-            <Link to="/subscribe" className="text-xs font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
