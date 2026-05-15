@@ -487,7 +487,7 @@ const Updates = () => {
                 {availableSectors.length > 0 && (
                     <div className="flex flex-col gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
+                            <span className="text-eyebrow text-muted-foreground mr-1">Sectors:</span>
                             {availableSectors.slice(0, 8).map(([sector, count]) => (
                                 <button
                                     key={sector}
