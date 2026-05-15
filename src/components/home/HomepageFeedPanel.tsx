@@ -144,7 +144,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           {(impact || actionProse || watchProse) && (
-            <p className="text-[12px] text-slate leading-relaxed">
+            <p className="text-meta text-slate leading-relaxed">
               <span className="font-semibold text-gold">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
