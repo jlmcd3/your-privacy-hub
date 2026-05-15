@@ -2440,6 +2440,54 @@ export type Database = {
         }
         Relationships: []
       }
+      research_syntheses: {
+        Row: {
+          article_count: number
+          article_ids_used: Json
+          created_at: string
+          generated_at: string | null
+          id: string
+          model_used: string
+          page_slug: string
+          section_heading: string
+          section_key: string
+          synthesis_text: string | null
+          topic_filters: Json
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          article_count?: number
+          article_ids_used?: Json
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          model_used?: string
+          page_slug: string
+          section_heading: string
+          section_key: string
+          synthesis_text?: string | null
+          topic_filters?: Json
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          article_count?: number
+          article_ids_used?: Json
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          model_used?: string
+          page_slug?: string
+          section_heading?: string
+          section_key?: string
+          synthesis_text?: string | null
+          topic_filters?: Json
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       ropa_activity_templates: {
         Row: {
           category: string
