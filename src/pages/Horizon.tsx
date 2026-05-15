@@ -294,14 +294,6 @@ export default function Horizon() {
           </PremiumGate>
         )}
 
-        <div className="mt-10">
-          <AdBanner
-            variant="leaderboard"
-            adSlot={AD_SLOTS.home_bottom_leaderboard.id}
-            googleAdClient={GOOGLE_AD_CLIENT}
-            googleAdSlot={AD_SLOTS.home_bottom_leaderboard.googleAdSlot}
-          />
-        </div>
       </main>
 
       <Footer />

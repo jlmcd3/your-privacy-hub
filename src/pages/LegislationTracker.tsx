@@ -205,13 +205,6 @@ export default function LegislationTracker() {
                     </div>
                   </div>
                 </div>
-                {showAdAfter && (
-                  <InFeedAd
-                    adSlot={`legislation_tracker_infeed_${Math.floor(idx / 6)}`}
-                    googleAdClient={GOOGLE_AD_CLIENT}
-                    googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                  />
-                )}
                 </Fragment>
               );
             })}

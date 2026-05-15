@@ -64,17 +64,11 @@ export default function NewsfeedList({
 
   return (
     <div>
-      {/* Article list — interleave an in-feed ad every N items (Premium sees ads too). */}
+      {/* Article list */}
       <div className="space-y-0">
-        {visibleArticles.map((article, i) => {
-          const showAdAfter = (i + 1) % IN_FEED_AD_FREQUENCY === 0 && i !== visibleArticles.length - 1;
-          return (
-            <Fragment key={article.id || i}>
-              {renderArticle(article, i, isPremium)}
-              {showAdAfter && <InFeedAd adSlot={`eup-infeed-${i + 1}`} />}
-            </Fragment>
-          );
-        })}
+        {visibleArticles.map((article, i) => (
+          <div key={article.id || i}>{renderArticle(article, i, isPremium)}</div>
+        ))}
       </div>
 
       {isLoading && (

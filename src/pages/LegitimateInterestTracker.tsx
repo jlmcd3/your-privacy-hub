@@ -250,15 +250,6 @@ const LegitimateInterestTracker = () => {
                       </div>
                     </div>
                   </article>
-                  {(idx + 1) % 6 === 0 && idx !== filtered.length - 1 && (
-                    <div className="md:col-span-2">
-                      <InFeedAd
-                        adSlot={`li_tracker_infeed_${Math.floor(idx / 6)}`}
-                        googleAdClient={GOOGLE_AD_CLIENT}
-                        googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                      />
-                    </div>
-                  )}
                 </Fragment>
               ))}
             </div>
