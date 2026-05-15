@@ -267,6 +267,7 @@ const Subscribe = () => {
         </p>
       </div>
 
+      {fromBuilder && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
             <span className="text-green-600 text-lg flex-shrink-0 mt-0.5">✓</span>
