@@ -64,8 +64,8 @@ export default function AdBanner({ variant = 'leaderboard', className = '' }: Ad
   // Paid subscribers never see ads.
   if (isPremium) return null;
 
-  const { w, h } = DIMENSIONS[variant];
-  const slot = ADSENSE_CONFIG.slots[variant];
+  const { w, h } = DIMENSIONS[resolvedVariant];
+  const slot = ADSENSE_CONFIG.slots[resolvedVariant];
 
   if (!ADSENSE_CONFIG.enabled) {
     return (
