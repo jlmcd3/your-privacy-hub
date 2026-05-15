@@ -436,10 +436,10 @@ const FullCard = ({
         {/* ── ANONYMOUS CTAs ─────────── */}
         {tier === 'anonymous' && (
           <div className="flex flex-col gap-1 mt-1.5">
-            <Link to="/signup" className="text-xs font-semibold text-steel hover:underline no-underline">
+            <Link to="/signup" className="text-sm font-semibold text-steel hover:underline no-underline">
               Register free to see Context →
             </Link>
-            <Link to="/subscribe" className="text-xs font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -459,7 +459,7 @@ const FullCard = ({
         {/* ── FREE CTA ─────────── */}
         {tier === 'free' && (
           <div className="mt-1.5">
-            <Link to="/subscribe" className="text-xs font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -474,7 +474,7 @@ const FullCard = ({
               <div className="mt-2 space-y-2">
                 <InvestigationPrompt item={item} />
                 <div className="pt-2 border-t border-fog">
-                  <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
+                  <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
                     {toolCTA.label}
                   </Link>
                 </div>
@@ -494,7 +494,7 @@ const FullCard = ({
               </p>
               <InvestigationPrompt item={item} />
               <div className="pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
