@@ -315,6 +315,24 @@ const TitleLink = ({
   );
 
 // — FULL variant ——————————————————————————————————
+const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
+  const cat = (item.category ?? '').toLowerCase();
+  const jur = (item.jurisdiction ?? '').toLowerCase();
+  if (cat.includes('biometric'))
+    return { label: 'Check biometric compliance →', href: '/biometric-checker' };
+  if (cat.includes('breach') || cat.includes('incident'))
+    return { label: 'Build an IR Playbook →', href: '/ir-playbook' };
+  if (cat.includes('ai') || cat.includes('artificial intelligence'))
+    return { label: 'Run an LIA for this processing →', href: '/li-assessment' };
+  if (cat.includes('cross-border') || cat.includes('transfer') || cat.includes('dpa'))
+    return { label: 'Generate a Data Processing Agreement →', href: '/dpa-generator' };
+  if (cat.includes('dpia') || cat.includes('impact assessment'))
+    return { label: 'Run a DPIA →', href: '/dpia-framework' };
+  if (jur.includes('california') || jur.includes('cppa'))
+    return { label: 'Check your CPPA scope →', href: '/cppa-scope-checker' };
+  return { label: 'Assess your governance posture →', href: '/governance-assessment' };
+};
+
 const FullCard = ({
   item,
   isPremium = false,
@@ -395,51 +413,57 @@ const FullCard = ({
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
         </TitleLink>
 
-        {/* ── ANONYMOUS — first sentence + Register free CTA ─────────── */}
+        {/* ── ANONYMOUS — Alert + tier CTAs ─────────── */}
         {tier === 'anonymous' && (() => {
           const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
             <div className="mt-2">
-              <p className="text-[13px] text-slate leading-relaxed">{firstSentence}</p>
-              <Link
-                to="/signup"
-                className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-gold no-underline hover:underline"
-              >
-                Register free to see the full analysis →
-              </Link>
-            </div>
-          );
-        })()}
-
-        {/* ── FREE REGISTERED — full why-it-matters + upgrade gate ───── */}
-        {tier === 'free' && (() => {
-          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
-          if (!why) return null;
-          return (
-            <div className="mt-2">
-              <p className="text-[13px] text-slate leading-relaxed mb-2">{why}</p>
-              <div className="rounded-lg bg-paper border border-fog px-3 py-2">
-                <p className="text-[12px] text-slate/70 italic">
-                  Platform subscribers see what to do about this and what to watch for next.{' '}
-                  <Link to="/subscribe" className="text-gold font-semibold no-underline hover:underline not-italic">
-                    See Platform →
-                  </Link>
-                </p>
+              <p className="text-[13px] text-slate leading-relaxed">
+                <span className="font-semibold text-warn">Alert: </span>{firstSentence}
+              </p>
+              <div className="flex flex-col gap-1 mt-1.5">
+                <Link to="/signup" className="text-[12px] font-semibold text-steel hover:underline no-underline">
+                  Register free to see Context →
+                </Link>
+                <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                  Subscribe to see Analysis and Guidance →
+                </Link>
               </div>
             </div>
           );
         })()}
 
-        {/* ── PAID — three flowing paragraphs ────────────────────────── */}
+        {/* ── FREE REGISTERED — Context + single CTA ───── */}
+        {tier === 'free' && (() => {
+          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          if (!why) return null;
+          return (
+            <div className="mt-2">
+              <p className="text-[13px] text-slate leading-relaxed mb-2">
+                <span className="font-semibold text-steel">Context: </span>{why}
+              </p>
+              <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                Subscribe to see Analysis and Guidance →
+              </Link>
+            </div>
+          );
+        })()}
+
+        {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
         {tier === 'paid' && (() => {
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short;
           const impact = item.ai_summary?.compliance_impact;
           if (!why && !impact && !actionProse && !watchProse) return null;
+          const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              {why && <p className="text-[13px] text-slate leading-relaxed">{why}</p>}
+              {why && (
+                <p className="text-[13px] text-slate leading-relaxed">
+                  <span className="font-semibold text-gold">Analysis and Guidance: </span>{why}
+                </p>
+              )}
               {impact && <p className="text-[13px] text-slate leading-relaxed">{impact}</p>}
               {(actionProse || watchProse) && (
                 <p className="text-[13px] text-slate leading-relaxed">
@@ -448,6 +472,11 @@ const FullCard = ({
                   {watchProse && <span className="italic">{watchProse}</span>}
                 </p>
               )}
+              <div className="pt-2 border-t border-fog">
+                <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                  {toolCTA.label}
+                </Link>
+              </div>
             </div>
           );
         })()}
