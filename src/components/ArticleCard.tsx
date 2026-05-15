@@ -426,7 +426,7 @@ const FullCard = ({
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
-            <p className="text-sm text-slate leading-relaxed mt-2">
+            <p className="text-body text-slate mt-2">
               <span className="font-semibold text-warn">Alert: </span>{firstSentence}
             </p>
           );
