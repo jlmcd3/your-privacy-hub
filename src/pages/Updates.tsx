@@ -124,7 +124,6 @@ const Updates = () => {
     const { isPremium } = usePremiumStatus();
 
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
-    const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null);
 
     const activeRegion = searchParams.get("region") || "all";
     const activeTopic = searchParams.get("topic") || "all";
