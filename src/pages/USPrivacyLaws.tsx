@@ -237,7 +237,7 @@ const USPrivacyLaws = () => {
             Jump to Recent Developments →
           </span>
         </button>
-        <ResearchSynthesisBlock sectionKey="us__page" />
+        <ResearchSynthesisBlock sectionKey="us_privacy__page" />
       </div>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -292,7 +292,7 @@ const USPrivacyLaws = () => {
               </div>
             ))}
           </div>
-          <ResearchSynthesisBlock sectionKey="us__federal" />
+          <ResearchSynthesisBlock sectionKey="us_privacy__federal" />
         </div>
 
         {/* ── State Authority Directory ── */}
@@ -412,7 +412,7 @@ const USPrivacyLaws = () => {
               );
             })}
           </div>
-          <ResearchSynthesisBlock sectionKey="us__state" />
+          <ResearchSynthesisBlock sectionKey="us_privacy__state_directory" />
         </div>
 
         {/* ── Recent Developments ── */}
