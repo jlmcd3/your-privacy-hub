@@ -4,7 +4,7 @@ import SectionShell from "./SectionShell";
 export default function HomepageBriefSection() {
   return (
     <SectionShell
-      eyebrow="Weekly Intelligence Brief"
+      eyebrow="Weekly Privacy Intelligence Report"
       headline="Build a sample brief for your role"
       subline="Choose your jurisdiction, responsibilities, and topic tracks to preview the Monday brief format."
       ctaLabel="See plans →"

@@ -44,7 +44,8 @@ export default function SearchFirstHero() {
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/50 mb-1.5">
-                  Intelligence Brief
+                <p className="text-eyebrow text-white/50 mb-1.5">
+                  Intelligence Report
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Report — to save you time
