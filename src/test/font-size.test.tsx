@@ -66,8 +66,12 @@ beforeAll(() => {
   document.head.appendChild(style);
 });
 
-const fontSizePx = (el: Element) =>
-  parseFloat(window.getComputedStyle(el).fontSize || "0");
+const fontSizePx = (el: Element) => {
+  const raw = window.getComputedStyle(el).fontSize || "0";
+  const num = parseFloat(raw);
+  if (raw.endsWith("rem") || raw.endsWith("em")) return num * 16;
+  return num;
+};
 
 describe("semantic typography utilities", () => {
   const cases: Array<{ cls: string; expected: number; floor?: number }> = [
