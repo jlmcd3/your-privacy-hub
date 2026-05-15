@@ -104,6 +104,10 @@ export default {
         extrabold: "700",
         black: "800",
       },
+      fontSize: {
+        sm: ['15px', { lineHeight: '1.55' }],
+        base: ['17px', { lineHeight: '1.65' }],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
