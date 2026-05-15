@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -72,7 +72,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
-        <title>Log In | End User Privacy</title>
+        <title>Sign In | End User Privacy</title>
         <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
       <Navbar />
@@ -90,6 +90,7 @@ const Login = () => {
               '150+ jurisdictions covered',
               'Weekly digest — free',
               `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
+              `Compliance Platform with all tools — ${PLATFORM_PRICING.standard()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>

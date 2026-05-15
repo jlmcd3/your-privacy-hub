@@ -114,6 +114,30 @@ export default function DPAGenerator() {
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Custom DPA</h1>
           <p className="text-slate text-sm">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
+          {phase === "sample" && (() => {
+            const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];
+            let currentStep = 1;
+            if (form.controllerName.trim() && form.processorName.trim()) currentStep = 2;
+            if (currentStep === 2 && form.services.trim() && form.dataCategories.length > 0) currentStep = 3;
+            if (currentStep === 3 && acknowledged) currentStep = 4;
+            return (
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4].map(n => (
+                    <span
+                      key={n}
+                      className="inline-block rounded-full"
+                      style={{
+                        width: 8, height: 8,
+                        backgroundColor: n <= currentStep ? "hsl(var(--accent))" : "hsl(var(--border))",
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-meta text-slate-400">Step {currentStep} of 4 — {sectionNames[currentStep - 1]}</p>
+              </div>
+            );
+          })()}
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
