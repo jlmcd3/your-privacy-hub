@@ -480,7 +480,7 @@ const FullCard = ({
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-sm text-slate leading-relaxed">
+              <p className="text-body text-slate">
                 <span className="font-semibold text-gold">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}
