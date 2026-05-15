@@ -109,10 +109,17 @@ export default function HomepageToolsSection() {
     <SectionShell
       eyebrow="Compliance Toolkit"
       headline="Assessments and documents in a two-column catalogue"
-      subline={`Annual Platform includes every standard tool at ${PLATFORM_PRICING.standard()}.`}
+      subline={`Annual Platform includes every standard tool at ${PLATFORM_PRICING.standard()} — each calibrated against 3,700+ enforcement decisions.`}
       ctaLabel="Browse tools →"
       ctaHref="/tools"
     >
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-6 px-5 pt-5 text-meta text-slate-500">
+        <span>⚖️ 3,700+ enforcement decisions in training corpus</span>
+        <span className="hidden sm:inline text-gray-300">·</span>
+        <span>🌍 119 regulatory authorities monitored</span>
+        <span className="hidden sm:inline text-gray-300">·</span>
+        <span>📅 Updated with each regulatory development</span>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
         <ProductColumn label="Assessments" products={ASSESSMENTS} />
         <ProductColumn label="Compliance documents" products={DOCUMENTS} />
