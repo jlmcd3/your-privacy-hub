@@ -413,7 +413,7 @@ const Dashboard = () => {
               )}
 
               <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
-                <p className="text-sm text-slate">Get full intelligence for analysis, priorities, and action items.</p>
+                <p className="text-sm text-gray-700">Get full intelligence for analysis, priorities, and action items.</p>
                 <Link to="/subscribe" className="flex-shrink-0 text-meta font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
               </div>
             </div>
