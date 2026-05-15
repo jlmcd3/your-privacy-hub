@@ -93,19 +93,21 @@ export default function LegislationTracker() {
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
+        <ResearchPageHeader
+          eyebrow="Research · Privacy Legislation"
+          title="Privacy Legislation Tracker"
+          description="Privacy and data-protection bills tracked across major jurisdictions. Refreshed daily from official government sources (Congress.gov, UK Parliament, LEGISinfo, Câmara dos Deputados, EUR-Lex, and Parliament of Australia)."
+          lastUpdated={lastVerified ? formatDate(lastVerified) : undefined}
+          feedCategory="legislation"
+        />
         <AdBanner variant="leaderboard" className="mt-4" />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
-            📜 Legislation Status Tracker
-          </h1>
-          <p className="text-slate text-sm mb-3 max-w-2xl">
-            Privacy and data-protection bills tracked across major jurisdictions. Refreshed daily
-            from official government sources (Congress.gov, UK Parliament, LEGISinfo, Câmara dos
-            Deputados, EUR-Lex, and Parliament of Australia).
-          </p>
+          <div className="mb-8">
+            <ResearchSynthesisBlock sectionKey="legislation__page" />
+          </div>
+
           <div className="text-[11px] text-slate-light mb-6">
-            Last verified: <span className="font-mono">{formatDate(lastVerified)}</span> · Updated daily at 06:00 UTC ·
-            Bills not seen in their source for 60+ days are marked <span className="font-semibold">stale</span>.
+            Bills not seen in their source for 60+ days are marked <span className="font-semibold">stale</span>. Updated daily at 06:00 UTC.
           </div>
 
           <div className="flex flex-wrap gap-3 mb-6">
