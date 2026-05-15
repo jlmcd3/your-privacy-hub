@@ -55,6 +55,7 @@ const HomepageArticleCard = ({
   tierLabel,
   evenRow,
   demoTier,
+  isPremium,
 }: {
   article: ArticleItem;
   isSelected: boolean;
@@ -63,6 +64,7 @@ const HomepageArticleCard = ({
   evenRow?: boolean;
   /** undefined = authenticated user (no demo), 'anonymous'|'free'|'paid' = demo slot */
   demoTier?: "anonymous" | "free" | "paid";
+  isPremium?: boolean;
 }) => {
   const actionProse = (() => {
     const items = article.action_items ?? [];
@@ -162,7 +164,35 @@ const HomepageArticleCard = ({
       );
     }
 
-    // Authenticated (non-demo) — show excerpt + alert + context as default
+    // Authenticated (non-demo)
+    if (isPremium) {
+      const impact = article.ai_summary?.compliance_impact;
+      const toolCTA = getToolCTA(article);
+      return (
+        <div className="space-y-1.5">
+          {excerpt}
+          {alertNode}
+          {contextNode}
+          {(impact || actionProse || watchProse) && (
+            <p className="text-meta text-slate leading-relaxed">
+              <span className="font-semibold text-gold">Analysis and Guidance: </span>
+              {impact}
+              {impact && (actionProse || watchProse) && " "}
+              {actionProse}
+              {actionProse && watchProse && " "}
+              {watchProse && <span className="italic">{watchProse}</span>}
+            </p>
+          )}
+          <div className="pt-1.5 border-t border-fog">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
+              {toolCTA.label}
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    // Authenticated free user — show excerpt + alert + context
     return (
       <div>
         {excerpt}
@@ -401,6 +431,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
                 tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
                 evenRow={i % 2 === 1}
                 demoTier={!isAuthenticated ? DEMO_TIERS[i] : undefined}
+                isPremium={isPremium}
               />
             ));
           })()}
