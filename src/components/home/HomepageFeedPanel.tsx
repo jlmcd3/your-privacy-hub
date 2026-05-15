@@ -83,7 +83,7 @@ const HomepageArticleCard = ({
 
   const renderEnrichment = () => {
     const excerpt = article.summary ? (
-      <p className="text-meta text-gray-600 mt-1 line-clamp-2 leading-relaxed">
+      <p className="text-body text-gray-500 mt-1.5 line-clamp-2">
         {stripHtml(article.summary)}
       </p>
     ) : null;
@@ -91,7 +91,7 @@ const HomepageArticleCard = ({
     const shortWhy = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
     const sentence = shortWhy ? (shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy) : null;
     const alertNode = sentence ? (
-      <p className="text-meta text-gray-600 mt-1.5 leading-relaxed">
+      <p className="text-body mt-2" style={{ color: '#92400E' }}>
         <span className="font-semibold text-warn">Alert: </span>{sentence}
       </p>
     ) : null;
@@ -101,8 +101,8 @@ const HomepageArticleCard = ({
       article.why_it_matters_short ??
       article.ai_summary?.why_it_matters_short;
     const contextNode = why ? (
-      <p className="text-meta text-gray-600 mt-1.5 leading-relaxed">
-        <span className="font-semibold text-steel">Context: </span>{why}
+      <p className="text-body text-steel mt-2">
+        <span className="font-semibold">Context: </span>{why}
       </p>
     ) : null;
 
