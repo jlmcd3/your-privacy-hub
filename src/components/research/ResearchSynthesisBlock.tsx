@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Copy, Check, FlaskConical } from "lucide-react";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useSubscriberContext } from "@/hooks/useSubscriberContext";
+import { generateResearchInvestigationPrompt } from "@/lib/generateResearchInvestigationPrompt";
 
 interface ResearchSynthesisBlockProps {
   sectionKey: string;
@@ -11,13 +14,18 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
     synthesis_text: string;
     generated_at: string;
     article_count: number;
+    section_heading: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isPremium } = usePremiumStatus();
+  const { context: subscriberContext } = useSubscriberContext();
+  const [promptOpen, setPromptOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     supabase
       .from("research_syntheses")
-      .select("synthesis_text, generated_at, article_count")
+      .select("synthesis_text, generated_at, article_count, section_heading")
       .eq("section_key", sectionKey)
       .single()
       .then(({ data: row }) => {
@@ -35,6 +43,8 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
         year: "numeric",
       })
     : null;
+
+  const personalized = !!(subscriberContext?.role || subscriberContext?.industries?.length);
 
   return (
     <div
@@ -63,6 +73,80 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
           Updated {updatedDate}
           {data.article_count > 0 && ` · based on ${data.article_count} monitored sources`}
         </p>
+      )}
+
+      {/* Investigation prompt — paid subscribers only */}
+      {isPremium && (
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => setPromptOpen(!promptOpen)}
+            className="flex items-center gap-1.5 text-xs font-semibold hover:underline transition-colors"
+            style={{ color: "hsl(var(--cobalt))" }}
+          >
+            <FlaskConical className="w-3.5 h-3.5" />
+            Investigate further
+            {personalized && " — personalized for your profile"}
+            <span className={`transition-transform ${promptOpen ? "rotate-180" : ""}`}>▾</span>
+          </button>
+
+          {promptOpen && (() => {
+            const prompt = generateResearchInvestigationPrompt(
+              data.section_heading ?? sectionKey,
+              data.synthesis_text,
+              subscriberContext ?? {}
+            );
+            const handleCopy = async () => {
+              try {
+                await navigator.clipboard.writeText(prompt);
+              } catch {
+                const el = document.createElement("textarea");
+                el.value = prompt;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand("copy");
+                document.body.removeChild(el);
+              }
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            };
+            return (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-meta text-gray-500 flex-1">
+                    {personalized
+                      ? "Pre-loaded with your role and jurisdiction profile. Fill in the organization context before sending."
+                      : "Copy into Claude, ChatGPT, or any AI assistant. Fill in the organization context section before sending."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 flex-shrink-0"
+                    style={{ color: "hsl(var(--cobalt))" }}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3 h-3" /> Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" /> Copy prompt
+                      </>
+                    )}
+                  </button>
+                </div>
+                <pre className="text-meta whitespace-pre-wrap font-mono p-3 bg-white border border-gray-200 rounded text-gray-700 max-h-96 overflow-auto">
+                  {prompt}
+                </pre>
+                <p className="text-meta text-gray-400">
+                  {personalized
+                    ? "Personalized from your brief preferences · no additional AI call"
+                    : "Assembled from section intelligence · no additional AI call"}
+                </p>
+              </div>
+            );
+          })()}
+        </div>
       )}
     </div>
   );
