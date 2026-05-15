@@ -31,8 +31,8 @@ const PremiumBanner = () => {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (
-                <div key={f} className="flex items-start gap-2 text-[13px] text-white/80">
-                  <div className="w-4 h-4 rounded-full bg-accent/25 border border-accent/50 flex items-center justify-center text-[10px] text-accent-light flex-shrink-0 mt-0.5">✓</div>
+                <div key={f} className="flex items-start gap-2 text-sm text-white/80">
+                  <div className="w-4 h-4 rounded-full bg-accent/25 border border-accent/50 flex items-center justify-center text-[11px] text-accent-light flex-shrink-0 mt-0.5">✓</div>
                   {f}
                 </div>
               ))}
@@ -48,11 +48,11 @@ const PremiumBanner = () => {
           </div>
 
           <div className="relative z-10 bg-white/[0.06] border border-white/15 rounded-2xl p-6 md:p-7 text-center min-w-[180px] md:min-w-[200px]">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
+            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
               <sup className="text-[18px] md:text-[22px] align-super">$</sup>29
             </div>
-            <div className="text-[13px] text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
+            <div className="text-sm text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
             <div className="text-[11px] text-white/70 mb-2">{`or ${INTELLIGENCE_PRICING.yearly()} — Save $78`}</div>
             <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">
               First 25 subscribers: free for 1 year

@@ -102,7 +102,7 @@ export default function RegistrationMyFilings() {
                     <CardContent className="space-y-3">
                       <div className="flex flex-wrap gap-1">
                         {o.jurisdictions.map((j: string) => (
-                          <Badge key={j} variant="outline" className="text-[10px] font-mono">{j}</Badge>
+                          <Badge key={j} variant="outline" className="text-[11px] font-mono">{j}</Badge>
                         ))}
                       </div>
 

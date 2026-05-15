@@ -175,14 +175,14 @@ export default function LegislationTracker() {
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
                         {bill.bill_number && (
-                          <span className="font-mono text-[10px] text-slate-light">{bill.bill_number}</span>
+                          <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
                         )}
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
                           style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}>
                           {cfg.label}
                         </span>
                         {isStale && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
                             Stale
                           </span>
                         )}

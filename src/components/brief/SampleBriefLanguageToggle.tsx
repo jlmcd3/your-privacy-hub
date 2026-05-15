@@ -107,7 +107,7 @@ const SampleBriefLanguageToggle: React.FC<Props> = ({ englishContent, onLanguage
 
   return (
     <div className="mb-6">
-      <p className="text-[13px] text-slate mb-3">
+      <p className="text-sm text-slate mb-3">
         Intelligence subscribers receive this brief in their preferred language —
         accurate legal terminology, not generic translation. See for yourself:
       </p>

@@ -85,7 +85,7 @@ const USStateAuthorities = () => {
             <span
               key={f}
               onClick={() => setStatusFilter(f)}
-              className={`px-3.5 py-1.5 text-[12.5px] font-medium border rounded-full cursor-pointer transition-all ${
+              className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
                 statusFilter === f
                   ? "bg-navy text-white border-navy"
                   : "bg-card text-slate border-silver hover:bg-navy hover:text-white hover:border-navy"
@@ -101,7 +101,7 @@ const USStateAuthorities = () => {
         <div className="mb-4">
           <Link
             to="/compare/us-states"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
           >
             Compare enacted state laws side by side →
           </Link>
@@ -128,19 +128,19 @@ const USStateAuthorities = () => {
                   >
                     {state.state}
                   </Link>
-                  <div className="text-[10.5px] uppercase tracking-wider text-slate-light mt-0.5">
+                  <div className="text-[11px] uppercase tracking-wider text-slate-light mt-0.5">
                     {style.subtitle(state.effective_date)}
                   </div>
                 </div>
 
                 <div className="py-4 pr-4">
-                  <div className="text-[13px] font-semibold text-navy leading-snug">
+                  <div className="text-sm font-semibold text-navy leading-snug">
                     {state.authority_name}
                   </div>
-                  <div className="text-[11.5px] text-slate mt-0.5">{state.authority_type}</div>
+                  <div className="text-xs text-slate mt-0.5">{state.authority_type}</div>
                 </div>
 
-                <div className="py-4 pr-4 text-[13px] leading-snug">
+                <div className="py-4 pr-4 text-sm leading-snug">
                   {state.statute_name && state.statute_url ? (
                     <a
                       href={state.statute_url}
@@ -158,7 +158,7 @@ const USStateAuthorities = () => {
                 </div>
 
                 <div className="py-4 flex items-center">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded ${style.pill}`}>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded ${style.pill}`}>
                     {status}
                   </span>
                 </div>

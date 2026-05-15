@@ -229,7 +229,7 @@ const USPrivacyLaws = () => {
           onClick={() => scrollTo("recent-developments")}
           className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-sky/10 to-navy/5 border border-sky/30 hover:border-sky/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
         >
-          <span className="text-[13px] md:text-[14px] text-foreground font-bold">
+          <span className="text-sm md:text-[14px] text-foreground font-bold">
             See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
           <span className="text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
@@ -248,7 +248,7 @@ const USPrivacyLaws = () => {
           <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">
             U.S. Federal Privacy Authorities
           </h2>
-          <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             Federal regulators with privacy and data-protection enforcement authority
             across U.S. sectors. Each oversees a distinct slice of the privacy
             regulatory landscape.
@@ -265,11 +265,11 @@ const USPrivacyLaws = () => {
                     <div className="font-display text-[16px] md:text-[17px] leading-tight text-navy">
                       {a.name}
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
+                    <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
                       {a.abbr}
                     </span>
                   </div>
-                  <div className="text-[10.5px] uppercase tracking-wider text-slate-light mb-2">
+                  <div className="text-[11px] uppercase tracking-wider text-slate-light mb-2">
                     Federal regulator
                   </div>
                   <div className="text-[12px] text-slate mb-1.5">
@@ -301,7 +301,7 @@ const USPrivacyLaws = () => {
           <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">
             U.S. State Privacy Authority Directory
           </h2>
-          <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             Browse the enforcement authorities responsible for privacy regulation in
             every U.S. state and Washington, D.C. Use the search and status filters
             below to find specific states, statutes, or agencies.
@@ -316,7 +316,7 @@ const USPrivacyLaws = () => {
               <span
                 key={f}
                 onClick={() => setAuthStatusFilter(f)}
-                className={`px-3.5 py-1.5 text-[12.5px] font-medium border rounded-full cursor-pointer transition-all ${
+                className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
                   authStatusFilter === f
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card text-muted-foreground border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
@@ -334,7 +334,7 @@ const USPrivacyLaws = () => {
           <div className="mb-3">
             <Link
               to="/compare/us-states"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
             >
               Compare enacted state laws side by side →
             </Link>
@@ -362,18 +362,18 @@ const USPrivacyLaws = () => {
                         {state.state}
                       </Link>
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${style.pill}`}
+                        className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${style.pill}`}
                       >
                         {status}
                       </span>
                     </div>
-                    <div className="text-[10.5px] uppercase tracking-wider text-slate-light mb-2">
+                    <div className="text-[11px] uppercase tracking-wider text-slate-light mb-2">
                       {style.subtitle(state.effective_date)}
                     </div>
                     <div className="text-[12px] font-semibold text-navy leading-snug">
                       {state.authority_name}
                     </div>
-                    <div className="text-[11.5px] text-slate mt-0.5 mb-1.5">
+                    <div className="text-xs text-slate mt-0.5 mb-1.5">
                       {state.authority_type}
                     </div>
                     {state.statute_name && state.statute_url ? (
@@ -422,11 +422,11 @@ const USPrivacyLaws = () => {
               <h2 className="font-display text-xl text-navy">
                 Recent U.S. Privacy Developments
               </h2>
-              <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+              <span className="text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
                 Live
               </span>
             </div>
-            <p className="text-[13px] text-muted-foreground leading-relaxed mb-2">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-2">
               Stay current with the latest federal and state privacy actions,
               rulemakings, and enforcement updates.
             </p>
@@ -463,13 +463,13 @@ const USPrivacyLaws = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">
             ⭐ Intelligence
           </div>
           <h3 className="font-display text-xl text-white mb-3">
             Get weekly intelligence on U.S. Privacy Laws
           </h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
+          <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
             Intelligence subscribers receive a structured weekly brief covering every
             material development in this area — enforcement actions, regulatory
             guidance, and what it means for your compliance posture.

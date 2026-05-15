@@ -63,7 +63,7 @@ const AdBanner = ({
             data-full-width-responsive="true"
           />
         ) : (
-          <span className="text-[10px] uppercase tracking-widest text-slate/60">{label}</span>
+          <span className="text-[11px] uppercase tracking-widest text-slate/60">{label}</span>
         )}
       </div>
       {/* Mobile */}
@@ -81,7 +81,7 @@ const AdBanner = ({
             data-full-width-responsive="true"
           />
         ) : (
-          <span className="text-[10px] uppercase tracking-widest text-slate/60">{label}</span>
+          <span className="text-[11px] uppercase tracking-widest text-slate/60">{label}</span>
         )}
       </div>
     </div>

@@ -102,7 +102,7 @@ export default function SubscribeSuccess() {
           <div className="w-20 h-20 rounded-full bg-accent/10 border-2 border-accent/30 flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-accent" strokeWidth={2.5} />
           </div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">
             ⭐ Payment Confirmed
           </div>
           <h1 className="font-display font-bold text-navy text-[28px] md:text-[34px] mb-3 leading-tight">
@@ -112,7 +112,7 @@ export default function SubscribeSuccess() {
             {subheadline}
           </p>
           {isFoundingSubscriber && (
-            <p className="text-amber-700 text-[13px] font-semibold mt-3">
+            <p className="text-amber-700 text-sm font-semibold mt-3">
               Welcome, founding subscriber. Your rate is locked for life.
             </p>
           )}
@@ -139,7 +139,7 @@ export default function SubscribeSuccess() {
                   <div className="font-semibold text-navy text-[14px] mb-0.5">
                     {step.title}
                   </div>
-                  <p className="text-slate text-[13px] leading-relaxed">{step.body}</p>
+                  <p className="text-slate text-sm leading-relaxed">{step.body}</p>
                 </div>
               </div>
             ))}
@@ -149,7 +149,7 @@ export default function SubscribeSuccess() {
         {/* Upgrade nudge for monthly subscribers */}
         {isIntelligenceOnly && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
-            <p className="text-amber-800 text-[13px] font-medium">
+            <p className="text-amber-800 text-sm font-medium">
               Want all compliance tools included? Upgrade to the Annual Platform from your account settings — {PLATFORM_PRICING.standard()}.
             </p>
           </div>

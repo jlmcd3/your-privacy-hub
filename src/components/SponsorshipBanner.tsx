@@ -61,7 +61,7 @@ export default function SponsorshipBanner({
       data-sponsorship-placement={placement}
       aria-label={`${sponsor.label ?? "Sponsored by"} ${sponsor.sponsor_name}`}
     >
-      <span className="text-[10px] font-bold uppercase tracking-widest text-slate/70">
+      <span className="text-[11px] font-bold uppercase tracking-widest text-slate/70">
         {sponsor.label ?? "Sponsored by"}
       </span>
       {sponsor.logo_url ? (

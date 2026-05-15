@@ -182,7 +182,7 @@ export default function DashboardSubnav() {
                     // Disable NavLink's built-in active detection — we own it via `activeTo`.
                     end
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors no-underline whitespace-nowrap",
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline whitespace-nowrap",
                       active
                         ? "bg-navy text-white"
                         : "text-slate hover:bg-fog hover:text-navy",
@@ -202,7 +202,7 @@ export default function DashboardSubnav() {
             to="/account"
             end
             className={cn(
-              "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors no-underline",
+              "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline",
               accountActive
                 ? "bg-fog text-navy"
                 : "text-slate hover:bg-fog hover:text-navy",

@@ -55,7 +55,7 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
       <div className="flex items-start gap-2 mb-1.5">
         {urgencyConfig && (
           <span
-            className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border flex-shrink-0 ${urgencyConfig.color}`}
+            className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border flex-shrink-0 ${urgencyConfig.color}`}
           >
             <UrgencyIcon className="w-2.5 h-2.5" />
             {urgencyConfig.label}
@@ -154,7 +154,7 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
               </p>
               <div className="flex flex-wrap gap-1">
                 {summary.affected_sectors.map((s, i) => (
-                  <span key={i} className="text-[10px] font-medium bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                  <span key={i} className="text-[11px] font-medium bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
                     {s}
                   </span>
                 ))}
@@ -171,12 +171,12 @@ const AISummaryPanel = ({ summary, compact = false, isPremium = false }: AISumma
             )}
             <div className="flex items-center gap-2">
               {summary.risk_level && RISK_CONFIG[summary.risk_level] && (
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${RISK_CONFIG[summary.risk_level]}`}>
+                <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${RISK_CONFIG[summary.risk_level]}`}>
                   ⚠️ {summary.risk_level} risk
                 </span>
               )}
               {urgencyConfig && (
-                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${urgencyConfig.color}`}>
+                <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${urgencyConfig.color}`}>
                   <UrgencyIcon className="w-2.5 h-2.5" />
                   {summary.urgency}
                 </span>

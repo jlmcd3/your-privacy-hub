@@ -77,7 +77,7 @@ export default function ThisWeekInPrivacy() {
           <h2 className="font-display font-bold text-white text-[18px]">
             This Week in Privacy
           </h2>
-          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
+          <span className="text-[11px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {report.date}
           </span>
         </div>
@@ -89,7 +89,7 @@ export default function ThisWeekInPrivacy() {
         {trends.length > 0 && (
           <ul className="space-y-2 mb-4 list-none p-0 m-0">
             {trends.map((t, i) => (
-              <li key={i} className="flex gap-2 text-[13px] text-blue-100 leading-relaxed">
+              <li key={i} className="flex gap-2 text-sm text-blue-100 leading-relaxed">
                 <span className="text-amber-400 flex-shrink-0">•</span>
                 <span>
                   <strong className="text-white">{t.title}:</strong> {t.summary}
@@ -127,7 +127,7 @@ export default function ThisWeekInPrivacy() {
           This Week in Privacy
         </h2>
         {brief.week_label && (
-          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
+          <span className="text-[11px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {brief.week_label}
           </span>
         )}
@@ -140,7 +140,7 @@ export default function ThisWeekInPrivacy() {
       {bullets.length > 0 && (
         <ul className="space-y-2 mb-4 list-none p-0 m-0">
           {bullets.map((b, i) => (
-            <li key={i} className="flex gap-2 text-[13px] text-blue-100 leading-relaxed">
+            <li key={i} className="flex gap-2 text-sm text-blue-100 leading-relaxed">
               <span className="text-amber-400 flex-shrink-0">•</span>
               <span>{b}</span>
             </li>

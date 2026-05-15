@@ -64,7 +64,7 @@ const BreakingNewsBanner = () => {
           href={news.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white text-[13px] font-medium no-underline hover:underline break-words"
+          className="text-white text-sm font-medium no-underline hover:underline break-words"
         >
           {news.headline}
         </a>

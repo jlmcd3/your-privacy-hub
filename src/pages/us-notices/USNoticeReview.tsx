@@ -494,7 +494,7 @@ export default function USNoticeReview() {
                 <AccordionTrigger className="hover:no-underline">
                   <span className="flex items-center gap-2 text-left">
                     <span className="font-medium">{group.label}</span>
-                    <Badge variant="outline" className="text-[10px] font-mono">
+                    <Badge variant="outline" className="text-[11px] font-mono">
                       {group.items.length}
                     </Badge>
                   </span>

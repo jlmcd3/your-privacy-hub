@@ -52,7 +52,7 @@ export default function FeaturedBriefCard({
 
         {/* Meta row */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
             📋 Top Story
           </span>
           <span className="text-blue-300 text-[11px]">·</span>
@@ -64,7 +64,7 @@ export default function FeaturedBriefCard({
           {aiSummary?.urgency && aiSummary.urgency !== "Monitor" && (
             <>
               <span className="text-blue-300 text-[11px]">·</span>
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+              <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                 aiSummary.urgency === "Immediate"
                   ? "bg-red-900/40 text-red-300 border-red-700/40"
                   : "bg-amber-900/30 text-amber-300 border-amber-700/30"
@@ -95,7 +95,7 @@ export default function FeaturedBriefCard({
           </p>
         )}
 
-        <span className="inline-flex items-center gap-2 bg-white text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-all">
+        <span className="inline-flex items-center gap-2 bg-white text-navy font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-all">
           Read full analysis ↗
         </span>
 

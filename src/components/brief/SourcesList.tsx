@@ -22,7 +22,7 @@ export function SourcesList({ sourceMap, usedIn }: SourcesListProps) {
 
   return (
     <div className="mt-4 pt-3 border-t border-border/60">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
         Sources
       </p>
       <ol className="space-y-1.5 list-none p-0 m-0">
@@ -38,7 +38,7 @@ export function SourcesList({ sourceMap, usedIn }: SourcesListProps) {
               className="text-[12px] text-primary hover:text-foreground no-underline hover:underline transition-colors flex items-start gap-1 leading-snug"
             >
               <span className="flex-1">
-                <span className="text-muted-foreground text-[10px] font-medium mr-1">
+                <span className="text-muted-foreground text-[11px] font-medium mr-1">
                   {source}
                 </span>
                 {title.length > 90 ? title.substring(0, 87) + "…" : title}

@@ -173,7 +173,7 @@ export default function AdminLawUpdates() {
                     </p>
                   </div>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
+                    className={`text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
                       confidenceColor[c.confidence || "low"]
                     }`}
                   >
@@ -181,7 +181,7 @@ export default function AdminLawUpdates() {
                   </span>
                 </div>
                 {c.source_summary && (
-                  <p className="text-[13px] text-slate leading-relaxed mb-3">
+                  <p className="text-sm text-slate leading-relaxed mb-3">
                     {c.source_summary}
                   </p>
                 )}
@@ -227,7 +227,7 @@ export default function AdminLawUpdates() {
           </div>
         ) : (
           <div className="bg-card border border-fog rounded-xl overflow-hidden">
-            <table className="w-full text-[13px]">
+            <table className="w-full text-sm">
               <thead className="bg-fog/40 text-slate text-[11px] uppercase tracking-wider">
                 <tr>
                   <th className="text-left px-4 py-2">State</th>
@@ -244,7 +244,7 @@ export default function AdminLawUpdates() {
                     <td className="px-4 py-2 text-slate">{c.detected_law_name || "—"}</td>
                     <td className="px-4 py-2">
                       <span
-                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                        className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded ${
                           c.status === "confirmed"
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-slate-200 text-slate-700"

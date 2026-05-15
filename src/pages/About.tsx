@@ -39,7 +39,7 @@ const About = () => {
                 <div className="font-display text-[36px] md:text-[44px] font-bold text-navy leading-none mb-1">
                   {stat.value}
                 </div>
-                <div className="text-[13px] text-slate font-medium">{stat.label}</div>
+                <div className="text-sm text-slate font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -77,7 +77,7 @@ const About = () => {
                   <div className="font-display text-[28px] md:text-[36px] font-bold text-navy leading-none mb-2">
                     {item.stat}
                   </div>
-                  <div className="text-[13px] text-slate leading-snug">{item.label}</div>
+                  <div className="text-sm text-slate leading-snug">{item.label}</div>
                 </div>
               ))}
             </div>
@@ -149,7 +149,7 @@ const About = () => {
             </p>
             <h2 className="font-display text-[20px] text-navy mb-6">The alternative to expensive enterprise platforms</h2>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
+              <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-sm">
                 <thead>
                   <tr className="bg-fog">
                     <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />

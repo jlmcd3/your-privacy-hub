@@ -110,10 +110,10 @@ const TimelineDetail = () => {
                       <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
                         {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
-                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${color} text-white`}>
+                      <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full ${color} text-white`}>
                         {TYPE_LABELS[event.type] || event.type}
                       </span>
-                      {isFuture && <span className="text-[9px] font-bold text-muted-foreground uppercase">Upcoming</span>}
+                      {isFuture && <span className="text-[11px] font-bold text-muted-foreground uppercase">Upcoming</span>}
                     </div>
 
                     <h3 className="text-sm font-semibold text-foreground mb-1">{event.title}</h3>

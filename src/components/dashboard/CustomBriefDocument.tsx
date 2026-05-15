@@ -51,11 +51,11 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
       {!hideHeader && (
       <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-          <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
             ⭐ Your Personalized Brief — {customBrief.week_label}
           </span>
           {role && (
-            <span className="text-[10px] text-blue-200/80 capitalize" title="Role this brief was tailored for">
+            <span className="text-[11px] text-blue-200/80 capitalize" title="Role this brief was tailored for">
               For: {role}
             </span>
           )}
@@ -72,20 +72,20 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
           >
             {criteriaGroups.map(group => (
               <div key={group.label} className="flex items-start gap-2 flex-wrap">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400/90 mt-0.5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400/90 mt-0.5">
                   {group.label}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {group.visible.map(item => (
                     <span
                       key={item}
-                      className="text-[10px] text-white bg-white/10 border border-white/15 px-2 py-0.5 rounded-full"
+                      className="text-[11px] text-white bg-white/10 border border-white/15 px-2 py-0.5 rounded-full"
                     >
                       {item}
                     </span>
                   ))}
                   {group.extra > 0 && (
-                    <span className="text-[10px] text-blue-200/80 px-1 py-0.5">
+                    <span className="text-[11px] text-blue-200/80 px-1 py-0.5">
                       +{group.extra} more
                     </span>
                   )}
@@ -104,7 +104,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
                 ? "bg-blue-50 border-l-4 border-blue-400"
                 : "bg-red-50 border-l-4 border-red-400"
             }`}>
-              <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${
+              <p className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${
                 sections.your_critical_alert.startsWith("Monitor week") ? "text-blue-600" : "text-red-700"
               }`}>
                 {sections.your_critical_alert.startsWith("Monitor week")
@@ -173,8 +173,8 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
         {sections.what_to_ignore && (
           <section className="py-5">
             <div className="bg-slate-50 rounded-lg px-4 py-3 border-l-2 border-slate-300">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">📭 What to deprioritize this week</h3>
-              <div className="text-[13px] text-slate-500 leading-relaxed">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">📭 What to deprioritize this week</h3>
+              <div className="text-sm text-slate-500 leading-relaxed">
                 <CitedParagraphs content={sections.what_to_ignore} sourceMap={sourceMap} />
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
                     </span>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           item.priority === "Immediate"
                             ? "bg-red-500/20 text-red-300 border border-red-400/30"
                             : item.priority?.includes("quarter")
@@ -226,8 +226,8 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
         {sections.look_ahead && (
           <section className="py-5">
             <div className="bg-amber-50 rounded-lg px-4 py-3 border-l-2 border-amber-400">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-2">📅 Coming Up</h3>
-              <div className="text-[13px] text-amber-800 leading-relaxed">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-amber-700 mb-2">📅 Coming Up</h3>
+              <div className="text-sm text-amber-800 leading-relaxed">
                 <CitedParagraphs content={sections.look_ahead} sourceMap={sourceMap} />
               </div>
             </div>

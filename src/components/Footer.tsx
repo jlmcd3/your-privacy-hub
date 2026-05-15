@@ -11,14 +11,14 @@ const Footer = () => {
               <img src="/logo.png" alt="End User Privacy" className="h-7 w-auto" />
               <span className="font-display font-bold text-white text-[15px]">End User Privacy</span>
             </div>
-            <p className="text-[13px] leading-relaxed mb-5">
+            <p className="text-sm leading-relaxed mb-5">
               Global privacy regulatory intelligence for professionals. Monitoring 119 authorities across 150+ jurisdictions, automatically.
             </p>
             <div className="flex gap-2">
-              <a href="https://www.linkedin.com/company/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="https://www.linkedin.com/company/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-sm hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 in
               </a>
-              <a href="https://x.com/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-[13px] hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <a href="https://x.com/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light text-sm hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 𝕏
               </a>
               <a href="mailto:contact@enduserprivacy.com" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-slate-light hover:bg-white/[0.12] hover:text-white transition-all no-underline">
@@ -38,14 +38,14 @@ const Footer = () => {
               { label: "Enforcement", href: "/category/enforcement" },
               { label: "AI & Privacy", href: "/category/ai-privacy" },
             ].map((l) => (
-              <Link key={l.label} to={l.href} className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
+              <Link key={l.label} to={l.href} className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
             ))}
           </div>
 
           <div>
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Directories</h4>
-            <Link to="/us-privacy-laws#state-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">U.S. State Authorities</Link>
-            <Link to="/global-privacy-authorities" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Global DPA Directory</Link>
+            <Link to="/us-privacy-laws#state-authorities" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">U.S. State Authorities</Link>
+            <Link to="/global-privacy-authorities" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">Global DPA Directory</Link>
           </div>
 
           <div>
@@ -56,23 +56,23 @@ const Footer = () => {
               { label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
               { label: "Global Privacy Laws", href: "/global-privacy-laws" },
             ].map((l) => (
-              <Link key={l.label} to={l.href} className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
+              <Link key={l.label} to={l.href} className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
             ))}
           </div>
 
           <div>
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Intelligence</h4>
-            <Link to="/about" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">About</Link>
-            <Link to="/subscribe" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Intelligence Plan</Link>
-            <Link to="/horizon" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Forecast Intelligence</Link>
-            <Link to="/enforcement" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
-            <Link to="/faq" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">FAQ</Link>
-            <Link to="/#brief" className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Privacy Intelligence Report</Link>
+            <Link to="/about" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">About</Link>
+            <Link to="/subscribe" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">Intelligence Plan</Link>
+            <Link to="/horizon" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Forecast Intelligence</Link>
+            <Link to="/enforcement" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">Enforcement Tracker</Link>
+            <Link to="/faq" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">FAQ</Link>
+            <Link to="/#brief" className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">Sample Privacy Intelligence Report</Link>
           </div>
 
           <div>
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Compliance Tools</h4>
-            <Link to="/tools" className="block text-[13px] font-semibold text-white mb-3 hover:text-amber-300 transition-colors no-underline">
+            <Link to="/tools" className="block text-sm font-semibold text-white mb-3 hover:text-amber-300 transition-colors no-underline">
               See all tools →
             </Link>
             {[
@@ -87,7 +87,7 @@ const Footer = () => {
               { label: "CPPA Scope Checker", href: "/cppa-scope-checker" },
               { label: "Registration Manager", href: "/registration-manager" },
             ].map((l) => (
-              <Link key={l.label} to={l.href} className="block text-[13px] text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
+              <Link key={l.label} to={l.href} className="block text-sm text-slate-light mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
             ))}
           </div>
         </div>

@@ -103,7 +103,7 @@ export default function IRPlaybook() {
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-[18px]">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
-            <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-[12px] text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
             <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
           </div>
@@ -116,24 +116,24 @@ export default function IRPlaybook() {
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="font-display font-bold text-navy text-[18px]">Incident details</h2>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Date & time of discovery</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Date & time of discovery</span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Apparent cause</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Apparent cause</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>
-            <fieldset className="text-[13px]"><legend className="font-semibold text-navy">Data types affected</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-navy">Data types affected</legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{DATA_TYPES.map(d => <label key={d} className="flex items-center gap-2 text-[12px]">
                 <input type="checkbox" checked={form.dataTypes.includes(d)} onChange={() => toggle("dataTypes", d)} />{d}</label>)}</div></fieldset>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Affected individuals</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Affected individuals</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
-            <fieldset className="text-[13px]"><legend className="font-semibold text-navy">Jurisdictions</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-navy">Jurisdictions</legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{JURS.map(j => <label key={j} className="flex items-center gap-2 text-[12px]">
                 <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div></fieldset>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Contained?</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Contained?</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.contained} onChange={e => setForm(f => ({ ...f, contained: e.target.value }))}>
                 <option>Yes</option><option>No</option><option>Unknown</option></select></label>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Organisation type</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organisationType} onChange={e => setForm(f => ({ ...f, organisationType: e.target.value }))}>
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />

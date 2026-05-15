@@ -47,7 +47,7 @@ export function IntelligencePanel({
     return (
       <div className="bg-card border border-fog rounded-xl overflow-hidden">
         <div className="bg-navy px-4 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gold mb-0.5">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-gold mb-0.5">
             Privacy Intelligence Brief
           </p>
           <h3 className="font-display text-[17px] font-bold text-white leading-snug">
@@ -78,7 +78,7 @@ export function IntelligencePanel({
     return (
       <div className="bg-card border border-fog rounded-xl p-6 text-center">
         <Newspaper className="w-8 h-8 text-slate/30 mx-auto mb-3" />
-        <p className="text-[13px] font-medium text-navy mb-1">
+        <p className="text-sm font-medium text-navy mb-1">
           Select an article
         </p>
         <p className="text-[12px] text-slate leading-relaxed">
@@ -96,12 +96,12 @@ export function IntelligencePanel({
     <div className="pb-3 mb-3 border-b border-fog">
       <div className="flex flex-wrap items-center gap-1.5 mb-2">
         {selectedArticle.source_name && (
-          <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
+          <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
             {selectedArticle.source_name}
           </span>
         )}
         {selectedArticle.published_at && (
-          <span className="text-[10px] text-slate-light">
+          <span className="text-[11px] text-slate-light">
             {fmtDate(selectedArticle.published_at)}
           </span>
         )}
@@ -111,7 +111,7 @@ export function IntelligencePanel({
           </span>
         )}
         {selectedArticle.attention_level === "WATCH CLOSELY" && (
-          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
+          <span className="text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
             Watch Closely
           </span>
         )}
@@ -144,9 +144,9 @@ export function IntelligencePanel({
       <div className="bg-card border border-fog rounded-xl p-4">
         <ArticleHeader />
         {why ? (
-          <p className="text-[13px] text-slate leading-relaxed mb-3">{why}</p>
+          <p className="text-sm text-slate leading-relaxed mb-3">{why}</p>
         ) : (
-          <p className="text-[13px] text-slate/50 italic mb-3">
+          <p className="text-sm text-slate/50 italic mb-3">
             Analysis not yet available for this article.
           </p>
         )}
@@ -176,20 +176,20 @@ export function IntelligencePanel({
       <ArticleHeader />
       <div className="space-y-2.5">
         {why && (
-          <p className="text-[13px] text-slate leading-relaxed">{why}</p>
+          <p className="text-sm text-slate leading-relaxed">{why}</p>
         )}
         {impact && (
-          <p className="text-[13px] text-slate leading-relaxed">{impact}</p>
+          <p className="text-sm text-slate leading-relaxed">{impact}</p>
         )}
         {(actionProse || watchProse) && (
-          <p className="text-[13px] text-slate leading-relaxed">
+          <p className="text-sm text-slate leading-relaxed">
             {actionProse}
             {actionProse && watchProse && " "}
             {watchProse && <span className="italic">{watchProse}</span>}
           </p>
         )}
         {!why && !impact && !actionProse && !watchProse && (
-          <p className="text-[13px] text-slate/50 italic">
+          <p className="text-sm text-slate/50 italic">
             Full analysis not yet available for this article.
           </p>
         )}

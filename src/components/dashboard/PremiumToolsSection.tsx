@@ -196,7 +196,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               <h3 className="font-display font-bold text-foreground text-[15px] leading-snug mb-2">
                 {tool.title}
               </h3>
-              <p className="text-muted-foreground text-[13px] leading-relaxed flex-1 mb-4">
+              <p className="text-muted-foreground text-sm leading-relaxed flex-1 mb-4">
                 {tool.description}
               </p>
               <div className="mb-3">
@@ -215,7 +215,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               </div>
               <Link
                 to={tool.href}
-                className="inline-flex items-center justify-center bg-navy text-white font-semibold text-[13px] py-2.5 px-4 rounded-xl no-underline hover:opacity-90 transition-all"
+                className="inline-flex items-center justify-center bg-navy text-white font-semibold text-sm py-2.5 px-4 rounded-xl no-underline hover:opacity-90 transition-all"
               >
                 {tool.cta} →
               </Link>
@@ -239,9 +239,9 @@ export default function PremiumToolsSection({ isPremium }: Props) {
           )}
         </div>
         {!loaded ? (
-          <p className="text-[13px] text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : recent.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             No reports yet. Preview a sample and purchase above.
           </p>
         ) : (
@@ -257,7 +257,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
                   >
                     {TYPE_LABEL[row.type]}
                   </span>
-                  <span className="text-[13px] text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     {new Date(row.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -283,7 +283,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
                   )}
                   <Link
                     to={`${TYPE_HREF[row.type]}/${row.id}`}
-                    className="text-[13px] font-semibold text-primary hover:underline no-underline"
+                    className="text-sm font-semibold text-primary hover:underline no-underline"
                   >
                     View →
                   </Link>

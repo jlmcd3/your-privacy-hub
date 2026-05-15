@@ -266,7 +266,7 @@ export default function BriefPreferences() {
               <p className="font-display font-bold text-[18px] mb-1">
                 Set your preferences to get your first Privacy Intelligence Report
               </p>
-              <p className="text-blue-200 text-[13px]">
+              <p className="text-blue-200 text-sm">
                 Your Privacy Intelligence Report is written specifically for your industry and jurisdictions. The form below takes 60 seconds
                 — your first Privacy Intelligence Report arrives Monday.
               </p>

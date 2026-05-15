@@ -302,7 +302,7 @@ export default function EnforcementActionDetail() {
         <Card className="mb-8 border-amber-200 bg-amber-50/60">
           <CardContent className="p-5 flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-800 mb-1">
+              <div className="text-[11px] font-bold uppercase tracking-widest text-amber-800 mb-1">
                 Avoid this category of risk
               </div>
               <h3 className="font-semibold text-navy text-base mb-1">

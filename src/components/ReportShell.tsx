@@ -61,7 +61,7 @@ export default function ReportShell({
 
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sky">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-sky">
               Compliance Tool · Customised Analysis
             </p>
             <h1 className="font-display text-[22px] sm:text-[26px] leading-tight text-white mt-1">
@@ -103,7 +103,7 @@ export default function ReportShell({
         <div className="pt-2">
           <Link
             to={backHref}
-            className="inline-flex items-center text-[13px] text-slate hover:text-navy no-underline"
+            className="inline-flex items-center text-sm text-slate hover:text-navy no-underline"
           >
             {backLabel}
           </Link>

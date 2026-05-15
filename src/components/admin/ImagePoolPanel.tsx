@@ -156,7 +156,7 @@ export default function ImagePoolPanel() {
                   <div className="text-[11px] text-muted-foreground truncate">
                     {p.category} · {p.query}
                   </div>
-                  <div className="text-[10px] text-muted-foreground truncate mb-2">
+                  <div className="text-[11px] text-muted-foreground truncate mb-2">
                     © {p.photographer_name || "Unsplash"}
                   </div>
                   <div className="flex gap-1">

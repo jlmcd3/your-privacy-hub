@@ -42,11 +42,11 @@ export default function ToolSampleOverlay({
       {/* Overlay */}
       <div className="absolute inset-0 flex items-center justify-center bg-background/65 backdrop-blur-[2px]">
         <div className="text-center px-6 py-6 max-w-sm">
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-3">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mb-3">
             <Lock className="w-3 h-3" />
             Premium Tool
           </span>
-          <p className="text-[13px] text-muted-foreground leading-snug mb-4">{toolName} — full output above</p>
+          <p className="text-sm text-muted-foreground leading-snug mb-4">{toolName} — full output above</p>
           <button
             onClick={onPurchase}
             type="button"

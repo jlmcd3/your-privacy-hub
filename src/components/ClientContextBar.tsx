@@ -46,7 +46,7 @@ export default function ClientContextBar() {
   return (
     <div className={`w-full ${bandClass}`}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between">
-        <div className="text-[13px] text-navy/80 flex items-center gap-1.5 min-w-0">
+        <div className="text-sm text-navy/80 flex items-center gap-1.5 min-w-0">
           <Icon className="w-3.5 h-3.5 shrink-0" />
           <span className="shrink-0">{labelText}:</span>
           <span className="font-semibold text-navy truncate">
@@ -57,7 +57,7 @@ export default function ClientContextBar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="text-[13px] font-medium text-navy/80 hover:text-navy bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
+            className="text-sm font-medium text-navy/80 hover:text-navy bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
           >
             Switch <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -65,7 +65,7 @@ export default function ClientContextBar() {
             <div className="absolute right-0 top-full mt-1 z-50 min-w-[260px] bg-card border border-fog rounded-md shadow-eup-md py-1">
               {personal && (
                 <>
-                  <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate">
+                  <div className="px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate">
                     Personal
                   </div>
                   <WorkspaceRow
@@ -80,7 +80,7 @@ export default function ClientContextBar() {
                   <div className="my-1 border-t border-fog" />
                 </>
               )}
-              <div className="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate">
+              <div className="px-3 pt-1 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate">
                 Clients
               </div>
               {clients.map((c) => (
@@ -118,7 +118,7 @@ function WorkspaceRow({
     <button
       type="button"
       onClick={onSelect}
-      className="w-full flex items-center justify-between px-3 py-2 text-[13px] text-navy hover:bg-fog bg-transparent border-none cursor-pointer text-left"
+      className="w-full flex items-center justify-between px-3 py-2 text-sm text-navy hover:bg-fog bg-transparent border-none cursor-pointer text-left"
     >
       <span className="flex items-center gap-2 min-w-0">
         {icon}

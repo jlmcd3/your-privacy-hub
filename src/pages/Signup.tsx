@@ -92,19 +92,19 @@ const Signup = () => {
             </p>
 
             {message && (
-              <div className="mb-5 p-3 rounded-lg bg-accent/10 border border-accent/30 text-accent text-[13px] text-center">
+              <div className="mb-5 p-3 rounded-lg bg-accent/10 border border-accent/30 text-accent text-sm text-center">
                 {message}
               </div>
             )}
             {error && (
-              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
+              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
                 <input
                   type="email"
                   required
@@ -119,7 +119,7 @@ const Signup = () => {
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -152,7 +152,7 @@ const Signup = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[13px] text-navy leading-snug">
+                <p className="text-sm text-navy leading-snug">
                   I agree to the{" "}
                   <Link to="/terms" className="font-bold underline text-blue hover:text-steel">
                     Terms of Service
@@ -163,7 +163,7 @@ const Signup = () => {
                   </Link>
                   .
                 </p>
-                <label className="flex items-start gap-2 cursor-pointer text-[13px] text-navy">
+                <label className="flex items-start gap-2 cursor-pointer text-sm text-navy">
                   <input
                     type="checkbox"
                     required
@@ -184,7 +184,7 @@ const Signup = () => {
               </button>
             </form>
 
-            <p className="text-[13px] text-slate text-center mt-6">
+            <p className="text-sm text-slate text-center mt-6">
               Already have an account?{" "}
               <Link
                 to={`/login?redirect=${encodeURIComponent(redirect)}`}

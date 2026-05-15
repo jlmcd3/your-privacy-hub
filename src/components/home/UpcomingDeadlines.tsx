@@ -56,7 +56,7 @@ export default function UpcomingDeadlines() {
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3">
         📅 Upcoming Deadlines
       </p>
       <div className="space-y-3">
@@ -83,9 +83,9 @@ export default function UpcomingDeadlines() {
                   {d.title}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <p className="text-muted-foreground text-[10px]">{d.jurisdiction}</p>
+                  <p className="text-muted-foreground text-[11px]">{d.jurisdiction}</p>
                   {d.source === "db" && (
-                    <span className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                    <span className="text-[11px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                       From feed
                     </span>
                   )}

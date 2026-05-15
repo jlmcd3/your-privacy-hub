@@ -179,13 +179,13 @@ export default function ProToolsBanner() {
                     {t.title}
                   </h3>
                 </div>
-                <p className="text-blue-100/85 text-[13px] leading-relaxed mb-3 flex-1">
+                <p className="text-blue-100/85 text-sm leading-relaxed mb-3 flex-1">
                   {t.blurb}
                 </p>
                 <p className="text-[11px] uppercase tracking-wide text-blue-200/70 mb-3">
                   {t.price}
                 </p>
-                <span className="inline-flex items-center text-amber-300 group-hover:text-amber-200 font-semibold text-[13px]">
+                <span className="inline-flex items-center text-amber-300 group-hover:text-amber-200 font-semibold text-sm">
                   {t.cta} <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </Link>

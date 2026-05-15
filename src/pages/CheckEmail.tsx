@@ -25,7 +25,7 @@ export default function CheckEmail() {
           ) : (
             <p className="text-slate text-[14px] mb-5">your registered email address</p>
           )}
-          <p className="text-slate text-[13px] leading-relaxed mb-7">
+          <p className="text-slate text-sm leading-relaxed mb-7">
             Click the link in that email to confirm your account and proceed to checkout.
             The link expires in 24 hours.
           </p>
@@ -41,7 +41,7 @@ export default function CheckEmail() {
 
           <Link
             to={`/login?redirect=${encodeURIComponent("/onboarding-profile")}`}
-            className="block text-center text-[13px] text-blue hover:text-navy no-underline"
+            className="block text-center text-sm text-blue hover:text-navy no-underline"
           >
             Already confirmed? Sign in →
           </Link>

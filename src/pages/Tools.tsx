@@ -77,7 +77,7 @@ const SECTION_HEADERS: Record<ToolSection, {
       label: "text-red-800",
       title: "text-red-950",
       note: "text-red-700",
-      noteBg: "bg-red-100 px-2 py-0.5 rounded text-[10px] font-semibold",
+      noteBg: "bg-red-100 px-2 py-0.5 rounded text-[11px] font-semibold",
       border: "border-t-red-600",
     },
   },
@@ -485,11 +485,11 @@ export default function Tools() {
             <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
               <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">{d.title}</h3>
-              <p className="text-slate text-[13px] leading-relaxed">{d.body}</p>
+              <p className="text-slate text-sm leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-fog" />
               <ul className="space-y-1.5">
                 {d.checks.map((c) => (
-                  <li key={c} className="flex gap-2 text-[12.5px] text-slate leading-snug">
+                  <li key={c} className="flex gap-2 text-xs text-slate leading-snug">
                     <span className={`${d.checkColor} font-bold flex-shrink-0`}>✓</span>
                     <span>{c}</span>
                   </li>
@@ -516,7 +516,7 @@ export default function Tools() {
                       </svg>
                     </div>
                     <div>
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${hdr.colors.label} mb-0.5`}>
+                      <p className={`text-[11px] font-bold uppercase tracking-widest ${hdr.colors.label} mb-0.5`}>
                         {hdr.label}
                       </p>
                       <p className={`text-[15px] font-semibold ${hdr.colors.title}`}>
@@ -571,7 +571,7 @@ export default function Tools() {
                     <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
                     <p className="text-slate text-[14px]">{tool.tagline}</p>
                     {tool.freeBadge && (
-                      <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                      <span className="inline-block mt-1.5 text-[11px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                         ✓ {tool.freeBadge}
                       </span>
                     )}
@@ -597,11 +597,11 @@ export default function Tools() {
                   <div className="flex gap-4 flex-wrap mt-6">
                     <button
                       onClick={() => setSampleModal(tool.slug)}
-                      className="text-[13px] font-semibold text-primary border border-primary/30 px-5 py-2.5 rounded-xl hover:bg-primary/5 transition-all bg-transparent cursor-pointer"
+                      className="text-sm font-semibold text-primary border border-primary/30 px-5 py-2.5 rounded-xl hover:bg-primary/5 transition-all bg-transparent cursor-pointer"
                     >
                       See a sample output →
                     </button>
-                    <Link to={tool.href} className="text-[13px] font-semibold text-white bg-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                    <Link to={tool.href} className="text-sm font-semibold text-white bg-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
                       Open tool →
                     </Link>
                   </div>
@@ -625,7 +625,7 @@ export default function Tools() {
             {PRICING_GRID.map(([name, price]) => (
               <div key={name} className="bg-white/10 rounded-xl px-3 py-2.5 text-left">
                 <p className="text-white/70 text-[11px] mb-0.5">{name}</p>
-                <p className="text-white font-bold text-[13px]">{price}</p>
+                <p className="text-white font-bold text-sm">{price}</p>
               </div>
             ))}
           </div>
@@ -650,7 +650,7 @@ export default function Tools() {
           >
             <div className="bg-navy px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Sample Output</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Sample Output</p>
                 <p className="text-white font-semibold text-[15px]">{activeTool.name}</p>
               </div>
               <button
@@ -667,8 +667,8 @@ export default function Tools() {
               </p>
               {activeTool.sampleSections.map((section, i) => (
                 <div key={i} className="bg-muted/40 rounded-xl p-4 border border-border">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">{section.label}</p>
-                  <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">{section.label}</p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
                 </div>
               ))}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
@@ -683,14 +683,14 @@ export default function Tools() {
                 <Link
                   to={activeTool.href}
                   onClick={() => setSampleModal(null)}
-                  className="flex-1 text-center bg-navy text-white font-semibold text-[13px] py-3 rounded-xl hover:opacity-90 transition-all no-underline"
+                  className="flex-1 text-center bg-navy text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-all no-underline"
                 >
                   Open {activeTool.name} →
                 </Link>
                 <Link
                   to="/subscribe"
                   onClick={() => setSampleModal(null)}
-                  className="flex-1 text-center border border-primary/30 text-primary font-semibold text-[13px] py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
+                  className="flex-1 text-center border border-primary/30 text-primary font-semibold text-sm py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
                 >
                   See Annual Platform →
                 </Link>

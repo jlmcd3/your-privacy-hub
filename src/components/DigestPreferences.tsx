@@ -83,7 +83,7 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
           <h3 className="font-display font-bold text-foreground text-[18px] mb-1">
             Customize your weekly digest
           </h3>
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Pick up to 2 regions and 2 topics. We'll send you filtered updates every Monday.
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
                 key={r.key}
                 type="button"
                 onClick={() => toggleRegion(r.key)}
-                className={`text-[13px] px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
+                className={`text-sm px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
                   sel
                     ? "bg-navy text-white border-navy"
                     : "bg-white text-slate border-fog hover:border-navy/30"
@@ -131,7 +131,7 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
                 key={t.key}
                 type="button"
                 onClick={() => toggleTopic(t.key)}
-                className={`text-[13px] px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
+                className={`text-sm px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
                   sel
                     ? "bg-navy text-white border-navy"
                     : "bg-white text-slate border-fog hover:border-navy/30"

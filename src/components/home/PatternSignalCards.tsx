@@ -54,7 +54,7 @@ export default function PatternSignalCards() {
           Enforcement Pattern Signals
         </h3>
         {reportDate && (
-          <span className="text-[10px] text-slate bg-fog px-2 py-0.5 rounded-full">
+          <span className="text-[11px] text-slate bg-fog px-2 py-0.5 rounded-full">
             {new Date(reportDate).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -75,7 +75,7 @@ export default function PatternSignalCards() {
             >
               <div className="flex items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${colorClass}`}
+                  className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${colorClass}`}
                 >
                   <Icon className="w-3 h-3" />
                   {strength}
@@ -92,7 +92,7 @@ export default function PatternSignalCards() {
                   {p.sectors_targeted.slice(0, 3).map((s) => (
                     <span
                       key={s}
-                      className="text-[10px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded"
+                      className="text-[11px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded"
                     >
                       {s}
                     </span>

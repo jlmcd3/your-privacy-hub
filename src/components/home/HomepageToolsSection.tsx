@@ -82,7 +82,7 @@ const DOCUMENTS: Product[] = [
 function ProductColumn({ label, products }: { label: string; products: Product[] }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--cobalt))] mb-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-[hsl(var(--cobalt))] mb-3">
         {label}
       </p>
       <ul className="space-y-2">

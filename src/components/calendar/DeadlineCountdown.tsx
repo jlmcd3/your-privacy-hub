@@ -89,19 +89,19 @@ export default function DeadlineCountdown() {
               <div className={`flex-shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center text-center font-bold ${style.badge}`}>
                 <span className="text-lg leading-none">{style.text}</span>
                 {d.days >= 0 && (
-                  <span className="text-[9px] uppercase tracking-wide opacity-80 mt-0.5">left</span>
+                  <span className="text-[11px] uppercase tracking-wide opacity-80 mt-0.5">left</span>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-base flag-emoji">{d.flag}</span>
-                  <span className="text-[10px] font-bold text-slate uppercase tracking-wider">{d.jurisdiction}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-fog rounded-full text-slate-light capitalize">
+                  <span className="text-[11px] font-bold text-slate uppercase tracking-wider">{d.jurisdiction}</span>
+                  <span className="text-[11px] px-1.5 py-0.5 bg-fog rounded-full text-slate-light capitalize">
                     {d.type.replace(/_/g, " ")}
                   </span>
                 </div>
-                <div className="font-bold text-navy text-[13px] leading-snug">{d.title}</div>
+                <div className="font-bold text-navy text-sm leading-snug">{d.title}</div>
                 <div className="text-slate text-[11px] mt-0.5 leading-snug line-clamp-1">{d.description}</div>
               </div>
 

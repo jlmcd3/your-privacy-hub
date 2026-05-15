@@ -114,7 +114,7 @@ const Subscribe = () => {
           <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
             {/* Intelligence Feed card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-sky mb-2">
                 Privacy Intelligence Feed
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
@@ -128,18 +128,18 @@ const Subscribe = () => {
                   "Jurisdiction monitoring",
                   "All reference content",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                  <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
                   </li>
                 ))}
-                <li className="flex items-start gap-2 text-[13px] text-blue-300">
+                <li className="flex items-start gap-2 text-sm text-blue-300">
                   <span className="text-blue-400 font-bold">—</span> Compliance tools not included
                 </li>
               </ul>
               <button
                 onClick={() => startCheckout("month")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-[13px] font-bold bg-white text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-sm font-bold bg-white text-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start for {INTELLIGENCE_PRICING.monthlyShort()} →
               </button>
@@ -147,7 +147,7 @@ const Subscribe = () => {
 
             {/* Compliance Platform card */}
             <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-300 mb-2">
                 Compliance Platform
               </p>
               <div className="flex items-baseline gap-2 mb-1">
@@ -170,7 +170,7 @@ const Subscribe = () => {
                   "IR Playbook & Biometric Checker",
                   "Your documents saved permanently",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                  <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
                   </li>
                 ))}
@@ -178,7 +178,7 @@ const Subscribe = () => {
               <button
                 onClick={() => startCheckout("year")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-[13px] font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start Platform — {PLATFORM_PRICING.standard()} →
               </button>
@@ -195,7 +195,7 @@ const Subscribe = () => {
 
       {/* Registration Manager mention */}
       <div className="bg-white border-b border-fog py-4 px-4">
-        <div className="max-w-[720px] mx-auto text-center text-[13px] text-slate">
+        <div className="max-w-[720px] mx-auto text-center text-sm text-slate">
           Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
           <Link
             to="/registration-manager"
@@ -215,7 +215,7 @@ const Subscribe = () => {
               <p className="font-bold text-navy text-[14px] mb-0.5">
                 Your Intelligence Report is configured and ready.
               </p>
-              <p className="text-[13px] text-slate">
+              <p className="text-sm text-slate">
                 {[bJurisdiction, bIndustry, ...bTopics.slice(0, 2)].filter(Boolean).join(" · ")}. Subscribe to receive it.
               </p>
             </div>
@@ -228,7 +228,7 @@ const Subscribe = () => {
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             See what your report would look like
           </h2>
-          <p className="text-slate text-[13px]">
+          <p className="text-slate text-sm">
             Pick your jurisdiction, role, and topics. We'll build a sample report showing the depth and format you receive every Monday.
           </p>
         </div>
@@ -265,7 +265,7 @@ const Subscribe = () => {
                         <tr key={i} className="bg-navy/5">
                           <td
                             colSpan={4}
-                            className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-navy/60 border-t border-fog"
+                            className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-navy/60 border-t border-fog"
                           >
                             {row.feature}
                           </td>
@@ -292,7 +292,7 @@ const Subscribe = () => {
                     const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
                     return (
                       <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                        <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{dataRow.feature}</td>
+                        <td className="px-5 py-3 text-sm text-navy border-t border-fog">{dataRow.feature}</td>
                         <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.free, "free")}</td>
                         <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.intel, "intel")}</td>
                         <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.platform, "platform")}</td>
@@ -392,7 +392,7 @@ const Subscribe = () => {
                   <div key={item.name} className="flex items-start gap-2.5">
                     <div className={`w-3 h-3 rounded-sm flex-shrink-0 mt-1 ${item.color}`} />
                     <div>
-                      <p className={`text-[13px] font-semibold leading-snug mb-0.5 ${item.nameClass}`}>
+                      <p className={`text-sm font-semibold leading-snug mb-0.5 ${item.nameClass}`}>
                         {item.name}
                       </p>
                       <p className="text-[12px] text-slate leading-relaxed">{item.desc}</p>
@@ -405,13 +405,13 @@ const Subscribe = () => {
 
           {/* EUP highlight card */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 mb-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
             <h3 className="font-display text-[16px] text-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
-            <p className="text-[13px] text-slate leading-relaxed">
+            <p className="text-sm text-slate leading-relaxed">
               Our tools monitor 119 regulatory authorities daily, synthesise every development,
               and tell you what it means for your specific work — automatically, every week.
               Plus the compliance documents to act on it.
@@ -420,7 +420,7 @@ const Subscribe = () => {
 
           {/* Body copy card */}
           <div className="bg-card border border-fog rounded-2xl px-6 py-5 mb-5">
-            <p className="text-[13px] text-slate leading-relaxed mb-4">
+            <p className="text-sm text-slate leading-relaxed mb-4">
               The privacy professional's toolkit has four well-established categories, each
               with excellent tools. Legal research databases give you access to the primary
               source when you need to read the statute. Compliance management platforms handle
@@ -429,7 +429,7 @@ const Subscribe = () => {
               correctly.
             </p>
             <div className="h-px bg-fog my-4" />
-            <p className="text-[13px] text-slate leading-relaxed">
+            <p className="text-sm text-slate leading-relaxed">
               Our tools monitor what is happening across the regulatory landscape
               automatically, synthesise it, and tell you what it means for your specific work.
             </p>
@@ -437,7 +437,7 @@ const Subscribe = () => {
 
           {/* Closing quote */}
           <div className="border-l-[3px] border-amber-500 bg-card border border-fog rounded-r-xl px-5 py-4">
-            <p className="text-[13px] text-slate leading-relaxed italic">
+            <p className="text-sm text-slate leading-relaxed italic">
               "End User Privacy is the monitoring and intelligence layer you add once, and
               then stop having to think about — working alongside the professional tools you
               already rely on."
@@ -445,7 +445,7 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {error && <p className="text-center text-warn text-[13px] mt-6">{error}</p>}
+        {error && <p className="text-center text-warn text-sm mt-6">{error}</p>}
 
         {/* Free digest signup */}
         <FreeDigestSignup source="website" className="mt-10" />

@@ -118,7 +118,7 @@ const RegulatorPage = () => {
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-sky font-display">{regulator.abbreviation}</p>}
           {regulator.legislation && (
-            <p className="text-blue-200 text-[13px] mt-1">
+            <p className="text-blue-200 text-sm mt-1">
               Primary legislation: {regulator.legislation}
               {regulator.legislation_abbreviation ? ` (${regulator.legislation_abbreviation})` : ''}
             </p>
@@ -126,7 +126,7 @@ const RegulatorPage = () => {
           <p className="text-sm text-slate-light mt-2">{regulator.country}{regulator.region && regulator.region !== regulator.country ? ` · ${regulator.region}` : ''}</p>
           {regulator.website && (
             <a href={regulator.website} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sky text-[13px] no-underline hover:text-white transition-colors mt-2">
+              className="inline-flex items-center gap-1 text-sky text-sm no-underline hover:text-white transition-colors mt-2">
               Official website →
             </a>
           )}
@@ -165,9 +165,9 @@ const RegulatorPage = () => {
           <div className="border-t border-fog p-5">
             <div className="text-[11px] font-semibold tracking-wider uppercase text-slate mb-3">Links</div>
             <div className="flex gap-4 flex-wrap">
-              <a href={regulator.website} target="_blank" rel="noopener noreferrer" className="text-[13px] text-blue hover:underline no-underline font-medium">Official Website ↗</a>
+              <a href={regulator.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue hover:underline no-underline font-medium">Official Website ↗</a>
               {regulator.complaint_portal && (
-                <a href={regulator.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[13px] text-blue hover:underline no-underline font-medium">Complaint / Enforcement Portal ↗</a>
+                <a href={regulator.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-sm text-blue hover:underline no-underline font-medium">Complaint / Enforcement Portal ↗</a>
               )}
             </div>
           </div>
@@ -182,7 +182,7 @@ const RegulatorPage = () => {
             {/* Header */}
             <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
+                <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">
                   ⭐ Weekly Intelligence
                 </div>
                 <h3 className="font-display text-[15px] text-white">
@@ -222,10 +222,10 @@ const RegulatorPage = () => {
 
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[1px]">
                 <Lock className="w-5 h-5 text-navy/40 mb-2" />
-                <p className="text-[13px] font-semibold text-navy mb-1 text-center px-4">
+                <p className="text-sm font-semibold text-navy mb-1 text-center px-4">
                   Intelligence subscribers get weekly intelligence for every regulator they follow.
                 </p>
-                <p className="text-[11.5px] text-slate text-center px-6 mb-4">
+                <p className="text-xs text-slate text-center px-6 mb-4">
                   Enforcement actions, guidance updates, and what each development means — every Monday.
                 </p>
                 <Link to="/subscribe" className="px-5 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg no-underline hover:opacity-90 transition-all shadow-eup-sm">
@@ -262,7 +262,7 @@ const RegulatorPage = () => {
                       {new Date(article.published_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
                     </span>
                   </div>
-                  <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors">
+                  <p className="text-sm font-semibold text-navy leading-snug group-hover:text-blue transition-colors">
                     {article.title}
                   </p>
                   {article.ai_summary?.why_it_matters && (
@@ -275,7 +275,7 @@ const RegulatorPage = () => {
             </div>
             <a
               href={'/updates?q=' + encodeURIComponent(regulator?.abbreviation || regulator?.name || '')}
-              className="block mt-4 text-[13px] font-semibold text-blue no-underline hover:text-navy transition-colors"
+              className="block mt-4 text-sm font-semibold text-blue no-underline hover:text-navy transition-colors"
             >
               See all developments →
             </a>
@@ -286,16 +286,16 @@ const RegulatorPage = () => {
         <div className="border-t border-fog pt-8 mt-8">
           <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+            <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium">
               <span className="text-blue">→</span> {regulator.country} Jurisdiction Page
             </Link>
-            <Link to="/global-privacy-authorities" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+            <Link to="/global-privacy-authorities" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium">
               <span className="text-blue">→</span> Global Authority Directory
             </Link>
-            <Link to="/enforcement-tracker" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+            <Link to="/enforcement-tracker" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium">
               <span className="text-blue">→</span> Enforcement Tracker
             </Link>
-            <Link to="/gdpr-enforcement" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium">
+            <Link to="/gdpr-enforcement" className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium">
               <span className="text-blue">→</span> GDPR Enforcement
             </Link>
           </div>

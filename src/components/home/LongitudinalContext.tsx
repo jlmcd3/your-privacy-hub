@@ -75,7 +75,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
             {signal.period_days}-Day Context: {topicLabel}
           </h3>
         </div>
-        <span className="text-[10px] text-slate bg-fog px-2 py-0.5 rounded-full">
+        <span className="text-[11px] text-slate bg-fog px-2 py-0.5 rounded-full">
           {new Date(signal.period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           {" – "}
           {new Date(signal.period_end).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -84,7 +84,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
 
       {/* Summary */}
       {signal.summary && (
-        <p className="text-[13px] text-slate leading-relaxed mb-4">
+        <p className="text-sm text-slate leading-relaxed mb-4">
           {signal.summary}
         </p>
       )}
@@ -127,7 +127,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
           </div>
         )}
         {signal.article_count && (
-          <span className="text-[10px] text-slate-light ml-auto">
+          <span className="text-[11px] text-slate-light ml-auto">
             Based on {signal.article_count} articles
           </span>
         )}

@@ -366,7 +366,7 @@ export default function USNoticeHome() {
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <Badge variant={status.tone}>{status.label}</Badge>
                         {s.is_refresh && (
-                          <Badge variant="outline" className="text-[10px]">
+                          <Badge variant="outline" className="text-[11px]">
                             Refresh
                           </Badge>
                         )}
