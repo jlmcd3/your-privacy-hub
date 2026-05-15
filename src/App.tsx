@@ -68,6 +68,7 @@ import TestUSNotice from "./pages/admin/TestUSNotice";
 import TestEUNotice from "./pages/admin/TestEUNotice";
 import TestRegistration from "./pages/admin/TestRegistration";
 import TestBrief from "./pages/admin/TestBrief";
+import CronStatus from "./pages/admin/CronStatus";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -346,6 +347,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <AdminPricingReconciliation />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/cron-status"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CronStatus />
                   </AdminOnly>
                 </ProtectedRoute>
               }
