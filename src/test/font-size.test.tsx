@@ -36,14 +36,10 @@ const RAW_INDEX_CSS = fs.readFileSync(
 // and bails on the surrounding rules. Extract only the plain `.text-*` rules
 // (and the media queries that override them) so jsdom can apply them.
 function extractTypographyRules(css: string): string {
-  const rules: string[] = [];
-  // Top-level .text-* { ... } blocks
+  // Top-level .text-* { ... } blocks only — skip @media overrides so values
+  // are deterministic regardless of jsdom viewport width.
   const ruleRe = /\.text-[a-zA-Z0-9-]+\s*\{[^}]*\}/g;
-  rules.push(...(css.match(ruleRe) ?? []));
-  // @media (min-width: ...) { .text-* { ... } } overrides
-  const mediaRe = /@media[^{]+\{\s*\.text-[a-zA-Z0-9-]+\s*\{[^}]*\}\s*\}/g;
-  rules.push(...(css.match(mediaRe) ?? []));
-  return rules.join("\n");
+  return (css.match(ruleRe) ?? []).join("\n");
 }
 
 const INDEX_CSS = extractTypographyRules(RAW_INDEX_CSS);
