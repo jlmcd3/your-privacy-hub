@@ -42,7 +42,7 @@ const LOCATION_FILTERS = [
   { key: "us-federal", label: "U.S. Federal" },
   { key: "us-states", label: "U.S. States" },
   { key: "eu-uk", label: "EU & UK" },
-  { key: "global", label: "Global" },
+  { key: "global", label: "Rest of World" },
 ];
 
 interface TopicFilter {
