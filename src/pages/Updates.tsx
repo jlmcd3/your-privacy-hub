@@ -565,33 +565,19 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* Newsfeed — minimal cards; enrichment lives in the right-column IntelligencePanel */}
+                {/* Newsfeed — full cards with inline tier-appropriate enrichment */}
                 <div>
                     <TieredFeed
-                        articles={articlesForPanel}
+                        articles={articlesForFeed}
                         paginated={true}
-                        seeAllHref="/updates"
-                        showSeeAll={false}
                         hasMore={hasMore}
                         onLoadMore={handleLoadMore}
                         isLoadingMore={loadingMore}
-                        selectedArticle={panelArticle}
-                        onSelectArticle={setSelectedArticle}
-                        panelMode={true}
                     />
                 </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
                 </div>
-
-                {/* Right column: Intelligence panel — desktop only, sticky */}
-                <aside className="hidden md:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
-                    <IntelligencePanel
-                        selectedArticle={panelArticle}
-                        isPremium={isPremium}
-                        isAuthenticated={!!user}
-                    />
-                </aside>
             </div>
 
             <Footer />
