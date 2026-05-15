@@ -83,6 +83,82 @@ const About = () => {
             </div>
           </div>
 
+          <section className="max-w-3xl mx-auto px-6 py-10 border-t border-gray-100 mb-12 md:mb-16">
+            <p className="text-eyebrow text-slate-400 mb-2">Why End User Privacy</p>
+            <h2 className="font-display text-2xl text-navy mb-8">
+              Built differently from every other privacy information source.
+            </h2>
+
+            <div className="space-y-8">
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">⚖️</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Enforcement-calibrated, not statute-summarising
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Most privacy resources describe what the law says.
+                    We calibrate our analysis against 3,700+ real enforcement
+                    decisions — what regulators actually penalise, in practice,
+                    across 119 authorities. There is a material difference between
+                    statutory text and enforcement reality. Our tools and
+                    intelligence reflect that difference.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">🤖</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Intelligence, not aggregation
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Every development that passes through the platform is enriched
+                    with three layers of AI analysis: an alert identifying the
+                    regulatory risk, context explaining what it means, and analysis
+                    with specific operational guidance. The result is not a link to
+                    a press release — it is a briefing you can act on.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">🛠️</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Intelligence and compliance tools in one platform
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    The privacy tools most professionals use — LIAs, DPIAs, DPA
+                    generators, IR playbooks — are sold separately by specialist
+                    vendors at significant cost. We include ten enforcement-calibrated
+                    compliance tools with the Annual Platform at $399/year. The
+                    intelligence that informs the tools and the tools themselves
+                    live in the same place.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">🎯</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Personalised to your professional context
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Your weekly Privacy Intelligence Report is generated
+                    specifically for your role (DPO, privacy counsel, CISO,
+                    compliance lead), your jurisdictions, and your tracked topics.
+                    The platform knows whether you work in healthcare, financial
+                    services, or AdTech — and surfaces the enforcement patterns
+                    and guidance that are relevant to you, not to everyone.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Contact callout */}
           <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 md:p-8 mb-12 md:mb-16">
             <p className="text-[15px] text-navy leading-relaxed">
