@@ -156,6 +156,9 @@ const HomepageArticleCard = ({
               {watchProse && <span className="italic">{watchProse}</span>}
             </p>
           )}
+          <p className="text-eyebrow mt-4 mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
+            ⭐ Platform feature preview
+          </p>
           <InvestigationPrompt item={article} />
           <div className="pt-1.5 border-t border-fog">
             <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
