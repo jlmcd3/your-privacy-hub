@@ -38,7 +38,7 @@ interface Update {
 const PAGE_SIZE = 50;
 
 const LOCATION_FILTERS = [
-  { key: "all", label: "All Updates" },
+  { key: "all", label: "All" },
   { key: "us-federal", label: "U.S. Federal" },
   { key: "us-states", label: "U.S. States" },
   { key: "eu-uk", label: "EU & UK" },
@@ -365,9 +365,8 @@ const Updates = () => {
             {/* Jurisdiction subnav (pill style) */}
             <div className="border-b border-border bg-card">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-                    <div className="flex items-center gap-2 overflow-x-auto">
-                        <span className="text-eyebrow text-muted-foreground whitespace-nowrap mr-1">Jurisdiction</span>
-                        {LOCATION_FILTERS.map((f) => {
+                    <div className="flex items-center gap-3 overflow-x-auto">
+                        {LOCATION_FILTERS.filter((f) => f.key === "all").map((f) => {
                             const isActive = activeRegion === f.key;
                             return (
                                 <button
@@ -383,6 +382,23 @@ const Updates = () => {
                                     {f.key === "all" && updates.length > 0 && (
                                         <span className="ml-1.5 text-[11px] opacity-70">{updates.length}</span>
                                     )}
+                                </button>
+                            );
+                        })}
+                        <span className="text-eyebrow text-muted-foreground whitespace-nowrap">Jurisdiction</span>
+                        {LOCATION_FILTERS.filter((f) => f.key !== "all").map((f) => {
+                            const isActive = activeRegion === f.key;
+                            return (
+                                <button
+                                    key={f.key}
+                                    onClick={() => selectRegion(f.key)}
+                                    className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
+                                        isActive
+                                            ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
+                                            : "text-slate hover:text-foreground"
+                                    }`}
+                                >
+                                    {f.label}
                                 </button>
                             );
                         })}
