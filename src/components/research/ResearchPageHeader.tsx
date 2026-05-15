@@ -61,11 +61,6 @@ export function ResearchPageHeader({
         )}
 
         <div className="flex flex-wrap items-center gap-4">
-          {lastUpdated && (
-            <p className="text-meta" style={{ color: "hsl(var(--slate-light))" }}>
-              Reference updated: {lastUpdated}
-            </p>
-          )}
           {feedCategory && (
             <Link
               to={`/updates?category=${feedCategory}`}
