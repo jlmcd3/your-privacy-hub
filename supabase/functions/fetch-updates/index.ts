@@ -819,6 +819,25 @@ function assignTopicTags(title: string, description: string): string[] {
   return tags;
 }
 
+// Hosts that serve auto-generated headline-card images (text overlaid on a
+// branded template). We treat these as no-image so a real fallback is used.
+const TEMPLATED_IMAGE_HOSTS = [
+  "images.bannerbear.com",
+  "bannerbear.com",
+  "og-image.vercel.app",
+  "dynamic-og-image-generator.vercel.app",
+];
+
+function isTemplatedImage(imageUrl: string | null): boolean {
+  if (!imageUrl) return false;
+  try {
+    const host = new URL(imageUrl).hostname.toLowerCase();
+    return TEMPLATED_IMAGE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 async function extractOgImage(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
@@ -829,11 +848,14 @@ async function extractOgImage(url: string): Promise<string | null> {
     const match =
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    return match ? match[1] : null;
+    const imageUrl = match ? match[1] : null;
+    if (isTemplatedImage(imageUrl)) return null;
+    return imageUrl;
   } catch {
     return null;
   }
 }
+
 
 function stripHtml(html: string): string {
   return html
