@@ -380,9 +380,6 @@ const Updates = () => {
                                     }`}
                                 >
                                     {f.label}
-                                    {f.key === "all" && updates.length > 0 && (
-                                        <span className="ml-1.5 text-[11px] opacity-70">{updates.length}</span>
-                                    )}
                                 </button>
                             );
                         })}
