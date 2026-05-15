@@ -440,7 +440,7 @@ const Updates = () => {
                 </div>
 
                 {hasJurisdictionOrTopic && (
-                    <div className="mb-3 flex items-center gap-2 text-[12px]">
+                    <div className="mb-3 flex items-center gap-2 text-xs">
                         <span className="text-muted-foreground">{filtered.length} updates</span>
                         <button
                             onClick={clearAllFilters}
