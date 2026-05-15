@@ -546,11 +546,11 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
     >
       <div className="flex-1 min-w-0">
         <Link to={`/updates/${item.id}`}
-          className="text-sm font-semibold text-navy hover:text-blue no-underline leading-snug block">
+          className="text-sm font-semibold text-gray-900 hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </Link>
         {item.summary && (
-          <p className="text-xs text-slate leading-snug mt-1 line-clamp-2">
+          <p className="text-xs text-gray-600 leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -604,11 +604,11 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               </span>
             )}
           </div>
-          <p className="text-sm font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          <p className="text-sm font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
             {normalizeTitle(item.title)}
           </p>
           {item.summary && (
-            <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
           )}
         </div>
       </Link>
@@ -681,9 +681,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
+            <p className="text-[14px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
-              <p className="text-xs text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
             )}
           </div>
         </div>
@@ -699,7 +699,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             >
               Why it matters
             </p>
-            <p className="text-[12px] text-navy leading-relaxed">{stripHtml(s.why_it_matters)}</p>
+            <p className="text-sm text-gray-800 leading-relaxed">{stripHtml(s.why_it_matters)}</p>
           </div>
         )}
 
@@ -760,7 +760,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-sm font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+          className="text-sm font-semibold text-gray-900 hover:text-blue leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}
@@ -768,7 +768,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         {(() => {
           const s = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           return s ? (
-            <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">{s}</p>
           ) : null;
         })()}
       </div>
