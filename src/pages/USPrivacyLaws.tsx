@@ -11,6 +11,7 @@ import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import usStatesRaw from "@/data/us_state_privacy_authorities.json";
 import { useStateLawOverrides, applyOverride } from "@/hooks/useStateLawOverrides";
+import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisBlock";
 
 const RELATED_LINKS = [
   { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
@@ -236,6 +237,7 @@ const USPrivacyLaws = () => {
             Jump to Recent Developments →
           </span>
         </button>
+        <ResearchSynthesisBlock sectionKey="us__page" />
       </div>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -290,6 +292,7 @@ const USPrivacyLaws = () => {
               </div>
             ))}
           </div>
+          <ResearchSynthesisBlock sectionKey="us__federal" />
         </div>
 
         {/* ── State Authority Directory ── */}
@@ -409,6 +412,7 @@ const USPrivacyLaws = () => {
               );
             })}
           </div>
+          <ResearchSynthesisBlock sectionKey="us__state" />
         </div>
 
         {/* ── Recent Developments ── */}
