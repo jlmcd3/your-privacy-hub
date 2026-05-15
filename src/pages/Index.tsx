@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
+import AdBanner from "@/components/AdBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
 import HomepageFeedSection from "@/components/home/HomepageFeedSection";
@@ -32,6 +33,7 @@ const Index = () => (
     </div>
 
     <HomepagePricingStrip />
+    <AdBanner variant="leaderboard" className="mt-8 mb-4" />
     <Footer />
   </div>
 );

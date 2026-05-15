@@ -361,6 +361,8 @@ export default function Enforcement() {
           </p>
         </header>
 
+        <AdBanner variant="leaderboard" className="my-4" />
+
         {/* View toggle */}
         <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border pb-3">
           <button
