@@ -366,27 +366,8 @@ const Updates = () => {
             <div className="border-b border-border bg-card">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
                     <div className="flex items-center gap-3 overflow-x-auto">
-                        {LOCATION_FILTERS.filter((f) => f.key === "all").map((f) => {
-                            const isActive = activeRegion === f.key;
-                            return (
-                                <button
-                                    key={f.key}
-                                    onClick={() => selectRegion(f.key)}
-                                    className={
-                                        isActive
-                                            ? "bg-navy text-white rounded-full px-4 py-1.5 text-sm font-medium cursor-pointer border border-navy whitespace-nowrap"
-                                            : "border border-fog bg-transparent text-slate hover:bg-fog rounded-full px-4 py-1.5 text-sm font-medium cursor-pointer transition-colors whitespace-nowrap"
-                                    }
-                                >
-                                    {f.label}
-                                    {f.key === "all" && updates.length > 0 && (
-                                        <span className="ml-1.5 text-[11px] opacity-70">{updates.length}</span>
-                                    )}
-                                </button>
-                            );
-                        })}
                         <span className="text-eyebrow text-muted-foreground whitespace-nowrap">Jurisdiction</span>
-                        {LOCATION_FILTERS.filter((f) => f.key !== "all").map((f) => {
+                        {LOCATION_FILTERS.map((f) => {
                             const isActive = activeRegion === f.key;
                             return (
                                 <button
@@ -399,6 +380,9 @@ const Updates = () => {
                                     }`}
                                 >
                                     {f.label}
+                                    {f.key === "all" && updates.length > 0 && (
+                                        <span className="ml-1.5 text-[11px] opacity-70">{updates.length}</span>
+                                    )}
                                 </button>
                             );
                         })}
