@@ -2,7 +2,7 @@ import { ArticleItem } from '@/components/ArticleCard';
 
 export function generateInvestigationPrompt(item: ArticleItem): string {
   // ── Context fields ───────────────────────────────────────
-  const jurisdictions = (item.direct_jurisdictions ?? []).join(', ') || null;
+  const jurisdictions = item.jurisdiction || null;
   const sectors       = (item.affected_sectors ?? []).slice(0, 3).join(', ') || null;
   const legalWeight   = item.ai_summary?.legal_weight || null;
   const impact        = item.ai_summary?.compliance_impact
