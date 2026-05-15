@@ -1,6 +1,4 @@
-# TEMPORARY: all crawlers allowed for testing window.
-# Revert the `User-agent: *` block to `Disallow: /` when testing is complete.
 User-agent: *
-Allow: /
+Disallow: /
 
 Sitemap: https://enduserprivacy.com/sitemap.xml
