@@ -147,7 +147,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           {(impact || actionProse || watchProse) && (
-            <p className="text-meta text-gray-600 leading-relaxed">
+            <p className="text-body mt-2" style={{ color: '#78350F' }}>
               <span className="font-semibold text-gold">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
@@ -176,7 +176,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           {(impact || actionProse || watchProse) && (
-            <p className="text-meta text-gray-600 leading-relaxed">
+            <p className="text-body mt-2" style={{ color: '#78350F' }}>
               <span className="font-semibold text-gold">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
