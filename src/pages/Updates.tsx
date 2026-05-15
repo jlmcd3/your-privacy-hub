@@ -324,13 +324,11 @@ const Updates = () => {
 
     const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
 
-    const articlesForPanel = filtered.map((a) => ({
+    const articlesForFeed = filtered.map((a) => ({
         ...a,
         source_url: (a as any).source_url || a.url,
         jurisdiction: a.direct_jurisdictions?.[0] ?? a.affected_jurisdictions?.[0] ?? null,
     } as unknown as ArticleItem));
-
-    const panelArticle = selectedArticle ?? articlesForPanel[0] ?? null;
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
