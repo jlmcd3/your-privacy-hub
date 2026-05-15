@@ -1,37 +1,6 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Slurp
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Baiduspider
-Allow: /
-
-User-agent: YandexBot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: LinkedInBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
+# TEMPORARY: all crawlers allowed for testing window.
+# Revert the `User-agent: *` block to `Disallow: /` when testing is complete.
 User-agent: *
-Disallow: /
+Allow: /
 
 Sitemap: https://enduserprivacy.com/sitemap.xml
