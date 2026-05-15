@@ -397,8 +397,8 @@ const Dashboard = () => {
                           <span className="text-meta text-slate-light">·</span>
                           <span className="text-meta text-slate-light">{item.source_name}</span>
                         </div>
-                        <p className="text-sm font-semibold text-navy leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
-                        {item.summary && <p className="text-meta text-slate leading-relaxed line-clamp-2">{item.summary}</p>}
+                        <p className="text-card-title text-gray-900 leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
+                        {item.summary && <p className="text-meta text-gray-700 leading-relaxed line-clamp-2">{item.summary}</p>}
                       </div>
                       <span className="text-slate-light text-lg flex-shrink-0 mt-0.5">→</span>
                     </a>
