@@ -373,16 +373,16 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
   return (
     <section className={embedded ? "px-5 py-5" : "max-w-[1280px] mx-auto px-4 md:px-8 py-10"}>
       <div className="mb-5">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate/60 mb-1">
+        <p className="text-eyebrow text-slate/60 mb-1">
           Today's regulatory developments
         </p>
-        <h2 className="font-display text-[22px] font-bold text-navy">
+        <h2 className="text-section-h2 text-navy">
           {isAuthenticated
             ? "Today's intelligence"
             : "What you see — and what you're missing"}
         </h2>
         {!isAuthenticated && (
-          <p className="text-sm text-slate mt-1">
+          <p className="text-base text-slate mt-1">
             Three levels of intelligence. Register free for the second. Subscribe for the third.
           </p>
         )}
