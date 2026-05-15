@@ -1,45 +1,65 @@
 /**
- * ADVERTISING POLICY — enduserprivacy.com FRD v2.1 §8.3
- *
- * 1. Ads are shown to free and unregistered users only. Intelligence subscribers see no ads.
- * 2. All ads served here MUST be contextual and non-behavioural.
- *    No user browsing data from this platform may be used for
- *    ad targeting or shared with ad networks.
+ * InFeedAd — renders between article items in the feed.
+ * Same policy as AdBanner: paid subscribers see nothing.
  */
-
-import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { ADSENSE_CONFIG } from '@/config/ads';
 
 interface InFeedAdProps {
+  /** Legacy props — accepted for backwards compatibility, ignored. */
   adSlot?: string;
   googleAdClient?: string;
   googleAdSlot?: string;
 }
 
-export default function InFeedAd({ adSlot, googleAdClient, googleAdSlot }: InFeedAdProps) {
-  const { isPremium } = usePremiumStatus();
-  if (isPremium) return null;
+export default function InFeedAd(_props: InFeedAdProps = {}) {
+  const { isPremium, isLoading } = usePremiumStatus();
+  const location = useLocation();
+  const insRef = useRef<HTMLModElement | null>(null);
+
+  useEffect(() => {
+    if (!ADSENSE_CONFIG.enabled) return;
+    if (isPremium) return;
+    try {
+      if (insRef.current && insRef.current.getAttribute('data-adsbygoogle-status') !== 'done') {
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      }
+    } catch (_) {}
+  }, [location.pathname, isPremium]);
+
+  if (isLoading || isPremium) return null;
+
+  if (!ADSENSE_CONFIG.enabled) {
+    return (
+      <div
+        className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-3"
+        style={{ minHeight: 90 }}
+        aria-label="Advertisement placeholder"
+      >
+        <span className="text-meta uppercase tracking-widest text-slate/60">
+          Ad · In-feed
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-3"
-      style={{ minHeight: 90 }}
-      data-ad-slot={adSlot}
+      className="flex items-center justify-center my-3"
       aria-label="Advertisement"
     >
-      {googleAdClient && googleAdSlot ? (
-        <ins
-          className="adsbygoogle"
-          style={{ display: "block", width: "100%", height: 90 }}
-          data-ad-client={googleAdClient}
-          data-ad-slot={googleAdSlot}
-          data-ad-format="fluid"
-          data-ad-layout="in-article"
-        />
-      ) : (
-        <span className="text-[11px] uppercase tracking-widest text-slate/60">
-          Advertisement
-        </span>
-      )}
+      <ins
+        ref={insRef as any}
+        className="adsbygoogle"
+        style={{ display: 'block', width: '100%' }}
+        data-ad-client={ADSENSE_CONFIG.pubId}
+        data-ad-slot={ADSENSE_CONFIG.slots.inFeed}
+        data-ad-format="fluid"
+        data-ad-layout="in-article"
+        data-adtest={import.meta.env.DEV ? 'on' : undefined}
+      />
     </div>
   );
 }

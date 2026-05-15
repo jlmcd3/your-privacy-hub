@@ -1,91 +1,102 @@
 /**
- * ADVERTISING POLICY — enduserprivacy.com FRD v2.1 §8.3
+ * AdBanner — contextual, non-personalized Google AdSense unit.
  *
- * 1. Ads are shown to free and unregistered users only. Intelligence (Pro) subscribers see no ads.
- * 2. All ads served here MUST be contextual and non-behavioural.
- *    No user browsing data from this platform may be used for
- *    ad targeting or shared with ad networks.
- * 3. When no Google Ad config is provided, a labeled placeholder
- *    is shown so the slot is visible during development.
+ * ADVERTISING POLICY — enduserprivacy.com
+ * 1. Ads are shown to anonymous and free registered users only.
+ *    Any paid subscriber (monthly, annual, founding) sees NO ads.
+ * 2. All ads are non-personalized and contextual only.
+ *    No user data from this platform is used for ad targeting.
  */
-import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { ADSENSE_CONFIG, type AdVariant } from '@/config/ads';
 
-// Set to true when an ad network (e.g. Google Ad Manager) is configured and live.
-const ADS_CONFIGURED = false;
+const DIMENSIONS: Record<AdVariant, { w: number; h: number }> = {
+  leaderboard: { w: 728, h: 90 },
+  inFeed:      { w: 728, h: 90 },
+  rectangle:   { w: 300, h: 250 },
+  stickyRail:  { w: 300, h: 600 },
+};
+
+// Map legacy variant names to canonical AdVariants so existing callsites
+// (variant="inline" | "sidebar" | etc.) keep working.
+const VARIANT_ALIAS: Record<string, AdVariant> = {
+  leaderboard: 'leaderboard',
+  inFeed: 'inFeed',
+  infeed: 'inFeed',
+  inline: 'inFeed',
+  rectangle: 'rectangle',
+  sidebar: 'rectangle',
+  stickyRail: 'stickyRail',
+  skyscraper: 'stickyRail',
+};
 
 interface AdBannerProps {
-  variant?: "leaderboard" | "sidebar" | "inline" | "infeed";
+  variant?: AdVariant | 'inline' | 'sidebar' | 'skyscraper' | string;
   className?: string;
+  /** Legacy props — accepted for backwards compatibility, ignored. */
   adSlot?: string;
   googleAdClient?: string;
   googleAdSlot?: string;
 }
 
-const AdBanner = ({
-  variant = "leaderboard",
-  className = "",
-  adSlot,
-  googleAdClient,
-  googleAdSlot,
-}: AdBannerProps) => {
-  if (!ADS_CONFIGURED) return null;
-  const { isPremium } = usePremiumStatus();
+export default function AdBanner({ variant = 'leaderboard', className = '' }: AdBannerProps) {
+  const resolvedVariant: AdVariant = VARIANT_ALIAS[variant] ?? 'leaderboard';
+  const { isPremium, isLoading } = usePremiumStatus();
+  const location = useLocation();
+  const insRef = useRef<HTMLModElement | null>(null);
+
+  useEffect(() => {
+    if (!ADSENSE_CONFIG.enabled) return;
+    if (isPremium) return;
+    try {
+      if (insRef.current && insRef.current.getAttribute('data-adsbygoogle-status') !== 'done') {
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      }
+    } catch (_) {
+      // Ad blocker present — fail silently.
+    }
+  }, [location.pathname, isPremium]);
+
+  // Don't flash an ad slot while auth is resolving.
+  if (isLoading) return null;
+  // Paid subscribers never see ads.
   if (isPremium) return null;
 
-  const dimensions = {
-    leaderboard: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
-    sidebar: { desktop: { w: 300, h: 250 }, mobile: { w: 300, h: 250 } },
-    inline: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
-    infeed: { desktop: { w: 728, h: 90 }, mobile: { w: 320, h: 100 } },
-  };
+  const { w, h } = DIMENSIONS[resolvedVariant];
+  const slot = ADSENSE_CONFIG.slots[resolvedVariant];
 
-  const dim = dimensions[variant];
-  const label = variant === "infeed" ? "Sponsored Content" : "Advertisement";
+  if (!ADSENSE_CONFIG.enabled) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-3 ${className}`}
+        style={{ minHeight: h, maxWidth: w, marginLeft: 'auto', marginRight: 'auto' }}
+        aria-label="Advertisement placeholder"
+      >
+        <span className="text-meta uppercase tracking-widest text-slate/60">
+          Ad · {w}×{h}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`flex justify-center items-center ${className}`}
-      data-ad-slot={adSlot}
-      aria-label={label}
+      className={`flex items-center justify-center my-3 ${className}`}
+      style={{ maxWidth: w, marginLeft: 'auto', marginRight: 'auto' }}
+      aria-label="Advertisement"
     >
-      {/* Desktop */}
-      <div
-        className="hidden md:flex items-center justify-center bg-fog/40 border border-silver/60 rounded-lg"
-        style={{ width: dim.desktop.w, height: dim.desktop.h, minHeight: dim.desktop.h }}
-      >
-        {googleAdClient && googleAdSlot ? (
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block", width: dim.desktop.w, height: dim.desktop.h }}
-            data-ad-client={googleAdClient}
-            data-ad-slot={googleAdSlot}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
-        ) : (
-          <span className="text-[11px] uppercase tracking-widest text-slate/60">{label}</span>
-        )}
-      </div>
-      {/* Mobile */}
-      <div
-        className="flex md:hidden items-center justify-center bg-fog/40 border border-silver/60 rounded-lg"
-        style={{ width: dim.mobile.w, height: dim.mobile.h, minHeight: dim.mobile.h }}
-      >
-        {googleAdClient && googleAdSlot ? (
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block", width: dim.mobile.w, height: dim.mobile.h }}
-            data-ad-client={googleAdClient}
-            data-ad-slot={googleAdSlot}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
-        ) : (
-          <span className="text-[11px] uppercase tracking-widest text-slate/60">{label}</span>
-        )}
-      </div>
+      <ins
+        ref={insRef as any}
+        className="adsbygoogle"
+        style={{ display: 'block', width: w, height: h }}
+        data-ad-client={ADSENSE_CONFIG.pubId}
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+        data-adtest={import.meta.env.DEV ? 'on' : undefined}
+      />
     </div>
   );
-};
-
-export default AdBanner;
+}
