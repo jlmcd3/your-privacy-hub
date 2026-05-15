@@ -27,10 +27,26 @@ import path from "node:path";
 import Footer from "@/components/Footer";
 
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
-const INDEX_CSS = fs.readFileSync(
+const RAW_INDEX_CSS = fs.readFileSync(
   path.join(PROJECT_ROOT, "src", "index.css"),
   "utf8",
 );
+
+// jsdom cannot parse Tailwind's `@tailwind` / `@layer` / `@apply` directives
+// and bails on the surrounding rules. Extract only the plain `.text-*` rules
+// (and the media queries that override them) so jsdom can apply them.
+function extractTypographyRules(css: string): string {
+  const rules: string[] = [];
+  // Top-level .text-* { ... } blocks
+  const ruleRe = /\.text-[a-zA-Z0-9-]+\s*\{[^}]*\}/g;
+  rules.push(...(css.match(ruleRe) ?? []));
+  // @media (min-width: ...) { .text-* { ... } } overrides
+  const mediaRe = /@media[^{]+\{\s*\.text-[a-zA-Z0-9-]+\s*\{[^}]*\}\s*\}/g;
+  rules.push(...(css.match(mediaRe) ?? []));
+  return rules.join("\n");
+}
+
+const INDEX_CSS = extractTypographyRules(RAW_INDEX_CSS);
 
 // Minimal Tailwind text-size utilities used across the app. jsdom does NOT
 // run Tailwind, so we inject the canonical px values here. Keep in sync with
