@@ -10,6 +10,7 @@ import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/cat
 import { fmtDate } from "@/lib/dates";
 import { getSeverityLabel } from "@/lib/severity";
 import { useAuth } from "@/hooks/useAuth";
+import { InvestigationPrompt } from "@/components/InvestigationPrompt";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
@@ -496,6 +497,7 @@ const FullCard = ({
             </div>
           );
         })()}
+        {tier === 'paid' && <InvestigationPrompt item={item} />}
       </div>
     </div>
   );
