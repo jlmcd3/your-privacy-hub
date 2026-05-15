@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
           source_domain: domain,
           // Use the article's own image if NewsAPI provides one; otherwise leave
           // null so assign-fallback-images can fill from the curated pool / brand tile.
-          image_url: article.urlToImage || null,
+          image_url: isTemplatedImage(article.urlToImage) ? null : (article.urlToImage || null),
           category,
           topic_tags: assignTopicTags(article.title, article.description || ""),
           regulator: article.source?.name || "",
