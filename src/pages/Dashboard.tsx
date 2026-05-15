@@ -654,7 +654,7 @@ const Dashboard = () => {
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
                               {["Regulator", "Subject", "Type", "Amount", "Significance"].map(h => (
-                                <th key={h} className="py-2.5 px-4 text-left text-meta uppercase tracking-wider text-slate-500 font-semibold">
+                                <th key={h} className="py-2.5 px-4 text-left text-label text-slate-500">
                                   {h}
                                 </th>
                               ))}
