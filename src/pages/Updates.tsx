@@ -223,7 +223,7 @@ const Updates = () => {
 
         setLoading(false);
         setLoadingMore(false);
-    }, [buildQuery]);
+    }, [buildQuery, debouncedSearch]);
 
     useEffect(() => {
         loadPage(0, true);
