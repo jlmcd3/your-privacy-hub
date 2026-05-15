@@ -350,7 +350,7 @@ function buildHtml(d: AssembledData): string {
       <tr><th>Jurisdictions</th><td>${escapeHtml(d.jurisdictions.join(", ") || "—")}</td></tr>
     </tbody>
   </table>
-  <p class="footer-note">This record satisfies the requirements of:</p>
+  <p class="footer-note">This record is maintained pursuant to <strong>Article 30</strong> of the General Data Protection Regulation (GDPR) and UK GDPR, which requires controllers and processors to maintain records of processing activities. It satisfies the requirements of:</p>
   <ul>${lawList}</ul>
 
   <h2>2. Processing activities</h2>
@@ -368,7 +368,7 @@ function buildHtml(d: AssembledData): string {
 
   <h2>5. Controller / processor statement</h2>
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
-  It constitutes our record of processing activities under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
+  It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
   <div class="signature">
     Signature: _____________________________ &nbsp;&nbsp; Date: _______________
