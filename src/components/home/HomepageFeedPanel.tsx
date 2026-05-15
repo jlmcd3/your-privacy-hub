@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { normalizeTitle } from "@/lib/utils";
@@ -36,84 +36,177 @@ const HomepageArticleCard = ({
   isSelected,
   onSelect,
   tierLabel,
-  hideWhyItMatters,
   evenRow,
+  demoTier,
 }: {
   article: ArticleItem;
   isSelected: boolean;
   onSelect: () => void;
   tierLabel?: typeof SLOT_LABELS[0];
-  hideWhyItMatters?: boolean;
   evenRow?: boolean;
-}) => (
-  <div
-    className={`px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
-      ${isSelected
-        ? "bg-blue-50/60 border-l-[3px] border-gold"
-        : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-fog/40`
-      }`}
-    onClick={(e) => {
-      if ((e.target as HTMLElement).closest("a")) return;
-      onSelect();
-    }}
-  >
-    {tierLabel && (
-      <div className={`mb-1.5 ${tierLabel.className}`}>
-        {tierLabel.icon} {tierLabel.text}
-      </div>
-    )}
+  /** undefined = authenticated user (no demo), 'anonymous'|'free'|'paid' = demo slot */
+  demoTier?: "anonymous" | "free" | "paid";
+}) => {
+  const actionProse = (() => {
+    const items = article.action_items ?? [];
+    if (!items.length) return null;
+    const s = items.slice(0, 2).map((a) => a.action).filter(Boolean).join(". ");
+    return s ? s + "." : null;
+  })();
 
-    <div className="flex gap-3 items-start">
-      <img
-        src={article.image_url || eupTile}
-        alt=""
-        loading="lazy"
-        className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
-        onError={(e) => { (e.target as HTMLImageElement).src = eupTile; }}
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-1 mb-1">
-          {article.source_name && (
-            <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
-              {article.source_name}
-            </span>
-          )}
-          {article.published_at && (
-            <span className="text-[10px] text-slate-light">
-              {fmtDate(article.published_at)}
-            </span>
-          )}
-          {article.attention_level === "WATCH CLOSELY" && (
-            <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
-              Watch Closely
-            </span>
-          )}
-        </div>
-        {article.source_url ? (
-          <a
-            href={article.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[13px] font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+  const watchProse = (() => {
+    const signals = article.related_signals ?? [];
+    if (!signals.length) return null;
+    const labels = signals.map((s) => s.label).filter(Boolean).join("; ");
+    return labels ? `Watch: ${labels}.` : null;
+  })();
+
+  const jur = article.jurisdiction ?? "";
+  const cat = article.category ?? "";
+  const briefParams = new URLSearchParams();
+  if (jur) briefParams.set("pre_jurisdiction", jur);
+  if (cat) briefParams.set("pre_topic", cat);
+  const briefHref = briefParams.toString() ? `/#brief?${briefParams}` : "/#brief";
+  const briefLabel = jur
+    ? `Build a sample ${jur} Intelligence Brief →`
+    : "Build a sample Intelligence Brief →";
+
+  const renderEnrichment = () => {
+    if (demoTier === "anonymous") {
+      const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
+      if (!s) return null;
+      const firstSentence = s.split(/(?<=[.!?])\s/)[0] ?? s;
+      return (
+        <div className="mt-2">
+          <p className="text-[12px] text-slate leading-relaxed">{firstSentence}</p>
+          <Link
+            to={briefHref}
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-gold no-underline hover:underline"
           >
-            {normalizeTitle(article.title)}
-            <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
-          </a>
-        ) : (
-          <p className="text-[13px] font-semibold text-navy leading-snug">
-            {normalizeTitle(article.title)}
+            <Sparkles className="w-3 h-3" />
+            {briefLabel}
+          </Link>
+        </div>
+      );
+    }
+
+    if (demoTier === "free") {
+      const why =
+        article.ai_summary?.why_it_matters ??
+        article.why_it_matters_short ??
+        article.ai_summary?.why_it_matters_short;
+      if (!why) return null;
+      return (
+        <div className="mt-2">
+          <p className="text-[12px] text-slate leading-relaxed">{why}</p>
+          <div className="mt-2 rounded-md bg-paper border border-fog px-2.5 py-2">
+            <p className="text-[11px] italic text-slate/70 leading-relaxed">
+              Platform subscribers see what to do about this and what to watch
+              for next.{" "}
+              <Link
+                to="/subscribe"
+                className="text-gold font-semibold no-underline hover:underline not-italic"
+              >
+                See Platform →
+              </Link>
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (demoTier === "paid") {
+      const why = article.ai_summary?.why_it_matters ?? article.why_it_matters_short;
+      const impact = article.ai_summary?.compliance_impact;
+      return (
+        <div className="mt-2 space-y-2">
+          {why && <p className="text-[12px] text-slate leading-relaxed">{why}</p>}
+          {impact && <p className="text-[12px] text-slate leading-relaxed">{impact}</p>}
+          {(actionProse || watchProse) && (
+            <p className="text-[12px] text-slate leading-relaxed">
+              {actionProse}
+              {actionProse && watchProse && " "}
+              {watchProse && <span className="italic">{watchProse}</span>}
+            </p>
+          )}
+          <p className="text-[11px] italic text-slate/60 pt-1">
+            This is what Platform subscribers see on every development, every day.
           </p>
-        )}
-        {!hideWhyItMatters && (() => {
-          const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
-          return s ? (
-            <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
-          ) : null;
-        })()}
+        </div>
+      );
+    }
+
+    const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
+    return s ? (
+      <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
+    ) : null;
+  };
+
+  return (
+    <div
+      className={`px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
+        ${isSelected
+          ? "bg-blue-50/60 border-l-[3px] border-gold"
+          : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-fog/40`
+        }`}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest("a")) return;
+        onSelect();
+      }}
+    >
+      {tierLabel && (
+        <div className={`mb-1.5 ${tierLabel.className}`}>
+          {tierLabel.icon} {tierLabel.text}
+        </div>
+      )}
+
+      <div className="flex gap-3 items-start">
+        <img
+          src={article.image_url || eupTile}
+          alt=""
+          loading="lazy"
+          className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
+          onError={(e) => { (e.target as HTMLImageElement).src = eupTile; }}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1 mb-1">
+            {article.source_name && (
+              <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
+                {article.source_name}
+              </span>
+            )}
+            {article.published_at && (
+              <span className="text-[10px] text-slate-light">
+                {fmtDate(article.published_at)}
+              </span>
+            )}
+            {article.attention_level === "WATCH CLOSELY" && (
+              <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+                Watch Closely
+              </span>
+            )}
+          </div>
+          {article.source_url ? (
+            <a
+              href={article.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+            >
+              {normalizeTitle(article.title)}
+              <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
+            </a>
+          ) : (
+            <p className="text-[13px] font-semibold text-navy leading-snug">
+              {normalizeTitle(article.title)}
+            </p>
+          )}
+          {renderEnrichment()}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface HomepageFeedPanelProps {
   isPremium: boolean;
@@ -267,17 +360,20 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
 
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.38fr)_minmax(280px,1fr)] gap-6 items-start">
         <div className="flex-1 min-w-0">
-          {articles.map((article, i) => (
-            <HomepageArticleCard
-              key={article.id}
-              article={article}
-              isSelected={selectedArticle?.id === article.id}
-              onSelect={() => setSelectedArticle(article)}
-              tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
-              hideWhyItMatters={showTierLabels && i === 0}
-              evenRow={i % 2 === 1}
-            />
-          ))}
+          {(() => {
+            const DEMO_TIERS: ("anonymous" | "free" | "paid")[] = ["anonymous", "free", "paid"];
+            return articles.slice(0, 3).map((article, i) => (
+              <HomepageArticleCard
+                key={article.id}
+                article={article}
+                isSelected={selectedArticle?.id === article.id}
+                onSelect={() => setSelectedArticle(article)}
+                tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
+                evenRow={i % 2 === 1}
+                demoTier={!isAuthenticated ? DEMO_TIERS[i] : undefined}
+              />
+            ));
+          })()}
 
           <div className="mt-5 pt-4 border-t border-fog">
             <Link
