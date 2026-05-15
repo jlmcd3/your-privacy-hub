@@ -107,6 +107,33 @@ const FAQ = () => {
           </div>
         ))}
 
+        <h2 className="font-display text-navy text-[22px] font-bold mt-10 mb-4">Pricing</h2>
+        {pricingFaqs.map((faq, j) => {
+          const i = faqs.length + j;
+          return (
+            <div key={i} className="bg-card border border-fog rounded-xl mb-3 overflow-hidden">
+              <button
+                onClick={() => {
+                  setOpenIndices(prev => {
+                    const next = new Set(prev);
+                    if (next.has(i)) next.delete(i); else next.add(i);
+                    return next;
+                  });
+                }}
+                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-fog transition-colors text-left"
+              >
+                <span className="font-medium text-navy text-[15px] pr-4">{faq.q}</span>
+                <ChevronDown
+                  className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
+                />
+              </button>
+              {openIndices.has(i) && (
+                <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed whitespace-pre-line">{faq.a}</div>
+              )}
+            </div>
+          );
+        })}
+
         {/* Bottom CTA */}
         <div className="bg-navy rounded-2xl p-8 text-center mt-12">
           <h2 className="text-white font-display text-[20px] mb-2">Still have questions?</h2>
