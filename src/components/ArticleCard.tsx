@@ -471,7 +471,7 @@ const FullCard = ({
             const toolCTA = getToolCTA(item);
             return (
               <div className="mt-2 pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
