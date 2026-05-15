@@ -493,7 +493,7 @@ const Navbar = () => {
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[12px] font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
+                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 🧠 My Dashboard
               </Link>
