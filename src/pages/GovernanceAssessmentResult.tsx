@@ -147,7 +147,7 @@ const GovernanceAssessmentResult = () => {
                     <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
                       <p className="text-[12px] font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
                       {d.severity && (
-                        <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded ${sevColor(d.severity)}`}>
+                        <span className={`inline-block px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded ${sevColor(d.severity)}`}>
                           {d.severity}
                         </span>
                       )}

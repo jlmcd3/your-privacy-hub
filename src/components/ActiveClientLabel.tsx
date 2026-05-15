@@ -24,7 +24,7 @@ export default function ActiveClientLabel() {
   if (clients.length < 2 || !activeClient) return null;
 
   return (
-    <div className="mb-4 text-[13px] text-slate inline-flex items-center gap-1.5 relative" ref={ref}>
+    <div className="mb-4 text-sm text-slate inline-flex items-center gap-1.5 relative" ref={ref}>
       <span>Generating for:</span>
       <span className="font-semibold text-navy">{activeClient.name}</span>
       <span className="text-slate-light">·</span>
@@ -47,7 +47,7 @@ export default function ActiveClientLabel() {
                   setActiveClient(c);
                   setOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 text-[13px] text-navy hover:bg-fog bg-transparent border-none cursor-pointer text-left"
+                className="w-full flex items-center justify-between px-3 py-2 text-sm text-navy hover:bg-fog bg-transparent border-none cursor-pointer text-left"
               >
                 <span className={active ? 'font-semibold' : ''}>{c.name}</span>
                 {active && <Check className="w-3.5 h-3.5 text-blue" />}

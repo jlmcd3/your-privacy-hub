@@ -25,9 +25,9 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 };
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-slate/50 text-[10px]" },
-  { icon: "✉", text: "Free account view", className: "text-blue text-[10px] font-medium" },
-  { icon: "⭐", text: "Platform view", className: "text-gold text-[10px] font-semibold" },
+  { icon: "👁", text: "What any visitor sees", className: "text-slate/50 text-[11px]" },
+  { icon: "✉", text: "Free account view", className: "text-blue text-[11px] font-medium" },
+  { icon: "⭐", text: "Platform view", className: "text-gold text-[11px] font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
@@ -201,17 +201,17 @@ const HomepageArticleCard = ({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1 mb-1">
             {article.source_name && (
-              <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
+              <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
                 {article.source_name}
               </span>
             )}
             {article.published_at && (
-              <span className="text-[10px] text-slate-light">
+              <span className="text-[11px] text-slate-light">
                 {fmtDate(article.published_at)}
               </span>
             )}
             {article.attention_level === "WATCH CLOSELY" && (
-              <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
                 Watch Closely
               </span>
             )}
@@ -221,13 +221,13 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[13px] font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+              className="text-sm font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
             </a>
           ) : (
-            <p className="text-[13px] font-semibold text-navy leading-snug">
+            <p className="text-sm font-semibold text-navy leading-snug">
               {normalizeTitle(article.title)}
             </p>
           )}
@@ -356,12 +356,12 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           <h2 className="font-display text-[20px] font-bold text-navy mb-2">
             No developments available yet
           </h2>
-          <p className="text-[13px] text-slate max-w-md mx-auto mb-5 leading-relaxed">
+          <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">
             The homepage feed will refresh as soon as monitored privacy developments are available.
           </p>
           <Link
             to="/updates"
-            className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-[13px] px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+            className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Open the full Privacy Intelligence Feed →
           </Link>
@@ -382,7 +382,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
             : "What you see — and what you're missing"}
         </h2>
         {!isAuthenticated && (
-          <p className="text-[13px] text-slate mt-1">
+          <p className="text-sm text-slate mt-1">
             Three levels of intelligence. Register free for the second. Subscribe for the third.
           </p>
         )}
@@ -408,7 +408,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           <div className="mt-5 pt-4 border-t border-fog">
             <Link
               to="/updates"
-              className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-[13px] px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               Open the full Privacy Intelligence Feed →
             </Link>

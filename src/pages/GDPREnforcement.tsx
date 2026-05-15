@@ -208,7 +208,7 @@ const GDPREnforcement = () => {
         <div ref={setRef("gdpr-recent")} id="gdpr-recent" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-display text-base text-navy">Recent developments</h2>
-            <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">Live</span>
+            <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">Live</span>
           </div>
           <div className="divide-y divide-fog">
             {recentArticles.map((a: any) => (
@@ -264,7 +264,7 @@ const GDPREnforcement = () => {
           <h2 className="font-display text-[20px] md:text-[24px] text-white mb-4 flex items-center gap-2">
             🇬🇧 UK Privacy Framework
           </h2>
-          <div className="text-[13px] text-slate-light leading-relaxed space-y-3">
+          <div className="text-sm text-slate-light leading-relaxed space-y-3">
             <p>
               <strong className="text-white">UK GDPR and the Data Protection Act 2018</strong> Following the UK's departure from the EU, the United Kingdom retained its own version of the GDPR — known as the UK GDPR — alongside the Data Protection Act 2018. The UK GDPR mirrors the EU GDPR's core structure but operates as a separate legal framework enforced by the Information Commissioner's Office (ICO).
             </p>
@@ -306,7 +306,7 @@ const GDPREnforcement = () => {
               {/* ICO Guidance */}
               <div>
                 <h3 className="font-display text-[17px] text-white/90 mb-3">ICO Primary Guidance Documents</h3>
-                <ul className="space-y-1.5 text-[13px] text-slate-light list-disc list-inside">
+                <ul className="space-y-1.5 text-sm text-slate-light list-disc list-inside">
                   <li>UK GDPR Guide</li>
                   <li>Legitimate Interests Assessment (LIA) Framework</li>
                   <li>Children's Code (Age Appropriate Design Code)</li>
@@ -318,7 +318,7 @@ const GDPREnforcement = () => {
 
           <button
             onClick={() => setUkExpanded(!ukExpanded)}
-            className="mt-5 flex items-center gap-1.5 text-[13px] font-semibold text-sky hover:text-sky/80 transition-colors bg-transparent border-none cursor-pointer"
+            className="mt-5 flex items-center gap-1.5 text-sm font-semibold text-sky hover:text-sky/80 transition-colors bg-transparent border-none cursor-pointer"
           >
             {ukExpanded ? (
               <>Hide <ChevronUp className="w-4 h-4" /></>
@@ -331,12 +331,12 @@ const GDPREnforcement = () => {
         {/* ── Legitimate Interest Tracker callout ── */}
         <div className="bg-sky/5 border-l-4 border-[hsl(var(--navy))] rounded-xl p-5 md:p-6 mb-10">
           <h3 className="font-display text-[18px] text-navy mb-2">Legitimate Interest Under GDPR & UK GDPR</h3>
-          <p className="text-[13px] text-slate leading-relaxed mb-4">
+          <p className="text-sm text-slate leading-relaxed mb-4">
             Article 6(1)(f) of both the EU GDPR and UK GDPR permits processing where a legitimate interest exists that is not overridden by the data subject's rights. The EDPB and ICO have both issued detailed guidance on the three-part assessment required. Our Legitimate Interest Tracker compiles regulatory positions from enforcement decisions, official guidance, and regulatory statements across the EU and UK — updated weekly.
           </p>
           <Link
             to="/legitimate-interest-tracker"
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline"
           >
             → View the Legitimate Interest Tracker
           </Link>
@@ -371,7 +371,7 @@ const GDPREnforcement = () => {
             </Link>
           </div>
           <div className="mt-6">
-            <Link to="/global-privacy-authorities" className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline">
+            <Link to="/global-privacy-authorities" className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline">
               Browse All EU DPAs →
             </Link>
           </div>
@@ -381,9 +381,9 @@ const GDPREnforcement = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on GDPR & UK Privacy</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
+          <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             Unlock Weekly Intelligence →
           </Link>

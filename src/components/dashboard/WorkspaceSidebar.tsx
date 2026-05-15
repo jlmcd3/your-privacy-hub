@@ -86,7 +86,7 @@ export default function WorkspaceSidebar() {
               to={item.to}
               end
               className={cn(
-                "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors no-underline",
+                "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline",
                 active
                   ? "bg-navy text-white"
                   : "text-slate hover:bg-fog hover:text-navy",

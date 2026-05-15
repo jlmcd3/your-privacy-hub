@@ -142,7 +142,7 @@ function Cell({ type, value, slug, dimKey }: { type: string; value: any; slug: s
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs text-xs font-mono-code">
                 <p>{statute.cite}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
               </TooltipContent>
             </Tooltip>
           </span>
@@ -213,7 +213,7 @@ export default function GlobalJurisdictionComparison() {
           </div>
           {/* Premium upsell — slim contextual banner */}
           <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <p className="text-[13px] text-amber-900 leading-snug">
+            <p className="text-sm text-amber-900 leading-snug">
               <span className="font-semibold">⭐ This tool is free.</span>
               {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
             </p>
@@ -237,7 +237,7 @@ export default function GlobalJurisdictionComparison() {
                   {cols.map(j => (
                     <th key={j.name} className="px-4 py-3 text-center min-w-[140px]">
                       <div className="text-lg flag-emoji"><FlagIcon icon={j.flag} /></div>
-                      <div className="text-primary-foreground font-bold text-[13px]">{j.name}</div>
+                      <div className="text-primary-foreground font-bold text-sm">{j.name}</div>
                     </th>
                   ))}
                 </tr>

@@ -56,11 +56,11 @@ export function ActionBrief({
         className="border-l-[3px] border-amber-400 bg-amber-50
                    rounded-r-lg px-4 py-3 mt-3"
       >
-        <p className="text-[10px] font-bold uppercase tracking-widest
+        <p className="text-[11px] font-bold uppercase tracking-widest
                       text-amber-700 mb-1.5">
           Action Brief
         </p>
-        <p className="text-[13px] text-slate leading-snug flex flex-wrap
+        <p className="text-sm text-slate leading-snug flex flex-wrap
                       items-baseline gap-x-1">
           <span>This requires</span>
           <span className="font-semibold text-navy">{label} action</span>
@@ -102,19 +102,19 @@ export function ActionBrief({
       className="border-l-[3px] border-amber-400 bg-navy/[0.04]
                  rounded-r-lg px-4 py-3 mt-3"
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest
+      <p className="text-[11px] font-bold uppercase tracking-widest
                     text-amber-700 mb-2">
         Action Brief
       </p>
       {/* Summary sentence */}
-      <p className="text-[13px] leading-snug mb-2">
+      <p className="text-sm leading-snug mb-2">
         <span className="font-semibold text-navy capitalize">{label} action</span>
         <span className="text-slate"> required by </span>
         <span className="font-semibold text-navy">{salutation}</span>
       </p>
       {/* Full compliance impact */}
       {compliance_impact && (
-        <p className="text-[13px] text-slate leading-relaxed mb-2">
+        <p className="text-sm text-slate leading-relaxed mb-2">
           {compliance_impact}
         </p>
       )}
@@ -139,7 +139,7 @@ export function ActionBrief({
       {/* Risk level badge */}
       {risk_level && (
         <span
-          className="inline-block text-[10px] font-bold uppercase tracking-wide
+          className="inline-block text-[11px] font-bold uppercase tracking-wide
                      bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full"
         >
           {risk_level} risk

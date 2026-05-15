@@ -103,7 +103,7 @@ export default function TranslateReportButton({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={loading !== null}
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-fog bg-white text-slate text-[13px] font-medium hover:border-navy/30 transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-fog bg-white text-slate text-sm font-medium hover:border-navy/30 transition-colors disabled:opacity-60"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -120,7 +120,7 @@ export default function TranslateReportButton({
           role="listbox"
           className="absolute right-0 mt-1.5 w-56 bg-white border border-fog rounded-xl shadow-lg z-50 overflow-hidden"
         >
-          <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-fog">
+          <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-fog">
             Translate report
           </div>
           {LANGUAGES.map((l) => {
@@ -130,7 +130,7 @@ export default function TranslateReportButton({
                 key={l.code}
                 type="button"
                 onClick={() => handleSelect(l.code)}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-[13px] text-left hover:bg-paper transition-colors ${
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-paper transition-colors ${
                   isActive ? "text-navy font-medium" : "text-slate"
                 }`}
                 role="option"
@@ -141,7 +141,7 @@ export default function TranslateReportButton({
               </button>
             );
           })}
-          <div className="px-3 py-2 text-[10px] text-muted-foreground border-t border-fog leading-snug">
+          <div className="px-3 py-2 text-[11px] text-muted-foreground border-t border-fog leading-snug">
             Translations use the official GDPR statutory glossary for legal accuracy.
           </div>
         </div>

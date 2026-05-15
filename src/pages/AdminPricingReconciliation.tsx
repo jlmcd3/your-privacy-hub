@@ -63,7 +63,7 @@ export default function AdminPricingReconciliation() {
           <div className="text-2xl font-bold">
             {allOk ? "✅ All prices match" : `❌ ${findings.length} mismatch(es)`}
           </div>
-          <p className="text-[13px] mt-1 text-slate-700">
+          <p className="text-sm mt-1 text-slate-700">
             {allOk
               ? "Every charged amount lines up with at least one marketed price on the site."
               : "Some prices charged by the server do not appear anywhere in the marketed UI."}
@@ -75,7 +75,7 @@ export default function AdminPricingReconciliation() {
             Reconciliation table
           </h2>
           <div className="overflow-x-auto rounded-xl border border-fog">
-            <table className="w-full text-[13px]">
+            <table className="w-full text-sm">
               <thead className="bg-fog text-navy">
                 <tr>
                   <th className="text-left px-3 py-2">Product</th>
@@ -99,7 +99,7 @@ export default function AdminPricingReconciliation() {
                       <td className="px-3 py-2 font-medium text-navy">
                         {r.product}
                         {r.unmigrated && (
-                          <span className="ml-2 text-[10px] uppercase tracking-wider text-slate bg-fog px-1.5 py-0.5 rounded">
+                          <span className="ml-2 text-[11px] uppercase tracking-wider text-slate bg-fog px-1.5 py-0.5 rounded">
                             not in registry
                           </span>
                         )}

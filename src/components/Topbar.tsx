@@ -44,7 +44,7 @@ const Topbar = () => {
   }, []);
 
   return (
-    <div className="bg-navy text-slate-light text-[11.5px] font-medium tracking-wide py-1.5 border-b border-navy-light hidden md:block">
+    <div className="bg-navy text-slate-light text-xs font-medium tracking-wide py-1.5 border-b border-navy-light hidden md:block">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex gap-5 items-center">
           <span className="text-navy-light hidden lg:inline">·</span>

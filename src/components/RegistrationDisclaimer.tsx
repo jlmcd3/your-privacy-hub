@@ -18,7 +18,7 @@ export default function RegistrationDisclaimer({
   }
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-[12.5px] leading-relaxed text-amber-900">
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
       <div className="font-semibold mb-1">Important — Please read</div>
       <p>
         End User Privacy's Registration Manager produces <strong>draft documents and filing checklists</strong> based

@@ -49,7 +49,7 @@ export default function StickyRailAd({
               data-ad-format="auto"
             />
           ) : (
-            <span className="text-[10px] uppercase tracking-widest text-slate/60">
+            <span className="text-[11px] uppercase tracking-widest text-slate/60">
               Advertisement
             </span>
           )}

@@ -326,7 +326,7 @@ export default function USNoticeDocuments() {
               <div className="min-w-0">
                 <div className="font-medium">All-states suite (combined)</div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge variant="secondary" className="text-[11px]">
                     {states.length} state{states.length === 1 ? "" : "s"}
                   </Badge>
                   {currentDocs
@@ -380,7 +380,7 @@ export default function USNoticeDocuments() {
                     <div className="min-w-0">
                       <div className="font-medium truncate">{state.state_name}</div>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge variant="secondary" className="text-[11px]">
                           {FRAMEWORK_LABELS[state.framework_type] ?? state.framework_type}
                         </Badge>
                         {stateDocs[0] && (

@@ -264,7 +264,7 @@ const UpdateDetail = () => {
 
             {/* Category badge */}
             <span
-              className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}
+              className={`inline-block text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}
             >
               {catLabel}
             </span>
@@ -273,7 +273,7 @@ const UpdateDetail = () => {
             <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground mb-4">
+            <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground mb-4">
               {article.source_name && <span>{article.source_name}</span>}
               {article.source_name && article.published_at && <span>·</span>}
               {article.published_at && <span>{formatDate(article.published_at)}</span>}
@@ -286,7 +286,7 @@ const UpdateDetail = () => {
               {(() => {
                 const sev = getSeverityLabel(ai);
                 return sev ? (
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
                     {sev.label}
                   </span>
                 ) : null;
@@ -303,7 +303,7 @@ const UpdateDetail = () => {
                 };
                 const m = map[pn];
                 return m ? (
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${m.className}`}>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${m.className}`}>
                     {m.label}
                   </span>
                 ) : null;
@@ -321,7 +321,7 @@ const UpdateDetail = () => {
                     className="border-l-4 px-4 py-3 mb-5 rounded-r"
                     style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                   >
-                    <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
+                    <div className="text-[11px] uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
                     <p className="text-[14px] leading-relaxed text-navy">
@@ -335,12 +335,12 @@ const UpdateDetail = () => {
                     <p className="text-[14px] font-semibold text-foreground mb-1">
                       The Brief, Next Steps, Watch, and Contextual Record are available to registered users.
                     </p>
-                    <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
+                    <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                       Sign up free to see analysis on every update.
                     </p>
                     <Link
                       to="/signup"
-                      className="inline-block text-[13px] font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors hover:opacity-90"
+                      className="inline-block text-sm font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors hover:opacity-90"
                       style={{ background: 'hsl(var(--accent))' }}
                     >
                       Sign up free →
@@ -355,8 +355,8 @@ const UpdateDetail = () => {
                     ======================================================== */}
                 <section aria-label="The Brief" className="mb-8">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>The Brief</span>
-                    <span className="text-[10px] text-muted-foreground/60">Why it matters &amp; key takeaways</span>
+                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>The Brief</span>
+                    <span className="text-[11px] text-muted-foreground/60">Why it matters &amp; key takeaways</span>
                   </div>
                   <hr className="border-border mb-4" />
 
@@ -430,12 +430,12 @@ const UpdateDetail = () => {
                       <p className="text-[14px] font-semibold text-foreground mb-1">
                         Next Steps, Watch, and the full Contextual Record are available on the Annual Platform plan.
                       </p>
-                      <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
+                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                         Action items by role and timeframe, related signals across the corpus, and contextual analysis.
                       </p>
                       <Link
                         to="/subscribe"
-                        className="inline-block text-[13px] font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors"
+                        className="inline-block text-sm font-semibold text-white px-4 py-2 rounded-lg no-underline transition-colors"
                         style={{ background: 'hsl(var(--accent))' }}
                       >
                         Upgrade →
@@ -464,8 +464,8 @@ const UpdateDetail = () => {
                   return (
                     <section aria-label="Next Steps" className="mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
-                        <span className="text-[10px] text-muted-foreground/60">Actions by timeframe</span>
+                        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
+                        <span className="text-[11px] text-muted-foreground/60">Actions by timeframe</span>
                       </div>
                       <hr className="border-border mb-4" />
                       <div className="space-y-3">
@@ -474,7 +474,7 @@ const UpdateDetail = () => {
                             <span className="text-[11px] font-bold uppercase tracking-wider pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
-                                <li key={i} className="text-[13.5px] text-foreground leading-relaxed">
+                                <li key={i} className="text-sm text-foreground leading-relaxed">
                                   {a.role && <span className="font-semibold">{a.role}: </span>}
                                   {a.action}
                                 </li>
@@ -493,13 +493,13 @@ const UpdateDetail = () => {
                 {isPremium && (article as any).related_signals && (article as any).related_signals.length > 0 && (
                   <section aria-label="Watch" className="mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
-                      <span className="text-[10px] text-muted-foreground/60">Related signals</span>
+                      <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
+                      <span className="text-[11px] text-muted-foreground/60">Related signals</span>
                     </div>
                     <hr className="border-border mb-4" />
                     <ul className="space-y-2">
                       {((article as any).related_signals as RelatedSignal[]).map((sig, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-[13.5px] text-foreground leading-relaxed">
+                        <li key={i} className="flex items-start gap-2.5 text-sm text-foreground leading-relaxed">
                           <span
                             className="inline-block w-2 h-2 rounded-full mt-1.5 shrink-0"
                             style={{ background: 'hsl(var(--cobalt))' }}
@@ -517,11 +517,11 @@ const UpdateDetail = () => {
                 {isPremium && (
                   <section aria-label="Contextual Record" className="mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Contextual Record</span>
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-navy">Contextual Record</span>
                     </div>
                     <hr className="border-border mb-4" />
                     <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
-                      <p className="text-[13px] italic text-muted-foreground m-0">
+                      <p className="text-sm italic text-muted-foreground m-0">
                         Contextual intelligence drawing on the enforcement corpus will appear here once the enrichment pipeline update is deployed.
                       </p>
                     </div>
@@ -533,7 +533,7 @@ const UpdateDetail = () => {
                   <section aria-label="Regulatory context" className="mb-8 space-y-3">
                     {article.regulatory_theory && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                        <div className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Regulatory theory
                         </div>
                         <p className="text-[14px] leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
@@ -541,7 +541,7 @@ const UpdateDetail = () => {
                     )}
                     {article.related_development && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                        <div className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Related development
                         </div>
                         <p className="text-[14px] leading-relaxed text-foreground m-0">{article.related_development}</p>

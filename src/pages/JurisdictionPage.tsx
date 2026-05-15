@@ -382,7 +382,7 @@ const JurisdictionPage = () => {
         const crumbHref = isUSState ? "/us-privacy-laws" : "/global-privacy-laws";
         const crumbLabel = isUSState ? "U.S. Privacy Laws" : "Global Privacy Laws";
         return (
-          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-[13px] text-slate">
+          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-sm text-slate">
             <Link to={crumbHref} className="text-blue hover:underline no-underline">{crumbLabel}</Link>
             <span className="mx-2 text-slate-light">›</span>
             <span className="text-navy">{jurisdiction.name}</span>
@@ -423,7 +423,7 @@ const JurisdictionPage = () => {
                       </Link>
                     </h3>
                     {(auth as any).statute_status && (
-                      <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border ${
+                      <span className={`text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border ${
                         (auth as any).statute_status === "Enacted"
                           ? "text-emerald-700 bg-emerald-50 border-emerald-200"
                           : (auth as any).statute_status === "Pending"
@@ -468,7 +468,7 @@ const JurisdictionPage = () => {
                 </div>
               )}
               {(auth as any).notes && (
-                <p className="text-[11.5px] text-slate/75 leading-relaxed mt-2 italic">
+                <p className="text-xs text-slate/75 leading-relaxed mt-2 italic">
                   {(auth as any).notes}
                 </p>
               )}
@@ -559,7 +559,7 @@ const JurisdictionPage = () => {
                       <span className="font-display text-[15px] text-navy">{t.label}</span>
                       <span className="text-blue group-hover:translate-x-0.5 transition-transform">→</span>
                     </div>
-                    <p className="text-[12.5px] text-slate leading-snug">{t.desc}</p>
+                    <p className="text-xs text-slate leading-snug">{t.desc}</p>
                   </Link>
                 ))}
               </div>
@@ -570,11 +570,11 @@ const JurisdictionPage = () => {
         {/* Top Premium CTA — anonymous only, high-intent SEO traffic */}
         {!user && (
           <div className="mb-8 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-7 text-center">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
+            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
             <h3 className="font-display text-lg md:text-xl text-white mb-3">
               Monitor {jurisdiction.name} — get weekly intelligence alerts →
             </h3>
-            <p className="text-[13px] text-slate-light mb-4 max-w-[500px] mx-auto">
+            <p className="text-sm text-slate-light mb-4 max-w-[500px] mx-auto">
               Tailored weekly briefs covering {jurisdiction.name} regulators, enforcement, and cross-border signals.
             </p>
             <Link
@@ -610,7 +610,7 @@ const JurisdictionPage = () => {
                 <h2 className="font-display text-[20px] text-navy">
                   {hasDirect ? `Recent developments — ${jurisdiction.name}` : "Recent Developments"}
                 </h2>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
               </div>
 
               {hasDirect ? (
@@ -623,7 +623,7 @@ const JurisdictionPage = () => {
               ) : (
                 <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
                   <h3 className="font-display text-[18px] text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
-                  <p className="text-[13px] text-slate leading-relaxed mb-4">
+                  <p className="text-sm text-slate leading-relaxed mb-4">
                     We haven't picked up jurisdiction-specific news in the last 90 days. This usually means the regulator hasn't
                     published high-profile actions recently — not that nothing is happening. Try the options below.
                   </p>
@@ -655,7 +655,7 @@ const JurisdictionPage = () => {
                   >
                     <div>
                       <span className="font-display text-[16px] text-navy">Also relevant to {jurisdiction.name}</span>
-                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                      <p className="text-xs text-slate-light mt-0.5">
                         Regional or cross-border developments that may affect {jurisdiction.name} ({regionalRecent.length})
                       </p>
                     </div>
@@ -677,7 +677,7 @@ const JurisdictionPage = () => {
                   >
                     <div>
                       <span className="font-display text-[16px] text-navy">Earlier coverage</span>
-                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                      <p className="text-xs text-slate-light mt-0.5">
                         Older than 90 days ({archive.length})
                       </p>
                     </div>
@@ -693,7 +693,7 @@ const JurisdictionPage = () => {
 
               {(hasDirect || hasRegional || hasArchive) && (
                 <div className="flex items-center justify-end mt-4 pt-3 border-t border-fog">
-                  <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors">
+                  <Link to={`/category/${derivedCategory}`} className="text-sm text-blue font-semibold no-underline hover:text-navy transition-colors">
                     View all {categoryLabel} updates →
                   </Link>
                 </div>
@@ -730,7 +730,7 @@ const JurisdictionPage = () => {
                 <Link
                   key={r.label}
                   to={r.href}
-                  className="flex items-center gap-2.5 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium"
+                  className="flex items-center gap-2.5 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium"
                 >
                   {r.iconImage ? (
                     <img src={r.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
@@ -748,9 +748,9 @@ const JurisdictionPage = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
-          <p className="text-[13px] text-slate-light mb-2 max-w-[500px] mx-auto">
+          <p className="text-sm text-slate-light mb-2 max-w-[500px] mx-auto">
             Intelligence subscribers receive the weekly Intelligence Brief covering all global developments.
           </p>
           <p className="text-[12px] text-sky mb-5 max-w-[500px] mx-auto">

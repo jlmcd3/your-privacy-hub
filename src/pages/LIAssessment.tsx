@@ -185,7 +185,7 @@ const LIAssessment = () => {
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
           <h2 className="font-display text-xl md:text-2xl text-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
@@ -204,7 +204,7 @@ const LIAssessment = () => {
 
         {/* HOW IT WORKS */}
         <section className="mb-10">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
           <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
@@ -229,11 +229,11 @@ const LIAssessment = () => {
             ].flatMap((step, i, arr) => {
               const card = (
                 <div key={`card-${step.n}`} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
-                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
+                  <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
                   <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
-                  <p className="text-[13px] text-slate leading-relaxed mb-3">{step.desc}</p>
+                  <p className="text-sm text-slate leading-relaxed mb-3">{step.desc}</p>
                   <div className="mt-auto pt-3 border-t border-fog">
-                    <div className="text-[10px] font-bold tracking-widest uppercase text-amber-700 mb-1">Why</div>
+                    <div className="text-[11px] font-bold tracking-widest uppercase text-amber-700 mb-1">Why</div>
                     <p className="text-[12px] text-navy leading-relaxed">{step.why}</p>
                   </div>
                 </div>
@@ -258,14 +258,14 @@ const LIAssessment = () => {
 
         {/* INTAKE FORM */}
         <section className="mb-10">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Step 01 · Free intake</div>
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">Step 01 · Free intake</div>
           <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Tell us about the processing</h2>
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
             className="bg-card border border-fog rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
           >
             <div>
-              <Label htmlFor="desc" className="text-[13px] font-semibold text-navy">What processing are you considering? *</Label>
+              <Label htmlFor="desc" className="text-sm font-semibold text-navy">What processing are you considering? *</Label>
               <Textarea
                 id="desc"
                 value={processingDescription}
@@ -277,20 +277,20 @@ const LIAssessment = () => {
             </div>
 
             <div>
-              <Label className="text-[13px] font-semibold text-navy">Data categories involved *</Label>
+              <Label className="text-sm font-semibold text-navy">Data categories involved *</Label>
               <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
             </div>
 
             <div>
-              <Label htmlFor="rel" className="text-[13px] font-semibold text-navy">Your relationship with data subjects *</Label>
-              <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-fog bg-background text-[13px]">
+              <Label htmlFor="rel" className="text-sm font-semibold text-navy">Your relationship with data subjects *</Label>
+              <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-fog bg-background text-sm">
                 <option value="">Select…</option>
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
 
             <div>
-              <Label className="text-[13px] font-semibold text-navy">Jurisdictions where this processing applies *</Label>
+              <Label className="text-sm font-semibold text-navy">Jurisdictions where this processing applies *</Label>
               <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
             </div>
 
@@ -310,11 +310,11 @@ const LIAssessment = () => {
         {/* PREVIEW SIGNAL */}
         {preview && (
           <section id="preview-signal">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">Preliminary signal</div>
+            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">Preliminary signal</div>
             <div className="bg-card border-t-4 border-navy rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Use case</div>
+                  <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Use case</div>
                   <h2 className="font-display text-xl md:text-2xl text-navy leading-snug">{preview.use_case_label}</h2>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border text-[12px] font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
@@ -326,7 +326,7 @@ const LIAssessment = () => {
 
               {preview.precedents.length > 0 ? (
                 <div className="pt-5 border-t border-fog">
-                  <h3 className="text-[10px] font-bold tracking-widest uppercase text-sky mb-3">
+                  <h3 className="text-[11px] font-bold tracking-widest uppercase text-sky mb-3">
                     Most analogous regulator decisions ({preview.precedents_matched} matched)
                   </h3>
                   <div className="space-y-5">
@@ -336,12 +336,12 @@ const LIAssessment = () => {
                         <div className="p-5 flex-1 min-w-0">
                           <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
                           <div className="flex flex-wrap gap-1.5 mb-3">
-                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
-                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
                           </div>
-                          <p className="text-[13px] text-slate leading-relaxed mb-4">{p.summary}</p>
+                          <p className="text-sm text-slate leading-relaxed mb-4">{p.summary}</p>
                           <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(p.outcome)}`}>
+                            <span className={`text-[11px] font-bold uppercase tracking-wider capitalize ${accentFor(p.outcome)}`}>
                               {p.outcome}
                             </span>
                             {p.case_reference && (
@@ -356,13 +356,13 @@ const LIAssessment = () => {
                   </div>
                 </div>
               ) : (
-                <p className="text-[13px] text-muted-foreground italic">
+                <p className="text-sm text-muted-foreground italic">
                   No directly analogous regulator decisions in the tracked database for this use case. The full
                   assessment will analyse your facts on first principles and surface adjacent precedents.
                 </p>
               )}
 
-              <div className="bg-paper border-l-4 border-navy/40 rounded p-4 text-[13px] text-navy leading-relaxed">
+              <div className="bg-paper border-l-4 border-navy/40 rounded p-4 text-sm text-navy leading-relaxed">
                 <strong>What's next.</strong> The preliminary signal cannot tell you whether <em>your specific facts</em> pass the
                 necessity and balancing tests — that requires the deeper questions on safeguards, reasonable expectations,
                 data minimisation, and harm severity. Continue to the full assessment to capture those facts and produce a

@@ -127,7 +127,7 @@ export default function DPAGenerator() {
               <CopyButton text={result} />
             </div>
             <p className="text-[12px] text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
-            <pre className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed text-foreground">{result}</pre>
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-[11px] text-muted-foreground italic mt-4">PDF download coming soon.</p>
             <ToolDisclaimer addition="This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel." />
           </div>
@@ -140,7 +140,7 @@ export default function DPAGenerator() {
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="font-display font-bold text-navy text-[18px]">DPA Intake</h2>
-            <div className="space-y-3 text-[13px]">
+            <div className="space-y-3 text-sm">
               <label className="block"><span className="font-semibold text-navy">Controller name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-navy">Controller jurisdiction</span>
@@ -160,7 +160,7 @@ export default function DPAGenerator() {
             <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             {validationError && (
-              <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-[13px]" role="alert">
+              <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-sm" role="alert">
                 {validationError}
               </div>
             )}

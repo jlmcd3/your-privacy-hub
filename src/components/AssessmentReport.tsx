@@ -188,7 +188,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
               </h4>
               <div className="mt-1 h-[2px] w-10 bg-[hsl(var(--steel))] rounded-full" />
               {b.trailing && (
-                <p className="mt-2 text-[13.5px] leading-relaxed text-foreground">
+                <p className="mt-2 text-sm leading-relaxed text-foreground">
                   {renderInline(b.trailing, `sh-${idx}`)}
                 </p>
               )}
@@ -197,7 +197,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
         }
         if (b.type === "para") {
           return (
-            <p key={idx} className="text-[13.5px] leading-relaxed text-foreground">
+            <p key={idx} className="text-sm leading-relaxed text-foreground">
               {renderInline(b.text, `p-${idx}`)}
             </p>
           );
@@ -213,7 +213,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                   >
                     {j + 1}
                   </span>
-                  <span className="text-[13.5px] leading-relaxed text-foreground">
+                  <span className="text-sm leading-relaxed text-foreground">
                     {renderInline(it, `ol-${idx}-${j}`)}
                   </span>
                 </li>
@@ -230,7 +230,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                   className="flex-shrink-0 mt-[9px] w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent))]"
                   aria-hidden
                 />
-                <span className="text-[13.5px] leading-relaxed text-foreground">
+                <span className="text-sm leading-relaxed text-foreground">
                   {renderInline(it, `ul-${idx}-${j}`)}
                 </span>
               </li>
@@ -300,7 +300,7 @@ export default function AssessmentReport({
             {/* Header band */}
             <header className="px-6 pt-6 pb-4 border-b border-border bg-gradient-to-br from-[hsl(var(--paper))] to-card">
               {hasJurisdictions && sectionChipLabel && (
-                <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.08em] text-slate bg-[hsl(var(--silver))] px-2 py-0.5 rounded-full mb-2">
+                <span className="inline-block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate bg-[hsl(var(--silver))] px-2 py-0.5 rounded-full mb-2">
                   {sectionChipLabel}
                 </span>
               )}

@@ -29,7 +29,7 @@ export default function ToolkitSection() {
           <h2 className="font-display font-bold text-navy text-[20px] mb-2">
             Intelligence Toolkit
           </h2>
-          <p className="text-slate text-[13px]">
+          <p className="text-slate text-sm">
             Structured tools for planning and compliance. Always free.
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function ToolkitSection() {
         <div className="text-center mt-6">
           <Link
             to="/tools"
-            className="text-blue text-[13px] font-semibold hover:text-navy transition-colors no-underline"
+            className="text-blue text-sm font-semibold hover:text-navy transition-colors no-underline"
           >
             See all tools →
           </Link>

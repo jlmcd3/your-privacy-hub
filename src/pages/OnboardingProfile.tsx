@@ -118,14 +118,14 @@ export default function OnboardingProfile() {
           </p>
 
           {error && (
-            <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px]">
+            <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-[13px] font-medium text-navy mb-1.5">Your role</label>
+              <label className="block text-sm font-medium text-navy mb-1.5">Your role</label>
               <select
                 required
                 value={role}
@@ -140,7 +140,7 @@ export default function OnboardingProfile() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-navy mb-1.5">
+              <label className="block text-sm font-medium text-navy mb-1.5">
                 Primary jurisdiction you work in
               </label>
               <input
@@ -160,7 +160,7 @@ export default function OnboardingProfile() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-navy mb-1.5">Sector</label>
+              <label className="block text-sm font-medium text-navy mb-1.5">Sector</label>
               <select
                 required
                 value={sector}
@@ -188,7 +188,7 @@ export default function OnboardingProfile() {
               type="button"
               onClick={handleSkip}
               disabled={saving}
-              className="text-[13px] text-slate hover:text-navy underline bg-transparent border-none cursor-pointer disabled:opacity-50"
+              className="text-sm text-slate hover:text-navy underline bg-transparent border-none cursor-pointer disabled:opacity-50"
             >
               Skip for now
             </button>

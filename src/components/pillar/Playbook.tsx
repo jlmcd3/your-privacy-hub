@@ -23,12 +23,12 @@ export function Playbook({ steps, accentColor = "navy" }: PlaybookProps) {
           {i < steps.length - 1 && (
             <div className="absolute left-[18px] top-9 bottom-0 w-px bg-fog" />
           )}
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0 ${circleColor} relative z-10`}>
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${circleColor} relative z-10`}>
             {step.number}
           </div>
           <div className="flex-1 pt-1">
             <p className="text-[14px] font-semibold text-navy mb-1">{step.heading}</p>
-            <p className="text-[13px] text-slate leading-relaxed">{step.description}</p>
+            <p className="text-sm text-slate leading-relaxed">{step.description}</p>
           </div>
         </div>
       ))}

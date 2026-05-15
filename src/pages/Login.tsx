@@ -114,14 +114,14 @@ const Login = () => {
             </p>
 
             {error && (
-              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
+              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
                 <input
                   type="email"
                   required
@@ -132,7 +132,7 @@ const Login = () => {
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -172,7 +172,7 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="flex items-center justify-between mt-6 text-[13px]">
+            <div className="flex items-center justify-between mt-6 text-sm">
               <Link
                 to={safeRedirect ? `/signup?redirect=${encodeURIComponent(safeRedirect)}` : "/signup"}
                 className="text-blue font-medium hover:underline no-underline"

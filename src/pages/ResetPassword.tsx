@@ -56,14 +56,14 @@ export default function ResetPassword() {
             <div className="text-center py-4">
               <div className="text-4xl mb-4">✅</div>
               <h2 className="font-display text-[22px] text-navy mb-2">Password updated</h2>
-              <p className="text-slate text-[13px]">
+              <p className="text-slate text-sm">
                 Your password has been changed. Redirecting to your account…
               </p>
             </div>
           ) : !ready ? (
             <div className="text-center py-4">
               <div className="w-6 h-6 border-2 border-blue/30 border-t-blue rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-slate text-[13px]">
+              <p className="text-slate text-sm">
                 Verifying your reset link…
               </p>
               <p className="text-slate-light text-[12px] mt-3">
@@ -83,13 +83,13 @@ export default function ResetPassword() {
                 Choose a strong password for your End User Privacy account.
               </p>
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
+                <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
                   {error}
                 </div>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[13px] font-medium text-navy mb-1.5">
+                  <label className="block text-sm font-medium text-navy mb-1.5">
                     New Password
                   </label>
                   <input
@@ -103,7 +103,7 @@ export default function ResetPassword() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-medium text-navy mb-1.5">
+                  <label className="block text-sm font-medium text-navy mb-1.5">
                     Confirm Password
                   </label>
                   <input

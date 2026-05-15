@@ -36,7 +36,7 @@ export default function InFeedAd({ adSlot, googleAdClient, googleAdSlot }: InFee
           data-ad-layout="in-article"
         />
       ) : (
-        <span className="text-[10px] uppercase tracking-widest text-slate/60">
+        <span className="text-[11px] uppercase tracking-widest text-slate/60">
           Advertisement
         </span>
       )}

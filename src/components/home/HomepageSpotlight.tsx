@@ -93,7 +93,7 @@ const SpotlightCard = ({
             </span>
           )}
           {article.attention_level === "WATCH CLOSELY" && (
-            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
+            <span className="text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
               Watch Closely
             </span>
           )}
@@ -121,7 +121,7 @@ const SpotlightCard = ({
           const firstSentence = s.split(/(?<=[.!?])\s/)[0] ?? s;
           return (
             <div>
-              <p className="text-[13px] text-slate leading-relaxed mb-2">{firstSentence}</p>
+              <p className="text-sm text-slate leading-relaxed mb-2">{firstSentence}</p>
               <Link
                 to={briefHref}
                 className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold hover:underline no-underline"
@@ -138,7 +138,7 @@ const SpotlightCard = ({
           if (!why) return null;
           return (
             <div>
-              <p className="text-[13px] text-slate leading-relaxed mb-2">{why}</p>
+              <p className="text-sm text-slate leading-relaxed mb-2">{why}</p>
               <div className="rounded-lg bg-paper border border-fog px-3 py-2">
                 <p className="text-[12px] text-slate/70 italic">
                   Platform subscribers see what to do about this and what to watch for next.{" "}
@@ -156,10 +156,10 @@ const SpotlightCard = ({
           const impact = article.ai_summary?.compliance_impact ?? null;
           return (
             <div className="space-y-2">
-              {why && <p className="text-[13px] text-slate leading-relaxed">{why}</p>}
-              {impact && <p className="text-[13px] text-slate leading-relaxed">{impact}</p>}
+              {why && <p className="text-sm text-slate leading-relaxed">{why}</p>}
+              {impact && <p className="text-sm text-slate leading-relaxed">{impact}</p>}
               {(actionProse || watchProse) && (
-                <p className="text-[13px] text-slate leading-relaxed">
+                <p className="text-sm text-slate leading-relaxed">
                   {actionProse}
                   {actionProse && watchProse && " "}
                   {watchProse && <span className="italic">{watchProse}</span>}
@@ -305,7 +305,7 @@ export default function HomepageSpotlight() {
           <h2 className="font-display text-[20px] font-bold text-navy mb-2">
             No new developments yet today
           </h2>
-          <p className="text-[13.5px] text-slate max-w-md mx-auto mb-5 leading-relaxed">
+          <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">
             Our monitoring tracks privacy regulations across U.S. Federal, EU & UK,
             and global jurisdictions. New analysis appears here as soon as it's
             published.
@@ -313,13 +313,13 @@ export default function HomepageSpotlight() {
           <div className="flex flex-wrap gap-2 justify-center">
             <Link
               to="/updates"
-              className="text-[12.5px] px-4 py-2 rounded-lg bg-navy text-white font-medium hover:bg-navy/90 transition-colors no-underline"
+              className="text-xs px-4 py-2 rounded-lg bg-navy text-white font-medium hover:bg-navy/90 transition-colors no-underline"
             >
               Browse the full feed →
             </Link>
             <Link
               to="/#brief"
-              className="text-[12.5px] px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
+              className="text-xs px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
             >
               Build an Intelligence Brief
             </Link>
@@ -338,7 +338,7 @@ export default function HomepageSpotlight() {
         <h2 className="font-display text-[22px] font-bold text-navy">
           What you see — and what you're missing
         </h2>
-        <p className="text-[13px] text-slate mt-1">
+        <p className="text-sm text-slate mt-1">
           Three of today's top developments, shown at each level of intelligence.
         </p>
       </div>
@@ -351,7 +351,7 @@ export default function HomepageSpotlight() {
 
           return (
             <div key={article.id} className="py-5 border-b border-fog last:border-0">
-              <div className={`text-[10px] uppercase tracking-wider mb-3 ${label.className}`}>
+              <div className={`text-[11px] uppercase tracking-wider mb-3 ${label.className}`}>
                 {label.icon} {label.text}
               </div>
               <SpotlightCard article={article} tier={tier} />

@@ -53,7 +53,7 @@ const FAQ = () => {
 
       {/* Hero */}
       <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4 text-center">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
           ❓ FREQUENTLY ASKED QUESTIONS
         </span>
         <h1 className="font-display text-[32px] md:text-[40px] text-white font-bold mb-3">

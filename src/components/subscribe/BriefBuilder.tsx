@@ -183,7 +183,7 @@ export default function BriefBuilder() {
           onClick={collapseBrief}
           aria-label="Collapse brief (Esc)"
           title="Collapse brief (Esc)"
-          className="fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 px-4 h-11 rounded-full bg-navy text-white shadow-eup-md hover:bg-navy/90 transition-all border border-navy-light text-[13px] font-semibold"
+          className="fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 px-4 h-11 rounded-full bg-navy text-white shadow-eup-md hover:bg-navy/90 transition-all border border-navy-light text-sm font-semibold"
         >
           <X className="w-4 h-4" />
           Collapse brief
@@ -193,7 +193,7 @@ export default function BriefBuilder() {
         <h3 className="font-display font-bold text-navy text-[18px] mb-1">
           Build your sample Intelligence Brief
         </h3>
-        <p className="text-[13px] text-slate mb-5">
+        <p className="text-sm text-slate mb-5">
           Select your jurisdiction and role, then pick your topic tracks.
           We'll assemble a representative brief showing exactly the depth
           and format you'll receive every Monday — written for your role.
@@ -206,7 +206,7 @@ export default function BriefBuilder() {
             <select
               value={jurisdiction}
               onChange={(e) => { setJurisdiction(e.target.value); setBriefShown(false); }}
-              className="w-full px-3.5 py-2.5 text-[13px] bg-paper border border-silver rounded-lg text-navy outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+              className="w-full px-3.5 py-2.5 text-sm bg-paper border border-silver rounded-lg text-navy outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
             >
               <option value="">Select your jurisdiction…</option>
               {JURISDICTIONS.map((j) => (
@@ -221,7 +221,7 @@ export default function BriefBuilder() {
             <select
               value={role}
               onChange={(e) => { setRole(e.target.value); setBriefShown(false); }}
-              className="w-full px-3.5 py-2.5 text-[13px] bg-paper border border-silver rounded-lg text-navy outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+              className="w-full px-3.5 py-2.5 text-sm bg-paper border border-silver rounded-lg text-navy outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
             >
               <option value="">Select your role…</option>
               {ROLES.map((r) => (
@@ -251,7 +251,7 @@ export default function BriefBuilder() {
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[13px] font-semibold leading-tight ${sel ? "text-white" : "text-navy"}`}>
+                  <p className={`text-sm font-semibold leading-tight ${sel ? "text-white" : "text-navy"}`}>
                     {track.label}
                   </p>
                   <p className={`text-[11px] mt-0.5 leading-snug ${sel ? "text-blue-200" : "text-slate"}`}>
@@ -292,10 +292,10 @@ export default function BriefBuilder() {
         <div className="mt-2">
           <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-5 mb-4">
             <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
                 ⭐ Your Privacy Intelligence Report
               </span>
-              <span className="text-blue-300/60 text-[10px]">
+              <span className="text-blue-300/60 text-[11px]">
                 {briefItems.length} article{briefItems.length > 1 ? "s" : ""} matched to your tracks
               </span>
             </div>
@@ -318,7 +318,7 @@ export default function BriefBuilder() {
                   <span
                     key={lang}
                     aria-disabled="true"
-                    className="px-2.5 py-0.5 rounded-full text-[10.5px] font-medium bg-white/5 border border-white/10 text-blue-100/40 cursor-not-allowed select-none"
+                    className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-blue-100/40 cursor-not-allowed select-none"
                   >
                     {lang}
                   </span>
@@ -334,7 +334,7 @@ export default function BriefBuilder() {
                 className="bg-gradient-to-br from-navy to-steel rounded-xl p-5 text-white"
               >
                 <div className="flex items-center gap-1.5 mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300/80">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300/80">
                     {item.trackLabel}
                   </span>
                 </div>
@@ -344,10 +344,10 @@ export default function BriefBuilder() {
 
                 {item.keyTakeaways?.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300/80 mb-1.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-blue-300/80 mb-1.5">
                       Key takeaways
                     </p>
-                    <ul className="space-y-1 list-disc list-outside pl-4 text-blue-100/85 text-[12.5px] leading-relaxed">
+                    <ul className="space-y-1 list-disc list-outside pl-4 text-blue-100/85 text-xs leading-relaxed">
                       {item.keyTakeaways.map((kt, i) => (
                         <li key={i}>
                           <CitedText text={kt} sourceMap={item.sourceMap} />
@@ -359,10 +359,10 @@ export default function BriefBuilder() {
 
                 {item.fullAnalysis && (
                   <div className="mb-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300/80 mb-1.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-blue-300/80 mb-1.5">
                       Full analysis
                     </p>
-                    <p className="text-blue-100/80 text-[13px] leading-relaxed">
+                    <p className="text-blue-100/80 text-sm leading-relaxed">
                       <CitedText text={item.fullAnalysis} sourceMap={item.sourceMap} />
                     </p>
                   </div>
@@ -370,10 +370,10 @@ export default function BriefBuilder() {
 
                 {item.complianceImpact && (
                   <div className="mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-300/80 mb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-blue-300/80 mb-1">
                       Compliance impact
                     </p>
-                    <p className="text-white/85 text-[12.5px] leading-relaxed">
+                    <p className="text-white/85 text-xs leading-relaxed">
                       <CitedText text={item.complianceImpact} sourceMap={item.sourceMap} />
                     </p>
                   </div>
@@ -381,10 +381,10 @@ export default function BriefBuilder() {
 
                 {item.actionItem && (
                   <div className="bg-white/10 border border-white/15 rounded-lg px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1">
                       🎯 Your action item
                     </p>
-                    <p className="text-white/90 text-[13px] leading-relaxed">
+                    <p className="text-white/90 text-sm leading-relaxed">
                       <CitedText text={item.actionItem} sourceMap={item.sourceMap} />
                     </p>
                   </div>
@@ -397,12 +397,12 @@ export default function BriefBuilder() {
             <p className="text-[14px] font-semibold text-navy mb-1">
               This is your brief. Every Monday. Automatically.
             </p>
-            <p className="text-[13px] text-slate mb-4">
+            <p className="text-sm text-slate mb-4">
               Every article in the real brief reflects that week's actual enforcement actions and regulatory developments — written for your role and jurisdiction.
             </p>
             <a
               href="/get-intelligence"
-              className="inline-block text-[13px] font-bold text-navy bg-amber-400 hover:opacity-90 transition-all px-6 py-2.5 rounded-xl no-underline"
+              className="inline-block text-sm font-bold text-navy bg-amber-400 hover:opacity-90 transition-all px-6 py-2.5 rounded-xl no-underline"
               onClick={(e) => {
                 const target = document.getElementById("pro-plan-card");
                 if (target) {

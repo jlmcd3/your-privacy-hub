@@ -81,7 +81,7 @@ export default function RecentReportsCard() {
           <li key={`${it.tool_label}-${it.id}`}>
             <Link to={it.view_path} className="flex items-center justify-between py-2.5 group no-underline">
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-semibold text-navy group-hover:text-primary truncate">{it.tool_label}</p>
+                <p className="text-sm font-semibold text-navy group-hover:text-primary truncate">{it.tool_label}</p>
                 <p className="text-[12px] text-slate truncate">{it.summary}</p>
               </div>
               <span className="text-[11px] text-muted-foreground whitespace-nowrap ml-3">

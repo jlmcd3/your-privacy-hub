@@ -202,16 +202,16 @@ export default function MyReports() {
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="font-display font-semibold text-navy text-[14px]">{r.tool_label}</span>
                         {r.status === "in_progress" ? (
-                          <Badge className="text-[10px] bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
+                          <Badge className="text-[11px] bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
                             in progress
                           </Badge>
                         ) : (
-                          <Badge variant={statusVariant(r.status)} className="text-[10px]">
+                          <Badge variant={statusVariant(r.status)} className="text-[11px]">
                             {(r.status || "—").replace(/_/g, " ")}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-[13px] text-slate truncate">{r.summary}</p>
+                      <p className="text-sm text-slate truncate">{r.summary}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">
                         {new Date(r.created_at).toLocaleDateString()} · {new Date(r.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>

@@ -99,7 +99,7 @@ export default function BiometricChecker() {
             {result.bipa_risk && (
               <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
                 <h3 className="font-display font-bold text-amber-900 text-[14px] mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
-                <p className="text-[13px] text-amber-900">Low end: <strong>${result.bipa_risk.lowEnd.toLocaleString()}</strong> · High end: <strong>${result.bipa_risk.highEnd.toLocaleString()}</strong></p>
+                <p className="text-sm text-amber-900">Low end: <strong>${result.bipa_risk.lowEnd.toLocaleString()}</strong> · High end: <strong>${result.bipa_risk.highEnd.toLocaleString()}</strong></p>
                 <p className="text-[11px] text-amber-800 mt-1">{result.bipa_risk.note}</p>
               </div>
             )}
@@ -114,23 +114,23 @@ export default function BiometricChecker() {
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <fieldset className="text-[13px]"><legend className="font-semibold text-navy">Biometric data types</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-navy">Biometric data types</legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-[12px]">
                 <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Organisation type</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.orgType} onChange={e => setForm(f => ({ ...f, orgType: e.target.value }))}>
                 {ORG.map(o => <option key={o}>{o}</option>)}</select></label>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Primary purpose</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Primary purpose</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}>
                 {PURPOSE.map(p => <option key={p}>{p}</option>)}</select></label>
-            <fieldset className="text-[13px]"><legend className="font-semibold text-navy">Jurisdictions</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-navy">Jurisdictions</legend>
               <div className="grid grid-cols-1 gap-1 mt-1">{JURS.map(j => {
                 const isIL = j.includes("Illinois");
                 const isWA = j.includes("Washington");
                 return <label key={j} className={`flex items-center gap-2 text-[12px] ${isIL ? "text-amber-900" : ""}`}>
                   <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}
-                  {isIL && <span className="text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full font-bold">Active litigation risk</span>}
-                  {isWA && <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full font-bold">MHMD applies</span>}</label>;
+                  {isIL && <span className="text-[11px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full font-bold">Active litigation risk</span>}
+                  {isWA && <span className="text-[11px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full font-bold">MHMD applies</span>}</label>;
               })}</div>
               {form.jurisdictions.some(j => j.includes("Illinois")) && (
                 <p className="mt-2 text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded p-2">
@@ -147,7 +147,7 @@ export default function BiometricChecker() {
                 </p>
               )}
             </fieldset>
-            <label className="block text-[13px]"><span className="font-semibold text-navy">Individuals enrolled</span>
+            <label className="block text-sm"><span className="font-semibold text-navy">Individuals enrolled</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.enrolledCount} onChange={e => setForm(f => ({ ...f, enrolledCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
 

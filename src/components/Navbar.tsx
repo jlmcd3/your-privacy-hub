@@ -249,7 +249,7 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
             to="/account"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-[13px] font-medium text-navy hover:bg-fog no-underline"
+            className="block px-4 py-2 text-sm font-medium text-navy hover:bg-fog no-underline"
           >
             Account settings
           </Link>
@@ -261,7 +261,7 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
               setOpen(false);
               await onSignOut();
             }}
-            className="block w-full text-left px-4 py-2 text-[13px] font-medium text-slate hover:text-navy hover:bg-fog bg-transparent border-none cursor-pointer"
+            className="block w-full text-left px-4 py-2 text-sm font-medium text-slate hover:text-navy hover:bg-fog bg-transparent border-none cursor-pointer"
           >
             Sign out
           </button>
@@ -333,7 +333,7 @@ const Navbar = () => {
       <Link
         key={sub.label}
         to={sub.href}
-        className={`flex items-start px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
+        className={`flex items-start px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy ${mobile ? "" : ""}`}
         onClick={() => {
           if (mobile) setMobileOpen(false);
           setOpenDropdown(null);
@@ -344,7 +344,7 @@ const Navbar = () => {
             <span className="font-medium">{sub.label}</span>
             {sub.badge && (
               <span
-                className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                   sub.badgeGreen
                     ? "bg-accent/10 text-accent border border-accent/20"
                     : "bg-blue/10 text-blue border border-blue/20"
@@ -447,12 +447,12 @@ const Navbar = () => {
                             {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
                             {section.header && (
                               <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                <span className="text-[11px] font-bold tracking-widest uppercase text-slate-light">
                                   {section.header}
                                 </span>
                                 {section.headerBadge && (
                                   <span
-                                    className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                    className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                       section.headerBadgeGreen
                                         ? "bg-accent/10 text-accent border border-accent/20"
                                         : "bg-blue/10 text-blue border border-blue/20"
@@ -506,17 +506,17 @@ const Navbar = () => {
                 </Link>
               )}
               {(tier === "annual" || tier === "annual_founding") && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
                   Platform
                 </span>
               )}
               {tier === "monthly" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
                   Intelligence
                 </span>
               )}
               {tier === "free" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
                   FREE PLAN
                 </span>
               )}
@@ -591,12 +591,12 @@ const Navbar = () => {
                         <div key={si}>
                           {section.header && (
                             <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-light">
                                 {section.header}
                               </span>
                               {section.headerBadge && (
                                 <span
-                                  className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                  className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                     section.headerBadgeGreen
                                       ? "bg-accent/10 text-accent border border-accent/20"
                                       : "bg-blue/10 text-blue border border-blue/20"
@@ -621,7 +621,7 @@ const Navbar = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => {
                     setMobileOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -632,7 +632,7 @@ const Navbar = () => {
                 {!isPremium && (
                   <Link
                     to="/subscribe"
-                    className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    className="block text-center text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
                     ⭐ See plans
@@ -640,7 +640,7 @@ const Navbar = () => {
                 )}
                 <Link
                   to="/account"
-                  className="block text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   Account settings
@@ -650,7 +650,7 @@ const Navbar = () => {
                     setMobileOpen(false);
                     await handleSignOut();
                   }}
-                  className="w-full text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
+                  className="w-full text-center text-sm font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
                 >
                   Sign out
                 </button>
@@ -659,14 +659,14 @@ const Navbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="block text-center text-[13px] font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/subscribe"
-                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   See Plans →

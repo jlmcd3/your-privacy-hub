@@ -60,7 +60,7 @@ const USStateComparison = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-[13px] text-amber-900 leading-snug">
+          <p className="text-sm text-amber-900 leading-snug">
             <span className="font-semibold">⭐ This tool is free.</span>
             {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
           </p>
@@ -98,7 +98,7 @@ const USStateComparison = () => {
                             />
                           )}
                           <div className="group-hover:text-accent transition-colors">{s.abbr}</div>
-                          <div className="text-[9px] font-normal text-muted-foreground">{s.law}</div>
+                          <div className="text-[11px] font-normal text-muted-foreground">{s.law}</div>
                         </Link>
                       </th>
                     );
@@ -130,7 +130,7 @@ const USStateComparison = () => {
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="max-w-xs text-xs font-mono">
                                   <p>{statute.cite}</p>
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
                                 </TooltipContent>
                               </Tooltip>
                             ) : (
@@ -139,7 +139,7 @@ const USStateComparison = () => {
                           ) : val === false ? (
                             <Minus className="w-4 h-4 text-muted-foreground/30 mx-auto" />
                           ) : (
-                            <span className="text-[10px] text-muted-foreground">{String(val)}</span>
+                            <span className="text-[11px] text-muted-foreground">{String(val)}</span>
                           )}
                         </td>
                       );

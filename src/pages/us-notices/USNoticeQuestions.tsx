@@ -266,7 +266,7 @@ export default function USNoticeQuestions() {
           {currentQuestion.jurisdictionOnly && currentQuestion.jurisdictionOnly.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {currentQuestion.jurisdictionOnly.map((j) => (
-                <Badge key={j} variant="secondary" className="font-mono text-[10px]">
+                <Badge key={j} variant="secondary" className="font-mono text-[11px]">
                   {j.replace("US_", "")}
                 </Badge>
               ))}

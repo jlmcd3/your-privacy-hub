@@ -207,7 +207,7 @@ export default function AdminArticles() {
                     <TableCell className="max-w-xl">
                       <div className="flex items-start gap-2">
                         {a.is_hidden && (
-                          <span className="inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wide rounded bg-destructive/10 text-destructive border border-destructive/30 shrink-0 mt-0.5">
+                          <span className="inline-block px-1.5 py-0.5 text-[11px] uppercase tracking-wide rounded bg-destructive/10 text-destructive border border-destructive/30 shrink-0 mt-0.5">
                             Hidden
                           </span>
                         )}

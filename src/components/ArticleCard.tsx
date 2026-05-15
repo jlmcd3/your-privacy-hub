@@ -166,7 +166,7 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
           {/* Connect the dots — related signals */}
           {signals && signals.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
                 Connect the dots
               </p>
               <ul className="space-y-1">
@@ -203,12 +203,12 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
           {(urgency || weight) && (
             <div className="flex gap-3 pt-1">
               {urgency && (
-                <span className="text-[10px] text-slate">
+                <span className="text-[11px] text-slate">
                   Urgency: <span className="font-semibold text-navy">{urgency}</span>
                 </span>
               )}
               {weight && (
-                <span className="text-[10px] text-slate">
+                <span className="text-[11px] text-slate">
                   Legal weight: <span className="font-semibold text-navy">{weight}</span>
                 </span>
               )}
@@ -240,13 +240,13 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   return (
     <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
+        <p className="text-sm font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
       </div>
       {item.summary && (
-        <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+        <p className="text-xs text-slate leading-snug mt-1 line-clamp-2">
           {stripHtml(item.summary)}
         </p>
       )}
@@ -392,13 +392,13 @@ const FullCard = ({
           {(() => {
             const sev = getSeverityLabel(item.ai_summary);
             return sev ? (
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+              <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
                 {sev.label}
               </span>
             ) : null;
           })()}
           {enriched && weight && WEIGHT_COLORS[weight] && (
-            <span className={`font-mono-code text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
+            <span className={`font-mono-code text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
               {weight}
             </span>
           )}
@@ -415,7 +415,7 @@ const FullCard = ({
 
         {/* Article excerpt — first two lines of the source summary */}
         {item.summary && (
-          <p className="text-[13px] text-slate leading-relaxed mt-1.5 line-clamp-2">
+          <p className="text-sm text-slate leading-relaxed mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -426,7 +426,7 @@ const FullCard = ({
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
-            <p className="text-[13px] text-slate leading-relaxed mt-2">
+            <p className="text-sm text-slate leading-relaxed mt-2">
               <span className="font-semibold text-warn">Alert: </span>{firstSentence}
             </p>
           );
@@ -449,7 +449,7 @@ const FullCard = ({
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
-            <p className="text-[13px] text-slate leading-relaxed mt-2">
+            <p className="text-sm text-slate leading-relaxed mt-2">
               <span className="font-semibold text-steel">Context: </span>{why}
             </p>
           );
@@ -480,7 +480,7 @@ const FullCard = ({
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-[13px] text-slate leading-relaxed">
+              <p className="text-sm text-slate leading-relaxed">
                 <span className="font-semibold text-gold">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}
@@ -515,10 +515,10 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
     )}
     <div className="flex flex-wrap items-center gap-2 mb-3">
       {item.category && (
-        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
+        <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
       )}
       {item.ai_summary?.urgency === 'Immediate' && (
-        <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
+        <span className="text-[11px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
       )}
     </div>
     <Link to={`/updates/${item.id}`}
@@ -526,7 +526,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
       {normalizeTitle(item.title)}
     </Link>
     {(item.summary || item.ai_summary?.why_it_matters) && (
-      <p className="text-[13px] text-blue-200 leading-relaxed line-clamp-3">
+      <p className="text-sm text-blue-200 leading-relaxed line-clamp-3">
         {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
       </p>
     )}
@@ -546,11 +546,11 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
     >
       <div className="flex-1 min-w-0">
         <Link to={`/updates/${item.id}`}
-          className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
+          className="text-sm font-semibold text-navy hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </Link>
         {item.summary && (
-          <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+          <p className="text-xs text-slate leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -593,10 +593,10 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             {item.source_name && (
-              <span className="text-[10px] text-slate-500 font-medium">{item.source_name}</span>
+              <span className="text-[11px] text-slate-500 font-medium">{item.source_name}</span>
             )}
             {item.published_at && (
-              <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+              <span className="text-[11px] text-slate-400">{fmtDate(item.published_at)}</span>
             )}
             {item.category && (
               <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -604,7 +604,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               </span>
             )}
           </div>
-          <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          <p className="text-sm font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
             {normalizeTitle(item.title)}
           </p>
           {item.summary && (
@@ -646,17 +646,17 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
     <div className="rounded-xl border border-sky-200/60 bg-white overflow-hidden mb-4">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 bg-sky-50/60 border-b border-sky-100 flex-wrap">
-        <span className="text-[9px] font-bold tracking-widest uppercase text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">
+        <span className="text-[11px] font-bold tracking-widest uppercase text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">
           Intelligence preview
         </span>
         {urgencyLabel && (
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${urgencyClass}`}>
+          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${urgencyClass}`}>
             {urgencyLabel}
           </span>
         )}
-        <span className="text-[10px] text-slate ml-auto">{item.source_name}</span>
+        <span className="text-[11px] text-slate ml-auto">{item.source_name}</span>
         {item.published_at && (
-          <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+          <span className="text-[11px] text-slate-400">{fmtDate(item.published_at)}</span>
         )}
         {item.source_url && (
           <a
@@ -683,7 +683,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
-              <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+              <p className="text-xs text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
             )}
           </div>
         </div>
@@ -694,7 +694,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
           >
             <p
-              className="text-[10px] font-bold tracking-wider uppercase mb-1"
+              className="text-[11px] font-bold tracking-wider uppercase mb-1"
               style={{ color: '#4A6FA5' }}
             >
               Why it matters
@@ -705,10 +705,10 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
         {item.affected_sectors && item.affected_sectors.length > 0 && (
           <div className="mb-3">
-            <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
+            <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
             <div className="flex gap-1 flex-wrap">
               {item.affected_sectors.slice(0, 3).map((sec: string, i: number) => (
-                <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
+                <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
               ))}
             </div>
           </div>
@@ -744,12 +744,12 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {item.source_name && (
-            <span className="text-[10px] font-semibold text-slate uppercase tracking-wide">
+            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
               {item.source_name}
             </span>
           )}
           {item.published_at && (
-            <span className="text-[10px] text-slate-light">{fmtDate(item.published_at)}</span>
+            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -760,7 +760,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-[13px] font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
+          className="text-sm font-semibold text-navy hover:text-blue leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}

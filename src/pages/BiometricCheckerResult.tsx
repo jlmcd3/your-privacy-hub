@@ -73,8 +73,8 @@ export default function BiometricCheckerResult() {
 
   const callout = bipaRisk && (
     <div className="border-l-4 border-[hsl(var(--warn))] bg-[hsl(var(--warn)/0.06)] rounded-r-md px-4 py-3">
-      <h3 className="text-[13px] font-semibold text-[hsl(var(--warn))] mb-1">⚠️ BIPA Litigation Risk Estimate</h3>
-      <p className="text-[13px] text-foreground">
+      <h3 className="text-sm font-semibold text-[hsl(var(--warn))] mb-1">⚠️ BIPA Litigation Risk Estimate</h3>
+      <p className="text-sm text-foreground">
         Low end: <span className="font-medium text-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
       </p>
       {bipaRisk.note && <p className="text-[11px] text-muted-foreground mt-1">{bipaRisk.note}</p>}

@@ -27,7 +27,7 @@ export default function SearchFirstHero() {
                 href="#updates"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-teal-600 hover:bg-teal-500 border border-teal-600 hover:border-teal-500 transition-all duration-200"
               >
-                <p className="text-[9px] font-bold uppercase tracking-widest text-teal-100 mb-1.5">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-teal-100 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
@@ -43,7 +43,7 @@ export default function SearchFirstHero() {
                 href="#brief"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
               >
-                <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
                   Intelligence Brief
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
@@ -59,7 +59,7 @@ export default function SearchFirstHero() {
                 href="#tools"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
               >
-                <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
                   Compliance Tools
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">

@@ -406,13 +406,13 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => navigate(`/eu-notices/frameworks/${sessionId}`)}
-              className="text-[13px] font-semibold text-teal-700 hover:underline inline-flex items-center gap-1"
+              className="text-sm font-semibold text-teal-700 hover:underline inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" /> Edit scope →
             </button>
           }
         >
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-[13px] mb-3">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm mb-3">
             <Row label="Client" value={clientName || "—"} />
             <Row label="Scope" value={SCOPE_LABEL[scope]} />
             <Row
@@ -439,14 +439,14 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => setShowAllFrameworks((v) => !v)}
-              className="text-[13px] font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-teal-700 hover:underline"
             >
               {showAllFrameworks ? "Show flagged only" : `Show all ${frameworks.length} frameworks`}
             </button>
           }
         >
           {visibleFrameworks.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground italic py-2">
+            <p className="text-sm text-muted-foreground italic py-2">
               No flagged or incomplete frameworks. All set.
             </p>
           ) : (
@@ -489,7 +489,7 @@ export default function EUNoticeReview() {
                       )}
                     </button>
                     {isOpen && section && (
-                      <div className="pl-7 pb-3 pr-2 text-[13px] space-y-1">
+                      <div className="pl-7 pb-3 pr-2 text-sm space-y-1">
                         <ul className="divide-y divide-border/50 max-h-64 overflow-y-auto">
                           {section.questions.slice(0, 6).map((q) => (
                             <li key={q.key} className="py-2">
@@ -524,7 +524,7 @@ export default function EUNoticeReview() {
                 >
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[13px] text-navy">{f.message}</p>
+                    <p className="text-sm text-navy">{f.message}</p>
                   </div>
                   <button
                     onClick={() => markReviewed(f)}
@@ -546,7 +546,7 @@ export default function EUNoticeReview() {
                   key={`${f.framework_code}:${f.type}`}
                   className="border border-border rounded-lg p-3 bg-muted/30 flex items-start justify-between gap-3"
                 >
-                  <p className="text-[13px] text-muted-foreground">{f.message}</p>
+                  <p className="text-sm text-muted-foreground">{f.message}</p>
                   <button
                     onClick={() => markReviewed(f)}
                     className="text-[12px] font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
@@ -565,7 +565,7 @@ export default function EUNoticeReview() {
             PDF is the primary format and is always generated.
           </p>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={includeHtml}
@@ -573,7 +573,7 @@ export default function EUNoticeReview() {
               />
               Also include HTML (Included)
             </label>
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={includeWord}
@@ -582,7 +582,7 @@ export default function EUNoticeReview() {
               Also include Word document (Included)
             </label>
             {combinedAvailable && (
-              <label className="flex items-center gap-2 text-[13px]">
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={includeCombined}
@@ -600,7 +600,7 @@ export default function EUNoticeReview() {
             <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
               Generation
             </p>
-            <div className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center justify-between text-sm">
               <span>
                 {frameworks.length} framework notice{frameworks.length === 1 ? "" : "s"} —{" "}
                 {SCOPE_LABEL[scope]}
@@ -653,13 +653,13 @@ export default function EUNoticeReview() {
 
           {/* Gate messaging */}
           {hasMissingRequired && (
-            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-[13px] text-red-900 dark:text-red-200">
+            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-sm text-red-900 dark:text-red-200">
               <AlertTriangle className="w-4 h-4 inline mr-1" />
               Resolve required answers before generating.
             </div>
           )}
           {hasWarningsOrRecs && (
-            <label className="flex items-start gap-2 text-[13px] mb-3 p-3 border border-border rounded-md bg-muted/30">
+            <label className="flex items-start gap-2 text-sm mb-3 p-3 border border-border rounded-md bg-muted/30">
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -676,7 +676,7 @@ export default function EUNoticeReview() {
           <div className="flex justify-between gap-3">
             <button
               onClick={() => navigate(`/eu-notices/questions/${sessionId}`)}
-              className="text-[13px] font-semibold text-muted-foreground hover:text-navy inline-flex items-center gap-1"
+              className="text-sm font-semibold text-muted-foreground hover:text-navy inline-flex items-center gap-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back to questions
             </button>
@@ -708,7 +708,7 @@ export default function EUNoticeReview() {
             <h3 className="text-[16px] font-serif text-navy mb-4">
               Generating your EU & global privacy notices…
             </h3>
-            <ul className="space-y-2 text-[13px]">
+            <ul className="space-y-2 text-sm">
               <GenStepRow status={genSteps._session ?? "pending"} label="Session data loaded" />
               <GenStepRow
                 status={genSteps._config ?? "pending"}

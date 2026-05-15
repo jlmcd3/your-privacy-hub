@@ -270,13 +270,13 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setEditDrawerOpen(true)}
-              className="text-[13px] font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-teal-700 hover:underline"
             >
               Edit →
             </button>
           }
         >
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-[13px]">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm">
             <Row label="Name" value={clientName || "—"} />
             <Row label="Sector" value={clientSector || "—"} />
             <Row label="Legal entity" value={profile.legal_entity_type || "—"} />
@@ -309,7 +309,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setShowAllActivities((v) => !v)}
-              className="text-[13px] font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-teal-700 hover:underline"
             >
               {showAllActivities
                 ? "Show flagged only"
@@ -318,7 +318,7 @@ export default function RopaReview() {
           }
         >
           {visibleActivities.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground italic py-2">
+            <p className="text-sm text-muted-foreground italic py-2">
               No flagged or incomplete activities.
             </p>
           ) : (
@@ -345,7 +345,7 @@ export default function RopaReview() {
                       {flagCount > 0 && <Chip color="amber">{flagCount} flag{flagCount > 1 ? "s" : ""}</Chip>}
                     </button>
                     {isOpen && (
-                      <div className="pl-7 pb-3 pr-2 text-[13px] text-muted-foreground space-y-1">
+                      <div className="pl-7 pb-3 pr-2 text-sm text-muted-foreground space-y-1">
                         <p>Completion: {a.completion_pct}%</p>
                         <p>{a.is_high_risk ? "Marked high-risk" : "Standard risk"}</p>
                         <button
@@ -436,7 +436,7 @@ export default function RopaReview() {
                 type="date"
                 value={docDate}
                 onChange={(e) => setDocDate(e.target.value)}
-                className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background"
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
               />
             </Field>
             <Field label="Author name">
@@ -444,7 +444,7 @@ export default function RopaReview() {
                 type="text"
                 value={authorName}
                 onChange={(e) => setAuthorName(e.target.value)}
-                className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background"
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
               />
             </Field>
             <Field label="Internal reference (optional)">
@@ -452,11 +452,11 @@ export default function RopaReview() {
                 type="text"
                 value={internalRef}
                 onChange={(e) => setInternalRef(e.target.value)}
-                className="w-full border border-border rounded-md px-3 py-2 text-[13px] bg-background"
+                className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
               />
             </Field>
             <Field label="Version">
-              <p className="px-3 py-2 text-[13px] text-muted-foreground">
+              <p className="px-3 py-2 text-sm text-muted-foreground">
                 Version {currentSession?.version_number ?? 1}
               </p>
             </Field>
@@ -469,7 +469,7 @@ export default function RopaReview() {
             PDF is the default format. You can also generate Word and Excel versions.
           </p>
           <div className="space-y-2 mb-4">
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={includeWord}
@@ -477,7 +477,7 @@ export default function RopaReview() {
               />
               Also generate Word document (Included)
             </label>
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={includeExcel}
@@ -492,7 +492,7 @@ export default function RopaReview() {
             <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
               Document generation
             </p>
-            <div className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center justify-between text-sm">
               <span>
                 PDF · {allActivities.length} activit{allActivities.length === 1 ? "y" : "ies"}
               </span>
@@ -532,13 +532,13 @@ export default function RopaReview() {
 
           {/* Gate messaging */}
           {hasMissingRequired && (
-            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-[13px] text-red-900 dark:text-red-200">
+            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-sm text-red-900 dark:text-red-200">
               <AlertTriangle className="w-4 h-4 inline mr-1" />
               Resolve required fields before generating.
             </div>
           )}
           {onlyWarningsOrRecs && (
-            <label className="flex items-start gap-2 text-[13px] mb-3 p-3 border border-border rounded-md bg-muted/30">
+            <label className="flex items-start gap-2 text-sm mb-3 p-3 border border-border rounded-md bg-muted/30">
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -589,7 +589,7 @@ export default function RopaReview() {
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-[16px] font-serif text-navy mb-4">Building your RoPA…</h3>
-            <ul className="space-y-2 text-[13px]">
+            <ul className="space-y-2 text-sm">
               <GenStepRow done={genSteps.client === "done"} label="Client record" />
               <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
               <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
