@@ -16,6 +16,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
