@@ -591,7 +591,7 @@ const Navbar = () => {
                         <div key={si}>
                           {section.header && (
                             <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-light">
+                              <span className="text-eyebrow text-slate-light">
                                 {section.header}
                               </span>
                               {section.headerBadge && (
