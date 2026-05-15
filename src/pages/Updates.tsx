@@ -507,35 +507,7 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* Faceted Filters: Sectors + Attention Level */}
-                {availableSectors.length > 0 && (
-                    <div className="flex flex-col gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-eyebrow text-muted-foreground mr-1">Sectors:</span>
-                            {availableSectors.slice(0, 8).map(([sector, count]) => (
-                                <button
-                                    key={sector}
-                                    onClick={() => handleGatedFilterClick(`Sector: ${sector}`, () => toggleSector(sector))}
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                                        activeSectors.includes(sector)
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted text-foreground hover:bg-muted/80"
-                                    } ${!user ? "opacity-50 cursor-default" : ""}`}
-                                >
-                                    {sector} <span className="opacity-60">({count})</span>
-                                </button>
-                            ))}
-                            {activeSectors.length > 0 && (
-                                <button
-                                    onClick={() => setActiveSectors([])}
-                                    className="text-[11px] text-muted-foreground hover:text-foreground ml-1"
-                                >
-                                    Clear sectors
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
+                {/* Sectors faceted filter hidden for now */}
 
                 {/* Search + date range */}
                 <div className="flex flex-col sm:flex-row gap-3 mb-4">
