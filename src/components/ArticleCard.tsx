@@ -468,13 +468,16 @@ const FullCard = ({
         {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
         {tier === 'paid' && (() => {
           const impact = item.ai_summary?.compliance_impact;
-          if (!impact && !actionProse && !watchProse) {
+           if (!impact && !actionProse && !watchProse) {
             const toolCTA = getToolCTA(item);
             return (
-              <div className="mt-2 pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
-                  {toolCTA.label}
-                </Link>
+              <div className="mt-2 space-y-2">
+                <InvestigationPrompt item={item} />
+                <div className="pt-2 border-t border-fog">
+                  <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
+                    {toolCTA.label}
+                  </Link>
+                </div>
               </div>
             );
           }
@@ -489,6 +492,7 @@ const FullCard = ({
                 {actionProse && watchProse && ' '}
                 {watchProse && <span className="italic">{watchProse}</span>}
               </p>
+              <InvestigationPrompt item={item} />
               <div className="pt-2 border-t border-fog">
                 <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
@@ -497,7 +501,6 @@ const FullCard = ({
             </div>
           );
         })()}
-        {tier === 'paid' && <InvestigationPrompt item={item} />}
       </div>
     </div>
   );
