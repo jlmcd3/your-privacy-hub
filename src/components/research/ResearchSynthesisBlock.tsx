@@ -95,11 +95,15 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
             <span className={`transition-transform ${promptOpen ? "rotate-180" : ""}`}>▾</span>
           </button>
 
-          {promptOpen && (() => {
+          {promptOpen && contextLoading && (
+            <div className="mt-3 flex items-center gap-2 text-meta text-gray-500">
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              Loading your profile to personalize this prompt…
+            </div>
+          )}
+
+          {promptOpen && !contextLoading && (() => {
             const headingFromKey = (key: string) => {
-              // Strip page prefix (e.g. "ai_privacy__eu_ai_act" -> "eu_ai_act"),
-              // then humanize: replace _ with spaces, title-case words,
-              // and uppercase common acronyms.
               const tail = key.includes("__") ? key.split("__").slice(1).join("__") : key;
               const ACRONYMS = new Set([
                 "ai", "eu", "uk", "us", "gdpr", "ccpa", "cppa", "hipaa", "ftc",
@@ -117,11 +121,26 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
             };
             const sectionHeading =
               data.section_heading?.trim() || headingFromKey(sectionKey);
-            const prompt = generateResearchInvestigationPrompt(
-              sectionHeading,
-              data.synthesis_text,
-              subscriberContext ?? {}
-            );
+
+            let prompt = "";
+            try {
+              prompt = generateResearchInvestigationPrompt(
+                sectionHeading,
+                data.synthesis_text,
+                subscriberContext ?? {}
+              );
+              if (promptError) setPromptError(null);
+            } catch (e: any) {
+              const msg = e?.message ?? "Unable to assemble the investigation prompt.";
+              if (promptError !== msg) setPromptError(msg);
+              return (
+                <div className="mt-3 p-3 bg-white border border-gray-200 rounded text-meta text-gray-600">
+                  <p className="font-semibold text-gray-700 mb-1">Couldn’t build the prompt</p>
+                  <p>{msg} Try refreshing the page; if it persists, the synthesis text may be missing.</p>
+                </div>
+              );
+            }
+
             const handleCopy = async () => {
               try {
                 await navigator.clipboard.writeText(prompt);
@@ -138,6 +157,11 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
             };
             return (
               <div className="mt-3 space-y-2">
+                {contextError && (
+                  <p className="text-meta text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+                    Couldn’t load your profile — showing a generic version. You can still copy and personalize manually.
+                  </p>
+                )}
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-meta text-gray-500 flex-1">
                     {personalized
