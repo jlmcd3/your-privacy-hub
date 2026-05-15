@@ -42,6 +42,8 @@ const GlobalAuthorities = () => {
       </div>
 
 
+      <AdBanner variant="leaderboard" className="mt-6" />
+
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Search */}
         <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-fog shadow-eup-sm">
