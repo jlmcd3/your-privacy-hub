@@ -19,12 +19,30 @@ const DIMENSIONS: Record<AdVariant, { w: number; h: number }> = {
   stickyRail:  { w: 300, h: 600 },
 };
 
+// Map legacy variant names to canonical AdVariants so existing callsites
+// (variant="inline" | "sidebar" | etc.) keep working.
+const VARIANT_ALIAS: Record<string, AdVariant> = {
+  leaderboard: 'leaderboard',
+  inFeed: 'inFeed',
+  infeed: 'inFeed',
+  inline: 'inFeed',
+  rectangle: 'rectangle',
+  sidebar: 'rectangle',
+  stickyRail: 'stickyRail',
+  skyscraper: 'stickyRail',
+};
+
 interface AdBannerProps {
-  variant?: AdVariant;
+  variant?: AdVariant | 'inline' | 'sidebar' | 'skyscraper' | string;
   className?: string;
+  /** Legacy props — accepted for backwards compatibility, ignored. */
+  adSlot?: string;
+  googleAdClient?: string;
+  googleAdSlot?: string;
 }
 
 export default function AdBanner({ variant = 'leaderboard', className = '' }: AdBannerProps) {
+  const resolvedVariant: AdVariant = VARIANT_ALIAS[variant] ?? 'leaderboard';
   const { isPremium, isLoading } = usePremiumStatus();
   const location = useLocation();
   const insRef = useRef<HTMLModElement | null>(null);
