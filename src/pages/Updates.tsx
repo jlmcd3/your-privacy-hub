@@ -553,7 +553,7 @@ const Updates = () => {
                     </div>
                 )}
 
-                <AdBanner />
+                <AdBanner variant="leaderboard" className="my-4" />
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
@@ -573,10 +573,9 @@ const Updates = () => {
                         hasMore={hasMore}
                         onLoadMore={handleLoadMore}
                         isLoadingMore={loadingMore}
+                        interleaveAds={true}
                     />
                 </div>
-
-                <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
                 </div>
             </div>
 

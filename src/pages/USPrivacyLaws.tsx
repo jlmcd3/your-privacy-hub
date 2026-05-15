@@ -221,7 +221,7 @@ const USPrivacyLaws = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
+      <AdBanner variant="leaderboard" className="my-4" />
 
       {/* Recent Developments CTA */}
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">

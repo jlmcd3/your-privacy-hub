@@ -10,6 +10,7 @@ import EmailSignup from "@/components/EmailSignup";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
+import InFeedAd from "@/components/InFeedAd";
 import { getSeverityLabel } from "@/lib/severity";
 
 interface AISummary {
@@ -414,6 +415,8 @@ const UpdateDetail = () => {
                     );
                   })()}
                 </section>
+
+                <InFeedAd />
 
                 {/* ========================================================
                     Free registered: single locked row covering 2-4

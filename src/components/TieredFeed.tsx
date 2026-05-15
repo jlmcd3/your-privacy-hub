@@ -1,7 +1,9 @@
+import { Fragment } from "react";
 import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import InFeedAd from "@/components/InFeedAd";
 
 interface TieredFeedProps {
   articles: ArticleItem[];
@@ -9,6 +11,8 @@ interface TieredFeedProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
+  /** When true, interleaves an InFeedAd after every 5th article (anonymous/free only). */
+  interleaveAds?: boolean;
   /** Legacy props — accepted but ignored. Enrichment is now inline per card. */
   newsfeedCap?: number;
   previewCount?: number;
@@ -22,6 +26,7 @@ export function TieredFeed({
   hasMore = false,
   onLoadMore,
   isLoadingMore = false,
+  interleaveAds = false,
 }: TieredFeedProps) {
   const { user } = useAuth();
   const { isPremium } = usePremiumStatus();
@@ -39,14 +44,16 @@ export function TieredFeed({
 
   return (
     <div>
-      {articles.map((a) => (
-        <ArticleCard
-          key={a.id}
-          item={a}
-          variant="full"
-          isPremium={isPremium}
-          userSalutation={userProfile?.action_brief_salutation}
-        />
+      {articles.map((a, index) => (
+        <Fragment key={a.id}>
+          {interleaveAds && index > 0 && index % 5 === 0 && <InFeedAd />}
+          <ArticleCard
+            item={a}
+            variant="full"
+            isPremium={isPremium}
+            userSalutation={userProfile?.action_brief_salutation}
+          />
+        </Fragment>
       ))}
       {loadMoreButton}
     </div>
