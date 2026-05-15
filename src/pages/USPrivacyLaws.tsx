@@ -177,7 +177,7 @@ const USPrivacyLaws = () => {
       {/* Page Header */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             🇺🇸 Intelligence Guide
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
@@ -188,7 +188,7 @@ const USPrivacyLaws = () => {
             enforcement authorities, state-level authorities and privacy laws across all 50 states,
             and the latest regulatory developments.
           </p>
-          <div className="text-[11px] text-slate-light mt-4">
+          <div className="text-meta text-slate-light mt-4">
             Last updated:{" "}
             {recentArticles[0]?.published_at
               ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", {
@@ -208,7 +208,7 @@ const USPrivacyLaws = () => {
               <button
                 key={tab.anchor}
                 onClick={() => scrollTo(tab.anchor)}
-                className={`px-3 py-1.5 text-[11px] md:text-[12px] font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer bg-transparent ${
+                className={`px-3 py-1.5 text-meta md:text-meta font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer bg-transparent ${
                   activeTab === tab.anchor
                     ? "border-white text-white bg-white/15"
                     : "border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
@@ -229,7 +229,7 @@ const USPrivacyLaws = () => {
           onClick={() => scrollTo("recent-developments")}
           className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-sky/10 to-navy/5 border border-sky/30 hover:border-sky/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
         >
-          <span className="text-sm md:text-[14px] text-foreground font-bold">
+          <span className="text-sm md:text-sm text-foreground font-bold">
             See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
           <span className="text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
@@ -245,7 +245,7 @@ const USPrivacyLaws = () => {
           id="federal-authorities"
           className="mb-12 scroll-mt-24"
         >
-          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">
+          <h2 className="font-display text-xl md:text-[24px] text-foreground mb-2">
             U.S. Federal Privacy Authorities
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -262,27 +262,27 @@ const USPrivacyLaws = () => {
                 <div className="bg-blue self-stretch" aria-hidden="true" />
                 <div className="px-4 py-3 md:px-5 md:py-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <div className="font-display text-[16px] md:text-[17px] leading-tight text-navy">
+                    <div className="font-display text-base md:text-[17px] leading-tight text-navy">
                       {a.name}
                     </div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
+                    <span className="text-eyebrow px-2 py-0.5 rounded bg-blue/10 text-blue border border-blue/20 shrink-0">
                       {a.abbr}
                     </span>
                   </div>
-                  <div className="text-[11px] uppercase tracking-wider text-slate-light mb-2">
+                  <div className="text-meta uppercase tracking-wider text-slate-light mb-2">
                     Federal regulator
                   </div>
-                  <div className="text-[12px] text-slate mb-1.5">
+                  <div className="text-meta text-slate mb-1.5">
                     <span className="font-semibold text-navy/80">Scope:</span> {a.scope}
                   </div>
-                  <div className="text-[12px] italic text-navy/80 mb-2 leading-snug">
+                  <div className="text-meta italic text-navy/80 mb-2 leading-snug">
                     {a.authority}
                   </div>
                   <a
                     href={a.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[12px] font-medium text-blue hover:text-navy no-underline"
+                    className="text-meta font-medium text-blue hover:text-navy no-underline"
                   >
                     Site ↗
                   </a>
@@ -298,7 +298,7 @@ const USPrivacyLaws = () => {
           id="authority-directory"
           className="mt-12 mb-10 scroll-mt-24"
         >
-          <h2 className="font-display text-[20px] md:text-[24px] text-foreground mb-2">
+          <h2 className="font-display text-xl md:text-[24px] text-foreground mb-2">
             U.S. State Privacy Authority Directory
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -309,7 +309,7 @@ const USPrivacyLaws = () => {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
+            <span className="text-meta font-semibold tracking-wider uppercase text-muted-foreground">
               Status:
             </span>
             {["All", "Enacted", "Pending", "None"].map((f) => (
@@ -325,7 +325,7 @@ const USPrivacyLaws = () => {
                 {f}
               </span>
             ))}
-            <span className="ml-auto text-[12px] text-muted-foreground">
+            <span className="ml-auto text-meta text-muted-foreground">
               {filteredAuthorities.length} results
             </span>
           </div>
@@ -357,20 +357,20 @@ const USPrivacyLaws = () => {
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <Link
                         to={`/jurisdiction/${slug}`}
-                        className="font-display text-[16px] md:text-[17px] leading-tight text-navy no-underline hover:underline"
+                        className="font-display text-base md:text-[17px] leading-tight text-navy no-underline hover:underline"
                       >
                         {state.state}
                       </Link>
                       <span
-                        className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${style.pill}`}
+                        className={`text-eyebrow px-2 py-0.5 rounded shrink-0 ${style.pill}`}
                       >
                         {status}
                       </span>
                     </div>
-                    <div className="text-[11px] uppercase tracking-wider text-slate-light mb-2">
+                    <div className="text-meta uppercase tracking-wider text-slate-light mb-2">
                       {style.subtitle(state.effective_date)}
                     </div>
-                    <div className="text-[12px] font-semibold text-navy leading-snug">
+                    <div className="text-meta font-semibold text-navy leading-snug">
                       {state.authority_name}
                     </div>
                     <div className="text-xs text-slate mt-0.5 mb-1.5">
@@ -381,21 +381,21 @@ const USPrivacyLaws = () => {
                         href={state.statute_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-[12px] italic text-blue hover:text-navy no-underline leading-snug mb-2"
+                        className="block text-meta italic text-blue hover:text-navy no-underline leading-snug mb-2"
                       >
                         {state.statute_name} ↗
                       </a>
                     ) : state.statute_name ? (
-                      <div className="text-[12px] italic text-navy/80 leading-snug mb-2">
+                      <div className="text-meta italic text-navy/80 leading-snug mb-2">
                         {state.statute_name}
                       </div>
                     ) : (
-                      <div className="text-[12px] italic text-slate-light leading-snug mb-2">
+                      <div className="text-meta italic text-slate-light leading-snug mb-2">
                         No statute enacted
                       </div>
                     )}
                     {showView && (
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta font-medium">
                         <Link
                           to={`/jurisdiction/${slug}`}
                           className="text-blue hover:text-navy no-underline font-semibold"
@@ -422,7 +422,7 @@ const USPrivacyLaws = () => {
               <h2 className="font-display text-xl text-navy">
                 Recent U.S. Privacy Developments
               </h2>
-              <span className="text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+              <span className="text-eyebrow px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
                 Live
               </span>
             </div>
@@ -450,10 +450,10 @@ const USPrivacyLaws = () => {
                 className="group bg-card border border-fog rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all"
               >
                 <span className="text-2xl block mb-2">{link.icon}</span>
-                <p className="font-display font-bold text-navy text-[14px] mb-1 group-hover:text-blue transition-colors">
+                <p className="font-display font-bold text-navy text-sm mb-1 group-hover:text-blue transition-colors">
                   {link.label}
                 </p>
-                <span className="text-blue text-[12px] font-semibold">Explore →</span>
+                <span className="text-blue text-meta font-semibold">Explore →</span>
               </Link>
             ))}
           </div>
@@ -463,7 +463,7 @@ const USPrivacyLaws = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">
+          <div className="text-eyebrow text-sky mb-2">
             ⭐ Intelligence
           </div>
           <h3 className="font-display text-xl text-white mb-3">
