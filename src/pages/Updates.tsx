@@ -12,6 +12,8 @@ import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
+import { containsProfanity } from "@/lib/profanityFilter";
+import { toast } from "sonner";
 
 interface Update {
     id: string;
