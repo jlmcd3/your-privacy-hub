@@ -22,35 +22,35 @@ export default function SearchFirstHero() {
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-3xl mt-2">
-              {/* Card 1 — Intelligence Brief (Primary) */}
+              {/* Card 1 — Privacy Intelligence Feed (Primary) */}
               <a
-                href="#brief"
+                href="#updates"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-teal-600 hover:bg-teal-500 border border-teal-600 hover:border-teal-500 transition-all duration-200"
               >
                 <p className="text-[9px] font-bold uppercase tracking-widest text-teal-100 mb-1.5">
-                  Intelligence Brief
-                </p>
-                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
-                  Your Privacy Intelligence Report — to save you time
-                </p>
-                <p className="text-[12px] text-teal-100 leading-snug">
-                  Personalized to your jurisdiction, role, and tracked topics. Every Monday.
-                </p>
-              </a>
-
-              {/* Card 2 — Privacy Updates (Secondary) */}
-              <a
-                href="#updates"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
-              >
-                <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
-                <p className="text-[12px] text-white/60 leading-snug">
+                <p className="text-[12px] text-teal-100 leading-snug">
                   119 monitored sources. Enriched with compliance intelligence. Updated daily.
+                </p>
+              </a>
+
+              {/* Card 2 — Intelligence Brief (Secondary) */}
+              <a
+                href="#brief"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
+              >
+                <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                  Intelligence Brief
+                </p>
+                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                  Your Privacy Intelligence Report — to save you time
+                </p>
+                <p className="text-[12px] text-white/60 leading-snug">
+                  Personalized to your jurisdiction, role, and tracked topics. Every Monday.
                 </p>
               </a>
 
