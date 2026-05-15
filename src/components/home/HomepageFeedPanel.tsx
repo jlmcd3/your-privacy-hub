@@ -156,12 +156,12 @@ const HomepageArticleCard = ({
               {watchProse && <span className="italic">{watchProse}</span>}
             </p>
           )}
+          <InvestigationPrompt item={article} />
           <div className="pt-1.5 border-t border-fog">
             <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
-          <InvestigationPrompt item={article} />
         </div>
       );
     }
@@ -185,12 +185,12 @@ const HomepageArticleCard = ({
               {watchProse && <span className="italic">{watchProse}</span>}
             </p>
           )}
+          <InvestigationPrompt item={article} />
           <div className="pt-1.5 border-t border-fog">
             <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
-          <InvestigationPrompt item={article} />
         </div>
       );
     }
