@@ -7,7 +7,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { type ArticleItem } from "@/components/ArticleCard";
-import { IntelligencePanel } from "@/components/IntelligencePanel";
 
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
@@ -125,7 +124,6 @@ const Updates = () => {
     const { isPremium } = usePremiumStatus();
 
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
-    const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null);
 
     const activeRegion = searchParams.get("region") || "all";
     const activeTopic = searchParams.get("topic") || "all";
@@ -326,13 +324,11 @@ const Updates = () => {
 
     const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
 
-    const articlesForPanel = filtered.map((a) => ({
+    const articlesForFeed = filtered.map((a) => ({
         ...a,
         source_url: (a as any).source_url || a.url,
         jurisdiction: a.direct_jurisdictions?.[0] ?? a.affected_jurisdictions?.[0] ?? null,
     } as unknown as ArticleItem));
-
-    const panelArticle = selectedArticle ?? articlesForPanel[0] ?? null;
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -393,7 +389,7 @@ const Updates = () => {
                 </div>
             </div>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr_280px] xl:grid-cols-[180px_1fr_360px] gap-6 items-start">
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
                 {/* Left: Topics sidebar */}
                 <aside className="hidden md:block">
                     <div className="sticky top-20">
@@ -569,33 +565,19 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* Newsfeed — minimal cards; enrichment lives in the right-column IntelligencePanel */}
+                {/* Newsfeed — full cards with inline tier-appropriate enrichment */}
                 <div>
                     <TieredFeed
-                        articles={articlesForPanel}
+                        articles={articlesForFeed}
                         paginated={true}
-                        seeAllHref="/updates"
-                        showSeeAll={false}
                         hasMore={hasMore}
                         onLoadMore={handleLoadMore}
                         isLoadingMore={loadingMore}
-                        selectedArticle={panelArticle}
-                        onSelectArticle={setSelectedArticle}
-                        panelMode={true}
                     />
                 </div>
 
                 <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
                 </div>
-
-                {/* Right column: Intelligence panel — desktop only, sticky */}
-                <aside className="hidden md:block sticky top-20 self-start max-h-[calc(100vh-100px)] overflow-y-auto">
-                    <IntelligencePanel
-                        selectedArticle={panelArticle}
-                        isPremium={isPremium}
-                        isAuthenticated={!!user}
-                    />
-                </aside>
             </div>
 
             <Footer />

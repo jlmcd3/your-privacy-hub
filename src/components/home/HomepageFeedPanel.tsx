@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { normalizeTitle } from "@/lib/utils";
-import { IntelligencePanel } from "@/components/IntelligencePanel";
 import type { ArticleItem } from "@/components/ArticleCard";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
@@ -61,16 +60,6 @@ const HomepageArticleCard = ({
     return labels ? `Watch: ${labels}.` : null;
   })();
 
-  const jur = article.jurisdiction ?? "";
-  const cat = article.category ?? "";
-  const briefParams = new URLSearchParams();
-  if (jur) briefParams.set("pre_jurisdiction", jur);
-  if (cat) briefParams.set("pre_topic", cat);
-  const briefHref = briefParams.toString() ? `/#brief?${briefParams}` : "/#brief";
-  const briefLabel = jur
-    ? `Build a sample ${jur} Intelligence Brief →`
-    : "Build a sample Intelligence Brief →";
-
   const renderEnrichment = () => {
     if (demoTier === "anonymous") {
       const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
@@ -80,11 +69,10 @@ const HomepageArticleCard = ({
         <div className="mt-2">
           <p className="text-[12px] text-slate leading-relaxed">{firstSentence}</p>
           <Link
-            to={briefHref}
+            to="/signup"
             className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-gold no-underline hover:underline"
           >
-            <Sparkles className="w-3 h-3" />
-            {briefLabel}
+            Register free to see the full analysis →
           </Link>
         </div>
       );
