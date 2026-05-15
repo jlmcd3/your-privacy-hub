@@ -413,65 +413,81 @@ const FullCard = ({
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
         </TitleLink>
 
-        {/* ── ANONYMOUS — Alert + tier CTAs ─────────── */}
-        {tier === 'anonymous' && (() => {
+        {/* Article excerpt — first two lines of the source summary */}
+        {item.summary && (
+          <p className="text-[13px] text-slate leading-relaxed mt-1.5 line-clamp-2">
+            {stripHtml(item.summary)}
+          </p>
+        )}
+
+        {/* ── ALERT — shown to all tiers when available ─────────── */}
+        {(() => {
           const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
-            <div className="mt-2">
-              <p className="text-[13px] text-slate leading-relaxed">
-                <span className="font-semibold text-warn">Alert: </span>{firstSentence}
-              </p>
-              <div className="flex flex-col gap-1 mt-1.5">
-                <Link to="/signup" className="text-[12px] font-semibold text-steel hover:underline no-underline">
-                  Register free to see Context →
-                </Link>
-                <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
-                  Subscribe to see Analysis and Guidance →
-                </Link>
-              </div>
-            </div>
+            <p className="text-[13px] text-slate leading-relaxed mt-2">
+              <span className="font-semibold text-warn">Alert: </span>{firstSentence}
+            </p>
           );
         })()}
 
-        {/* ── FREE REGISTERED — Context + single CTA ───── */}
-        {tier === 'free' && (() => {
+        {/* ── ANONYMOUS CTAs ─────────── */}
+        {tier === 'anonymous' && (
+          <div className="flex flex-col gap-1 mt-1.5">
+            <Link to="/signup" className="text-[12px] font-semibold text-steel hover:underline no-underline">
+              Register free to see Context →
+            </Link>
+            <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
+              Subscribe to see Analysis and Guidance →
+            </Link>
+          </div>
+        )}
+
+        {/* ── CONTEXT — free + paid ───── */}
+        {(tier === 'free' || tier === 'paid') && (() => {
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
-            <div className="mt-2">
-              <p className="text-[13px] text-slate leading-relaxed mb-2">
-                <span className="font-semibold text-steel">Context: </span>{why}
-              </p>
-              <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
-                Subscribe to see Analysis and Guidance →
-              </Link>
-            </div>
+            <p className="text-[13px] text-slate leading-relaxed mt-2">
+              <span className="font-semibold text-steel">Context: </span>{why}
+            </p>
           );
         })()}
 
+        {/* ── FREE CTA ─────────── */}
+        {tier === 'free' && (
+          <div className="mt-1.5">
+            <Link to="/subscribe" className="text-[12px] font-semibold text-gold hover:underline no-underline">
+              Subscribe to see Analysis and Guidance →
+            </Link>
+          </div>
+        )}
+
         {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
         {tier === 'paid' && (() => {
-          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short;
           const impact = item.ai_summary?.compliance_impact;
-          if (!why && !impact && !actionProse && !watchProse) return null;
+          if (!impact && !actionProse && !watchProse) {
+            const toolCTA = getToolCTA(item);
+            return (
+              <div className="mt-2 pt-2 border-t border-fog">
+                <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                  {toolCTA.label}
+                </Link>
+              </div>
+            );
+          }
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              {why && (
-                <p className="text-[13px] text-slate leading-relaxed">
-                  <span className="font-semibold text-gold">Analysis and Guidance: </span>{why}
-                </p>
-              )}
-              {impact && <p className="text-[13px] text-slate leading-relaxed">{impact}</p>}
-              {(actionProse || watchProse) && (
-                <p className="text-[13px] text-slate leading-relaxed">
-                  {actionProse}
-                  {actionProse && watchProse && ' '}
-                  {watchProse && <span className="italic">{watchProse}</span>}
-                </p>
-              )}
+              <p className="text-[13px] text-slate leading-relaxed">
+                <span className="font-semibold text-gold">Analysis and Guidance: </span>
+                {impact}
+                {impact && (actionProse || watchProse) && ' '}
+                {actionProse}
+                {actionProse && watchProse && ' '}
+                {watchProse && <span className="italic">{watchProse}</span>}
+              </p>
               <div className="pt-2 border-t border-fog">
                 <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
