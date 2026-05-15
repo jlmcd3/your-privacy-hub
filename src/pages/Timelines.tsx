@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 const TIMELINES = [
   { slug: "gdpr-enforcement", title: "GDPR Enforcement Timeline", icon: "🇪🇺", description: "Major GDPR enforcement milestones from adoption in 2016 to the record fines of 2023–2026." },
@@ -32,7 +31,7 @@ const Timelines = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-[13px] text-amber-900 leading-snug">
+          <p className="text-sm text-amber-900 leading-snug">
             <span className="font-semibold">⭐ This tool is free.</span>
             {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
           </p>
@@ -44,7 +43,6 @@ const Timelines = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-timelines-top" className="py-3" />
 
         <div className="grid gap-4">
           {TIMELINES.map((t) => (

@@ -54,7 +54,7 @@ const Glossary = () => {
           ))}
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-glossary-top" className="py-3" />
+        <AdBanner variant="leaderboard" className="my-4" />
 
         {groupedEntries.map(([letter, terms], idx) => (
           <div key={letter}>
@@ -71,16 +71,13 @@ const Glossary = () => {
                     <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.definition}</p>
                     <div className="flex gap-1.5 mt-2 flex-wrap">
                       {t.regulations.map((r) => (
-                        <span key={r} className="font-mono-code text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
+                        <span key={r} className="font-mono-code text-meta px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
                       ))}
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
-            {idx === midIndex - 1 && (
-              <AdBanner variant="inline" adSlot="eup-glossary-mid" className="py-4" />
-            )}
           </div>
         ))}
       </div>

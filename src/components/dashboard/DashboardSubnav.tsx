@@ -12,8 +12,56 @@
 
 import { NavLink, useLocation } from "react-router-dom";
 import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
-import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
+const SUPPRESS_PATHS = [
+  '/',
+  '/updates',
+  '/enforcement',
+  '/horizon',
+  '/subscribe',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/check-email',
+  '/onboarding-profile',
+  '/about',
+  '/contact',
+  '/faq',
+  '/terms',
+  '/privacy-policy',
+  '/get-intelligence',
+  '/us-privacy-laws',
+  '/gdpr-enforcement',
+  '/global-privacy-laws',
+  '/ai-privacy-regulations',
+  '/jurisdictions',
+  '/legislation-tracker',
+  '/glossary',
+  '/calendar',
+  '/timelines',
+  '/global-privacy-authorities',
+  '/cross-border-transfers',
+  '/biometric-privacy',
+  '/health-data-privacy',
+  '/cookie-consent',
+  '/breach-notification',
+  '/legitimate-interest-tracker',
+];
+
+const APPSHELL_PREFIXES = [
+  '/dashboard',
+  '/watchlist',
+  '/clients',
+  '/brief-preferences',
+  '/account',
+  '/ropa',
+  '/us-notices',
+  '/eu-notices',
+  '/admin',
+];
 
 type Item = {
   to: string;
@@ -81,17 +129,36 @@ const ITEMS: Item[] = [
 ];
 
 export default function DashboardSubnav() {
+  const { user } = useAuth();
   const location = useLocation();
+
+  const rawPath = location.pathname.toLowerCase();
   const pathname = normalizePath(location.pathname);
   const hash = normalizeHash(location.hash);
 
   // First-match-wins so exactly one workspace tab can be active at a time.
-  const activeTo = useMemo(() => {
+  const activeTo = (() => {
     for (const item of ITEMS) {
       if (item.match(pathname, hash)) return item.to;
     }
     return null;
-  }, [pathname, hash]);
+  })();
+
+  if (!user) return null;
+
+  const isSuppressed =
+    SUPPRESS_PATHS.some(p => rawPath === p || rawPath.startsWith(p + '/')) ||
+    rawPath.startsWith('/updates/') ||
+    rawPath.startsWith('/jurisdiction/') ||
+    rawPath.startsWith('/regulator/') ||
+    rawPath.startsWith('/category/') ||
+    rawPath.startsWith('/topics/') ||
+    rawPath.startsWith('/glossary/') ||
+    rawPath.startsWith('/timelines/') ||
+    rawPath.startsWith('/compare/') ||
+    rawPath.startsWith('/enforcement/') ||
+    rawPath.startsWith('/subscribe/');
+  if (isSuppressed) return null;
 
   // Account highlights only when no workspace tab claimed the route.
   const accountActive = activeTo === null && pathname === "/account";
@@ -99,7 +166,7 @@ export default function DashboardSubnav() {
   return (
     <nav
       aria-label="Dashboard sections"
-      className="border-b border-fog bg-card sticky top-0 z-30 backdrop-blur-sm bg-card/95"
+      className="border-b border-fog bg-card sticky top-14 md:top-16 z-30 backdrop-blur-sm bg-card/95"
     >
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2">
@@ -115,7 +182,7 @@ export default function DashboardSubnav() {
                     // Disable NavLink's built-in active detection — we own it via `activeTo`.
                     end
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors no-underline whitespace-nowrap",
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline whitespace-nowrap",
                       active
                         ? "bg-navy text-white"
                         : "text-slate hover:bg-fog hover:text-navy",
@@ -135,7 +202,7 @@ export default function DashboardSubnav() {
             to="/account"
             end
             className={cn(
-              "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors no-underline",
+              "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline",
               accountActive
                 ? "bg-fog text-navy"
                 : "text-slate hover:bg-fog hover:text-navy",

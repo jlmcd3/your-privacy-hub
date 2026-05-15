@@ -210,7 +210,7 @@ export default function AdminIngestionDashboard() {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-mono text-[12px] font-semibold text-foreground">{s.name}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${STATUS_STYLES[s.last?.status ?? "success"] ?? ""}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase border ${STATUS_STYLES[s.last?.status ?? "success"] ?? ""}`}>
                   {s.last?.status ?? "—"}
                 </span>
               </div>
@@ -228,7 +228,7 @@ export default function AdminIngestionDashboard() {
                   <div className="font-semibold text-foreground">{s.runs}</div>
                 </div>
               </div>
-              <div className="text-[10px] text-muted-foreground mt-2">
+              <div className="text-[11px] text-muted-foreground mt-2">
                 Last: {formatTime(s.last?.run_at ?? null)}
               </div>
             </button>
@@ -291,7 +291,7 @@ export default function AdminIngestionDashboard() {
                         <td className="px-4 py-3 font-mono text-[12px] text-foreground">{r.job_name ?? "(legacy)"}</td>
                         <td className="px-4 py-3 text-[12px] text-muted-foreground whitespace-nowrap">{formatTime(r.started_at ?? r.run_at)}</td>
                         <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${STATUS_STYLES[r.status ?? "success"] ?? ""}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase border ${STATUS_STYLES[r.status ?? "success"] ?? ""}`}>
                             {r.status ?? "success"}
                           </span>
                         </td>
@@ -314,25 +314,25 @@ export default function AdminIngestionDashboard() {
                           <td colSpan={9} className="px-4 py-3 text-[12px]">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <div className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Timing</div>
+                                <div className="text-muted-foreground text-[11px] uppercase tracking-wider mb-1">Timing</div>
                                 <div>Started: <span className="font-mono">{formatTime(r.started_at)}</span></div>
                                 <div>Finished: <span className="font-mono">{formatTime(r.finished_at)}</span></div>
                               </div>
                               <div>
-                                <div className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Counts</div>
+                                <div className="text-muted-foreground text-[11px] uppercase tracking-wider mb-1">Counts</div>
                                 <div>Skipped: {r.skipped ?? 0}</div>
                                 <div>Enrichment 429s: {r.enrichment_failed_429 ?? 0}</div>
                                 <div>Enrichment other failures: {r.enrichment_failed_other ?? 0}</div>
                               </div>
                               {r.error_message && (
                                 <div className="md:col-span-2">
-                                  <div className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Error</div>
+                                  <div className="text-muted-foreground text-[11px] uppercase tracking-wider mb-1">Error</div>
                                   <pre className="bg-destructive/10 border border-destructive/30 rounded p-2 text-[11px] text-destructive whitespace-pre-wrap break-all">{r.error_message}</pre>
                                 </div>
                               )}
                               {r.metadata && Object.keys(r.metadata).length > 0 && (
                                 <div className="md:col-span-2">
-                                  <div className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1">Metadata</div>
+                                  <div className="text-muted-foreground text-[11px] uppercase tracking-wider mb-1">Metadata</div>
                                   <pre className="bg-muted rounded p-2 text-[11px] text-foreground overflow-x-auto">{JSON.stringify(r.metadata, null, 2)}</pre>
                                 </div>
                               )}
@@ -412,10 +412,10 @@ export default function AdminIngestionDashboard() {
                   )}
                   {articles.map((a) => (
                     <tr key={a.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 text-[13px] text-foreground max-w-[420px]">
+                      <td className="px-4 py-3 text-sm text-foreground max-w-[420px]">
                         <div className="line-clamp-2">{a.title}</div>
                         {a.is_hidden && (
-                          <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-destructive/10 text-destructive border border-destructive/30">
+                          <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[11px] font-bold uppercase bg-destructive/10 text-destructive border border-destructive/30">
                             Hidden
                           </span>
                         )}

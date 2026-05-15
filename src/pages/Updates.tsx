@@ -6,20 +6,22 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import NewsfeedList from "@/components/NewsfeedList";
-import { ArticleCard, type ArticleItem } from "@/components/ArticleCard";
-import AnonymousUpdatesCard from "@/components/AnonymousUpdatesCard";
+import { type ArticleItem } from "@/components/ArticleCard";
 
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
+import { containsProfanity } from "@/lib/profanityFilter";
+import { toast } from "sonner";
 
 interface Update {
     id: string;
     title: string;
     summary: string | null;
     url: string;
+    direct_jurisdictions?: string[] | null;
+    affected_jurisdictions?: string[] | null;
     source_name: string | null;
     source_domain: string | null;
     image_url: string | null;
@@ -38,11 +40,11 @@ interface Update {
 const PAGE_SIZE = 50;
 
 const LOCATION_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "us-federal", label: "🇺🇸 U.S. Federal" },
-  { key: "us-states", label: "🗺️ U.S. States" },
-  { key: "eu-uk", label: "🇪🇺 EU & UK" },
-  { key: "global", label: "🌐 Global" },
+  { key: "all", label: "All Jurisdictions" },
+  { key: "us-federal", label: "U.S. Federal" },
+  { key: "us-states", label: "U.S. States" },
+  { key: "eu-uk", label: "EU & UK" },
+  { key: "global", label: "Rest of World" },
 ];
 
 interface TopicFilter {
@@ -53,16 +55,17 @@ interface TopicFilter {
 }
 
 const TOPIC_FILTERS: TopicFilter[] = [
-  { key: "enforcement", label: "⚖️ Enforcement", match: 'category' },
-  { key: "ai-privacy", label: "🤖 AI & Privacy", match: 'category' },
-  { key: "adtech", label: "📡 AdTech & Advertising", match: 'category' },
-  { key: "health-hipaa", label: "🏥 Health & HIPAA", match: 'keyword', terms: ['HIPAA', 'health', 'medical'] },
-  { key: "children-privacy", label: "👶 Children's Privacy", match: 'keyword', terms: ['children', 'COPPA', 'minor', 'age verification'] },
-  { key: "data-breaches", label: "🔒 Data Breaches", match: 'keyword', terms: ['breach', 'data breach', 'incident'] },
-  { key: "cross-border", label: "🌐 Cross-Border Transfers", match: 'keyword', terms: ['transfer', 'SCC', 'adequacy', 'DPF'] },
-  { key: "biometric-data", label: "🧬 Biometric Data", match: 'keyword', terms: ['biometric', 'facial', 'BIPA', 'fingerprint'] },
-  { key: "employee-privacy", label: "💼 Employee Privacy", match: 'keyword', terms: ['employee', 'workplace', 'worker', 'HR'] },
-  { key: "cookie-consent", label: "🍪 Cookie Consent", match: 'keyword', terms: ['cookie', 'consent', 'TCF', 'ePrivacy'] },
+  { key: "all", label: "All Topics", match: 'category' },
+  { key: "enforcement", label: "Enforcement", match: 'category' },
+  { key: "ai-privacy", label: "AI & Privacy", match: 'category' },
+  { key: "adtech", label: "AdTech & Advertising", match: 'category' },
+  { key: "health-hipaa", label: "Health & HIPAA", match: 'keyword', terms: ['HIPAA', 'health', 'medical'] },
+  { key: "children-privacy", label: "Children's Privacy", match: 'keyword', terms: ['children', 'COPPA', 'minor', 'age verification'] },
+  { key: "data-breaches", label: "Data Breaches", match: 'keyword', terms: ['breach', 'data breach', 'incident'] },
+  { key: "cross-border", label: "Cross-Border Transfers", match: 'keyword', terms: ['transfer', 'SCC', 'adequacy', 'DPF'] },
+  { key: "biometric-data", label: "Biometric Data", match: 'keyword', terms: ['biometric', 'facial', 'BIPA', 'fingerprint'] },
+  { key: "employee-privacy", label: "Employee Privacy", match: 'keyword', terms: ['employee', 'workplace', 'worker', 'HR'] },
+  { key: "cookie-consent", label: "Cookie Consent", match: 'keyword', terms: ['cookie', 'consent', 'TCF', 'ePrivacy'] },
 ];
 
 const ENRICHMENT_FILTERS = [
@@ -113,36 +116,38 @@ const Updates = () => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [page, setPage] = useState(0);
-    const [activeFilter, setActiveFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
     const [dateRange, setDateRange] = useState("all");
     const [sourcePills, setSourcePills] = useState<string[]>([]);
     const [activeSource, setActiveSource] = useState<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
     const [activeSectors, setActiveSectors] = useState<string[]>([]);
-    // (Attention filter state removed — Attention badge no longer surfaced)
     const { user } = useAuth();
     const { isPremium } = usePremiumStatus();
-    
+
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    // Write the selected pill into the URL (region/topic) so back/forward stays in sync.
-    // Uses push (not replace) so each pill click is its own history entry.
-    const selectFilter = useCallback((key: string) => {
+    const activeRegion = searchParams.get("region") || "all";
+    const activeTopic = searchParams.get("topic") || "all";
+
+    // Independent setters: region and topic are additive in the URL.
+    const selectRegion = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        next.delete("region");
-        next.delete("topic");
-        if (key && key !== "all") {
-            const isLocation = LOCATION_FILTERS.some(f => f.key === key);
-            next.set(isLocation ? "region" : "topic", key);
-        }
+        if (!key || key === "all") next.delete("region");
+        else next.set("region", key);
+        setSearchParams(next);
+    }, [searchParams, setSearchParams]);
+
+    const selectTopic = useCallback((key: string) => {
+        const next = new URLSearchParams(searchParams);
+        if (!key || key === "all") next.delete("topic");
+        else next.set("topic", key);
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
     const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
       if (!user) {
         setShowFilterGate(filterLabel);
-        // Auto-hide after 4 seconds
         setTimeout(() => setShowFilterGate(null), 4000);
       } else {
         action();
@@ -154,24 +159,39 @@ const Updates = () => {
     const [legalWeightFilter, setLegalWeightFilter] = useState("all");
     const [crossJurisdictionOnly, setCrossJurisdictionOnly] = useState(false);
 
-    // Sync active pill with ?region= / ?topic= query param (resets to "all" when cleared)
-    useEffect(() => {
-        const region = searchParams.get("region");
-        const topic = searchParams.get("topic");
-        if (topic) setActiveFilter(topic);
-        else if (region) setActiveFilter(region);
-        else setActiveFilter("all");
-    }, [searchParams]);
-
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
 
 
-    const buildQuery = useCallback((offset: number) => {
-        return supabase
+    // Debounce search term so each keystroke doesn't hit the DB
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+        return () => clearTimeout(t);
+    }, [searchTerm]);
+
+    const buildQuery = useCallback((offset: number, q: string) => {
+        let query = supabase
             .from("updates")
             .select("*")
-            .eq("is_hidden", false)
+            .eq("is_hidden", false);
+
+        if (q && q.length >= 2) {
+            // Escape commas/parens that would break PostgREST `or` syntax
+            const safe = q.replace(/[,()]/g, " ");
+            const like = `%${safe}%`;
+            query = query.or(
+                [
+                    `title.ilike.${like}`,
+                    `summary.ilike.${like}`,
+                    `regulator.ilike.${like}`,
+                    `regulatory_theory.ilike.${like}`,
+                    `related_development.ilike.${like}`,
+                ].join(",")
+            );
+        }
+
+        return query
             .order("published_at", { ascending: false })
             .range(offset, offset + PAGE_SIZE - 1);
     }, []);
@@ -180,7 +200,7 @@ const Updates = () => {
         if (offset === 0) setLoading(true);
         else setLoadingMore(true);
 
-        const { data, error } = await buildQuery(offset);
+        const { data, error } = await buildQuery(offset, debouncedSearch);
         if (error) {
             console.error("Updates fetch error:", error);
         } else {
@@ -205,7 +225,7 @@ const Updates = () => {
 
         setLoading(false);
         setLoadingMore(false);
-    }, [buildQuery]);
+    }, [buildQuery, debouncedSearch]);
 
     useEffect(() => {
         loadPage(0, true);
@@ -259,21 +279,19 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        if (activeFilter === "enriched" && !(u.enrichment_version && u.enrichment_version > 0)) return false;
-        if (activeFilter === "pending" && (u.enrichment_version && u.enrichment_version > 0)) return false;
+        // Region filter
+        if (activeRegion !== "all" && u.category !== activeRegion) return false;
 
-        // Location filter
-        const locationFilter = LOCATION_FILTERS.find(f => f.key === activeFilter);
-        if (locationFilter && activeFilter !== "all" && u.category !== activeFilter) return false;
-
-        // Topic filter
-        const topicFilter = TOPIC_FILTERS.find(f => f.key === activeFilter);
-        if (topicFilter) {
-            if (topicFilter.match === 'category' && u.category !== topicFilter.key) return false;
-            if (topicFilter.match === 'keyword' && topicFilter.terms) {
-                const terms = topicFilter.terms.map(t => t.toLowerCase());
-                const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
-                if (!terms.some(term => text.includes(term))) return false;
+        // Topic filter (independent / additive with region)
+        if (activeTopic !== "all") {
+            const t = TOPIC_FILTERS.find(f => f.key === activeTopic);
+            if (t) {
+                if (t.match === 'category' && u.category !== t.key) return false;
+                if (t.match === 'keyword' && t.terms) {
+                    const terms = t.terms.map(x => x.toLowerCase());
+                    const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
+                    if (!terms.some(term => text.includes(term))) return false;
+                }
             }
         }
 
@@ -318,20 +336,25 @@ const Updates = () => {
 
     const clearAllFilters = () => {
         setActiveSectors([]);
-        // (activeAttention removed)
         setUrgencyFilter("all");
         setLegalWeightFilter("all");
         setCrossJurisdictionOnly(false);
         setActiveSource(null);
-        setActiveFilter("all");
         setSearchTerm("");
         setDateRange("all");
-        // Clear region/topic from URL too so history stays consistent
         const next = new URLSearchParams(searchParams);
         next.delete("region");
         next.delete("topic");
         setSearchParams(next);
     };
+
+    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
+
+    const articlesForFeed = filtered.map((a) => ({
+        ...a,
+        source_url: (a as any).source_url || a.url,
+        jurisdiction: a.direct_jurisdictions?.[0] ?? a.affected_jurisdictions?.[0] ?? null,
+    } as unknown as ArticleItem));
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -341,95 +364,141 @@ const Updates = () => {
             </Helmet>
             <Navbar />
 
-            <section className="bg-gradient-to-br from-navy via-navy to-navy/90 py-6 px-4 md:px-8">
-                <div className="max-w-[1280px] mx-auto text-center">
+            <div className="px-4 sm:px-6 py-5 border-b border-fog bg-card">
+                <div className="max-w-[1280px] mx-auto">
                     {(topicFilter || regionFilter) && (
-                        <div className="flex items-center justify-center mb-1">
-                            <Link to="/updates" className="text-[11px] text-white/60 hover:text-white transition-colors no-underline">
-                                ← {lastIngestionLabel(updates)}
+                        <div className="mb-1">
+                            <Link to="/updates" className="text-[11px] text-slate hover:text-navy transition-colors no-underline">
+                                ← Back to all updates
                             </Link>
                         </div>
                     )}
-                    <h1 className="font-display text-[24px] md:text-[30px] tracking-tight text-white m-0">
+                    <h1 className="font-display text-[24px] font-bold text-navy leading-tight m-0">
                         {regionFilter
                             ? formatFilterLabel(regionFilter)
                             : topicFilter
                                 ? formatFilterLabel(topicFilter)
-                                : lastIngestionLabel(updates)}
+                                : "Privacy Intelligence Feed"}
                     </h1>
+                    <p className="text-sm text-slate mt-0.5">
+                        {updates[0]?.published_at
+                            ? `Through ${formatDate(updates[0].published_at)} · Updated daily`
+                            : "Updated daily"}
+                    </p>
                 </div>
-            </section>
+            </div>
 
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
-                {topicFilter && (
-                    <div className="mb-3">
-                        <div className="flex items-center mb-1 text-[11px] text-muted-foreground">
-                            <Link to="/updates" className="hover:text-foreground no-underline">
-                                ← {lastIngestionLabel(updates)}
-                            </Link>
-                        </div>
-                        <h2 className="text-[15px] font-medium text-foreground m-0">
-                            {formatFilterLabel(topicFilter)}
-                        </h2>
-                        <p className="text-[11px] text-muted-foreground m-0">
-                            {filtered.length} updates in view
-                        </p>
+            {/* Jurisdiction subnav (pill style) */}
+            <div className="border-b border-border bg-card">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
+                    <div className="flex items-center gap-3 overflow-x-auto pl-6">
+                        <span className="text-eyebrow text-muted-foreground whitespace-nowrap">Jurisdiction</span>
+                        {LOCATION_FILTERS.map((f) => {
+                            const isActive = activeRegion === f.key;
+                            return (
+                                <button
+                                    key={f.key}
+                                    onClick={() => selectRegion(f.key)}
+                                    className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
+                                        isActive
+                                            ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
+                                            : "text-slate hover:text-foreground"
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
+                {/* Left: Topics sidebar */}
+                <aside className="hidden md:block">
+                    <div className="sticky top-20 bg-card rounded-lg p-3">
+                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
+                        <nav className="flex flex-col">
+                            {TOPIC_FILTERS.map((t) => {
+                                const isActive = activeTopic === t.key;
+                                return (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => selectTopic(t.key)}
+                                        className={`text-left text-sm px-3 py-2 transition-colors border-l-2 ${
+                                            isActive
+                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
+                                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                                        }`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </aside>
+
+                {/* Main feed column */}
+                <div>
+                {/* Mobile: topics as scrollable pills */}
+                <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
+                    <div className="flex items-center gap-2 px-4">
+                        {TOPIC_FILTERS.map((t) => {
+                            const isActive = activeTopic === t.key;
+                            return (
+                                <button
+                                    key={t.key}
+                                    onClick={() => selectTopic(t.key)}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                                        isActive
+                                            ? "bg-[hsl(var(--cobalt))] text-white"
+                                            : "bg-muted text-foreground hover:bg-muted/80"
+                                    }`}
+                                >
+                                    {t.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {hasJurisdictionOrTopic && (
+                    <div className="mb-3 flex items-center gap-2 text-xs">
+                        <span className="text-muted-foreground">{filtered.length} updates</span>
+                        <button
+                            onClick={clearAllFilters}
+                            className="text-[hsl(var(--cobalt))] hover:underline font-medium"
+                        >
+                            Clear filters
+                        </button>
                     </div>
                 )}
-                <Link
-                  to="/get-intelligence"
-                  aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
-                  className="group block bg-sky/10 hover:bg-sky/20 border border-sky/30 hover:border-sky/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
-                >
-                  <p className="text-[13px] font-semibold m-0 text-blue group-hover:text-navy transition-colors">
-                    Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
-                  </p>
-                </Link>
-                {/* Enrichment stats strip */}
 
-                {/* Filters bar — two-group layout. Region + topic are open to all
-                    visitors (matches the homepage CTA promise). Sectors and date
-                    range remain gated to anon users below. */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {/* Location filters */}
-                    {LOCATION_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => selectFilter(f.key)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                activeFilter === f.key
-                                    ? "bg-navy text-white"
-                                    : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-
-                    {/* Separator */}
-                    <span className="w-px h-5 bg-border mx-1" />
-
-                    {/* Topic filters */}
-                    {TOPIC_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => selectFilter(f.key)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                activeFilter === f.key
-                                    ? "bg-navy text-white"
-                                    : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-
-                </div>
+                {isPremium ? (
+                  <Link
+                    to="/dashboard"
+                    aria-label="View your latest Privacy Intelligence Report"
+                    className="group block bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-lg px-4 py-3 mb-4 text-sm font-semibold text-gold text-center no-underline transition-colors"
+                  >
+                    View your latest Privacy Intelligence Report →
+                  </Link>
+                ) : (
+                  <Link
+                    to="/get-intelligence"
+                    aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
+                    className="group block bg-sky/10 hover:bg-sky/20 border border-sky/30 hover:border-sky/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
+                  >
+                    <p className="text-sm font-semibold m-0 text-blue group-hover:text-navy transition-colors">
+                      Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
+                    </p>
+                  </Link>
+                )}
 
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <p className="text-[12px] text-navy flex-1">
+                        <p className="text-sm text-navy flex-1">
                             Register free to filter by your industry and date range
                         </p>
                         <Link
@@ -448,56 +517,32 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* Faceted Filters: Sectors + Attention Level */}
-                {availableSectors.length > 0 && (
-                    <div className="flex flex-col gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
-                            {availableSectors.slice(0, 8).map(([sector, count]) => (
-                                <button
-                                    key={sector}
-                                    onClick={() => handleGatedFilterClick(`Sector: ${sector}`, () => toggleSector(sector))}
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                                        activeSectors.includes(sector)
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted text-foreground hover:bg-muted/80"
-                                    } ${!user ? "opacity-50 cursor-default" : ""}`}
-                                >
-                                    {sector} <span className="opacity-60">({count})</span>
-                                </button>
-                            ))}
-                            {activeSectors.length > 0 && (
-                                <button
-                                    onClick={() => setActiveSectors([])}
-                                    className="text-[11px] text-muted-foreground hover:text-foreground ml-1"
-                                >
-                                    Clear sectors
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
+                {/* Sectors faceted filter hidden for now */}
 
                 {/* Search + date range */}
                 <div className="flex flex-col sm:flex-row gap-3 mb-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
                             type="text"
-                            placeholder="Search Privacy Intelligence Feed…"
+                            placeholder="Search the entire Privacy Intelligence Feed…"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background"
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (containsProfanity(value)) {
+                                    toast.error("Search term not allowed");
+                                    setSearchTerm("");
+                                    return;
+                                }
+                                setSearchTerm(value);
+                            }}
+                            className="w-full pl-12 pr-4 py-3.5 border-2 border-border rounded-lg text-base bg-background shadow-sm focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/20 transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                     <select
                         value={dateRange}
-                        onChange={(e) => {
-                            const next = e.target.value;
-                            handleGatedFilterClick("Date range", () => setDateRange(next));
-                        }}
-                        disabled={!user}
-                        className={`px-3 py-2 border border-border rounded-lg text-sm bg-background ${!user ? "opacity-50 cursor-default" : ""}`}
+                        onChange={(e) => setDateRange(e.target.value)}
+                        className="px-4 py-3.5 border-2 border-border rounded-lg text-base bg-background focus:outline-none focus:border-cobalt"
                     >
                         {DATE_RANGES.map((d) => (
                             <option key={d.key} value={d.key}>{d.label}</option>
@@ -508,34 +553,21 @@ const Updates = () => {
                 {/* Active filter summary + clear */}
                 {hasActiveFilters && (
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[12px] text-muted-foreground">{filtered.length} results</span>
+                        <span className="text-xs text-muted-foreground">{filtered.length} results</span>
                         <button
                             onClick={clearAllFilters}
-                            className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-destructive hover:underline"
                         >
                             <X className="w-3 h-3" /> Clear all filters
                         </button>
                     </div>
                 )}
 
-                <AdBanner />
-
-                {/* Anonymous: prominent register CTA above the article list */}
-                {!user && (
-                    <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 mb-4 text-[13px] font-medium text-navy text-center flex items-center justify-center gap-3 flex-wrap">
-                        <span>Register free to see why each item matters — analysis on every article</span>
-                        <Link
-                            to="/signup"
-                            className="text-[12px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
-                        >
-                            Register free →
-                        </Link>
-                    </div>
-                )}
+                <AdBanner variant="leaderboard" className="my-4" />
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
-                    <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
+                    <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
                         Showing analysis on every update.{" "}
                         <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
                             Upgrade to Platform to unlock Action Briefs →
@@ -543,55 +575,18 @@ const Updates = () => {
                     </div>
                 )}
 
-                {/* Newsfeed */}
+                {/* Newsfeed — full cards with inline tier-appropriate enrichment */}
                 <div>
-                    {user && isPremium ? (
-                        /* Intelligence subscribers: full paginated experience */
-                        <NewsfeedList
-                            articles={filtered}
-                            isLoading={loading || loadingMore}
-                            hasMore={hasMore}
-                            onLoadMore={handleLoadMore}
-                            renderArticle={(article, _i, isPremiumCard) => (
-                                <ArticleCard
-                                    key={article.id}
-                                    item={{...article, source_url: article.url} as unknown as ArticleItem}
-                                    variant='full'
-                                    isPremium={isPremiumCard}
-                                />
-                            )}
-                        />
-                    ) : user && !isPremium ? (
-                        /* Free registered: TieredFeed (FullCard + blurred ActionBrief on every card) */
-                        <TieredFeed
-                            articles={filtered.map(a => ({ ...a, source_url: (a as any).source_url || a.url } as unknown as ArticleItem))}
-                            paginated={true}
-                            seeAllHref="/updates"
-                            showSeeAll={false}
-                            hasMore={hasMore}
-                            onLoadMore={handleLoadMore}
-                            isLoadingMore={loadingMore}
-                        />
-                    ) : (
-                        /* Anonymous: minimal internal-link news cards, no enrichment */
-                        <div>
-                            {filtered.map(a => (
-                                <AnonymousUpdatesCard key={a.id} item={a} />
-                            ))}
-                            {hasMore && (
-                                <button
-                                    onClick={handleLoadMore}
-                                    disabled={loadingMore}
-                                    className="mt-4 w-full text-[12px] px-4 py-2.5 rounded-lg border border-fog text-slate hover:bg-slate-50 transition-colors disabled:opacity-50"
-                                >
-                                    {loadingMore ? "Loading…" : "Load more"}
-                                </button>
-                            )}
-                        </div>
-                    )}
+                    <TieredFeed
+                        articles={articlesForFeed}
+                        paginated={true}
+                        hasMore={hasMore}
+                        onLoadMore={handleLoadMore}
+                        isLoadingMore={loadingMore}
+                        interleaveAds={true}
+                    />
                 </div>
-
-                <AdBanner variant="leaderboard" adSlot="eup-updates-bottom" className="py-6" />
+                </div>
             </div>
 
             <Footer />

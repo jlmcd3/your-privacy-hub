@@ -1106,6 +1106,38 @@ export type Database = {
           },
         ]
       }
+      homepage_spotlight: {
+        Row: {
+          created_at: string
+          id: string
+          slot: number
+          spotlight_date: string
+          update_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          slot: number
+          spotlight_date: string
+          update_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          slot?: number
+          spotlight_date?: string
+          update_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homepage_spotlight_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horizon_intelligence: {
         Row: {
           anticipated_development: string
@@ -2408,6 +2440,54 @@ export type Database = {
         }
         Relationships: []
       }
+      research_syntheses: {
+        Row: {
+          article_count: number
+          article_ids_used: Json
+          created_at: string
+          generated_at: string | null
+          id: string
+          model_used: string
+          page_slug: string
+          section_heading: string
+          section_key: string
+          synthesis_text: string | null
+          topic_filters: Json
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          article_count?: number
+          article_ids_used?: Json
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          model_used?: string
+          page_slug: string
+          section_heading: string
+          section_key: string
+          synthesis_text?: string | null
+          topic_filters?: Json
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          article_count?: number
+          article_ids_used?: Json
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          model_used?: string
+          page_slug?: string
+          section_heading?: string
+          section_key?: string
+          synthesis_text?: string | null
+          topic_filters?: Json
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       ropa_activity_templates: {
         Row: {
           category: string
@@ -3287,9 +3367,12 @@ export type Database = {
           analysis_basis: string | null
           attention_level: string | null
           category: string
+          contextual_record: Json | null
+          contextual_teaser: string | null
           created_at: string
           defense_considerations: string | null
           direct_jurisdictions: string[] | null
+          enrichment_quality: string | null
           enrichment_version: number | null
           entities: Json | null
           id: string
@@ -3300,6 +3383,7 @@ export type Database = {
           key_date: string | null
           li_processed: boolean | null
           li_relevant: boolean | null
+          precedent_novelty: string | null
           published_at: string
           regulator: string | null
           regulatory_theory: string | null
@@ -3308,6 +3392,7 @@ export type Database = {
           source_domain: string | null
           source_name: string | null
           source_note: string | null
+          source_tier: number | null
           summary: string | null
           title: string
           topic_tags: string[] | null
@@ -3322,9 +3407,12 @@ export type Database = {
           analysis_basis?: string | null
           attention_level?: string | null
           category?: string
+          contextual_record?: Json | null
+          contextual_teaser?: string | null
           created_at?: string
           defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
+          enrichment_quality?: string | null
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
@@ -3335,6 +3423,7 @@ export type Database = {
           key_date?: string | null
           li_processed?: boolean | null
           li_relevant?: boolean | null
+          precedent_novelty?: string | null
           published_at?: string
           regulator?: string | null
           regulatory_theory?: string | null
@@ -3343,6 +3432,7 @@ export type Database = {
           source_domain?: string | null
           source_name?: string | null
           source_note?: string | null
+          source_tier?: number | null
           summary?: string | null
           title: string
           topic_tags?: string[] | null
@@ -3357,9 +3447,12 @@ export type Database = {
           analysis_basis?: string | null
           attention_level?: string | null
           category?: string
+          contextual_record?: Json | null
+          contextual_teaser?: string | null
           created_at?: string
           defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
+          enrichment_quality?: string | null
           enrichment_version?: number | null
           entities?: Json | null
           id?: string
@@ -3370,6 +3463,7 @@ export type Database = {
           key_date?: string | null
           li_processed?: boolean | null
           li_relevant?: boolean | null
+          precedent_novelty?: string | null
           published_at?: string
           regulator?: string | null
           regulatory_theory?: string | null
@@ -3378,6 +3472,7 @@ export type Database = {
           source_domain?: string | null
           source_name?: string | null
           source_note?: string | null
+          source_tier?: number | null
           summary?: string | null
           title?: string
           topic_tags?: string[] | null
@@ -3935,6 +4030,16 @@ export type Database = {
           _session_id: string
         }
         Returns: Json
+      }
+      get_cron_jobs: {
+        Args: never
+        Returns: {
+          active: boolean
+          command: string
+          jobid: number
+          jobname: string
+          schedule: string
+        }[]
       }
       get_enforcement_action_basic: {
         Args: { _id: string }

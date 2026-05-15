@@ -45,7 +45,7 @@ export default function RopaInlineFlag({
             <p className="text-[12px] font-semibold text-teal-900 dark:text-teal-200 mb-1">
               Related compliance tool
             </p>
-            <p className="text-[13px] text-teal-900 dark:text-teal-100">{message}</p>
+            <p className="text-sm text-teal-900 dark:text-teal-100">{message}</p>
             {actionRoute && actionLabel && (
               <a
                 href={actionRoute}
@@ -71,7 +71,7 @@ export default function RopaInlineFlag({
             <p className="text-[12px] font-semibold text-blue-900 dark:text-blue-200 mb-1">
               Note
             </p>
-            <p className="text-[13px] text-blue-900 dark:text-blue-100">
+            <p className="text-sm text-blue-900 dark:text-blue-100">
               {message}
               {consequence ? <> · <span className="text-blue-800/80 dark:text-blue-200/80">{consequence}</span></> : null}
             </p>
@@ -90,7 +90,7 @@ export default function RopaInlineFlag({
           <p className="text-[12px] font-semibold text-amber-900 dark:text-amber-200 mb-1">
             {activityName ? `${activityName} — action may be needed` : "Action may be needed"}
           </p>
-          <p className="text-[13px] text-amber-900 dark:text-amber-100">{message}</p>
+          <p className="text-sm text-amber-900 dark:text-amber-100">{message}</p>
           {consequence && (
             <p className="text-[11px] text-amber-800/80 dark:text-amber-200/70 mt-1">
               Why this matters: {consequence}

@@ -230,7 +230,7 @@ const LatestUpdates = () => {
                 {LOCATION_FILTERS.map((f) => (
                   <span
                     key={f.key}
-                    className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
+                    className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
                   >
                     {f.label}
                   </span>
@@ -239,7 +239,7 @@ const LatestUpdates = () => {
                 {TOPIC_FILTERS.map((f) => (
                   <span
                     key={f.key}
-                    className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
+                    className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
                   >
                     {f.label}
                   </span>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, EyeOff } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2 } from "lucide-react";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { fmtDate } from "@/lib/dates";
+import { getSeverityLabel } from "@/lib/severity";
+import { useAuth } from "@/hooks/useAuth";
+import { InvestigationPrompt } from "@/components/InvestigationPrompt";
 
 // Admin-only inline control to hide an article from all feeds.
 const AdminHideButton = ({ articleId }: { articleId: string }) => {
@@ -66,6 +69,7 @@ export interface ArticleItem {
   affected_sectors?: string[] | null;
   regulatory_theory?: string | null;
   related_development?: string | null;
+  precedent_novelty?: "new_theory" | "confirms" | "reverses" | "routine" | string | null;
   enrichment_version?: number | null;
   image_url?: string | null;
   is_premium?: boolean;
@@ -163,7 +167,7 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
           {/* Connect the dots — related signals */}
           {signals && signals.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
                 Connect the dots
               </p>
               <ul className="space-y-1">
@@ -200,12 +204,12 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
           {(urgency || weight) && (
             <div className="flex gap-3 pt-1">
               {urgency && (
-                <span className="text-[10px] text-slate">
+                <span className="text-[11px] text-slate">
                   Urgency: <span className="font-semibold text-navy">{urgency}</span>
                 </span>
               )}
               {weight && (
-                <span className="text-[10px] text-slate">
+                <span className="text-[11px] text-slate">
                   Legal weight: <span className="font-semibold text-navy">{weight}</span>
                 </span>
               )}
@@ -220,21 +224,30 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
 // — COMPACT variant ——————————————————————————————————
 const CompactCard = ({ item }: { item: ArticleItem }) => {
   const enriched = isEnriched(item);
+  const wrapperClass = `block group rounded-xl px-3 py-2.5 -mx-3 transition-colors no-underline ${
+    enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-fog/40'
+  }`;
+  const wrapperStyle = enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined;
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    item.source_url ? (
+      <a href={item.source_url} target="_blank" rel="noopener noreferrer" className={wrapperClass} style={wrapperStyle}>
+        {children}
+      </a>
+    ) : (
+      <Link to={`/updates/${item.id}`} className={wrapperClass} style={wrapperStyle}>
+        {children}
+      </Link>
+    );
   return (
-    <Link to={`/updates/${item.id}`}
-      className={`block group rounded-xl px-3 py-2.5 -mx-3 transition-colors no-underline ${
-        enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-fog/40'
-      }`}
-      style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
-    >
+    <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-[13px] font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
+        <p className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
       </div>
       {item.summary && (
-        <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+        <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
           {stripHtml(item.summary)}
         </p>
       )}
@@ -248,25 +261,114 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           </span>
         )}
       </div>
-    </Link>
+    </Wrapper>
   );
 };
 
+// — Brief Builder CTA — pre-seeds jurisdiction/topic from the article context
+const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
+  const jur = item.jurisdiction ?? '';
+  const cat = item.category ?? '';
+  const params = new URLSearchParams();
+  if (jur) params.set('pre_jurisdiction', jur);
+  if (cat) params.set('pre_topic', cat);
+  const qs = params.toString();
+  const href = qs ? `/#brief?${qs}` : '/#brief';
+  const label = jur
+    ? `Build a sample ${jur} Intelligence Brief →`
+    : 'Build a sample Intelligence Brief →';
+  return (
+    <div className="mt-2">
+      <Link
+        to={href}
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline no-underline"
+      >
+        <Sparkles className="w-3 h-3" />
+        {label}
+      </Link>
+    </div>
+  );
+};
+
+// Title link helper — prefers source_url (opens in new tab), falls back to internal /updates/:id
+const TitleLink = ({
+  item,
+  className,
+  children,
+}: {
+  item: ArticleItem;
+  className?: string;
+  children: React.ReactNode;
+}) =>
+  item.source_url ? (
+    <a
+      href={item.source_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
+      {children}
+    </a>
+  ) : (
+    <Link to={`/updates/${item.id}`} className={className}>
+      {children}
+    </Link>
+  );
+
 // — FULL variant ——————————————————————————————————
-const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { item: ArticleItem; isPremium?: boolean; userSalutation?: string }) => {
+const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
+  const cat = (item.category ?? '').toLowerCase();
+  const jur = (item.jurisdiction ?? '').toLowerCase();
+  if (cat.includes('biometric'))
+    return { label: 'Check biometric compliance →', href: '/biometric-checker' };
+  if (cat.includes('breach') || cat.includes('incident'))
+    return { label: 'Build an IR Playbook →', href: '/ir-playbook' };
+  if (cat.includes('ai') || cat.includes('artificial intelligence'))
+    return { label: 'Run an LIA for this processing →', href: '/li-assessment' };
+  if (cat.includes('cross-border') || cat.includes('transfer') || cat.includes('dpa'))
+    return { label: 'Generate a Data Processing Agreement →', href: '/dpa-generator' };
+  if (cat.includes('dpia') || cat.includes('impact assessment'))
+    return { label: 'Run a DPIA →', href: '/dpia-framework' };
+  if (jur.includes('california') || jur.includes('cppa'))
+    return { label: 'Check your CPPA scope →', href: '/cppa-scope-checker' };
+  return { label: 'Assess your governance posture →', href: '/governance-assessment' };
+};
+
+const FullCard = ({
+  item,
+  isPremium = false,
+  userSalutation = 'your team',
+}: {
+  item: ArticleItem;
+  isPremium?: boolean;
+  userSalutation?: string;
+}) => {
+  const { user } = useAuth();
+  const tier: 'paid' | 'free' | 'anonymous' = isPremium ? 'paid' : user ? 'free' : 'anonymous';
   const enriched = isEnriched(item);
   const weight = item.ai_summary?.legal_weight;
-  const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
-  // Both registered tiers see the short why-it-matters; paid tier additionally
-  // gets the expandable Intelligence Card. Anonymous users use the newsfeed variant.
   const accentBackground = enriched && isPremium;
+
+  const actionProse = (() => {
+    const items = item.action_items ?? [];
+    if (items.length === 0) return null;
+    const sentences = items.slice(0, 2).map(a => a.action).filter(Boolean).join('. ');
+    return sentences ? sentences + '.' : null;
+  })();
+
+  const watchProse = (() => {
+    const signals = item.related_signals ?? [];
+    if (signals.length === 0) return null;
+    const labels = signals.map(s => s.label).filter(Boolean).join('; ');
+    return labels ? `Watch: ${labels}.` : null;
+  })();
 
   return (
     <div
-      className={`flex gap-4 items-start py-4 border-b border-fog last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
+      className={`flex gap-4 items-start py-5 border-b border-gray-200 last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
       style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
-      {/* Article thumbnail — falls back to EUP brand tile when missing */}
+      {/* Article thumbnail */}
       <img
         src={item.image_url || EUP_TILE}
         alt=""
@@ -275,100 +377,147 @@ const FullCard = ({ item, isPremium = false, userSalutation = 'your team' }: { i
         onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
       />
       <div className="flex-1 min-w-0">
-        {/* Metadata row — base info always shown; legal weight badge if enriched */}
+        {/* Metadata row */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {item.source_name && (
-            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
+            <span className="text-meta font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
           )}
           {item.published_at && (
-            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
+            <span className="text-meta text-slate-light">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
               {categoryLabel(item.category)}
             </span>
           )}
+          {(() => {
+            const sev = getSeverityLabel(item.ai_summary);
+            return sev ? (
+              <span className={`text-eyebrow px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                {sev.label}
+              </span>
+            ) : null;
+          })()}
           {enriched && weight && WEIGHT_COLORS[weight] && (
-            <span className={`font-mono-code text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
+            <span className={`font-mono-code text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
               {weight}
             </span>
           )}
           <AdminHideButton articleId={item.id} />
         </div>
+        {/* Sector tags — show up to 2 if sectors are present */}
+        {((item.affected_sectors?.length ?? 0) > 0 || ((item.ai_summary as any)?.affected_sectors?.length ?? 0) > 0) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {(item.affected_sectors || (item.ai_summary as any)?.affected_sectors || [])
+              .slice(0, 2)
+              .map((sector: string, i: number) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600"
+                >
+                  <Building2 className="w-3 h-3 flex-shrink-0" />
+                  {sector}
+                </span>
+              ))}
+          </div>
+        )}
         {/* Title */}
-        <Link to={`/updates/${item.id}`}
-          className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors">
+        <TitleLink
+          item={item}
+          className="text-card-title text-gray-900 hover:text-blue block mb-1 no-underline transition-colors"
+        >
           {normalizeTitle(item.title)}
-        </Link>
-        {/* Article excerpt — first two lines of the source article */}
+          {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
+        </TitleLink>
+
+        {/* Article excerpt — first two lines of the source summary */}
         {item.summary && (
-          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
+          <p className="text-body text-gray-500 mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
-        {/* Why it matters — bordered block (consistent across cards & detail page) */}
-        {(isPremium && item.ai_summary?.why_it_matters) || shortWhy ? (
-          <div
-            className="mt-2 border-l-4 px-3 py-2 rounded-r-lg"
-            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
-          >
-            <p
-              className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
-              style={{ color: '#4A6FA5' }}
-            >
-              Why it matters
+
+        {/* ── ALERT — shown to all tiers when available ─────────── */}
+        {(() => {
+          const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          if (!shortWhy) return null;
+          const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
+          return (
+            <p className="text-body mt-2" style={{ color: '#92400E' }}>
+              <span className="font-semibold text-warn">Alert: </span>{firstSentence}
             </p>
-            <p className="text-[12.5px] text-navy leading-relaxed">
-              {stripHtml(
-                (isPremium && item.ai_summary?.why_it_matters) ||
-                  shortWhy ||
-                  '',
-              )}
-            </p>
-          </div>
-        ) : null}
-        {/* Inline takeaways — Pro only */}
-        {isPremium && item.ai_summary?.takeaways && item.ai_summary.takeaways.length > 0 && (
-          <ul className="mt-2 space-y-1 pl-4 list-disc">
-            {item.ai_summary.takeaways.map((t, i) => (
-              <li key={i} className="text-[12px] text-slate leading-relaxed">{t}</li>
-            ))}
-          </ul>
-        )}
-        {/* Action Brief — both registered tiers (blurred for free, full for Pro) */}
-        {(item.ai_summary?.compliance_impact || item.ai_summary?.urgency) && (
-          <ActionBrief
-            urgency={item.ai_summary?.urgency ?? null}
-            who_should_care={(item.ai_summary as any)?.who_should_care ?? null}
-            compliance_impact={item.ai_summary?.compliance_impact ?? null}
-            action_items={item.action_items ?? null}
-            risk_level={item.ai_summary?.risk_level ?? null}
-            isPremium={isPremium}
-            articleId={item.id}
-          />
-        )}
-        {/* Upgrade CTA — free signed-in only */}
-        {!isPremium && (
-          <div className="mt-2 flex items-center gap-2">
-            <p className="text-[11px] text-slate flex-1">Unlock action items, compliance impact, and full analysis</p>
-            <Link
-              to="/subscribe"
-              className="flex-shrink-0 text-[11px] font-semibold bg-gradient-to-br from-steel to-blue text-white px-2.5 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline whitespace-nowrap"
-            >
-              Upgrade to Platform →
+          );
+        })()}
+
+        {/* ── ANONYMOUS CTAs ─────────── */}
+        {tier === 'anonymous' && (
+          <div className="flex flex-col gap-1 mt-1.5">
+            <Link to="/signup" className="text-sm font-semibold text-steel hover:underline no-underline">
+              Register free to see Context →
+            </Link>
+            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
+              Subscribe to see Analysis and Guidance →
             </Link>
           </div>
         )}
-        {/* Intelligence Card — paid only, collapsed by default */}
-        {isPremium && <IntelligenceCard item={item} />}
+
+        {/* ── CONTEXT — free + paid ───── */}
+        {(tier === 'free' || tier === 'paid') && (() => {
+          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          if (!why) return null;
+          return (
+            <p className="text-body text-steel mt-2">
+              <span className="font-semibold">Context: </span>{why}
+            </p>
+          );
+        })()}
+
+        {/* ── FREE CTA ─────────── */}
+        {tier === 'free' && (
+          <div className="mt-1.5">
+            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
+              Subscribe to see Analysis and Guidance →
+            </Link>
+          </div>
+        )}
+
+        {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
+        {tier === 'paid' && (() => {
+          const impact = item.ai_summary?.compliance_impact;
+           if (!impact && !actionProse && !watchProse) {
+            const toolCTA = getToolCTA(item);
+            return (
+              <div className="mt-2 space-y-2">
+                <InvestigationPrompt item={item} />
+                <div className="pt-2 border-t border-fog">
+                  <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
+                    {toolCTA.label}
+                  </Link>
+                </div>
+              </div>
+            );
+          }
+          const toolCTA = getToolCTA(item);
+          return (
+            <div className="mt-2 space-y-2">
+              <p className="text-body mt-2" style={{ color: '#78350F' }}>
+                <span className="font-semibold text-gold">Analysis and Guidance: </span>
+                {impact}
+                {impact && (actionProse || watchProse) && ' '}
+                {actionProse}
+                {actionProse && watchProse && ' '}
+                {watchProse && <span className="italic">{watchProse}</span>}
+              </p>
+              <InvestigationPrompt item={item} />
+              <div className="pt-2 border-t border-fog">
+                <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
+                  {toolCTA.label}
+                </Link>
+              </div>
+            </div>
+          );
+        })()}
       </div>
-      {/* External link */}
-      {item.source_url && (
-        <a href={item.source_url} target="_blank" rel="noopener noreferrer"
-          className="flex-shrink-0 text-slate-light hover:text-blue transition-colors mt-1">
-          <ExternalLink className="w-4 h-4" />
-        </a>
-      )}
     </div>
   );
 };
@@ -387,10 +536,10 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
     )}
     <div className="flex flex-wrap items-center gap-2 mb-3">
       {item.category && (
-        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
+        <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
       )}
       {item.ai_summary?.urgency === 'Immediate' && (
-        <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
+        <span className="text-[11px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
       )}
     </div>
     <Link to={`/updates/${item.id}`}
@@ -398,7 +547,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
       {normalizeTitle(item.title)}
     </Link>
     {(item.summary || item.ai_summary?.why_it_matters) && (
-      <p className="text-[13px] text-blue-200 leading-relaxed line-clamp-3">
+      <p className="text-sm text-blue-200 leading-relaxed line-clamp-3">
         {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
       </p>
     )}
@@ -418,11 +567,11 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
     >
       <div className="flex-1 min-w-0">
         <Link to={`/updates/${item.id}`}
-          className="text-[13px] font-semibold text-navy hover:text-blue no-underline leading-snug block">
+          className="text-sm font-semibold text-gray-900 hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </Link>
         {item.summary && (
-          <p className="text-[11.5px] text-slate leading-snug mt-1 line-clamp-2">
+          <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -465,10 +614,10 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             {item.source_name && (
-              <span className="text-[10px] text-slate-500 font-medium">{item.source_name}</span>
+              <span className="text-[11px] text-slate-500 font-medium">{item.source_name}</span>
             )}
             {item.published_at && (
-              <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+              <span className="text-[11px] text-slate-400">{fmtDate(item.published_at)}</span>
             )}
             {item.category && (
               <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -476,11 +625,11 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               </span>
             )}
           </div>
-          <p className="text-[13px] font-medium text-navy leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          <p className="text-sm font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
             {normalizeTitle(item.title)}
           </p>
           {item.summary && (
-            <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
           )}
         </div>
       </Link>
@@ -518,17 +667,17 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
     <div className="rounded-xl border border-sky-200/60 bg-white overflow-hidden mb-4">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 bg-sky-50/60 border-b border-sky-100 flex-wrap">
-        <span className="text-[9px] font-bold tracking-widest uppercase text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">
+        <span className="text-[11px] font-bold tracking-widest uppercase text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">
           Intelligence preview
         </span>
         {urgencyLabel && (
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${urgencyClass}`}>
+          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${urgencyClass}`}>
             {urgencyLabel}
           </span>
         )}
-        <span className="text-[10px] text-slate ml-auto">{item.source_name}</span>
+        <span className="text-[11px] text-slate ml-auto">{item.source_name}</span>
         {item.published_at && (
-          <span className="text-[10px] text-slate-400">{fmtDate(item.published_at)}</span>
+          <span className="text-[11px] text-slate-400">{fmtDate(item.published_at)}</span>
         )}
         {item.source_url && (
           <a
@@ -553,9 +702,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-semibold text-navy leading-snug mb-1">{normalizeTitle(item.title)}</p>
+            <p className="text-[14px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
-              <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
             )}
           </div>
         </div>
@@ -566,21 +715,21 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
           >
             <p
-              className="text-[10px] font-bold tracking-wider uppercase mb-1"
+              className="text-[11px] font-bold tracking-wider uppercase mb-1"
               style={{ color: '#4A6FA5' }}
             >
               Why it matters
             </p>
-            <p className="text-[12px] text-navy leading-relaxed">{stripHtml(s.why_it_matters)}</p>
+            <p className="text-sm text-gray-800 leading-relaxed">{stripHtml(s.why_it_matters)}</p>
           </div>
         )}
 
         {item.affected_sectors && item.affected_sectors.length > 0 && (
           <div className="mb-3">
-            <p className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
+            <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-0.5">Affected sectors</p>
             <div className="flex gap-1 flex-wrap">
               {item.affected_sectors.slice(0, 3).map((sec: string, i: number) => (
-                <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
+                <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{sec}</span>
               ))}
             </div>
           </div>
@@ -604,63 +753,47 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
 // — HOMEPAGE variant (anonymous users — uniform internal-link card) ——
 export const HomepageCard = ({ item }: { item: ArticleItem }) => {
-  const shortWhy = item.why_it_matters_short || item.ai_summary?.why_it_matters_short;
   return (
-    <Link
-      to={`/updates/${item.id}`}
-      className="block group py-4 border-b border-fog last:border-0 no-underline"
-    >
-      <div className="flex gap-3">
-        <img
-          src={item.image_url || EUP_TILE}
-          alt=""
-          loading="lazy"
-          className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            {item.source_name && (
-              <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
-            )}
-            {item.published_at && (
-              <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
-            )}
-            {item.category && (
-              <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
-                {categoryLabel(item.category)}
-              </span>
-            )}
-          </div>
-          <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
-            {normalizeTitle(item.title)}
-          </p>
-          {item.summary && (
-            <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2">
-              {stripHtml(item.summary)}
-            </p>
+    <div className="flex gap-3 items-start py-3 border-b border-fog last:border-0">
+      <img
+        src={item.image_url || EUP_TILE}
+        alt=""
+        loading="lazy"
+        className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
+        onError={(e) => { (e.target as HTMLImageElement).src = EUP_TILE; }}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+          {item.source_name && (
+            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+              {item.source_name}
+            </span>
           )}
-          {shortWhy && (
-            <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
-                Why it matters
-              </p>
-              <p className="text-[12.5px] text-navy leading-relaxed">{stripHtml(shortWhy)}</p>
-            </div>
+          {item.published_at && (
+            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
           )}
-          <div className="mt-2 flex items-center gap-2">
-            <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
-            <Link
-              to="/signup"
-              onClick={(e) => e.stopPropagation()}
-              className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
-            >
-              Register free →
-            </Link>
-          </div>
+          {item.category && (
+            <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
+              {categoryLabel(item.category)}
+            </span>
+          )}
+          <AdminHideButton articleId={item.id} />
         </div>
+        <TitleLink
+          item={item}
+          className="text-sm font-semibold text-gray-900 hover:text-blue leading-snug block no-underline transition-colors"
+        >
+          {normalizeTitle(item.title)}
+          {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}
+        </TitleLink>
+        {(() => {
+          const s = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          return s ? (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">{s}</p>
+          ) : null;
+        })()}
       </div>
-    </Link>
+    </div>
   );
 };
 
@@ -673,7 +806,12 @@ interface ArticleCardProps {
   onOpenDrawer?: (item: ArticleItem) => void;
 }
 
-export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSalutation }: ArticleCardProps) => {
+export const ArticleCard = ({
+  item,
+  variant = 'full',
+  isPremium = false,
+  userSalutation,
+}: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
     case 'featured':    return <FeaturedCard item={item} />;
@@ -681,7 +819,13 @@ export const ArticleCard = ({ item, variant = 'full', isPremium = false, userSal
     case 'newsfeed':    return <NewsfeedCard item={item} />;
     case 'preview':     return <PreviewCard item={item} />;
     case 'homepage':    return <HomepageCard item={item} />;
-    default:            return <FullCard item={item} isPremium={isPremium} userSalutation={userSalutation} />;
+    default:            return (
+      <FullCard
+        item={item}
+        isPremium={isPremium}
+        userSalutation={userSalutation}
+      />
+    );
   }
 };
 

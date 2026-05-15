@@ -236,7 +236,7 @@ export function AccountClientsSection() {
           <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
             My Workspace
           </h2>
-          <span className="text-[10px] font-bold uppercase tracking-wider bg-[#EEF2F8] text-navy px-2 py-0.5 rounded">
+          <span className="text-[11px] font-bold uppercase tracking-wider bg-[#EEF2F8] text-navy px-2 py-0.5 rounded">
             Personal
           </span>
         </div>
@@ -276,12 +276,12 @@ export function AccountClientsSection() {
             ) : (
               <div className="flex justify-between items-center py-2.5 border-t border-fog">
                 <div>
-                  <div className="text-[13px] text-slate">Name</div>
+                  <div className="text-sm text-slate">Name</div>
                   <div className="text-[14px] font-semibold text-navy">{personal.name}</div>
                 </div>
                 <button
                   onClick={() => setEditingPersonal(true)}
-                  className="text-[13px] font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer"
+                  className="text-sm font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer"
                 >
                   Rename
                 </button>
@@ -297,7 +297,7 @@ export function AccountClientsSection() {
           <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
             My Clients{clients.length > 0 ? ` — ${clients.length} active` : ''}
           </h2>
-          <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+          <span className="text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
             Client work
           </span>
         </div>
@@ -463,12 +463,12 @@ export function ComplianceDocumentsSection() {
     return (
       <div className="flex justify-between items-center py-2.5 border-b border-fog last:border-0">
         <div>
-          <div className="text-[13px] font-medium text-navy">{label}</div>
+          <div className="text-sm font-medium text-navy">{label}</div>
           <div className="text-xs text-slate">{value}</div>
         </div>
         <Link
           to={href}
-          className="text-[13px] font-medium text-blue hover:text-navy no-underline"
+          className="text-sm font-medium text-blue hover:text-navy no-underline"
         >
           View →
         </Link>

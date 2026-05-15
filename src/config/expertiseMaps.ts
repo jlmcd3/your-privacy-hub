@@ -1,0 +1,62 @@
+export const ROLE_LABELS: Record<string, string> = {
+  general_counsel:  'General Counsel / Chief Legal Officer',
+  cpo_dpo:          'Chief Privacy Officer / Data Protection Officer',
+  privacy_counsel:  'Privacy Counsel',
+  privacy_ops:      'Privacy Operations Lead',
+  ciso_security:    'CISO / Security Lead',
+  outside_counsel:  'Outside Counsel',
+  policy_affairs:   'Policy and Regulatory Affairs',
+};
+
+export const ROLE_INVESTIGATION_FOCUS: Record<string, string> = {
+  general_counsel:  'Focus on liability exposure, board-level risk, fiduciary obligations, and vendor contract terms.',
+  cpo_dpo:          'Focus on compliance program obligations, DPIA triggers, DPA correspondence, and privacy program maturity.',
+  privacy_counsel:  'Focus on legal analysis, regulatory interpretation, litigation precedent, and advisory risk.',
+  privacy_ops:      'Focus on process changes, DSR workflow implications, policy updates, and consent mechanism changes.',
+  ciso_security:    'Focus on breach notification timelines, technical security standards, incident response obligations, and security-adjacent regulations.',
+  outside_counsel:  'Focus on cross-client regulatory patterns, new precedents, and multi-jurisdiction compliance strategies.',
+  policy_affairs:   'Focus on rulemaking proceedings, comment periods, regulatory trajectory, and policy advocacy.',
+};
+
+export const INDUSTRY_SHORT_LABELS: Record<string, string> = {
+  'online-web':      'Online / Web services',
+  'mobile-apps':     'Mobile applications',
+  'adtech':          'Advertising technology',
+  'ai-companies':    'AI / Machine learning',
+  'healthcare':      'Healthcare',
+  'financial':       'Financial services',
+  'hr-employment':   'HR / Employment',
+  'children-edtech': 'Children / EdTech',
+  'retail-ecom':     'Retail / E-commerce',
+  'data-brokers':    'Data brokerage',
+  'legal-services':  'Legal services',
+  'insurance':       'Insurance',
+  'telecom':         'Telecommunications',
+  'gaming':          'Gaming',
+  'automotive':      'Automotive',
+  'smart-home':      'Smart home / IoT',
+  'nonprofit':       'Nonprofit',
+  'media-publishing':'Media / Publishing',
+  'government':      'Government / Public sector',
+  'cybersecurity':   'Cybersecurity',
+  'real-estate':     'Real estate',
+  'education':       'Education',
+  'consulting':      'Consulting / Professional services',
+  'pharma':          'Pharmaceuticals / Life sciences',
+};
+
+export const JURISDICTION_SHORT_LABELS: Record<string, string> = {
+  'eu-all':      'EU (all member states)',
+  'eu-uk':       'EU and UK',
+  'uk':          'UK',
+  'us-federal':  'U.S. Federal',
+  'us-ca':       'California / CPPA',
+  'us-states':   'U.S. States',
+  'apac':        'Asia-Pacific',
+  'latam':       'Latin America',
+  'mea':         'Middle East and Africa',
+  'canada':      'Canada',
+  'australia':   'Australia',
+  'india':       'India',
+  'global':      'Global / Multinational',
+};

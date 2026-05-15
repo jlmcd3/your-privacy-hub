@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
-import InFeedAd from "@/components/InFeedAd";
-import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import { supabase } from "@/integrations/supabase/client";
+import { ResearchPageHeader } from "@/components/research/ResearchPageHeader";
+import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisBlock";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
 
@@ -93,18 +93,21 @@ export default function LegislationTracker() {
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
+        <ResearchPageHeader
+          eyebrow="Research · Privacy Legislation"
+          title="Privacy Legislation Tracker"
+          description="Privacy and data-protection bills tracked across major jurisdictions. Refreshed daily from official government sources (Congress.gov, UK Parliament, LEGISinfo, Câmara dos Deputados, EUR-Lex, and Parliament of Australia)."
+          lastUpdated={lastVerified ? formatDate(lastVerified) : undefined}
+          feedCategory="legislation"
+        />
+        <AdBanner variant="leaderboard" className="mt-4" />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <h1 className="font-display font-bold text-navy text-2xl md:text-3xl mb-2">
-            📜 Legislation Status Tracker
-          </h1>
-          <p className="text-slate text-sm mb-3 max-w-2xl">
-            Privacy and data-protection bills tracked across major jurisdictions. Refreshed daily
-            from official government sources (Congress.gov, UK Parliament, LEGISinfo, Câmara dos
-            Deputados, EUR-Lex, and Parliament of Australia).
-          </p>
+          <div className="mb-8">
+            <ResearchSynthesisBlock sectionKey="legislation__page" />
+          </div>
+
           <div className="text-[11px] text-slate-light mb-6">
-            Last verified: <span className="font-mono">{formatDate(lastVerified)}</span> · Updated daily at 06:00 UTC ·
-            Bills not seen in their source for 60+ days are marked <span className="font-semibold">stale</span>.
+            Bills not seen in their source for 60+ days are marked <span className="font-semibold">stale</span>. Updated daily at 06:00 UTC.
           </div>
 
           <div className="flex flex-wrap gap-3 mb-6">
@@ -136,7 +139,6 @@ export default function LegislationTracker() {
             </div>
           </div>
 
-          <AdBanner variant="leaderboard" adSlot="eup-legislation-top" className="py-3" />
 
           <div className="space-y-4">
             {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
@@ -175,14 +177,14 @@ export default function LegislationTracker() {
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
                         {bill.bill_number && (
-                          <span className="font-mono text-[10px] text-slate-light">{bill.bill_number}</span>
+                          <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
                         )}
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
                           style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}>
                           {cfg.label}
                         </span>
                         {isStale && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
                             Stale
                           </span>
                         )}
@@ -208,19 +210,31 @@ export default function LegislationTracker() {
                     </div>
                   </div>
                 </div>
-                {showAdAfter && (
-                  <InFeedAd
-                    adSlot={`legislation_tracker_infeed_${Math.floor(idx / 6)}`}
-                    googleAdClient={GOOGLE_AD_CLIENT}
-                    googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                  />
-                )}
                 </Fragment>
               );
             })}
             {!loading && filtered.length === 0 && (
               <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
             )}
+          </div>
+
+          <div className="mt-14 pt-8 border-t border-fog space-y-10">
+            <section id="us-federal" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__us_federal" />
+            </section>
+            <section id="us-states" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__us_states" />
+            </section>
+            <section id="eu-uk" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__eu_uk" />
+            </section>
+            <section id="global" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">Global Privacy Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__global" />
+            </section>
           </div>
         </main>
         <Footer />

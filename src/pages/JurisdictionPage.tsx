@@ -6,7 +6,6 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
@@ -382,7 +381,7 @@ const JurisdictionPage = () => {
         const crumbHref = isUSState ? "/us-privacy-laws" : "/global-privacy-laws";
         const crumbLabel = isUSState ? "U.S. Privacy Laws" : "Global Privacy Laws";
         return (
-          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-[13px] text-slate">
+          <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-sm text-slate">
             <Link to={crumbHref} className="text-blue hover:underline no-underline">{crumbLabel}</Link>
             <span className="mx-2 text-slate-light">›</span>
             <span className="text-navy">{jurisdiction.name}</span>
@@ -400,13 +399,12 @@ const JurisdictionPage = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-top" className="py-5" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Overview */}
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
           <h2 className="font-display text-xl text-navy mb-3">Overview</h2>
-          <p className="text-[14px] text-slate leading-relaxed">{jurisdiction.overview}</p>
+          <p className="text-sm text-slate leading-relaxed">{jurisdiction.overview}</p>
         </div>
 
         {/* Authorities */}
@@ -423,7 +421,7 @@ const JurisdictionPage = () => {
                       </Link>
                     </h3>
                     {(auth as any).statute_status && (
-                      <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border ${
+                      <span className={`text-eyebrow px-2.5 py-1 rounded-full border ${
                         (auth as any).statute_status === "Enacted"
                           ? "text-emerald-700 bg-emerald-50 border-emerald-200"
                           : (auth as any).statute_status === "Pending"
@@ -434,16 +432,16 @@ const JurisdictionPage = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-[12px] font-medium text-slate mb-2">{auth.name}</p>
+                  <p className="text-meta font-medium text-slate mb-2">{auth.name}</p>
                 </>
               ) : (
                 <>
-                  <h3 className="font-display text-[20px] leading-tight text-navy mb-1">{auth.name}</h3>
-                  {auth.abbreviation && <span className="text-[11px] text-slate">{auth.abbreviation}</span>}
+                  <h3 className="font-display text-xl leading-tight text-navy mb-1">{auth.name}</h3>
+                  {auth.abbreviation && <span className="text-meta text-slate">{auth.abbreviation}</span>}
                 </>
               )}
               {auth.legislation && (
-                <div className="text-[12px] text-slate mt-1">
+                <div className="text-meta text-slate mt-1">
                   <span className="font-semibold text-navy">Statute: </span>{" "}
                   {auth.statute_url ? (
                     <a
@@ -468,24 +466,23 @@ const JurisdictionPage = () => {
                 </div>
               )}
               {(auth as any).notes && (
-                <p className="text-[11.5px] text-slate/75 leading-relaxed mt-2 italic">
+                <p className="text-xs text-slate/75 leading-relaxed mt-2 italic">
                   {(auth as any).notes}
                 </p>
               )}
               <div className="mt-3 flex gap-4 flex-wrap">
-                <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Official Website ↗</a>
+                <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-blue hover:underline no-underline">Official Website ↗</a>
                 {(auth as any).regulations_url && (
-                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
+                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-blue hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
                 )}
                 {auth.complaint_portal && (
-                  <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-blue hover:underline no-underline">Complaint Portal ↗</a>
+                  <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-blue hover:underline no-underline">Complaint Portal ↗</a>
                 )}
               </div>
             </div>
           ))}
         </div>
 
-        <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
         {/* Compliance tools — only for jurisdictions with an enacted law */}
         {(() => {
@@ -559,7 +556,7 @@ const JurisdictionPage = () => {
                       <span className="font-display text-[15px] text-navy">{t.label}</span>
                       <span className="text-blue group-hover:translate-x-0.5 transition-transform">→</span>
                     </div>
-                    <p className="text-[12.5px] text-slate leading-snug">{t.desc}</p>
+                    <p className="text-xs text-slate leading-snug">{t.desc}</p>
                   </Link>
                 ))}
               </div>
@@ -570,11 +567,11 @@ const JurisdictionPage = () => {
         {/* Top Premium CTA — anonymous only, high-intent SEO traffic */}
         {!user && (
           <div className="mb-8 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-7 text-center">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
+            <div className="text-eyebrow text-sky mb-2">⭐ Intelligence</div>
             <h3 className="font-display text-lg md:text-xl text-white mb-3">
               Monitor {jurisdiction.name} — get weekly intelligence alerts →
             </h3>
-            <p className="text-[13px] text-slate-light mb-4 max-w-[500px] mx-auto">
+            <p className="text-sm text-slate-light mb-4 max-w-[500px] mx-auto">
               Tailored weekly briefs covering {jurisdiction.name} regulators, enforcement, and cross-border signals.
             </p>
             <Link
@@ -591,7 +588,7 @@ const JurisdictionPage = () => {
           if (devLoading) {
             return (
               <div className="mb-10">
-                <h2 className="font-display text-[20px] text-navy mb-1">Recent Developments</h2>
+                <h2 className="font-display text-xl text-navy mb-1">Recent Developments</h2>
                 <p className="text-sm text-slate mb-4">Top stories relevant to {jurisdiction.name}</p>
                 <div className="flex flex-col gap-2">
                   {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
@@ -607,10 +604,10 @@ const JurisdictionPage = () => {
           return (
             <div className="mb-10">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="font-display text-[20px] text-navy">
+                <h2 className="font-display text-xl text-navy">
                   {hasDirect ? `Recent developments — ${jurisdiction.name}` : "Recent Developments"}
                 </h2>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
+                <span className="text-eyebrow text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
               </div>
 
               {hasDirect ? (
@@ -622,12 +619,12 @@ const JurisdictionPage = () => {
                 </>
               ) : (
                 <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
-                  <h3 className="font-display text-[18px] text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
-                  <p className="text-[13px] text-slate leading-relaxed mb-4">
+                  <h3 className="font-display text-lg text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
+                  <p className="text-sm text-slate leading-relaxed mb-4">
                     We haven't picked up jurisdiction-specific news in the last 90 days. This usually means the regulator hasn't
                     published high-profile actions recently — not that nothing is happening. Try the options below.
                   </p>
-                  <div className="flex flex-wrap gap-3 text-[12px] font-medium">
+                  <div className="flex flex-wrap gap-3 text-meta font-medium">
                     {hasRegional && (
                       <button onClick={() => setShowRegional(true)} className="text-blue hover:underline">
                         See {regionalRecent.length} regional / spillover {regionalRecent.length === 1 ? "article" : "articles"} ↓
@@ -654,8 +651,8 @@ const JurisdictionPage = () => {
                     className="w-full flex items-center justify-between text-left py-2 border-t border-fog hover:text-blue transition-colors"
                   >
                     <div>
-                      <span className="font-display text-[16px] text-navy">Also relevant to {jurisdiction.name}</span>
-                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                      <span className="font-display text-base text-navy">Also relevant to {jurisdiction.name}</span>
+                      <p className="text-xs text-slate-light mt-0.5">
                         Regional or cross-border developments that may affect {jurisdiction.name} ({regionalRecent.length})
                       </p>
                     </div>
@@ -676,8 +673,8 @@ const JurisdictionPage = () => {
                     className="w-full flex items-center justify-between text-left py-2 border-t border-fog hover:text-blue transition-colors"
                   >
                     <div>
-                      <span className="font-display text-[16px] text-navy">Earlier coverage</span>
-                      <p className="text-[11.5px] text-slate-light mt-0.5">
+                      <span className="font-display text-base text-navy">Earlier coverage</span>
+                      <p className="text-xs text-slate-light mt-0.5">
                         Older than 90 days ({archive.length})
                       </p>
                     </div>
@@ -693,7 +690,7 @@ const JurisdictionPage = () => {
 
               {(hasDirect || hasRegional || hasArchive) && (
                 <div className="flex items-center justify-end mt-4 pt-3 border-t border-fog">
-                  <Link to={`/category/${derivedCategory}`} className="text-[13px] text-blue font-semibold no-underline hover:text-navy transition-colors">
+                  <Link to={`/category/${derivedCategory}`} className="text-sm text-blue font-semibold no-underline hover:text-navy transition-colors">
                     View all {categoryLabel} updates →
                   </Link>
                 </div>
@@ -730,7 +727,7 @@ const JurisdictionPage = () => {
                 <Link
                   key={r.label}
                   to={r.href}
-                  className="flex items-center gap-2.5 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium"
+                  className="flex items-center gap-2.5 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium"
                 >
                   {r.iconImage ? (
                     <img src={r.iconImage} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
@@ -744,22 +741,21 @@ const JurisdictionPage = () => {
           </div>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-bottom" className="py-4" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
+          <div className="text-eyebrow text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
-          <p className="text-[13px] text-slate-light mb-2 max-w-[500px] mx-auto">
+          <p className="text-sm text-slate-light mb-2 max-w-[500px] mx-auto">
             Intelligence subscribers receive the weekly Intelligence Brief covering all global developments.
           </p>
-          <p className="text-[12px] text-sky mb-5 max-w-[500px] mx-auto">
+          <p className="text-meta text-sky mb-5 max-w-[500px] mx-auto">
             ✦ Intelligence subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
           </Link>
-          <p className="mt-3 text-slate-light text-[12px]">
+          <p className="mt-3 text-slate-light text-meta">
             Not sure yet?{" "}
             <Link to="/#brief" className="text-sky hover:text-white transition-colors no-underline underline underline-offset-2">
               See a sample brief first →

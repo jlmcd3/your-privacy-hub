@@ -77,7 +77,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
             <h2 className="font-display font-bold text-foreground text-[20px] text-center mb-2">
               What best describes your role?
             </h2>
-            <p className="text-muted-foreground text-[13px] text-center mb-6">
+            <p className="text-muted-foreground text-sm text-center mb-6">
               Your Privacy Intelligence Report is shaped by how you use regulatory information.
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
@@ -86,7 +86,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
                   key={r}
                   type="button"
                   onClick={() => setRole(r)}
-                  className={`px-4 py-2.5 rounded-xl border text-[13px] font-medium transition-all cursor-pointer ${
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                     role === r
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background text-foreground border-border hover:border-primary/40"
@@ -112,7 +112,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
             <h2 className="font-display font-bold text-foreground text-[20px] text-center mb-2">
               Which regions matter most to you?
             </h2>
-            <p className="text-muted-foreground text-[13px] text-center mb-6">
+            <p className="text-muted-foreground text-sm text-center mb-6">
               Select all that apply — your brief will prioritize these.
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
@@ -121,7 +121,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
                   key={j}
                   type="button"
                   onClick={() => toggleJurisdiction(j)}
-                  className={`px-4 py-2.5 rounded-xl border text-[13px] font-medium transition-all cursor-pointer ${
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                     jurisdictions.includes(j)
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background text-foreground border-border hover:border-primary/40"
@@ -173,7 +173,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
               {saving ? "Saving…" : "Go to my dashboard →"}
             </button>
             <div className="text-center">
-              <a href="/#brief" className="text-[13px] text-muted-foreground hover:text-foreground no-underline transition-colors">
+              <a href="/#brief" className="text-sm text-muted-foreground hover:text-foreground no-underline transition-colors">
                 See a sample brief →
               </a>
             </div>

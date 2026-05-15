@@ -38,7 +38,7 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
             >
               Create free account
             </Link>
-            <p className="text-[10px] text-white/60">
+            <p className="text-[11px] text-white/60">
               By signing up you agree to our{" "}
               <Link to="/terms" className="underline hover:text-white">Terms</Link>{" "}
               &{" "}
@@ -46,7 +46,7 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
             </p>
           </div>
         </div>
-        <p className="text-[10px] text-white/50 text-center mt-3">
+        <p className="text-[11px] text-white/50 text-center mt-3">
           We show contextual, non-behavioural ads on this site to keep core
           intelligence free. We never share your browsing data with advertisers.
         </p>

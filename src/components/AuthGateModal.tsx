@@ -51,7 +51,7 @@ export default function AuthGateModal({
             ×
           </button>
         </div>
-        <p className="text-slate text-[13px] leading-relaxed mb-5">{body}</p>
+        <p className="text-slate text-sm leading-relaxed mb-5">{body}</p>
 
         <div className="flex flex-col gap-2.5">
           <Link

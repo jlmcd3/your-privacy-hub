@@ -54,7 +54,7 @@ export default function PatternSignalCards() {
           Enforcement Pattern Signals
         </h3>
         {reportDate && (
-          <span className="text-[10px] text-slate bg-fog px-2 py-0.5 rounded-full">
+          <span className="text-meta text-slate bg-fog px-2 py-0.5 rounded-full">
             {new Date(reportDate).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -75,16 +75,16 @@ export default function PatternSignalCards() {
             >
               <div className="flex items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${colorClass}`}
+                  className={`inline-flex items-center gap-1 text-eyebrow px-2 py-0.5 rounded-full border ${colorClass}`}
                 >
                   <Icon className="w-3 h-3" />
                   {strength}
                 </span>
               </div>
-              <h4 className="font-display font-bold text-[14px] text-navy leading-snug">
+              <h4 className="font-display font-bold text-sm text-navy leading-snug">
                 {p.pattern}
               </h4>
-              <p className="text-[12px] text-slate leading-relaxed line-clamp-3 flex-1">
+              <p className="text-meta text-slate leading-relaxed line-clamp-3 flex-1">
                 {p.description}
               </p>
               {p.sectors_targeted && p.sectors_targeted.length > 0 && (
@@ -92,7 +92,7 @@ export default function PatternSignalCards() {
                   {p.sectors_targeted.slice(0, 3).map((s) => (
                     <span
                       key={s}
-                      className="text-[10px] font-medium text-slate bg-fog px-1.5 py-0.5 rounded"
+                      className="text-meta font-medium text-slate bg-fog px-1.5 py-0.5 rounded"
                     >
                       {s}
                     </span>
@@ -100,7 +100,7 @@ export default function PatternSignalCards() {
                 </div>
               )}
               {p.example && (
-                <p className="text-[11px] text-slate-light italic leading-snug line-clamp-2 border-t border-fog pt-2 mt-auto">
+                <p className="text-meta text-slate-light italic leading-snug line-clamp-2 border-t border-fog pt-2 mt-auto">
                   {p.example}
                 </p>
               )}

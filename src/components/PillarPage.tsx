@@ -209,7 +209,8 @@ const PillarPage = ({
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot={`eup-pillar-top`} className="py-3" />
+
+      <AdBanner variant="leaderboard" className="mt-6" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         {/* Intro */}
@@ -223,17 +224,17 @@ const PillarPage = ({
           <div className="mb-8 rounded-xl border border-teal-600/30 bg-gradient-to-br from-teal-50 to-card overflow-hidden shadow-eup-sm">
             <div className="px-5 py-4 md:px-6 md:py-5 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
               <div>
-                <div className="text-[10px] font-bold tracking-widest uppercase text-teal-700 mb-1.5">
+                <div className="text-[11px] font-bold tracking-widest uppercase text-teal-700 mb-1.5">
                   ✓ Assessment tool
                 </div>
                 <h3 className="font-display text-[16px] md:text-[18px] text-navy leading-snug mb-1">
                   {toolCta.heading}
                 </h3>
-                <p className="text-[13px] text-slate leading-relaxed">{toolCta.description}</p>
+                <p className="text-sm text-slate leading-relaxed">{toolCta.description}</p>
               </div>
               <Link
                 to={toolCta.link}
-                className="inline-flex w-full md:w-auto items-center justify-center text-[13px] font-semibold text-white bg-teal-600 hover:bg-teal-500 px-5 py-2.5 rounded-lg no-underline transition-colors whitespace-nowrap"
+                className="inline-flex w-full md:w-auto items-center justify-center text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 px-5 py-2.5 rounded-lg no-underline transition-colors whitespace-nowrap"
               >
                 {toolCta.linkLabel}
               </Link>
@@ -249,16 +250,16 @@ const PillarPage = ({
           >
             <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-navy md:cursor-default">
               <span>On this page</span>
-              <span className="md:hidden text-slate text-[10px] group-open:rotate-180 transition-transform">▼</span>
+              <span className="md:hidden text-slate text-[11px] group-open:rotate-180 transition-transform">▼</span>
             </summary>
             <nav className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
               {recentArticles.length > 0 && (
                 <a
                   href="#recent-developments"
-                  className="text-[13px] text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                  className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
                 >
                   <span className="text-slate">→</span>
-                  <span>Recent developments <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-teal-600/15 text-teal-700 align-middle">Live</span></span>
+                  <span>Recent developments <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-teal-600/15 text-teal-700 align-middle">Live</span></span>
                 </a>
               )}
               {sections.map((sec, i) => {
@@ -271,7 +272,7 @@ const PillarPage = ({
                   <a
                     key={i}
                     href={`#${slug}`}
-                    className="text-[13px] text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                    className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
                   >
                     <span className="text-slate">→</span>
                     <span>{sec.heading}</span>
@@ -287,7 +288,7 @@ const PillarPage = ({
           <div className="rounded-xl border border-sky/20 overflow-hidden shadow-eup-sm mb-10 bg-card">
             <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-start justify-between gap-4">
               <div>
-                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">
+                <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">
                   ⭐ Weekly Intelligence
                 </div>
                 <h3 className="font-display text-[16px] md:text-[18px] text-white leading-snug">
@@ -297,7 +298,7 @@ const PillarPage = ({
               <Lock className="w-4 h-4 text-sky/60 shrink-0 mt-1" />
             </div>
             <div className="p-5 md:p-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-              <p className="text-[13px] text-navy leading-relaxed font-medium">
+              <p className="text-sm text-navy leading-relaxed font-medium">
                 {midPageCtaMessage || "Intelligence subscribers get full analysis on every development in this area."}
               </p>
               <Link
@@ -315,7 +316,7 @@ const PillarPage = ({
           <div id="recent-developments" className="scroll-mt-24 mb-10">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-display text-base text-navy">Recent developments</h2>
-              <span className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
+              <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
                 Live
               </span>
             </div>
@@ -349,9 +350,6 @@ const PillarPage = ({
                     }}
                   />
                 </div>
-                {i === Math.floor(sections.length / 2) - 1 && (
-                  <AdBanner variant="inline" adSlot={`eup-pillar-mid`} className="py-4" />
-                )}
               </React.Fragment>
             );
           })}
@@ -366,7 +364,7 @@ const PillarPage = ({
               <Link
                 key={i}
                 to={link.href}
-                className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy font-medium"
+                className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium"
               >
                 <span className="text-blue">→</span> {link.label}
               </Link>
@@ -376,7 +374,7 @@ const PillarPage = ({
             <div className="mt-6">
               <Link
                 to={directoryLink.href}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline"
               >
                 {directoryLink.label} →
               </Link>
@@ -384,14 +382,13 @@ const PillarPage = ({
           )}
         </div>
 
-        <AdBanner variant="leaderboard" adSlot={`eup-pillar-bottom`} className="py-6" />
 
         {/* Premium CTA — hidden for premium users */}
         {!isPremium && (
           <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
+            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
             <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on {title}</h3>
-            <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
+            <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>
             <Link

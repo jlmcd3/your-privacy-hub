@@ -32,6 +32,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Full Privacy Intelligence Report — customized for your industry & jurisdictions", free: false, intel: true, platform: true },
   { feature: "Enforcement trends & pattern signals", free: false, intel: true, platform: true },
   { feature: "Per-article intelligence: regulatory theory, action items, sectors", free: false, intel: true, platform: true },
+  { feature: "AI investigation prompt — pre-loaded with regulatory context, ready to paste into any AI assistant", free: false, intel: true, platform: true },
   { feature: "Priority Monday delivery", free: false, intel: true, platform: true },
 
   { isSection: true, feature: "The action layer — compliance tools" },
@@ -114,32 +115,33 @@ const Subscribe = () => {
           <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
             {/* Intelligence Feed card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
+              <p className="text-eyebrow text-sky mb-2">
                 Privacy Intelligence Feed
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
                 {INTELLIGENCE_PRICING.monthlyShort()}
               </div>
-              <p className="text-blue-200 text-[12px] mb-4">Cancel any time</p>
+              <p className="text-blue-200 text-meta mb-4">Cancel any time</p>
               <ul className="space-y-2 mb-6">
                 {[
                   "Weekly Privacy Intelligence Report",
                   "Enforcement tracking — all 119 authorities",
                   "Jurisdiction monitoring",
                   "All reference content",
+                  "AI investigation prompt on every article",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                  <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
                   </li>
                 ))}
-                <li className="flex items-start gap-2 text-[13px] text-blue-300">
+                <li className="flex items-start gap-2 text-sm text-blue-300">
                   <span className="text-blue-400 font-bold">—</span> Compliance tools not included
                 </li>
               </ul>
               <button
                 onClick={() => startCheckout("month")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-[13px] font-bold bg-white text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-sm font-bold bg-white text-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start for {INTELLIGENCE_PRICING.monthlyShort()} →
               </button>
@@ -147,19 +149,19 @@ const Subscribe = () => {
 
             {/* Compliance Platform card */}
             <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300 mb-2">
+              <p className="text-eyebrow text-amber-300 mb-2">
                 Compliance Platform
               </p>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-white font-display font-bold text-[36px] leading-none">
                   $399
                 </span>
-                <span className="text-blue-200 text-[18px] font-normal">/year</span>
+                <span className="text-blue-200 text-lg font-normal">/year</span>
               </div>
-              <p className="text-blue-200/70 text-[12px] mb-1">
+              <p className="text-blue-200/70 text-meta mb-1">
                 Billed as one annual payment
               </p>
-              <p className="text-blue-200/50 text-[11px] mb-4">
+              <p className="text-blue-200/50 text-meta mb-4">
                 {PLATFORM_PRICING.standardMonthly()} equivalent
               </p>
               <ul className="space-y-2 mb-6">
@@ -169,8 +171,9 @@ const Subscribe = () => {
                   "Governance, LIA, DPIA, DPA, Notices, RoFA",
                   "IR Playbook & Biometric Checker",
                   "Your documents saved permanently",
+                  "AI investigation prompts, pre-built per article",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-[13px] text-white">
+                  <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
                   </li>
                 ))}
@@ -178,15 +181,15 @@ const Subscribe = () => {
               <button
                 onClick={() => startCheckout("year")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-[13px] font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start Platform — {PLATFORM_PRICING.standard()} →
               </button>
             </div>
           </div>
-          {error && <p className="text-red-300 text-[12px] mt-4">{error}</p>}
+          {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
           {isPremium && (
-            <p className="text-blue-200 text-[12px] mt-4">
+            <p className="text-blue-200 text-meta mt-4">
               You're already subscribed. <Link to="/account" className="underline">Manage your subscription →</Link>
             </p>
           )}
@@ -195,7 +198,7 @@ const Subscribe = () => {
 
       {/* Registration Manager mention */}
       <div className="bg-white border-b border-fog py-4 px-4">
-        <div className="max-w-[720px] mx-auto text-center text-[13px] text-slate">
+        <div className="max-w-[720px] mx-auto text-center text-sm text-slate">
           Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
           <Link
             to="/registration-manager"
@@ -207,15 +210,72 @@ const Subscribe = () => {
         </div>
       </div>
 
+      <p className="text-center text-meta text-slate-500 mt-4 mb-8 px-4">
+        Every tool output calibrated against 3,700+ real enforcement decisions — not just statutory text.
+      </p>
+
+      {/* Feature comparison table */}
+      <div className="max-w-3xl mx-auto px-4 mt-12 mb-8">
+        <h2 className="text-center font-display text-xl text-navy mb-6">
+          What's included at each level
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 pr-4 font-semibold text-gray-700 w-1/2">Feature</th>
+                <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
+                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">$29/mo</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Platform<br/><span className="font-normal normal-case tracking-normal">$399/yr</span></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {([
+                ['Privacy Intelligence Feed (news)', '✓', '✓', '✓'],
+                ['Article Alert summaries', '✓', '✓', '✓'],
+                ['Article Context layer', '—', '✓', '✓'],
+                ['Article Analysis and Guidance', '—', '—', '✓'],
+                ['Weekly Privacy Intelligence Report', '—', '✓', '✓'],
+                ['Personalised by role, jurisdiction, topics', '—', '✓', '✓'],
+                ['AI investigation prompts on every article', '—', '✓', '✓'],
+                ['119-authority enforcement tracking', 'Limited', '✓', '✓'],
+                ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
+                ['All compliance tools', '—', '—', '✓'],
+                ['Governance Assessment', '—', '—', '✓'],
+                ['Legitimate Interest Assessment', '—', '—', '✓'],
+                ['DPIA Builder', '—', '—', '✓'],
+                ['DPA Generator', '—', '—', '✓'],
+                ['IR Playbook', '—', '—', '✓'],
+                ['RoPA Builder', '—', '—', '✓'],
+                ['CPPA Suite (Scope / Risk / Cyber)', '—', '—', '✓'],
+                ['Saved reports in My Reports', '—', '—', '✓'],
+                ['Personalized investigation prompts', '—', '—', '✓'],
+              ] as const).map(([feature, anon, intel, platform], i) => (
+                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <td className="py-2.5 pr-4 text-gray-700">{feature}</td>
+                  <td className="py-2.5 px-2 text-center text-gray-400">{anon}</td>
+                  <td className="py-2.5 px-2 text-center font-medium text-steel">{intel}</td>
+                  <td className="py-2.5 px-2 text-center font-medium" style={{color:'hsl(var(--gold))'}}>{platform}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-center text-xs text-gray-400 mt-4">
+          Individual tools also available as standalone purchases.
+          CPPA Scope Checker is free — no account required.
+        </p>
+      </div>
+
       {fromBuilder && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
-            <span className="text-green-600 text-[18px] flex-shrink-0 mt-0.5">✓</span>
+            <span className="text-green-600 text-lg flex-shrink-0 mt-0.5">✓</span>
             <div>
-              <p className="font-bold text-navy text-[14px] mb-0.5">
+              <p className="font-bold text-navy text-sm mb-0.5">
                 Your Intelligence Report is configured and ready.
               </p>
-              <p className="text-[13px] text-slate">
+              <p className="text-sm text-slate">
                 {[bJurisdiction, bIndustry, ...bTopics.slice(0, 2)].filter(Boolean).join(" · ")}. Subscribe to receive it.
               </p>
             </div>
@@ -225,10 +285,10 @@ const Subscribe = () => {
 
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy text-[20px] mb-2">
+          <h2 className="font-display font-bold text-navy text-xl mb-2">
             See what your report would look like
           </h2>
-          <p className="text-slate text-[13px]">
+          <p className="text-slate text-sm">
             Pick your jurisdiction, role, and topics. We'll build a sample report showing the depth and format you receive every Monday.
           </p>
         </div>
@@ -244,16 +304,16 @@ const Subscribe = () => {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-fog">
-                    <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate">
+                    <th className="px-5 py-3.5 text-left text-meta font-semibold tracking-wider uppercase text-slate">
                       Feature
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[110px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-slate w-[110px]">
                       Free
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-sky w-[170px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-sky w-[170px]">
                       Intelligence ({INTELLIGENCE_PRICING.monthlyShort()})
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
                       Platform ({PLATFORM_PRICING.standard()})
                     </th>
                   </tr>
@@ -265,7 +325,7 @@ const Subscribe = () => {
                         <tr key={i} className="bg-navy/5">
                           <td
                             colSpan={4}
-                            className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-navy/60 border-t border-fog"
+                            className="px-5 py-2 text-eyebrow text-navy/60 border-t border-fog"
                           >
                             {row.feature}
                           </td>
@@ -284,15 +344,15 @@ const Subscribe = () => {
                       }
                       if (val === false) return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
                       if (val === "Included") {
-                        return <span className="text-[11px] font-semibold text-green-600">Included</span>;
+                        return <span className="text-meta font-semibold text-green-600">Included</span>;
                       }
                       const cls = color === "platform" ? "text-amber-700" : "text-slate";
-                      return <span className={`text-[11px] font-medium ${cls}`}>{val}</span>;
+                      return <span className={`text-meta font-medium ${cls}`}>{val}</span>;
                     };
                     const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
                     return (
                       <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                        <td className="px-5 py-3 text-[13px] text-navy border-t border-fog">{dataRow.feature}</td>
+                        <td className="px-5 py-3 text-sm text-navy border-t border-fog">{dataRow.feature}</td>
                         <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.free, "free")}</td>
                         <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.intel, "intel")}</td>
                         <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.platform, "platform")}</td>
@@ -309,13 +369,13 @@ const Subscribe = () => {
         <div className="mb-14">
           {/* Section heading */}
           <div className="text-center mb-8">
-            <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate mb-3">
+            <p className="text-meta font-bold uppercase tracking-[0.09em] text-slate mb-3">
               Where we fit
             </p>
             <h2 className="font-display text-[22px] md:text-[28px] text-navy mb-3 leading-tight">
               The missing piece of the privacy toolkit
             </h2>
-            <p className="text-[14px] text-slate max-w-[480px] mx-auto leading-relaxed">
+            <p className="text-sm text-slate max-w-[480px] mx-auto leading-relaxed">
               Privacy professionals rely on four well-established categories of tools.
               End User Privacy was purpose-built for the one that had no dedicated home.
             </p>
@@ -392,10 +452,10 @@ const Subscribe = () => {
                   <div key={item.name} className="flex items-start gap-2.5">
                     <div className={`w-3 h-3 rounded-sm flex-shrink-0 mt-1 ${item.color}`} />
                     <div>
-                      <p className={`text-[13px] font-semibold leading-snug mb-0.5 ${item.nameClass}`}>
+                      <p className={`text-sm font-semibold leading-snug mb-0.5 ${item.nameClass}`}>
                         {item.name}
                       </p>
-                      <p className="text-[12px] text-slate leading-relaxed">{item.desc}</p>
+                      <p className="text-meta text-slate leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -405,13 +465,13 @@ const Subscribe = () => {
 
           {/* EUP highlight card */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 mb-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
+            <p className="text-meta font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
-            <h3 className="font-display text-[16px] text-navy mb-2 leading-snug">
+            <h3 className="font-display text-base text-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
-            <p className="text-[13px] text-slate leading-relaxed">
+            <p className="text-sm text-slate leading-relaxed">
               Our tools monitor 119 regulatory authorities daily, synthesise every development,
               and tell you what it means for your specific work — automatically, every week.
               Plus the compliance documents to act on it.
@@ -420,7 +480,7 @@ const Subscribe = () => {
 
           {/* Body copy card */}
           <div className="bg-card border border-fog rounded-2xl px-6 py-5 mb-5">
-            <p className="text-[13px] text-slate leading-relaxed mb-4">
+            <p className="text-sm text-slate leading-relaxed mb-4">
               The privacy professional's toolkit has four well-established categories, each
               with excellent tools. Legal research databases give you access to the primary
               source when you need to read the statute. Compliance management platforms handle
@@ -429,7 +489,7 @@ const Subscribe = () => {
               correctly.
             </p>
             <div className="h-px bg-fog my-4" />
-            <p className="text-[13px] text-slate leading-relaxed">
+            <p className="text-sm text-slate leading-relaxed">
               Our tools monitor what is happening across the regulatory landscape
               automatically, synthesise it, and tell you what it means for your specific work.
             </p>
@@ -437,7 +497,7 @@ const Subscribe = () => {
 
           {/* Closing quote */}
           <div className="border-l-[3px] border-amber-500 bg-card border border-fog rounded-r-xl px-5 py-4">
-            <p className="text-[13px] text-slate leading-relaxed italic">
+            <p className="text-sm text-slate leading-relaxed italic">
               "End User Privacy is the monitoring and intelligence layer you add once, and
               then stop having to think about — working alongside the professional tools you
               already rely on."
@@ -445,7 +505,7 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {error && <p className="text-center text-warn text-[13px] mt-6">{error}</p>}
+        {error && <p className="text-center text-warn text-sm mt-6">{error}</p>}
 
         {/* Free digest signup */}
         <FreeDigestSignup source="website" className="mt-10" />

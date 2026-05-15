@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const GlossaryTerm = () => {
@@ -44,7 +43,7 @@ const GlossaryTerm = () => {
           <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">{term.term}</h1>
           <div className="flex gap-1.5 flex-wrap">
             {term.regulations.map((r) => (
-              <span key={r} className="font-mono-code text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">{r}</span>
+              <span key={r} className="font-mono-code text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">{r}</span>
             ))}
           </div>
         </div>
@@ -145,7 +144,6 @@ const GlossaryTerm = () => {
           );
         })()}
 
-        <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
 
         {relatedTerms.length > 0 && (
           <div>

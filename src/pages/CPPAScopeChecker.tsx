@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -144,6 +145,7 @@ export default function CPPAScopeChecker() {
         />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -57,9 +57,18 @@ interface NavItem {
   wide?: boolean;
   columns?: 2 | 3;
   sections?: NavSection[];
+  /** Visually de-emphasize this top-level item (secondary nav). */
+  dim?: boolean;
+  /** Mark as a direct link (not a dropdown) with a small cobalt indicator dot. */
+  directLink?: boolean;
 }
 
 const navItems: NavItem[] = [
+  {
+    label: "Privacy Intelligence Feed",
+    href: "/updates",
+    directLink: true,
+  },
   {
     label: "Intelligence",
     wide: true,
@@ -73,7 +82,7 @@ const navItems: NavItem[] = [
           { icon: "⭐", label: "Weekly Privacy Intelligence Report", href: "/get-intelligence" },
           { icon: "🛰️", label: "Regulatory Trend Forecast", href: "/horizon" },
           { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive" },
-          { icon: "📄", label: "Sample Privacy Intelligence Report", badge: "FREE", badgeGreen: true, href: "/#brief" },
+          
         ],
       },
       {
@@ -87,40 +96,6 @@ const navItems: NavItem[] = [
           { icon: "📊", label: "Enforcement Tracker", href: "/enforcement-tracker" },
           { icon: "📅", label: "Compliance Calendar", href: "/calendar" },
           { icon: "📋", label: "LI Enforcement Tracker", href: "/legitimate-interest-tracker" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Updates",
-    wide: true,
-    columns: 2,
-    sections: [
-      {
-        header: "Browse by region",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
-        column: 1,
-        items: [
-          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Federal", href: "/updates?region=us-federal" },
-          { icon: "🗺️", label: "U.S. States", href: "/updates?region=us-states" },
-          { icon: "\ud83c\uddea\ud83c\uddfa", iconImage: "/eu-uk-split.svg", label: "EU & UK", href: "/updates?region=eu-uk" },
-          { icon: "🌐", label: "Global", href: "/updates?region=global" },
-          { icon: "📰", label: "Privacy Intelligence Feed", href: "/updates?region=all" },
-        ],
-      },
-      {
-        header: "Browse by topic",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
-        column: 2,
-        items: [
-          { icon: "🤖", label: "AI & Privacy", href: "/updates?topic=ai-privacy" },
-          { icon: "⚖️", label: "Breaches & Enforcement", href: "/updates?topic=enforcement" },
-          { icon: "📱", label: "AdTech & Consent", href: "/updates?topic=adtech" },
-          { icon: "👤", label: "Biometric Data", href: "/updates?topic=biometric-data" },
-          { icon: "🌐", label: "Data Transfers", href: "/updates?topic=cross-border" },
-          { icon: "🧒", label: "Children's Privacy", href: "/updates?topic=children-privacy" },
         ],
       },
     ],
@@ -185,6 +160,7 @@ const navItems: NavItem[] = [
     label: "Research",
     wide: true,
     columns: 2,
+    
     sections: [
       {
         header: "Laws & frameworks",
@@ -273,7 +249,7 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
             to="/account"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-[13px] font-medium text-navy hover:bg-fog no-underline"
+            className="block px-4 py-2 text-sm font-medium text-navy hover:bg-fog no-underline"
           >
             Account settings
           </Link>
@@ -285,7 +261,7 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
               setOpen(false);
               await onSignOut();
             }}
-            className="block w-full text-left px-4 py-2 text-[13px] font-medium text-slate hover:text-navy hover:bg-fog bg-transparent border-none cursor-pointer"
+            className="block w-full text-left px-4 py-2 text-sm font-medium text-slate hover:text-navy hover:bg-fog bg-transparent border-none cursor-pointer"
           >
             Sign out
           </button>
@@ -298,7 +274,26 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const el = dropdownRef.current;
+    if (!el) return;
+    const adjust = () => {
+      el.style.marginLeft = "";
+      const rect = el.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const margin = 8;
+      let delta = 0;
+      if (rect.right > vw - margin) delta = vw - margin - rect.right;
+      if (rect.left + delta < margin) delta = margin - rect.left;
+      if (delta !== 0) el.style.marginLeft = `${delta}px`;
+    };
+    adjust();
+    window.addEventListener("resize", adjust);
+    return () => window.removeEventListener("resize", adjust);
+  }, [openDropdown]);
   const location = useLocation();
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
@@ -338,21 +333,18 @@ const Navbar = () => {
       <Link
         key={sub.label}
         to={sub.href}
-        className={`flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-[13px] text-navy ${mobile ? "" : ""}`}
+        className={`flex items-start px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy ${mobile ? "" : ""}`}
         onClick={() => {
           if (mobile) setMobileOpen(false);
           setOpenDropdown(null);
         }}
       >
-        <span className="flex items-center justify-center w-5 shrink-0 mt-0.5">
-          <IconImage src={sub.iconImage} fallback={sub.icon} />
-        </span>
         <span className="flex-1 text-left min-w-0">
           <span className="flex items-center gap-2 flex-wrap">
             <span className="font-medium">{sub.label}</span>
             {sub.badge && (
               <span
-                className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                   sub.badgeGreen
                     ? "bg-accent/10 text-accent border border-accent/20"
                     : "bg-blue/10 text-blue border border-blue/20"
@@ -363,7 +355,7 @@ const Navbar = () => {
             )}
           </span>
           {sub.description && (
-            <span className="block text-[12px] text-slate-light mt-0.5 leading-snug">
+            <span className="block text-meta text-slate-light mt-0.5 leading-snug">
               {sub.description}
             </span>
           )}
@@ -390,20 +382,32 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-card border-b border-fog sticky top-0 z-50">
+    <nav className="bg-[#0D1F35] border-b border-[#0D1F35] sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
-          <img src="/logo.png" alt="End User Privacy" className="h-10 w-auto" />
+          <img src="/logo.png" alt="End User Privacy" width={1111} height={281} className="h-10 w-auto shrink-0 rounded-md object-contain" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-2">
           {navItems.map((item) => {
-            const isActive = item.href ? location.pathname === item.href : false;
-            const baseTopClasses = "flex items-center gap-1 px-2 py-2 transition-colors no-underline font-semibold text-[15px]";
+            const isActive = item.href
+              ? location.pathname === item.href
+              : item.sections?.some((s) =>
+                  s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
+                ) ?? false;
+            const basePadX = item.directLink ? "px-4" : "px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav`;
+            const activeUnderline = isActive
+              ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
+              : "";
             const colorClasses = item.accent
-              ? `text-amber-500 hover:text-amber-400 ${isActive ? "underline underline-offset-4" : ""}`
-              : "text-slate hover:text-navy";
+              ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
+              : `text-white hover:text-white`;
+            const dimClass = item.dim ? "opacity-80 hover:opacity-100" : "";
+            const directDot = item.directLink
+              ? "before:content-[''] before:absolute before:left-1 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[hsl(var(--cobalt))]"
+              : "";
             return (
               <div
                 key={item.label}
@@ -412,14 +416,14 @@ const Navbar = () => {
                 onMouseLeave={() => setOpenDropdown(null)}
               >
                 {item.href ? (
-                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses}`}>
+                  <Link to={item.href} className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} ${directDot}`}>
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
                   </Link>
                 ) : (
                   <button
                     type="button"
-                    className={`${baseTopClasses} ${colorClasses} cursor-pointer bg-transparent border-none`}
+                    className={`${baseTopClasses} ${colorClasses} ${activeUnderline} ${dimClass} cursor-pointer bg-transparent border-none`}
                   >
                     {item.label}
                     {item.sections && <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
@@ -427,13 +431,13 @@ const Navbar = () => {
                 )}
 
                 {item.sections && openDropdown === item.label && (
-                  <div className="absolute top-full left-0 pt-1 z-50">
+                  <div ref={dropdownRef} className="absolute left-0 top-full pt-1 z-50">
                     <div
                       className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
-                            ? "min-w-[840px] grid grid-cols-3 gap-x-3 items-start"
-                            : "min-w-[640px] grid grid-cols-2 gap-x-3 items-start"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-start"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-start"
                           : "min-w-[280px]"
                       }`}
                     >
@@ -443,12 +447,12 @@ const Navbar = () => {
                             {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
                             {section.header && (
                               <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                                <span className="text-eyebrow text-slate-light">
                                   {section.header}
                                 </span>
                                 {section.headerBadge && (
                                   <span
-                                    className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                    className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                       section.headerBadgeGreen
                                         ? "bg-accent/10 text-accent border border-accent/20"
                                         : "bg-blue/10 text-blue border border-blue/20"
@@ -489,30 +493,30 @@ const Navbar = () => {
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 🧠 My Dashboard
               </Link>
               {!isPremium && (
                 <Link
                   to="/subscribe"
-                  className="text-[12px] font-semibold text-amber-600 hover:text-amber-700 no-underline transition-colors flex items-center gap-1"
+                  className="text-sm font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
                 >
                   ⭐ See plans
                 </Link>
               )}
               {(tier === "annual" || tier === "annual_founding") && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
                   Platform
                 </span>
               )}
               {tier === "monthly" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
                   Intelligence
                 </span>
               )}
               {tier === "free" && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-600 text-teal-50">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
                   FREE PLAN
                 </span>
               )}
@@ -522,19 +526,19 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="text-[12px] font-medium text-slate hover:text-navy no-underline transition-colors"
+                className="text-[15px] font-semibold text-white/80 hover:text-white no-underline transition-colors px-3 py-2"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
-                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-100 transition-colors no-underline"
+                className="text-sm font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
               >
                 Sign up free
               </Link>
               <Link
                 to="/subscribe"
-                className="text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg no-underline hover:opacity-90 transition-all"
+                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
               >
                 See Plans →
               </Link>
@@ -544,7 +548,7 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-navy bg-transparent border-none cursor-pointer"
+          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -587,12 +591,12 @@ const Navbar = () => {
                         <div key={si}>
                           {section.header && (
                             <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-light">
+                              <span className="text-eyebrow text-slate-light">
                                 {section.header}
                               </span>
                               {section.headerBadge && (
                                 <span
-                                  className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                  className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                     section.headerBadgeGreen
                                       ? "bg-accent/10 text-accent border border-accent/20"
                                       : "bg-blue/10 text-blue border border-blue/20"
@@ -617,7 +621,7 @@ const Navbar = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => {
                     setMobileOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -628,7 +632,7 @@ const Navbar = () => {
                 {!isPremium && (
                   <Link
                     to="/subscribe"
-                    className="block text-center text-[13px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    className="block text-center text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
                     ⭐ See plans
@@ -636,7 +640,7 @@ const Navbar = () => {
                 )}
                 <Link
                   to="/account"
-                  className="block text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   Account settings
@@ -646,7 +650,7 @@ const Navbar = () => {
                     setMobileOpen(false);
                     await handleSignOut();
                   }}
-                  className="w-full text-center text-[13px] font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
+                  className="w-full text-center text-sm font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
                 >
                   Sign out
                 </button>
@@ -655,14 +659,14 @@ const Navbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="block text-center text-[13px] font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/subscribe"
-                  className="block text-center text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   See Plans →

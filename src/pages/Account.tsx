@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import {
   AccountClientsSection,
   ComplianceDocumentsSection,
@@ -144,12 +144,10 @@ export default function Account() {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <WorkspaceLayout>
       <Helmet>
         <title>My Account | End User Privacy</title>
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
@@ -160,13 +158,13 @@ export default function Account() {
               <h3 className="font-semibold text-navy text-[14px] mb-1">
                 Personalise your intelligence feed
               </h3>
-              <p className="text-[13px] text-slate leading-relaxed">
+              <p className="text-sm text-slate leading-relaxed">
                 Tell us your role, jurisdiction, and sector so we can tailor your Action Brief.
               </p>
             </div>
             <Link
               to="/onboarding-profile?redirect=%2Faccount"
-              className="shrink-0 inline-block bg-gradient-to-br from-steel to-blue text-white font-semibold text-[13px] py-2.5 px-5 rounded-lg no-underline hover:opacity-90 transition-all"
+              className="shrink-0 inline-block bg-gradient-to-br from-steel to-blue text-white font-semibold text-sm py-2.5 px-5 rounded-lg no-underline hover:opacity-90 transition-all"
             >
               Complete setup →
             </Link>
@@ -180,14 +178,14 @@ export default function Account() {
           </h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center py-2.5 border-b border-fog">
-              <span className="text-[13px] text-slate">Email</span>
-              <span className="text-[13px] font-medium text-navy">{user?.email}</span>
+              <span className="text-sm text-slate">Email</span>
+              <span className="text-sm font-medium text-navy">{user?.email}</span>
             </div>
             <div className="flex justify-between items-center py-2.5">
-              <span className="text-[13px] text-slate">Password</span>
+              <span className="text-sm text-slate">Password</span>
               <Link
                 to="/forgot-password"
-                className="text-[13px] text-blue hover:text-navy no-underline font-medium"
+                className="text-sm text-blue hover:text-navy no-underline font-medium"
               >
                 Change password →
               </Link>
@@ -201,7 +199,7 @@ export default function Account() {
             <p className="font-bold text-navy text-[15px]">
               Compliance Platform — Annual (Founding Subscriber)
             </p>
-            <p className="text-[13px] text-amber-700 font-semibold mt-1">
+            <p className="text-sm text-amber-700 font-semibold mt-1">
               Rate locked for life
             </p>
             <p className="text-[12px] text-slate mt-1">
@@ -213,7 +211,7 @@ export default function Account() {
         {tier === "annual" && (
           <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">Compliance Platform — Annual</p>
-            <p className="text-[13px] text-slate mt-1">
+            <p className="text-sm text-slate mt-1">
               {PLATFORM_PRICING.standard()} · {PLATFORM_PRICING.standardMonthly()} equivalent
             </p>
             <p className="text-[12px] text-slate mt-1">
@@ -225,7 +223,7 @@ export default function Account() {
         {tier === "monthly" && (
           <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">Intelligence Feed — Monthly</p>
-            <p className="text-[13px] text-teal-700 mt-1">
+            <p className="text-sm text-teal-700 mt-1">
               {INTELLIGENCE_PRICING.monthly()} · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
@@ -253,28 +251,28 @@ export default function Account() {
             </h2>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
-                <span className="text-[13px] text-slate">Status</span>
+                <span className="text-sm text-slate">Status</span>
                 {cancelAtPeriodEnd ? (
-                  <span className="text-[13px] font-medium text-warn">
+                  <span className="text-sm font-medium text-warn">
                     Canceled — access until {formattedEndDate ?? "period end"}
                   </span>
                 ) : (
-                  <span className="text-[13px] font-medium text-accent flex items-center gap-1">
+                  <span className="text-sm font-medium text-accent flex items-center gap-1">
                     <Check className="w-3.5 h-3.5" /> Active
                   </span>
                 )}
               </div>
               <div className="flex justify-between items-center py-2.5 border-b border-fog">
-                <span className="text-[13px] text-slate">Brief preferences</span>
+                <span className="text-sm text-slate">Brief preferences</span>
                 <Link
                   to="/brief-preferences"
-                  className="text-[13px] text-blue hover:text-navy no-underline font-medium flex items-center gap-1"
+                  className="text-sm text-blue hover:text-navy no-underline font-medium flex items-center gap-1"
                 >
                   Customize <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
               <div className="flex justify-between items-center py-2.5">
-                <span className="text-[13px] text-slate">
+                <span className="text-sm text-slate">
                   {cancelAtPeriodEnd ? "Resume subscription" : "Manage subscription"}
                 </span>
                 {cancelAtPeriodEnd ? (
@@ -282,7 +280,7 @@ export default function Account() {
                     type="button"
                     onClick={handleResume}
                     disabled={cancelBusy}
-                    className="text-[13px] font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer disabled:opacity-50"
+                    className="text-sm font-medium text-blue hover:text-navy bg-transparent border-none cursor-pointer disabled:opacity-50"
                   >
                     {cancelBusy ? "Working…" : "Resume auto-renewal →"}
                   </button>
@@ -291,7 +289,7 @@ export default function Account() {
                     type="button"
                     onClick={() => setConfirmCancelOpen(true)}
                     disabled={cancelBusy}
-                    className="text-[13px] font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer disabled:opacity-50"
+                    className="text-sm font-medium text-slate hover:text-warn bg-transparent border-none cursor-pointer disabled:opacity-50"
                   >
                     Cancel auto-renewal
                   </button>
@@ -304,13 +302,13 @@ export default function Account() {
           </div>
         ) : (
           <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 mb-4 text-center">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-sky mb-2">
+            <div className="text-[11px] font-bold uppercase tracking-widest text-sky mb-2">
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
               Compliance Platform or Intelligence Feed
             </h3>
-            <p className="text-slate-light text-[13px] mb-4 max-w-sm mx-auto">
+            <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">
               Annual Platform at {PLATFORM_PRICING.standard()} — every assessment,
               notice, and document tool included. Or Intelligence Feed at{" "}
               {INTELLIGENCE_PRICING.monthly()}.
@@ -330,7 +328,7 @@ export default function Account() {
             <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-2">
               Client Workspaces
             </h2>
-            <p className="text-[13px] text-slate mb-3 leading-relaxed">
+            <p className="text-sm text-slate mb-3 leading-relaxed">
               Add additional client workspaces for {PLATFORM_PRICING.clientAddon()}. Each
               workspace gets separate document storage and tool history.
             </p>
@@ -338,7 +336,7 @@ export default function Account() {
               type="button"
               onClick={handleAddClientWorkspace}
               disabled={addonBusy}
-              className="text-[13px] font-semibold text-navy border border-navy px-4 py-2 rounded-lg hover:bg-navy/5 bg-transparent cursor-pointer disabled:opacity-50"
+              className="text-sm font-semibold text-navy border border-navy px-4 py-2 rounded-lg hover:bg-navy/5 bg-transparent cursor-pointer disabled:opacity-50"
             >
               {addonBusy ? "Opening checkout…" : `+ Add client workspace — ${PLATFORM_PRICING.clientAddon()}`}
             </button>
@@ -372,7 +370,7 @@ export default function Account() {
                   to={link.href}
                   className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-fog transition-colors no-underline group"
                 >
-                  <span className="text-[13px] text-navy group-hover:text-blue transition-colors">
+                  <span className="text-sm text-navy group-hover:text-blue transition-colors">
                     {link.label}
                   </span>
                   <ChevronRight className="w-4 h-4 text-slate-light" />
@@ -392,7 +390,7 @@ export default function Account() {
         </button>
       </div>
 
-      <Footer />
+
 
       <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
         <AlertDialogContent>
@@ -423,6 +421,6 @@ export default function Account() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </WorkspaceLayout>
   );
 }

@@ -8,7 +8,7 @@ export default function RegistrationDisclaimer({
 }) {
   if (variant === "compact") {
     return (
-      <p className="text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 pt-3 mt-4">
+      <p className="text-meta text-muted-foreground leading-relaxed border-t border-border/40 pt-3 mt-4">
         End User Privacy's Registration Manager generates draft filings and checklists tailored to your inputs.
         It is not legal advice, does not create an attorney-client relationship, and does not guarantee
         acceptance by any data protection authority. Filing requirements change — always verify with the
@@ -18,7 +18,7 @@ export default function RegistrationDisclaimer({
   }
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-[12.5px] leading-relaxed text-amber-900">
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
       <div className="font-semibold mb-1">Important — Please read</div>
       <p>
         End User Privacy's Registration Manager produces <strong>draft documents and filing checklists</strong> based

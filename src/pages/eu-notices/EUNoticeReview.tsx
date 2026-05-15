@@ -406,13 +406,13 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => navigate(`/eu-notices/frameworks/${sessionId}`)}
-              className="text-[13px] font-semibold text-teal-700 hover:underline inline-flex items-center gap-1"
+              className="text-sm font-semibold text-teal-700 hover:underline inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" /> Edit scope →
             </button>
           }
         >
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-[13px] mb-3">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm mb-3">
             <Row label="Client" value={clientName || "—"} />
             <Row label="Scope" value={SCOPE_LABEL[scope]} />
             <Row
@@ -425,7 +425,7 @@ export default function EUNoticeReview() {
             {frameworks.map((f) => (
               <span
                 key={f.framework_code}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-navy/10 text-navy font-mono"
+                className="text-meta px-2 py-0.5 rounded-full bg-navy/10 text-navy font-mono"
               >
                 {f.framework_name}
               </span>
@@ -439,14 +439,14 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => setShowAllFrameworks((v) => !v)}
-              className="text-[13px] font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-teal-700 hover:underline"
             >
               {showAllFrameworks ? "Show flagged only" : `Show all ${frameworks.length} frameworks`}
             </button>
           }
         >
           {visibleFrameworks.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground italic py-2">
+            <p className="text-sm text-muted-foreground italic py-2">
               No flagged or incomplete frameworks. All set.
             </p>
           ) : (
@@ -469,7 +469,7 @@ export default function EUNoticeReview() {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                       )}
-                      <span className="flex-1 text-[14px] font-semibold text-navy truncate">
+                      <span className="flex-1 text-sm font-semibold text-navy truncate">
                         {fw.framework_name}
                       </span>
                       <Chip color="neutral">{fw.region}</Chip>
@@ -489,11 +489,11 @@ export default function EUNoticeReview() {
                       )}
                     </button>
                     {isOpen && section && (
-                      <div className="pl-7 pb-3 pr-2 text-[13px] space-y-1">
+                      <div className="pl-7 pb-3 pr-2 text-sm space-y-1">
                         <ul className="divide-y divide-border/50 max-h-64 overflow-y-auto">
                           {section.questions.slice(0, 6).map((q) => (
                             <li key={q.key} className="py-2">
-                              <p className="text-muted-foreground text-[12px]">{q.text}</p>
+                              <p className="text-muted-foreground text-meta">{q.text}</p>
                               <p className="text-navy">{formatAnswer(q, answers[q.key])}</p>
                             </li>
                           ))}
@@ -524,11 +524,11 @@ export default function EUNoticeReview() {
                 >
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[13px] text-navy">{f.message}</p>
+                    <p className="text-sm text-navy">{f.message}</p>
                   </div>
                   <button
                     onClick={() => markReviewed(f)}
-                    className="text-[12px] font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
+                    className="text-meta font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
                   >
                     Mark as reviewed
                   </button>
@@ -546,10 +546,10 @@ export default function EUNoticeReview() {
                   key={`${f.framework_code}:${f.type}`}
                   className="border border-border rounded-lg p-3 bg-muted/30 flex items-start justify-between gap-3"
                 >
-                  <p className="text-[13px] text-muted-foreground">{f.message}</p>
+                  <p className="text-sm text-muted-foreground">{f.message}</p>
                   <button
                     onClick={() => markReviewed(f)}
-                    className="text-[12px] font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
+                    className="text-meta font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
                   >
                     Dismiss
                   </button>
@@ -561,11 +561,11 @@ export default function EUNoticeReview() {
 
         {/* SECTION 4 — Document format & combined option */}
         <Section title="Document format">
-          <p className="text-[12px] text-muted-foreground mb-3">
+          <p className="text-meta text-muted-foreground mb-3">
             PDF is the primary format and is always generated.
           </p>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={includeHtml}
@@ -573,7 +573,7 @@ export default function EUNoticeReview() {
               />
               Also include HTML (Included)
             </label>
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={includeWord}
@@ -582,7 +582,7 @@ export default function EUNoticeReview() {
               Also include Word document (Included)
             </label>
             {combinedAvailable && (
-              <label className="flex items-center gap-2 text-[13px]">
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={includeCombined}
@@ -597,10 +597,10 @@ export default function EUNoticeReview() {
         {/* SECTION 5 — Pricing & generate */}
         <Section title="EU & global notice generation">
           <div className="border border-border rounded-lg p-4 bg-muted/30 mb-4">
-            <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-meta font-mono uppercase tracking-wider text-muted-foreground mb-2">
               Generation
             </p>
-            <div className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center justify-between text-sm">
               <span>
                 {frameworks.length} framework notice{frameworks.length === 1 ? "" : "s"} —{" "}
                 {SCOPE_LABEL[scope]}
@@ -612,32 +612,32 @@ export default function EUNoticeReview() {
                     ? "Paid"
                     : `$${pricing.price}`}
                 {!session?.payment_confirmed && !pricing.loading && (
-                  <span className="text-[11px] text-muted-foreground ml-2">
+                  <span className="text-meta text-muted-foreground ml-2">
                     {pricing.isSubscriber ? "subscriber" : "standalone"}
                   </span>
                 )}
               </span>
             </div>
             {includeHtml && (
-              <div className="flex justify-between text-[12px] text-muted-foreground mt-1">
+              <div className="flex justify-between text-meta text-muted-foreground mt-1">
                 <span>+ HTML versions</span>
                 <span>Included</span>
               </div>
             )}
             {includeWord && (
-              <div className="flex justify-between text-[12px] text-muted-foreground">
+              <div className="flex justify-between text-meta text-muted-foreground">
                 <span>+ Word documents</span>
                 <span>Included</span>
               </div>
             )}
             {combinedAvailable && includeCombined && (
-              <div className="flex justify-between text-[12px] text-muted-foreground">
+              <div className="flex justify-between text-meta text-muted-foreground">
                 <span>+ Combined notice</span>
                 <span>Included</span>
               </div>
             )}
             {!pricing.isSubscriber && !session?.payment_confirmed && pricing.standalonePrice > pricing.subscriberPrice && (
-              <p className="text-[11px] text-teal-700 mt-2">
+              <p className="text-meta text-teal-700 mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"
@@ -653,13 +653,13 @@ export default function EUNoticeReview() {
 
           {/* Gate messaging */}
           {hasMissingRequired && (
-            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-[13px] text-red-900 dark:text-red-200">
+            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-sm text-red-900 dark:text-red-200">
               <AlertTriangle className="w-4 h-4 inline mr-1" />
               Resolve required answers before generating.
             </div>
           )}
           {hasWarningsOrRecs && (
-            <label className="flex items-start gap-2 text-[13px] mb-3 p-3 border border-border rounded-md bg-muted/30">
+            <label className="flex items-start gap-2 text-sm mb-3 p-3 border border-border rounded-md bg-muted/30">
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -676,14 +676,14 @@ export default function EUNoticeReview() {
           <div className="flex justify-between gap-3">
             <button
               onClick={() => navigate(`/eu-notices/questions/${sessionId}`)}
-              className="text-[13px] font-semibold text-muted-foreground hover:text-navy inline-flex items-center gap-1"
+              className="text-sm font-semibold text-muted-foreground hover:text-navy inline-flex items-center gap-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back to questions
             </button>
             <button
               onClick={handleGenerateClick}
               disabled={generateDisabled || generating}
-              className="bg-navy text-white text-[14px] font-semibold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy/90 transition inline-flex items-center gap-2"
+              className="bg-navy text-white text-sm font-semibold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy/90 transition inline-flex items-center gap-2"
             >
               {generating ? (
                 <>
@@ -705,10 +705,10 @@ export default function EUNoticeReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-[16px] font-serif text-navy mb-4">
+            <h3 className="text-base font-serif text-navy mb-4">
               Generating your EU & global privacy notices…
             </h3>
-            <ul className="space-y-2 text-[13px]">
+            <ul className="space-y-2 text-sm">
               <GenStepRow status={genSteps._session ?? "pending"} label="Session data loaded" />
               <GenStepRow
                 status={genSteps._config ?? "pending"}
@@ -802,7 +802,7 @@ function Chip({
         ? "bg-green-100 text-green-900 dark:bg-green-950/50 dark:text-green-200"
         : "bg-muted text-muted-foreground";
   return (
-    <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${styles}`}>
+    <span className={`text-meta px-2 py-0.5 rounded-full font-semibold ${styles}`}>
       {children}
     </span>
   );

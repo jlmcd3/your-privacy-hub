@@ -42,13 +42,13 @@ export default function ForgotPassword() {
                 Enter your email and we'll send you a link to reset your password.
               </p>
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
+                <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
                   {error}
                 </div>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[13px] font-medium text-navy mb-1.5">
+                  <label className="block text-sm font-medium text-navy mb-1.5">
                     Email
                   </label>
                   <input
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
                 </button>
               </form>
               <div className="text-center mt-5">
-                <Link to="/login" className="text-[13px] text-blue hover:text-navy no-underline">
+                <Link to="/login" className="text-sm text-blue hover:text-navy no-underline">
                   ← Back to Sign In
                 </Link>
               </div>
@@ -78,7 +78,7 @@ export default function ForgotPassword() {
             <div className="text-center py-4">
               <div className="text-4xl mb-4">📧</div>
               <h2 className="font-display text-[22px] text-navy mb-2">Check your inbox</h2>
-              <p className="text-slate text-[13px] leading-relaxed mb-6">
+              <p className="text-slate text-sm leading-relaxed mb-6">
                 We sent a password reset link to <strong>{email}</strong>.
                 Click the link in that email to set a new password.
               </p>
@@ -92,7 +92,7 @@ export default function ForgotPassword() {
                 </button>
                 .
               </p>
-              <Link to="/login" className="text-[13px] text-blue hover:text-navy no-underline">
+              <Link to="/login" className="text-sm text-blue hover:text-navy no-underline">
                 ← Back to Sign In
               </Link>
             </div>

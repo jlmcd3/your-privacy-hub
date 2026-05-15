@@ -160,7 +160,7 @@ export default function RegistrationDocuments() {
                 <CardContent className="pt-4">
                   {selected ? (
                     <>
-                      <pre className="whitespace-pre-wrap text-[13px] text-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-fog/30 rounded">
+                      <pre className="whitespace-pre-wrap text-sm text-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-fog/30 rounded">
                         {selected.content_text || "(empty)"}
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">

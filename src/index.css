@@ -17,10 +17,11 @@
     --fog: 210 30% 93%;
     --white: 0 0% 100%;
     --paper: 210 40% 94%;
-    --accent: 155 68% 37%;
-    --accent-light: 155 68% 43%;
+    --accent: 36 57% 47%;          /* #C8922A gold — CTAs, primary buttons, active nav underlines */
+    --accent-light: 36 57% 55%;    /* slightly lighter hover state */
+    --cobalt: 221 84% 53%;         /* #2563EB — interactive elements, active sidebar items, inline links */
     --warn: 16 74% 52%;
-    --gold: 40 85% 38%;
+    --gold: 36 57% 47%;
 
     --background: 210 40% 94%;
     --foreground: 210 55% 13%;
@@ -34,7 +35,7 @@
     --secondary-foreground: 210 55% 13%;
     --muted: 210 30% 93%;
     --muted-foreground: 215 16% 47%;
-    --accent: 155 68% 37%;
+    --accent: 36 57% 47%;
     --accent-foreground: 0 0% 100%;
     --destructive: 16 74% 52%;
     --destructive-foreground: 0 0% 100%;
@@ -66,7 +67,9 @@
     --secondary-foreground: 210 47% 97%;
     --muted: 210 52% 24%;
     --muted-foreground: 215 18% 65%;
-    --accent: 155 68% 43%;
+    --accent: 36 70% 60%;          /* gold lifted for dark backgrounds */
+    --accent-light: 36 70% 68%;
+    --cobalt: 221 90% 65%;         /* cobalt lifted for dark backgrounds */
     --accent-foreground: 210 55% 13%;
     --destructive: 16 74% 52%;
     --destructive-foreground: 210 47% 97%;
@@ -89,13 +92,13 @@
   }
 
   h1 {
-    font-family: 'DM Serif Display', Georgia, serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 2.5rem;   /* 40px */
     font-weight: 400;
     line-height: 1.15;
   }
   h2 {
-    font-family: 'DM Serif Display', Georgia, serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 1.75rem;  /* 28px */
     font-weight: 400;
     line-height: 1.25;
@@ -115,7 +118,7 @@
 
 /* Custom utility classes */
 .font-display {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 .font-body {
@@ -131,9 +134,38 @@
 
 /* --- Heading scale (use on real <h1>/<h2>/<h3> elements) --- */
 
+/*
+  CANONICAL TYPE SCALE — use these classes, not ad-hoc text-[Xpx]
+  ----------------------------------------------------------------
+  .text-eyebrow    11px  DM Sans 700 uppercase tracking  — badges, tags, labels above headings
+  .text-label      12px  DM Sans 600 uppercase tracking  — table column headers, form section labels
+  .text-meta       12px  DM Sans 400                     — timestamps, source lines, secondary info
+  .text-body       14px  DM Sans 400                     — primary body copy, table cells, card text
+  .text-nav        14px  DM Sans 500 tracking            — navigation items
+  .text-cta        15px  DM Sans 700                     — buttons, CTAs
+  .text-card-title 16px  DM Sans 600                     — card headings, tile titles
+  .text-section-h2 24/28px  Georgia 400                  — major in-page section headings
+  .text-page-h1    28/36px  Georgia 400                  — page-level H1s
+  .text-hero-h1    36/44px  Georgia 400                  — landing/hero headings only
+
+  Tailwind utilities still in use for one-off sizes:
+  text-xs (12px)   — same size as text-meta, no semantic weight
+  text-sm (14px)   — same size as text-body, no semantic weight
+  text-base (16px) — lead paragraphs, prominent descriptions
+  text-lg (18px)   — large card headings, prominent sub-headings
+  text-2xl (24px)  — section headings where Georgia is not appropriate
+  text-3xl (30px)  — page titles where font-display is not applied
+  text-4xl (36px)  — section H1s
+  text-5xl (48px)  — heroes only
+
+  HARD FLOOR: 11px. Nothing below this anywhere on the site.
+  GEORGIA: headings only (text-section-h2 and above, or font-display class).
+           Do not use Georgia on body copy, table cells, or UI chrome.
+*/
+
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
 .text-hero-h1 {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 2.25rem;     /* 36px */
   font-weight: 400;
   line-height: 1.15;
@@ -145,7 +177,7 @@
 
 /* Page H1 — used on standard light-background page headers */
 .text-page-h1 {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.75rem;     /* 28px */
   font-weight: 400;
   line-height: 1.2;
@@ -156,7 +188,7 @@
 
 /* Section H2 — used for major page sections */
 .text-section-h2 {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.5rem;      /* 24px */
   font-weight: 400;
   line-height: 1.25;
@@ -168,7 +200,7 @@
 /* Card title — used on article cards, dashboard tiles, list items */
 .text-card-title {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 1rem;        /* 16px */
+  font-size: 1.125rem;    /* 18px */
   font-weight: 600;
   line-height: 1.35;
 }
@@ -207,9 +239,22 @@
 
 .text-meta {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;   /* 13px */
+  font-size: 0.75rem;     /* 12px */
   font-weight: 400;
-  opacity: 0.65;
+}
+
+/* Body copy — primary reading size for all UI text, tables, card content */
+.text-body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 1rem;        /* 16px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Neutral body text — article summaries, non-enrichment paragraphs.
+   Use instead of text-slate on prose content. */
+.text-neutral-body {
+  color: #374151; /* Tailwind gray-700 — true neutral */
 }
 
 .font-mono-code {

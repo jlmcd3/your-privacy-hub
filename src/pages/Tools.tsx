@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
@@ -76,7 +77,7 @@ const SECTION_HEADERS: Record<ToolSection, {
       label: "text-red-800",
       title: "text-red-950",
       note: "text-red-700",
-      noteBg: "bg-red-100 px-2 py-0.5 rounded text-[10px] font-semibold",
+      noteBg: "bg-red-100 px-2 py-0.5 rounded text-meta font-semibold",
       border: "border-t-red-600",
     },
   },
@@ -452,24 +453,25 @@ export default function Tools() {
         <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Assessments, compliance documents, and CPPA tools. Included with Annual Platform at $399/yr." />
       </Helmet>
       <Navbar />
+      <DashboardSubnav />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-16 px-4 text-center">
         <div className="max-w-[760px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-amber-300 bg-amber-300/10 border border-amber-300/20 px-3 py-1.5 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 text-eyebrow text-amber-300 bg-amber-300/10 border border-amber-300/20 px-3 py-1.5 rounded-full mb-6">
             Compliance Tools
           </div>
           <h1 className="font-display text-[32px] md:text-[44px] text-white font-bold leading-tight mb-4">
             Intelligence, assessments, and compliance documents
           </h1>
-          <p className="text-blue-200 text-[16px] leading-relaxed max-w-[600px] mx-auto mb-8">
+          <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
             Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. All standard tools are included with the Annual Platform ({PLATFORM_PRICING.standard()}).
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link to="/subscribe" className="text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+            <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
               See Annual Platform — {PLATFORM_PRICING.standard()} →
             </Link>
-            <a href="#tools" className="text-[14px] font-semibold text-white border border-white/30 px-6 py-3 rounded-xl hover:bg-white/10 transition-all no-underline">
+            <a href="#tools" className="text-sm font-semibold text-white border border-white/30 px-6 py-3 rounded-xl hover:bg-white/10 transition-all no-underline">
               See the tools ↓
             </a>
           </div>
@@ -482,12 +484,12 @@ export default function Tools() {
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
-              <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">{d.title}</h3>
-              <p className="text-slate text-[13px] leading-relaxed">{d.body}</p>
+              <h3 className="font-display font-semibold text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-fog" />
               <ul className="space-y-1.5">
                 {d.checks.map((c) => (
-                  <li key={c} className="flex gap-2 text-[12.5px] text-slate leading-snug">
+                  <li key={c} className="flex gap-2 text-xs text-slate leading-snug">
                     <span className={`${d.checkColor} font-bold flex-shrink-0`}>✓</span>
                     <span>{c}</span>
                   </li>
@@ -514,7 +516,7 @@ export default function Tools() {
                       </svg>
                     </div>
                     <div>
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${hdr.colors.label} mb-0.5`}>
+                      <p className={`text-eyebrow ${hdr.colors.label} mb-0.5`}>
                         {hdr.label}
                       </p>
                       <p className={`text-[15px] font-semibold ${hdr.colors.title}`}>
@@ -522,7 +524,7 @@ export default function Tools() {
                       </p>
                     </div>
                   </div>
-                  <p className={`text-[11px] font-medium ${hdr.colors.note} ${hdr.colors.noteBg} hidden sm:block flex-shrink-0`}>
+                  <p className={`text-meta font-medium ${hdr.colors.note} ${hdr.colors.noteBg} hidden sm:block flex-shrink-0`}>
                     {hdr.note}
                   </p>
                 </div>
@@ -543,23 +545,23 @@ export default function Tools() {
                       {/* Pricing pill — uniform design across all states */}
                       <div className="shrink-0 text-right">
                         {tool.alwaysFree ? (
-                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
+                          <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             Always free
                           </span>
                         ) : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) ? (
-                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
+                          <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             ✓ Included
                           </span>
                         ) : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug) ? (
-                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full">
+                          <span className="inline-block text-eyebrow bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full">
                             {tool.subscriberPrice}
                           </span>
                         ) : tier === "monthly" ? (
-                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
+                          <span className="inline-block text-eyebrow bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
                             ⭐ {tool.monthlySubscriberPrice ?? tool.standalonePrice}
                           </span>
                         ) : (
-                          <span className="inline-block text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
+                          <span className="inline-block text-eyebrow bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full">
                             ⭐ {tool.standalonePrice}
                           </span>
                         )}
@@ -567,14 +569,14 @@ export default function Tools() {
                     </div>
 
                     <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
-                    <p className="text-slate text-[14px]">{tool.tagline}</p>
+                    <p className="text-sm text-gray-600">{tool.tagline}</p>
                     {tool.freeBadge && (
-                      <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                      <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                         ✓ {tool.freeBadge}
                       </span>
                     )}
                     {!tool.alwaysFree && (
-                      <div className="text-[11px] text-muted-foreground mt-2">
+                      <div className="text-meta text-muted-foreground mt-2">
                         {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Included in your Annual Platform"
                           : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
@@ -588,18 +590,18 @@ export default function Tools() {
 
                   {/* Body */}
                   {tool.body.map((p, i) => (
-                    <p key={i} className="text-[14px] text-slate leading-relaxed mb-4">{p}</p>
+                    <p key={i} className="text-sm text-gray-600 leading-relaxed mb-4">{p}</p>
                   ))}
 
                   {/* CTAs */}
                   <div className="flex gap-4 flex-wrap mt-6">
                     <button
                       onClick={() => setSampleModal(tool.slug)}
-                      className="text-[13px] font-semibold text-primary border border-primary/30 px-5 py-2.5 rounded-xl hover:bg-primary/5 transition-all bg-transparent cursor-pointer"
+                      className="text-sm font-semibold text-primary border border-primary/30 px-5 py-2.5 rounded-xl hover:bg-primary/5 transition-all bg-transparent cursor-pointer"
                     >
                       See a sample output →
                     </button>
-                    <Link to={tool.href} className="text-[13px] font-semibold text-white bg-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                    <Link to={tool.href} className="text-sm font-semibold text-white bg-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
                       Open tool →
                     </Link>
                   </div>
@@ -616,21 +618,21 @@ export default function Tools() {
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
             Every standard tool. Included. {PLATFORM_PRICING.standard()} Annual Platform.
           </h2>
-          <p className="text-blue-200 text-[14px] leading-relaxed max-w-[540px] mx-auto mb-8">
+          <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
             Annual Platform subscribers get every standard assessment, document, and notice tool included at no additional cost. CPPA tools remain paid but at the discounted subscriber rate. Monthly Intelligence subscribers pay standalone rates on tools.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
               <div key={name} className="bg-white/10 rounded-xl px-3 py-2.5 text-left">
-                <p className="text-white/70 text-[11px] mb-0.5">{name}</p>
-                <p className="text-white font-bold text-[13px]">{price}</p>
+                <p className="text-white/70 text-meta mb-0.5">{name}</p>
+                <p className="text-white font-bold text-sm">{price}</p>
               </div>
             ))}
           </div>
-          <Link to="/subscribe" className="inline-block text-[14px] font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+          <Link to="/subscribe" className="inline-block text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
             Start your Annual Platform subscription →
           </Link>
-          <p className="text-blue-200/60 text-[12px] mt-4">
+          <p className="text-blue-200/60 text-meta mt-4">
             Monthly Intelligence at {INTELLIGENCE_PRICING.monthlyShort()} · Annual Platform at {PLATFORM_PRICING.standard()} · Cancel any time
           </p>
         </div>
@@ -648,7 +650,7 @@ export default function Tools() {
           >
             <div className="bg-navy px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Sample Output</p>
+                <p className="text-eyebrow text-amber-400 mb-0.5">Sample Output</p>
                 <p className="text-white font-semibold text-[15px]">{activeTool.name}</p>
               </div>
               <button
@@ -660,20 +662,20 @@ export default function Tools() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <p className="text-[12px] text-muted-foreground italic border-b border-border pb-4">
+              <p className="text-meta text-muted-foreground italic border-b border-border pb-4">
                 This is a representative sample showing the structure and depth of a real output. Content is illustrative — your generated document will reflect your specific inputs and current enforcement intelligence.
               </p>
               {activeTool.sampleSections.map((section, i) => (
                 <div key={i} className="bg-muted/40 rounded-xl p-4 border border-border">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">{section.label}</p>
-                  <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
+                  <p className="text-eyebrow text-primary mb-2">{section.label}</p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
                 </div>
               ))}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-[11px] font-bold text-blue-800 mb-1">
+                <p className="text-meta font-bold text-blue-800 mb-1">
                   How the enforcement intelligence layer works
                 </p>
-                <p className="text-[12px] text-blue-700 leading-relaxed">
+                <p className="text-meta text-blue-700 leading-relaxed">
                   Before generating output, the tool reviewed enforcement decisions from a structured database of 3,500+ cases relevant to your inputs.
                 </p>
               </div>
@@ -681,19 +683,19 @@ export default function Tools() {
                 <Link
                   to={activeTool.href}
                   onClick={() => setSampleModal(null)}
-                  className="flex-1 text-center bg-navy text-white font-semibold text-[13px] py-3 rounded-xl hover:opacity-90 transition-all no-underline"
+                  className="flex-1 text-center bg-navy text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-all no-underline"
                 >
                   Open {activeTool.name} →
                 </Link>
                 <Link
                   to="/subscribe"
                   onClick={() => setSampleModal(null)}
-                  className="flex-1 text-center border border-primary/30 text-primary font-semibold text-[13px] py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
+                  className="flex-1 text-center border border-primary/30 text-primary font-semibold text-sm py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
                 >
                   See Annual Platform →
                 </Link>
               </div>
-              <p className="text-[11px] text-muted-foreground text-center leading-relaxed border-t border-border pt-4">
+              <p className="text-meta text-muted-foreground text-center leading-relaxed border-t border-border pt-4">
                 These tools produce compliance framework documents for informational purposes only. They are not legal advice and do not create an attorney-client relationship. Outputs are intended to be reviewed by a qualified privacy or legal professional before being relied upon.
               </p>
             </div>

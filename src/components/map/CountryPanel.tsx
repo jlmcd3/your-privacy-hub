@@ -30,7 +30,7 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
           <div className="text-3xl mb-2">{j.flag}</div>
           <h2 className="font-display font-bold text-navy text-lg leading-tight">{j.name}</h2>
           <span
-            className="inline-block mt-2 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+            className="inline-block mt-2 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border"
             style={{
               background: `${statusCfg.color}15`,
               color: statusCfg.color,
@@ -55,15 +55,15 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
         ["Region", j.region],
       ].filter(Boolean) as [string, string][]).map(([label, value]) => (
         <div key={label} className="mb-4">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-light mb-1">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-light mb-1">
             {label}
           </div>
-          <div className="text-navy text-[13px] leading-snug">{value}</div>
+          <div className="text-navy text-sm leading-snug">{value}</div>
         </div>
       ))}
 
       <div className="mb-4">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-light mb-2">
+        <div className="text-[11px] font-bold uppercase tracking-widest text-slate-light mb-2">
           Consumer Rights
         </div>
         <ul className="space-y-1.5">
@@ -78,7 +78,7 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
 
       {j.fines.length > 0 && (
         <div className="mb-5">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-light mb-2">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-slate-light mb-2">
             Recent Enforcement
           </div>
           <div className="space-y-1.5">
@@ -96,7 +96,7 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
 
       <Link
         to={`/jurisdiction/${j.slug}`}
-        className="flex items-center justify-center gap-2 w-full bg-gradient-to-br from-navy to-blue text-white font-bold text-[13px] py-3 rounded-xl no-underline hover:opacity-90 transition-all"
+        className="flex items-center justify-center gap-2 w-full bg-gradient-to-br from-navy to-blue text-white font-bold text-sm py-3 rounded-xl no-underline hover:opacity-90 transition-all"
       >
         Full {j.name} Profile
         <ExternalLink className="w-3.5 h-3.5" />

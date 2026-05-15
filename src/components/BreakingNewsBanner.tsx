@@ -46,7 +46,7 @@ const BreakingNewsBanner = () => {
     <div
       className="hidden md:flex items-center justify-between px-4 md:px-8 w-full"
       style={{
-        backgroundColor: "#B91C1C",
+        backgroundColor: "hsl(var(--navy))",
         height: 40,
         fontFamily: "'DM Sans', sans-serif",
       }}
@@ -64,7 +64,7 @@ const BreakingNewsBanner = () => {
           href={news.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white text-[13px] font-medium no-underline hover:underline break-words"
+          className="text-white text-sm font-medium no-underline hover:underline break-words"
         >
           {news.headline}
         </a>

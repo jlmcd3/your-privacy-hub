@@ -64,7 +64,7 @@ export default function EnforcementPatternIntelligence() {
   return (
     <div className="bg-muted/50 rounded-2xl px-4 md:px-6 py-6 mb-6">
       <div className="mb-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">
           Enforcement Pattern Intelligence
         </p>
         <p className="text-[11px] text-muted-foreground">
@@ -89,16 +89,16 @@ export default function EnforcementPatternIntelligence() {
                 className="w-full flex items-center gap-3 px-4 py-3 text-left bg-transparent cursor-pointer border-none"
               >
                 <span
-                  className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border flex-shrink-0 ${colors.badge}`}
+                  className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border flex-shrink-0 ${colors.badge}`}
                 >
                   <Icon className="w-3 h-3" />
                   {strength}
                 </span>
-                <span className="font-display font-bold text-[13px] text-foreground leading-snug flex-1 min-w-0">
+                <span className="font-display font-bold text-sm text-foreground leading-snug flex-1 min-w-0">
                   {p.pattern}
                 </span>
                 {reportDate && (
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap hidden sm:inline">
+                  <span className="text-[11px] text-muted-foreground whitespace-nowrap hidden sm:inline">
                     {new Date(reportDate).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -122,7 +122,7 @@ export default function EnforcementPatternIntelligence() {
                       {p.sectors_targeted.map((s) => (
                         <span
                           key={s}
-                          className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full"
+                          className="text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full"
                         >
                           {s}
                         </span>

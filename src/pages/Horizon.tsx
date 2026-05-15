@@ -6,9 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import PremiumGate from "@/components/PremiumGate";
-import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 interface HorizonItem {
   id: string;
@@ -74,7 +72,7 @@ function HorizonCard({ item }: { item: HorizonItem }) {
     <article className="bg-card border border-fog rounded-2xl p-5 hover:border-silver transition-colors">
       <div className="flex flex-wrap items-center gap-2 mb-3">
         {item.timeline_label && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded">
             {item.timeline_label}
           </span>
         )}
@@ -83,7 +81,7 @@ function HorizonCard({ item }: { item: HorizonItem }) {
         )}
         {item.sector && <span className="text-[11px] text-slate-light">· {item.sector}</span>}
         {item.confidence && (
-          <span className={`ml-auto text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full ${confidenceStyle(item.confidence)}`}>
+          <span className={`ml-auto text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full ${confidenceStyle(item.confidence)}`}>
             {item.confidence} confidence
           </span>
         )}
@@ -92,13 +90,13 @@ function HorizonCard({ item }: { item: HorizonItem }) {
         {item.anticipated_development}
       </h2>
       {item.source_signal && (
-        <p className="text-[13px] text-slate leading-relaxed mb-2">
+        <p className="text-sm text-slate leading-relaxed mb-2">
           <span className="font-semibold text-navy">Source signal: </span>
           {item.source_signal}
         </p>
       )}
       {item.recommended_action && (
-        <p className="text-[13px] text-slate leading-relaxed">
+        <p className="text-sm text-slate leading-relaxed">
           <span className="font-semibold text-navy">Recommended action: </span>
           {item.recommended_action}
         </p>
@@ -178,7 +176,7 @@ export default function Horizon() {
 
       <header className="bg-gradient-to-br from-navy to-steel text-white py-12 px-4">
         <div className="max-w-[1080px] mx-auto">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-3">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-3">
             ⏱ Forward-looking intelligence
           </div>
           <h1 className="font-display font-bold text-[32px] md:text-[40px] leading-tight mb-3">
@@ -202,7 +200,7 @@ export default function Horizon() {
         {hasWatchlist && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-fog bg-card px-4 py-3">
             <div className="flex flex-wrap items-center gap-2 min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-light">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-light">
                 Following
               </span>
               {watch.slice(0, 6).map((w) => (
@@ -241,7 +239,7 @@ export default function Horizon() {
           className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-fog bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-navy">Evidence view</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-navy">Evidence view</span>
             <span className="text-sm text-slate truncate">
               <span className="font-semibold text-navy">Enforcement Intelligence</span>
               <span className="text-slate-light"> — Verified cases underlying these forecasts</span>
@@ -256,7 +254,7 @@ export default function Horizon() {
           className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 no-underline transition-colors hover:border-amber-300"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800">Act on signals</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-amber-800">Act on signals</span>
             <span className="text-sm text-slate truncate">
               <span className="font-semibold text-navy">Your Registration Filings</span>
               <span className="text-slate-light"> — Get ahead of upcoming filing & DPO obligations</span>
@@ -272,7 +270,7 @@ export default function Horizon() {
             <p className="text-slate text-[14px] mb-3">
               No horizon signals published yet. Check back next week.
             </p>
-            <Link to="/updates" className="text-blue text-[13px] font-medium no-underline">
+            <Link to="/updates" className="text-blue text-sm font-medium no-underline">
               Browse latest regulatory updates →
             </Link>
           </div>
@@ -295,14 +293,6 @@ export default function Horizon() {
           </PremiumGate>
         )}
 
-        <div className="mt-10">
-          <AdBanner
-            variant="leaderboard"
-            adSlot={AD_SLOTS.home_bottom_leaderboard.id}
-            googleAdClient={GOOGLE_AD_CLIENT}
-            googleAdSlot={AD_SLOTS.home_bottom_leaderboard.googleAdSlot}
-          />
-        </div>
       </main>
 
       <Footer />

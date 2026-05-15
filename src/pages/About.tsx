@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+
 
 const About = () => {
   return (
@@ -14,7 +14,7 @@ const About = () => {
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
-            <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
+            <span className="inline-block text-meta font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
               ABOUT END USER PRIVACY
             </span>
             <h1 className="font-display text-[32px] md:text-[40px] font-extrabold text-white leading-tight mb-4">
@@ -39,7 +39,7 @@ const About = () => {
                 <div className="font-display text-[36px] md:text-[44px] font-bold text-navy leading-none mb-1">
                   {stat.value}
                 </div>
-                <div className="text-[13px] text-slate font-medium">{stat.label}</div>
+                <div className="text-sm text-slate font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -48,7 +48,7 @@ const About = () => {
         <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           {/* Mission block */}
           <div className="bg-card border border-fog rounded-2xl p-6 md:p-10 mb-12 md:mb-16">
-            <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-steel bg-fog rounded-full px-3 py-1 mb-5">
+            <span className="inline-block text-meta font-semibold tracking-wider uppercase text-steel bg-fog rounded-full px-3 py-1 mb-5">
               Our mission
             </span>
             <blockquote className="font-display text-[22px] md:text-[28px] font-bold text-navy leading-tight mb-5">
@@ -61,7 +61,7 @@ const About = () => {
 
           {/* What we cover */}
           <div className="mb-12 md:mb-16">
-            <h2 className="font-display text-[20px] md:text-[24px] font-bold text-navy mb-5 md:mb-6">
+            <h2 className="font-display text-xl md:text-[24px] font-bold text-navy mb-5 md:mb-6">
               What we cover
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -77,11 +77,87 @@ const About = () => {
                   <div className="font-display text-[28px] md:text-[36px] font-bold text-navy leading-none mb-2">
                     {item.stat}
                   </div>
-                  <div className="text-[13px] text-slate leading-snug">{item.label}</div>
+                  <div className="text-sm text-slate leading-snug">{item.label}</div>
                 </div>
               ))}
             </div>
           </div>
+
+          <section className="max-w-3xl mx-auto px-6 py-10 border-t border-gray-100 mb-12 md:mb-16">
+            <p className="text-eyebrow text-slate-400 mb-2">Why End User Privacy</p>
+            <h2 className="font-display text-2xl text-navy mb-8">
+              Built differently from every other privacy information source.
+            </h2>
+
+            <div className="space-y-8">
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">⚖️</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Enforcement-calibrated, not statute-summarising
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Most privacy resources describe what the law says.
+                    We calibrate our analysis against 3,700+ real enforcement
+                    decisions — what regulators actually penalise, in practice,
+                    across 119 authorities. There is a material difference between
+                    statutory text and enforcement reality. Our tools and
+                    intelligence reflect that difference.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">🤖</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Intelligence, not aggregation
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Every development that passes through the platform is enriched
+                    with three layers of AI analysis: an alert identifying the
+                    regulatory risk, context explaining what it means, and analysis
+                    with specific operational guidance. The result is not a link to
+                    a press release — it is a briefing you can act on.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">🛠️</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Intelligence and compliance tools in one platform
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    The privacy tools most professionals use — LIAs, DPIAs, DPA
+                    generators, IR playbooks — are sold separately by specialist
+                    vendors at significant cost. We include ten enforcement-calibrated
+                    compliance tools with the Annual Platform at $399/year. The
+                    intelligence that informs the tools and the tools themselves
+                    live in the same place.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-2xl flex-shrink-0">🎯</div>
+                <div>
+                  <h3 className="font-semibold text-navy mb-1">
+                    Personalised to your professional context
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Your weekly Privacy Intelligence Report is generated
+                    specifically for your role (DPO, privacy counsel, CISO,
+                    compliance lead), your jurisdictions, and your tracked topics.
+                    The platform knows whether you work in healthcare, financial
+                    services, or AdTech — and surfaces the enforcement patterns
+                    and guidance that are relevant to you, not to everyone.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* Contact callout */}
           <div className="bg-blue/5 border border-blue/20 rounded-2xl p-6 md:p-8 mb-12 md:mb-16">
@@ -107,17 +183,17 @@ const About = () => {
             <p>
               Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, End User Privacy gives you the intelligence you need in one place.
             </p>
-            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Our Mission</h2>
+            <h2 className="font-display text-xl font-bold text-navy pt-4">Our Mission</h2>
             <p>
               To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn`t require expensive enterprise subscriptions or hours of manual research.
             </p>
 
             {/* Free Tools section */}
-            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Free Tools</h2>
+            <h2 className="font-display text-xl font-bold text-navy pt-4">Free Tools</h2>
             <p>
               These tools are free. The digest and some features require a free account:
             </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[14px]">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               {[
                 "📅 Compliance Calendar",
                 "📜 Legislation Tracker",
@@ -134,7 +210,7 @@ const About = () => {
               ))}
             </ul>
 
-            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Contact</h2>
+            <h2 className="font-display text-xl font-bold text-navy pt-4">Contact</h2>
             <p>
               Have questions or feedback? Reach us at{" "}
               <a href="mailto:hello@enduserprivacy.com" className="text-sky hover:underline">
@@ -143,43 +219,6 @@ const About = () => {
             </p>
           </div>
 
-          <div className="mt-12">
-            <p className="text-[14px] text-navy font-semibold mb-4">
-              DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
-            </p>
-            <h2 className="font-display text-[20px] text-navy mb-6">The alternative to expensive enterprise platforms</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-[13px]">
-                <thead>
-                  <tr className="bg-fog">
-                    <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">End User Privacy</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP Membership — $550+/yr</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Price", `${INTELLIGENCE_PRICING.monthly()} (Pro)`, "$300–$3,500+/year", "$550+/year"],
-                    ["Format", "Weekly intelligence brief", "Research database", "Membership + events"],
-                    ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
-                    ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
-                    ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding", "Conference-based"],
-                    ["Free tools", "Calendar, Tracker, Map, Comparison", "None (trial requires payment)", "Limited articles"],
-                  ].map(([label, us, dg, iapp], i) => (
-                    <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                      <td className="px-5 py-3 text-navy font-medium border-t border-fog">{label}</td>
-                      <td className="px-5 py-3 text-center text-navy font-medium border-t border-fog">
-                        <span className="text-accent mr-1">✓</span>{us}
-                      </td>
-                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{dg}</td>
-                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{iapp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </section>
       </main>
       <Footer />

@@ -156,7 +156,7 @@ export default function EUNoticeFrameworks() {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-sm">{fw.framework_name}</span>
                           {EU_SUITE_CODES.includes(fw.framework_code) && (
-                            <Badge variant="secondary" className="text-[10px]">EU Suite</Badge>
+                            <Badge variant="secondary" className="text-meta">EU Suite</Badge>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">{fw.full_law_name}</p>

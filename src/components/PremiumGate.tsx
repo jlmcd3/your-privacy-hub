@@ -24,13 +24,13 @@ export default function PremiumGate({ message, blur = true, children }: PremiumG
         {/* CTA overlay */}
         <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
           <div className="text-center px-6 py-5 max-w-sm">
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full mb-3">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full mb-3">
               ⭐ Intelligence
             </span>
-            <p className="text-[13px] text-muted-foreground leading-snug mb-3">{message}</p>
+            <p className="text-sm text-muted-foreground leading-snug mb-3">{message}</p>
             <Link
               to="/subscribe"
-              className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-[13px] px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
+              className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               See Plans →
             </Link>
@@ -45,14 +45,14 @@ export default function PremiumGate({ message, blur = true, children }: PremiumG
     <div className="bg-card rounded-xl border border-border p-6 text-center">
       <div className="flex items-center justify-center gap-2 mb-2">
         <Lock className="w-4 h-4 text-amber-500" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
           ⭐ Intelligence
         </span>
       </div>
-      <p className="text-[13px] text-muted-foreground mb-3">{message}</p>
+      <p className="text-sm text-muted-foreground mb-3">{message}</p>
       <Link
         to="/subscribe"
-        className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-[13px] px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
+        className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
       >
         See Plans →
       </Link>

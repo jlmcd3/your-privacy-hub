@@ -44,14 +44,14 @@ const WeeklyBriefTeaser = () => {
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">
               This Week's Privacy Intelligence Report
             </h2>
-            <p className="text-[13px] text-slate mt-1">
+            <p className="text-sm text-slate mt-1">
               Synthesized from {brief?.article_count ?? "—"} regulatory updates ·
               8 sections · Published every Monday · <strong>Intelligence</strong>
             </p>
           </div>
           <Link
             to="/#brief"
-            className="text-[13px] font-medium text-blue hover:underline no-underline hidden sm:block"
+            className="text-sm font-medium text-blue hover:underline no-underline hidden sm:block"
           >
             See a sample report →
           </Link>
@@ -63,7 +63,7 @@ const WeeklyBriefTeaser = () => {
           {/* Header */}
           <div className="p-6 md:p-8 border-b border-white/10">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-[9px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold tracking-widest uppercase text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
                 ⭐ Privacy Intelligence Report
               </span>
               {brief?.week_label && (
@@ -74,7 +74,7 @@ const WeeklyBriefTeaser = () => {
               {brief?.headline ?? "This week's report is being prepared…"}
             </h3>
             {teaserText && (
-              <p className="text-[13px] text-slate-light leading-relaxed mb-5">
+              <p className="text-sm text-slate-light leading-relaxed mb-5">
                 {teaserText}
               </p>
             )}
@@ -87,7 +87,7 @@ const WeeklyBriefTeaser = () => {
               ].map((s) => (
                 <span
                   key={s}
-                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/10 text-white/70"
+                  className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/10 text-white/70"
                 >
                   {s}
                 </span>
@@ -95,7 +95,7 @@ const WeeklyBriefTeaser = () => {
             </div>
             <Link
               to="/#brief"
-              className="inline-flex items-center gap-2 bg-white text-navy font-bold text-[13px] px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 bg-white text-navy font-bold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               See a sample report →
             </Link>
@@ -107,7 +107,7 @@ const WeeklyBriefTeaser = () => {
               <p className="text-[12px] font-bold text-amber-400 uppercase tracking-wider mb-1">
                 ⭐ Intelligence — {`${INTELLIGENCE_PRICING.monthly()}`}
               </p>
-              <p className="text-[13px] text-slate-light leading-snug">
+              <p className="text-sm text-slate-light leading-snug">
                 The full Privacy Intelligence Report, re-analyzed every Monday for your industry,
                 your jurisdictions, and your compliance priorities.
                 <span className="text-white"> Sector-specific context. Priorities. Action items.</span>
@@ -115,7 +115,7 @@ const WeeklyBriefTeaser = () => {
             </div>
             <Link
               to="/subscribe"
-              className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-navy font-bold text-[13px] px-5 py-2.5 rounded-xl no-underline transition-all text-center"
+              className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-navy font-bold text-sm px-5 py-2.5 rounded-xl no-underline transition-all text-center"
             >
               Get Intelligence →
             </Link>

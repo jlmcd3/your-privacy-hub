@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -72,7 +72,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       <Helmet>
-        <title>Log In | End User Privacy</title>
+        <title>Sign In | End User Privacy</title>
         <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
       </Helmet>
       <Navbar />
@@ -90,6 +90,7 @@ const Login = () => {
               '150+ jurisdictions covered',
               'Weekly digest — free',
               `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
+              `Compliance Platform with all tools — ${PLATFORM_PRICING.standard()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
@@ -114,14 +115,14 @@ const Login = () => {
             </p>
 
             {error && (
-              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
+              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
                 <input
                   type="email"
                   required
@@ -132,7 +133,7 @@ const Login = () => {
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -172,7 +173,7 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="flex items-center justify-between mt-6 text-[13px]">
+            <div className="flex items-center justify-between mt-6 text-sm">
               <Link
                 to={safeRedirect ? `/signup?redirect=${encodeURIComponent(safeRedirect)}` : "/signup"}
                 className="text-blue font-medium hover:underline no-underline"

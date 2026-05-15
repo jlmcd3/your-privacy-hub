@@ -819,6 +819,25 @@ function assignTopicTags(title: string, description: string): string[] {
   return tags;
 }
 
+// Hosts that serve auto-generated headline-card images (text overlaid on a
+// branded template). We treat these as no-image so a real fallback is used.
+const TEMPLATED_IMAGE_HOSTS = [
+  "images.bannerbear.com",
+  "bannerbear.com",
+  "og-image.vercel.app",
+  "dynamic-og-image-generator.vercel.app",
+];
+
+function isTemplatedImage(imageUrl: string | null): boolean {
+  if (!imageUrl) return false;
+  try {
+    const host = new URL(imageUrl).hostname.toLowerCase();
+    return TEMPLATED_IMAGE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 async function extractOgImage(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
@@ -829,11 +848,14 @@ async function extractOgImage(url: string): Promise<string | null> {
     const match =
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    return match ? match[1] : null;
+    const imageUrl = match ? match[1] : null;
+    if (isTemplatedImage(imageUrl)) return null;
+    return imageUrl;
   } catch {
     return null;
   }
 }
+
 
 function stripHtml(html: string): string {
   return html
@@ -1106,13 +1128,96 @@ async function fetchWithRetry(
   throw new Error("Max retries exceeded");
 }
 
+// ── Source tier classification (Batch 4B) ───────────────────────────
+// 1 = official regulators/courts/government
+// 2 = law-firm analysis & legal commentary
+// 3 = media, civil society, industry trade press (default)
+const TIER_1_DOMAINS = [
+  "edpb.europa.eu", "cnil.fr", "ico.org.uk", "ftc.gov", "nist.gov", "hhs.gov",
+  "cppa.ca.gov", "texasattorneygeneral.gov", "coag.gov", "portal.ct.gov",
+  "consumerfinance.gov", "bfdi.bund.de", "bsi.bund.de",
+  "autoriteitpersoonsgegevens.nl", "aepd.es", "dataprotectionauthority.be",
+  "cnpd.public.lu", "datatilsynet.dk", "imy.se", "uoou.cz",
+  "datenschutz-hamburg.de", "garanteprivacy.it", "eur-lex.europa.eu",
+  "coe.int", "oaic.gov.au", "pdpc.gov.sg", "priv.gc.ca", "pcpd.org.hk",
+  "gdprhub.eu",
+];
+const TIER_2_DOMAINS = [
+  "huntonprivacyblog.com", "hunton.com", "out-law.com", "twobirds.com",
+  "cms.law", "cliffordchance.com", "aoshearman.com", "freshfields.com",
+  "hsfnotes.com", "dataprotectionreport.com", "linklaters.com",
+  "wilmerhale.com", "insideprivacy.com", "datamatters.sidley.com",
+  "dlapiper.com", "gtlaw-dataprivacydish.com", "alstonprivacy.com",
+  "privacyandcybersecuritylaw.com", "hoganlovells.com", "bakermckenzie.com",
+  "jdsupra.com",
+];
+function inferSourceTier(source: { domain?: string; tier?: number }): 1 | 2 | 3 {
+  if (source.tier === 1 || source.tier === 2 || source.tier === 3) return source.tier;
+  const d = (source.domain || "").toLowerCase();
+  if (TIER_1_DOMAINS.some(t => d.includes(t))) return 1;
+  if (TIER_2_DOMAINS.some(t => d.includes(t))) return 2;
+  return 3;
+}
+
+// ── Enrichment quality validation (Batch 4C) ────────────────────────
+function assessEnrichmentQuality(aiSummary: any, entities: any): "high" | "standard" | "low" {
+  if (!aiSummary) return "low";
+  const hasRegulator = (entities?.regulators?.length ?? 0) > 0 ||
+    /\b(ICO|EDPB|CNIL|FTC|CPPA|BfDI|Garante|AEPD|DPC|DPA|supervisory authority)\b/i
+      .test(aiSummary.why_it_matters_short ?? "");
+  const hasLawRef = /(Article|Art\.|GDPR|CCPA|CPRA|BIPA|§|Regulation)\s*\d*/i
+    .test(aiSummary.why_it_matters ?? "");
+  const hasSpecificAction = (aiSummary.action_items ?? [])
+    .some((a: any) => /(Article|§|GDPR|CCPA|CPRA|ICO|EDPB|CNIL|FTC)/i.test(a?.action ?? ""));
+  if (hasRegulator && hasLawRef && hasSpecificAction) return "high";
+  if (hasRegulator || hasLawRef) return "standard";
+  return "low";
+}
+
+// ── Contextual teaser generation (Batch 4D) ─────────────────────────
+async function generateContextualTeaser(
+  whyShort: string,
+  apiKey: string,
+): Promise<string | null> {
+  try {
+    const prompt = `Given this regulatory development: "${whyShort}"
+
+Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — mention the jurisdiction or regulator and the nature of the pattern (e.g. divergence from prior enforcement focus, confirmation of emerging trend, relevant precedent history).
+DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without a subscription.
+Return only the sentence, no quotes, no preamble.`;
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 100,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data.content?.[0]?.text || "").trim().replace(/^["']|["']$/g, "");
+    if (text.length > 20 && text.length < 240) return text;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ── AI Summary Generation ──────────────────────────────────────────
 async function generateAISummary(
   title: string,
   summary: string,
   sourceName: string,
-  apiKey: string
+  apiKey: string,
+  sourceTier: 1 | 2 | 3 = 3,
 ): Promise<Record<string, unknown> | null> {
+
   try {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1150,6 +1255,7 @@ Data brokers: state registration requirements, FTC enforcement, California Delet
             role: "user",
             content: `Analyze this privacy/data protection article.
 
+Source authority: ${sourceTier === 1 ? "Primary regulator (official decision or guidance)" : sourceTier === 2 ? "Legal analysis (law firm or legal commentary)" : "Media or civil society coverage"}
 Title: ${title}
 Description: ${summary || "No description available."}
 Source: ${sourceName || "Unknown"}
@@ -1596,12 +1702,14 @@ Deno.serve(async (req) => {
           published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
           is_premium: false,
           direct_jurisdictions: directJurisdictions.length > 0 ? directJurisdictions : null,
+          source_tier: inferSourceTier(source),
         };
 
         // Generate AI summary only for new articles; existing URLs are skipped above.
         if (anthropicKey) {
           try {
-            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey);
+            const sourceTier = inferSourceTier(source);
+            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey, sourceTier);
             if (aiSummary) {
               row.ai_summary = aiSummary;
               // Extract affected_jurisdictions from AI response into dedicated column
@@ -1632,6 +1740,25 @@ Deno.serve(async (req) => {
               if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
                 row.defense_considerations = aiSummary.defense_considerations;
               }
+
+              // Batch 4C — quality validation
+              const quality = assessEnrichmentQuality(aiSummary, aiSummary.entities);
+              row.enrichment_quality = quality;
+              if (quality === "low") {
+                console.warn(`[fetch-updates] Low quality enrichment for: ${String(row.title ?? "").slice(0, 60)}`);
+              }
+
+              // Batch 4D — contextual teaser for tier-1 sources with usable enrichment
+              if (
+                sourceTier === 1 &&
+                quality !== "low" &&
+                typeof aiSummary.why_it_matters_short === "string" &&
+                aiSummary.why_it_matters_short.trim()
+              ) {
+                const teaser = await generateContextualTeaser(aiSummary.why_it_matters_short, anthropicKey);
+                if (teaser) row.contextual_teaser = teaser;
+              }
+
               results.summaries_generated++;
             }
           } catch (enrichErr: any) {

@@ -5,7 +5,6 @@ import calendarData from "@/data/regulatory_calendar.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
-import AdBanner from "@/components/AdBanner";
 import { supabase } from "@/integrations/supabase/client";
 
 const FILTERS = [
@@ -126,7 +125,7 @@ const Calendar = () => {
         <DeadlineCountdown />
 
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-[13px] text-amber-900 leading-snug">
+          <p className="text-sm text-amber-900 leading-snug">
             <span className="font-semibold">⭐ This tool is free.</span>
             {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
           </p>
@@ -138,7 +137,6 @@ const Calendar = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-calendar-top" className="py-3" />
 
         {/* Filter pills */}
         <div className="flex gap-2 flex-wrap mb-6">
@@ -154,7 +152,7 @@ const Calendar = () => {
             >
               {f.label}
               {f.key === "from-feed" && dbEvents.length > 0 && (
-                <span className="ml-1 text-[10px] bg-primary/20 px-1.5 rounded-full">{dbEvents.length}</span>
+                <span className="ml-1 text-[11px] bg-primary/20 px-1.5 rounded-full">{dbEvents.length}</span>
               )}
             </button>
           ))}
@@ -185,10 +183,10 @@ const Calendar = () => {
                             {event.title}
                           </Link>
                           {event.source === "db" && (
-                            <span className="flex-shrink-0 text-[9px] px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded-full font-medium">Feed</span>
+                            <span className="flex-shrink-0 text-[11px] px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded-full font-medium">Feed</span>
                           )}
                           {event.attention_level === "High" && (
-                            <span className="flex-shrink-0 text-[9px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full font-bold">🔴 High</span>
+                            <span className="flex-shrink-0 text-[11px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full font-bold">🔴 High</span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
@@ -196,7 +194,7 @@ const Calendar = () => {
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">{event.jurisdiction}</td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border">{event.law}</td>
                       <td className="px-4 py-3 border-b border-border">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${badge.classes}`}>{badge.label}</span>
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.classes}`}>{badge.label}</span>
                       </td>
                     </tr>
                   );

@@ -1,0 +1,1 @@
+ALTER TABLE public.updates ADD COLUMN IF NOT EXISTS precedent_novelty text;

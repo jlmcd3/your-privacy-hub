@@ -32,7 +32,7 @@ const NotFound = () => {
             Page not found
           </h1>
           <p className="text-[14px] text-slate mb-8">
-            The page <span className="font-mono text-[13px] bg-muted px-1.5 py-0.5 rounded">{location.pathname}</span> doesn't exist or has moved.
+            The page <span className="font-mono text-sm bg-muted px-1.5 py-0.5 rounded">{location.pathname}</span> doesn't exist or has moved.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
@@ -53,7 +53,7 @@ const NotFound = () => {
 
           <Link
             to="/"
-            className="text-blue text-[13px] font-semibold hover:text-navy transition-colors no-underline"
+            className="text-blue text-sm font-semibold hover:text-navy transition-colors no-underline"
           >
             ← Back to homepage
           </Link>

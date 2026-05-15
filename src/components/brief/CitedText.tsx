@@ -22,7 +22,7 @@ export function CitedText({ text, sourceMap, className = "" }: CitedTextProps) {
 
         if (!source?.url) {
           return (
-            <sup key={i} className="text-muted-foreground text-[9px] ml-0.5 select-none">
+            <sup key={i} className="text-muted-foreground text-[11px] ml-0.5 select-none">
               [{refNum}]
             </sup>
           );
@@ -37,7 +37,7 @@ export function CitedText({ text, sourceMap, className = "" }: CitedTextProps) {
             title={`Source: ${source.source} — ${source.title}`}
             className="no-underline"
           >
-            <sup className="text-primary hover:text-foreground text-[10px] font-semibold ml-0.5 transition-colors cursor-pointer">
+            <sup className="text-primary hover:text-foreground text-[11px] font-semibold ml-0.5 transition-colors cursor-pointer">
               [{refNum}]
             </sup>
           </a>

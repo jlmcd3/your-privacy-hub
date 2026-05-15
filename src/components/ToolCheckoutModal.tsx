@@ -115,10 +115,10 @@ export default function ToolCheckoutModal({
             </div>
           ) : confirmError ? (
             <div className="p-8 text-center">
-              <p className="text-[13px] text-amber-700 mb-4">{confirmError}</p>
+              <p className="text-sm text-amber-700 mb-4">{confirmError}</p>
               <button
                 onClick={() => onComplete?.(lastAssessmentIdRef.current, lastSuiteCyberIdRef.current || undefined)}
-                className="bg-navy text-white text-[13px] font-semibold px-5 py-2 rounded-lg"
+                className="bg-navy text-white text-sm font-semibold px-5 py-2 rounded-lg"
               >
                 Continue
               </button>

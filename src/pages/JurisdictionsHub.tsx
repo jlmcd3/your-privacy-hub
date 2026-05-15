@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlobalPrivacyMap from "@/components/map/GlobalPrivacyMap";
-import AdBanner from "@/components/AdBanner";
 
 // Map ingestion codes (used in updates.direct_jurisdictions) to jurisdiction page slugs + display
 const JURISDICTION_META: Record<string, { slug: string; name: string; flag: string }> = {
@@ -191,7 +190,6 @@ export default function JurisdictionsHub() {
             </div>
           </div>
 
-          <AdBanner variant="leaderboard" adSlot="eup-map-top" className="py-3" />
 
           {/* Map section */}
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">

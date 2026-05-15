@@ -41,7 +41,8 @@ const GlobalAuthorities = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" className="py-5" />
+
+      <AdBanner variant="leaderboard" className="mt-6" />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Search */}
@@ -98,7 +99,7 @@ const GlobalAuthorities = () => {
                     <tbody>
                       {displayEntries.map((entry: any) => (
                         <tr key={entry.id} className="hover:bg-paper transition-colors">
-                          <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog whitespace-nowrap">
+                          <td className="px-4 py-3 text-sm text-navy font-medium border-b border-fog whitespace-nowrap">
                             <Link
                               to={`/jurisdiction/${entry.slug || slugify(entry.country)}`}
                               className="text-primary hover:underline font-medium no-underline"
@@ -106,25 +107,25 @@ const GlobalAuthorities = () => {
                               {entry.country}
                             </Link>
                           </td>
-                          <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">
+                          <td className="px-4 py-3 text-sm text-navy border-b border-fog">
                             <div className="font-medium">{entry.authority_name}</div>
                             <div className="text-[11px] text-slate mt-0.5">{entry.authority_abbreviation}</div>
                           </td>
-                          <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">
+                          <td className="px-4 py-3 text-sm text-navy border-b border-fog">
                             {entry.primary_legislation}
                             {entry.legislation_abbreviation && (
                               <span className="text-[11px] text-slate ml-1">({entry.legislation_abbreviation})</span>
                             )}
                           </td>
                           <td className="px-4 py-3 border-b border-fog whitespace-nowrap">
-                            <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${
+                            <span className={`text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${
                               entry.monitoring_tier === 1 ? "bg-[#EBF3FB] text-[#1A5F9E]" :
                               entry.monitoring_tier === 2 ? "status-pending" : "status-none"
                             }`}>
                               Tier {entry.monitoring_tier}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-[13px] border-b border-fog">
+                          <td className="px-4 py-3 text-sm border-b border-fog">
                             <div className="flex gap-2">
                               <a href={entry.website} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline no-underline text-[12px]">Website ↗</a>
                               {entry.complaint_portal && (
@@ -142,7 +143,7 @@ const GlobalAuthorities = () => {
                   <div className="p-3.5 text-center border-t border-fog bg-paper">
                     <button
                       onClick={() => setExpandedRegion(region.region)}
-                      className="text-[13px] font-medium text-blue hover:underline cursor-pointer bg-transparent border-none"
+                      className="text-sm font-medium text-blue hover:underline cursor-pointer bg-transparent border-none"
                     >
                       View all {regionEntries.length} authorities in {region.region} →
                     </button>
@@ -152,7 +153,7 @@ const GlobalAuthorities = () => {
                   <div className="p-3.5 text-center border-t border-fog bg-paper">
                     <button
                       onClick={() => setExpandedRegion(null)}
-                      className="text-[13px] font-medium text-blue hover:underline cursor-pointer bg-transparent border-none"
+                      className="text-sm font-medium text-blue hover:underline cursor-pointer bg-transparent border-none"
                     >
                       Show less
                     </button>
@@ -162,7 +163,6 @@ const GlobalAuthorities = () => {
             );
           })}
         </div>
-        <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
     </div>

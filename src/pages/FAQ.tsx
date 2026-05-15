@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: "Who writes the analysis?",
-    a: "All summaries and the weekly Intelligence Brief are drawn from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
+    a: "All summaries and the weekly Privacy Intelligence Report are drawn from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
   },
   {
     q: "What countries and jurisdictions are covered?",
@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     q: "What does Intelligence add?",
-    a: "Intelligence subscribers receive the full 8-section Weekly Intelligence Brief every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.",
+    a: "Intelligence subscribers receive the full 8-section weekly Privacy Intelligence Report every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.\n\nEvery article also includes a pre-built AI investigation prompt for paid subscribers. The prompt is automatically assembled from the article's regulatory context — jurisdiction, legal theory, compliance impact, and recommended actions — so you can paste it directly into Claude, ChatGPT, or any AI assistant and begin your own investigation immediately, without having to construct the prompt yourself.",
   },
   {
     q: "How is the analysis produced?",
@@ -36,6 +36,21 @@ const faqs = [
   {
     q: "Is my payment information secure?",
     a: "Yes. All payments are processed by Stripe, one of the world's most trusted payment processors. We never store your card details on our servers. Your payment information is encrypted and handled entirely within Stripe's secure environment.",
+  },
+];
+
+const pricingFaqs = [
+  {
+    q: "How much does End User Privacy cost?",
+    a: "The Privacy Intelligence Feed is $29/month (cancel any time) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. The Compliance Platform is $399/year and includes everything in the Intelligence Feed plus all compliance tools — Governance Assessment, LIA, DPIA, DPA Generator, IR Playbook, RoPA Builder, Privacy Notice Builder, and the full CPPA Suite. Individual tools are also available as standalone purchases.",
+  },
+  {
+    q: "What is included in the Compliance Platform?",
+    a: "The Annual Platform ($399/year, equivalent to $33.25/month) includes all compliance tools, unlimited report generation, permanent document storage in My Reports, the full weekly Privacy Intelligence Report, and access to the Enforcement Forecast Intelligence. All standard tools are included at no extra charge. Registration filing services (DPO appointments, controller registrations, AI Act filings) are available at standalone rates.",
+  },
+  {
+    q: "Can I try the tools before subscribing?",
+    a: "The CPPA Scope Checker is free and requires no account. The Privacy Intelligence Feed is free to browse. Registering a free account gives you access to the Context layer on all articles. The weekly Privacy Intelligence Report and compliance tools require a paid subscription.",
   },
 ];
 
@@ -53,7 +68,7 @@ const FAQ = () => {
 
       {/* Hero */}
       <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4 text-center">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
           ❓ FREQUENTLY ASKED QUESTIONS
         </span>
         <h1 className="font-display text-[32px] md:text-[40px] text-white font-bold mb-3">
@@ -87,10 +102,37 @@ const FAQ = () => {
               />
             </button>
             {openIndices.has(i) && (
-              <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed">{faq.a}</div>
+              <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed whitespace-pre-line">{faq.a}</div>
             )}
           </div>
         ))}
+
+        <h2 className="font-display text-navy text-[22px] font-bold mt-10 mb-4">Pricing</h2>
+        {pricingFaqs.map((faq, j) => {
+          const i = faqs.length + j;
+          return (
+            <div key={i} className="bg-card border border-fog rounded-xl mb-3 overflow-hidden">
+              <button
+                onClick={() => {
+                  setOpenIndices(prev => {
+                    const next = new Set(prev);
+                    if (next.has(i)) next.delete(i); else next.add(i);
+                    return next;
+                  });
+                }}
+                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-fog transition-colors text-left"
+              >
+                <span className="font-medium text-navy text-[15px] pr-4">{faq.q}</span>
+                <ChevronDown
+                  className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
+                />
+              </button>
+              {openIndices.has(i) && (
+                <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed whitespace-pre-line">{faq.a}</div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Bottom CTA */}
         <div className="bg-navy rounded-2xl p-8 text-center mt-12">

@@ -80,7 +80,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ["'DM Serif Display'", "Georgia", "serif"],
+        display: ["Georgia", "'Times New Roman'", "serif"],
         body: ["'DM Sans'", "system-ui", "sans-serif"],
         sans: ["'DM Sans'", "system-ui", "sans-serif"],
         mono: ["'DM Mono'", "ui-monospace", "monospace"],
@@ -103,6 +103,10 @@ export default {
         bold: "600",
         extrabold: "700",
         black: "800",
+      },
+      fontSize: {
+        sm: ['15px', { lineHeight: '1.55' }],
+        base: ['17px', { lineHeight: '1.65' }],
       },
       borderRadius: {
         lg: "var(--radius)",

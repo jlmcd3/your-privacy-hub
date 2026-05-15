@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import { getSeverityLabel } from "@/lib/severity";
 
 interface AnonymousUpdatesCardItem {
   id: string;
@@ -11,7 +12,7 @@ interface AnonymousUpdatesCardItem {
   source_name?: string | null;
   image_url?: string | null;
   why_it_matters_short?: string | null;
-  ai_summary?: { why_it_matters_short?: string | null } | null;
+  ai_summary?: { why_it_matters_short?: string | null; urgency?: string | null; legal_weight?: string | null } | null;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -76,25 +77,33 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
             <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
           )}
           {cat && (
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
+            <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${catClass}`}>
               {catLabel}
             </span>
           )}
+          {(() => {
+            const sev = getSeverityLabel(item.ai_summary);
+            return sev ? (
+              <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                {sev.label}
+              </span>
+            ) : null;
+          })()}
         </div>
         <p className="text-[14px] font-bold text-navy group-hover:text-blue leading-snug mb-1 transition-colors">
           {normalizeTitle(item.title)}
         </p>
         {item.summary && (
-          <p className="text-[12.5px] text-slate leading-relaxed line-clamp-2 mt-1">
+          <p className="text-xs text-slate leading-relaxed line-clamp-2 mt-1">
             {stripHtml(item.summary)}
           </p>
         )}
         {shortWhy && (
           <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
+            <p className="text-[11px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
               Why it matters
             </p>
-            <p className="text-[12.5px] text-navy leading-relaxed line-clamp-2">{stripHtml(shortWhy)}</p>
+            <p className="text-xs text-navy leading-relaxed line-clamp-2">{stripHtml(shortWhy)}</p>
           </div>
         )}
         <div className="mt-2 flex items-center gap-2">

@@ -1,60 +1,58 @@
 /**
- * ADVERTISING POLICY — enduserprivacy.com FRD v2.1 §8.3
- *
- * 1. Ads are shown to ALL users including Intelligence subscribers.
- * 2. Ads served here MUST be contextual and non-behavioural.
- *    No user browsing data from this platform may be used for
- *    ad targeting or shared with ad networks.
- * 3. This component renders a desktop-only (lg+) sticky 300x600
- *    skyscraper rail. On mobile/tablet it returns null.
+ * StickyRailAd — desktop-only (lg+) sticky 300×600 skyscraper.
+ * Paid subscribers see no ads.
  */
+import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { ADSENSE_CONFIG } from '@/config/ads';
 
 interface StickyRailAdProps {
-  adSlot?: string;
-  googleAdClient?: string;
-  googleAdSlot?: string;
   className?: string;
-  topOffset?: number; // px; default 96
+  topOffset?: number;
 }
 
-import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+export default function StickyRailAd({ className = '', topOffset = 96 }: StickyRailAdProps) {
+  const { isPremium, isLoading } = usePremiumStatus();
+  const location = useLocation();
+  const insRef = useRef<HTMLModElement | null>(null);
 
-export default function StickyRailAd({
-  adSlot,
-  googleAdClient,
-  googleAdSlot,
-  className = "",
-  topOffset = 96,
-}: StickyRailAdProps) {
-  const { isPremium } = usePremiumStatus();
-  if (isPremium) return null;
+  useEffect(() => {
+    if (!ADSENSE_CONFIG.enabled) return;
+    if (isPremium) return;
+    try {
+      if (insRef.current && insRef.current.getAttribute('data-adsbygoogle-status') !== 'done') {
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      }
+    } catch (_) {}
+  }, [location.pathname, isPremium]);
+
+  if (isLoading || isPremium) return null;
+
   return (
-    <div className={`hidden lg:block ${className}`}>
-      <div
-        className="sticky"
-        style={{ top: topOffset }}
-        data-ad-slot={adSlot}
-        aria-label="Advertisement"
-      >
-        <div
-          className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl mx-auto"
-          style={{ width: 300, height: 600 }}
-        >
-          {googleAdClient && googleAdSlot ? (
-            <ins
-              className="adsbygoogle"
-              style={{ display: "block", width: 300, height: 600 }}
-              data-ad-client={googleAdClient}
-              data-ad-slot={googleAdSlot}
-              data-ad-format="auto"
-            />
-          ) : (
-            <span className="text-[10px] uppercase tracking-widest text-slate/60">
-              Advertisement
+    <aside className={`hidden lg:block ${className}`} aria-label="Advertisement">
+      <div className="sticky" style={{ top: topOffset }}>
+        {ADSENSE_CONFIG.enabled ? (
+          <ins
+            ref={insRef as any}
+            className="adsbygoogle"
+            style={{ display: 'block', width: 300, height: 600 }}
+            data-ad-client={ADSENSE_CONFIG.pubId}
+            data-ad-slot={ADSENSE_CONFIG.slots.stickyRail}
+            data-ad-format="auto"
+            data-adtest={import.meta.env.DEV ? 'on' : undefined}
+          />
+        ) : (
+          <div
+            className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl"
+            style={{ width: 300, height: 600 }}
+          >
+            <span className="text-meta uppercase tracking-widest text-slate/60">
+              Ad · 300×600
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </aside>
   );
 }

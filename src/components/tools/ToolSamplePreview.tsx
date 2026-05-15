@@ -21,7 +21,7 @@ interface Props {
 }
 
 const SAMPLE_WATERMARK = (
-  <div className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1 z-10">
+  <div className="absolute top-3 right-3 text-[11px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1 z-10">
     Sample
   </div>
 );
@@ -96,7 +96,7 @@ function HealthcheckSample() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <div className="font-display text-2xl font-bold text-foreground leading-none">72</div>
-              <div className="text-[9px] text-muted-foreground uppercase tracking-wider">/ 100</div>
+              <div className="text-[11px] text-muted-foreground uppercase tracking-wider">/ 100</div>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ function HealthcheckSample() {
         <div className="space-y-2">
           {findings.map((f, i) => (
             <div key={i} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
-              <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${f.color} flex-shrink-0 mt-0.5`}>
+              <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-full border ${f.color} flex-shrink-0 mt-0.5`}>
                 {f.sev}
               </span>
               <p className="text-sm text-foreground">{f.title}</p>

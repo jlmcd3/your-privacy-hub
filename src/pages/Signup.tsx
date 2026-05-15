@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -72,6 +72,7 @@ const Signup = () => {
               '150+ jurisdictions covered',
               'Weekly digest — free',
               `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
+              `Compliance Platform with all tools — ${PLATFORM_PRICING.standard()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
@@ -92,19 +93,19 @@ const Signup = () => {
             </p>
 
             {message && (
-              <div className="mb-5 p-3 rounded-lg bg-accent/10 border border-accent/30 text-accent text-[13px] text-center">
+              <div className="mb-5 p-3 rounded-lg bg-accent/10 border border-accent/30 text-accent text-sm text-center">
                 {message}
               </div>
             )}
             {error && (
-              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-[13px] text-center">
+              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
                 <input
                   type="email"
                   required
@@ -119,7 +120,7 @@ const Signup = () => {
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-navy mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-navy mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -152,7 +153,7 @@ const Signup = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[13px] text-navy leading-snug">
+                <p className="text-sm text-navy leading-snug">
                   I agree to the{" "}
                   <Link to="/terms" className="font-bold underline text-blue hover:text-steel">
                     Terms of Service
@@ -163,7 +164,7 @@ const Signup = () => {
                   </Link>
                   .
                 </p>
-                <label className="flex items-start gap-2 cursor-pointer text-[13px] text-navy">
+                <label className="flex items-start gap-2 cursor-pointer text-sm text-navy">
                   <input
                     type="checkbox"
                     required
@@ -184,7 +185,7 @@ const Signup = () => {
               </button>
             </form>
 
-            <p className="text-[13px] text-slate text-center mt-6">
+            <p className="text-sm text-slate text-center mt-6">
               Already have an account?{" "}
               <Link
                 to={`/login?redirect=${encodeURIComponent(redirect)}`}

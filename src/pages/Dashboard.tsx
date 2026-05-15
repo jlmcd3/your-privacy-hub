@@ -18,7 +18,7 @@ import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 
@@ -82,11 +82,11 @@ function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: str
   if (!content) return null;
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
-      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
+      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-1">
         <span className="mr-2"><FlagIcon icon={icon} /></span>{title}
       </h3>
       {subtitle && (
-        <p className="text-[12px] text-slate-500 mb-4 leading-snug">{subtitle}</p>
+        <p className="text-meta text-slate-500 mb-4 leading-snug">{subtitle}</p>
       )}
       <div className={`text-[15px] text-slate-700 leading-relaxed space-y-3 ${subtitle ? "" : "mt-3"}`}>
         <CitedParagraphs content={content} sourceMap={sourceMap} />
@@ -279,17 +279,15 @@ const Dashboard = () => {
 
   if (authLoading || isPremium === null) {
     return (
-      <div className="min-h-screen bg-background">
+      <WorkspaceLayout>
         <Helmet>
           <title>Intelligence Dashboard | End User Privacy</title>
           <meta name="description" content="Your personalized privacy intelligence dashboard." />
         </Helmet>
-        <Navbar />
         <div className="flex items-center justify-center py-24">
           <span className="text-muted-foreground text-sm">Loading…</span>
         </div>
-        <Footer />
-      </div>
+      </WorkspaceLayout>
     );
   }
 
@@ -299,14 +297,14 @@ const Dashboard = () => {
 
   if (!isPremium) {
     return (
-      <div className="min-h-screen bg-background">
+      <WorkspaceLayout>
         {showOnboarding && user && (
           <OnboardingModal userId={user.id} onComplete={() => setShowOnboarding(false)} />
         )}
         {showDigestPrefs && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-              <h2 className="font-display font-bold text-navy text-[20px] mb-6">
+              <h2 className="font-display font-bold text-navy text-xl mb-6">
                 Your weekly digest
               </h2>
               <DigestPreferences
@@ -320,25 +318,24 @@ const Dashboard = () => {
         <Helmet>
           <title>Intelligence Dashboard | End User Privacy</title>
         </Helmet>
-        <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Premium upsell banner */}
           <div className="mb-6">
             <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
+              <div className="text-eyebrow text-amber-400 mb-2">
                 ⭐ Get Intelligence
               </div>
-              <h3 className="font-display font-bold text-white text-[18px] mb-2">
+              <h3 className="font-display font-bold text-white text-lg mb-2">
                 This brief, re-analyzed for your practice
               </h3>
-              <p className="text-blue-200 text-[13px] mb-4 max-w-md mx-auto">
+              <p className="text-blue-200 text-sm mb-4 max-w-md mx-auto">
                 Your weekly digest tells you what happened. Intelligence tells you what it means
                 for your industry, what your priorities are, and what to do about it. {`${INTELLIGENCE_PRICING.monthly()}`}.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/subscribe"
-                  className="bg-white text-navy font-bold text-[14px] py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
+                  className="bg-white text-navy font-bold text-sm py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
                   Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
                 </Link>
@@ -350,10 +347,10 @@ const Dashboard = () => {
           {!digestPrefsSet && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="font-semibold text-navy text-[14px] mb-1">Set up your weekly digest</p>
-                <p className="text-slate text-[13px]">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
+                <p className="text-card-title text-gray-900 mb-1">Set up your weekly digest</p>
+                <p className="text-sm text-gray-700">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
               </div>
-              <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-navy text-white font-semibold text-[13px] px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
+              <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-navy text-white font-semibold text-sm px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
                 Set up digest →
               </button>
             </div>
@@ -364,17 +361,17 @@ const Dashboard = () => {
             <div className="bg-card border border-fog rounded-2xl overflow-hidden">
               <div className="bg-navy px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Your Weekly Digest</p>
-                  <p className="text-white text-[13px]">{freeDigest ? freeDigest.week_label : "Your first digest arrives Monday"}</p>
+                  <p className="text-eyebrow text-amber-400 mb-0.5">Your Weekly Digest</p>
+                  <p className="text-white text-sm">{freeDigest ? freeDigest.week_label : "Your first digest arrives Monday"}</p>
                 </div>
-                <button onClick={() => setShowDigestPrefs(true)} className="text-[11px] text-blue-200/60 hover:text-blue-200 bg-transparent border-none cursor-pointer transition-colors">Edit preferences</button>
+                <button onClick={() => setShowDigestPrefs(true)} className="text-meta text-blue-200/60 hover:text-blue-200 bg-transparent border-none cursor-pointer transition-colors">Edit preferences</button>
               </div>
 
               {!freeDigest && (
                 <div className="px-6 py-10">
                   <div className="rounded-xl border border-border p-8 text-center max-w-lg mx-auto">
                     <div className="text-3xl mb-3">📋</div>
-                    <h3 className="font-semibold text-base mb-2">Your first digest is on its way</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Your first digest is on its way</h3>
                     <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                       Your personalized digest will arrive Monday morning. While you wait, explore the feed and tools below.
                     </p>
@@ -396,14 +393,14 @@ const Dashboard = () => {
                     <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 px-6 py-4 no-underline hover:bg-fog/50 transition-colors group">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[11px] font-medium text-steel">{item.region_label}</span>
-                          <span className="text-[11px] text-slate-light">·</span>
-                          <span className="text-[11px] text-slate-light">{item.source_name}</span>
+                          <span className="text-meta font-medium text-steel">{item.region_label}</span>
+                          <span className="text-meta text-slate-light">·</span>
+                          <span className="text-meta text-slate-light">{item.source_name}</span>
                         </div>
-                        <p className="text-[14px] font-semibold text-navy leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
-                        {item.summary && <p className="text-[12px] text-slate leading-relaxed line-clamp-2">{item.summary}</p>}
+                        <p className="text-card-title text-gray-900 leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
+                        {item.summary && <p className="text-meta text-gray-700 leading-relaxed line-clamp-2">{item.summary}</p>}
                       </div>
-                      <span className="text-slate-light text-[18px] flex-shrink-0 mt-0.5">→</span>
+                      <span className="text-slate-light text-lg flex-shrink-0 mt-0.5">→</span>
                     </a>
                   ))}
                 </div>
@@ -411,37 +408,34 @@ const Dashboard = () => {
 
               {freeDigest?.pattern_observation && (
                 <div className="px-6 py-4 bg-blue-50/50 border-t border-fog">
-                  <p className="text-[13px] text-steel leading-relaxed"><span className="font-semibold">This week: </span>{freeDigest.pattern_observation}</p>
+                  <p className="text-sm text-steel leading-relaxed"><span className="font-semibold">This week: </span>{freeDigest.pattern_observation}</p>
                 </div>
               )}
 
               <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
-                <p className="text-[13px] text-slate">Get full intelligence for analysis, priorities, and action items.</p>
-                <Link to="/subscribe" className="flex-shrink-0 text-[12px] font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
+                <p className="text-sm text-gray-700">Get full intelligence for analysis, priorities, and action items.</p>
+                <Link to="/subscribe" className="flex-shrink-0 text-meta font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
               </div>
             </div>
           )}
         </div>
-        <Footer />
-      </div>
+      </WorkspaceLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <WorkspaceLayout>
       <Helmet>
-        <title>Intelligence Brief | End User Privacy</title>
+        <title>Privacy Intelligence Report | End User Privacy</title>
         <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
         {/* Header — only shown to subscribers without a personalized brief yet */}
         {canShowPublicBrief && (
           <div className="mb-10">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-2">
+            <p className="text-meta font-semibold tracking-widest uppercase text-primary mb-2">
               📋 Weekly Privacy Intelligence Report
             </p>
             <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
@@ -450,12 +444,12 @@ const Dashboard = () => {
                 : brief?.headline ?? "Your next brief is on the way"}
             </h1>
             {!loading && brief && (
-              <p className="mt-3 text-[13px] text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 Covering {describeBriefPeriod(brief.published_at)} · {describeBriefFreshness(brief.published_at)} · {brief.article_count} regulatory updates synthesized
               </p>
             )}
             {!loading && !brief && (
-              <p className="mt-3 text-[13px] text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 We publish a new Intelligence Brief every Monday morning. Your first
                 brief will appear here as soon as it's ready — no action needed.
               </p>
@@ -471,17 +465,17 @@ const Dashboard = () => {
             <div className="flex items-start gap-4">
               <p className="text-3xl">📬</p>
               <div className="flex-1 min-w-0">
-                <h3 className="font-display font-bold text-foreground text-[18px] mb-1">
+                <h3 className="font-display font-bold text-foreground text-lg mb-1">
                   Your Privacy Intelligence Report arrives next Monday
                 </h3>
-                <p className="text-muted-foreground text-[13px] mb-3 leading-relaxed">
+                <p className="text-muted-foreground text-sm mb-3 leading-relaxed">
                   In the meantime, the general Weekly Privacy Intelligence Report below covers this week's
                   developments across every jurisdiction and topic. Your personalized version
                   will customize and analyze the same material for your priorities and responsibilities.
                 </p>
                 <Link
                   to="/brief-preferences"
-                  className="inline-block text-primary font-semibold text-[13px] no-underline hover:underline"
+                  className="inline-block text-primary font-semibold text-sm no-underline hover:underline"
                 >
                   Review your preferences →
                 </Link>
@@ -493,12 +487,12 @@ const Dashboard = () => {
         {/* Custom briefs for Pro users — collapsible list, most recent first */}
         {customBrief && (
           <div className="mb-3 flex items-center justify-end gap-3 flex-wrap px-1">
-            <p className="text-[12px] text-muted-foreground">
+            <p className="text-meta text-muted-foreground">
               Want to change focus for your next report?
             </p>
             <Link
               to="/brief-preferences"
-              className="text-[12px] font-semibold text-primary hover:underline no-underline"
+              className="text-meta font-semibold text-primary hover:underline no-underline"
             >
               Update preferences for next Monday →
             </Link>
@@ -508,7 +502,7 @@ const Dashboard = () => {
         {briefArchive.length > 0 && (
           <div className="mb-8">
             {briefArchive.length > 1 && (
-              <h2 className="font-display text-[14px] font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
+              <h2 className="font-display text-sm font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
                 📚 Your Reports ({briefArchive.length})
               </h2>
             )}
@@ -552,17 +546,17 @@ const Dashboard = () => {
                         <span className="sr-only">{isOpen ? "Collapse brief" : "Expand brief"}: </span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                            <span className="text-eyebrow text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                               ⭐ {b.week_label}
                             </span>
                             {isLatest && (
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                              <span className="text-eyebrow text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                                 Latest
                               </span>
                             )}
-                            <span className="text-[11px] text-slate-400">{generated}</span>
+                            <span className="text-meta text-slate-400">{generated}</span>
                           </div>
-                          <p className="text-[13px] text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
+                          <p className="text-sm text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
                         </div>
                       </button>
                     </h3>
@@ -595,8 +589,8 @@ const Dashboard = () => {
         {!loading && canShowPublicBrief && !brief && (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📅</p>
-            <p className="font-display text-[20px] text-foreground mb-2">First report coming Monday</p>
-            <p className="text-[14px] text-muted-foreground max-w-md mx-auto">
+            <p className="font-display text-xl text-foreground mb-2">First report coming Monday</p>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Your Privacy Intelligence Report is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
             </p>
           </div>
@@ -611,17 +605,17 @@ const Dashboard = () => {
                 {/* Document header */}
                 <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
                   <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-sky">
+                    <span className="text-meta font-bold uppercase tracking-[0.15em] text-sky">
                       ⭐ End User Privacy Intelligence Report
                     </span>
-                    <span className="text-[11px] text-blue-300">
+                    <span className="text-meta text-blue-300">
                       Covering {describeBriefPeriod(brief.published_at)} · {brief.article_count} updates reviewed
                     </span>
                   </div>
-                  <h2 className="font-display text-[18px] md:text-[22px] text-white font-bold leading-tight">
+                  <h2 className="font-display text-lg md:text-[22px] text-white font-bold leading-tight">
                     {brief.headline}
                   </h2>
-                  <p className="mt-2 text-[12px] text-blue-200">
+                  <p className="mt-2 text-meta text-blue-200">
                     {describeBriefFreshness(brief.published_at)}
                   </p>
                 </div>
@@ -631,7 +625,7 @@ const Dashboard = () => {
 
                   {/* Executive Summary */}
                   <section className="py-7 border-b border-slate-100">
-                    <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
+                    <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
                     <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                       <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
                     </div>
@@ -652,15 +646,15 @@ const Dashboard = () => {
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">
                         ⚖️ Enforcement Actions This Week
                       </h3>
                       <div className="overflow-x-auto rounded-xl border border-slate-100">
-                        <table className="w-full text-[13px]">
+                        <table className="w-full text-sm">
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
                               {["Regulator", "Subject", "Type", "Amount", "Significance"].map(h => (
-                                <th key={h} className="py-2.5 px-4 text-left text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                                <th key={h} className="py-2.5 px-4 text-left text-label text-slate-500">
                                   {h}
                                 </th>
                               ))}
@@ -669,18 +663,18 @@ const Dashboard = () => {
                           <tbody>
                             {brief.enforcement_table.map((row, i) => (
                               <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} border-b border-slate-100`}>
-                                <td className="py-3 px-4 font-medium text-navy text-[13px]">
+                                <td className="py-3 px-4 font-medium text-navy text-sm">
                                   {row.regulator}
-                                  <div className="text-[11px] text-slate-400">{row.jurisdiction}</div>
+                                  <div className="text-meta text-slate-400">{row.jurisdiction}</div>
                                 </td>
-                                <td className="py-3 px-4 text-slate-600 text-[13px]">{row.subject}</td>
+                                <td className="py-3 px-4 text-slate-600 text-sm">{row.subject}</td>
                                 <td className="py-3 px-4">
-                                  <span className={`text-[11px] px-2 py-0.5 rounded-full border ${ACTION_COLOR[row.action_type] || "bg-muted text-muted-foreground border-border"}`}>
+                                  <span className={`text-meta px-2 py-0.5 rounded-full border ${ACTION_COLOR[row.action_type] || "bg-muted text-muted-foreground border-border"}`}>
                                     {row.action_type}
                                   </span>
                                 </td>
                                 <td className="py-3 px-4 font-semibold text-navy">{row.amount}</td>
-                                <td className="py-3 px-4 text-slate-500 text-[12px]">{row.significance}</td>
+                                <td className="py-3 px-4 text-slate-500 text-meta">{row.significance}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -692,33 +686,33 @@ const Dashboard = () => {
                   {/* Top 10 enforcement signals — ranked by significance + recency */}
                   {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-1">
+                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-1">
                         🔝 Top 10 Enforcement Signals
                       </h3>
-                      <p className="text-[12px] text-slate-500 mb-4">
+                      <p className="text-meta text-slate-500 mb-4">
                         Ranked by precedent significance and recency across the last 90 days.
                       </p>
                       <ol className="space-y-3 list-none p-0 m-0">
                         {brief.top_enforcement_signals.map((s, i) => (
                           <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
-                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-navy text-white text-[12px] font-bold flex items-center justify-center">
+                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-navy text-white text-meta font-bold flex items-center justify-center">
                               {i + 1}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-3 mb-1">
                                 <Link
                                   to={`/enforcement-intelligence/${s.id}`}
-                                  className="font-display font-semibold text-navy hover:text-navy/80 text-[14px] leading-snug no-underline"
+                                  className="font-display font-semibold text-navy hover:text-navy/80 text-sm leading-snug no-underline"
                                 >
                                   {s.subject || s.regulator}
                                 </Link>
                                 {s.fine && (
-                                  <span className="text-[12px] font-semibold text-navy whitespace-nowrap tabular-nums">
+                                  <span className="text-meta font-semibold text-navy whitespace-nowrap tabular-nums">
                                     {s.fine}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                              <div className="text-meta text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                 <span className="font-medium">{s.regulator}</span>
                                 <span>·</span>
                                 <span>{s.jurisdiction}</span>
@@ -728,7 +722,7 @@ const Dashboard = () => {
                                 )}
                               </div>
                               {s.summary && (
-                                <p className="text-[12.5px] text-slate-600 leading-relaxed line-clamp-2 m-0">
+                                <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 m-0">
                                   {s.summary}
                                 </p>
                               )}
@@ -739,7 +733,7 @@ const Dashboard = () => {
                       <div className="mt-4">
                         <Link
                           to="/enforcement-intelligence"
-                          className="text-[12px] font-semibold text-navy hover:underline"
+                          className="text-meta font-semibold text-navy hover:underline"
                         >
                           Browse all enforcement actions →
                         </Link>
@@ -749,7 +743,7 @@ const Dashboard = () => {
 
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">
                         🌐 Cross-Jurisdiction Patterns
                       </h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
@@ -761,7 +755,7 @@ const Dashboard = () => {
                   {/* Trend signal */}
                   {brief.trend_signal && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
+                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                         <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
                       </div>
@@ -773,10 +767,10 @@ const Dashboard = () => {
                   {brief.why_this_matters && (
                     <section className="py-7">
                       <div className="bg-navy rounded-xl p-6">
-                        <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-amber-400 mb-5">
+                        <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-amber-400 mb-5">
                           🎯 Action Items for This Week
                         </h3>
-                        <div className="text-[14px] text-blue-100 leading-relaxed space-y-3">
+                        <div className="text-sm text-blue-100 leading-relaxed space-y-3">
                           <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
                         </div>
                         <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.why_this_matters ?? ""} />
@@ -792,10 +786,10 @@ const Dashboard = () => {
             {brief.source_map && Object.keys(brief.source_map).length > 0 && (
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
-                  <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
+                  <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
                     <span>📚</span> All source articles for this report
                   </h3>
-                  <p className="text-[12px] text-slate-400 mb-4">
+                  <p className="text-meta text-slate-400 mb-4">
                     {Object.keys(brief.source_map).length} articles monitored and synthesized for the period covering {describeBriefPeriod(brief.published_at)}. Click any title to read the original.
                   </p>
                   <div className="grid gap-2">
@@ -809,14 +803,14 @@ const Dashboard = () => {
                           rel="noopener noreferrer"
                           className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-all no-underline group"
                         >
-                          <span className="text-[11px] font-bold text-slate-400 flex-shrink-0 w-6 text-right mt-0.5">
+                          <span className="text-meta font-bold text-slate-400 flex-shrink-0 w-6 text-right mt-0.5">
                             [{num}]
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-medium text-navy group-hover:text-steel transition-colors line-clamp-2">
+                            <p className="text-sm font-medium text-navy group-hover:text-steel transition-colors line-clamp-2">
                               {src.title}
                             </p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">{src.source}</p>
+                            <p className="text-meta text-slate-400 mt-0.5">{src.source}</p>
                           </div>
                           <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-steel transition-colors flex-shrink-0 mt-0.5" />
                         </a>
@@ -829,9 +823,7 @@ const Dashboard = () => {
         )}
 
       </div>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 };
 

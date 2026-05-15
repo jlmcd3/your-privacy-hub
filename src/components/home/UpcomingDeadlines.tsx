@@ -56,7 +56,7 @@ export default function UpcomingDeadlines() {
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-3">
+      <p className="text-eyebrow text-primary mb-3">
         📅 Upcoming Deadlines
       </p>
       <div className="space-y-3">
@@ -74,18 +74,18 @@ export default function UpcomingDeadlines() {
           return (
             <div key={`${d.title}-${i}`} className="flex items-start gap-3">
               <span
-                className={`flex-shrink-0 text-[11px] font-bold border rounded-full px-2 py-0.5 mt-0.5 whitespace-nowrap ${urgencyClass}`}
+                className={`flex-shrink-0 text-meta font-bold border rounded-full px-2 py-0.5 mt-0.5 whitespace-nowrap ${urgencyClass}`}
               >
                 {diff}d LEFT
               </span>
               <div className="min-w-0">
-                <p className="text-foreground text-[12px] font-medium leading-snug line-clamp-2">
+                <p className="text-foreground text-meta font-medium leading-snug line-clamp-2">
                   {d.title}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <p className="text-muted-foreground text-[10px]">{d.jurisdiction}</p>
+                  <p className="text-muted-foreground text-meta">{d.jurisdiction}</p>
                   {d.source === "db" && (
-                    <span className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                    <span className="text-meta px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                       From feed
                     </span>
                   )}
@@ -97,7 +97,7 @@ export default function UpcomingDeadlines() {
       </div>
       <Link
         to="/calendar"
-        className="block text-primary text-[12px] font-semibold mt-3 no-underline hover:underline"
+        className="block text-primary text-meta font-semibold mt-3 no-underline hover:underline"
       >
         See all deadlines →
       </Link>

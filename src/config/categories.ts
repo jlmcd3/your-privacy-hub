@@ -48,4 +48,4 @@ export const categoryLabel = (cat?: string | null) =>
 
 // Canonical badge class — keep all variants visually consistent.
 export const CATEGORY_BADGE_CLASS =
-  'text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md';
+  'text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md';

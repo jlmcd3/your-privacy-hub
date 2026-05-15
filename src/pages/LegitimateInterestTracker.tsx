@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import InFeedAd from "@/components/InFeedAd";
-import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import {
   LI_OUTCOME_ORDER,
   stripeFor,
@@ -116,9 +114,9 @@ const LegitimateInterestTracker = () => {
             ].map((step, i) => (
               <Fragment key={step.n}>
                 <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md">
-                  <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
+                  <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
                   <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
-                  <p className="text-[13px] text-slate leading-relaxed">{step.desc}</p>
+                  <p className="text-sm text-slate leading-relaxed">{step.desc}</p>
                 </div>
                 {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
               </Fragment>
@@ -131,17 +129,17 @@ const LegitimateInterestTracker = () => {
           <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 shadow-eup-sm mb-10">
             <div className="flex items-baseline justify-between mb-5">
               <div>
-                <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-1">Recent Enforcement Trends</div>
+                <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Recent Enforcement Trends</div>
                 <h3 className="font-display text-xl text-navy">Where authorities are landing this period</h3>
               </div>
               <span className="text-[11px] text-muted-foreground">
                 {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               </span>
             </div>
-            <p className="text-[13px] text-slate leading-relaxed mb-6">{trendSummary.summary}</p>
+            <p className="text-sm text-slate leading-relaxed mb-6">{trendSummary.summary}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-5 border-t border-fog">
               <div className="border-l-2 border-green-600 pl-4">
-                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-green-700">Broadly Accepted</h4>
+                <h4 className="text-[11px] font-bold mb-3 uppercase tracking-wider text-green-700">Broadly Accepted</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {["Fraud prevention", "Network security", "Cybersecurity threat sharing", "IT incident response"].map(t => (
                     <span key={t} className="bg-green-50 text-green-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
@@ -149,7 +147,7 @@ const LegitimateInterestTracker = () => {
                 </div>
               </div>
               <div className="border-l-2 border-red-600 pl-4">
-                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-red-700">Consistently Rejected</h4>
+                <h4 className="text-[11px] font-bold mb-3 uppercase tracking-wider text-red-700">Consistently Rejected</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {["Behavioral advertising", "Cross-site tracking", "Large-scale scraping", "Location profiling", "Third-party data sales"].map(t => (
                     <span key={t} className="bg-red-50 text-red-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
@@ -157,7 +155,7 @@ const LegitimateInterestTracker = () => {
                 </div>
               </div>
               <div className="border-l-2 border-amber-500 pl-4">
-                <h4 className="text-[10px] font-bold mb-3 uppercase tracking-wider text-amber-700">Contested / Unsettled</h4>
+                <h4 className="text-[11px] font-bold mb-3 uppercase tracking-wider text-amber-700">Contested / Unsettled</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {["AI model training", "Child-directed analytics", "Credit reporting"].map(t => (
                     <span key={t} className="bg-amber-50 text-amber-800 px-2.5 py-1 rounded text-[11px]">{t}</span>
@@ -235,13 +233,13 @@ const LegitimateInterestTracker = () => {
                     <div className="p-5 flex-1 min-w-0">
                       <h3 className="font-display text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
                       <div className="flex flex-wrap gap-1.5 mb-3">
-                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
-                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>
+                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
+                        <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>
                       </div>
-                      <p className="text-[13px] text-slate leading-relaxed mb-4">{e.summary}</p>
+                      <p className="text-sm text-slate leading-relaxed mb-4">{e.summary}</p>
                       <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider capitalize ${accentFor(e.outcome)}`}>{e.outcome}</span>
+                          <span className={`text-[11px] font-bold uppercase tracking-wider capitalize ${accentFor(e.outcome)}`}>{e.outcome}</span>
                           <span className="text-muted-foreground/40">·</span>
                           <span className={`text-[11px] text-muted-foreground truncate ${signalStyle(e.signal_type)}`}>{e.signal_type}</span>
                         </div>
@@ -251,15 +249,6 @@ const LegitimateInterestTracker = () => {
                       </div>
                     </div>
                   </article>
-                  {(idx + 1) % 6 === 0 && idx !== filtered.length - 1 && (
-                    <div className="md:col-span-2">
-                      <InFeedAd
-                        adSlot={`li_tracker_infeed_${Math.floor(idx / 6)}`}
-                        googleAdClient={GOOGLE_AD_CLIENT}
-                        googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                      />
-                    </div>
-                  )}
                 </Fragment>
               ))}
             </div>
@@ -273,9 +262,9 @@ const LegitimateInterestTracker = () => {
 
         {/* Premium upsell */}
         <div className="bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
+          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Go deeper with Intelligence</h3>
-          <p className="text-[13px] text-slate-light mb-5 max-w-[500px] mx-auto">
+          <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
             Get full intelligence for weekly analysis of enforcement trends, sector-specific LI risk assessments, and action items tailored to your industry and jurisdictions.
           </p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">

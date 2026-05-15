@@ -6,7 +6,6 @@ import comparisonData from "@/data/us_state_comparison.json";
 import { STATUTES } from "@/data/statutes";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 const STATE_FLAGS: Record<string, string> = {
   CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_California.svg?width=32",
@@ -60,7 +59,7 @@ const USStateComparison = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-[13px] text-amber-900 leading-snug">
+          <p className="text-sm text-amber-900 leading-snug">
             <span className="font-semibold">⭐ This tool is free.</span>
             {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
           </p>
@@ -72,7 +71,6 @@ const USStateComparison = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-comparison-top" className="py-3" />
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
@@ -98,7 +96,7 @@ const USStateComparison = () => {
                             />
                           )}
                           <div className="group-hover:text-accent transition-colors">{s.abbr}</div>
-                          <div className="text-[9px] font-normal text-muted-foreground">{s.law}</div>
+                          <div className="text-[11px] font-normal text-muted-foreground">{s.law}</div>
                         </Link>
                       </th>
                     );
@@ -130,7 +128,7 @@ const USStateComparison = () => {
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="max-w-xs text-xs font-mono">
                                   <p>{statute.cite}</p>
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5">Click to view statute ↗</p>
                                 </TooltipContent>
                               </Tooltip>
                             ) : (
@@ -139,7 +137,7 @@ const USStateComparison = () => {
                           ) : val === false ? (
                             <Minus className="w-4 h-4 text-muted-foreground/30 mx-auto" />
                           ) : (
-                            <span className="text-[10px] text-muted-foreground">{String(val)}</span>
+                            <span className="text-[11px] text-muted-foreground">{String(val)}</span>
                           )}
                         </td>
                       );
@@ -155,7 +153,6 @@ const USStateComparison = () => {
           Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
         </p>
 
-        <AdBanner variant="inline" adSlot="eup-comparison-bottom" className="py-3" />
       </div>
 
       <Footer />

@@ -25,7 +25,7 @@ const EnforcementTracker = () => {
             <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Enforcement Tracker</h2>
             <p className="text-sm text-slate mt-1">Every fine, order and sanction — all jurisdictions, updated as decisions are issued.</p>
           </div>
-          <a href="/enforcement-tracker" className="text-[13px] font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
+          <a href="/enforcement-tracker" className="text-sm font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
             View full tracker →
           </a>
         </div>
@@ -42,7 +42,7 @@ const EnforcementTracker = () => {
             <div className="relative w-full sm:w-auto">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-light" />
               <input
-                className="w-full sm:w-auto pl-8 pr-3.5 py-1.5 text-[13px] bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-slate-light focus:border-sky transition-colors"
+                className="w-full sm:w-auto pl-8 pr-3.5 py-1.5 text-sm bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-slate-light focus:border-sky transition-colors"
                 placeholder="Search actions…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -63,20 +63,20 @@ const EnforcementTracker = () => {
               <tbody>
                 {filtered.map((row, i) => (
                   <tr key={i} className="hover:bg-paper transition-colors">
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">{row.regulator}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy font-medium border-b border-fog">{row.company}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog">{row.jurisdiction}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog max-w-[300px]">{row.violation}</td>
+                    <td className="px-4 py-3 text-sm text-navy border-b border-fog">{row.regulator}</td>
+                    <td className="px-4 py-3 text-sm text-navy font-medium border-b border-fog">{row.company}</td>
+                    <td className="px-4 py-3 text-sm text-navy border-b border-fog">{row.jurisdiction}</td>
+                    <td className="px-4 py-3 text-sm text-navy border-b border-fog max-w-[300px]">{row.violation}</td>
                     <td className="px-4 py-3 font-semibold text-warn font-display text-sm border-b border-fog">{row.fine}</td>
-                    <td className="px-4 py-3 text-[13px] text-navy border-b border-fog whitespace-nowrap">{row.date}</td>
+                    <td className="px-4 py-3 text-sm text-navy border-b border-fog whitespace-nowrap">{row.date}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <div className="p-5 md:p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
-            <p className="text-slate text-[13px] mb-3">Full searchable enforcement database available with Intelligence</p>
-            <button onClick={() => navigate("/subscribe")} className="inline-block px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
+            <p className="text-slate text-sm mb-3">Full searchable enforcement database available with Intelligence</p>
+            <button onClick={() => navigate("/subscribe")} className="inline-block px-5 py-2 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
               Upgrade for Full Access →
             </button>
           </div>

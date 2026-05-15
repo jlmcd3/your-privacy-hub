@@ -26,10 +26,10 @@ export default function ToolkitSection() {
     <section className="py-12 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
         <div className="text-center mb-8">
-          <h2 className="font-display font-bold text-navy text-[20px] mb-2">
+          <h2 className="font-display font-bold text-navy text-xl mb-2">
             Intelligence Toolkit
           </h2>
-          <p className="text-slate text-[13px]">
+          <p className="text-slate text-sm">
             Structured tools for planning and compliance. Always free.
           </p>
         </div>
@@ -44,15 +44,15 @@ export default function ToolkitSection() {
               <h3 className="font-display font-bold text-navy text-[15px] mb-1 group-hover:text-blue transition-colors">
                 {t.title}
               </h3>
-              <p className="text-slate text-[12px] leading-relaxed mb-3">{t.sub}</p>
-              <span className="text-blue text-[12px] font-semibold">Explore →</span>
+              <p className="text-slate text-meta leading-relaxed mb-3">{t.sub}</p>
+              <span className="text-blue text-meta font-semibold">Explore →</span>
             </Link>
           ))}
         </div>
         <div className="text-center mt-6">
           <Link
             to="/tools"
-            className="text-blue text-[13px] font-semibold hover:text-navy transition-colors no-underline"
+            className="text-blue text-sm font-semibold hover:text-navy transition-colors no-underline"
           >
             See all tools →
           </Link>

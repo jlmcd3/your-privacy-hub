@@ -212,7 +212,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
   }
 }`,
-      4500
+      2500
     );
 
     let analysis: any = {};
@@ -272,7 +272,7 @@ Return JSON:
   ],
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`,
-      3000
+      1500
     );
 
     let docRecs: any = {};

@@ -35,7 +35,7 @@ export default function EnforcementStatsBanner() {
               {s.value}
             </div>
             <div className="text-navy/80 text-xs font-medium leading-tight">{s.label}</div>
-            {s.sub && <div className="text-slate text-[10px] mt-0.5">{s.sub}</div>}
+            {s.sub && <div className="text-slate text-meta mt-0.5">{s.sub}</div>}
           </div>
         ))}
       </div>
