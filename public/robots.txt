@@ -1,5 +1,5 @@
-＃ TEMPORARY: all crawlers allowed for testing window.
-＃ Revert the `User-agent: *` block to `Disallow: /` when testing is complete.
+# TEMPORARY: all crawlers allowed for testing window.
+# Revert the `User-agent: *` block to `Disallow: /` when testing is complete.
 User-agent: *
 Allow: /
 
