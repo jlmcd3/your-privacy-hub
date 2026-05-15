@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
-import { normalizeTitle } from "@/lib/utils";
+import { normalizeTitle, stripHtml } from "@/lib/utils";
 import type { ArticleItem } from "@/components/ArticleCard";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
