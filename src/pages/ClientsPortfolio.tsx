@@ -368,7 +368,7 @@ export default function ClientsPortfolio() {
     });
   }, [clients, counts]);
 
-  const heading = isMultiClient ? 'My Clients' : 'My Documents';
+  const heading = 'My Clients';
   const showAddButton = isMultiClient || isPremium;
 
   function handleOpen(c: Client) {

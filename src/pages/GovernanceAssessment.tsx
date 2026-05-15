@@ -16,6 +16,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -56,6 +57,7 @@ const GovernanceAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("governance_assessment");
+  const { isPremium } = usePremiumStatus();
 
   const [step, setStep] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
@@ -184,13 +186,17 @@ const GovernanceAssessment = () => {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Compliance Framework Tool · ${pricing.price}
+            ⚖️ Privacy Programme Assessment · ${pricing.price}
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
             {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Included with Annual Platform · $49 standalone →</a></>}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
-          <p className="text-slate-400 text-sm mt-3">Estimated completion time: 10-15 minutes. Your progress is not saved between sessions.</p>
+          <p className="text-slate-400 text-sm mt-3">
+            {isPremium
+              ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."
+              : "Estimated completion time: 10-15 minutes. Sign in to save your completed report to My Reports."}
+          </p>
         </div>
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">

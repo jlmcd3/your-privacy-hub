@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: "Who writes the analysis?",
-    a: "All summaries and the weekly Intelligence Brief are drawn from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
+    a: "All summaries and the weekly Privacy Intelligence Report are drawn from primary source material — press releases, regulatory announcements, and authoritative news coverage. Every enforcement table entry is traced to a specific source article. We do not rely on secondary reporting or third-party aggregators for core intelligence.",
   },
   {
     q: "What countries and jurisdictions are covered?",

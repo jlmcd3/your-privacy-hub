@@ -191,7 +191,7 @@ export default function BriefBuilder() {
       )}
       <div className="mb-6">
         <h3 className="font-display font-bold text-navy text-[18px] mb-1">
-          Build your sample Intelligence Brief
+          Build your sample Privacy Intelligence Report
         </h3>
         <p className="text-sm text-slate mb-5">
           Select your jurisdiction and role, then pick your topic tracks.

@@ -426,7 +426,7 @@ const Dashboard = () => {
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>Intelligence Brief | End User Privacy</title>
+        <title>Privacy Intelligence Report | End User Privacy</title>
         <meta name="description" content="Your personalized weekly privacy intelligence brief." />
       </Helmet>
 

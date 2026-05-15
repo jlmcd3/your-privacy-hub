@@ -1,0 +1,23 @@
+DELETE FROM updates
+WHERE source_domain = 'congress.gov'
+AND NOT (
+  LOWER(title) LIKE '%privacy%'
+  OR LOWER(title) LIKE '%data protection%'
+  OR LOWER(title) LIKE '%surveillance%'
+  OR LOWER(title) LIKE '%biometric%'
+  OR LOWER(title) LIKE '%children online%'
+  OR LOWER(title) LIKE '%kids online%'
+  OR LOWER(title) LIKE '%child online%'
+  OR LOWER(title) LIKE '%coppa%'
+  OR LOWER(title) LIKE '%facial recognition%'
+  OR LOWER(title) LIKE '%data breach%'
+  OR LOWER(title) LIKE '%breach notification%'
+  OR LOWER(title) LIKE '%personal information%'
+  OR LOWER(title) LIKE '%consumer data%'
+  OR LOWER(title) LIKE '%tracking%'
+  OR LOWER(title) LIKE '%online safety%'
+  OR LOWER(title) LIKE '%identity theft%'
+  OR LOWER(title) LIKE '%american privacy%'
+  OR LOWER(title) LIKE '%american data%'
+  OR LOWER(title) LIKE '%digital rights%'
+);
