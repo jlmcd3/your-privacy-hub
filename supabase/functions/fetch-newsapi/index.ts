@@ -125,6 +125,23 @@ function assignTopicTags(title: string, description: string): string[] {
   return tags;
 }
 
+const TEMPLATED_IMAGE_HOSTS = [
+  "images.bannerbear.com",
+  "bannerbear.com",
+  "og-image.vercel.app",
+  "dynamic-og-image-generator.vercel.app",
+];
+
+function isTemplatedImage(imageUrl: string | null | undefined): boolean {
+  if (!imageUrl) return false;
+  try {
+    const host = new URL(imageUrl).hostname.toLowerCase();
+    return TEMPLATED_IMAGE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 const FALLBACK_IMAGES: Record<string, string> = {
   "us-federal": "https://picsum.photos/seed/federal-law/400/200",
   "us-states": "https://picsum.photos/seed/state-capitol/400/200",
@@ -250,7 +267,7 @@ Deno.serve(async (req) => {
           source_domain: domain,
           // Use the article's own image if NewsAPI provides one; otherwise leave
           // null so assign-fallback-images can fill from the curated pool / brand tile.
-          image_url: article.urlToImage || null,
+          image_url: isTemplatedImage(article.urlToImage) ? null : (article.urlToImage || null),
           category,
           topic_tags: assignTopicTags(article.title, article.description || ""),
           regulator: article.source?.name || "",
