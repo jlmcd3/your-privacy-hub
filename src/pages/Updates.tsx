@@ -549,12 +549,8 @@ const Updates = () => {
                     </div>
                     <select
                         value={dateRange}
-                        onChange={(e) => {
-                            const next = e.target.value;
-                            handleGatedFilterClick("Date range", () => setDateRange(next));
-                        }}
-                        disabled={!user}
-                        className={`px-3 py-2 border border-border rounded-lg text-sm bg-background ${!user ? "opacity-50 cursor-default" : ""}`}
+                        onChange={(e) => setDateRange(e.target.value)}
+                        className="px-3 py-2 border border-border rounded-lg text-sm bg-background"
                     >
                         {DATE_RANGES.map((d) => (
                             <option key={d.key} value={d.key}>{d.label}</option>
