@@ -87,7 +87,7 @@ const FAQ = () => {
               />
             </button>
             {openIndices.has(i) && (
-              <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed">{faq.a}</div>
+              <div className="px-6 pb-5 text-[14px] text-slate leading-relaxed whitespace-pre-line">{faq.a}</div>
             )}
           </div>
         ))}
