@@ -30,6 +30,24 @@ const SLOT_LABELS = [
   { icon: "⭐", text: "Platform view", className: "text-gold text-[10px] font-semibold" },
 ];
 
+const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
+  const cat = (item.category ?? '').toLowerCase();
+  const jur = (item.jurisdiction ?? '').toLowerCase();
+  if (cat.includes('biometric'))
+    return { label: 'Check biometric compliance →', href: '/biometric-checker' };
+  if (cat.includes('breach') || cat.includes('incident'))
+    return { label: 'Build an IR Playbook →', href: '/ir-playbook' };
+  if (cat.includes('ai') || cat.includes('artificial intelligence'))
+    return { label: 'Run an LIA for this processing →', href: '/li-assessment' };
+  if (cat.includes('cross-border') || cat.includes('transfer') || cat.includes('dpa'))
+    return { label: 'Generate a Data Processing Agreement →', href: '/dpa-generator' };
+  if (cat.includes('dpia') || cat.includes('impact assessment'))
+    return { label: 'Run a DPIA →', href: '/dpia-framework' };
+  if (jur.includes('california') || jur.includes('cppa'))
+    return { label: 'Check your CPPA scope →', href: '/cppa-scope-checker' };
+  return { label: 'Assess your governance posture →', href: '/governance-assessment' };
+};
+
 const HomepageArticleCard = ({
   article,
   isSelected,
