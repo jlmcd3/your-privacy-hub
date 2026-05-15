@@ -240,13 +240,13 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   return (
     <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-sm font-semibold text-navy leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
+        <p className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
       </div>
       {item.summary && (
-        <p className="text-xs text-slate leading-snug mt-1 line-clamp-2">
+        <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
           {stripHtml(item.summary)}
         </p>
       )}
