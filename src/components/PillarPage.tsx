@@ -208,7 +208,6 @@ const PillarPage = ({
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot={`eup-pillar-top`} className="py-3" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         {/* Intro */}
@@ -349,7 +348,6 @@ const PillarPage = ({
                   />
                 </div>
                 {i === Math.floor(sections.length / 2) - 1 && (
-                  <AdBanner variant="inline" adSlot={`eup-pillar-mid`} className="py-4" />
                 )}
               </React.Fragment>
             );
@@ -383,7 +381,6 @@ const PillarPage = ({
           )}
         </div>
 
-        <AdBanner variant="leaderboard" adSlot={`eup-pillar-bottom`} className="py-6" />
 
         {/* Premium CTA — hidden for premium users */}
         {!isPremium && (

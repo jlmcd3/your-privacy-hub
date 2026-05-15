@@ -40,7 +40,6 @@ const GlobalAuthorities = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" className="py-5" />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Search */}
@@ -161,7 +160,6 @@ const GlobalAuthorities = () => {
             );
           })}
         </div>
-        <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
     </div>

@@ -43,7 +43,6 @@ const Timelines = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-timelines-top" className="py-3" />
 
         <div className="grid gap-4">
           {TIMELINES.map((t) => (

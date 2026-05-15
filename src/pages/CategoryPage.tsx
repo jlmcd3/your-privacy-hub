@@ -160,7 +160,6 @@ const CategoryPage = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-category-top" className="py-3" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-8 grid md:grid-cols-[1fr_280px] gap-8 flex-1">
         {/* Article list */}
@@ -251,7 +250,6 @@ const CategoryPage = () => {
             </Link>
           </div>
           <div className="mt-4">
-            <AdBanner variant="sidebar" adSlot="eup-category-sidebar" />
           </div>
         </div>
       </div>
@@ -260,7 +258,6 @@ const CategoryPage = () => {
         <EmailSignup variant="card" />
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-category-bottom" className="py-3" />
 
       <Footer />
     </div>

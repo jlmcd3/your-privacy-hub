@@ -224,7 +224,6 @@ export default function GlobalJurisdictionComparison() {
             </Link>
           </div>
 
-          <AdBanner variant="leaderboard" adSlot="eup-jurisdcomp-top" className="py-3" />
 
           <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
             <table className="w-full text-left border-collapse">

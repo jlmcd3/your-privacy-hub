@@ -132,7 +132,6 @@ const RegulatorPage = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-regulator-top" className="py-3" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Key info card */}
@@ -235,7 +234,6 @@ const RegulatorPage = () => {
           </div>
         </div>
 
-        <AdBanner variant="inline" adSlot="eup-regulator-mid" className="py-4" />
 
         {/* Recent Developments */}
         {recentArticles.length > 0 && (

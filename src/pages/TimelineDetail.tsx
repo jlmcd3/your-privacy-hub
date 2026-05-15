@@ -87,7 +87,6 @@ const TimelineDetail = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-timeline-top" className="py-3 max-w-3xl mx-auto" />
 
       {/* Timeline */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 flex-1">
@@ -125,7 +124,6 @@ const TimelineDetail = () => {
                     )}
                   </div>
                   {i === midIndex && (
-                    <AdBanner variant="inline" adSlot="eup-timeline-mid" className="py-4" />
                   )}
                 </div>
               );

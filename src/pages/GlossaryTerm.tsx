@@ -144,7 +144,6 @@ const GlossaryTerm = () => {
           );
         })()}
 
-        <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
 
         {relatedTerms.length > 0 && (
           <div>

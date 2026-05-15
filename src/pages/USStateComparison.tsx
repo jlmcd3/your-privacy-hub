@@ -71,7 +71,6 @@ const USStateComparison = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-comparison-top" className="py-3" />
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
@@ -154,7 +153,6 @@ const USStateComparison = () => {
           Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
         </p>
 
-        <AdBanner variant="inline" adSlot="eup-comparison-bottom" className="py-3" />
       </div>
 
       <Footer />

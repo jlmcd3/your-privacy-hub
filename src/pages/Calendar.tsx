@@ -137,7 +137,6 @@ const Calendar = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-calendar-top" className="py-3" />
 
         {/* Filter pills */}
         <div className="flex gap-2 flex-wrap mb-6">
