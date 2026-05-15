@@ -484,8 +484,8 @@ export default function Tools() {
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
-              <h3 className="font-display font-bold text-navy text-[17px] mb-3 leading-snug">{d.title}</h3>
-              <p className="text-slate text-sm leading-relaxed">{d.body}</p>
+              <h3 className="font-display font-semibold text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-fog" />
               <ul className="space-y-1.5">
                 {d.checks.map((c) => (
