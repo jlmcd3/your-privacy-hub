@@ -12,6 +12,8 @@ import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { FILTER_LABELS, formatFilterLabel } from "@/lib/filterLabels";
+import { containsProfanity } from "@/lib/profanityFilter";
+import { toast } from "sonner";
 
 interface Update {
     id: string;
@@ -543,7 +545,15 @@ const Updates = () => {
                             type="text"
                             placeholder="Search Privacy Intelligence Feed…"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (containsProfanity(value)) {
+                                    toast.error("Search term not allowed");
+                                    setSearchTerm("");
+                                    return;
+                                }
+                                setSearchTerm(value);
+                            }}
                             className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background"
                         />
                     </div>
