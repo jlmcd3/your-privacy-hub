@@ -360,17 +360,20 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
 
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.38fr)_minmax(280px,1fr)] gap-6 items-start">
         <div className="flex-1 min-w-0">
-          {articles.map((article, i) => (
-            <HomepageArticleCard
-              key={article.id}
-              article={article}
-              isSelected={selectedArticle?.id === article.id}
-              onSelect={() => setSelectedArticle(article)}
-              tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
-              hideWhyItMatters={showTierLabels && i === 0}
-              evenRow={i % 2 === 1}
-            />
-          ))}
+          {(() => {
+            const DEMO_TIERS: ("anonymous" | "free" | "paid")[] = ["anonymous", "free", "paid"];
+            return articles.slice(0, 3).map((article, i) => (
+              <HomepageArticleCard
+                key={article.id}
+                article={article}
+                isSelected={selectedArticle?.id === article.id}
+                onSelect={() => setSelectedArticle(article)}
+                tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
+                evenRow={i % 2 === 1}
+                demoTier={!isAuthenticated ? DEMO_TIERS[i] : undefined}
+              />
+            ));
+          })()}
 
           <div className="mt-5 pt-4 border-t border-fog">
             <Link
