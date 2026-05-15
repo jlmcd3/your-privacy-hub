@@ -217,6 +217,25 @@ export default function LegislationTracker() {
               <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
             )}
           </div>
+
+          <div className="mt-14 pt-8 border-t border-fog space-y-10">
+            <section id="us-federal" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__us_federal" />
+            </section>
+            <section id="us-states" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__us_states" />
+            </section>
+            <section id="eu-uk" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__eu_uk" />
+            </section>
+            <section id="global" className="scroll-mt-24">
+              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">Global Privacy Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__global" />
+            </section>
+          </div>
         </main>
         <Footer />
       </div>
