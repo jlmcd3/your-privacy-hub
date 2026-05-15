@@ -164,7 +164,35 @@ const HomepageArticleCard = ({
       );
     }
 
-    // Authenticated (non-demo) — show excerpt + alert + context as default
+    // Authenticated (non-demo)
+    if (isPremium) {
+      const impact = article.ai_summary?.compliance_impact;
+      const toolCTA = getToolCTA(article);
+      return (
+        <div className="space-y-1.5">
+          {excerpt}
+          {alertNode}
+          {contextNode}
+          {(impact || actionProse || watchProse) && (
+            <p className="text-meta text-slate leading-relaxed">
+              <span className="font-semibold text-gold">Analysis and Guidance: </span>
+              {impact}
+              {impact && (actionProse || watchProse) && " "}
+              {actionProse}
+              {actionProse && watchProse && " "}
+              {watchProse && <span className="italic">{watchProse}</span>}
+            </p>
+          )}
+          <div className="pt-1.5 border-t border-fog">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
+              {toolCTA.label}
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    // Authenticated free user — show excerpt + alert + context
     return (
       <div>
         {excerpt}
