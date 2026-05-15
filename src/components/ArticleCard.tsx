@@ -281,7 +281,7 @@ const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
     <div className="mt-2">
       <Link
         to={href}
-        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold hover:underline no-underline"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline no-underline"
       >
         <Sparkles className="w-3 h-3" />
         {label}
