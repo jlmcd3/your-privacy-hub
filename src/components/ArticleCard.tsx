@@ -480,26 +480,6 @@ const FullCard = ({
             </div>
           );
         })()}
-
-        {/* ── PAID — three flowing paragraphs ────────────────────────── */}
-        {tier === 'paid' && (() => {
-          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short;
-          const impact = item.ai_summary?.compliance_impact;
-          if (!why && !impact && !actionProse && !watchProse) return null;
-          return (
-            <div className="mt-2 space-y-2">
-              {why && <p className="text-[13px] text-slate leading-relaxed">{why}</p>}
-              {impact && <p className="text-[13px] text-slate leading-relaxed">{impact}</p>}
-              {(actionProse || watchProse) && (
-                <p className="text-[13px] text-slate leading-relaxed">
-                  {actionProse}
-                  {actionProse && watchProse && ' '}
-                  {watchProse && <span className="italic">{watchProse}</span>}
-                </p>
-              )}
-            </div>
-          );
-        })()}
       </div>
     </div>
   );
