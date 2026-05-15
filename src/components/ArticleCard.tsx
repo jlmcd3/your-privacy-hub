@@ -407,7 +407,7 @@ const FullCard = ({
         {/* Title */}
         <TitleLink
           item={item}
-          className="text-card-title text-navy hover:text-blue block mb-1 no-underline transition-colors"
+          className="text-card-title text-gray-900 hover:text-blue block mb-1 no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
