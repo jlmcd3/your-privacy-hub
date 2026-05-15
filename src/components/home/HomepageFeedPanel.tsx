@@ -82,7 +82,7 @@ const HomepageArticleCard = ({
 
   const renderEnrichment = () => {
     const excerpt = article.summary ? (
-      <p className="text-meta text-slate mt-1 line-clamp-2 leading-relaxed">
+      <p className="text-meta text-gray-600 mt-1 line-clamp-2 leading-relaxed">
         {stripHtml(article.summary)}
       </p>
     ) : null;
@@ -90,7 +90,7 @@ const HomepageArticleCard = ({
     const shortWhy = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
     const sentence = shortWhy ? (shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy) : null;
     const alertNode = sentence ? (
-      <p className="text-meta text-slate mt-1.5 leading-relaxed">
+      <p className="text-meta text-gray-600 mt-1.5 leading-relaxed">
         <span className="font-semibold text-warn">Alert: </span>{sentence}
       </p>
     ) : null;
@@ -100,7 +100,7 @@ const HomepageArticleCard = ({
       article.why_it_matters_short ??
       article.ai_summary?.why_it_matters_short;
     const contextNode = why ? (
-      <p className="text-meta text-slate mt-1.5 leading-relaxed">
+      <p className="text-meta text-gray-600 mt-1.5 leading-relaxed">
         <span className="font-semibold text-steel">Context: </span>{why}
       </p>
     ) : null;
@@ -146,7 +146,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           {(impact || actionProse || watchProse) && (
-            <p className="text-meta text-slate leading-relaxed">
+            <p className="text-meta text-gray-600 leading-relaxed">
               <span className="font-semibold text-gold">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
@@ -174,7 +174,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           {(impact || actionProse || watchProse) && (
-            <p className="text-meta text-slate leading-relaxed">
+            <p className="text-meta text-gray-600 leading-relaxed">
               <span className="font-semibold text-gold">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
@@ -251,13 +251,13 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-card-title text-navy hover:text-blue block no-underline transition-colors"
+              className="text-card-title text-gray-900 hover:text-blue block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
             </a>
           ) : (
-            <p className="text-card-title text-navy">
+            <p className="text-card-title text-gray-900">
               {normalizeTitle(article.title)}
             </p>
           )}
