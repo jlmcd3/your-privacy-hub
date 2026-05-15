@@ -227,12 +227,12 @@ const UpdateDetail = () => {
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📄</p>
             <h1 className="font-display text-[22px] text-foreground mb-2">Article not found</h1>
-            <p className="text-muted-foreground text-[14px] mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               This article may have been removed or the link is incorrect.
             </p>
             <Link
               to="/updates"
-              className="inline-flex items-center gap-2 text-primary font-semibold text-[14px] no-underline hover:underline"
+              className="inline-flex items-center gap-2 text-primary font-semibold text-sm no-underline hover:underline"
             >
               <ArrowLeft className="w-4 h-4" /> Back to Updates
             </Link>
@@ -242,7 +242,7 @@ const UpdateDetail = () => {
         {article && !loading && (
           <>
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground mb-4">
+            <nav className="flex items-center gap-1.5 text-meta text-muted-foreground mb-4">
               <Link
                 to="/updates"
                 className="no-underline hover:text-foreground transition-colors text-muted-foreground"
@@ -264,7 +264,7 @@ const UpdateDetail = () => {
 
             {/* Category badge */}
             <span
-              className={`inline-block text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border mb-4 ${catColor}`}
+              className={`inline-block text-eyebrow px-2.5 py-1 rounded-full border mb-4 ${catColor}`}
             >
               {catLabel}
             </span>
@@ -286,7 +286,7 @@ const UpdateDetail = () => {
               {(() => {
                 const sev = getSeverityLabel(ai);
                 return sev ? (
-                  <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+                  <span className={`text-eyebrow px-1.5 py-0.5 rounded-md ${sev.className}`}>
                     {sev.label}
                   </span>
                 ) : null;
@@ -303,7 +303,7 @@ const UpdateDetail = () => {
                 };
                 const m = map[pn];
                 return m ? (
-                  <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${m.className}`}>
+                  <span className={`text-eyebrow px-1.5 py-0.5 rounded-md ${m.className}`}>
                     {m.label}
                   </span>
                 ) : null;
@@ -321,10 +321,10 @@ const UpdateDetail = () => {
                     className="border-l-4 px-4 py-3 mb-5 rounded-r"
                     style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                   >
-                    <div className="text-[11px] uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
+                    <div className="text-meta uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
-                    <p className="text-[14px] leading-relaxed text-navy">
+                    <p className="text-sm leading-relaxed text-navy">
                       {ai?.why_it_matters_short || (ai?.why_it_matters?.split('. ')[0] + '…')}
                     </p>
                   </div>
@@ -332,7 +332,7 @@ const UpdateDetail = () => {
                 <div className="rounded-xl border border-border bg-muted/30 p-5 flex items-start gap-3 mb-8">
                   <Lock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="flex-1">
-                    <p className="text-[14px] font-semibold text-foreground mb-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">
                       The Brief, Next Steps, Watch, and Contextual Record are available to registered users.
                     </p>
                     <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
@@ -355,8 +355,8 @@ const UpdateDetail = () => {
                     ======================================================== */}
                 <section aria-label="The Brief" className="mb-8">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>The Brief</span>
-                    <span className="text-[11px] text-muted-foreground/60">Why it matters &amp; key takeaways</span>
+                    <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>The Brief</span>
+                    <span className="text-meta text-muted-foreground/60">Why it matters &amp; key takeaways</span>
                   </div>
                   <hr className="border-border mb-4" />
 
@@ -365,7 +365,7 @@ const UpdateDetail = () => {
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
                       style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
-                      <p className="text-[14px] leading-relaxed text-navy m-0">
+                      <p className="text-sm leading-relaxed text-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
                       </p>
                     </div>
@@ -374,7 +374,7 @@ const UpdateDetail = () => {
                   {ai?.takeaways && ai.takeaways.length > 0 && (
                     <ul className="list-disc pl-5 space-y-1.5 mb-4">
                       {ai.takeaways.slice(0, 2).map((item, i) => (
-                        <li key={i} className="text-[14px] text-foreground leading-relaxed">{item}</li>
+                        <li key={i} className="text-sm text-foreground leading-relaxed">{item}</li>
                       ))}
                     </ul>
                   )}
@@ -390,7 +390,7 @@ const UpdateDetail = () => {
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {chips.map((c, i) => (
-                          <span key={i} className={`text-[11px] px-2 py-0.5 rounded-full border ${c.tone}`}>{c.label}</span>
+                          <span key={i} className={`text-meta px-2 py-0.5 rounded-full border ${c.tone}`}>{c.label}</span>
                         ))}
                       </div>
                     );
@@ -404,7 +404,7 @@ const UpdateDetail = () => {
                     if (ai?.key_date) scope.push({ label: "Key date", value: ai.key_date });
                     if (scope.length === 0) return null;
                     return (
-                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground border-t border-border pt-2">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-meta text-muted-foreground border-t border-border pt-2">
                         {scope.map((s, i) => (
                           <span key={i}>
                             <span className="font-semibold text-foreground">{s.label}:</span> {s.value}
@@ -423,11 +423,11 @@ const UpdateDetail = () => {
                     <Lock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1">
                       {(article as any).contextual_teaser && (
-                        <p className="text-[14px] italic text-foreground/90 mb-2 leading-relaxed">
+                        <p className="text-sm italic text-foreground/90 mb-2 leading-relaxed">
                           {(article as any).contextual_teaser}
                         </p>
                       )}
-                      <p className="text-[14px] font-semibold text-foreground mb-1">
+                      <p className="text-sm font-semibold text-foreground mb-1">
                         Next Steps, Watch, and the full Contextual Record are available on the Annual Platform plan.
                       </p>
                       <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
@@ -464,14 +464,14 @@ const UpdateDetail = () => {
                   return (
                     <section aria-label="Next Steps" className="mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
-                        <span className="text-[11px] text-muted-foreground/60">Actions by timeframe</span>
+                        <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
+                        <span className="text-meta text-muted-foreground/60">Actions by timeframe</span>
                       </div>
                       <hr className="border-border mb-4" />
                       <div className="space-y-3">
                         {bands.filter(b => groups[b.key].length > 0).map(b => (
                           <div key={b.key} className="grid grid-cols-[90px_1fr] gap-3 items-start">
-                            <span className="text-[11px] font-bold uppercase tracking-wider pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
+                            <span className="text-eyebrow pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
                                 <li key={i} className="text-sm text-foreground leading-relaxed">
@@ -493,8 +493,8 @@ const UpdateDetail = () => {
                 {isPremium && (article as any).related_signals && (article as any).related_signals.length > 0 && (
                   <section aria-label="Watch" className="mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
-                      <span className="text-[11px] text-muted-foreground/60">Related signals</span>
+                      <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
+                      <span className="text-meta text-muted-foreground/60">Related signals</span>
                     </div>
                     <hr className="border-border mb-4" />
                     <ul className="space-y-2">
@@ -517,7 +517,7 @@ const UpdateDetail = () => {
                 {isPremium && (
                   <section aria-label="Contextual Record" className="mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-navy">Contextual Record</span>
+                      <span className="text-eyebrow text-navy">Contextual Record</span>
                     </div>
                     <hr className="border-border mb-4" />
                     <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
@@ -533,18 +533,18 @@ const UpdateDetail = () => {
                   <section aria-label="Regulatory context" className="mb-8 space-y-3">
                     {article.regulatory_theory && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                        <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Regulatory theory
                         </div>
-                        <p className="text-[14px] leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
+                        <p className="text-sm leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
                       </div>
                     )}
                     {article.related_development && (
                       <div className="border border-border rounded-lg p-3">
-                        <div className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                        <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Related development
                         </div>
-                        <p className="text-[14px] leading-relaxed text-foreground m-0">{article.related_development}</p>
+                        <p className="text-sm leading-relaxed text-foreground m-0">{article.related_development}</p>
                       </div>
                     )}
                   </section>
@@ -560,7 +560,7 @@ const UpdateDetail = () => {
                 {article.topic_tags.map((t) => (
                   <span
                     key={t}
-                    className="font-mono-code text-[11px] bg-muted text-muted-foreground px-2.5 py-1 rounded-full"
+                    className="font-mono-code text-meta bg-muted text-muted-foreground px-2.5 py-1 rounded-full"
                   >
                     {t}
                   </span>
@@ -575,7 +575,7 @@ const UpdateDetail = () => {
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-primary font-semibold text-[14px] no-underline hover:underline border border-border rounded-xl px-5 py-2.5 transition-colors hover:bg-muted"
+              className="inline-flex items-center gap-2 text-primary font-semibold text-sm no-underline hover:underline border border-border rounded-xl px-5 py-2.5 transition-colors hover:bg-muted"
             >
               Read original source <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -591,8 +591,8 @@ const UpdateDetail = () => {
                       to={`/updates/${r.id}`}
                       className="block no-underline hover:bg-muted rounded-lg p-3 -mx-3 transition-colors"
                     >
-                      <p className="text-[14px] text-foreground font-medium leading-snug">{r.title}</p>
-                      <p className="text-[12px] text-muted-foreground mt-0.5">
+                      <p className="text-sm text-foreground font-medium leading-snug">{r.title}</p>
+                      <p className="text-meta text-muted-foreground mt-0.5">
                         {r.source_name && <span>{r.source_name} · </span>}
                         {formatDate(r.published_at)}
                       </p>

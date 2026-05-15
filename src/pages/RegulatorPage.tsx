@@ -112,7 +112,7 @@ const RegulatorPage = () => {
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             ⚖️ Regulator Profile
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
@@ -140,20 +140,20 @@ const RegulatorPage = () => {
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-fog">
             <div className="p-5">
-              <div className="text-[11px] font-semibold tracking-wider uppercase text-slate mb-2">Jurisdiction</div>
+              <div className="text-meta font-semibold tracking-wider uppercase text-slate mb-2">Jurisdiction</div>
               <div className="text-[15px] text-navy font-medium">{regulator.country}</div>
-              <div className="text-[12px] text-slate mt-0.5">{regulator.region}</div>
+              <div className="text-meta text-slate mt-0.5">{regulator.region}</div>
             </div>
             <div className="p-5">
-              <div className="text-[11px] font-semibold tracking-wider uppercase text-slate mb-2">Monitoring</div>
-              <span className={`text-[11px] font-semibold tracking-wide px-2.5 py-1 rounded-full ${tierClass}`}>
+              <div className="text-meta font-semibold tracking-wider uppercase text-slate mb-2">Monitoring</div>
+              <span className={`text-meta font-semibold tracking-wide px-2.5 py-1 rounded-full ${tierClass}`}>
                 {tierLabel}
               </span>
             </div>
           </div>
           {regulator.legislation && (
             <div className="border-t border-fog p-5">
-              <div className="text-[11px] font-semibold tracking-wider uppercase text-slate mb-2">Primary Legislation</div>
+              <div className="text-meta font-semibold tracking-wider uppercase text-slate mb-2">Primary Legislation</div>
               <div className="text-[15px] text-navy font-medium">
                 {regulator.legislation}
                 {regulator.legislation_abbreviation && (
@@ -163,7 +163,7 @@ const RegulatorPage = () => {
             </div>
           )}
           <div className="border-t border-fog p-5">
-            <div className="text-[11px] font-semibold tracking-wider uppercase text-slate mb-3">Links</div>
+            <div className="text-meta font-semibold tracking-wider uppercase text-slate mb-3">Links</div>
             <div className="flex gap-4 flex-wrap">
               <a href={regulator.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue hover:underline no-underline font-medium">Official Website ↗</a>
               {regulator.complaint_portal && (
@@ -182,7 +182,7 @@ const RegulatorPage = () => {
             {/* Header */}
             <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-center justify-between">
               <div>
-                <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">
+                <div className="text-eyebrow text-sky mb-1">
                   ⭐ Weekly Intelligence
                 </div>
                 <h3 className="font-display text-[15px] text-white">
@@ -228,7 +228,7 @@ const RegulatorPage = () => {
                 <p className="text-xs text-slate text-center px-6 mb-4">
                   Enforcement actions, guidance updates, and what each development means — every Monday.
                 </p>
-                <Link to="/subscribe" className="px-5 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg no-underline hover:opacity-90 transition-all shadow-eup-sm">
+                <Link to="/subscribe" className="px-5 py-2 text-meta font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg no-underline hover:opacity-90 transition-all shadow-eup-sm">
                   Unlock Regulator Intelligence →
                 </Link>
               </div>
@@ -241,7 +241,7 @@ const RegulatorPage = () => {
         {/* Recent Developments */}
         {recentArticles.length > 0 && (
           <div className="mt-10 pt-8 border-t border-fog">
-            <h2 className="font-display font-bold text-navy text-[18px] mb-4">
+            <h2 className="font-display font-bold text-navy text-lg mb-4">
               Recent Developments
             </h2>
             <div className="space-y-4">
@@ -254,11 +254,11 @@ const RegulatorPage = () => {
                   className="block bg-card border border-fog rounded-xl p-4 no-underline hover:shadow-eup-sm transition-all group"
                 >
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[11px] font-medium text-slate">
+                    <span className="text-meta font-medium text-slate">
                       {article.source_name}
                     </span>
-                    <span className="text-[11px] text-slate-light">·</span>
-                    <span className="text-[11px] text-slate-light">
+                    <span className="text-meta text-slate-light">·</span>
+                    <span className="text-meta text-slate-light">
                       {new Date(article.published_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
                     </span>
                   </div>
@@ -266,7 +266,7 @@ const RegulatorPage = () => {
                     {article.title}
                   </p>
                   {article.ai_summary?.why_it_matters && (
-                    <p className="text-[12px] text-slate mt-1.5 leading-relaxed line-clamp-2">
+                    <p className="text-meta text-slate mt-1.5 leading-relaxed line-clamp-2">
                       {article.ai_summary.why_it_matters}
                     </p>
                   )}

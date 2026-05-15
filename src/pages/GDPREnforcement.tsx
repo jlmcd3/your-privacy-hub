@@ -139,21 +139,21 @@ const GDPREnforcement = () => {
       {/* Header */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             ⚖️ Intelligence Guide
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">GDPR & UK Privacy</h1>
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">
             Enforcement history, regulatory framework, and key developments across the European Union and United Kingdom.
           </p>
-          <div className="text-[11px] text-slate-light mt-4">Last updated: March 8, 2026</div>
+          <div className="text-meta text-slate-light mt-4">Last updated: March 8, 2026</div>
 
           {/* Stat bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 max-w-[700px]">
             {GDPR_HERO_STATS.map((stat, idx) => (
               <div key={idx} className="bg-white/10 rounded-lg px-4 py-3 text-center">
                 <p className="font-display text-[22px] text-white font-bold leading-none mb-1">{stat.value}</p>
-                <p className="text-[11px] text-slate-light leading-snug">{stat.label}</p>
+                <p className="text-meta text-slate-light leading-snug">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -162,7 +162,7 @@ const GDPREnforcement = () => {
           {!user && (
             <div className="mt-4 max-w-[460px]">
               {gdprEmailSent ? (
-                <p className="text-[12px] text-slate-light">You're subscribed — alerts will arrive Monday morning.</p>
+                <p className="text-meta text-slate-light">You're subscribed — alerts will arrive Monday morning.</p>
               ) : (
                 <form onSubmit={handleGdprEmailCapture} className="flex gap-2">
                   <input
@@ -170,12 +170,12 @@ const GDPREnforcement = () => {
                     value={gdprEmail}
                     onChange={(e) => setGdprEmail(e.target.value)}
                     placeholder="Get GDPR enforcement alerts"
-                    className="flex-1 text-[12px] px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder:text-slate-light focus:outline-none focus:border-white/40"
+                    className="flex-1 text-meta px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder:text-slate-light focus:outline-none focus:border-white/40"
                     required
                   />
                   <button
                     type="submit"
-                    className="text-[12px] px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors whitespace-nowrap"
+                    className="text-meta px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors whitespace-nowrap"
                   >
                     Get alerts →
                   </button>
@@ -190,7 +190,7 @@ const GDPREnforcement = () => {
               <button
                 key={tab.anchor}
                 onClick={() => scrollTo(tab.anchor)}
-                className={`px-3 py-1.5 text-[11px] md:text-[12px] font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer bg-transparent ${
+                className={`px-3 py-1.5 text-meta md:text-meta font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer bg-transparent ${
                   activeTab === tab.anchor
                     ? "border-white text-white bg-white/15"
                     : "border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
@@ -208,7 +208,7 @@ const GDPREnforcement = () => {
         <div ref={setRef("gdpr-recent")} id="gdpr-recent" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-display text-base text-navy">Recent developments</h2>
-            <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">Live</span>
+            <span className="text-eyebrow px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">Live</span>
           </div>
           <div className="divide-y divide-fog">
             {recentArticles.map((a: any) => (
@@ -243,8 +243,8 @@ const GDPREnforcement = () => {
         <div className="space-y-8">
           {SECTIONS.map((sec) => (
             <div key={sec.id} ref={setRef(sec.id)} id={sec.id} className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
-              <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
+              <h2 className="font-display text-xl md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+              <p className="text-sm text-slate leading-relaxed">{sec.content}</p>
             </div>
           ))}
         </div>
@@ -253,15 +253,15 @@ const GDPREnforcement = () => {
         <div className="space-y-8 mt-8">
           {MORE_SECTIONS.map((sec, i) => (
             <div key={i}>
-              <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
-              <p className="text-[14px] text-slate leading-relaxed">{sec.content}</p>
+              <h2 className="font-display text-xl md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+              <p className="text-sm text-slate leading-relaxed">{sec.content}</p>
             </div>
           ))}
         </div>
 
         {/* ── UK Privacy Framework ── */}
         <div ref={setRef("uk-privacy")} id="uk-privacy" className="bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(var(--navy-mid))] rounded-2xl p-5 md:p-8 mt-12 mb-10 scroll-mt-24">
-          <h2 className="font-display text-[20px] md:text-[24px] text-white mb-4 flex items-center gap-2">
+          <h2 className="font-display text-xl md:text-[24px] text-white mb-4 flex items-center gap-2">
             🇬🇧 UK Privacy Framework
           </h2>
           <div className="text-sm text-slate-light leading-relaxed space-y-3">
@@ -282,7 +282,7 @@ const GDPREnforcement = () => {
               <div>
                 <h3 className="font-display text-[17px] text-white/90 mb-3">EU GDPR vs UK GDPR</h3>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[12px] border-collapse">
+                  <table className="w-full text-meta border-collapse">
                     <thead>
                       <tr>
                         <th className="text-left px-3 py-2 text-white/70 font-semibold border-b border-white/10">Dimension</th>
@@ -330,7 +330,7 @@ const GDPREnforcement = () => {
 
         {/* ── Legitimate Interest Tracker callout ── */}
         <div className="bg-sky/5 border-l-4 border-[hsl(var(--navy))] rounded-xl p-5 md:p-6 mb-10">
-          <h3 className="font-display text-[18px] text-navy mb-2">Legitimate Interest Under GDPR & UK GDPR</h3>
+          <h3 className="font-display text-lg text-navy mb-2">Legitimate Interest Under GDPR & UK GDPR</h3>
           <p className="text-sm text-slate leading-relaxed mb-4">
             Article 6(1)(f) of both the EU GDPR and UK GDPR permits processing where a legitimate interest exists that is not overridden by the data subject's rights. The EDPB and ICO have both issued detailed guidance on the three-part assessment required. Our Legitimate Interest Tracker compiles regulatory positions from enforcement decisions, official guidance, and regulatory statements across the EU and UK — updated weekly.
           </p>
@@ -354,8 +354,8 @@ const GDPREnforcement = () => {
                 className="group bg-card border border-fog rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all"
               >
                 <span className="text-2xl block mb-2">{link.icon}</span>
-                <p className="font-display font-bold text-navy text-[14px] mb-1 group-hover:text-blue transition-colors">{link.label}</p>
-                <span className="text-blue text-[12px] font-semibold">Explore →</span>
+                <p className="font-display font-bold text-navy text-sm mb-1 group-hover:text-blue transition-colors">{link.label}</p>
+                <span className="text-blue text-meta font-semibold">Explore →</span>
               </Link>
             ))}
           </div>
@@ -366,8 +366,8 @@ const GDPREnforcement = () => {
               className="group bg-card border border-fog rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all block"
             >
               <span className="text-2xl block mb-2">{RELATED_LINKS[4].icon}</span>
-              <p className="font-display font-bold text-navy text-[14px] mb-1 group-hover:text-blue transition-colors">{RELATED_LINKS[4].label}</p>
-              <span className="text-blue text-[12px] font-semibold">Explore →</span>
+              <p className="font-display font-bold text-navy text-sm mb-1 group-hover:text-blue transition-colors">{RELATED_LINKS[4].label}</p>
+              <span className="text-blue text-meta font-semibold">Explore →</span>
             </Link>
           </div>
           <div className="mt-6">
@@ -381,7 +381,7 @@ const GDPREnforcement = () => {
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
+          <div className="text-eyebrow text-sky mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on GDPR & UK Privacy</h3>
           <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.</p>
           <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
