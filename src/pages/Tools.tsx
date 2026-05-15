@@ -590,7 +590,7 @@ export default function Tools() {
 
                   {/* Body */}
                   {tool.body.map((p, i) => (
-                    <p key={i} className="text-sm text-slate leading-relaxed mb-4">{p}</p>
+                    <p key={i} className="text-sm text-gray-600 leading-relaxed mb-4">{p}</p>
                   ))}
 
                   {/* CTAs */}
