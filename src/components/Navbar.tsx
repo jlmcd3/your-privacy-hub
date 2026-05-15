@@ -355,7 +355,7 @@ const Navbar = () => {
             )}
           </span>
           {sub.description && (
-            <span className="block text-[12px] text-slate-light mt-0.5 leading-snug">
+            <span className="block text-meta text-slate-light mt-0.5 leading-snug">
               {sub.description}
             </span>
           )}
