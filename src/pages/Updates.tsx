@@ -543,10 +543,10 @@ const Updates = () => {
                 {/* Active filter summary + clear */}
                 {hasActiveFilters && (
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[12px] text-muted-foreground">{filtered.length} results</span>
+                        <span className="text-xs text-muted-foreground">{filtered.length} results</span>
                         <button
                             onClick={clearAllFilters}
-                            className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-destructive hover:underline"
                         >
                             <X className="w-3 h-3" /> Clear all filters
                         </button>
