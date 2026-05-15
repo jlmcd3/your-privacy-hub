@@ -523,6 +523,8 @@ const PrivacyPolicy = () => {
               marked "Data Protection Enquiry."
             </p>
           </section>
+
+          <p className="text-sm text-muted-foreground pt-4">© 2026 EUP, LLC</p>
         </div>
       </main>
       <Footer />
