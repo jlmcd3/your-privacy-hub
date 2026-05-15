@@ -39,6 +39,21 @@ const faqs = [
   },
 ];
 
+const pricingFaqs = [
+  {
+    q: "How much does End User Privacy cost?",
+    a: "The Privacy Intelligence Feed is $29/month (cancel any time) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. The Compliance Platform is $399/year and includes everything in the Intelligence Feed plus all compliance tools — Governance Assessment, LIA, DPIA, DPA Generator, IR Playbook, RoPA Builder, Privacy Notice Builder, and the full CPPA Suite. Individual tools are also available as standalone purchases.",
+  },
+  {
+    q: "What is included in the Compliance Platform?",
+    a: "The Annual Platform ($399/year, equivalent to $33.25/month) includes all compliance tools, unlimited report generation, permanent document storage in My Reports, the full weekly Privacy Intelligence Report, and access to the Enforcement Forecast Intelligence. All standard tools are included at no extra charge. Registration filing services (DPO appointments, controller registrations, AI Act filings) are available at standalone rates.",
+  },
+  {
+    q: "Can I try the tools before subscribing?",
+    a: "The CPPA Scope Checker is free and requires no account. The Privacy Intelligence Feed is free to browse. Registering a free account gives you access to the Context layer on all articles. The weekly Privacy Intelligence Report and compliance tools require a paid subscription.",
+  },
+];
+
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [openIndices, setOpenIndices] = useState<Set<number>>(new Set([0, 1]));
