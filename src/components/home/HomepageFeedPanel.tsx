@@ -79,15 +79,35 @@ const HomepageArticleCard = ({
   })();
 
   const renderEnrichment = () => {
+    const excerpt = article.summary ? (
+      <p className="text-[12px] text-slate leading-relaxed mt-1 line-clamp-2">
+        {stripHtml(article.summary)}
+      </p>
+    ) : null;
+
+    const shortWhy = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
+    const sentence = shortWhy ? (shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy) : null;
+    const alertNode = sentence ? (
+      <p className="text-[12px] text-slate leading-relaxed mt-1.5">
+        <span className="font-semibold text-warn">Alert: </span>{sentence}
+      </p>
+    ) : null;
+
+    const why =
+      article.ai_summary?.why_it_matters ??
+      article.why_it_matters_short ??
+      article.ai_summary?.why_it_matters_short;
+    const contextNode = why ? (
+      <p className="text-[12px] text-slate leading-relaxed mt-1.5">
+        <span className="font-semibold text-steel">Context: </span>{why}
+      </p>
+    ) : null;
+
     if (demoTier === "anonymous") {
-      const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
-      if (!s) return null;
-      const sentence = s.split(/(?<=[.!?])\s/)[0] ?? s;
       return (
-        <div className="mt-1.5">
-          <p className="text-[12px] text-slate leading-relaxed">
-            <span className="font-semibold text-warn">Alert: </span>{sentence}
-          </p>
+        <div>
+          {excerpt}
+          {alertNode}
           <div className="flex flex-col gap-1 mt-1">
             <Link to="/signup" className="text-[11px] font-semibold text-steel hover:underline no-underline">
               Register free to see Context →
@@ -101,37 +121,33 @@ const HomepageArticleCard = ({
     }
 
     if (demoTier === "free") {
-      const why =
-        article.ai_summary?.why_it_matters ??
-        article.why_it_matters_short ??
-        article.ai_summary?.why_it_matters_short;
-      if (!why) return null;
       return (
-        <div className="mt-1.5">
-          <p className="text-[12px] text-slate leading-relaxed mb-1.5">
-            <span className="font-semibold text-steel">Context: </span>{why}
-          </p>
-          <Link to="/subscribe" className="text-[11px] font-semibold text-gold hover:underline no-underline">
-            Subscribe to see Analysis and Guidance →
-          </Link>
+        <div>
+          {excerpt}
+          {alertNode}
+          {contextNode}
+          <div className="mt-1.5">
+            <Link to="/subscribe" className="text-[11px] font-semibold text-gold hover:underline no-underline">
+              Subscribe to see Analysis and Guidance →
+            </Link>
+          </div>
         </div>
       );
     }
 
     if (demoTier === "paid") {
-      const why = article.ai_summary?.why_it_matters ?? article.why_it_matters_short;
       const impact = article.ai_summary?.compliance_impact;
       const toolCTA = getToolCTA(article);
       return (
-        <div className="mt-1.5 space-y-1.5">
-          {why && (
+        <div className="space-y-1.5">
+          {excerpt}
+          {alertNode}
+          {contextNode}
+          {(impact || actionProse || watchProse) && (
             <p className="text-[12px] text-slate leading-relaxed">
-              <span className="font-semibold text-gold">Analysis and Guidance: </span>{why}
-            </p>
-          )}
-          {impact && <p className="text-[12px] text-slate leading-relaxed">{impact}</p>}
-          {(actionProse || watchProse) && (
-            <p className="text-[12px] text-slate leading-relaxed">
+              <span className="font-semibold text-gold">Analysis and Guidance: </span>
+              {impact}
+              {impact && (actionProse || watchProse) && " "}
               {actionProse}
               {actionProse && watchProse && " "}
               {watchProse && <span className="italic">{watchProse}</span>}
@@ -146,10 +162,14 @@ const HomepageArticleCard = ({
       );
     }
 
-    const s = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
-    return s ? (
-      <p className="text-[11px] text-slate/70 mt-1 line-clamp-2 leading-snug">{s}</p>
-    ) : null;
+    // Authenticated (non-demo) — show excerpt + alert + context as default
+    return (
+      <div>
+        {excerpt}
+        {alertNode}
+        {contextNode}
+      </div>
+    );
   };
 
   return (
