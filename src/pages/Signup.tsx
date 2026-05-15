@@ -72,6 +72,7 @@ const Signup = () => {
               '150+ jurisdictions covered',
               'Weekly digest — free',
               `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
+              `Compliance Platform with all tools — ${PLATFORM_PRICING.standard()}`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
