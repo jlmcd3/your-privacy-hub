@@ -201,17 +201,17 @@ const HomepageArticleCard = ({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1 mb-1">
             {article.source_name && (
-              <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+              <span className="text-meta font-semibold text-slate uppercase tracking-wide">
                 {article.source_name}
               </span>
             )}
             {article.published_at && (
-              <span className="text-[11px] text-slate-light">
+              <span className="text-meta text-slate-light">
                 {fmtDate(article.published_at)}
               </span>
             )}
             {article.attention_level === "WATCH CLOSELY" && (
-              <span className="text-[11px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
+              <span className="text-eyebrow px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
                 Watch Closely
               </span>
             )}
