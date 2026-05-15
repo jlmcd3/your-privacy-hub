@@ -134,6 +134,35 @@
 
 /* --- Heading scale (use on real <h1>/<h2>/<h3> elements) --- */
 
+/*
+  CANONICAL TYPE SCALE — use these classes, not ad-hoc text-[Xpx]
+  ----------------------------------------------------------------
+  .text-eyebrow    11px  DM Sans 700 uppercase tracking  — badges, tags, labels above headings
+  .text-label      12px  DM Sans 600 uppercase tracking  — table column headers, form section labels
+  .text-meta       12px  DM Sans 400                     — timestamps, source lines, secondary info
+  .text-body       14px  DM Sans 400                     — primary body copy, table cells, card text
+  .text-nav        14px  DM Sans 500 tracking            — navigation items
+  .text-cta        15px  DM Sans 700                     — buttons, CTAs
+  .text-card-title 16px  DM Sans 600                     — card headings, tile titles
+  .text-section-h2 24/28px  Georgia 400                  — major in-page section headings
+  .text-page-h1    28/36px  Georgia 400                  — page-level H1s
+  .text-hero-h1    36/44px  Georgia 400                  — landing/hero headings only
+
+  Tailwind utilities still in use for one-off sizes:
+  text-xs (12px)   — same size as text-meta, no semantic weight
+  text-sm (14px)   — same size as text-body, no semantic weight
+  text-base (16px) — lead paragraphs, prominent descriptions
+  text-lg (18px)   — large card headings, prominent sub-headings
+  text-2xl (24px)  — section headings where Georgia is not appropriate
+  text-3xl (30px)  — page titles where font-display is not applied
+  text-4xl (36px)  — section H1s
+  text-5xl (48px)  — heroes only
+
+  HARD FLOOR: 11px. Nothing below this anywhere on the site.
+  GEORGIA: headings only (text-section-h2 and above, or font-display class).
+           Do not use Georgia on body copy, table cells, or UI chrome.
+*/
+
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
 .text-hero-h1 {
   font-family: Georgia, 'Times New Roman', serif;
@@ -210,9 +239,16 @@
 
 .text-meta {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;   /* 13px */
+  font-size: 0.75rem;     /* 12px */
   font-weight: 400;
-  opacity: 0.65;
+}
+
+/* Body copy — primary reading size for all UI text, tables, card content */
+.text-body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.875rem;    /* 14px */
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .font-mono-code {
