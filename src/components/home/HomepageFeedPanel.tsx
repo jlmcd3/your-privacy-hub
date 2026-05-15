@@ -431,6 +431,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
                 tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
                 evenRow={i % 2 === 1}
                 demoTier={!isAuthenticated ? DEMO_TIERS[i] : undefined}
+                isPremium={isPremium}
               />
             ));
           })()}
