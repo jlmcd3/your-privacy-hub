@@ -9,6 +9,11 @@ interface TieredFeedProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
+  /** Legacy props — accepted but ignored. Enrichment is now inline per card. */
+  newsfeedCap?: number;
+  previewCount?: number;
+  seeAllHref?: string;
+  showSeeAll?: boolean;
 }
 
 export function TieredFeed({
