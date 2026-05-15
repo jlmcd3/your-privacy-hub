@@ -738,9 +738,6 @@ interface ArticleCardProps {
   isPremium?: boolean;
   userSalutation?: string;
   onOpenDrawer?: (item: ArticleItem) => void;
-  panelMode?: boolean;
-  isSelected?: boolean;
-  onSelect?: () => void;
 }
 
 export const ArticleCard = ({
@@ -748,9 +745,6 @@ export const ArticleCard = ({
   variant = 'full',
   isPremium = false,
   userSalutation,
-  panelMode = false,
-  isSelected = false,
-  onSelect,
 }: ArticleCardProps) => {
   switch (variant) {
     case 'compact':     return <CompactCard item={item} />;
@@ -764,9 +758,6 @@ export const ArticleCard = ({
         item={item}
         isPremium={isPremium}
         userSalutation={userSalutation}
-        panelMode={panelMode}
-        isSelected={isSelected}
-        onSelect={onSelect}
       />
     );
   }
