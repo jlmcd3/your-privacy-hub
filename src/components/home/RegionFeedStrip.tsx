@@ -34,16 +34,16 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl flag-emoji">{item.flag}</span>
               <div>
-                <div className="text-[11px] font-bold text-slate uppercase tracking-wider">
+                <div className="text-meta font-bold text-slate uppercase tracking-wider">
                   {item.jurisdiction}
                 </div>
-                <div className="text-[11px] text-slate-light">{item.date}</div>
+                <div className="text-meta text-slate-light">{item.date}</div>
               </div>
-              <span className="ml-auto text-[11px] font-bold uppercase tracking-wider bg-blue/5 text-blue border border-blue/10 px-1.5 py-0.5 rounded-full">
+              <span className="ml-auto text-eyebrow bg-blue/5 text-blue border border-blue/10 px-1.5 py-0.5 rounded-full">
                 {item.category}
               </span>
             </div>
-            <h4 className="font-bold text-navy text-[14px] leading-snug group-hover:text-blue transition-colors line-clamp-2">
+            <h4 className="font-bold text-navy text-sm leading-snug group-hover:text-blue transition-colors line-clamp-2">
               {normalizeTitle(item.headline)}
             </h4>
             {item.summary && (
@@ -52,7 +52,7 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
               </p>
             )}
             {item.whyItMatters && (
-              <p className="text-[11px] text-muted-foreground leading-snug mt-1 line-clamp-2">
+              <p className="text-meta text-muted-foreground leading-snug mt-1 line-clamp-2">
                 {item.whyItMatters.split(/\.\s+/)[0] + "."}
               </p>
             )}

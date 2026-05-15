@@ -182,7 +182,7 @@ export default function ProToolsBanner() {
                 <p className="text-blue-100/85 text-sm leading-relaxed mb-3 flex-1">
                   {t.blurb}
                 </p>
-                <p className="text-[11px] uppercase tracking-wide text-blue-200/70 mb-3">
+                <p className="text-meta uppercase tracking-wide text-blue-200/70 mb-3">
                   {t.price}
                 </p>
                 <span className="inline-flex items-center text-amber-300 group-hover:text-amber-200 font-semibold text-sm">

@@ -74,15 +74,15 @@ export default function ThisWeekInPrivacy() {
     return (
       <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <h2 className="font-display font-bold text-white text-[18px]">
+          <h2 className="font-display font-bold text-white text-lg">
             This Week in Privacy
           </h2>
-          <span className="text-[11px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
+          <span className="text-meta text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {report.date}
           </span>
         </div>
 
-        <h2 className="font-display font-bold text-[18px] md:text-[20px] leading-snug mb-3">
+        <h2 className="font-display font-bold text-lg md:text-xl leading-snug mb-3">
           {headline}
         </h2>
 
@@ -101,7 +101,7 @@ export default function ThisWeekInPrivacy() {
 
         <Link
           to="/#brief"
-          className="inline-block text-[12px] font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
+          className="inline-block text-meta font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
         >
           Read this week's brief →
         </Link>
@@ -123,17 +123,17 @@ export default function ThisWeekInPrivacy() {
   return (
     <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
       <div className="flex items-center gap-2 mb-3">
-        <h2 className="font-display font-bold text-white text-[18px]">
+        <h2 className="font-display font-bold text-white text-lg">
           This Week in Privacy
         </h2>
         {brief.week_label && (
-          <span className="text-[11px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
+          <span className="text-meta text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
             {brief.week_label}
           </span>
         )}
       </div>
 
-      <h2 className="font-display font-bold text-[18px] md:text-[20px] leading-snug mb-3">
+      <h2 className="font-display font-bold text-lg md:text-xl leading-snug mb-3">
         {brief.headline}
       </h2>
 
@@ -150,7 +150,7 @@ export default function ThisWeekInPrivacy() {
 
       <Link
         to="/#brief"
-        className="inline-block text-[12px] font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
+        className="inline-block text-meta font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
       >
         Read this week's brief →
       </Link>

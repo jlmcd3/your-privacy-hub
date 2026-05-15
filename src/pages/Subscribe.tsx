@@ -114,13 +114,13 @@ const Subscribe = () => {
           <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
             {/* Intelligence Feed card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-sky mb-2">
+              <p className="text-eyebrow text-sky mb-2">
                 Privacy Intelligence Feed
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
                 {INTELLIGENCE_PRICING.monthlyShort()}
               </div>
-              <p className="text-blue-200 text-[12px] mb-4">Cancel any time</p>
+              <p className="text-blue-200 text-meta mb-4">Cancel any time</p>
               <ul className="space-y-2 mb-6">
                 {[
                   "Weekly Privacy Intelligence Report",
@@ -147,19 +147,19 @@ const Subscribe = () => {
 
             {/* Compliance Platform card */}
             <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-300 mb-2">
+              <p className="text-eyebrow text-amber-300 mb-2">
                 Compliance Platform
               </p>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-white font-display font-bold text-[36px] leading-none">
                   $399
                 </span>
-                <span className="text-blue-200 text-[18px] font-normal">/year</span>
+                <span className="text-blue-200 text-lg font-normal">/year</span>
               </div>
-              <p className="text-blue-200/70 text-[12px] mb-1">
+              <p className="text-blue-200/70 text-meta mb-1">
                 Billed as one annual payment
               </p>
-              <p className="text-blue-200/50 text-[11px] mb-4">
+              <p className="text-blue-200/50 text-meta mb-4">
                 {PLATFORM_PRICING.standardMonthly()} equivalent
               </p>
               <ul className="space-y-2 mb-6">
@@ -184,9 +184,9 @@ const Subscribe = () => {
               </button>
             </div>
           </div>
-          {error && <p className="text-red-300 text-[12px] mt-4">{error}</p>}
+          {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
           {isPremium && (
-            <p className="text-blue-200 text-[12px] mt-4">
+            <p className="text-blue-200 text-meta mt-4">
               You're already subscribed. <Link to="/account" className="underline">Manage your subscription →</Link>
             </p>
           )}
@@ -210,9 +210,9 @@ const Subscribe = () => {
       {fromBuilder && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
-            <span className="text-green-600 text-[18px] flex-shrink-0 mt-0.5">✓</span>
+            <span className="text-green-600 text-lg flex-shrink-0 mt-0.5">✓</span>
             <div>
-              <p className="font-bold text-navy text-[14px] mb-0.5">
+              <p className="font-bold text-navy text-sm mb-0.5">
                 Your Intelligence Report is configured and ready.
               </p>
               <p className="text-sm text-slate">
@@ -225,7 +225,7 @@ const Subscribe = () => {
 
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy text-[20px] mb-2">
+          <h2 className="font-display font-bold text-navy text-xl mb-2">
             See what your report would look like
           </h2>
           <p className="text-slate text-sm">
@@ -244,16 +244,16 @@ const Subscribe = () => {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-fog">
-                    <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate">
+                    <th className="px-5 py-3.5 text-left text-meta font-semibold tracking-wider uppercase text-slate">
                       Feature
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-slate w-[110px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-slate w-[110px]">
                       Free
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-sky w-[170px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-sky w-[170px]">
                       Intelligence ({INTELLIGENCE_PRICING.monthlyShort()})
                     </th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
                       Platform ({PLATFORM_PRICING.standard()})
                     </th>
                   </tr>
@@ -265,7 +265,7 @@ const Subscribe = () => {
                         <tr key={i} className="bg-navy/5">
                           <td
                             colSpan={4}
-                            className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-navy/60 border-t border-fog"
+                            className="px-5 py-2 text-eyebrow text-navy/60 border-t border-fog"
                           >
                             {row.feature}
                           </td>
@@ -284,10 +284,10 @@ const Subscribe = () => {
                       }
                       if (val === false) return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
                       if (val === "Included") {
-                        return <span className="text-[11px] font-semibold text-green-600">Included</span>;
+                        return <span className="text-meta font-semibold text-green-600">Included</span>;
                       }
                       const cls = color === "platform" ? "text-amber-700" : "text-slate";
-                      return <span className={`text-[11px] font-medium ${cls}`}>{val}</span>;
+                      return <span className={`text-meta font-medium ${cls}`}>{val}</span>;
                     };
                     const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
                     return (
@@ -309,13 +309,13 @@ const Subscribe = () => {
         <div className="mb-14">
           {/* Section heading */}
           <div className="text-center mb-8">
-            <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-slate mb-3">
+            <p className="text-meta font-bold uppercase tracking-[0.09em] text-slate mb-3">
               Where we fit
             </p>
             <h2 className="font-display text-[22px] md:text-[28px] text-navy mb-3 leading-tight">
               The missing piece of the privacy toolkit
             </h2>
-            <p className="text-[14px] text-slate max-w-[480px] mx-auto leading-relaxed">
+            <p className="text-sm text-slate max-w-[480px] mx-auto leading-relaxed">
               Privacy professionals rely on four well-established categories of tools.
               End User Privacy was purpose-built for the one that had no dedicated home.
             </p>
@@ -395,7 +395,7 @@ const Subscribe = () => {
                       <p className={`text-sm font-semibold leading-snug mb-0.5 ${item.nameClass}`}>
                         {item.name}
                       </p>
-                      <p className="text-[12px] text-slate leading-relaxed">{item.desc}</p>
+                      <p className="text-meta text-slate leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -405,10 +405,10 @@ const Subscribe = () => {
 
           {/* EUP highlight card */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 mb-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
+            <p className="text-meta font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
-            <h3 className="font-display text-[16px] text-navy mb-2 leading-snug">
+            <h3 className="font-display text-base text-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">

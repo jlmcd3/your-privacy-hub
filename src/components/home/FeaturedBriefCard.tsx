@@ -52,19 +52,19 @@ export default function FeaturedBriefCard({
 
         {/* Meta row */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
+          <span className="text-eyebrow text-amber-300 bg-amber-400/20 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
             📋 Top Story
           </span>
-          <span className="text-blue-300 text-[11px]">·</span>
-          <span className="text-[11px] text-blue-300">{date}</span>
-          <span className="text-blue-300 text-[11px]">·</span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-300">
+          <span className="text-blue-300 text-meta">·</span>
+          <span className="text-meta text-blue-300">{date}</span>
+          <span className="text-blue-300 text-meta">·</span>
+          <span className="text-eyebrow text-blue-300">
             {jurisdictionFlag} {jurisdiction}
           </span>
           {aiSummary?.urgency && aiSummary.urgency !== "Monitor" && (
             <>
-              <span className="text-blue-300 text-[11px]">·</span>
-              <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+              <span className="text-blue-300 text-meta">·</span>
+              <span className={`text-eyebrow px-2.5 py-0.5 rounded-full border ${
                 aiSummary.urgency === "Immediate"
                   ? "bg-red-900/40 text-red-300 border-red-700/40"
                   : "bg-amber-900/30 text-amber-300 border-amber-700/30"
@@ -81,7 +81,7 @@ export default function FeaturedBriefCard({
         </h2>
 
         {/* Intelligence excerpt */}
-        <p className="text-blue-100/80 text-[14px] leading-relaxed mb-5 max-w-2xl">
+        <p className="text-blue-100/80 text-sm leading-relaxed mb-5 max-w-2xl">
           {aiSummary?.why_it_matters
             ? aiSummary.why_it_matters.split(/\.\s+/)[0] + "."
             : summary}
@@ -89,7 +89,7 @@ export default function FeaturedBriefCard({
 
         {/* Compliance impact */}
         {aiSummary?.compliance_impact && (
-          <p className="text-blue-300/70 text-[12px] mb-5 max-w-xl">
+          <p className="text-blue-300/70 text-meta mb-5 max-w-xl">
             <span className="font-semibold text-blue-200/80">Impact: </span>
             {aiSummary.compliance_impact.split(".")[0]}.
           </p>

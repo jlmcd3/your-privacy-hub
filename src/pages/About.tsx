@@ -14,7 +14,7 @@ const About = () => {
       <main className="flex-1">
         <section className="bg-gradient-to-br from-navy via-navy-light to-navy py-16 px-4">
           <div className="max-w-[760px] mx-auto text-center">
-            <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
+            <span className="inline-block text-meta font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
               ABOUT END USER PRIVACY
             </span>
             <h1 className="font-display text-[32px] md:text-[40px] font-extrabold text-white leading-tight mb-4">
@@ -48,7 +48,7 @@ const About = () => {
         <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           {/* Mission block */}
           <div className="bg-card border border-fog rounded-2xl p-6 md:p-10 mb-12 md:mb-16">
-            <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-steel bg-fog rounded-full px-3 py-1 mb-5">
+            <span className="inline-block text-meta font-semibold tracking-wider uppercase text-steel bg-fog rounded-full px-3 py-1 mb-5">
               Our mission
             </span>
             <blockquote className="font-display text-[22px] md:text-[28px] font-bold text-navy leading-tight mb-5">
@@ -61,7 +61,7 @@ const About = () => {
 
           {/* What we cover */}
           <div className="mb-12 md:mb-16">
-            <h2 className="font-display text-[20px] md:text-[24px] font-bold text-navy mb-5 md:mb-6">
+            <h2 className="font-display text-xl md:text-[24px] font-bold text-navy mb-5 md:mb-6">
               What we cover
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -107,17 +107,17 @@ const About = () => {
             <p>
               Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, End User Privacy gives you the intelligence you need in one place.
             </p>
-            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Our Mission</h2>
+            <h2 className="font-display text-xl font-bold text-navy pt-4">Our Mission</h2>
             <p>
               To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn`t require expensive enterprise subscriptions or hours of manual research.
             </p>
 
             {/* Free Tools section */}
-            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Free Tools</h2>
+            <h2 className="font-display text-xl font-bold text-navy pt-4">Free Tools</h2>
             <p>
               These tools are free. The digest and some features require a free account:
             </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[14px]">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               {[
                 "📅 Compliance Calendar",
                 "📜 Legislation Tracker",
@@ -134,7 +134,7 @@ const About = () => {
               ))}
             </ul>
 
-            <h2 className="font-display text-[20px] font-bold text-navy pt-4">Contact</h2>
+            <h2 className="font-display text-xl font-bold text-navy pt-4">Contact</h2>
             <p>
               Have questions or feedback? Reach us at{" "}
               <a href="mailto:hello@enduserprivacy.com" className="text-sky hover:underline">
@@ -144,18 +144,18 @@ const About = () => {
           </div>
 
           <div className="mt-12">
-            <p className="text-[14px] text-navy font-semibold mb-4">
+            <p className="text-sm text-navy font-semibold mb-4">
               DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
             </p>
-            <h2 className="font-display text-[20px] text-navy mb-6">The alternative to expensive enterprise platforms</h2>
+            <h2 className="font-display text-xl text-navy mb-6">The alternative to expensive enterprise platforms</h2>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-sm">
                 <thead>
                   <tr className="bg-fog">
-                    <th className="px-5 py-3.5 text-left text-[12px] font-semibold tracking-wider uppercase text-slate" />
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-blue bg-blue/5">End User Privacy</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
-                    <th className="px-5 py-3.5 text-center text-[12px] font-semibold text-slate">IAPP Membership — $550+/yr</th>
+                    <th className="px-5 py-3.5 text-left text-meta font-semibold tracking-wider uppercase text-slate" />
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold text-blue bg-blue/5">End User Privacy</th>
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold text-slate">IAPP Membership — $550+/yr</th>
                   </tr>
                 </thead>
                 <tbody>
