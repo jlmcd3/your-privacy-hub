@@ -210,9 +210,16 @@
 
 .text-meta {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;   /* 13px */
+  font-size: 0.75rem;     /* 12px */
   font-weight: 400;
-  opacity: 0.65;
+}
+
+/* Body copy — primary reading size for all UI text, tables, card content */
+.text-body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.875rem;    /* 14px */
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .font-mono-code {
