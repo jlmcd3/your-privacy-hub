@@ -22,9 +22,13 @@ const Index = () => (
     <SearchFirstHero />
 
     <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 space-y-6">
-      <HomepageFeedSection />
+      <div id="updates" className="scroll-mt-20">
+        <HomepageFeedSection />
+      </div>
       <HomepageBriefSection />
-      <HomepageToolsSection />
+      <div id="tools" className="scroll-mt-20">
+        <HomepageToolsSection />
+      </div>
     </div>
 
     <HomepagePricingStrip />
