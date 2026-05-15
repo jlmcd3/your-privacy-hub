@@ -55,6 +55,7 @@ const HomepageArticleCard = ({
   tierLabel,
   evenRow,
   demoTier,
+  isPremium,
 }: {
   article: ArticleItem;
   isSelected: boolean;
@@ -63,6 +64,7 @@ const HomepageArticleCard = ({
   evenRow?: boolean;
   /** undefined = authenticated user (no demo), 'anonymous'|'free'|'paid' = demo slot */
   demoTier?: "anonymous" | "free" | "paid";
+  isPremium?: boolean;
 }) => {
   const actionProse = (() => {
     const items = article.action_items ?? [];
