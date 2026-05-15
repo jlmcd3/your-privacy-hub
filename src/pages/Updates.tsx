@@ -475,15 +475,25 @@ const Updates = () => {
                     </div>
                 )}
 
-                <Link
-                  to="/get-intelligence"
-                  aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
-                  className="group block bg-sky/10 hover:bg-sky/20 border border-sky/30 hover:border-sky/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
-                >
-                  <p className="text-sm font-semibold m-0 text-blue group-hover:text-navy transition-colors">
-                    Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
-                  </p>
-                </Link>
+                {isPremium ? (
+                  <Link
+                    to="/dashboard"
+                    aria-label="View your latest Privacy Intelligence Report"
+                    className="group block bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-lg px-4 py-3 mb-4 text-sm font-semibold text-gold text-center no-underline transition-colors"
+                  >
+                    View your latest Privacy Intelligence Report →
+                  </Link>
+                ) : (
+                  <Link
+                    to="/get-intelligence"
+                    aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
+                    className="group block bg-sky/10 hover:bg-sky/20 border border-sky/30 hover:border-sky/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
+                  >
+                    <p className="text-sm font-semibold m-0 text-blue group-hover:text-navy transition-colors">
+                      Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
+                    </p>
+                  </Link>
+                )}
 
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
