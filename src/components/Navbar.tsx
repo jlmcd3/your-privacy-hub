@@ -500,7 +500,7 @@ const Navbar = () => {
               {!isPremium && (
                 <Link
                   to="/subscribe"
-                  className="text-[12px] font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
+                  className="text-sm font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
                 >
                   ⭐ See plans
                 </Link>
