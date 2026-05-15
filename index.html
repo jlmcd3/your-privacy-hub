@@ -45,6 +45,15 @@
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
     </script>
+    <!-- Google AdSense — non-personalized, contextual ads only.
+         Replace ca-pub-PLACEHOLDER with the real Publisher ID once AdSense is approved. -->
+    <script async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-PLACEHOLDER"
+      crossorigin="anonymous"></script>
+    <script>
+      // Force non-personalized ads (NPA=1) for all visitors.
+      (window.adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+    </script>
   </head>
   <body>
     <div id="root"></div>
