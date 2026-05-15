@@ -474,7 +474,7 @@ const FullCard = ({
               <div className="mt-2 space-y-2">
                 <InvestigationPrompt item={item} />
                 <div className="pt-2 border-t border-fog">
-                  <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
+                  <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
                     {toolCTA.label}
                   </Link>
                 </div>
@@ -494,7 +494,7 @@ const FullCard = ({
               </p>
               <InvestigationPrompt item={item} />
               <div className="pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
