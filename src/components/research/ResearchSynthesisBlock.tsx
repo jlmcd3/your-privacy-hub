@@ -91,8 +91,29 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
           </button>
 
           {promptOpen && (() => {
+            const headingFromKey = (key: string) => {
+              // Strip page prefix (e.g. "ai_privacy__eu_ai_act" -> "eu_ai_act"),
+              // then humanize: replace _ with spaces, title-case words,
+              // and uppercase common acronyms.
+              const tail = key.includes("__") ? key.split("__").slice(1).join("__") : key;
+              const ACRONYMS = new Set([
+                "ai", "eu", "uk", "us", "gdpr", "ccpa", "cppa", "hipaa", "ftc",
+                "dpa", "dpf", "tia", "bipa", "hbr", "apac", "latam", "mea",
+              ]);
+              return tail
+                .split(/[_\s-]+/)
+                .filter(Boolean)
+                .map((w) =>
+                  ACRONYMS.has(w.toLowerCase())
+                    ? w.toUpperCase()
+                    : w.charAt(0).toUpperCase() + w.slice(1)
+                )
+                .join(" ") || "This topic";
+            };
+            const sectionHeading =
+              data.section_heading?.trim() || headingFromKey(sectionKey);
             const prompt = generateResearchInvestigationPrompt(
-              data.section_heading ?? sectionKey,
+              sectionHeading,
               data.synthesis_text,
               subscriberContext ?? {}
             );
