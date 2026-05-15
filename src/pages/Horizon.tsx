@@ -7,7 +7,6 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PremiumGate from "@/components/PremiumGate";
-import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 interface HorizonItem {
   id: string;
