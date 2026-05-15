@@ -38,7 +38,7 @@ interface Update {
 const PAGE_SIZE = 50;
 
 const LOCATION_FILTERS = [
-  { key: "all", label: "All" },
+  { key: "all", label: "All Jurisdictions" },
   { key: "us-federal", label: "U.S. Federal" },
   { key: "us-states", label: "U.S. States" },
   { key: "eu-uk", label: "EU & UK" },
