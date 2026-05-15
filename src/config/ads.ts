@@ -5,21 +5,21 @@
  * then flip `enabled` to true to start serving live ads.
  */
 export const ADSENSE_CONFIG = {
-  // Replace with real Publisher ID when AdSense account is approved.
-  // Format: ca-pub-XXXXXXXXXXXXXXXX
-  pubId: 'ca-pub-PLACEHOLDER',
+  // Real Publisher ID (AdSense approved).
+  pubId: 'ca-pub-7713080064663325',
 
-  // Replace each value with the real Ad Slot ID from AdSense dashboard.
+  // AdSense currently has one responsive auto unit ("EUP Ads" — slot 8166125586).
+  // Reusing it for every placement is allowed for responsive auto units;
+  // replace individual values once dedicated slots are created in AdSense.
   slots: {
-    leaderboard: 'SLOT_LEADERBOARD',   // 728×90 / responsive banner
-    inFeed:      'SLOT_INFEED',        // In-feed / in-article fluid
-    rectangle:   'SLOT_RECTANGLE',     // 300×250 rectangle
-    stickyRail:  'SLOT_STICKYRAIL',    // 300×600 half-page / skyscraper
+    leaderboard: '8166125586',
+    inFeed:      '8166125586',
+    rectangle:   '8166125586',
+    stickyRail:  '8166125586',
   },
 
-  // Flip to true once the AdSense account is approved and keys are real.
-  // While false, placeholder boxes are shown instead of live ads.
-  enabled: false,
+  // Live ads enabled.
+  enabled: true,
 } as const;
 
 export type AdVariant = keyof typeof ADSENSE_CONFIG.slots;
