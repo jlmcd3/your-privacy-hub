@@ -464,7 +464,7 @@ const Updates = () => {
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <p className="text-[12px] text-navy flex-1">
+                        <p className="text-sm text-navy flex-1">
                             Register free to filter by your industry and date range
                         </p>
                         <Link
