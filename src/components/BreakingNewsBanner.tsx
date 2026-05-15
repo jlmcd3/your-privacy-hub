@@ -46,7 +46,7 @@ const BreakingNewsBanner = () => {
     <div
       className="hidden md:flex items-center justify-between px-4 md:px-8 w-full"
       style={{
-        backgroundColor: "#B91C1C",
+        backgroundColor: "hsl(var(--navy))",
         height: 40,
         fontFamily: "'DM Sans', sans-serif",
       }}
