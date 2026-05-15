@@ -347,8 +347,8 @@ const Dashboard = () => {
           {!digestPrefsSet && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="font-semibold text-navy text-sm mb-1">Set up your weekly digest</p>
-                <p className="text-slate text-sm">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
+                <p className="text-card-title text-gray-900 mb-1">Set up your weekly digest</p>
+                <p className="text-sm text-gray-700">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
               </div>
               <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-navy text-white font-semibold text-sm px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
                 Set up digest →
@@ -371,7 +371,7 @@ const Dashboard = () => {
                 <div className="px-6 py-10">
                   <div className="rounded-xl border border-border p-8 text-center max-w-lg mx-auto">
                     <div className="text-3xl mb-3">📋</div>
-                    <h3 className="font-semibold text-base mb-2">Your first digest is on its way</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Your first digest is on its way</h3>
                     <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                       Your personalized digest will arrive Monday morning. While you wait, explore the feed and tools below.
                     </p>
@@ -397,8 +397,8 @@ const Dashboard = () => {
                           <span className="text-meta text-slate-light">·</span>
                           <span className="text-meta text-slate-light">{item.source_name}</span>
                         </div>
-                        <p className="text-sm font-semibold text-navy leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
-                        {item.summary && <p className="text-meta text-slate leading-relaxed line-clamp-2">{item.summary}</p>}
+                        <p className="text-card-title text-gray-900 leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
+                        {item.summary && <p className="text-meta text-gray-700 leading-relaxed line-clamp-2">{item.summary}</p>}
                       </div>
                       <span className="text-slate-light text-lg flex-shrink-0 mt-0.5">→</span>
                     </a>
@@ -413,7 +413,7 @@ const Dashboard = () => {
               )}
 
               <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
-                <p className="text-sm text-slate">Get full intelligence for analysis, priorities, and action items.</p>
+                <p className="text-sm text-gray-700">Get full intelligence for analysis, priorities, and action items.</p>
                 <Link to="/subscribe" className="flex-shrink-0 text-meta font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
               </div>
             </div>
@@ -654,7 +654,7 @@ const Dashboard = () => {
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
                               {["Regulator", "Subject", "Type", "Amount", "Significance"].map(h => (
-                                <th key={h} className="py-2.5 px-4 text-left text-meta uppercase tracking-wider text-slate-500 font-semibold">
+                                <th key={h} className="py-2.5 px-4 text-left text-label text-slate-500">
                                   {h}
                                 </th>
                               ))}

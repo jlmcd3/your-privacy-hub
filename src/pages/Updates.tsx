@@ -440,7 +440,7 @@ const Updates = () => {
                 </div>
 
                 {hasJurisdictionOrTopic && (
-                    <div className="mb-3 flex items-center gap-2 text-[12px]">
+                    <div className="mb-3 flex items-center gap-2 text-xs">
                         <span className="text-muted-foreground">{filtered.length} updates</span>
                         <button
                             onClick={clearAllFilters}
@@ -464,7 +464,7 @@ const Updates = () => {
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <p className="text-[12px] text-navy flex-1">
+                        <p className="text-sm text-navy flex-1">
                             Register free to filter by your industry and date range
                         </p>
                         <Link
@@ -487,7 +487,7 @@ const Updates = () => {
                 {availableSectors.length > 0 && (
                     <div className="flex flex-col gap-2 mb-4 px-3 py-2.5 bg-muted/30 rounded-xl border border-border">
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mr-1">Sectors:</span>
+                            <span className="text-eyebrow text-muted-foreground mr-1">Sectors:</span>
                             {availableSectors.slice(0, 8).map(([sector, count]) => (
                                 <button
                                     key={sector}
@@ -543,10 +543,10 @@ const Updates = () => {
                 {/* Active filter summary + clear */}
                 {hasActiveFilters && (
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[12px] text-muted-foreground">{filtered.length} results</span>
+                        <span className="text-xs text-muted-foreground">{filtered.length} results</span>
                         <button
                             onClick={clearAllFilters}
-                            className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-destructive hover:underline"
                         >
                             <X className="w-3 h-3" /> Clear all filters
                         </button>
@@ -557,7 +557,7 @@ const Updates = () => {
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
-                    <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
+                    <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
                         Showing analysis on every update.{" "}
                         <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
                             Upgrade to Platform to unlock Action Briefs →
