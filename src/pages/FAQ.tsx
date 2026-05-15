@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     q: "What does Intelligence add?",
-    a: "Intelligence subscribers receive the full 8-section Weekly Intelligence Brief every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.",
+    a: "Intelligence subscribers receive the full 8-section Weekly Intelligence Brief every Monday. It includes: an executive summary with regulatory context, regional deep-dives for US Federal, US States, EU & UK, and Global developments, a full enforcement table with fine amounts and legal basis, a trend signal comparing week-over-week patterns, and a Why This Matters section with specific action items for General Counsel and Chief Privacy Officers.\n\nEvery article also includes a pre-built AI investigation prompt for paid subscribers. The prompt is automatically assembled from the article's regulatory context — jurisdiction, legal theory, compliance impact, and recommended actions — so you can paste it directly into Claude, ChatGPT, or any AI assistant and begin your own investigation immediately, without having to construct the prompt yourself.",
   },
   {
     q: "How is the analysis produced?",

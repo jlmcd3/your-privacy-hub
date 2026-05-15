@@ -32,6 +32,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Full Privacy Intelligence Report — customized for your industry & jurisdictions", free: false, intel: true, platform: true },
   { feature: "Enforcement trends & pattern signals", free: false, intel: true, platform: true },
   { feature: "Per-article intelligence: regulatory theory, action items, sectors", free: false, intel: true, platform: true },
+  { feature: "AI investigation prompt — pre-loaded with regulatory context, ready to paste into any AI assistant", free: false, intel: true, platform: true },
   { feature: "Priority Monday delivery", free: false, intel: true, platform: true },
 
   { isSection: true, feature: "The action layer — compliance tools" },
@@ -127,6 +128,7 @@ const Subscribe = () => {
                   "Enforcement tracking — all 119 authorities",
                   "Jurisdiction monitoring",
                   "All reference content",
+                  "AI investigation prompt on every article",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
@@ -169,6 +171,7 @@ const Subscribe = () => {
                   "Governance, LIA, DPIA, DPA, Notices, RoFA",
                   "IR Playbook & Biometric Checker",
                   "Your documents saved permanently",
+                  "AI investigation prompts, pre-built per article",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
