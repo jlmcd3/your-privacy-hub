@@ -2,7 +2,6 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 import gdprData from "@/data/timelines/gdpr-enforcement.json";
 import usStateData from "@/data/timelines/us-state-privacy-laws.json";

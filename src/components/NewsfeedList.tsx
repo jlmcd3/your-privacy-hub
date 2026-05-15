@@ -2,7 +2,6 @@ import { useState, useEffect, Fragment } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import NewsfeedPaywallCard from "./NewsfeedPaywallCard";
-import InFeedAd from "./InFeedAd";
 
 const FREE_LIMIT = 15;
 const BATCH_SIZE = 15;

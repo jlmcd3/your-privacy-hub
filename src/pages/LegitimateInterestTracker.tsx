@@ -4,7 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import InFeedAd from "@/components/InFeedAd";
 import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import {
   LI_OUTCOME_ORDER,

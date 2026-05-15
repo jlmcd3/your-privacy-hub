@@ -9,7 +9,6 @@ import NewsfeedList from "@/components/NewsfeedList";
 import EmailSignup from "@/components/EmailSignup";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 interface Update {
   id: string;

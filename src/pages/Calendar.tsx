@@ -5,7 +5,6 @@ import calendarData from "@/data/regulatory_calendar.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
-import AdBanner from "@/components/AdBanner";
 import { supabase } from "@/integrations/supabase/client";
 
 const FILTERS = [

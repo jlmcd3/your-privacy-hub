@@ -6,7 +6,6 @@ import comparisonData from "@/data/us_state_comparison.json";
 import { STATUTES } from "@/data/statutes";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 const STATE_FLAGS: Record<string, string> = {
   CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_California.svg?width=32",

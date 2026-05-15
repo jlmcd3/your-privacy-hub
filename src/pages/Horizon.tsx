@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import PremiumGate from "@/components/PremiumGate";
 import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 

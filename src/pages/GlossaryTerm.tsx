@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const GlossaryTerm = () => {
