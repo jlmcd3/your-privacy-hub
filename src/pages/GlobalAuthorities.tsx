@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 
@@ -41,7 +40,6 @@ const GlobalAuthorities = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" className="py-5" />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Search */}
@@ -162,7 +160,6 @@ const GlobalAuthorities = () => {
             );
           })}
         </div>
-        <AdBanner variant="leaderboard" className="py-6" />
       </div>
       <Footer />
     </div>

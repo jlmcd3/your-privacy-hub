@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const GlossaryTerm = () => {
@@ -145,7 +144,6 @@ const GlossaryTerm = () => {
           );
         })()}
 
-        <AdBanner variant="inline" adSlot="eup-glossaryterm-mid" className="py-3" />
 
         {relatedTerms.length > 0 && (
           <div>

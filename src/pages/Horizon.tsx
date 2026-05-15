@@ -6,9 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import PremiumGate from "@/components/PremiumGate";
-import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
 
 interface HorizonItem {
   id: string;
@@ -295,14 +293,6 @@ export default function Horizon() {
           </PremiumGate>
         )}
 
-        <div className="mt-10">
-          <AdBanner
-            variant="leaderboard"
-            adSlot={AD_SLOTS.home_bottom_leaderboard.id}
-            googleAdClient={GOOGLE_AD_CLIENT}
-            googleAdSlot={AD_SLOTS.home_bottom_leaderboard.googleAdSlot}
-          />
-        </div>
       </main>
 
       <Footer />

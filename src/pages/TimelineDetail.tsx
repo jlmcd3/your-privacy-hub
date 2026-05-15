@@ -2,7 +2,6 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 import gdprData from "@/data/timelines/gdpr-enforcement.json";
 import usStateData from "@/data/timelines/us-state-privacy-laws.json";
@@ -88,7 +87,6 @@ const TimelineDetail = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-timeline-top" className="py-3 max-w-3xl mx-auto" />
 
       {/* Timeline */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 flex-1">
@@ -125,9 +123,6 @@ const TimelineDetail = () => {
                       </a>
                     )}
                   </div>
-                  {i === midIndex && (
-                    <AdBanner variant="inline" adSlot="eup-timeline-mid" className="py-4" />
-                  )}
                 </div>
               );
             })}

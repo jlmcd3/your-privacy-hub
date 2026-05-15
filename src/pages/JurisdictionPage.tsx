@@ -6,7 +6,6 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
@@ -400,7 +399,6 @@ const JurisdictionPage = () => {
         </div>
       </div>
 
-      <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-top" className="py-5" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Overview */}
@@ -485,7 +483,6 @@ const JurisdictionPage = () => {
           ))}
         </div>
 
-        <AdBanner variant="inline" adSlot="eup-jurisdiction-mid" className="py-4" />
 
         {/* Compliance tools — only for jurisdictions with an enacted law */}
         {(() => {
@@ -744,7 +741,6 @@ const JurisdictionPage = () => {
           </div>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-jurisdiction-bottom" className="py-4" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">

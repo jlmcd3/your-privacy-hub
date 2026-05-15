@@ -54,7 +54,7 @@ const Glossary = () => {
           ))}
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-glossary-top" className="py-3" />
+        <AdBanner variant="leaderboard" className="my-4" />
 
         {groupedEntries.map(([letter, terms], idx) => (
           <div key={letter}>
@@ -78,9 +78,6 @@ const Glossary = () => {
                 ))}
               </div>
             </div>
-            {idx === midIndex - 1 && (
-              <AdBanner variant="inline" adSlot="eup-glossary-mid" className="py-4" />
-            )}
           </div>
         ))}
       </div>

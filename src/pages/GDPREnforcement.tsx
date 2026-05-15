@@ -229,7 +229,7 @@ const GDPREnforcement = () => {
         </div>
       )}
 
-      <AdBanner variant="leaderboard" adSlot="eup-pillar-top" className="py-3" />
+      <AdBanner variant="leaderboard" className="my-4" />
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intro */}
@@ -376,8 +376,6 @@ const GDPREnforcement = () => {
             </Link>
           </div>
         </div>
-
-        <AdBanner variant="leaderboard" adSlot="eup-pillar-bottom" className="py-6" />
 
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">

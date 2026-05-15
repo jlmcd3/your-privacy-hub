@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
 
 const TIMELINES = [
   { slug: "gdpr-enforcement", title: "GDPR Enforcement Timeline", icon: "🇪🇺", description: "Major GDPR enforcement milestones from adoption in 2016 to the record fines of 2023–2026." },
@@ -44,7 +43,6 @@ const Timelines = () => {
           </Link>
         </div>
 
-        <AdBanner variant="leaderboard" adSlot="eup-timelines-top" className="py-3" />
 
         <div className="grid gap-4">
           {TIMELINES.map((t) => (

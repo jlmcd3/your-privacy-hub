@@ -4,8 +4,6 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import InFeedAd from "@/components/InFeedAd";
-import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import {
   LI_OUTCOME_ORDER,
   stripeFor,
@@ -251,15 +249,6 @@ const LegitimateInterestTracker = () => {
                       </div>
                     </div>
                   </article>
-                  {(idx + 1) % 6 === 0 && idx !== filtered.length - 1 && (
-                    <div className="md:col-span-2">
-                      <InFeedAd
-                        adSlot={`li_tracker_infeed_${Math.floor(idx / 6)}`}
-                        googleAdClient={GOOGLE_AD_CLIENT}
-                        googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                      />
-                    </div>
-                  )}
                 </Fragment>
               ))}
             </div>

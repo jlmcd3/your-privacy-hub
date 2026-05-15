@@ -13,8 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import EnforcementStats from "@/components/enforcement/EnforcementStats";
-import InFeedAd from "@/components/InFeedAd";
-import { AD_SLOTS, GOOGLE_AD_CLIENT } from "@/config/adSlots";
+import AdBanner from "@/components/AdBanner";
 import { toast } from "sonner";
 
 interface Row {
@@ -361,6 +360,8 @@ export default function Enforcement() {
             )}
           </p>
         </header>
+
+        <AdBanner variant="leaderboard" className="my-4" />
 
         {/* View toggle */}
         <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border pb-3">

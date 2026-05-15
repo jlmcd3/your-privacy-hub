@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import AdBanner from "@/components/AdBanner";
 import { FlagIcon } from "@/components/FlagIcon";
 import { GLOBAL_STATUTES } from "@/data/global_statutes";
 
@@ -225,7 +224,6 @@ export default function GlobalJurisdictionComparison() {
             </Link>
           </div>
 
-          <AdBanner variant="leaderboard" adSlot="eup-jurisdcomp-top" className="py-3" />
 
           <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
             <table className="w-full text-left border-collapse">

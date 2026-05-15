@@ -3,9 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AdBanner from "@/components/AdBanner";
-import InFeedAd from "@/components/InFeedAd";
-import { GOOGLE_AD_CLIENT, getAdSlot } from "@/config/adSlots";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
@@ -136,7 +133,6 @@ export default function LegislationTracker() {
             </div>
           </div>
 
-          <AdBanner variant="leaderboard" adSlot="eup-legislation-top" className="py-3" />
 
           <div className="space-y-4">
             {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
@@ -208,13 +204,6 @@ export default function LegislationTracker() {
                     </div>
                   </div>
                 </div>
-                {showAdAfter && (
-                  <InFeedAd
-                    adSlot={`legislation_tracker_infeed_${Math.floor(idx / 6)}`}
-                    googleAdClient={GOOGLE_AD_CLIENT}
-                    googleAdSlot={getAdSlot("feed_infeed_7").googleAdSlot}
-                  />
-                )}
                 </Fragment>
               );
             })}
