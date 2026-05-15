@@ -143,43 +143,6 @@ const About = () => {
             </p>
           </div>
 
-          <div className="mt-12">
-            <p className="text-sm text-navy font-semibold mb-4">
-              DataGuidance (OneTrust) charges $300–3,500+/year for features you access here free.
-            </p>
-            <h2 className="font-display text-xl text-navy mb-6">The alternative to expensive enterprise platforms</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse bg-card border border-fog rounded-2xl overflow-hidden text-sm">
-                <thead>
-                  <tr className="bg-fog">
-                    <th className="px-5 py-3.5 text-left text-meta font-semibold tracking-wider uppercase text-slate" />
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold text-blue bg-blue/5">End User Privacy</th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold text-slate">DataGuidance (OneTrust) — $300–$3,500/yr</th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold text-slate">IAPP Membership — $550+/yr</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Price", `${INTELLIGENCE_PRICING.monthly()} (Pro)`, "$300–$3,500+/year", "$550+/year"],
-                    ["Format", "Weekly intelligence brief", "Research database", "Membership + events"],
-                    ["Focus", "Privacy & AI regulation only", "Broad legal coverage", "Credentialing & community"],
-                    ["Update frequency", "Daily monitoring, Monday brief", "Periodic updates", "Weekly to monthly"],
-                    ["Learning curve", "Ready in 5 minutes", "Weeks of onboarding", "Conference-based"],
-                    ["Free tools", "Calendar, Tracker, Map, Comparison", "None (trial requires payment)", "Limited articles"],
-                  ].map(([label, us, dg, iapp], i) => (
-                    <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                      <td className="px-5 py-3 text-navy font-medium border-t border-fog">{label}</td>
-                      <td className="px-5 py-3 text-center text-navy font-medium border-t border-fog">
-                        <span className="text-accent mr-1">✓</span>{us}
-                      </td>
-                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{dg}</td>
-                      <td className="px-5 py-3 text-center text-slate border-t border-fog">{iapp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </section>
       </main>
       <Footer />
