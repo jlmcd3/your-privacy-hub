@@ -358,8 +358,8 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.38fr)_minmax(280px,1fr)] gap-6 items-start">
-        <div className="flex-1 min-w-0">
+      <div className="items-start">
+        <div className="min-w-0">
           {(() => {
             const DEMO_TIERS: ("anonymous" | "free" | "paid")[] = ["anonymous", "free", "paid"];
             return articles.slice(0, 3).map((article, i) => (
@@ -385,21 +385,6 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           </div>
         </div>
 
-        <div className="hidden md:block sticky top-20 self-start">
-          <IntelligencePanel
-            selectedArticle={selectedArticle}
-            isPremium={isPremium}
-            isAuthenticated={isAuthenticated}
-            forceTier={
-              showTierLabels && selectedArticle
-                ? (() => {
-                    const idx = articles.findIndex((a) => a.id === selectedArticle.id);
-                    return idx === 2 ? "paid" : idx === 1 ? "free" : "anonymous";
-                  })()
-                : undefined
-            }
-          />
-        </div>
       </div>
     </section>
   );
