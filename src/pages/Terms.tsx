@@ -17,7 +17,7 @@ const Terms = () => {
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
           EndUserPrivacy Terms of Service
         </h1>
-        <p className="text-sm text-muted-foreground mb-10">Last updated: February 12, 2018</p>
+        <p className="text-sm text-muted-foreground mb-10">Last updated: May 15, 2026</p>
 
         <div className="prose prose-sm max-w-none space-y-8 text-foreground/90">
           <section className="space-y-3">
@@ -512,8 +512,10 @@ const Terms = () => {
               .
             </p>
             <p className="text-sm text-muted-foreground">
-              Last Updated: February 12, 2018
-              <br />© 2018 Enduserprivacy
+              Last Updated.
+              <br />
+              May 15, 2026
+              <br />© 2026 EUP, LLC
             </p>
           </section>
         </div>
