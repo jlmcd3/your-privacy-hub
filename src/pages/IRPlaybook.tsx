@@ -93,7 +93,7 @@ export default function IRPlaybook() {
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
-          <p className="text-slate text-[14px]">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
+          <p className="text-slate text-sm">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
@@ -102,33 +102,33 @@ export default function IRPlaybook() {
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-[18px]">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-lg">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
-            <p className="text-[12px] text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
+            <p className="text-meta text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
             <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-[14px] font-semibold text-navy mb-1">Generating your Breach Response Playbook</p>
-            <p className="text-[12px] text-muted-foreground">Checking notification deadlines and enforcement precedents for {form.jurisdictions.join(", ")} — this usually takes 15–20 seconds.</p>
+            <p className="text-sm font-semibold text-navy mb-1">Generating your Breach Response Playbook</p>
+            <p className="text-meta text-muted-foreground">Checking notification deadlines and enforcement precedents for {form.jurisdictions.join(", ")} — this usually takes 15–20 seconds.</p>
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <h2 className="font-display font-bold text-navy text-[18px]">Incident details</h2>
+            <h2 className="font-display font-bold text-navy text-lg">Incident details</h2>
             <label className="block text-sm"><span className="font-semibold text-navy">Date & time of discovery</span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-navy">Apparent cause</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-navy">Data types affected</legend>
-              <div className="grid grid-cols-2 gap-1 mt-1">{DATA_TYPES.map(d => <label key={d} className="flex items-center gap-2 text-[12px]">
+              <div className="grid grid-cols-2 gap-1 mt-1">{DATA_TYPES.map(d => <label key={d} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.dataTypes.includes(d)} onChange={() => toggle("dataTypes", d)} />{d}</label>)}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-navy">Affected individuals</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-navy">Jurisdictions</legend>
-              <div className="grid grid-cols-2 gap-1 mt-1">{JURS.map(j => <label key={j} className="flex items-center gap-2 text-[12px]">
+              <div className="grid grid-cols-2 gap-1 mt-1">{JURS.map(j => <label key={j} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-navy">Contained?</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.contained} onChange={e => setForm(f => ({ ...f, contained: e.target.value }))}>
@@ -138,7 +138,7 @@ export default function IRPlaybook() {
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             <button onClick={handleGenerate} disabled={form.dataTypes.length === 0 || form.jurisdictions.length === 0}
-              className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
+              className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
               Generate playbook</button>
           </div>
         ) : (
@@ -148,8 +148,8 @@ export default function IRPlaybook() {
             subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
           >
             <div className="bg-card border border-border rounded-2xl p-6">
-              <h2 className="font-display font-bold text-navy text-[16px] mb-3">Sample playbook preview</h2>
-              <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
+              <h2 className="font-display font-bold text-navy text-base mb-3">Sample playbook preview</h2>
+              <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
             </div>
           </ToolSampleOverlay>
         )}

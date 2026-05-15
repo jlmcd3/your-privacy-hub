@@ -113,7 +113,7 @@ export default function DPAGenerator() {
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Custom DPA</h1>
-          <p className="text-slate text-[14px]">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
+          <p className="text-slate text-sm">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
@@ -123,23 +123,23 @@ export default function DPAGenerator() {
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display font-bold text-navy text-[18px]">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display font-bold text-navy text-lg">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
-            <p className="text-[12px] text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
+            <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
-            <p className="text-[11px] text-muted-foreground italic mt-4">PDF download coming soon.</p>
+            <p className="text-meta text-muted-foreground italic mt-4">PDF download coming soon.</p>
             <ToolDisclaimer addition="This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-[14px] font-semibold text-navy mb-1">Generating your Custom DPA</p>
-            <p className="text-[12px] text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
+            <p className="text-sm font-semibold text-navy mb-1">Generating your Custom DPA</p>
+            <p className="text-meta text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h2 className="font-display font-bold text-navy text-[18px]">DPA Intake</h2>
+            <h2 className="font-display font-bold text-navy text-lg">DPA Intake</h2>
             <div className="space-y-3 text-sm">
               <label className="block"><span className="font-semibold text-navy">Controller name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
@@ -152,12 +152,12 @@ export default function DPAGenerator() {
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
               <fieldset><legend className="font-semibold text-navy">Data categories</legend>
                 <div className="grid grid-cols-2 gap-1.5 mt-1">
-                  {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-[12px]">
+                  {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
                 </div></fieldset>
             </div>
-            <div className="border-t border-border pt-4 mt-4 text-[12px] text-muted-foreground">Sample preview:</div>
-            <pre className="whitespace-pre-wrap font-sans text-[12px] text-slate leading-relaxed">{SAMPLE}</pre>
+            <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
+            <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
             {validationError && (
               <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-sm" role="alert">
@@ -167,7 +167,7 @@ export default function DPAGenerator() {
             <button
               type="button"
               onClick={handlePurchase}
-              className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all"
+              className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all"
             >
               {access.isFreeForUser ? "Generate — Free" : `Generate — $${pricing.price}`}
             </button>

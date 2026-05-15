@@ -145,9 +145,9 @@ const GovernanceAssessmentResult = () => {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   {domainList.map((d: any, i: number) => (
                     <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
-                      <p className="text-[12px] font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
+                      <p className="text-meta font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
                       {d.severity && (
-                        <span className={`inline-block px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded ${sevColor(d.severity)}`}>
+                        <span className={`inline-block px-1.5 py-0.5 text-eyebrow rounded ${sevColor(d.severity)}`}>
                           {d.severity}
                         </span>
                       )}

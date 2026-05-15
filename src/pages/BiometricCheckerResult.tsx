@@ -77,7 +77,7 @@ export default function BiometricCheckerResult() {
       <p className="text-sm text-foreground">
         Low end: <span className="font-medium text-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
       </p>
-      {bipaRisk.note && <p className="text-[11px] text-muted-foreground mt-1">{bipaRisk.note}</p>}
+      {bipaRisk.note && <p className="text-meta text-muted-foreground mt-1">{bipaRisk.note}</p>}
     </div>
   );
 

@@ -295,7 +295,7 @@ export default function RopaReview() {
             {(profile.selected_jurisdictions ?? []).map((j) => (
               <span
                 key={j}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-navy/10 text-navy font-mono"
+                className="text-meta px-2 py-0.5 rounded-full bg-navy/10 text-navy font-mono"
               >
                 {j}
               </span>
@@ -337,7 +337,7 @@ export default function RopaReview() {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                       )}
-                      <span className="flex-1 text-[14px] font-semibold text-navy truncate">
+                      <span className="flex-1 text-sm font-semibold text-navy truncate">
                         {a.display_name}
                       </span>
                       <Chip color="neutral">{a.category}</Chip>
@@ -382,14 +382,14 @@ export default function RopaReview() {
                       {f.activity_id && (
                         <button
                           onClick={() => navigate(`/ropa/activity/${f.activity_id}`)}
-                          className="text-[12px] font-semibold text-teal-700 hover:underline"
+                          className="text-meta font-semibold text-teal-700 hover:underline"
                         >
                           Resolve in activity →
                         </button>
                       )}
                       <button
                         onClick={() => resolveFlag(f.id)}
-                        className="text-[12px] font-semibold text-muted-foreground hover:text-navy"
+                        className="text-meta font-semibold text-muted-foreground hover:text-navy"
                       >
                         Mark as reviewed
                       </button>
@@ -417,7 +417,7 @@ export default function RopaReview() {
                   <div className="pl-3 -mt-1 mb-2">
                     <button
                       onClick={() => resolveFlag(f.id)}
-                      className="text-[11px] font-semibold text-muted-foreground hover:text-navy"
+                      className="text-meta font-semibold text-muted-foreground hover:text-navy"
                     >
                       Dismiss
                     </button>
@@ -465,7 +465,7 @@ export default function RopaReview() {
 
         {/* Section 5 — Generate */}
         <Section title="Generate">
-          <p className="text-[12px] text-muted-foreground mb-3">
+          <p className="text-meta text-muted-foreground mb-3">
             PDF is the default format. You can also generate Word and Excel versions.
           </p>
           <div className="space-y-2 mb-4">
@@ -489,7 +489,7 @@ export default function RopaReview() {
 
           {/* Pricing block */}
           <div className="border border-border rounded-lg p-4 bg-muted/30 mb-4">
-            <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-meta font-mono uppercase tracking-wider text-muted-foreground mb-2">
               Document generation
             </p>
             <div className="flex items-center justify-between text-sm">
@@ -503,20 +503,20 @@ export default function RopaReview() {
                     ? "Paid"
                     : `$${pricing.price}`}
                 {!currentSession?.payment_confirmed && !pricing.loading && (
-                  <span className="text-[11px] text-muted-foreground ml-2">
+                  <span className="text-meta text-muted-foreground ml-2">
                     {pricing.isSubscriber ? "subscriber" : "standalone"}
                   </span>
                 )}
               </span>
             </div>
-            <div className="flex justify-between text-[12px] text-muted-foreground mt-1">
+            <div className="flex justify-between text-meta text-muted-foreground mt-1">
               <span>+ Word document</span><span>Included</span>
             </div>
-            <div className="flex justify-between text-[12px] text-muted-foreground">
+            <div className="flex justify-between text-meta text-muted-foreground">
               <span>+ Excel worksheet</span><span>Included</span>
             </div>
             {!pricing.isSubscriber && !currentSession?.payment_confirmed && (
-              <p className="text-[11px] text-teal-700 mt-2">
+              <p className="text-meta text-teal-700 mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"
@@ -555,7 +555,7 @@ export default function RopaReview() {
           <button
             onClick={handleGenerateClick}
             disabled={generateDisabled || generating}
-            className="w-full bg-navy text-white text-[14px] font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy/90 transition"
+            className="w-full bg-navy text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy/90 transition"
           >
             {generating
               ? "Generating…"
@@ -564,7 +564,7 @@ export default function RopaReview() {
                 : `Continue to payment — $${pricing.price}`}
           </button>
           {allClean && (
-            <p className="text-[12px] text-green-700 dark:text-green-400 text-center mt-2">
+            <p className="text-meta text-green-700 dark:text-green-400 text-center mt-2">
               <CheckCircle2 className="w-3 h-3 inline mr-1" />
               All flags resolved — ready to generate.
             </p>
@@ -588,7 +588,7 @@ export default function RopaReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-[16px] font-serif text-navy mb-4">Building your RoPA…</h3>
+            <h3 className="text-base font-serif text-navy mb-4">Building your RoPA…</h3>
             <ul className="space-y-2 text-sm">
               <GenStepRow done={genSteps.client === "done"} label="Client record" />
               <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
@@ -657,7 +657,7 @@ function Row({ label, value }: { label: string; value: string }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[12px] font-semibold text-muted-foreground mb-1">{label}</label>
+      <label className="block text-meta font-semibold text-muted-foreground mb-1">{label}</label>
       {children}
     </div>
   );
@@ -677,7 +677,7 @@ function Chip({
         ? "bg-green-100 text-green-900 dark:bg-green-950/50 dark:text-green-200"
         : "bg-muted text-muted-foreground";
   return (
-    <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${styles}`}>
+    <span className={`text-meta px-2 py-0.5 rounded-full font-semibold ${styles}`}>
       {children}
     </span>
   );

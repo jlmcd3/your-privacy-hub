@@ -164,7 +164,7 @@ const Toggle = ({
     <div className="flex-1 min-w-0">
       <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
       {description && (
-        <p className={`text-[11px] mt-0.5 leading-snug ${selected ? "text-blue-200" : "text-slate"}`}>{description}</p>
+        <p className={`text-meta mt-0.5 leading-snug ${selected ? "text-blue-200" : "text-slate"}`}>{description}</p>
       )}
     </div>
     {selected && <span className="text-xs ml-auto flex-shrink-0 mt-0.5 opacity-70">✓</span>}
@@ -260,10 +260,10 @@ export default function BriefPreferences() {
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
             <div className="mb-8 bg-gradient-to-r from-navy to-steel rounded-2xl p-5 text-white">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-1">
+              <p className="text-eyebrow text-amber-400 mb-1">
                 ⭐ Welcome to Intelligence
               </p>
-              <p className="font-display font-bold text-[18px] mb-1">
+              <p className="font-display font-bold text-lg mb-1">
                 Set your preferences to get your first Privacy Intelligence Report
               </p>
               <p className="text-blue-200 text-sm">
@@ -277,12 +277,12 @@ export default function BriefPreferences() {
               <span>⭐</span> Intelligence
             </div>
             <h1 className="font-display font-bold text-navy text-[24px] mb-2">Configure your Privacy Intelligence Report</h1>
-            <p className="text-slate text-[14px] mb-3 max-w-lg">
+            <p className="text-slate text-sm mb-3 max-w-lg">
               Your Privacy Intelligence Report is created specifically for your regulatory environment. The more context you
               provide, the more precisely it speaks to your actual compliance obligations.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 max-w-lg">
-              <p className="text-[12px] text-navy leading-snug">
+              <p className="text-meta text-navy leading-snug">
                 <span className="font-semibold">These preferences apply to your next scheduled report.</span>{" "}
                 Already-published reports in your archive remain unchanged.
               </p>

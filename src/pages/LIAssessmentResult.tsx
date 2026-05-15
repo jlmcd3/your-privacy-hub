@@ -113,14 +113,14 @@ const LIAssessmentResult = () => {
                 href={assessment.pdf_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
+                className="inline-flex items-center gap-2 px-4 py-2 text-meta font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
               >
                 ↓ Download PDF
               </a>
             ) : status === "complete" ? (
               <button
                 disabled
-                className="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-4 py-2 text-meta font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
                 title="PDF is being prepared — refresh in a moment"
               >
                 ↓ PDF preparing...
