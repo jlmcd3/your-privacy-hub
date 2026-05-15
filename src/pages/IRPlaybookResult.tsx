@@ -86,7 +86,7 @@ export default function IRPlaybookResult() {
               </>
             }
             callout={
-              <p className="text-[12px] text-muted-foreground italic">
+              <p className="text-meta text-muted-foreground italic">
                 This playbook and its documentation checklist contribute to your Article 33(5) accountability record.
               </p>
             }

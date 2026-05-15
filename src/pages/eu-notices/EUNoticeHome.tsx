@@ -248,7 +248,7 @@ export default function EUNoticeHome() {
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <Badge variant={status.tone}>{status.label}</Badge>
                         {s.is_refresh && (
-                          <Badge variant="outline" className="text-[11px]">Refresh</Badge>
+                          <Badge variant="outline" className="text-meta">Refresh</Badge>
                         )}
                         {s.version_number && s.version_number > 0 && (
                           <span className="text-xs text-muted-foreground">v{s.version_number}</span>

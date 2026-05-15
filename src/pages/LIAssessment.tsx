@@ -166,7 +166,7 @@ const LIAssessment = () => {
       {/* Header — matches LI Tracker */}
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             Free preliminary signal · No account required
           </div>
           <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
@@ -185,16 +185,16 @@ const LIAssessment = () => {
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">Why you need this</div>
+          <div className="text-eyebrow text-sky mb-2">Why you need this</div>
           <h2 className="font-display text-xl md:text-2xl text-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
-          <p className="text-[14px] text-navy leading-relaxed mb-4 max-w-[70ch]">
+          <p className="text-sm text-navy leading-relaxed mb-4 max-w-[70ch]">
             Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR. Regulators don't
             accept it on assertion: if challenged, you must produce a written record showing you tested your processing
             against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
           </p>
-          <p className="text-[14px] text-navy leading-relaxed max-w-[70ch]">
+          <p className="text-sm text-navy leading-relaxed max-w-[70ch]">
             Recent fines from the CNIL, ICO, Garante and others have hit organisations that either skipped this record
             entirely or produced one that was generic, undated, or didn't address the specific facts of the processing.
             This tool produces that record — grounded in tracked regulator decisions so your reasoning lines up with how
@@ -204,7 +204,7 @@ const LIAssessment = () => {
 
         {/* HOW IT WORKS */}
         <section className="mb-10">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">How it works</div>
+          <div className="text-eyebrow text-sky mb-2">How it works</div>
           <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
@@ -229,12 +229,12 @@ const LIAssessment = () => {
             ].flatMap((step, i, arr) => {
               const card = (
                 <div key={`card-${step.n}`} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
-                  <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
+                  <div className="text-eyebrow text-sky mb-1">Step {step.n}</div>
                   <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
                   <p className="text-sm text-slate leading-relaxed mb-3">{step.desc}</p>
                   <div className="mt-auto pt-3 border-t border-fog">
-                    <div className="text-[11px] font-bold tracking-widest uppercase text-amber-700 mb-1">Why</div>
-                    <p className="text-[12px] text-navy leading-relaxed">{step.why}</p>
+                    <div className="text-eyebrow text-amber-700 mb-1">Why</div>
+                    <p className="text-meta text-navy leading-relaxed">{step.why}</p>
                   </div>
                 </div>
               );
@@ -249,7 +249,7 @@ const LIAssessment = () => {
             })}
           </div>
 
-          <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-[12px] text-amber-900 max-w-[70ch]">
+          <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-meta text-amber-900 max-w-[70ch]">
             <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory
             decisions. Your final legitimate interest determination should be reviewed and signed off by qualified
             counsel before you rely on it operationally.
@@ -258,7 +258,7 @@ const LIAssessment = () => {
 
         {/* INTAKE FORM */}
         <section className="mb-10">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">Step 01 · Free intake</div>
+          <div className="text-eyebrow text-sky mb-2">Step 01 · Free intake</div>
           <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Tell us about the processing</h2>
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
@@ -273,7 +273,7 @@ const LIAssessment = () => {
                 placeholder="e.g. Send personalised product recommendations to existing customers based on their purchase history."
                 className="mt-2 min-h-24 border-fog"
               />
-              <p className="text-[11px] text-muted-foreground mt-1">A sentence or two is enough. More detail produces a sharper signal.</p>
+              <p className="text-meta text-muted-foreground mt-1">A sentence or two is enough. More detail produces a sharper signal.</p>
             </div>
 
             <div>
@@ -302,7 +302,7 @@ const LIAssessment = () => {
               >
                 {loading ? "Analysing precedents…" : "Get my preliminary signal — Free"}
               </button>
-              <p className="text-[11px] text-muted-foreground mt-2">Free, instant, no account or card required.</p>
+              <p className="text-meta text-muted-foreground mt-2">Free, instant, no account or card required.</p>
             </div>
           </form>
         </section>
@@ -310,23 +310,23 @@ const LIAssessment = () => {
         {/* PREVIEW SIGNAL */}
         {preview && (
           <section id="preview-signal">
-            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">Preliminary signal</div>
+            <div className="text-eyebrow text-sky mb-2">Preliminary signal</div>
             <div className="bg-card border-t-4 border-navy rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Use case</div>
+                  <div className="text-eyebrow text-sky mb-1">Use case</div>
                   <h2 className="font-display text-xl md:text-2xl text-navy leading-snug">{preview.use_case_label}</h2>
                 </div>
-                <span className={`px-4 py-1.5 rounded-full border text-[12px] font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
+                <span className={`px-4 py-1.5 rounded-full border text-meta font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
                   {preview.strength.rating}
                 </span>
               </div>
 
-              <p className="text-[14px] text-navy leading-relaxed">{preview.strength.rationale}</p>
+              <p className="text-sm text-navy leading-relaxed">{preview.strength.rationale}</p>
 
               {preview.precedents.length > 0 ? (
                 <div className="pt-5 border-t border-fog">
-                  <h3 className="text-[11px] font-bold tracking-widest uppercase text-sky mb-3">
+                  <h3 className="text-eyebrow text-sky mb-3">
                     Most analogous regulator decisions ({preview.precedents_matched} matched)
                   </h3>
                   <div className="space-y-5">
@@ -336,16 +336,16 @@ const LIAssessment = () => {
                         <div className="p-5 flex-1 min-w-0">
                           <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
                           <div className="flex flex-wrap gap-1.5 mb-3">
-                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{p.dpa_source}</span>
-                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{p.jurisdiction}</span>
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.dpa_source}</span>
+                            <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.jurisdiction}</span>
                           </div>
                           <p className="text-sm text-slate leading-relaxed mb-4">{p.summary}</p>
                           <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
-                            <span className={`text-[11px] font-bold uppercase tracking-wider capitalize ${accentFor(p.outcome)}`}>
+                            <span className={`text-eyebrow capitalize ${accentFor(p.outcome)}`}>
                               {p.outcome}
                             </span>
                             {p.case_reference && (
-                              <span className="text-[11px] text-muted-foreground truncate flex-shrink-0">
+                              <span className="text-meta text-muted-foreground truncate flex-shrink-0">
                                 {p.case_reference}
                               </span>
                             )}
@@ -377,13 +377,13 @@ const LIAssessment = () => {
                   Continue to full assessment — ${pricing.price}
                 </button>
                 {pricing.isSubscriber && pricing.standalonePrice > pricing.price && (
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-meta text-muted-foreground">
                     Subscriber rate · standalone ${pricing.standalonePrice}
                   </span>
                 )}
               </div>
 
-              <p className="text-[11px] text-muted-foreground italic">{preview.disclaimer}</p>
+              <p className="text-meta text-muted-foreground italic">{preview.disclaimer}</p>
             </div>
           </section>
         )}

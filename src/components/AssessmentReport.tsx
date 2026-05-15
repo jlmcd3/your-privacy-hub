@@ -183,7 +183,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
           return (
             <div key={idx} className="pt-2">
               {/* DM Sans medium reads cleaner than DM Serif Display bold at this size */}
-              <h4 className="text-[14px] font-semibold text-navy tracking-tight uppercase">
+              <h4 className="text-sm font-semibold text-navy tracking-tight uppercase">
                 {b.text}
               </h4>
               <div className="mt-1 h-[2px] w-10 bg-[hsl(var(--steel))] rounded-full" />
@@ -208,7 +208,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
               {b.items.map((it, j) => (
                 <li key={j} className="flex gap-3">
                   <span
-                    className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--navy))] text-white text-[11px] font-semibold mt-[1px]"
+                    className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--navy))] text-white text-meta font-semibold mt-[1px]"
                     aria-hidden
                   >
                     {j + 1}
@@ -300,15 +300,15 @@ export default function AssessmentReport({
             {/* Header band */}
             <header className="px-6 pt-6 pb-4 border-b border-border bg-gradient-to-br from-[hsl(var(--paper))] to-card">
               {hasJurisdictions && sectionChipLabel && (
-                <span className="inline-block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate bg-[hsl(var(--silver))] px-2 py-0.5 rounded-full mb-2">
+                <span className="inline-block text-meta font-semibold uppercase tracking-[0.08em] text-slate bg-[hsl(var(--silver))] px-2 py-0.5 rounded-full mb-2">
                   {sectionChipLabel}
                 </span>
               )}
-              <h3 className="font-display text-[20px] md:text-[22px] font-bold text-navy leading-tight">
+              <h3 className="font-display text-xl md:text-[22px] font-bold text-navy leading-tight">
                 {jurisdiction}
               </h3>
               {statute && (
-                <p className="mt-1 text-[12px] font-mono text-slate uppercase tracking-wide">
+                <p className="mt-1 text-meta font-mono text-slate uppercase tracking-wide">
                   {statute}
                 </p>
               )}
