@@ -16,7 +16,7 @@ export default function SearchFirstHero() {
             <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] mb-3">
               Global privacy law, tracked daily.
             </h1>
-            <p className="text-blue-200/80 text-[14px] md:text-[16px] mb-8">
+            <p className="text-blue-200/80 text-sm md:text-base mb-8">
               119 regulatory authorities. 150+ jurisdictions. Action intelligence on every development — and the compliance tools to act on it.
             </p>
 
@@ -27,13 +27,13 @@ export default function SearchFirstHero() {
                 href="#updates"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-teal-600 hover:bg-teal-500 border border-teal-600 hover:border-teal-500 transition-all duration-200"
               >
-                <p className="text-[11px] font-bold uppercase tracking-widest text-teal-100 mb-1.5">
+                <p className="text-eyebrow text-teal-100 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
-                <p className="text-[12px] text-teal-100 leading-snug">
+                <p className="text-meta text-teal-100 leading-snug">
                   119 monitored sources. Enriched with compliance intelligence. Updated daily.
                 </p>
               </a>
@@ -43,13 +43,13 @@ export default function SearchFirstHero() {
                 href="#brief"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
               >
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                <p className="text-eyebrow text-white/50 mb-1.5">
                   Intelligence Brief
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Report — to save you time
                 </p>
-                <p className="text-[12px] text-white/60 leading-snug">
+                <p className="text-meta text-white/60 leading-snug">
                   Personalized to your jurisdiction, role, and tracked topics. Every Monday.
                 </p>
               </a>
@@ -59,20 +59,20 @@ export default function SearchFirstHero() {
                 href="#tools"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
               >
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                <p className="text-eyebrow text-white/50 mb-1.5">
                   Compliance Tools
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Compliance Tools — to do your job well
                 </p>
-                <p className="text-[12px] text-white/60 leading-snug">
+                <p className="text-meta text-white/60 leading-snug">
                   LIA, DPIA, DPA Generator, RoPA Builder, CPPA Suite. Enforcement-calibrated.
                 </p>
               </a>
             </div>
 
             {/* Subtle pricing note */}
-            <p className="text-white/40 text-[11px] mt-4 text-center lg:text-left">
+            <p className="text-white/40 text-meta mt-4 text-center lg:text-left">
               Intelligence Feed from {INTELLIGENCE_PRICING.monthly()} ·
               Compliance Platform {PLATFORM_PRICING.standard()} ·
               Tools available standalone

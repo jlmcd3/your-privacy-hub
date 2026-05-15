@@ -64,7 +64,7 @@ export default function RegistrationLanding() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (
-          <div className="mt-2 text-[12px] text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+          <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
             ✓ Included in your Annual Platform — all registration documents included at no additional charge.
           </div>
         )}
@@ -196,7 +196,7 @@ export default function RegistrationLanding() {
                   <li className="flex justify-between gap-2"><span>Up to 7 jurisdictions</span><span className="font-semibold text-navy">$275</span></li>
                   <li className="flex justify-between gap-2"><span>Portfolio (unlimited)</span><span className="font-semibold text-navy">$499</span></li>
                 </ul>
-                <p className="text-[11px] text-slate-light mt-3">Includes all required draft documents, filing checklist, and portal URLs.</p>
+                <p className="text-meta text-slate-light mt-3">Includes all required draft documents, filing checklist, and portal URLs.</p>
               </CardContent>
             </Card>
             <Card className="border-2 border-navy">
@@ -213,7 +213,7 @@ export default function RegistrationLanding() {
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Pre-filing walkthrough video</li>
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Structured handoff doc for your counsel</li>
                 </ul>
-                <p className="text-[11px] text-slate-light mt-3 italic">
+                <p className="text-meta text-slate-light mt-3 italic">
                   You (or your counsel) submit all filings. We do not file on your behalf.
                 </p>
               </CardContent>

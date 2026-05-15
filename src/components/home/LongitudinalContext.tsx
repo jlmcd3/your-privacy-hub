@@ -75,7 +75,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
             {signal.period_days}-Day Context: {topicLabel}
           </h3>
         </div>
-        <span className="text-[11px] text-slate bg-fog px-2 py-0.5 rounded-full">
+        <span className="text-meta text-slate bg-fog px-2 py-0.5 rounded-full">
           {new Date(signal.period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           {" – "}
           {new Date(signal.period_end).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -92,12 +92,12 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
       {/* Key observations */}
       {observations.length > 0 && (
         <div className="mb-4">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-navy mb-2">
+          <p className="text-eyebrow text-navy mb-2">
             Key Observations
           </p>
           <ul className="space-y-1.5">
             {observations.map((obs, i) => (
-              <li key={i} className="flex gap-2 text-[12px] text-slate leading-relaxed">
+              <li key={i} className="flex gap-2 text-meta text-slate leading-relaxed">
                 <ArrowRight className="w-3 h-3 text-steel flex-shrink-0 mt-0.5" />
                 <span>{obs}</span>
               </li>
@@ -111,7 +111,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
         {signal.jurisdictions_active && signal.jurisdictions_active.length > 0 && (
           <div className="flex items-center gap-1">
             <Globe className="w-3 h-3 text-slate-light" />
-            <span className="text-[11px] text-slate">
+            <span className="text-meta text-slate">
               {signal.jurisdictions_active.slice(0, 4).join(", ")}
               {signal.jurisdictions_active.length > 4 && ` +${signal.jurisdictions_active.length - 4}`}
             </span>
@@ -120,14 +120,14 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
         {signal.sectors_affected && signal.sectors_affected.length > 0 && (
           <div className="flex items-center gap-1">
             <Building2 className="w-3 h-3 text-slate-light" />
-            <span className="text-[11px] text-slate">
+            <span className="text-meta text-slate">
               {signal.sectors_affected.slice(0, 3).join(", ")}
               {signal.sectors_affected.length > 3 && ` +${signal.sectors_affected.length - 3}`}
             </span>
           </div>
         )}
         {signal.article_count && (
-          <span className="text-[11px] text-slate-light ml-auto">
+          <span className="text-meta text-slate-light ml-auto">
             Based on {signal.article_count} articles
           </span>
         )}

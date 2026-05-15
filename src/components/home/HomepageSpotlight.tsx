@@ -78,12 +78,12 @@ const SpotlightCard = ({
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {article.source_name && (
-            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">
+            <span className="text-meta font-semibold text-slate uppercase tracking-wide">
               {article.source_name}
             </span>
           )}
           {article.published_at && (
-            <span className="text-[11px] text-slate-light">
+            <span className="text-meta text-slate-light">
               {fmtDate(article.published_at)}
             </span>
           )}
@@ -93,7 +93,7 @@ const SpotlightCard = ({
             </span>
           )}
           {article.attention_level === "WATCH CLOSELY" && (
-            <span className="text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
+            <span className="text-eyebrow px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
               Watch Closely
             </span>
           )}
@@ -104,13 +104,13 @@ const SpotlightCard = ({
             href={article.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-2 no-underline transition-colors"
+            className="text-sm font-bold text-navy hover:text-blue leading-snug block mb-2 no-underline transition-colors"
           >
             {normalizeTitle(article.title)}
             <ExternalLink className="w-3 h-3 inline ml-1 opacity-40" />
           </a>
         ) : (
-          <p className="text-[14px] font-bold text-navy leading-snug mb-2">
+          <p className="text-sm font-bold text-navy leading-snug mb-2">
             {normalizeTitle(article.title)}
           </p>
         )}
@@ -124,7 +124,7 @@ const SpotlightCard = ({
               <p className="text-sm text-slate leading-relaxed mb-2">{firstSentence}</p>
               <Link
                 to={briefHref}
-                className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gold hover:underline no-underline"
+                className="inline-flex items-center gap-1.5 text-meta font-semibold text-gold hover:underline no-underline"
               >
                 <Sparkles className="w-3 h-3" />
                 {briefLabel}
@@ -140,7 +140,7 @@ const SpotlightCard = ({
             <div>
               <p className="text-sm text-slate leading-relaxed mb-2">{why}</p>
               <div className="rounded-lg bg-paper border border-fog px-3 py-2">
-                <p className="text-[12px] text-slate/70 italic">
+                <p className="text-meta text-slate/70 italic">
                   Platform subscribers see what to do about this and what to watch for next.{" "}
                   <Link to="/subscribe" className="text-gold font-semibold no-underline hover:underline">
                     See Platform →
@@ -165,7 +165,7 @@ const SpotlightCard = ({
                   {watchProse && <span className="italic">{watchProse}</span>}
                 </p>
               )}
-              <p className="text-[11px] text-slate/50 italic mt-1">
+              <p className="text-meta text-slate/50 italic mt-1">
                 This is what Platform subscribers see on every development, every day.
               </p>
             </div>
@@ -178,13 +178,13 @@ const SpotlightCard = ({
 
 const FeedCtaBanner = ({ count }: { count: number }) => (
   <div className="rounded-2xl bg-navy px-6 py-8 text-center mt-6">
-    <p className="text-[11px] font-bold uppercase tracking-widest text-gold mb-2">
+    <p className="text-eyebrow text-gold mb-2">
       Privacy Intelligence Feed
     </p>
     <h2 className="font-display text-[22px] md:text-[26px] font-bold text-white mb-2">
       Today's full feed — {count > 0 ? `${count} developments` : "all developments"}, every one enriched
     </h2>
-    <p className="text-[14px] text-blue-100/80 mb-5 max-w-xl mx-auto">
+    <p className="text-sm text-blue-100/80 mb-5 max-w-xl mx-auto">
       Every regulatory update, enforcement action, and guidance document —
       with analysis calibrated to your programme and jurisdiction.
     </p>
@@ -302,7 +302,7 @@ export default function HomepageSpotlight() {
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="rounded-2xl border border-dashed border-fog bg-slate-50/60 px-6 py-12 text-center">
           <Sparkles className="w-8 h-8 mx-auto text-slate/40 mb-3" aria-hidden />
-          <h2 className="font-display text-[20px] font-bold text-navy mb-2">
+          <h2 className="font-display text-xl font-bold text-navy mb-2">
             No new developments yet today
           </h2>
           <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">
@@ -332,10 +332,10 @@ export default function HomepageSpotlight() {
   return (
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
       <div className="mb-6">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate/60 mb-1">
+        <p className="text-eyebrow text-slate/60 mb-1">
           Today's regulatory developments
         </p>
-        <h2 className="font-display text-[22px] font-bold text-navy">
+        <h2 className="text-section-h2 text-navy">
           What you see — and what you're missing
         </h2>
         <p className="text-sm text-slate mt-1">
@@ -351,7 +351,7 @@ export default function HomepageSpotlight() {
 
           return (
             <div key={article.id} className="py-5 border-b border-fog last:border-0">
-              <div className={`text-[11px] uppercase tracking-wider mb-3 ${label.className}`}>
+              <div className={`text-meta uppercase tracking-wider mb-3 ${label.className}`}>
                 {label.icon} {label.text}
               </div>
               <SpotlightCard article={article} tier={tier} />

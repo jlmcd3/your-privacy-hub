@@ -25,9 +25,9 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 };
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-slate/50 text-[11px]" },
-  { icon: "✉", text: "Free account view", className: "text-blue text-[11px] font-medium" },
-  { icon: "⭐", text: "Platform view", className: "text-gold text-[11px] font-semibold" },
+  { icon: "👁", text: "What any visitor sees", className: "text-slate/50 text-meta" },
+  { icon: "✉", text: "Free account view", className: "text-blue text-meta font-medium" },
+  { icon: "⭐", text: "Platform view", className: "text-gold text-meta font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
@@ -109,10 +109,10 @@ const HomepageArticleCard = ({
           {excerpt}
           {alertNode}
           <div className="flex flex-col gap-1 mt-1">
-            <Link to="/signup" className="text-[11px] font-semibold text-steel hover:underline no-underline">
+            <Link to="/signup" className="text-meta font-semibold text-steel hover:underline no-underline">
               Register free to see Context →
             </Link>
-            <Link to="/subscribe" className="text-[11px] font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-meta font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -127,7 +127,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           <div className="mt-1.5">
-            <Link to="/subscribe" className="text-[11px] font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-meta font-semibold text-gold hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -154,7 +154,7 @@ const HomepageArticleCard = ({
             </p>
           )}
           <div className="pt-1.5 border-t border-fog">
-            <Link to={toolCTA.href} className="text-[11px] font-semibold text-gold hover:underline no-underline">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
@@ -353,7 +353,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
     return (
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="rounded-xl border border-dashed border-fog bg-card px-6 py-10 text-center">
-          <h2 className="font-display text-[20px] font-bold text-navy mb-2">
+          <h2 className="font-display text-xl font-bold text-navy mb-2">
             No developments available yet
           </h2>
           <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">
