@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.get-founding-status]
 verify_jwt = false
+
+[functions.get-cron-schedule]
+verify_jwt = false

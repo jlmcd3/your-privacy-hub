@@ -3983,6 +3983,16 @@ export type Database = {
         }
         Returns: Json
       }
+      get_cron_jobs: {
+        Args: never
+        Returns: {
+          active: boolean
+          command: string
+          jobid: number
+          jobname: string
+          schedule: string
+        }[]
+      }
       get_enforcement_action_basic: {
         Args: { _id: string }
         Returns: {
