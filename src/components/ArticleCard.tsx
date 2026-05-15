@@ -379,10 +379,10 @@ const FullCard = ({
         {/* Metadata row */}
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           {item.source_name && (
-            <span className="text-[11px] font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
+            <span className="text-meta font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
           )}
           {item.published_at && (
-            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
+            <span className="text-meta text-slate-light">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -392,7 +392,7 @@ const FullCard = ({
           {(() => {
             const sev = getSeverityLabel(item.ai_summary);
             return sev ? (
-              <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
+              <span className={`text-eyebrow px-1.5 py-0.5 rounded-md ${sev.className}`}>
                 {sev.label}
               </span>
             ) : null;
@@ -407,7 +407,7 @@ const FullCard = ({
         {/* Title */}
         <TitleLink
           item={item}
-          className="text-[14px] font-bold text-navy hover:text-blue leading-snug block mb-1 no-underline transition-colors"
+          className="text-card-title text-navy hover:text-blue block mb-1 no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
@@ -415,7 +415,7 @@ const FullCard = ({
 
         {/* Article excerpt — first two lines of the source summary */}
         {item.summary && (
-          <p className="text-sm text-slate leading-relaxed mt-1.5 line-clamp-2">
+          <p className="text-body text-slate mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
