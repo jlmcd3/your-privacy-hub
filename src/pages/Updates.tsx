@@ -512,10 +512,10 @@ const Updates = () => {
                 {/* Search + date range */}
                 <div className="flex flex-col sm:flex-row gap-3 mb-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
                             type="text"
-                            placeholder="Search Privacy Intelligence Feed…"
+                            placeholder="Search the entire Privacy Intelligence Feed…"
                             value={searchTerm}
                             onChange={(e) => {
                                 const value = e.target.value;
@@ -526,13 +526,13 @@ const Updates = () => {
                                 }
                                 setSearchTerm(value);
                             }}
-                            className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background"
+                            className="w-full pl-12 pr-4 py-3.5 border-2 border-border rounded-lg text-base bg-background shadow-sm focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/20 transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                     <select
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
-                        className="px-3 py-2 border border-border rounded-lg text-sm bg-background"
+                        className="px-4 py-3.5 border-2 border-border rounded-lg text-base bg-background focus:outline-none focus:border-cobalt"
                     >
                         {DATE_RANGES.map((d) => (
                             <option key={d.key} value={d.key}>{d.label}</option>
