@@ -78,9 +78,6 @@ const Glossary = () => {
                 ))}
               </div>
             </div>
-            {idx === midIndex - 1 && (
-              <AdBanner variant="inline" adSlot="eup-glossary-mid" className="py-4" />
-            )}
           </div>
         ))}
       </div>
