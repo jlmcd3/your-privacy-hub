@@ -569,7 +569,7 @@ export default function Tools() {
                     </div>
 
                     <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
-                    <p className="text-slate text-sm">{tool.tagline}</p>
+                    <p className="text-sm text-gray-600">{tool.tagline}</p>
                     {tool.freeBadge && (
                       <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                         ✓ {tool.freeBadge}
