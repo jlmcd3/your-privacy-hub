@@ -210,7 +210,63 @@ const Subscribe = () => {
         </div>
       </div>
 
-      {fromBuilder && (
+      <p className="text-center text-meta text-slate-500 mt-4 mb-8 px-4">
+        Every tool output calibrated against 3,700+ real enforcement decisions — not just statutory text.
+      </p>
+
+      {/* Feature comparison table */}
+      <div className="max-w-3xl mx-auto px-4 mt-12 mb-8">
+        <h2 className="text-center font-display text-xl text-navy mb-6">
+          What's included at each level
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 pr-4 font-semibold text-gray-700 w-1/2">Feature</th>
+                <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
+                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">$29/mo</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Platform<br/><span className="font-normal normal-case tracking-normal">$399/yr</span></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {([
+                ['Privacy Intelligence Feed (news)', '✓', '✓', '✓'],
+                ['Article Alert summaries', '✓', '✓', '✓'],
+                ['Article Context layer', '—', '✓', '✓'],
+                ['Article Analysis and Guidance', '—', '—', '✓'],
+                ['Weekly Privacy Intelligence Report', '—', '✓', '✓'],
+                ['Personalised by role, jurisdiction, topics', '—', '✓', '✓'],
+                ['AI investigation prompts on every article', '—', '✓', '✓'],
+                ['119-authority enforcement tracking', 'Limited', '✓', '✓'],
+                ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
+                ['All compliance tools', '—', '—', '✓'],
+                ['Governance Assessment', '—', '—', '✓'],
+                ['Legitimate Interest Assessment', '—', '—', '✓'],
+                ['DPIA Builder', '—', '—', '✓'],
+                ['DPA Generator', '—', '—', '✓'],
+                ['IR Playbook', '—', '—', '✓'],
+                ['RoPA Builder', '—', '—', '✓'],
+                ['CPPA Suite (Scope / Risk / Cyber)', '—', '—', '✓'],
+                ['Saved reports in My Reports', '—', '—', '✓'],
+                ['Personalized investigation prompts', '—', '—', '✓'],
+              ] as const).map(([feature, anon, intel, platform], i) => (
+                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <td className="py-2.5 pr-4 text-gray-700">{feature}</td>
+                  <td className="py-2.5 px-2 text-center text-gray-400">{anon}</td>
+                  <td className="py-2.5 px-2 text-center font-medium text-steel">{intel}</td>
+                  <td className="py-2.5 px-2 text-center font-medium" style={{color:'hsl(var(--gold))'}}>{platform}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-center text-xs text-gray-400 mt-4">
+          Individual tools also available as standalone purchases.
+          CPPA Scope Checker is free — no account required.
+        </p>
+      </div>
+
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
             <span className="text-green-600 text-lg flex-shrink-0 mt-0.5">✓</span>
