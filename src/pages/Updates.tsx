@@ -161,11 +161,35 @@ const Updates = () => {
     const regionFilter = searchParams.get("region");
 
 
-    const buildQuery = useCallback((offset: number) => {
-        return supabase
+    // Debounce search term so each keystroke doesn't hit the DB
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+        return () => clearTimeout(t);
+    }, [searchTerm]);
+
+    const buildQuery = useCallback((offset: number, q: string) => {
+        let query = supabase
             .from("updates")
             .select("*")
-            .eq("is_hidden", false)
+            .eq("is_hidden", false);
+
+        if (q && q.length >= 2) {
+            // Escape commas/parens that would break PostgREST `or` syntax
+            const safe = q.replace(/[,()]/g, " ");
+            const like = `%${safe}%`;
+            query = query.or(
+                [
+                    `title.ilike.${like}`,
+                    `summary.ilike.${like}`,
+                    `regulator.ilike.${like}`,
+                    `regulatory_theory.ilike.${like}`,
+                    `related_development.ilike.${like}`,
+                ].join(",")
+            );
+        }
+
+        return query
             .order("published_at", { ascending: false })
             .range(offset, offset + PAGE_SIZE - 1);
     }, []);
@@ -174,7 +198,7 @@ const Updates = () => {
         if (offset === 0) setLoading(true);
         else setLoadingMore(true);
 
-        const { data, error } = await buildQuery(offset);
+        const { data, error } = await buildQuery(offset, debouncedSearch);
         if (error) {
             console.error("Updates fetch error:", error);
         } else {
