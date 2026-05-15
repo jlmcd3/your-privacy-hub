@@ -123,8 +123,6 @@ const TimelineDetail = () => {
                       </a>
                     )}
                   </div>
-                  {i === midIndex && (
-                  )}
                 </div>
               );
             })}

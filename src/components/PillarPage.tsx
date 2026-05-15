@@ -347,8 +347,6 @@ const PillarPage = ({
                     }}
                   />
                 </div>
-                {i === Math.floor(sections.length / 2) - 1 && (
-                )}
               </React.Fragment>
             );
           })}
