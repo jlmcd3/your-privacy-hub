@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { normalizeTitle, stripHtml } from "@/lib/utils";
 import type { ArticleItem } from "@/components/ArticleCard";
+import { InvestigationPrompt } from "@/components/InvestigationPrompt";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
 
 type UpdateArticleRow = ArticleItem & {
@@ -160,6 +161,7 @@ const HomepageArticleCard = ({
               {toolCTA.label}
             </Link>
           </div>
+          <InvestigationPrompt item={article} />
         </div>
       );
     }
@@ -188,6 +190,7 @@ const HomepageArticleCard = ({
               {toolCTA.label}
             </Link>
           </div>
+          <InvestigationPrompt item={article} />
         </div>
       );
     }
