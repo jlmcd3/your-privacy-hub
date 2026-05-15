@@ -18,7 +18,12 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const { isPremium } = usePremiumStatus();
-  const { context: subscriberContext } = useSubscriberContext();
+  const {
+    context: subscriberContext,
+    loading: contextLoading,
+    error: contextError,
+  } = useSubscriberContext();
+  const [promptError, setPromptError] = useState<string | null>(null);
   const [promptOpen, setPromptOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
