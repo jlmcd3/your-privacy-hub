@@ -27,6 +27,43 @@ const Index = () => (
         <HomepageFeedSection />
       </div>
       <HomepageBriefSection />
+
+      <section className="max-w-4xl mx-auto px-6 py-10 border-t border-gray-100">
+        <p className="text-eyebrow text-slate-400 mb-3">How it fits together</p>
+        <h2 className="font-display text-2xl text-navy mb-8">
+          From intelligence to action — in the same platform.
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <div className="text-2xl mb-2">📡</div>
+            <h3 className="font-semibold text-navy mb-1">Monitor</h3>
+            <p className="text-sm text-gray-600">
+              119 authorities tracked daily. Every enforcement action,
+              regulatory guidance, and legislative development — enriched
+              with AI analysis before it reaches you.
+            </p>
+          </div>
+          <div>
+            <div className="text-2xl mb-2">🧠</div>
+            <h3 className="font-semibold text-navy mb-1">Analyse</h3>
+            <p className="text-sm text-gray-600">
+              Your weekly Privacy Intelligence Report synthesises what
+              matters for your role, jurisdiction, and industry. Not a
+              news digest — a decision-ready briefing.
+            </p>
+          </div>
+          <div>
+            <div className="text-2xl mb-2">⚖️</div>
+            <h3 className="font-semibold text-navy mb-1">Act</h3>
+            <p className="text-sm text-gray-600">
+              Run an LIA. Draft a DPA. Generate an IR playbook. Assess
+              your CPPA readiness. Ten compliance tools included with
+              Annual Platform — each calibrated to enforcement.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <div id="tools" className="scroll-mt-20">
         <HomepageToolsSection />
       </div>
