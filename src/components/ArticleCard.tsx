@@ -416,7 +416,7 @@ const FullCard = ({
 
         {/* Article excerpt — first two lines of the source summary */}
         {item.summary && (
-          <p className="text-body text-gray-600 mt-1.5 line-clamp-2">
+          <p className="text-body text-gray-500 mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
