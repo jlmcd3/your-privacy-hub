@@ -480,7 +480,7 @@ const FullCard = ({
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-body text-slate">
+              <p className="text-body text-gray-600">
                 <span className="font-semibold text-gold">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}
@@ -489,7 +489,7 @@ const FullCard = ({
                 {watchProse && <span className="italic">{watchProse}</span>}
               </p>
               <div className="pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-[12px] font-semibold text-gold hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-xs font-semibold text-gold hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
