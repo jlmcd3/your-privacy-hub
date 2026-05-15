@@ -371,7 +371,7 @@ const Dashboard = () => {
                 <div className="px-6 py-10">
                   <div className="rounded-xl border border-border p-8 text-center max-w-lg mx-auto">
                     <div className="text-3xl mb-3">📋</div>
-                    <h3 className="font-semibold text-base mb-2">Your first digest is on its way</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Your first digest is on its way</h3>
                     <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                       Your personalized digest will arrive Monday morning. While you wait, explore the feed and tools below.
                     </p>
