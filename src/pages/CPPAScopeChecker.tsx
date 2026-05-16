@@ -1,6 +1,7 @@
 // CPPA Scope Checker — free deterministic tool, no AI, no payment.
 // Determines whether CCPA/CPRA + CPPA enforcement obligations apply.
 
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";

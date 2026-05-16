@@ -1,3 +1,4 @@
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";

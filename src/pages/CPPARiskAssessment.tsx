@@ -1,4 +1,5 @@
 // CPPA Privacy Risk Assessment — Module 1 intake. 5-step wizard + summary.
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
