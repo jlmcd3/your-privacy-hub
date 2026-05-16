@@ -246,7 +246,12 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
       }
     }
     if (parsed.skip) return { kind: "model_skip", detail: parsed.skip_reason || "model_declined" };
-    return { kind: "ok", data: parsed };
+
+    const v = validateAISummary(parsed, { fn: "backfill-ai-summaries", title });
+    if (!v.ok) {
+      return { kind: "permanent_error", detail: `schema_invalid:${v.errors[0] ?? "unknown"}` };
+    }
+    return { kind: "ok", data: v.data };
   } catch (err) {
     const msg = (err as Error).message;
     console.error(`generateAISummary threw: ${msg}`);
