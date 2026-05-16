@@ -1238,7 +1238,7 @@ STEP 2 — If relevant, return this JSON:
 {
   "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what's at stake for organizations subject to it. Designed to be read at a glance in a feed. No generic phrasing.",
 
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
 
   "related_signals": [
     {
