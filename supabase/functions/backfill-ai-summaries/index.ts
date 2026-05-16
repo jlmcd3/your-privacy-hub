@@ -159,13 +159,9 @@ NOTE: This article has already been confirmed as relevant to privacy, data prote
 
 Return this JSON object with every field populated:
 {
-  "why_it_matters": "2 sentences. Name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
-  "takeaways": [
-    "Specific factual point from this article — cite regulator or law name",
-    "Specific implication, deadline, or scope if present in the article",
-    "Specific type of organisation affected and what they must review or do"
-  ],
-  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no clear action exists, write exactly: Monitor — no immediate compliance action required.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
+  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
+  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
   "who_should_care": "Choose one: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
   "urgency": "Choose one: Immediate | This quarter | Monitor",
   "legal_weight": "Choose one: Binding | Enforcement | Guidance | Proposal | Commentary",
