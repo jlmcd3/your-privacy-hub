@@ -1,3 +1,4 @@
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
@@ -46,6 +47,19 @@ export default function EUNoticeLanding() {
         )}
       </div>
       <main className="flex-1">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <ToolOutputPreview
+            label="Sample EU/UK Privacy Notice output"
+            lines={[
+              "PRIVACY NOTICE — GDPR / UK GDPR (Articles 13–14)",
+              "Data controller: [Organisation name], [Address]",
+              "DPO contact: [DPO name], [email]",
+              "We process your personal data for the following purposes:",
+              "  1. Contract performance — legal basis: Article 6(1)(b)",
+              "  2. Compliance with legal obligations — Article 6(1)(c)",
+            ]}
+          />
+        </div>
         <section className="py-16 md:py-20 border-b border-border">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
             <Badge variant="secondary" className="mb-4">12 global frameworks · One session</Badge>
