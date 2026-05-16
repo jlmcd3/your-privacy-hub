@@ -148,6 +148,7 @@ export default function USNoticeQuestions() {
   // Persist a single answer (upsert).
   async function persistAnswer(key: string, value: AnswerValue) {
     if (!sessionId) return;
+    setSaving(true);
     const { error } = await supabase
       .from("us_notice_answers")
       .upsert(
@@ -158,6 +159,7 @@ export default function USNoticeQuestions() {
         },
         { onConflict: "session_id,question_key" },
       );
+    setSaving(false);
     if (error) {
       console.error("[USNoticeQuestions] persist error", error);
       toast({
@@ -165,7 +167,9 @@ export default function USNoticeQuestions() {
         description: "Your answer is shown but didn't save. Please try again.",
         variant: "destructive",
       });
+      return;
     }
+    setLastSavedAt(new Date());
   }
 
   function setAnswer(key: string, value: AnswerValue) {
