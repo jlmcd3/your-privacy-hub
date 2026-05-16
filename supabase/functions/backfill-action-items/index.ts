@@ -113,18 +113,21 @@ Generate 1–3 action_items. If no specific named-law action applies, return [].
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return null;
     const parsed = JSON.parse(m[0]);
+    const v = validateActionItemsPatch(parsed, { fn: "backfill-action-items", title });
+    if (!v.ok) return null;
+    const data = v.data;
     const result: any = {};
-    if (Array.isArray(parsed.action_items)) {
-      result.action_items = parsed.action_items
+    if (Array.isArray(data.action_items)) {
+      result.action_items = (data.action_items as any[])
         .filter((a: any) => a && typeof a.action === "string" && a.action.trim())
         .slice(0, 3);
     }
     if (
-      typeof parsed.precedent_novelty === "string" &&
+      typeof data.precedent_novelty === "string" &&
       ["new_theory", "confirms_existing", "reverses_prior", "routine"]
-        .includes(parsed.precedent_novelty)
+        .includes(data.precedent_novelty)
     ) {
-      result.precedent_novelty = parsed.precedent_novelty;
+      result.precedent_novelty = data.precedent_novelty;
     }
     return result;
   } catch {
