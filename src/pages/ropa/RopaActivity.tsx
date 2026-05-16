@@ -267,16 +267,11 @@ export default function RopaActivity() {
                 ← Back
               </button>
               <div className="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                <span
-                  className="text-xs text-muted-foreground text-center sm:text-left"
-                  aria-live="polite"
-                >
-                  {isSaving
-                    ? "Saving…"
-                    : lastSavedAt
-                      ? "Saved ✓"
-                      : ""}
-                </span>
+                <AutosaveIndicator
+                  saving={isSaving}
+                  savedAt={lastSavedAt}
+                  className="text-center sm:text-left"
+                />
                 <button
                   onClick={goNext}
                   disabled={
