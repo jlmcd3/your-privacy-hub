@@ -356,6 +356,15 @@ STEP 2 — If relevant, return this JSON:
                   if (typeof parsed.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.key_date)) {
                     row.key_date = parsed.key_date;
                   }
+                  if (typeof parsed.why_it_matters_short === "string" && parsed.why_it_matters_short.trim()) {
+                    row.why_it_matters_short = parsed.why_it_matters_short.trim();
+                  }
+                  if (parsed.entities && typeof parsed.entities === "object") {
+                    row.entities = parsed.entities;
+                  }
+                  if (typeof parsed.defense_considerations === "string" && parsed.defense_considerations.trim()) {
+                    row.defense_considerations = parsed.defense_considerations;
+                  }
                   results.summaries_generated++;
                 }
               }
