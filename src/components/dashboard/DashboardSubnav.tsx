@@ -67,70 +67,9 @@ const APPSHELL_PREFIXES = [
   '/admin',
 ];
 
-type Item = {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  match: (pathname: string, hash: string) => boolean;
-};
-
-// Strip trailing slash (except root), lower-case for comparison.
-function normalizePath(p: string): string {
-  const lower = p.toLowerCase();
-  if (lower.length > 1 && lower.endsWith("/")) return lower.slice(0, -1);
-  return lower;
-}
-
-// Normalize hash: drop leading #, lower-case, and strip anything after `?` or `&`
-// in case a shared link includes query-style params on the hash.
-function normalizeHash(h: string): string {
-  const stripped = h.replace(/^#/, "").toLowerCase();
-  const cut = stripped.search(/[?&]/);
-  return cut === -1 ? stripped : stripped.slice(0, cut);
-}
-
-// Tool result routes that conceptually belong under "Reports".
-const REPORT_TOOL_PATH = /^\/(li-assessment|dpia-framework|governance-assessment|dpa-generator|ir-playbook|biometric-checker)\/result(\/|$)/;
-
-// Filing/registration paths that belong under "Filings".
-const FILING_PATH = /^\/registration-manager\/(my-filings|order|documents)(\/|$)/;
-
-const ITEMS: Item[] = [
-  {
-    to: "/dashboard",
-    label: "Intelligence Report",
-    icon: FileText,
-    // Exact /dashboard only — sub-routes like /dashboard/reports belong elsewhere.
-    match: (p) => p === "/dashboard",
-  },
-  {
-    to: "/dashboard/reports",
-    label: "Reports",
-    icon: FolderOpen,
-    match: (p) =>
-      p === "/dashboard/reports" ||
-      p.startsWith("/dashboard/reports/") ||
-      REPORT_TOOL_PATH.test(p),
-  },
-  {
-    to: "/registration-manager/my-filings",
-    label: "Filings",
-    icon: FileCheck,
-    match: (p) => FILING_PATH.test(p),
-  },
-  {
-    to: "/watchlist",
-    label: "Watchlist",
-    icon: Bookmark,
-    match: (p) => p === "/watchlist",
-  },
-  {
-    to: "/clients",
-    label: "Clients",
-    icon: Building2,
-    match: (p) => p === "/clients" || p.startsWith("/clients/"),
-  },
-];
+// Workspace tab list = Intelligence + Operations groups from the shared
+// definition. Account is rendered separately as the trailing pill below.
+const ITEMS = [...INTELLIGENCE_ITEMS, ...OPERATIONS_ITEMS];
 
 export default function DashboardSubnav() {
   const { user } = useAuth();
@@ -138,15 +77,7 @@ export default function DashboardSubnav() {
 
   const rawPath = location.pathname.toLowerCase();
   const pathname = normalizePath(location.pathname);
-  const hash = normalizeHash(location.hash);
-
-  // First-match-wins so exactly one workspace tab can be active at a time.
-  const activeTo = (() => {
-    for (const item of ITEMS) {
-      if (item.match(pathname, hash)) return item.to;
-    }
-    return null;
-  })();
+  const activeTo = computeActiveTo(location.pathname, location.hash);
 
   if (!user) return null;
 
