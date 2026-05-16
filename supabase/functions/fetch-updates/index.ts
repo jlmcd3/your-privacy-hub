@@ -1267,7 +1267,7 @@ STEP 2 — If relevant, return this JSON:
 
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
 
-  "regulatory_theory": "The legal doctrine or principle underlying this development. Write one sentence in plain English naming the doctrine. Examples: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary analytics', 'Data minimisation enforcement against over-collection at point of collection'. If no clear legal doctrine applies, return null.",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
 
   "action_items": [
     {
