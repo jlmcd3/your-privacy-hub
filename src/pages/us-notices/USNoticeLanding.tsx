@@ -89,6 +89,19 @@ export default function USNoticeLanding() {
         )}
       </div>
       <main className="flex-1">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <ToolOutputPreview
+            label="Sample US Privacy Notice output"
+            lines={[
+              "PRIVACY NOTICE — California / Virginia / Colorado",
+              "Effective date: [Date]",
+              "We collect the following categories of personal information:",
+              "  • Identifiers (name, email, IP address) — CCPA Category A",
+              "  • Commercial information (purchase history) — CCPA Category F",
+              "Your rights: Access · Deletion · Correction · Opt-out of sale/sharing",
+            ]}
+          />
+        </div>
         {/* HERO */}
         <section className="border-b border-border">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">

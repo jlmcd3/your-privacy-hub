@@ -91,7 +91,18 @@ export default function BiometricChecker() {
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
         </div>
-
+        {phase !== "result" && (
+          <ToolOutputPreview
+            label="Sample Biometric Compliance Check output"
+            lines={[
+              "ILLINOIS BIPA: HIGH RISK — Written consent required before collection",
+              "  BIPA §15(b): Informed written release required for each biometric identifier",
+              "  Enforcement: Rogers v. BNSF Railway (2023) — $228M jury verdict",
+              "GDPR Article 9: Special category data — explicit consent or Art. 9(2) exception",
+              "  Required: Data Protection Impact Assessment before deployment",
+            ]}
+          />
+        )}
 
         {phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
