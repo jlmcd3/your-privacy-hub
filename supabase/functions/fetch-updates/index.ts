@@ -1263,7 +1263,7 @@ STEP 2 — If relevant, return this JSON:
 
   "risk_level": "Low | Medium | High | Critical",
 
-  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return [] if impact is narrowly jurisdictional. Be conservative."],
+  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return [] if impact is narrowly jurisdictional. Be conservative."],
 
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
 
