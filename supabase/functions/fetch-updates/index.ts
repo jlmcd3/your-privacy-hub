@@ -1213,7 +1213,13 @@ Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysi
 Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
 Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
 Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
-Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.`,
+Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.
+
+VOICE:
+Write in direct, active voice. Lead with the compliance implication, not the regulatory action. The regulatory body or law is the cause — the reader's obligation or risk is the subject.
+WRONG: "The CNIL has issued guidance on session replay tools, requiring organisations to obtain consent."
+RIGHT: "Organisations using session replay tools on French websites now have a six-month compliance window following CNIL guidance published this week."
+Do not extrapolate beyond what the article text directly supports. If the article does not state a consequence, do not assert one.`,
         messages: [
           {
             role: "user",
