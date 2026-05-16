@@ -76,7 +76,6 @@ export default function DashboardSubnav() {
   const location = useLocation();
 
   const rawPath = location.pathname.toLowerCase();
-  const pathname = normalizePath(location.pathname);
   const activeTo = computeActiveTo(location.pathname, location.hash);
 
   if (!user) return null;
