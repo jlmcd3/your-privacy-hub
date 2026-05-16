@@ -68,6 +68,7 @@ export default function USNoticeQuestions() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
