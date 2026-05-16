@@ -431,6 +431,12 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-6 pb-6 border-b border-gray-100">
+          <h1 className="font-display text-2xl text-navy font-bold mb-1">
+            Privacy Intelligence Workspace
+          </h1>
+          <WorkspaceStatusLine />
+        </div>
         {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
         {/* Header — only shown to subscribers without a personalized brief yet */}
         {canShowPublicBrief && (
