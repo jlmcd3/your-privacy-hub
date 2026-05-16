@@ -3,6 +3,7 @@
 // have an ai_summary but are missing one or more of these enrichment fields.
 // Paginated, safe to call repeatedly. Default 20 rows per call.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateActionItemsPatch } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
