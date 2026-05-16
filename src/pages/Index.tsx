@@ -29,7 +29,7 @@ const Index = () => (
       <HomepageBriefSection />
 
       <section className="max-w-4xl mx-auto px-6 py-10 border-t border-gray-100">
-        <p className="text-eyebrow text-slate-400 mb-3">How it fits together</p>
+        <p className="text-eyebrow !text-sm text-slate-400 mb-3">How it fits together</p>
         <h2 className="font-display text-2xl text-navy mb-8">
           From intelligence to action — in the same platform.
         </h2>
