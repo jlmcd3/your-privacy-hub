@@ -16,7 +16,6 @@ import {
   INTELLIGENCE_ITEMS,
   OPERATIONS_ITEMS,
   computeActiveTo,
-  normalizePath,
 } from "@/lib/workspaceNav";
 
 const SUPPRESS_PATHS = [
