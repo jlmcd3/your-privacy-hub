@@ -343,13 +343,11 @@ export default function RopaSetup() {
           steps={STEPS.map((label) => ({ label }))}
           currentIndex={step}
         />
-        <div
-          className="text-xs text-muted-foreground ml-4 mt-1"
-          aria-live="polite"
-        >
-          {saveStatus === "saving" && "Saving…"}
-          {saveStatus === "saved" && "Saved ✓"}
-        </div>
+        <AutosaveIndicator
+          saving={saveStatus === "saving"}
+          savedAt={saveStatus === "saved" ? new Date() : null}
+          className="ml-4 mt-1"
+        />
       </div>
 
       {hasExistingSession && step === 0 && (
