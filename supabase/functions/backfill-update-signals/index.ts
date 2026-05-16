@@ -47,7 +47,7 @@ Return JSON:
   ]
 }
 
-Return 1–3 signals if a meaningful pattern is evident; return [] if none. No fabrication.`,
+Return 1–3 signals if a meaningful pattern is evidenced by this article's content; return [] if none. Base signals ONLY on patterns explicitly evidenced in the provided title and description. Do not assert counts, series membership, or frequency claims that are not stated in the article.`,
         }],
       }),
       signal: AbortSignal.timeout(15000),
