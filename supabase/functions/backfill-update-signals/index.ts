@@ -43,11 +43,11 @@ Return JSON:
 {
   "why_it_matters_short": "ONE sentence, max 25 words. Name the regulator and the stake. No generic phrasing.",
   "related_signals": [
-    { "label": "Short pattern/precedent observation, e.g. '3rd CCPA action this quarter' or 'Mirrors EDPB binding decision 02/2026'", "kind": "pattern | precedent | trend" }
+    { "label": "Short pattern/precedent observation derivable from this article's content only. Examples of acceptable signals: 'First UODO enforcement against a financial institution', 'Confirms CNIL's consent-or-pay position from 2024 guidance', 'Extends ICO AI strategy to biometric processing', 'Reverses prior EDPB position on legitimate interest for fraud prevention'. DO NOT assert counts or frequencies ('3rd action this quarter', 'latest in a series of fines') unless the article explicitly states them. DO NOT use training knowledge to infer pattern membership.", "kind": "pattern | precedent | trend" }
   ]
 }
 
-Return 1–3 signals if a meaningful pattern is evident; return [] if none. No fabrication.`,
+Return 1–3 signals if a meaningful pattern is evidenced by this article's content; return [] if none. Base signals ONLY on patterns explicitly evidenced in the provided title and description. Do not assert counts, series membership, or frequency claims that are not stated in the article.`,
         }],
       }),
       signal: AbortSignal.timeout(15000),

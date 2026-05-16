@@ -1146,8 +1146,10 @@ async function generateContextualTeaser(
   try {
     const prompt = `Given this regulatory development: "${whyShort}"
 
-Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — mention the jurisdiction or regulator and the nature of the pattern (e.g. divergence from prior enforcement focus, confirmation of emerging trend, relevant precedent history).
-DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without a subscription.
+Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — name the specific jurisdiction or regulator and the nature of the insight (divergence from prior enforcement, confirmation of emerging trend, novel regulatory theory, relevant historical precedent).
+DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without subscribing.
+WRONG: "This development reveals an important pattern in EU enforcement practices that has significant implications for data processors."
+RIGHT: "The CNIL's position here diverges from both the EDPB and ICO, creating a jurisdiction-specific compliance gap for organisations operating across all three."
 Return only the sentence, no quotes, no preamble.`;
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1213,7 +1215,13 @@ Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysi
 Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
 Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
 Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
-Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.`,
+Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.
+
+VOICE:
+Write in direct, active voice. Lead with the compliance implication, not the regulatory action. The regulatory body or law is the cause — the reader's obligation or risk is the subject.
+WRONG: "The CNIL has issued guidance on session replay tools, requiring organisations to obtain consent."
+RIGHT: "Organisations using session replay tools on French websites now have a six-month compliance window following CNIL guidance published this week."
+Do not extrapolate beyond what the article text directly supports. If the article does not state a consequence, do not assert one.`,
         messages: [
           {
             role: "user",
@@ -1232,7 +1240,7 @@ STEP 2 — If relevant, return this JSON:
 {
   "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what's at stake for organizations subject to it. Designed to be read at a glance in a feed. No generic phrasing.",
 
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
 
   "related_signals": [
     {
@@ -1241,13 +1249,9 @@ STEP 2 — If relevant, return this JSON:
     }
   ],
 
-  "takeaways": [
-    "Specific factual point from this article — cite regulator or law name",
-    "Specific implication, deadline, or scope if present in the article",
-    "Specific type of organization affected and what they must review or do"
-  ],
+  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
 
-  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
+  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
 
   "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
 
@@ -1261,11 +1265,11 @@ STEP 2 — If relevant, return this JSON:
 
   "risk_level": "Low | Medium | High | Critical",
 
-  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return [] if impact is narrowly jurisdictional. Be conservative."],
+  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return [] if impact is narrowly jurisdictional. Be conservative."],
 
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
 
-  "regulatory_theory": "The legal doctrine or principle underlying this development. Write one sentence in plain English naming the doctrine. Examples: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary analytics', 'Data minimisation enforcement against over-collection at point of collection'. If no clear legal doctrine applies, return null.",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
 
   "action_items": [
     {

@@ -95,7 +95,7 @@ Article summary: ${(summary || "").slice(0, 800)}
 Return JSON:
 {
   "action_items": [
-    { "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose...'). NOT generic ('monitor', 'review').", "deadline": "YYYY-MM-DD or null", "severity": "high | medium | low" }
+    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose before enforcement begins'). NOT generic ('monitor', 'review').", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
   ],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
 }
@@ -139,8 +139,10 @@ async function generateContextualTeaser(
     const prompt =
       `Given this regulatory development: "${whyShort}"
 
-Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — mention the jurisdiction or regulator and the nature of the pattern (e.g. divergence from prior enforcement focus, confirmation of emerging trend, relevant precedent history).
-DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without a subscription.
+Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — name the specific jurisdiction or regulator and the nature of the insight (divergence from prior enforcement, confirmation of emerging trend, novel regulatory theory, relevant historical precedent).
+DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without subscribing.
+WRONG: "This development reveals an important pattern in EU enforcement practices that has significant implications for data processors."
+RIGHT: "The CNIL's position here diverges from both the EDPB and ICO, creating a jurisdiction-specific compliance gap for organisations operating across all three."
 Return only the sentence, no quotes, no preamble.`;
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
