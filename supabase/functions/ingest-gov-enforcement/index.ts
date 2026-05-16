@@ -19,8 +19,12 @@ const JINA = "https://r.jina.ai/";
 
 const SOURCES = [
   { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/", source: "ICO" },
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/", source: "ICO News" },
   { regulator: "FTC", jurisdiction: "United States", law: "FTC Act / COPPA", url: "https://www.ftc.gov/news-events/topics/protecting-consumer-privacy-security/privacy-security-enforcement", source: "FTC" },
   { regulator: "HHS OCR", jurisdiction: "United States", law: "HIPAA", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/index.html", source: "HHS-OCR" },
+  { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland" },
+  { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland" },
+  { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn" },
 ];
 
 async function jinaFetch(targetUrl: string): Promise<string> {
