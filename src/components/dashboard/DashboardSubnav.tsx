@@ -1,19 +1,23 @@
-// Persistent local navigation for the subscriber workspace.
+// Persistent local navigation for the subscriber workspace (mobile).
 // Lives at the top of every "my stuff" page (Brief, Reports, Filings, Watchlist).
 // Each item is a real route change so browser back/forward works natively.
 //
-// Active-state rules (designed to survive shared links and query/hash params):
-//   - Pathname is normalized (trailing slash stripped, lower-cased) before matching.
-//   - Hash is normalized (lower-cased) so `#Watchlist` and `#watchlist` both work.
-//   - Query strings (`?foo=bar`) never affect matching — they're stripped by useLocation
-//     pathname automatically, but we also tolerate hash-with-query like `#watchlist?x=1`.
-//   - Items are evaluated in order; first match wins, so exactly one tab highlights.
-//   - Account is the fallback: it highlights only when no workspace tab matched.
+// Active-state rules are defined once in `@/lib/workspaceNav` and shared with
+// the desktop `WorkspaceSidebar`, so both surfaces always highlight the same
+// item for any given URL. Account is shown as a separate trailing pill and
+// highlights only when no workspace tab matched (computeActiveTo returns
+// null) and the route is exactly /account.
 
 import { NavLink, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, FileCheck, Bookmark, Settings, Building2 } from "lucide-react";
+import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  INTELLIGENCE_ITEMS,
+  OPERATIONS_ITEMS,
+  computeActiveTo,
+  normalizePath,
+} from "@/lib/workspaceNav";
 
 const SUPPRESS_PATHS = [
   '/',
