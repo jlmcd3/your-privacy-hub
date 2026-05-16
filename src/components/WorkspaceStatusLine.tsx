@@ -10,16 +10,16 @@ export function WorkspaceStatusLine() {
     if (!user) return;
 
     Promise.all([
-      supabase
-        .from("weekly_briefs")
+      (supabase as any)
+        .from("custom_briefs")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
       (supabase as any)
         .from("user_watchlist")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
-      supabase
-        .from("weekly_briefs")
+      (supabase as any)
+        .from("custom_briefs")
         .select("week_label, generated_at")
         .eq("user_id", user.id)
         .order("generated_at", { ascending: false })
