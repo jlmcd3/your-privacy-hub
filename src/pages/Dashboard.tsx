@@ -509,8 +509,8 @@ const Dashboard = () => {
         {briefArchive.length > 0 && (
           <div className="mb-8">
             {briefArchive.length > 1 && (
-              <h2 className="font-display text-sm font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
-                📚 Your Reports ({briefArchive.length})
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 px-1">
+                Reports ({briefArchive.length})
               </h2>
             )}
             <div className="space-y-2">
