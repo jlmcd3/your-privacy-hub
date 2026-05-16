@@ -19,6 +19,7 @@ import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import WorkspaceStatusLine from "@/components/WorkspaceStatusLine";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 
