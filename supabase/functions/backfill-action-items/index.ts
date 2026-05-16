@@ -95,7 +95,7 @@ Article summary: ${(summary || "").slice(0, 800)}
 Return JSON:
 {
   "action_items": [
-    { "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose...'). NOT generic ('monitor', 'review').", "deadline": "YYYY-MM-DD or null", "severity": "high | medium | low" }
+    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose before enforcement begins'). NOT generic ('monitor', 'review').", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
   ],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
 }
