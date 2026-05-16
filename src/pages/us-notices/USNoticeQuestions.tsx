@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle, Lightbulb } from "lucide-react";
 import { USNoticeShell } from "@/components/us-notices/USNoticeShell";
+import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export default function USNoticeQuestions() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -146,6 +148,7 @@ export default function USNoticeQuestions() {
   // Persist a single answer (upsert).
   async function persistAnswer(key: string, value: AnswerValue) {
     if (!sessionId) return;
+    setSaving(true);
     const { error } = await supabase
       .from("us_notice_answers")
       .upsert(
@@ -156,6 +159,7 @@ export default function USNoticeQuestions() {
         },
         { onConflict: "session_id,question_key" },
       );
+    setSaving(false);
     if (error) {
       console.error("[USNoticeQuestions] persist error", error);
       toast({
@@ -163,7 +167,9 @@ export default function USNoticeQuestions() {
         description: "Your answer is shown but didn't save. Please try again.",
         variant: "destructive",
       });
+      return;
     }
+    setLastSavedAt(new Date());
   }
 
   function setAnswer(key: string, value: AnswerValue) {
@@ -255,7 +261,10 @@ export default function USNoticeQuestions() {
           <span>
             Question {currentIndex + 1} of {visibleQuestions.length}
           </span>
-          <span>{progressPct}%</span>
+          <div className="flex items-center gap-3">
+            <AutosaveIndicator saving={saving} savedAt={lastSavedAt} />
+            <span>{progressPct}%</span>
+          </div>
         </div>
         <Progress value={progressPct} className="h-1.5" />
       </div>

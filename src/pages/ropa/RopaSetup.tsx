@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { SECTORS } from "@/constants/sectors";
 import { toast } from "sonner";
@@ -343,13 +344,11 @@ export default function RopaSetup() {
           steps={STEPS.map((label) => ({ label }))}
           currentIndex={step}
         />
-        <div
-          className="text-xs text-muted-foreground ml-4 mt-1"
-          aria-live="polite"
-        >
-          {saveStatus === "saving" && "Saving…"}
-          {saveStatus === "saved" && "Saved ✓"}
-        </div>
+        <AutosaveIndicator
+          saving={saveStatus === "saving"}
+          savedAt={saveStatus === "saved" ? new Date() : null}
+          className="ml-4 mt-1"
+        />
       </div>
 
       {hasExistingSession && step === 0 && (

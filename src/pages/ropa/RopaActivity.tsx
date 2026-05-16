@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
@@ -267,16 +268,11 @@ export default function RopaActivity() {
                 ← Back
               </button>
               <div className="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                <span
-                  className="text-xs text-muted-foreground text-center sm:text-left"
-                  aria-live="polite"
-                >
-                  {isSaving
-                    ? "Saving…"
-                    : lastSavedAt
-                      ? "Saved ✓"
-                      : ""}
-                </span>
+                <AutosaveIndicator
+                  saving={isSaving}
+                  savedAt={lastSavedAt}
+                  className="text-center sm:text-left"
+                />
                 <button
                   onClick={goNext}
                   disabled={

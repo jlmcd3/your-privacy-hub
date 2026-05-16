@@ -19,6 +19,7 @@ import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import WorkspaceStatusLine from "@/components/WorkspaceStatusLine";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 
@@ -431,6 +432,12 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-6 pb-6 border-b border-gray-100">
+          <h1 className="font-display text-2xl text-navy font-bold mb-1">
+            Privacy Intelligence Workspace
+          </h1>
+          <WorkspaceStatusLine />
+        </div>
         {/* Brief-only page: plan status lives on /account, tool pricing lives on /tools. */}
         {/* Header — only shown to subscribers without a personalized brief yet */}
         {canShowPublicBrief && (
@@ -502,8 +509,8 @@ const Dashboard = () => {
         {briefArchive.length > 0 && (
           <div className="mb-8">
             {briefArchive.length > 1 && (
-              <h2 className="font-display text-sm font-bold uppercase tracking-[0.12em] text-steel mb-3 px-1">
-                📚 Your Reports ({briefArchive.length})
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 px-1">
+                Reports ({briefArchive.length})
               </h2>
             )}
             <div className="space-y-2">
