@@ -261,7 +261,10 @@ export default function USNoticeQuestions() {
           <span>
             Question {currentIndex + 1} of {visibleQuestions.length}
           </span>
-          <span>{progressPct}%</span>
+          <div className="flex items-center gap-3">
+            <AutosaveIndicator saving={saving} savedAt={lastSavedAt} />
+            <span>{progressPct}%</span>
+          </div>
         </div>
         <Progress value={progressPct} className="h-1.5" />
       </div>
