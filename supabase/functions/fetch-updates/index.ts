@@ -59,6 +59,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'euractiv.com':              ['eu'],
   'theregister.com':           ['united-kingdom'],
   'privacyinternational.org':  ['global'],
+  'gibsondunn.com':            ['eu', 'united-kingdom'],
   'twobirds.com':              ['eu', 'united-kingdom'],
   'edri.org':                  ['eu'],
   'openrightsgroup.org':       ['united-kingdom'],
@@ -182,13 +183,6 @@ const RSS_SOURCES = [
     regulator: "Privacy International",
   },
   {
-    url: "https://www.twobirds.com/rss/insights-privacy.rss",
-    source: "Bird & Bird Privacy",
-    domain: "twobirds.com",
-    defaultCategory: "eu-uk",
-    regulator: "Bird & Bird LLP",
-  },
-  {
     url: "https://edri.org/feed/",
     source: "EDRi",
     domain: "edri.org",
@@ -218,22 +212,6 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "Federal Commissioner for Data Protection (Germany)",
     language: "de",
-  },
-  {
-    url: "https://www.autoriteitpersoonsgegevens.nl/nl/rss",
-    source: "AP Netherlands",
-    domain: "autoriteitpersoonsgegevens.nl",
-    defaultCategory: "eu-uk",
-    regulator: "Autoriteit Persoonsgegevens (Dutch DPA)",
-    language: "nl",
-  },
-  {
-    url: "https://www.aepd.es/rss/novedades",
-    source: "AEPD",
-    domain: "aepd.es",
-    defaultCategory: "eu-uk",
-    regulator: "Agencia Española de Protección de Datos (Spanish DPA)",
-    language: "es",
   },
   {
     url: "https://www.dataprotectionauthority.be/rss",
@@ -383,7 +361,7 @@ const RSS_SOURCES = [
     regulator: "Clearcode",
   },
   {
-    url: "https://www.thedrums.com/rss/",
+    url: "https://www.thedrum.com/rss",
     source: "The Drum",
     domain: "thedrum.com",
     defaultCategory: "adtech",
@@ -447,13 +425,6 @@ const RSS_SOURCES = [
     regulator: "Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit",
   },
   {
-    url: "https://www.bfdi.bund.de/SharedDocs/rss/RSS_Pressemitteilungen.xml",
-    source: "BfDI",
-    domain: "bfdi.bund.de",
-    defaultCategory: "eu-uk",
-    regulator: "Bundesbeauftragte für den Datenschutz und die Informationsfreiheit",
-  },
-  {
     url: "https://www.garanteprivacy.it/web/guest/home/docweb/-/docweb-display/docweb/rss",
     source: "Garante",
     domain: "garanteprivacy.it",
@@ -499,10 +470,10 @@ const RSS_SOURCES = [
   // ── Legal Analysis — Premium Sources ─────────────────────────────────────────
   {
     url: "https://www.dataprotectionreport.com/feed/",
-    source: "Fieldfisher Data Protection",
+    source: "Norton Rose Fulbright",
     domain: "dataprotectionreport.com",
     defaultCategory: "eu-uk",
-    regulator: "Fieldfisher LLP",
+    regulator: "Norton Rose Fulbright LLP",
   },
   {
     url: "https://www.linklaters.com/en/insights/blogs/data-protected/rss",
@@ -650,13 +621,6 @@ const RSS_SOURCES = [
     domain: "eff.org",
     defaultCategory: "global",
     regulator: "Electronic Frontier Foundation",
-  },
-  {
-    url: "https://privacyinternational.org/rss",
-    source: "Privacy International",
-    domain: "privacyinternational.org",
-    defaultCategory: "global",
-    regulator: "Privacy International",
   },
   {
     url: "https://www.accessnow.org/feed/",
