@@ -344,29 +344,35 @@ STEP 2 — If relevant, return this JSON:
               if (match) {
                 const parsed = JSON.parse(match[0]);
                 if (!parsed.skip) {
-                  row.ai_summary = parsed;
-                  if (Array.isArray(parsed.affected_jurisdictions) && parsed.affected_jurisdictions.length > 0) {
-                    row.affected_jurisdictions = parsed.affected_jurisdictions;
+                  const v = validateAISummary(parsed, { fn: "fetch-newsapi", title: article.title, url: article.url });
+                  if (!v.ok) {
+                    results.validation_failed++;
+                  } else {
+                    const summary = v.data as Record<string, any>;
+                    row.ai_summary = summary;
+                    if (Array.isArray(summary.affected_jurisdictions) && summary.affected_jurisdictions.length > 0) {
+                      row.affected_jurisdictions = summary.affected_jurisdictions;
+                    }
+                    if (typeof summary.regulatory_theory === "string" && summary.regulatory_theory.trim()) {
+                      row.regulatory_theory = summary.regulatory_theory;
+                    }
+                    if (Array.isArray(summary.action_items) && summary.action_items.length > 0) {
+                      row.action_items = summary.action_items;
+                    }
+                    if (typeof summary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(summary.key_date)) {
+                      row.key_date = summary.key_date;
+                    }
+                    if (typeof summary.why_it_matters_short === "string" && summary.why_it_matters_short.trim()) {
+                      row.why_it_matters_short = summary.why_it_matters_short.trim();
+                    }
+                    if (summary.entities && typeof summary.entities === "object") {
+                      row.entities = summary.entities;
+                    }
+                    if (typeof summary.defense_considerations === "string" && summary.defense_considerations.trim()) {
+                      row.defense_considerations = summary.defense_considerations;
+                    }
+                    results.summaries_generated++;
                   }
-                  if (typeof parsed.regulatory_theory === "string" && parsed.regulatory_theory.trim()) {
-                    row.regulatory_theory = parsed.regulatory_theory;
-                  }
-                  if (Array.isArray(parsed.action_items) && parsed.action_items.length > 0) {
-                    row.action_items = parsed.action_items;
-                  }
-                  if (typeof parsed.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.key_date)) {
-                    row.key_date = parsed.key_date;
-                  }
-                  if (typeof parsed.why_it_matters_short === "string" && parsed.why_it_matters_short.trim()) {
-                    row.why_it_matters_short = parsed.why_it_matters_short.trim();
-                  }
-                  if (parsed.entities && typeof parsed.entities === "object") {
-                    row.entities = parsed.entities;
-                  }
-                  if (typeof parsed.defense_considerations === "string" && parsed.defense_considerations.trim()) {
-                    row.defense_considerations = parsed.defense_considerations;
-                  }
-                  results.summaries_generated++;
                 }
               }
             }
