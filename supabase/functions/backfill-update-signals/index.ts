@@ -2,6 +2,7 @@
 // already have an `ai_summary` but are missing the new short/signals fields.
 // Designed for safe, paginated batches (default 25 rows per call).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateSignalsPatch } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -59,10 +60,13 @@ Return 1–3 signals if a meaningful pattern is evidenced by this article's cont
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return null;
     const parsed = JSON.parse(m[0]);
+    const v = validateSignalsPatch(parsed, { fn: "backfill-update-signals", title });
+    if (!v.ok) return null;
+    const data = v.data as { why_it_matters_short?: string; related_signals?: Array<{ label: string; kind?: string }> };
     return {
-      short: typeof parsed.why_it_matters_short === "string" ? parsed.why_it_matters_short.trim() : undefined,
-      signals: Array.isArray(parsed.related_signals)
-        ? parsed.related_signals
+      short: typeof data.why_it_matters_short === "string" ? data.why_it_matters_short.trim() : undefined,
+      signals: Array.isArray(data.related_signals)
+        ? data.related_signals
             .filter((s: any) => s && typeof s.label === "string" && s.label.trim())
             .slice(0, 4)
         : undefined,

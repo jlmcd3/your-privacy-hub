@@ -1318,7 +1318,9 @@ Generate 1–3 action_items entries. Do not generate an action_items entry that 
     // If the AI determined the article is not relevant, skip it
     if (parsed.skip === true) return null;
 
-    return parsed;
+    const v = validateAISummary(parsed, { fn: "fetch-updates", title });
+    if (!v.ok) return null;
+    return v.data;
   } catch (e) {
     console.error("AI summary generation failed:", e);
     return null;
@@ -1553,6 +1555,7 @@ Description: ${(description || "").substring(0, 1000)}`,
 }
 
 import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+import { validateAISummary } from "../_shared/ai-validation.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
