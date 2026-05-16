@@ -285,9 +285,13 @@ Deno.serve(async (req) => {
                 "content-type": "application/json",
               },
               body: JSON.stringify({
-                model: "claude-haiku-4-5-20251001",
-                max_tokens: 1000,
-                system: `You are a privacy regulatory analyst. Return ONLY valid JSON. If the article is not genuinely about privacy regulation, data protection law, or compliance obligations, return {"skip": true}.`,
+                model: "claude-sonnet-4-6",
+                max_tokens: 2500,
+                system: `You are a privacy regulatory analyst at a leading intelligence firm. Return ONLY valid JSON.
+
+VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action. Do not extrapolate beyond what the article text directly supports.
+
+RELEVANCE: If the article has NO meaningful connection to privacy law, data protection regulation, enforcement, or compliance, return {"skip": true}. When in doubt, proceed with enrichment — it is better to enrich a borderline article than to skip a relevant one.`,
                 messages: [{
                   role: "user",
                   content: `Analyze this privacy/data protection article.
@@ -295,26 +299,22 @@ Title: ${article.title}
 Description: ${article.description || ""}
 Source: ${article.source?.name || ""}
 
-STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations, return exactly: {"skip": true}
+STEP 1 — RELEVANCE CHECK: Return {"skip": true} ONLY if this article has no meaningful connection to privacy law, data protection regulation, enforcement, or compliance. When in doubt, proceed to Step 2.
 
 STEP 2 — If relevant, return this JSON:
 {
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
-  "takeaways": [
-    "Specific factual point from this article — cite regulator or law name",
-    "Specific implication, deadline, or scope if present in the article",
-    "Specific type of organization affected and what they must review or do"
-  ],
-  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
+  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
+  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
   "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
   "urgency": "Immediate | This quarter | Monitor",
   "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
   "source_strength": "Primary regulator | Legal analysis | Media coverage",
   "cross_jurisdiction_signal": "If this article reflects a pattern occurring across multiple regulators or jurisdictions simultaneously, describe the pattern in one sentence. If no cross-jurisdiction pattern is evident, return null.",
   "risk_level": "Low | Medium | High | Critical",
-  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return [] if impact is narrowly jurisdictional. Be conservative."],
+  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return [] if impact is narrowly jurisdictional. Be conservative."],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
-  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence, or null if not applicable.",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
   "action_items": [
     {
       "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
@@ -322,7 +322,15 @@ STEP 2 — If relevant, return this JSON:
       "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
     }
   ],
-  "key_date": "YYYY-MM-DD if a specific compliance deadline or effective date is stated in the article, otherwise null."
+  "key_date": "YYYY-MM-DD if a specific compliance deadline or effective date is stated in the article, otherwise null.",
+  "why_it_matters_short": "ONE sentence, max 25 words. Name the regulator and the compliance stake. No generic phrasing. This is shown to anonymous users as a preview.",
+  "entities": {
+    "regulators": ["Array of regulatory authority names mentioned, using official abbreviated form (ICO, EDPB, CNIL, FTC, BfDI, ANPD, PDPC). Empty array if none."],
+    "companies": ["Array of company or organisation names that are the subject of regulatory action or guidance. Empty array if none. Populate only from content explicitly present in the article — do not use training knowledge."],
+    "laws": ["Array of specific laws with article numbers where stated (GDPR Art. 6(1)(f), CCPA §1798.120, BIPA 740 ILCS 14/). Empty array if none."],
+    "case_references": ["Array of specific case names or guidance document identifiers (C-597/19 Planet49, CNIL decision SAN-2022-018, EDPB Guidelines 1/2024). Empty array if none. Populate only from content explicitly present in the article."]
+  },
+  "defense_considerations": "For Binding or Enforcement articles only: one sentence stating the strongest distinguishing factor or defence an organisation could raise. Return null for Guidance, Proposal, or Commentary."
 }`,
                 }],
               }),
