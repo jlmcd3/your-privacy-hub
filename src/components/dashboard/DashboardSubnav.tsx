@@ -95,8 +95,10 @@ export default function DashboardSubnav() {
     rawPath.startsWith('/subscribe/');
   if (isSuppressed) return null;
 
-  // Account highlights only when no workspace tab claimed the route.
-  const accountActive = activeTo === null && pathname === "/account";
+  // Account is its own trailing pill; highlight when the shared matcher
+  // resolved the route to the Account item (covers /account and
+  // /brief-preferences).
+  const accountActive = activeTo === "/account";
 
   return (
     <nav
