@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
   }
 
   const run = await startRun(supabase, "fetch-newsapi");
-  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, validation_failed: 0, errors: [] as string[] };
   const newsApiKey = Deno.env.get("NEWSAPI_KEY");
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
 
