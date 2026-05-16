@@ -2,6 +2,7 @@
 // already have an `ai_summary` but are missing the new short/signals fields.
 // Designed for safe, paginated batches (default 25 rows per call).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateSignalsPatch } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
