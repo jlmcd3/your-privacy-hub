@@ -154,7 +154,10 @@ export default function EUNoticeQuestions() {
       <div className="mb-4">
         <div className="flex justify-between text-xs text-muted-foreground mb-2">
           <span>Question {currentIndex + 1} of {visibleQuestions.length}</span>
-          <span>{progress}%</span>
+          <div className="flex items-center gap-3">
+            <AutosaveIndicator saving={saving} savedAt={lastSavedAt} />
+            <span>{progress}%</span>
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
