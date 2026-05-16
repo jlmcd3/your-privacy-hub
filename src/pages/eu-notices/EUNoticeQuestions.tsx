@@ -101,13 +101,19 @@ export default function EUNoticeQuestions() {
   async function saveAnswer(q: Question, v: AnswerValue) {
     if (!sessionId) return;
     setAnswers((prev) => ({ ...prev, [q.key]: v }));
+    setSaving(true);
     const { error } = await supabase
       .from("eu_notice_answers")
       .upsert(
         { session_id: sessionId, question_key: q.key, answer_value: v as never, ropa_activity_id: null, updated_at: new Date().toISOString() },
         { onConflict: "session_id,question_key" },
       );
-    if (error) console.error("[EUNoticeQuestions] save error", error);
+    setSaving(false);
+    if (error) {
+      console.error("[EUNoticeQuestions] save error", error);
+      return;
+    }
+    setLastSavedAt(new Date());
   }
 
   function handleNext() {
