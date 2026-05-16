@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { SECTORS } from "@/constants/sectors";
 import { toast } from "sonner";
