@@ -65,21 +65,17 @@ async function generateSynthesis(
   const articleCount = articles.length;
   const digest = buildArticleDigest(articles);
 
-  const systemPrompt = `You are a senior privacy intelligence analyst writing for an
-audience of privacy professionals, DPOs, and compliance lawyers.
-Your job is to synthesise recent regulatory developments into
-concise, actionable intelligence.
+  const systemPrompt = `You are a senior privacy regulatory analyst at a leading intelligence firm. You write research topic synthesis blocks for DPOs and privacy counsel who need to understand the current state of a specific compliance area quickly and accurately.
 
 RULES:
 1. Write 2–3 paragraphs only. No headings. No bullet points. No preamble.
-2. Be specific: name enforcement actions, cite regulatory guidance by
-   name, reference rulings. Never be vague.
-3. If there are no significant developments, write one paragraph noting
-   the absence of activity and what practitioners should monitor.
-4. Write directly to the practitioner using "you" and "your".
-5. Do not start with "In the last 30 days" or similar time phrases.
-   Start with the most important development or observation.
-6. Return only the synthesis text. Nothing else.`;
+2. LEGAL WEIGHT HIERARCHY: Lead with the highest-weight development available. A binding enforcement decision must come before guidance, which must come before commentary. Never open with a law firm blog post or opinion piece when a regulatory decision is present in the articles.
+3. Be specific: name the regulator, the decision or guidance title, the fine amount if applicable, and the precise compliance obligation it creates. Never be vague.
+4. SOURCE CALIBRATION: For findings from official regulatory sources (DPA decisions, published guidance), write in direct declarative voice. For findings from secondary sources (law firm commentary, trade press), use attribution: "According to reported accounts..." or "Coverage suggests...". Never use blanket hedging phrases.
+5. If there are no significant developments, write one paragraph naming specifically what to monitor and why — name the regulator or regulatory process to watch, not a generic "monitor the space" statement.
+6. Write directly to the practitioner using "you" and "your".
+7. Do not start with "In the last 30 days" or similar time phrases. Start with the most important development.
+8. Return only the synthesis text. Nothing else.`;
 
   const userPrompt = `Section: "${sectionHeading}" (on the ${pageSlug} research page)
 
@@ -99,7 +95,7 @@ it means for compliance practitioners. Be specific. Be direct.`;
     },
     body: JSON.stringify({
       model,
-      max_tokens: 600,
+      max_tokens: 1200,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),

@@ -81,18 +81,20 @@ Return ONLY a JSON object (no markdown, no preamble) with this exact schema:
   "regulatory_patterns": [
     {
       "pattern": "Pattern name",
-      "description": "What pattern is emerging",
-      "evidence": "1 sentence citing specific example"
+      "description": "What pattern is emerging — grounded only in the provided articles",
+      "evidence": "1 sentence citing a specific article title or source name from the provided corpus",
+      "source_articles": ["titles of articles from the corpus that evidence this pattern — at least one required"]
     }
   ],
   "enforcement_patterns": [
     {
       "pattern": "Short pattern title",
       "description": "What enforcement trend is emerging across regulators",
-      "regulators": ["regulator names involved"],
+      "regulators": ["regulator names involved — only regulators named in the provided articles"],
       "sectors_targeted": ["industry sectors being targeted"],
       "signal_strength": "Strong|Moderate|Emerging",
-      "example": "One concrete example from the articles"
+      "example": "One concrete example drawn from the provided articles — cite the article title or source name",
+      "source_articles": ["titles of articles from the corpus that evidence this pattern — at least one required"]
     }
   ],
   "confidence_score": <0.0-1.0, how confident you are in this synthesis>
@@ -117,17 +119,21 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 3000,
-      system: `You are a senior privacy regulatory intelligence analyst producing structured pattern analysis for a compliance platform serving DPOs and privacy counsel.
-
-Your task: identify trends, emerging risks, and enforcement patterns across a batch of recent privacy regulatory developments. Return ONLY valid JSON matching the schema in the user prompt. No preamble, no markdown, no explanation.
+      system: `You are a senior privacy regulatory analyst at a leading intelligence firm. You produce structured trend and pattern analysis across batches of recent privacy regulatory developments for a compliance platform serving DPOs and privacy counsel.
 
 QUALITY STANDARDS:
-1. Every trend, risk, and pattern must be grounded in the provided articles — do not draw on training knowledge for specific claims.
+1. Every trend, risk, and pattern must be grounded in the provided articles. Do not draw on training knowledge for specific factual claims about named cases, fines, or decisions.
 2. enforcement_patterns must identify coordination signals: multiple regulators, same violation type, same time window. These are the highest-value intelligence items.
 3. Be specific: name regulators, laws, fine amounts, and sectors. "Increased DPA activity" is not a trend. "Three EU DPAs issued guidance on legitimate interest in the same 30-day window: CNIL, ICO, EDPB" is a trend.
-4. signal_strength definitions: Strong = 3+ pieces of direct evidence; Moderate = 2 pieces or 1 strong enforcement action; Emerging = directional evidence without confirmation.`,
+4. signal_strength: Strong = 3+ pieces of direct evidence in the corpus; Moderate = 2 pieces or 1 strong enforcement action; Emerging = directional evidence without confirmation.
+5. source_articles in each pattern must list actual article titles from the corpus. If you cannot identify at least one article title from the corpus that supports a pattern, do not include that pattern.
+
+SOURCE CALIBRATION:
+For patterns supported by official regulatory sources in the corpus (DPA decisions, enforcement notices, regulatory guidance), state findings directly. For patterns supported only by secondary sources (law firm commentary, trade press), note this in the description: "Based on reported accounts of..."
+
+Return ONLY valid JSON matching the schema in the user message. No markdown, no preamble, no explanation.`,
       messages: [{ role: "user", content: prompt }],
     }),
   });
