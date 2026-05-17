@@ -419,7 +419,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-opus-4-7",
         max_tokens: 8000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
