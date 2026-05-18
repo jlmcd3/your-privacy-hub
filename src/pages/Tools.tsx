@@ -450,7 +450,7 @@ export default function Tools() {
     <>
       <Helmet>
         <title>Compliance Tools — Enforcement-Calibrated Assessments & Documents | End User Privacy</title>
-        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Assessments, compliance documents, and CPPA tools. Included with Annual Platform at $399/yr." />
+        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Per-use pricing from $10. Intelligence ($20/mo) and Professional ($35/mo) subscribers get 20–25% off plus 1 free run/month." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
