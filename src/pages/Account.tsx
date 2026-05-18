@@ -14,7 +14,7 @@ import {
   AccountClientsSection,
   ComplianceDocumentsSection,
 } from "@/components/clients/AccountClientsSection";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 import {
   AlertDialog,
   AlertDialogAction,
