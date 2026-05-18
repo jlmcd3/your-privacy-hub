@@ -198,7 +198,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
 );
 
 export default function HomepageSpotlight() {
-  const [articles, setArticles] = useState<(SpotlightArticle | null)[]>([null, null, null]);
+  const [article, setArticle] = useState<SpotlightArticle | null>(null);
   const [feedCount, setFeedCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -206,24 +206,25 @@ export default function HomepageSpotlight() {
     const today = new Date().toISOString().split("T")[0];
 
     const fetchSpotlight = async () => {
+      // Try to use today's curated spotlight (first slot = highest applicability)
       const { data: spotlight } = await supabase
         .from("homepage_spotlight")
         .select("slot, update_id")
         .eq("spotlight_date", today)
         .order("slot");
 
-      let updateIds: string[] = [];
-      if (spotlight && spotlight.length === 3) {
-        const sorted = [...spotlight].sort((a, b) => a.slot - b.slot);
-        updateIds = sorted.map(s => s.update_id);
+      let topId: string | null = null;
+      if (spotlight && spotlight.length > 0) {
+        topId = [...spotlight].sort((a, b) => a.slot - b.slot)[0].update_id;
       } else {
+        // Fallback: highest severity recent article
         const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
         const { data: fallback } = await supabase
           .from("updates")
           .select("id, attention_level")
           .gte("created_at", cutoff)
           .eq("is_hidden", false)
-          
+          .not("ai_summary", "is", null)
           .order("published_at", { ascending: false })
           .limit(50);
 
@@ -234,11 +235,11 @@ export default function HomepageSpotlight() {
               (severityOrder[a.attention_level ?? ""] ?? 2) -
               (severityOrder[b.attention_level ?? ""] ?? 2)
           );
-          updateIds = sorted.slice(0, 3).map(a => a.id);
+          topId = sorted[0].id;
         }
       }
 
-      if (updateIds.length < 3) {
+      if (!topId) {
         setLoading(false);
         return;
       }
@@ -251,14 +252,11 @@ export default function HomepageSpotlight() {
            category, attention_level, image_url, why_it_matters_short,
            ai_summary, action_items, related_signals`
         )
-        .in("id", updateIds);
+        .eq("id", topId)
+        .maybeSingle();
 
       if (updateData) {
-        const list = updateData as unknown as SpotlightArticle[];
-        const ordered = updateIds
-          .map(id => list.find(a => a.id === id) ?? null)
-          .filter(Boolean) as SpotlightArticle[];
-        setArticles([ordered[0] ?? null, ordered[1] ?? null, ordered[2] ?? null]);
+        setArticle(updateData as unknown as SpotlightArticle);
       }
 
       const { count } = await supabase
