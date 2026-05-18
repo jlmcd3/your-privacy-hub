@@ -186,32 +186,31 @@ export default function RegistrationLanding() {
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card className="border-border/60">
               <CardHeader>
-                <CardTitle className="text-navy">DIY Packages</CardTitle>
-                <p className="text-xs text-slate mt-1">Pick the package that matches your jurisdictional footprint.</p>
+                <CardTitle className="text-navy">Free scoping assessment</CardTitle>
+                <div className="text-3xl font-bold text-navy">$0</div>
+                <p className="text-xs text-slate mt-1">Answer ~12 questions. We map your obligations across 30+ jurisdictions.</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-slate">
-                  <li className="flex justify-between gap-2"><span>1 jurisdiction</span><span className="font-semibold text-navy">$59</span></li>
-                  <li className="flex justify-between gap-2"><span>Up to 3 jurisdictions</span><span className="font-semibold text-navy">$149</span></li>
-                  <li className="flex justify-between gap-2"><span>Up to 7 jurisdictions</span><span className="font-semibold text-navy">$275</span></li>
-                  <li className="flex justify-between gap-2"><span>Portfolio (unlimited)</span><span className="font-semibold text-navy">$499</span></li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> No account required</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Confidence rating per jurisdiction</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> No charge unless you generate filings</li>
                 </ul>
-                <p className="text-meta text-slate-light mt-3">Includes all required draft documents, filing checklist, and portal URLs.</p>
               </CardContent>
             </Card>
             <Card className="border-2 border-navy">
               <CardHeader>
-                <Badge className="w-fit mb-2 bg-navy text-white">RECOMMENDED</Badge>
-                <CardTitle className="text-navy">Counsel-Ready Pack</CardTitle>
-                <div className="text-3xl font-bold text-navy">$399<span className="text-sm font-normal text-slate"> flat</span></div>
-                <p className="text-xs text-slate">Enhanced documents + counsel handoff</p>
+                <Badge className="w-fit mb-2 bg-navy text-white">PER FILING</Badge>
+                <CardTitle className="text-navy">Generate a filing</CardTitle>
+                <div className="text-3xl font-bold text-navy">$50<span className="text-sm font-normal text-slate"> per filing</span></div>
+                <p className="text-xs text-slate">Flat rate. Same price for every jurisdiction.</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-slate">
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Everything in DIY</li>
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Enhanced jurisdiction notes &amp; rationale</li>
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Pre-filing walkthrough video</li>
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Structured handoff doc for your counsel</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Draft documents in the local language where required</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Jurisdiction-specific filing checklist</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Verified portal URLs and submission instructions</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Optional annual renewal monitoring</li>
                 </ul>
                 <p className="text-meta text-slate-light mt-3 italic">
                   You (or your counsel) submit all filings. We do not file on your behalf.
@@ -219,25 +218,13 @@ export default function RegistrationLanding() {
               </CardContent>
             </Card>
           </div>
-          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-6">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-              <div className="font-semibold text-emerald-900 text-sm">EU/EEA DPO Bundle — $499</div>
-              <p className="text-xs text-emerald-800 mt-1">When 5+ EU/EEA jurisdictions need DPO appointment.</p>
-            </div>
-            <div className="bg-violet-50 border border-violet-200 rounded-lg p-4">
-              <div className="font-semibold text-violet-900 text-sm">AI Act Bundle — $599</div>
-              <p className="text-xs text-violet-800 mt-1">When preparing 3+ high-risk AI system registrations.</p>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="font-semibold text-blue-900 text-sm">Annual Renewal Monitoring — $79</div>
-              <p className="text-xs text-blue-800 mt-1">Per jurisdiction per year. Reminders + regenerated docs.</p>
-            </div>
-          </div>
-          <p className="text-center text-xs text-slate-light mt-4">
-            Monthly subscribers: 20% off DIY packages · $75 off Counsel-Ready Pack.<br />
-            Annual Platform subscribers: all registration tools included at no charge. You always submit your own filings.
+          <p className="text-center text-xs text-slate-light mt-6">
+            Intelligence subscribers ($20/mo): 20% off per filing.<br />
+            Professional subscribers ($35/mo): 25% off per filing.<br />
+            All subscribers get 1 free tool run per month included.
           </p>
         </section>
+
 
         {/* 7. Jurisdictions */}
         <section className="py-12 border-t border-border/40 text-center">
