@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
             filters.tags ?? [],
           );
 
-          const synthesisText = await generateSynthesis(
+          const { synthesis_text: synthesisText, headlines } = await generateSynthesis(
             section.section_heading,
             section.page_slug,
             articles,
@@ -224,6 +224,7 @@ Deno.serve(async (req) => {
             .from("research_syntheses")
             .update({
               synthesis_text: synthesisText,
+              headlines,
               article_ids_used: articles.map((a: any) => a.id),
               article_count: articles.length,
               generated_at: now.toISOString(),
