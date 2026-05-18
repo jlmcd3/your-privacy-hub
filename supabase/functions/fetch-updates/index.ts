@@ -80,6 +80,28 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'insideprivacy.com':         ['us-federal', 'eu', 'united-kingdom'],
 };
 
+// Domains that are official DPA or government regulatory sources.
+// Articles from these domains with Binding/Enforcement legal weight
+// are dual-written to enforcement_actions.
+const DPA_OFFICIAL_DOMAINS = new Set([
+  "edpb.europa.eu", "cnil.fr", "ico.org.uk", "bfdi.bund.de",
+  "garanteprivacy.it", "aepd.es", "autoriteitpersoonsgegevens.nl",
+  "datatilsynet.dk", "datatilsynet.no", "imy.se", "cnpd.public.lu",
+  "dataprotection.ie", "dpc.ie", "ftc.gov", "consumerfinance.gov",
+  "cppa.ca.gov", "texasattorneygeneral.gov", "coag.gov", "portal.ct.gov",
+  "oaic.gov.au", "pdpc.gov.sg", "priv.gc.ca", "uodo.gov.pl",
+  "gdprhub.eu", "noyb.eu",
+]);
+
+// Compute a stable etid for an article URL (matches ingest-gov-enforcement pattern).
+async function computeEtid(url: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(url);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
 const extractDomain = (url: string): string => {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
