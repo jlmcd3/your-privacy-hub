@@ -385,18 +385,11 @@ const Updates = () => {
 
             <div className="px-4 sm:px-6 py-5 border-b border-fog bg-card">
                 <div className="max-w-[1280px] mx-auto">
-                    {(topicFilter || regionFilter) && (
-                        <div className="mb-1">
-                            <Link to="/updates" className="text-[11px] text-slate hover:text-navy transition-colors no-underline">
-                                ← Back to all updates
-                            </Link>
-                        </div>
-                    )}
                     <h1 className="font-display text-[24px] font-bold text-navy leading-tight m-0">
-                        {regionFilter
-                            ? formatFilterLabel(regionFilter)
-                            : topicFilter
-                                ? formatFilterLabel(topicFilter)
+                        {selectedRegions.length === 1 && selectedTopics.length === 0
+                            ? formatFilterLabel(selectedRegions[0])
+                            : selectedTopics.length === 1 && selectedRegions.length === 0
+                                ? formatFilterLabel(selectedTopics[0])
                                 : "Privacy Intelligence Feed"}
                     </h1>
                     <p className="text-sm text-slate mt-0.5">
