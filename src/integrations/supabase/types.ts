@@ -2446,6 +2446,7 @@ export type Database = {
           article_ids_used: Json
           created_at: string
           generated_at: string | null
+          headlines: Json
           id: string
           model_used: string
           page_slug: string
@@ -2461,6 +2462,7 @@ export type Database = {
           article_ids_used?: Json
           created_at?: string
           generated_at?: string | null
+          headlines?: Json
           id?: string
           model_used?: string
           page_slug: string
@@ -2476,6 +2478,7 @@ export type Database = {
           article_ids_used?: Json
           created_at?: string
           generated_at?: string | null
+          headlines?: Json
           id?: string
           model_used?: string
           page_slug?: string
