@@ -293,9 +293,7 @@ export default function HomepageSpotlight() {
     );
   }
 
-  const hasArticles = articles.some(a => a !== null);
-
-  if (!hasArticles) {
+  if (!article) {
     return (
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="rounded-2xl border border-dashed border-fog bg-slate-50/60 px-6 py-12 text-center">
@@ -331,24 +329,21 @@ export default function HomepageSpotlight() {
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
       <div className="mb-6">
         <p className="text-eyebrow text-slate/60 mb-1">
-          Today's regulatory developments
+          Today's top regulatory development
         </p>
         <h2 className="text-section-h2 text-navy">
           What you see — and what you're missing
         </h2>
         <p className="text-sm text-slate mt-1">
-          Three of today's top developments, shown at each level of intelligence.
+          The same story, shown at each level of intelligence.
         </p>
       </div>
 
       <div className="space-y-0">
-        {articles.map((article, i) => {
-          if (!article) return null;
+        {tiers.map((tier, i) => {
           const label = SLOT_LABELS[i];
-          const tier = tiers[i];
-
           return (
-            <div key={article.id} className="py-5 border-b border-fog last:border-0">
+            <div key={tier} className="py-5 border-b border-fog last:border-0">
               <div className={`text-meta uppercase tracking-wider mb-3 ${label.className}`}>
                 {label.icon} {label.text}
               </div>
