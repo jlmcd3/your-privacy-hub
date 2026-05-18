@@ -127,21 +127,38 @@ const Updates = () => {
 
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    const activeRegion = searchParams.get("region") || "all";
-    const activeTopic = searchParams.get("topic") || "all";
+    const parseMulti = (v: string | null): string[] =>
+        v ? v.split(",").map(s => s.trim()).filter(Boolean) : [];
 
-    // Independent setters: region and topic are additive in the URL.
-    const selectRegion = useCallback((key: string) => {
+    const selectedRegions = parseMulti(searchParams.get("region"));
+    const selectedTopics = parseMulti(searchParams.get("topic"));
+
+    // Toggle membership; "all" clears the dimension.
+    const toggleRegion = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("region");
-        else next.set("region", key);
+        if (!key || key === "all") {
+            next.delete("region");
+            setSearchParams(next);
+            return;
+        }
+        const cur = new Set(parseMulti(next.get("region")));
+        cur.has(key) ? cur.delete(key) : cur.add(key);
+        if (cur.size === 0) next.delete("region");
+        else next.set("region", [...cur].join(","));
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
-    const selectTopic = useCallback((key: string) => {
+    const toggleTopic = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("topic");
-        else next.set("topic", key);
+        if (!key || key === "all") {
+            next.delete("topic");
+            setSearchParams(next);
+            return;
+        }
+        const cur = new Set(parseMulti(next.get("topic")));
+        cur.has(key) ? cur.delete(key) : cur.add(key);
+        if (cur.size === 0) next.delete("topic");
+        else next.set("topic", [...cur].join(","));
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
@@ -279,20 +296,22 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        // Region filter
-        if (activeRegion !== "all" && u.category !== activeRegion) return false;
+        // Region filter — OR across selected regions; empty = all
+        if (selectedRegions.length > 0 && !selectedRegions.includes(u.category)) return false;
 
-        // Topic filter (independent / additive with region)
-        if (activeTopic !== "all") {
-            const t = TOPIC_FILTERS.find(f => f.key === activeTopic);
-            if (t) {
-                if (t.match === 'category' && u.category !== t.key) return false;
+        // Topic filter — OR across selected topics; empty = all
+        if (selectedTopics.length > 0) {
+            const matchesAny = selectedTopics.some((key) => {
+                const t = TOPIC_FILTERS.find((f) => f.key === key);
+                if (!t) return false;
+                if (t.match === 'category') return u.category === t.key;
                 if (t.match === 'keyword' && t.terms) {
-                    const terms = t.terms.map(x => x.toLowerCase());
                     const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
-                    if (!terms.some(term => text.includes(term))) return false;
+                    return t.terms.some((term) => text.includes(term.toLowerCase()));
                 }
-            }
+                return false;
+            });
+            if (!matchesAny) return false;
         }
 
         if (searchTerm) {
@@ -348,7 +367,7 @@ const Updates = () => {
         setSearchParams(next);
     };
 
-    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
+    const hasJurisdictionOrTopic = selectedRegions.length > 0 || selectedTopics.length > 0;
 
     const articlesForFeed = filtered.map((a) => ({
         ...a,
@@ -366,18 +385,11 @@ const Updates = () => {
 
             <div className="px-4 sm:px-6 py-5 border-b border-fog bg-card">
                 <div className="max-w-[1280px] mx-auto">
-                    {(topicFilter || regionFilter) && (
-                        <div className="mb-1">
-                            <Link to="/updates" className="text-[11px] text-slate hover:text-navy transition-colors no-underline">
-                                ← Back to all updates
-                            </Link>
-                        </div>
-                    )}
                     <h1 className="font-display text-[24px] font-bold text-navy leading-tight m-0">
-                        {regionFilter
-                            ? formatFilterLabel(regionFilter)
-                            : topicFilter
-                                ? formatFilterLabel(topicFilter)
+                        {selectedRegions.length === 1 && selectedTopics.length === 0
+                            ? formatFilterLabel(selectedRegions[0])
+                            : selectedTopics.length === 1 && selectedRegions.length === 0
+                                ? formatFilterLabel(selectedTopics[0])
                                 : "Privacy Intelligence Feed"}
                     </h1>
                     <p className="text-sm text-slate mt-0.5">
@@ -388,17 +400,20 @@ const Updates = () => {
                 </div>
             </div>
 
-            {/* Jurisdiction subnav (pill style) */}
-            <div className="border-b border-border bg-card">
+            {/* Jurisdiction subnav (pill style) — sticky under navbar */}
+            <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
                     <div className="flex items-center gap-3 overflow-x-auto pl-6">
                         <span className="text-eyebrow text-muted-foreground whitespace-nowrap">Jurisdiction</span>
                         {LOCATION_FILTERS.map((f) => {
-                            const isActive = activeRegion === f.key;
+                            const isActive = f.key === "all"
+                                ? selectedRegions.length === 0
+                                : selectedRegions.includes(f.key);
                             return (
                                 <button
                                     key={f.key}
-                                    onClick={() => selectRegion(f.key)}
+                                    onClick={() => toggleRegion(f.key)}
+                                    aria-pressed={isActive}
                                     className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
                                         isActive
                                             ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
@@ -414,17 +429,20 @@ const Updates = () => {
             </div>
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
-                {/* Left: Topics sidebar */}
+                {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block">
-                    <div className="sticky top-20 bg-card rounded-lg p-3">
+                    <div className="sticky top-32 bg-card rounded-lg p-3 max-h-[calc(100vh-9rem)] overflow-y-auto">
                         <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
-                                const isActive = activeTopic === t.key;
+                                const isActive = t.key === "all"
+                                    ? selectedTopics.length === 0
+                                    : selectedTopics.includes(t.key);
                                 return (
                                     <button
                                         key={t.key}
-                                        onClick={() => selectTopic(t.key)}
+                                        onClick={() => toggleTopic(t.key)}
+                                        aria-pressed={isActive}
                                         className={`text-left text-sm px-3 py-2 transition-colors border-l-2 ${
                                             isActive
                                                 ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
@@ -445,11 +463,14 @@ const Updates = () => {
                 <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
                     <div className="flex items-center gap-2 px-4">
                         {TOPIC_FILTERS.map((t) => {
-                            const isActive = activeTopic === t.key;
+                            const isActive = t.key === "all"
+                                ? selectedTopics.length === 0
+                                : selectedTopics.includes(t.key);
                             return (
                                 <button
                                     key={t.key}
-                                    onClick={() => selectTopic(t.key)}
+                                    onClick={() => toggleTopic(t.key)}
+                                    aria-pressed={isActive}
                                     className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                         isActive
                                             ? "bg-[hsl(var(--cobalt))] text-white"
