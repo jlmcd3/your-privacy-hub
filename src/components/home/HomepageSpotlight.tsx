@@ -181,7 +181,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
     <p className="text-eyebrow text-gold mb-2">
       Privacy Intelligence Feed
     </p>
-    <h2 className="font-display text-[22px] md:text-[26px] font-bold text-white mb-2">
+    <h2 className="text-section-h2 font-bold text-white mb-2">
       Today's full feed — {count > 0 ? `${count} developments` : "all developments"}, every one enriched
     </h2>
     <p className="text-sm text-blue-100/80 mb-5 max-w-xl mx-auto">
