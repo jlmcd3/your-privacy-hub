@@ -65,22 +65,22 @@ export default function BiometricChecker() {
     logToolAcknowledgment("biometric_checker", access.user?.id ?? null);
     // 1. Require login for everyone
     if (!access.user) { setAuthModalOpen(true); return; }
-    // 2. Subscribers run free
+    // 2. Subscribers with a free run this month — run free
     if (access.isPremium) { handleGenerate(); return; }
-    // 3. Free account holders pay $49 to run — embedded checkout
+    // 3. Otherwise charge per-use ($10 standalone, discounted for subscribers)
     setCheckoutOpen(true);
   };
 
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — Included with Annual Platform"
-      : "Analyse — $49";
+      ? "Analyse — free run / subscriber rate"
+      : "Analyse — $10";
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Annual Platform." /></Helmet>
+        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $10 per use, 20–25% off for Intelligence and Professional subscribers." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
