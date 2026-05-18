@@ -553,6 +553,22 @@ export const EU_NOTICE_PRICING = {
 //  sync and what must change before going live.
 //
 //  ── DRIFT LOG (v7) — must reconcile before live Stripe go-live ────────────
+//  ── UI MIGRATION STATUS (as of 2026-05-18) ───────────────────────────────
+//  Migrated to v7 strings: Subscribe, SubscribeSuccess, Index, Login, FAQ,
+//    About, BiometricChecker, HomepagePricingStrip, SearchFirstHero,
+//    Tools (PRICING_GRID + per-tool subscriberPrice/standalonePrice),
+//    ProToolsBanner, GovernanceAssessment header CTA,
+//    RegistrationLanding (flat $50/filing replaces $59/$149/$275/$499 +
+//    $399 Counsel-Ready + EU/AI bundles + $79 renewal monitoring),
+//    Dashboard (10-day trial countdown banner added).
+//  Still references legacy registry: edge functions (create-checkout-session,
+//    create-tool-checkout, get-tool-price, sync-pricing), useToolPrice hook,
+//    ToolSampleOverlay, ToolCheckoutModal, useToolAccess — these read the
+//    legacy per-tool standalone/subscriber prices. They MUST be migrated to
+//    PRICING + getToolPrice before Katherine flips Stripe Price IDs live,
+//    or checkout will charge legacy amounts ($49/$69/$99/$149/$199) while
+//    the UI advertises v7 amounts ($10–$80).
+//  ─────────────────────────────────────────────────────────────────────────
 //  UI (v7 PRICING)                       vs.  Legacy registry / backend
 //  -------------------------------------------------------------------------
 //  Intelligence monthly      $20/mo      vs.  intelligence_monthly      $29
