@@ -513,7 +513,7 @@ function ResultsPanel({
               variant="outline"
               onClick={() => navigate("/cppa-risk-assessment?suite=true")}
             >
-              Get the full CPPA Audit Suite — $299 ($149 subscriber) →
+              Get the full CPPA Audit Suite — $140 ($105 subscriber) →
             </Button>
           )}
         </div>
