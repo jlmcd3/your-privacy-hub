@@ -169,9 +169,10 @@ serve(async (req) => {
       });
     }
 
-    // CPPA tools remain paid for everyone (annual gets a discount).
-    // All other tools are FREE (included) for annual subscribers under the
-    // New Model. Monthly Intelligence subscribers do NOT get tool access.
+    // v7 model: every tool is per-use. Professional subscribers get the
+    // subscriber rate (25% off). Intelligence subscribers get a separate
+    // 20%-off rate computed client-side. Anonymous / free users pay
+    // standalone. CPPA tools follow the same per-use rules.
     const CPPA_TOOLS = new Set([
       "cppa_risk_assessment",
       "cppa_cybersecurity",
@@ -179,9 +180,10 @@ serve(async (req) => {
     ]);
     const isCppa = CPPA_TOOLS.has(tool_slug);
 
-    // Determine subscription tier (anonymous / monthly = standalone)
+    // Determine subscription tier.
     let subscriptionType: string | null = null;
-    let isAnnualSubscriber = false;
+    let isProfessionalSubscriber = false; // annual/annual_founding → 25% off
+    let isIntelligenceSubscriber = false; // monthly → 20% off
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -203,10 +205,12 @@ serve(async (req) => {
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
           if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
-            isAnnualSubscriber = true;
+            isProfessionalSubscriber = true;
+          } else if (subscriptionType === "monthly") {
+            isIntelligenceSubscriber = true;
           } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
-            // Legacy premium without subscription_type — grandfather as annual.
-            isAnnualSubscriber = true;
+            // Legacy premium without subscription_type — grandfather as Professional.
+            isProfessionalSubscriber = true;
             subscriptionType = "annual";
           }
         }
@@ -216,7 +220,7 @@ serve(async (req) => {
     }
 
     // Resolve BOTH standalone and subscriber prices from Stripe so the
-    // client can render the New Model accurately.
+    // client can render the v7 model accurately.
     let standaloneCents = tool.fallback_standalone_cents;
     let subscriberCents = tool.fallback_subscriber_cents;
     let stripeConfigured = false;
@@ -235,16 +239,15 @@ serve(async (req) => {
       console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
     }
 
-    // New Model effective price:
-    //   annual + standard tool → 0 (included)
-    //   annual + CPPA tool     → subscriber rate
-    //   monthly / free         → standalone
+    // v7 effective price:
+    //   Professional (annual / annual_founding) → 25% off (subscriberCents)
+    //   Intelligence (monthly)                  → 20% off (computed)
+    //   Free / anonymous                        → standalone
+    const intelligenceCents = Math.round(standaloneCents * 0.8);
     let effectiveCents: number;
-    if (isAnnualSubscriber) {
-      effectiveCents = isCppa ? subscriberCents : 0;
-    } else {
-      effectiveCents = standaloneCents;
-    }
+    if (isProfessionalSubscriber) effectiveCents = subscriberCents;
+    else if (isIntelligenceSubscriber) effectiveCents = intelligenceCents;
+    else effectiveCents = standaloneCents;
 
     return new Response(
       JSON.stringify({
