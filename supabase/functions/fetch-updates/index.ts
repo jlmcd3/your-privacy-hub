@@ -45,6 +45,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'texasattorneygeneral.gov': ['texas'],
   'ag.ny.gov':              ['new-york'],
   'oag.dc.gov':             ['district-of-columbia'],
+  'coag.gov':               ['colorado'],
   // Other global authorities
   'gdprhub.eu':             [],
   'pdpc.gov.sg':            ['singapore'],
@@ -76,6 +77,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'aoshearman.com':            ['global'],
   'freshfields.com':           ['global'],
   'hsfnotes.com':              ['global'],
+  'insideprivacy.com':         ['us-federal', 'eu', 'united-kingdom'],
 };
 
 const extractDomain = (url: string): string => {
@@ -86,17 +88,23 @@ const extractDomain = (url: string): string => {
   }
 };
 
-// NOTE: Source list audited 2026-05-18. Feeds confirmed reachable (HTTP 200).
+// NOTE: Source list audited 2026-05-18, updated 2026-05-19.
 // Sources removed because the publisher retired RSS or hard-blocks bot traffic
-// (404 / 403 / Cloudflare) and there is no current working replacement:
-//   BfDI, BSI Germany, APD Belgium, Datatilsynet DK & NO, AEPD, Hamburg DPA,
-//   UOOU Czech, Statewatch, OAIC, PDPC Singapore, OPC Canada, PCPD Hong Kong,
-//   ENISA, EUR-Lex (RSSF014 retired), EU Parliament news (replaced w/ top-stories),
-//   Council of Europe, Texas AG, Colorado AG, HHS OCR, FCC, The Drum,
-//   Covington Inside Privacy, Norton Rose Data Protection Report, Linklaters
-//   Data Protected, Bird & Bird, Hogan Lovells, Baker McKenzie, Clifford Chance,
-//   Freshfields, HSF Data Notes, Dentons, Greenberg Traurig, Lawfare.
-// If any of these publishers re-expose an RSS endpoint they should be re-added here.
+// (404 / 403 / Cloudflare) and there is no current working replacement via RSS:
+//   BfDI, BSI Germany, APD Belgium, AEPD, Hamburg DPA, UOOU Czech, Statewatch,
+//   PCPD Hong Kong, ENISA, EUR-Lex (RSSF014 retired), Council of Europe, FCC,
+//   Norton Rose Data Protection Report, Linklaters Data Protected (static guide, not a blog),
+//   Hogan Lovells, Baker McKenzie, Clifford Chance, Freshfields, HSF Data Notes,
+//   Dentons, Greenberg Traurig, Lawfare.
+// NOTE: Covington Inside Privacy restored 2026-05-19 (insideprivacy.com/feed confirmed working).
+// NOTE: EU Parliament replaced with top-stories XML feed (correct replacement).
+// NOTE: The following DPAs have no RSS but are now ingested via ingest-gov-enforcement
+//       scraping: OAIC, Datatilsynet DK, Datatilsynet NO, PDPC Singapore, OPC Canada,
+//       Texas AG, Colorado AG, HHS OCR.
+// NOTE: Bird & Bird, Hogan Lovells, Baker McKenzie, Clifford Chance, Freshfields, HSF,
+//       Dentons, and Greenberg Traurig are covered via JD Supra (already in feed) which
+//       syndicates content from all of these firms.
+// If any removed publishers re-expose an RSS endpoint, re-add here.
 const RSS_SOURCES = [
   // ── EU & UK Regulators / Policy ───────────────────────────────────
   {
@@ -325,6 +333,13 @@ const RSS_SOURCES = [
     domain: "dlapiper.com",
     defaultCategory: "global",
     regulator: "DLA Piper LLP",
+  },
+  {
+    url: "https://www.insideprivacy.com/feed/",
+    source: "Covington Inside Privacy",
+    domain: "insideprivacy.com",
+    defaultCategory: "global",
+    regulator: "Covington & Burling LLP",
   },
   {
     url: "https://www.aoshearman.com/en/insights/rss",
@@ -944,8 +959,8 @@ async function generateAISummary(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1300,
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
         system: `You are a privacy regulatory intelligence analyst processing articles for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
 
 Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation. Return {"skip": true} for non-privacy articles, or the full enrichment object for privacy articles.
