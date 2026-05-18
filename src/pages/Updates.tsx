@@ -367,7 +367,7 @@ const Updates = () => {
         setSearchParams(next);
     };
 
-    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
+    const hasJurisdictionOrTopic = selectedRegions.length > 0 || selectedTopics.length > 0;
 
     const articlesForFeed = filtered.map((a) => ({
         ...a,
