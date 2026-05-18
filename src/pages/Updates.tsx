@@ -384,7 +384,7 @@ const Updates = () => {
         setSearchParams(next);
     };
 
-    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
+    const hasJurisdictionOrTopic = activeRegions.length > 0 || activeTopics.length > 0;
 
     const articlesForFeed = filtered.map((a) => ({
         ...a,
