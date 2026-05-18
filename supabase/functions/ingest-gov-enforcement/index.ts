@@ -44,6 +44,79 @@ async function jinaFetch(targetUrl: string): Promise<string> {
   return await res.text();
 }
 
+// ── AI enrichment for updates table ───────────────────────────────
+async function generateUpdateSummary(
+  title: string,
+  description: string,
+  sourceName: string,
+  regulator: string,
+  jurisdiction: string,
+  apiKey: string,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
+        system: `You are a senior privacy regulatory analyst at a leading intelligence firm.
+Analyse this enforcement action or regulatory announcement and return a single valid JSON object.
+Return ONLY the JSON — no preamble, no markdown, no explanation.
+
+VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action.
+Do not extrapolate beyond what the title and description directly support.
+
+SOURCE: This content comes from an official regulatory authority (${regulator}, ${jurisdiction}).
+Write in direct declarative voice — this is a primary source.`,
+        messages: [{
+          role: "user",
+          content: `Regulator: ${regulator}
+Jurisdiction: ${jurisdiction}
+Title: ${title}
+Description: ${description || "No description available."}
+Source: ${sourceName}
+
+Return this JSON object:
+{
+  "why_it_matters_short": "ONE sentence (max 25 words). Name the regulator and what organisations must do or avoid.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication, then name the regulator, jurisdiction, and legal basis.",
+  "takeaways": ["1-3 specific factual points. Each must name a regulator, law, or deadline."],
+  "compliance_impact": "One sentence naming the specific organisation type and the specific action required. If monitoring only, write: 'Monitor — [what specifically] before [trigger or timeframe].'",
+  "affected_jurisdictions": ["Use only these slugs: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong"],
+  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
+  "attention_level": "High | Medium | Low",
+  "regulatory_theory": "The legal doctrine or principle in one sentence, or null for Commentary.",
+  "action_items": [
+    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific step naming regulator or law", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
+  ],
+  "defense_considerations": "One sentence on the strongest distinguishing factor or defence, or null.",
+  "entities": {
+    "regulators": ["Official abbreviated names of regulatory authorities named"],
+    "companies": ["Organisations subject to this action — from content only, not training knowledge"],
+    "laws": ["Specific laws with article numbers where stated"],
+    "case_references": ["Case names or guidance document identifiers from content only"]
+  }
+}`,
+        }],
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = (data.content?.[0]?.text || "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
+  }
+}
+
 // Extract markdown links + nearby date as candidate actions
 function extractActions(markdown: string, src: typeof SOURCES[number]) {
   const out: Array<{ title: string; url: string; date: string | null }> = [];
