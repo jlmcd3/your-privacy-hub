@@ -463,11 +463,14 @@ const Updates = () => {
                 <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
                     <div className="flex items-center gap-2 px-4">
                         {TOPIC_FILTERS.map((t) => {
-                            const isActive = activeTopic === t.key;
+                            const isActive = t.key === "all"
+                                ? selectedTopics.length === 0
+                                : selectedTopics.includes(t.key);
                             return (
                                 <button
                                     key={t.key}
-                                    onClick={() => selectTopic(t.key)}
+                                    onClick={() => toggleTopic(t.key)}
+                                    aria-pressed={isActive}
                                     className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                         isActive
                                             ? "bg-[hsl(var(--cobalt))] text-white"
