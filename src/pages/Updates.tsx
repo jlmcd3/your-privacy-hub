@@ -410,11 +410,7 @@ const Updates = () => {
                         </div>
                     )}
                     <h1 className="font-display text-[24px] font-bold text-navy leading-tight m-0">
-                        {regionFilter
-                            ? formatFilterLabel(regionFilter)
-                            : topicFilter
-                                ? formatFilterLabel(topicFilter)
-                                : "Privacy Intelligence Feed"}
+                        Privacy Intelligence Feed
                     </h1>
                     <p className="text-sm text-slate mt-0.5">
                         {updates[0]?.published_at
