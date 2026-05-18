@@ -309,7 +309,7 @@ Deno.serve(async (req) => {
           tool_type,
           assessment_id: sessionId,
           user_id: user_id || "",
-          tier: isSubscriber ? "subscriber" : "standalone",
+          tier: isProfessionalSubscriber ? "professional" : isIntelligenceSubscriber ? "intelligence" : "standalone",
         },
       };
 
@@ -458,7 +458,7 @@ Deno.serve(async (req) => {
         // webhook can dispatch both edge functions after payment.
         ...(suiteCyberId ? { suite_cyber_id: suiteCyberId } : {}),
         user_id: user_id || "",
-        tier: isSubscriber ? "subscriber" : "standalone",
+        tier: isProfessionalSubscriber ? "professional" : isIntelligenceSubscriber ? "intelligence" : "standalone",
       },
       ...(embedded
         ? {
