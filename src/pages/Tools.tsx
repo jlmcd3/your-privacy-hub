@@ -36,7 +36,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   assessments: {
     label: "Assessments",
     title: "Know where you stand against what regulators actually enforce",
-    note: "Included with Annual Platform",
+    note: "Included with Professional",
     iconPath: "M4 3h10l3 3v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z M7 8h8 M7 11h6 M7 14h3",
     colors: {
       bg: "bg-blue-50",
@@ -52,7 +52,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   documents: {
     label: "Compliance documents",
     title: "Produce the documents tailored to your jurisdictions and stack",
-    note: "Included with Annual Platform",
+    note: "Included with Professional",
     iconPath: "M5 3h8l4 4v10a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M13 3v4h4 M7 11h8 M7 14h6",
     colors: {
       bg: "bg-amber-50",
@@ -68,7 +68,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   cppa: {
     label: "CPPA Suite · California",
     title: "California audit deadline: December 31, 2027 — are you in scope?",
-    note: "Paid for all tiers · Annual Platform subscriber rate",
+    note: "Paid for all tiers · Professional subscriber rate",
     iconPath: "M9 2L2 5v5c0 4 3 7 7 8 4-1 7-4 7-8V5L9 2z M6 9h6",
     colors: {
       bg: "bg-red-50",
@@ -220,7 +220,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks.",
       "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population.",
-      "The assessment is designed to be the starting point for a conversation with your privacy or legal team. Multi-jurisdiction assessments are included with Annual Platform subscriptions.",
+      "The assessment is designed to be the starting point for a conversation with your privacy or legal team. Multi-jurisdiction assessments are included with Professional subscriptions.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -265,7 +265,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
       "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
-      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Annual Platform subscribers, this tool is included at no additional cost.",
+      "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Professional subscribers, this tool is included at no additional cost.",
     ],
     sampleSections: [
       { label: "Immediate actions (0–2 hours)", content: "1. Assemble incident response team: IR Lead, DPO, Legal Counsel, IT Security. 2. Preserve all evidence — do not delete or modify logs. 3. Isolate affected systems from the network. 4. Document discovery time (UTC) and the name of the person who discovered the incident." },
@@ -578,7 +578,7 @@ export default function Tools() {
                     {!tool.alwaysFree && (
                       <div className="text-meta text-muted-foreground mt-2">
                         {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
-                          ? "Included in your Annual Platform"
+                          ? "Included in your Professional"
                           : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Paid — subscriber rate applied"
                           : tier === "monthly" && tool.monthlySubscriberPrice
@@ -692,7 +692,7 @@ export default function Tools() {
                   onClick={() => setSampleModal(null)}
                   className="flex-1 text-center border border-primary/30 text-primary font-semibold text-sm py-3 rounded-xl hover:bg-primary/5 transition-all no-underline"
                 >
-                  See Annual Platform →
+                  See Professional →
                 </Link>
               </div>
               <p className="text-meta text-muted-foreground text-center leading-relaxed border-t border-border pt-4">
