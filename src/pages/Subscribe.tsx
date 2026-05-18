@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice, PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
@@ -37,20 +37,21 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The action layer — compliance tools" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "Governance Assessment", free: false, intel: "$49 per analysis", platform: "Included" },
-  { feature: "Legitimate Interest Assessment", free: false, intel: "$69 per analysis", platform: "Included" },
-  { feature: "DPIA / Impact Assessment", free: false, intel: "$99 per document", platform: "Included" },
-  { feature: "DPA Generator", free: false, intel: "$49 per document", platform: "Included" },
-  { feature: "IR Playbook", free: false, intel: `${getPrice("ir_playbook_standalone").displayPrice} per playbook`, platform: "Included" },
-  { feature: "Biometric Privacy Checker", free: false, intel: "$49 per assessment", platform: "Included" },
-  { feature: "Records of Processing (RoFA)", free: false, intel: "$79 per record set", platform: "Included" },
-  { feature: "US Privacy Notice", free: false, intel: "$25 per state / $59 all states", platform: "Included" },
-  { feature: "EU & Global Privacy Notice", free: false, intel: "$45 per framework / $119 EU suite", platform: "Included" },
-  { feature: "Registration Manager (DPO, ROPA, AI Act filings)", free: false, intel: "Standalone rates", platform: "Included" },
+  { feature: "Governance Assessment", free: false, intel: "$50 (20% off → $40)", platform: "$50 (25% off → $38)" },
+  { feature: "Legitimate Interest Assessment", free: false, intel: "$30 (20% off → $24)", platform: "$30 (25% off → $23)" },
+  { feature: "DPIA / Impact Assessment", free: false, intel: "$40 (20% off → $32)", platform: "$40 (25% off → $30)" },
+  { feature: "DPA Generator", free: false, intel: "$40 (20% off → $32)", platform: "$40 (25% off → $30)" },
+  { feature: "IR Playbook", free: false, intel: "$20 (20% off → $16)", platform: "$20 (25% off → $15)" },
+  { feature: "Biometric Privacy Checker", free: false, intel: "$10 (20% off → $8)", platform: "$10 (25% off → $8)" },
+  { feature: "Records of Processing (RoPA)", free: false, intel: "$40 (20% off → $32)", platform: "$40 (25% off → $30)" },
+  { feature: "US Privacy Notice", free: false, intel: "$30 (20% off → $24)", platform: "$30 (25% off → $23)" },
+  { feature: "EU & Global Privacy Notice", free: false, intel: "$50 (20% off → $40)", platform: "$50 (25% off → $38)" },
+  { feature: "Registration Manager", free: false, intel: "$50 (20% off → $40)", platform: "$50 (25% off → $38)" },
+  { feature: "1 free tool run/month", free: false, intel: "✓", platform: "✓" },
 
-  { isSection: true, feature: "CPPA tools — paid even on Platform" },
-  { feature: "CPPA Risk Assessment", free: false, intel: "$149 standalone", platform: "$79 subscriber rate" },
-  { feature: "CPPA Cybersecurity Audit", free: false, intel: "$199 standalone", platform: "$99 subscriber rate" },
+  { isSection: true, feature: "CPPA tools" },
+  { feature: "CPPA Risk Assessment", free: false, intel: "$60 (20% off → $48)", platform: "$60 (25% off → $45)" },
+  { feature: "CPPA Cybersecurity Audit", free: false, intel: "$80 (20% off → $64)", platform: "$80 (25% off → $60)" },
 ];
 
 const Subscribe = () => {
@@ -93,10 +94,10 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{`Two products. One mission. — ${INTELLIGENCE_PRICING.monthly()} or ${PLATFORM_PRICING.standard()}/yr | End User Privacy`}</title>
+        <title>{`Two products. One mission. — ${PRICING.intelligence.monthly.display}/month or Professional from ${PRICING.professional.base.display}/month | End User Privacy`}</title>
         <meta
           name="description"
-          content={`Privacy Intelligence Feed at ${INTELLIGENCE_PRICING.monthly()}. Annual Platform at ${PLATFORM_PRICING.standard()} — all compliance tools included.`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.base.display}/month base + ${PRICING.professional.perClient.display}/client/year — client workspaces and 25% off all compliance tools.`}
         />
       </Helmet>
       <Navbar />
@@ -108,19 +109,22 @@ const Subscribe = () => {
             Two products. One mission.
           </h1>
           <p className="text-[15px] text-slate-light max-w-[600px] mx-auto leading-relaxed mb-10">
-            Stay informed with Intelligence for {INTELLIGENCE_PRICING.monthly()}.
-            Run your compliance program with Annual Platform for {PLATFORM_PRICING.standard()}.
+            Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.
+            Run a client-facing practice with Professional from {PRICING.professional.base.display}/month base.
           </p>
 
           <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
-            {/* Intelligence Feed card */}
+            {/* Intelligence card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
               <p className="text-eyebrow text-sky mb-2">
-                Privacy Intelligence Feed
+                Privacy Intelligence
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
-                {INTELLIGENCE_PRICING.monthlyShort()}
+                {PRICING.intelligence.monthly.display}<span className="text-lg font-normal text-blue-200">/month</span>
               </div>
+              <p className="text-blue-200 text-meta mb-1">
+                or {PRICING.intelligence.annual.display}/year — {PRICING.intelligence.annual.savingDisplay}
+              </p>
               <p className="text-blue-200 text-meta mb-4">Cancel any time</p>
               <ul className="space-y-2 mb-6">
                 {[
@@ -129,49 +133,50 @@ const Subscribe = () => {
                   "Jurisdiction monitoring",
                   "All reference content",
                   "AI investigation prompt on every article",
+                  "1 free tool run/month + 20% off all other tool runs",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
                   </li>
                 ))}
-                <li className="flex items-start gap-2 text-sm text-blue-300">
-                  <span className="text-blue-400 font-bold">—</span> Compliance tools not included
-                </li>
               </ul>
               <button
                 onClick={() => startCheckout("month")}
                 disabled={!!loading}
                 className="w-full py-3 rounded-xl text-sm font-bold bg-white text-navy hover:opacity-90 disabled:opacity-50"
               >
-                Start for {INTELLIGENCE_PRICING.monthlyShort()} →
+                Start free 10-day trial →
               </button>
+              <p className="text-center text-blue-200/80 text-meta mt-2">
+                10-day free trial · Card required · No tools included in trial
+              </p>
             </div>
 
-            {/* Compliance Platform card */}
+            {/* Professional card */}
             <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
               <p className="text-eyebrow text-amber-300 mb-2">
-                Compliance Platform
+                Professional
               </p>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-white font-display font-bold text-[36px] leading-none">
-                  $399
+                  {PRICING.professional.base.display}
                 </span>
-                <span className="text-blue-200 text-lg font-normal">/year</span>
+                <span className="text-blue-200 text-lg font-normal">/month base</span>
               </div>
-              <p className="text-blue-200/70 text-meta mb-1">
-                Billed as one annual payment
+              <p className="text-amber-100 text-meta mb-1">
+                + {PRICING.professional.perClient.display}/client/year
               </p>
-              <p className="text-blue-200/50 text-meta mb-4">
-                {PLATFORM_PRICING.standardMonthly()} equivalent
+              <p className="text-blue-200/70 text-meta mb-4">
+                Add clients à la carte — no minimum
               </p>
               <ul className="space-y-2 mb-6">
                 {[
-                  "Everything in Privacy Intelligence Feed",
-                  "ALL compliance tools — included",
-                  "Governance, LIA, DPIA, DPA, Notices, RoFA",
-                  "IR Playbook & Biometric Checker",
-                  "Your documents saved permanently",
-                  "AI investigation prompts, pre-built per article",
+                  "Everything in Intelligence (for account holder)",
+                  "Client/matter workspace",
+                  "Branded document outputs",
+                  `Up to ${PRICING.professional.teamLoginsIncluded} team logins`,
+                  "25% discount on all compliance tools",
+                  "Per-client tool allowances included",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
@@ -183,8 +188,12 @@ const Subscribe = () => {
                 disabled={!!loading}
                 className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
               >
-                Start Platform — {PLATFORM_PRICING.standard()} →
+                Start Professional →
               </button>
+              <p className="text-center text-amber-100/80 text-meta mt-2">
+                Base fee covers your own Intelligence access.<br />
+                Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
+              </p>
             </div>
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
@@ -206,7 +215,7 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-slate-light">— included on Platform; standalone rates on Intelligence.</span>
+          <span className="text-slate-light">— $50 per filing, 20% off for Intelligence subscribers, 25% off for Professional.</span>
         </div>
       </div>
 
@@ -225,8 +234,8 @@ const Subscribe = () => {
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-3 pr-4 font-semibold text-gray-700 w-1/2">Feature</th>
                 <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
-                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">$29/mo</span></th>
-                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Platform<br/><span className="font-normal normal-case tracking-normal">$399/yr</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -240,16 +249,19 @@ const Subscribe = () => {
                 ['AI investigation prompts on every article', '—', '✓', '✓'],
                 ['119-authority enforcement tracking', 'Limited', '✓', '✓'],
                 ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
-                ['All compliance tools', '—', '—', '✓'],
-                ['Governance Assessment', '—', '—', '✓'],
-                ['Legitimate Interest Assessment', '—', '—', '✓'],
-                ['DPIA Builder', '—', '—', '✓'],
-                ['DPA Generator', '—', '—', '✓'],
-                ['IR Playbook', '—', '—', '✓'],
-                ['RoPA Builder', '—', '—', '✓'],
-                ['CPPA Suite (Scope / Risk / Cyber)', '—', '—', '✓'],
-                ['Saved reports in My Reports', '—', '—', '✓'],
-                ['Personalized investigation prompts', '—', '—', '✓'],
+                ['1 free tool run/month', '—', '✓', '✓'],
+                ['All compliance tools', '—', 'Per-use · 20% off', 'Per-use · 25% off'],
+                ['Governance Assessment', '—', '$40 (20% off)', '$38 (25% off)'],
+                ['Legitimate Interest Assessment', '—', '$24 (20% off)', '$23 (25% off)'],
+                ['DPIA Builder', '—', '$32 (20% off)', '$30 (25% off)'],
+                ['DPA Generator', '—', '$32 (20% off)', '$30 (25% off)'],
+                ['IR Playbook', '—', '$16 (20% off)', '$15 (25% off)'],
+                ['RoPA Builder', '—', '$32 (20% off)', '$30 (25% off)'],
+                ['CPPA Suite (Scope / Risk / Cyber)', 'Scope free', 'Scope free · 20% off others', 'Scope free · 25% off others'],
+                ['Client/matter workspace', '—', '—', '✓'],
+                ['Up to 3 team logins', '—', '—', '✓'],
+                ['Saved reports in My Reports', '—', '✓', '✓'],
+                ['Personalized investigation prompts', '—', '✓', '✓'],
               ] as const).map(([feature, anon, intel, platform], i) => (
                 <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="py-2.5 pr-4 text-gray-700">{feature}</td>
@@ -298,7 +310,7 @@ const Subscribe = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Three-column comparison table */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Intelligence vs. Platform</h2>
+          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -311,10 +323,10 @@ const Subscribe = () => {
                       Free
                     </th>
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-sky w-[170px]">
-                      Intelligence ({INTELLIGENCE_PRICING.monthlyShort()})
+                      Intelligence ({PRICING.intelligence.monthly.display}/mo)
                     </th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
-                      Platform ({PLATFORM_PRICING.standard()})
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[230px]">
+                      Professional ({PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr)
                     </th>
                   </tr>
                 </thead>
