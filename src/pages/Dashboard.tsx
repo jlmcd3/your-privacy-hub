@@ -19,6 +19,7 @@ import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import TrialCountdownBanner from "@/components/dashboard/TrialCountdownBanner";
 import WorkspaceStatusLine from "@/components/WorkspaceStatusLine";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
@@ -432,6 +433,7 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <TrialCountdownBanner />
         <div className="mb-6 pb-6 border-b border-gray-100">
           <h1 className="font-display text-2xl text-navy font-bold mb-1">
             Privacy Intelligence Workspace
