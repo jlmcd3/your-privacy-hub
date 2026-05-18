@@ -253,10 +253,14 @@ serve(async (req) => {
       JSON.stringify({
         tool_slug,
         tool_name: tool.name,
-        tier: isAnnualSubscriber ? "subscriber" : "standalone",
+        tier: isProfessionalSubscriber
+          ? "professional"
+          : isIntelligenceSubscriber
+            ? "intelligence"
+            : "standalone",
         subscription_type: subscriptionType,
         is_cppa: isCppa,
-        is_included: isAnnualSubscriber && !isCppa,
+        is_included: false,
         amount_cents: effectiveCents,
         standalone_amount_cents: standaloneCents,
         subscriber_amount_cents: subscriberCents,
