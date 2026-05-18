@@ -52,10 +52,14 @@ export default function CPPACybersecurity() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_cybersecurity");
-  const displayPrice = pricing.isSubscriber ? pricing.subscriberPrice : pricing.price;
   const [searchParams] = useSearchParams();
   const isSuite = searchParams.get("suite") === "true";
   const suitePricing = useToolPrice("cppa_suite");
+  // v7: show the price the current viewer will pay; switch to Suite pricing
+  // when launched in suite mode.
+  const activePricing = isSuite ? suitePricing : pricing;
+  const headerLabel = isSuite ? "CPPA AUDIT READINESS · FULL SUITE (M1 + M2)" : "CPPA AUDIT READINESS · MODULE 2";
+  const displayPrice = activePricing.price;
 
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
