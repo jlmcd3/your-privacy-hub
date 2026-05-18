@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   // paid tier has something meaningful to render.
   const { data: articles, error } = await supabase
     .from("updates")
-    .select("id, jurisdiction, attention_level, published_at, category, ai_summary, why_it_matters_short")
+    .select("id, direct_jurisdictions, attention_level, published_at, category, ai_summary, why_it_matters_short")
     .gte("created_at", cutoff)
     .eq("is_hidden", false)
     .not("ai_summary", "is", null)
