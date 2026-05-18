@@ -3,28 +3,40 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 /**
- * Static fallback pricing — kept in sync with `supabase/functions/create-tool-checkout`.
- * Shown immediately while the subscriber-aware price loads from the backend.
+ * Static fallback pricing — v7 model (Intelligence $20/mo, Professional
+ * $35/mo). Tools are per-use with uniform percentage discounts:
+ *   Intelligence subscribers: 20% off
+ *   Professional subscribers: 25% off
+ *
+ * The `subscriber` value below uses the Professional (25% off) rate so
+ * intake pages that read `pricing.subscriberPrice` advertise the best
+ * available discount. Intelligence-tier display (20% off) is computed
+ * separately by ToolPricingCTA via PRICING / getToolPrice.
+ *
+ * NOTE — Display only. Actual Stripe amounts are still charged by the
+ * legacy `create-tool-checkout` edge function (see DRIFT LOG in
+ * src/config/pricing.ts). Katherine must reconcile the edge function +
+ * Stripe Price IDs before going live.
  */
 const FALLBACK: Record<string, { standalone: number; subscriber: number; name: string }> = {
-  li_assessment: { standalone: 69, subscriber: 35, name: "Legitimate Interest Assessment Tool" },
-  governance_assessment: { standalone: 49, subscriber: 25, name: "Privacy Program Assessment Tool" },
-  dpia_framework: { standalone: 99, subscriber: 49, name: "Impact Assessment Builder" },
-  ropa_initial: { standalone: 79, subscriber: 35, name: "RoPA Builder — Initial Generation" },
-  ropa_refresh: { standalone: 35, subscriber: 15, name: "RoPA Builder — Annual Refresh" },
-  us_notice_single: { standalone: 25, subscriber: 12, name: "US Privacy Notice — Single State" },
-  us_notice_all_states: { standalone: 59, subscriber: 29, name: "US Privacy Notice — All States" },
-  us_notice_refresh: { standalone: 25, subscriber: 12, name: "US Notice — Annual Refresh" },
-  eu_notice_single: { standalone: 45, subscriber: 19, name: "EU & Global Notice — Single Framework" },
-  eu_notice_suite: { standalone: 119, subscriber: 65, name: "EU Notice Suite — GDPR + UK GDPR + FADP" },
-  eu_notice_full_international: { standalone: 229, subscriber: 99, name: "EU & Global Notice — Full International" },
-  eu_notice_refresh: { standalone: 35, subscriber: 19, name: "EU & Global Notice — Annual Refresh" },
-  cppa_risk_assessment: { standalone: 149, subscriber: 79, name: "CPPA Risk Assessment — Module 1" },
-  cppa_cybersecurity: { standalone: 199, subscriber: 99, name: "CPPA Cybersecurity Readiness — Module 2" },
-  cppa_suite: { standalone: 299, subscriber: 149, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
-  dpa_generator: { standalone: 49, subscriber: 0, name: "Your Custom DPA" },
-  ir_playbook: { standalone: 59, subscriber: 0, name: "Breach Response Playbook" },
-  biometric_checker: { standalone: 49, subscriber: 0, name: "Biometric Privacy Compliance Assessment" },
+  li_assessment:                { standalone: 30, subscriber: 23, name: "Legitimate Interest Assessment Tool" },
+  governance_assessment:        { standalone: 50, subscriber: 38, name: "Privacy Program Assessment Tool" },
+  dpia_framework:               { standalone: 40, subscriber: 30, name: "Impact Assessment Builder" },
+  ropa_initial:                 { standalone: 40, subscriber: 30, name: "RoPA Builder — Initial Generation" },
+  ropa_refresh:                 { standalone: 40, subscriber: 30, name: "RoPA Builder — Annual Refresh" },
+  us_notice_single:             { standalone: 30, subscriber: 23, name: "US Privacy Notice — Single State" },
+  us_notice_all_states:         { standalone: 30, subscriber: 23, name: "US Privacy Notice — All States" },
+  us_notice_refresh:            { standalone: 30, subscriber: 23, name: "US Notice — Annual Refresh" },
+  eu_notice_single:             { standalone: 50, subscriber: 38, name: "EU & Global Notice — Single Framework" },
+  eu_notice_suite:              { standalone: 50, subscriber: 38, name: "EU Notice Suite — GDPR + UK GDPR + FADP" },
+  eu_notice_full_international: { standalone: 50, subscriber: 38, name: "EU & Global Notice — Full International" },
+  eu_notice_refresh:            { standalone: 50, subscriber: 38, name: "EU & Global Notice — Annual Refresh" },
+  cppa_risk_assessment:         { standalone: 60, subscriber: 45, name: "CPPA Risk Assessment — Module 1" },
+  cppa_cybersecurity:           { standalone: 80, subscriber: 60, name: "CPPA Cybersecurity Readiness — Module 2" },
+  cppa_suite:                   { standalone: 140, subscriber: 105, name: "CPPA Full Audit Suite (Modules 1 + 2)" },
+  dpa_generator:                { standalone: 40, subscriber: 30, name: "Your Custom DPA" },
+  ir_playbook:                  { standalone: 20, subscriber: 15, name: "Breach Response Playbook" },
+  biometric_checker:            { standalone: 10, subscriber: 8,  name: "Biometric Privacy Compliance Assessment" },
 };
 
 /**
