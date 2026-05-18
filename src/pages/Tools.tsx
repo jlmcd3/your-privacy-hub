@@ -300,8 +300,8 @@ const TOOLS: ToolDef[] = [
     name: "U.S. Privacy Notice Builder",
     tagline: "State-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state privacy laws.",
     href: "/us-notices",
-    subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$25/state or $59 all states",
+    subscriberPrice: "Intelligence: $24 · Professional: $23",
+    standalonePrice: "$30",
     body: [
       "US state privacy laws are not interchangeable. CCPA disclosure requirements differ from Virginia's, which differ from Colorado's, which differ again from the more recent state laws. A single 'US privacy notice' that does not surface those differences is itself a compliance risk — and increasingly, an enforcement one.",
       "The U.S. Privacy Notice Builder produces state-specific notices that include the disclosures each statute actually requires: categories of personal information, sources, purposes, sale and sharing disclosures, sensitive data handling, and consumer rights mechanisms. State-specific overlays are applied automatically based on the jurisdictions you select.",
