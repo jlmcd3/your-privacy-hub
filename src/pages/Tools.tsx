@@ -616,10 +616,10 @@ export default function Tools() {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
-            Every standard tool. Included. {PLATFORM_PRICING.standard()} Annual Platform.
+            Per-use pricing. 20–25% off for subscribers. 1 free run per month.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
-            Annual Platform subscribers get every standard assessment, document, and notice tool included at no additional cost. CPPA tools remain paid but at the discounted subscriber rate. Monthly Intelligence subscribers pay standalone rates on tools.
+            Every tool is pay-per-use. Intelligence subscribers ($20/mo) get 20% off plus one free tool run each month. Professional ($35/mo + $150/client/yr) gets 25% off plus the same monthly free run.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
@@ -630,10 +630,10 @@ export default function Tools() {
             ))}
           </div>
           <Link to="/subscribe" className="inline-block text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
-            Start your Annual Platform subscription →
+            Start 10-day Intelligence trial →
           </Link>
           <p className="text-blue-200/60 text-meta mt-4">
-            Monthly Intelligence at {INTELLIGENCE_PRICING.monthlyShort()} · Annual Platform at {PLATFORM_PRICING.standard()} · Cancel any time
+            Intelligence $20/mo (10-day free trial) · Professional $35/mo + $150/client/yr · Cancel any time
           </p>
         </div>
       </div>
