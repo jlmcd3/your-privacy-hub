@@ -70,10 +70,15 @@ export default function CPPARiskAssessment() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_risk_assessment");
-  const displayPrice = pricing.isSubscriber ? pricing.subscriberPrice : pricing.price;
   const [searchParams] = useSearchParams();
   const isSuite = searchParams.get("suite") === "true";
   const suitePricing = useToolPrice("cppa_suite");
+  // v7: render the price the *current viewer* will pay (Intelligence 20% off,
+  // Professional 25% off, free/anon = standalone). Switch to Suite pricing
+  // when the intake was launched in suite mode.
+  const activePricing = isSuite ? suitePricing : pricing;
+  const headerLabel = isSuite ? "CPPA AUDIT READINESS · FULL SUITE (M1 + M2)" : "CPPA AUDIT READINESS · MODULE 1";
+  const displayPrice = activePricing.price;
 
   const [step, setStep] = useState(1);
   const [authGateOpen, setAuthGateOpen] = useState(false);
