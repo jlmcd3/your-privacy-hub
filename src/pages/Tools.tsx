@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
+// v7 pricing strings are inlined below; per-tool tier prices reference PRICING in src/config/pricing.ts.
 
 // ── Section types ─────────────────────────────────────────────────────────
 type ToolSection = "assessments" | "documents" | "cppa";
