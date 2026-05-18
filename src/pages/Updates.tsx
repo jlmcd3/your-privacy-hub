@@ -127,23 +127,57 @@ const Updates = () => {
 
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    const activeRegion = searchParams.get("region") || "all";
-    const activeTopic = searchParams.get("topic") || "all";
+    // Multi-select region & topic — comma-separated in URL.
+    // Empty / missing param = "All" (matches everything).
+    const REGION_KEYS = LOCATION_FILTERS.filter(f => f.key !== "all").map(f => f.key);
+    const TOPIC_KEYS = TOPIC_FILTERS.filter(f => f.key !== "all").map(f => f.key);
 
-    // Independent setters: region and topic are additive in the URL.
-    const selectRegion = useCallback((key: string) => {
+    const parseMulti = (raw: string | null, all: string[]): string[] => {
+        if (!raw || raw === "all") return [];
+        const parts = raw.split(",").map(s => s.trim()).filter(Boolean).filter(k => all.includes(k));
+        return parts;
+    };
+
+    const activeRegions = parseMulti(searchParams.get("region"), REGION_KEYS);
+    const activeTopics = parseMulti(searchParams.get("topic"), TOPIC_KEYS);
+
+    // For display: when empty, treat as "all selected" (every chip highlighted).
+    const effectiveRegions = activeRegions.length === 0 ? REGION_KEYS : activeRegions;
+    const effectiveTopics = activeTopics.length === 0 ? TOPIC_KEYS : activeTopics;
+    const allRegionsSelected = activeRegions.length === 0 || activeRegions.length === REGION_KEYS.length;
+    const allTopicsSelected = activeTopics.length === 0 || activeTopics.length === TOPIC_KEYS.length;
+
+    const writeMulti = useCallback((param: "region" | "topic", values: string[], allKeys: string[]) => {
         const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("region");
-        else next.set("region", key);
+        if (values.length === 0 || values.length === allKeys.length) next.delete(param);
+        else next.set(param, values.join(","));
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
-    const selectTopic = useCallback((key: string) => {
-        const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("topic");
-        else next.set("topic", key);
-        setSearchParams(next);
-    }, [searchParams, setSearchParams]);
+    const toggleRegion = useCallback((key: string) => {
+        if (key === "all") {
+            // Toggle: if everything is already on, clear to none-selected-state (which still = all visually); otherwise force-all.
+            writeMulti("region", [], REGION_KEYS);
+            return;
+        }
+        const current = activeRegions.length === 0 ? [...REGION_KEYS] : [...activeRegions];
+        const idx = current.indexOf(key);
+        if (idx >= 0) current.splice(idx, 1);
+        else current.push(key);
+        writeMulti("region", current, REGION_KEYS);
+    }, [activeRegions, writeMulti, REGION_KEYS]);
+
+    const toggleTopic = useCallback((key: string) => {
+        if (key === "all") {
+            writeMulti("topic", [], TOPIC_KEYS);
+            return;
+        }
+        const current = activeTopics.length === 0 ? [...TOPIC_KEYS] : [...activeTopics];
+        const idx = current.indexOf(key);
+        if (idx >= 0) current.splice(idx, 1);
+        else current.push(key);
+        writeMulti("topic", current, TOPIC_KEYS);
+    }, [activeTopics, writeMulti, TOPIC_KEYS]);
 
     const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
       if (!user) {
