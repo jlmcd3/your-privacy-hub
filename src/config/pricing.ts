@@ -537,3 +537,124 @@ export const EU_NOTICE_PRICING = {
   refreshStandalone: () => getPrice("eu_notice_refresh_standalone").displayPrice,                     // "$35"
   refreshSubscriber: () => getPrice("eu_notice_refresh_subscriber").displayPrice,                     // "$19"
 } as const;
+
+// ============================================================================
+//  NEW PRICING MODEL (v7) — Coexists with legacy registry above.
+//  Source of truth for the v7 redesign (Intelligence $20/mo, Professional
+//  $35/mo base + $150/client/yr, per-use tools with subscriber discounts,
+//  10-day Intelligence trial, 1 free tool run/month for paid tiers).
+//
+//  ── Migration plan ────────────────────────────────────────────────────────
+//  Legacy exports above (INTELLIGENCE_PRICING, PLATFORM_PRICING, formatPrice,
+//  getPrice, PRICING_REGISTRY) remain active so existing pages and edge
+//  functions keep compiling. UI surfaces are being migrated to PRICING +
+//  getToolPrice below over Prompts 2–5. Backend/Stripe/sync-pricing code
+//  still reads the legacy registry — see "Drift log" for what is out of
+//  sync and what must change before going live.
+//
+//  ── DRIFT LOG (v7) — must reconcile before live Stripe go-live ────────────
+//  UI (v7 PRICING)                       vs.  Legacy registry / backend
+//  -------------------------------------------------------------------------
+//  Intelligence monthly      $20/mo      vs.  intelligence_monthly      $29
+//  Intelligence annual       $180/yr     vs.  intelligence_only_yearly  $249
+//  Professional base         $35/mo      vs.  (no legacy equivalent — was Platform $399/yr)
+//  Professional per-client   $150/yr     vs.  per_client_addon          $199
+//  Intelligence trial        10 days     vs.  (none — Stripe checkout has no trial)
+//  Free tool run / month     1 (paid)    vs.  (none — no usage tracking)
+//  Tool: Biometric           $10         vs.  biometric_checker_standalone  $49
+//  Tool: IR Playbook         $20         vs.  ir_playbook_standalone        $59
+//  Tool: LIA                 $30         vs.  li_assessment_standalone      $69
+//  Tool: US Notice (single)  $30         vs.  us_notice_single_standalone   $25
+//  Tool: DPIA                $40         vs.  dpia_framework_standalone     $99
+//  Tool: DPA                 $40         vs.  dpa_generator_standalone      $49
+//  Tool: RoPA/RoFA           $40         vs.  rofa_initial_standalone       $79
+//  Tool: EU Notice (single)  $50         vs.  eu_notice_single_standalone   $45
+//  Tool: Registration        $50         vs.  (no legacy equivalent)
+//  Tool: Governance          $50         vs.  governance_assessment_standalone $49
+//  Tool: CPPA Risk           $60         vs.  cppa_risk_standalone          $149
+//  Tool: CPPA Cyber          $80         vs.  cppa_cybersecurity_standalone $199
+//  Tool: CPPA Scope          Free        vs.  (no legacy entry)
+//
+//  Subscriber-tier tool discounts: legacy registry has per-tool subscriber
+//  prices (e.g. us_notice_single_subscriber $12). v7 replaces these with
+//  uniform percentage discounts (Intelligence 20%, Professional 25%).
+//
+//  Stripe Price IDs in v7 are placeholders. Katherine must create new
+//  Stripe Price objects (see "STRIPE NOTE" in the v7 spec doc) and replace
+//  every REPLACE_WITH_STRIPE_PRICE_ID_* below before going live. Archive,
+//  do not delete, the legacy $29 / $399 / $249 / $199 Stripe prices.
+// ============================================================================
+
+export const PRICING = {
+  intelligence: {
+    monthly: {
+      display: '$20',
+      dollars: 20,
+      cents: 2000,
+      label: 'month',
+      stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_INTEL_MONTHLY',
+    },
+    annual: {
+      display: '$180',
+      dollars: 180,
+      cents: 18000,
+      label: 'year',
+      savingDisplay: 'Save $60 — 3 months free',
+      stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_INTEL_ANNUAL',
+    },
+    trialDays: 10,
+    freeToolRunsPerMonth: 1,
+    toolDiscount: 0.20,
+  },
+  professional: {
+    base: {
+      display: '$35',
+      dollars: 35,
+      cents: 3500,
+      label: 'month',
+      stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_PRO_MONTHLY',
+    },
+    perClient: {
+      display: '$150',
+      dollars: 150,
+      cents: 15000,
+      label: 'client/year',
+      stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_PRO_CLIENT_ANNUAL',
+    },
+    freeToolRunsPerMonth: 1,
+    toolDiscount: 0.25,
+    teamLoginsIncluded: 3,
+    additionalLoginMonthly: 10,
+  },
+  tools: {
+    cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
+    biometric:    { name: 'Biometric Compliance Check',         dollars: 10, display: '$10',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_BIOMETRIC' },
+    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 20, display: '$20',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_IR' },
+    lia:          { name: 'Legitimate Interest Assessment',     dollars: 30, display: '$30',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_LIA' },
+    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 30, display: '$30',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_US_NOTICE' },
+    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 40, display: '$40',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_DPIA' },
+    dpa:          { name: 'Custom DPA Generator',               dollars: 40, display: '$40',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_DPA' },
+    ropa:         { name: 'RoPA Builder',                       dollars: 40, display: '$40',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_ROPA' },
+    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_EU_NOTICE' },
+    registration: { name: 'Registration Filings',               dollars: 50, display: '$50',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_REGISTRATION' },
+    governance:   { name: 'Privacy Program Assessment',         dollars: 50, display: '$50',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_GOVERNANCE' },
+    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 60, display: '$60',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_CPPA_RISK' },
+    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 80, display: '$80',  stripePriceId: 'REPLACE_WITH_STRIPE_PRICE_ID_CPPA_CYBER' },
+  },
+} as const;
+
+export type ToolKey = keyof typeof PRICING.tools;
+export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
+
+export function getToolPrice(toolKey: ToolKey, tier: SubscriptionTier): number {
+  const tool = PRICING.tools[toolKey];
+  if (tool.dollars === 0) return 0;
+  if (tier === 'intelligence') return Math.round(tool.dollars * (1 - PRICING.intelligence.toolDiscount));
+  if (tier === 'professional') return Math.round(tool.dollars * (1 - PRICING.professional.toolDiscount));
+  return tool.dollars;
+}
+
+export function getToolPriceDisplay(toolKey: ToolKey, tier: SubscriptionTier): string {
+  const price = getToolPrice(toolKey, tier);
+  return price === 0 ? 'Free' : `$${price}`;
+}
