@@ -338,9 +338,9 @@ const TOOLS: ToolDef[] = [
     name: "Registration Manager",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
     href: "/registration-manager",
-    subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "Free assessment · DIY from $59 · Counsel-Ready $399",
-    monthlySubscriberPrice: "20% off DIY · $75 off Counsel-Ready Pack",
+    subscriberPrice: "Intelligence: $40 · Professional: $38 (per filing)",
+    standalonePrice: "Free assessment · $50 per filing",
+    monthlySubscriberPrice: "Intelligence: 20% off · Professional: 25% off",
     body: [
       "Most privacy programmes know they need to register a DPO somewhere. Far fewer have a current, jurisdiction-by-jurisdiction map of where formal registration with the supervisory authority is mandatory, where an EU/UK representative must be appointed, where the AI Act register applies, and when each filing must be renewed.",
       "The Registration Manager begins with a free assessment: organisation type, size, sectors, and the markets in which you operate. From that, it produces a recommended registration footprint across 50+ jurisdictions — flagging where DPO registration, controller registration, representative appointment, and AI Act notification are required, and on what timeline.",
