@@ -149,13 +149,13 @@ export function useToolPrice(toolSlug: keyof typeof FALLBACK): ToolPricing {
         const data = await res.json();
         if (cancelled) return;
 
-        const standaloneCents = data.standalone_amount_cents ?? data.amount_cents ?? fb.standalone * 100;
-        const subscriberCents = data.subscriber_amount_cents ?? fb.subscriber * 100;
-        const standaloneDollars = Math.round(standaloneCents / 100);
-        const subscriberDollars = Math.round(subscriberCents / 100);
+        // v7 display: ignore legacy cents returned by get-tool-price (still
+        // wired to v6 amounts) and keep FALLBACK as the source of truth for
+        // what the user sees. Stripe charge amount is unaffected — it is
+        // decided server-side by create-tool-checkout. See DRIFT LOG.
+        const standaloneDollars = fb.standalone;
+        const subscriberDollars = fb.subscriber;
 
-        // Always recompute on the client per the New Model rules — do not
-        // trust the legacy "tier" field from the edge function for gating.
         const effective = computeEffective(standaloneDollars, subscriberDollars);
 
         setState({
