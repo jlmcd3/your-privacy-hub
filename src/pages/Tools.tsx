@@ -403,8 +403,8 @@ const TOOLS: ToolDef[] = [
     name: "CPPA Cybersecurity Audit",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
-    subscriberPrice: "$99 subscriber rate",
-    standalonePrice: "$199",
+    subscriberPrice: "Intelligence: $64 · Professional: $60",
+    standalonePrice: "$80",
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
