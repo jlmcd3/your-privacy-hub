@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 
 export default function HomepagePricingStrip() {
   return (
@@ -10,10 +10,10 @@ export default function HomepagePricingStrip() {
             Subscription options
           </p>
           <h2 className="text-section-h2 text-white leading-tight">
-            Intelligence only, or the full Compliance Platform
+            Intelligence on its own, or step up to Professional
           </h2>
           <p className="text-sm text-blue-100/80 mt-2">
-            Intelligence Feed from {INTELLIGENCE_PRICING.monthly()} · Annual Platform at {PLATFORM_PRICING.standard()}.
+            Intelligence from {PRICING.intelligence.monthly.display}/month · Professional from {PRICING.professional.base.display}/month + {PRICING.professional.perClient.display}/client/year · Tools available standalone
           </p>
         </div>
         <Link

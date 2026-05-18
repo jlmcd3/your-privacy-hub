@@ -35,11 +35,11 @@ export default function SubscribeSuccess() {
 
   // Tier-aware content
   const headline = hasToolAccess
-    ? "Your Compliance Platform is ready."
+    ? "Your Professional subscription is ready."
     : "Your Intelligence Feed is active.";
 
   const subheadline = hasToolAccess
-    ? "All compliance tools are included in your plan. No additional charges for any standard tool."
+    ? "Your client workspace is live. Compliance tools are 25% off and you get 1 free tool run per month."
     : "Your weekly brief is configured. You'll receive your first issue this Monday at 7am ET.";
 
   const NEXT_STEPS = hasToolAccess
@@ -91,7 +91,7 @@ export default function SubscribeSuccess() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{hasToolAccess ? "Welcome to the Compliance Platform" : "Welcome to Intelligence"} | End User Privacy</title>
+        <title>{hasToolAccess ? "Welcome to Professional" : "Welcome to Intelligence"} | End User Privacy</title>
       </Helmet>
       <Navbar />
 

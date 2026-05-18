@@ -87,7 +87,7 @@ export default function BiometricChecker() {
         <ActiveClientLabel />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
-          <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Annual Platform ($399/yr).</p>
+          <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $10 standalone, or $8 for Intelligence/Professional subscribers (20–25% off).</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
@@ -165,11 +165,11 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-meta text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Annual Platform subscribers receive this tool included at no additional charge.</p>
+                <p className="text-meta text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Intelligence subscribers get 20% off; Professional subscribers get 25% off and 1 free tool run/month.</p>
               ) : access.isPremium ? (
-                <p className="text-meta text-muted-foreground mb-3">Included with your Annual Platform subscription.</p>
+                <p className="text-meta text-muted-foreground mb-3">Subscriber discount applied — your assessment is discounted (20% Intelligence / 25% Professional). Paid tiers also receive 1 free tool run per month.</p>
               ) : (
-                <p className="text-meta text-muted-foreground mb-3">{`Analysis is $49 — or included with Annual Platform ($399/yr).`}</p>
+                <p className="text-meta text-muted-foreground mb-3">Analysis is $10 — Intelligence subscribers get 20% off, Professional get 25% off.</p>
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">

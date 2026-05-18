@@ -9,13 +9,13 @@ import HomepageFeedSection from "@/components/home/HomepageFeedSection";
 import HomepageBriefSection from "@/components/home/HomepageBriefSection";
 import HomepageToolsSection from "@/components/home/HomepageToolsSection";
 import HomepagePricingStrip from "@/components/home/HomepagePricingStrip";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 
 const Index = () => (
   <div className="min-h-screen bg-paper">
     <Helmet>
       <title>Global Privacy Law, Tracked Daily | End User Privacy</title>
-      <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform at ${PLATFORM_PRICING.standard()} — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
+      <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Intelligence from ${PRICING.intelligence.monthly.display}/month · Professional from ${PRICING.professional.base.display}/month + ${PRICING.professional.perClient.display}/client/year · Tools available standalone.`} />
     </Helmet>
 
     <Navbar />

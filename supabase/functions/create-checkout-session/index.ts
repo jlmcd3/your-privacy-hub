@@ -205,12 +205,22 @@ serve(async (req) => {
       : "/subscribe/success";
     const cancelPath = addon ? "/account" : tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
+    // v7: Intelligence monthly subscriptions get a 10-day free trial.
+    const isIntelligenceMonthly =
+      mode === "subscription" &&
+      (metadata.subscription_tier === "intelligence" && metadata.subscription_interval === "month");
+
     const session = await stripe.checkout.sessions.create({
       mode,
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       customer_email: user.email!,
       metadata,
-      ...(mode === "subscription" && { subscription_data: { metadata } }),
+      ...(mode === "subscription" && {
+        subscription_data: {
+          metadata: { ...metadata, ...(isIntelligenceMonthly && { plan: "intelligence", trial: "true" }) },
+          ...(isIntelligenceMonthly && { trial_period_days: 10 }),
+        },
+      }),
       ...(embedded
         ? {
             ui_mode: "embedded",

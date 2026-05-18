@@ -42,11 +42,11 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: "The Privacy Intelligence Feed is $29/month (cancel any time) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. The Compliance Platform is $399/year and includes everything in the Intelligence Feed plus all compliance tools — Governance Assessment, LIA, DPIA, DPA Generator, IR Playbook, RoPA Builder, Privacy Notice Builder, and the full CPPA Suite. Individual tools are also available as standalone purchases.",
+    a: "Privacy Intelligence is $20/month (or $180/year — save $60, 3 months free) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. It starts with a 10-day free trial. Professional is $35/month base + $150/client/year and adds client/matter workspaces, branded document outputs, up to 3 team logins, and a 25% discount on every compliance tool. Both paid tiers include 1 free tool run per month. Individual compliance tools are also available standalone.",
   },
   {
-    q: "What is included in the Compliance Platform?",
-    a: "The Annual Platform ($399/year, equivalent to $33.25/month) includes all compliance tools, unlimited report generation, permanent document storage in My Reports, the full weekly Privacy Intelligence Report, and access to the Enforcement Forecast Intelligence. All standard tools are included at no extra charge. Registration filing services (DPO appointments, controller registrations, AI Act filings) are available at standalone rates.",
+    q: "What is included in Professional?",
+    a: "Professional ($35/month base + $150/client/year) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace, branded document outputs, up to 3 team logins, per-client tool allowances, and a 25% discount on every compliance tool. Tools are per-use (not bundled). The CPPA Scope Checker is always free; CPPA Risk Assessment and CPPA Cybersecurity Audit are paid for all tiers but discounted for subscribers.",
   },
   {
     q: "Can I try the tools before subscribing?",
