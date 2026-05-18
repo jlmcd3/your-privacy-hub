@@ -120,7 +120,7 @@ export function ResearchPageLayout({
               </h2>
               {sec.content && (
                 <div
-                  className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-cobalt [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-navy [&_strong]:font-semibold"
+                  className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-cobalt [&_a]:font-bold [&_a]:underline [&_a:hover]:text-navy [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-navy [&_strong]:font-semibold [&_a_strong]:text-cobalt"
                   dangerouslySetInnerHTML={{ __html: sec.content }}
                 />
               )}
