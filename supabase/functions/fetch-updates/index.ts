@@ -77,6 +77,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'aoshearman.com':            ['global'],
   'freshfields.com':           ['global'],
   'hsfnotes.com':              ['global'],
+  'insideprivacy.com':         ['us-federal', 'eu', 'united-kingdom'],
 };
 
 const extractDomain = (url: string): string => {
