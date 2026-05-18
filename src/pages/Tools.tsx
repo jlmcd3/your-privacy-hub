@@ -465,11 +465,11 @@ export default function Tools() {
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
-            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. All standard tools are included with the Annual Platform ({PLATFORM_PRICING.standard()}).
+            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Pay per use, with 20% off for Intelligence subscribers ($20/mo) and 25% off for Professional ($35/mo) — plus 1 free tool run per month included.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
-              See Annual Platform — {PLATFORM_PRICING.standard()} →
+              Start 10-day Intelligence trial — $20/mo →
             </Link>
             <a href="#tools" className="text-sm font-semibold text-white border border-white/30 px-6 py-3 rounded-xl hover:bg-white/10 transition-all no-underline">
               See the tools ↓
