@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       date: today,
       selected: {
         id: top.id,
-        jurisdiction: top.jurisdiction,
+        jurisdiction: (top as any).direct_jurisdictions,
         attention_level: top.attention_level,
         published_at: top.published_at,
         category: top.category,
