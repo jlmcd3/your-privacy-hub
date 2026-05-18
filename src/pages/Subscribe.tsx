@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, getPrice, PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
