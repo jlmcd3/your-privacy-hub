@@ -61,7 +61,7 @@ const About = () => {
 
           {/* What we cover */}
           <div className="mb-12 md:mb-16">
-            <h2 className="font-display text-xl md:text-[24px] font-bold text-navy mb-5 md:mb-6">
+            <h2 className="text-section-h2 text-navy mb-5 md:mb-6">
               What we cover
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
