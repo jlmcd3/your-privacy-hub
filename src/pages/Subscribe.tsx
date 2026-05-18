@@ -234,8 +234,8 @@ const Subscribe = () => {
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-3 pr-4 font-semibold text-gray-700 w-1/2">Feature</th>
                 <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
-                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">$29/mo</span></th>
-                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Platform<br/><span className="font-normal normal-case tracking-normal">$399/yr</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -249,16 +249,19 @@ const Subscribe = () => {
                 ['AI investigation prompts on every article', '—', '✓', '✓'],
                 ['119-authority enforcement tracking', 'Limited', '✓', '✓'],
                 ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
-                ['All compliance tools', '—', '—', '✓'],
-                ['Governance Assessment', '—', '—', '✓'],
-                ['Legitimate Interest Assessment', '—', '—', '✓'],
-                ['DPIA Builder', '—', '—', '✓'],
-                ['DPA Generator', '—', '—', '✓'],
-                ['IR Playbook', '—', '—', '✓'],
-                ['RoPA Builder', '—', '—', '✓'],
-                ['CPPA Suite (Scope / Risk / Cyber)', '—', '—', '✓'],
-                ['Saved reports in My Reports', '—', '—', '✓'],
-                ['Personalized investigation prompts', '—', '—', '✓'],
+                ['1 free tool run/month', '—', '✓', '✓'],
+                ['All compliance tools', '—', 'Per-use · 20% off', 'Per-use · 25% off'],
+                ['Governance Assessment', '—', '$40 (20% off)', '$38 (25% off)'],
+                ['Legitimate Interest Assessment', '—', '$24 (20% off)', '$23 (25% off)'],
+                ['DPIA Builder', '—', '$32 (20% off)', '$30 (25% off)'],
+                ['DPA Generator', '—', '$32 (20% off)', '$30 (25% off)'],
+                ['IR Playbook', '—', '$16 (20% off)', '$15 (25% off)'],
+                ['RoPA Builder', '—', '$32 (20% off)', '$30 (25% off)'],
+                ['CPPA Suite (Scope / Risk / Cyber)', 'Scope free', 'Scope free · 20% off others', 'Scope free · 25% off others'],
+                ['Client/matter workspace', '—', '—', '✓'],
+                ['Up to 3 team logins', '—', '—', '✓'],
+                ['Saved reports in My Reports', '—', '✓', '✓'],
+                ['Personalized investigation prompts', '—', '✓', '✓'],
               ] as const).map(([feature, anon, intel, platform], i) => (
                 <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="py-2.5 pr-4 text-gray-700">{feature}</td>
