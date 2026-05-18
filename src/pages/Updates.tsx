@@ -400,17 +400,20 @@ const Updates = () => {
                 </div>
             </div>
 
-            {/* Jurisdiction subnav (pill style) */}
-            <div className="border-b border-border bg-card">
+            {/* Jurisdiction subnav (pill style) — sticky under navbar */}
+            <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
                     <div className="flex items-center gap-3 overflow-x-auto pl-6">
                         <span className="text-eyebrow text-muted-foreground whitespace-nowrap">Jurisdiction</span>
                         {LOCATION_FILTERS.map((f) => {
-                            const isActive = activeRegion === f.key;
+                            const isActive = f.key === "all"
+                                ? selectedRegions.length === 0
+                                : selectedRegions.includes(f.key);
                             return (
                                 <button
                                     key={f.key}
-                                    onClick={() => selectRegion(f.key)}
+                                    onClick={() => toggleRegion(f.key)}
+                                    aria-pressed={isActive}
                                     className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
                                         isActive
                                             ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
@@ -426,17 +429,20 @@ const Updates = () => {
             </div>
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
-                {/* Left: Topics sidebar */}
+                {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block">
-                    <div className="sticky top-20 bg-card rounded-lg p-3">
+                    <div className="sticky top-32 bg-card rounded-lg p-3 max-h-[calc(100vh-9rem)] overflow-y-auto">
                         <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
-                                const isActive = activeTopic === t.key;
+                                const isActive = t.key === "all"
+                                    ? selectedTopics.length === 0
+                                    : selectedTopics.includes(t.key);
                                 return (
                                     <button
                                         key={t.key}
-                                        onClick={() => selectTopic(t.key)}
+                                        onClick={() => toggleTopic(t.key)}
+                                        aria-pressed={isActive}
                                         className={`text-left text-sm px-3 py-2 transition-colors border-l-2 ${
                                             isActive
                                                 ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
