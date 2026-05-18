@@ -30,7 +30,7 @@ const Index = () => (
 
       <section className="max-w-4xl mx-auto px-6 py-10 border-t border-gray-100">
         <p className="text-eyebrow !text-sm text-slate-400 mb-3">How it fits together</p>
-        <h2 className="font-display text-2xl text-navy mb-8">
+        <h2 className="text-section-h2 text-navy mb-8">
           From intelligence to action — in the same platform.
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
