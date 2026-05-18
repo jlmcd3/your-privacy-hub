@@ -88,17 +88,23 @@ const extractDomain = (url: string): string => {
   }
 };
 
-// NOTE: Source list audited 2026-05-18. Feeds confirmed reachable (HTTP 200).
+// NOTE: Source list audited 2026-05-18, updated 2026-05-19.
 // Sources removed because the publisher retired RSS or hard-blocks bot traffic
-// (404 / 403 / Cloudflare) and there is no current working replacement:
-//   BfDI, BSI Germany, APD Belgium, Datatilsynet DK & NO, AEPD, Hamburg DPA,
-//   UOOU Czech, Statewatch, OAIC, PDPC Singapore, OPC Canada, PCPD Hong Kong,
-//   ENISA, EUR-Lex (RSSF014 retired), EU Parliament news (replaced w/ top-stories),
-//   Council of Europe, Texas AG, Colorado AG, HHS OCR, FCC, The Drum,
-//   Covington Inside Privacy, Norton Rose Data Protection Report, Linklaters
-//   Data Protected, Bird & Bird, Hogan Lovells, Baker McKenzie, Clifford Chance,
-//   Freshfields, HSF Data Notes, Dentons, Greenberg Traurig, Lawfare.
-// If any of these publishers re-expose an RSS endpoint they should be re-added here.
+// (404 / 403 / Cloudflare) and there is no current working replacement via RSS:
+//   BfDI, BSI Germany, APD Belgium, AEPD, Hamburg DPA, UOOU Czech, Statewatch,
+//   PCPD Hong Kong, ENISA, EUR-Lex (RSSF014 retired), Council of Europe, FCC,
+//   Norton Rose Data Protection Report, Linklaters Data Protected (static guide, not a blog),
+//   Hogan Lovells, Baker McKenzie, Clifford Chance, Freshfields, HSF Data Notes,
+//   Dentons, Greenberg Traurig, Lawfare.
+// NOTE: Covington Inside Privacy restored 2026-05-19 (insideprivacy.com/feed confirmed working).
+// NOTE: EU Parliament replaced with top-stories XML feed (correct replacement).
+// NOTE: The following DPAs have no RSS but are now ingested via ingest-gov-enforcement
+//       scraping: OAIC, Datatilsynet DK, Datatilsynet NO, PDPC Singapore, OPC Canada,
+//       Texas AG, Colorado AG, HHS OCR.
+// NOTE: Bird & Bird, Hogan Lovells, Baker McKenzie, Clifford Chance, Freshfields, HSF,
+//       Dentons, and Greenberg Traurig are covered via JD Supra (already in feed) which
+//       syndicates content from all of these firms.
+// If any removed publishers re-expose an RSS endpoint, re-add here.
 const RSS_SOURCES = [
   // ── EU & UK Regulators / Policy ───────────────────────────────────
   {
