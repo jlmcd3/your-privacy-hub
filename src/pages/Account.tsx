@@ -197,47 +197,47 @@ export default function Account() {
         {tier === "annual_founding" && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">
-              Compliance Platform — Annual (Founding Subscriber)
+              Professional — Annual (Founding Subscriber)
             </p>
             <p className="text-sm text-amber-700 font-semibold mt-1">
               Rate locked for life
             </p>
             <p className="text-[12px] text-slate mt-1">
-              All compliance tools included. Full intelligence brief.
+              Client workspaces, 25% off every compliance tool, and the full intelligence brief.
             </p>
           </div>
         )}
 
         {tier === "annual" && (
           <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">Compliance Platform — Annual</p>
+            <p className="font-bold text-navy text-[15px]">Professional</p>
             <p className="text-sm text-slate mt-1">
-              {PLATFORM_PRICING.standard()} · {PLATFORM_PRICING.standardMonthly()} equivalent
+              {PRICING.professional.base.display}/mo base + {PRICING.professional.perClient.display}/client/yr
             </p>
             <p className="text-[12px] text-slate mt-1">
-              All compliance tools included. Full intelligence brief.
+              Client workspaces, 25% off every compliance tool, full intelligence brief, and 1 free tool run per month.
             </p>
           </div>
         )}
 
         {tier === "monthly" && (
           <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">Intelligence Feed — Monthly</p>
+            <p className="font-bold text-navy text-[15px]">Intelligence — Monthly</p>
             <p className="text-sm text-teal-700 mt-1">
-              {INTELLIGENCE_PRICING.monthly()} · Cancel any time
+              {PRICING.intelligence.monthly.display}/month · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Intelligence brief, enforcement tracking, and reference content.
+              Intelligence brief, enforcement tracking, reference content, 20% off tools, and 1 free tool run per month.
             </p>
             <div className="mt-3 p-3 bg-card rounded-lg border border-teal-100">
               <p className="text-[12px] font-semibold text-navy">
-                Add compliance tools with Annual Platform
+                Add client workspaces with Professional
               </p>
               <p className="text-[11px] text-slate mb-2">
-                All tools included. {PLATFORM_PRICING.standard()}.
+                {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr · 25% off every tool.
               </p>
               <Link to="/subscribe" className="text-[12px] font-bold text-navy underline">
-                Upgrade to Platform →
+                Upgrade to Professional →
               </Link>
             </div>
           </div>
