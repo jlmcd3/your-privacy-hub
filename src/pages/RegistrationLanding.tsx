@@ -33,16 +33,16 @@ const FAQS = [
     a: "No. We do not submit filings on your behalf. We generate the documents, jurisdiction-specific checklists, and portal links — you (or your counsel) submit them. This keeps you in direct legal control of every filing and avoids any agency or attorney-client ambiguity.",
   },
   {
-    q: "What's the difference between DIY and the Counsel-Ready Pack?",
-    a: "DIY tiers ($59 for 1 jurisdiction, $149 for up to 3, $275 for up to 7, $499 for unlimited) generate the documents and a filing checklist. The Counsel-Ready Pack ($399 flat) adds enhanced jurisdiction notes, a pre-filing walkthrough, and a structured handoff document so your privacy counsel can review and submit faster. You still file the documents yourself.",
+    q: "How does pricing work?",
+    a: "Registration filings are $50 per filing — flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.",
   },
   {
     q: "Do you create EU AI Act registration documents?",
-    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, and we offer a discounted bundle ($599) when you prepare 3+ systems together. You review any filings with your counsel and you or they submit the filings — we do not do any filings for you.",
+    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same $50 per filing. You review with your counsel and you or they submit the filings — we do not file for you.",
   },
   {
     q: "Can I get reminders before renewals are due?",
-    a: "Yes. Annual renewal monitoring is available at $79 per jurisdiction per year — reminders 60/30/7 days before expiry, plus a regenerated filing pack. You can opt in or out at any time from your filing dashboard, but you must provide an accurate filing date for our tracking to be of use to you.",
+    a: "Yes. Annual renewal monitoring is available — reminders 60/30/7 days before expiry, plus a regenerated filing pack. You can opt in or out at any time from your filing dashboard, but you must provide an accurate filing date for our tracking to be of use to you.",
   },
 ];
 
