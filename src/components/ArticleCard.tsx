@@ -443,7 +443,7 @@ const FullCard = ({
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
-            <p className="text-body mt-2" style={{ color: '#92400E' }}>
+            <p className="text-sm leading-relaxed mt-2" style={{ color: '#92400E' }}>
               <span className="font-semibold text-warn">Alert: </span>{firstSentence}
             </p>
           );
