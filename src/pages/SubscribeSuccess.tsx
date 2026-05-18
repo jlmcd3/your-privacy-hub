@@ -150,7 +150,7 @@ export default function SubscribeSuccess() {
         {isIntelligenceOnly && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
             <p className="text-amber-800 text-sm font-medium">
-              Want all compliance tools included? Upgrade to the Annual Platform from your account settings — {PLATFORM_PRICING.standard()}.
+              Want client workspaces and 25% off every compliance tool? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
             </p>
           </div>
         )}
