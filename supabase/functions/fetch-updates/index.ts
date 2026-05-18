@@ -959,8 +959,8 @@ async function generateAISummary(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1300,
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
         system: `You are a privacy regulatory intelligence analyst processing articles for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
 
 Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation. Return {"skip": true} for non-privacy articles, or the full enrichment object for privacy articles.
