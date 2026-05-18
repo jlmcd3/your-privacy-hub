@@ -1,8 +1,9 @@
-// Ingest enforcement actions from US/UK government sources:
-//   - ICO (UK) action listing
-//   - FTC privacy/security press releases
-//   - HHS OCR breach portal & resolution agreements
-// Uses Jina Reader for HTML→markdown extraction. Government records are public domain.
+// Ingest enforcement actions from global DPA and government sources via Jina Reader.
+// Dual-writes to both enforcement_actions (enforcement corpus for compliance tools)
+// and updates (subscriber feed and weekly brief via AI enrichment).
+// Government regulatory press releases and enforcement notices are public domain.
+// All eight DPA scrape sources added 2026-05-19: OAIC, Datatilsynet DK/NO,
+// PDPC Singapore, OPC Canada, Texas AG, Colorado AG, HHS OCR.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const supabase = createClient(
