@@ -310,7 +310,7 @@ const Subscribe = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Three-column comparison table */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Intelligence vs. Platform</h2>
+          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -323,10 +323,10 @@ const Subscribe = () => {
                       Free
                     </th>
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-sky w-[170px]">
-                      Intelligence ({INTELLIGENCE_PRICING.monthlyShort()})
+                      Intelligence ({PRICING.intelligence.monthly.display}/mo)
                     </th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[200px]">
-                      Platform ({PLATFORM_PRICING.standard()})
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[230px]">
+                      Professional ({PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr)
                     </th>
                   </tr>
                 </thead>
