@@ -19,8 +19,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'apd-gba.be':             ['belgium'],
   'gegevensbeschermingsautoriteit.be': ['belgium'],
   'autoriteitpersoonsgegevens.nl':     ['netherlands'],
-  'datatilsynet.dk':        ['denmark'],
-  'datatilsynet.no':        ['norway'],
+  // (datatilsynet.dk / datatilsynet.no defined below in restored block)
   'imy.se':                 ['sweden'],
   'tietosuoja.fi':          ['finland'],
   'andmekaitse.ee':         ['estonia'],
