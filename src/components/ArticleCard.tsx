@@ -500,7 +500,7 @@ const FullCard = ({
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-body mt-2" style={{ color: '#78350F' }}>
+              <p className="text-sm leading-relaxed mt-2" style={{ color: '#78350F' }}>
                 <span className="font-semibold text-gold">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}
