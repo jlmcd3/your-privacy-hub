@@ -208,12 +208,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // New Model gating:
-    //   - Annual subscribers (annual / annual_founding) get standard tools
-    //     INCLUDED — block checkout entirely.
-    //   - Annual subscribers get CPPA tools at the subscriber rate.
-    //   - Monthly Intelligence subscribers get NO tool discount and pay
-    //     standalone, same as anonymous users.
+    // v7 gating: every tool is per-use. Apply the appropriate discount
+    // based on subscription tier.
+    //   - Professional (annual / annual_founding) → subscriber rate (25% off).
+    //   - Intelligence (monthly)                  → 20% off standalone.
+    //   - Free / anonymous                        → standalone.
     const CPPA_TOOL_LOOKUPS = new Set([
       "cppa_risk_standalone", "cppa_risk_subscriber",
       "cppa_cyber_standalone", "cppa_cyber_subscriber",
@@ -221,7 +220,8 @@ Deno.serve(async (req) => {
     ]);
     const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
 
-    let isAnnualSubscriber = false;
+    let isProfessionalSubscriber = false;
+    let isIntelligenceSubscriber = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
@@ -231,39 +231,43 @@ Deno.serve(async (req) => {
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
       if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
-        isAnnualSubscriber = true;
+        isProfessionalSubscriber = true;
+      } else if (subscriptionType === "monthly") {
+        isIntelligenceSubscriber = true;
       } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
-        // Legacy premium without subscription_type — grandfather as annual.
-        isAnnualSubscriber = true;
+        // Legacy premium without subscription_type — grandfather as Professional.
+        isProfessionalSubscriber = true;
       }
     }
 
-    // Annual subscriber + standard tool → tool is included; refuse checkout.
-    if (isAnnualSubscriber && !isCppa) {
-      return new Response(
-        JSON.stringify({
-          error: "tool_included",
-          message: "This tool is included with your Annual Platform subscription. No checkout is required.",
-        }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const isSubscriber = isAnnualSubscriber; // backwards-compat alias used below
+    const isSubscriber = isProfessionalSubscriber; // backwards-compat alias used below
 
     const lookupKey =
-      isSubscriber && tool.subscriber_lookup ? tool.subscriber_lookup : tool.standalone_lookup;
-    const fallbackCents =
-      isSubscriber && tool.subscriber_lookup
-        ? tool.fallback_subscriber_cents
-        : tool.fallback_standalone_cents;
+      isProfessionalSubscriber && tool.subscriber_lookup
+        ? tool.subscriber_lookup
+        : tool.standalone_lookup;
 
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
     // Resolve the human-readable price ID to Stripe's internal price ID.
-    const stripePrice = await resolvePriceId(stripe, lookupKey);
-    const amountCents = stripePrice?.unit_amount ?? fallbackCents;
+    // Note: when applying the Intelligence 20% discount we deliberately
+    // skip the resolved Stripe price (it does not correspond to this
+    // dynamic amount) and fall back to price_data with computed cents.
+    const stripePrice = isIntelligenceSubscriber
+      ? null
+      : await resolvePriceId(stripe, lookupKey);
+
+    const standaloneCents = tool.fallback_standalone_cents;
+    const subscriberCents = tool.fallback_subscriber_cents;
+    let amountCents: number;
+    if (isProfessionalSubscriber) {
+      amountCents = stripePrice?.unit_amount ?? subscriberCents;
+    } else if (isIntelligenceSubscriber) {
+      amountCents = Math.round(standaloneCents * 0.8);
+    } else {
+      amountCents = stripePrice?.unit_amount ?? standaloneCents;
+    }
 
     const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
     const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
