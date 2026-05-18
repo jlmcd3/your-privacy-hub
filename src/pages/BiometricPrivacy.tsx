@@ -38,7 +38,7 @@ export default function BiometricPrivacyPage() {
             id: "bipa",
             h2: "Illinois BIPA — The Strictest Biometric Privacy Law",
             synthesisKey: "biometric__bipa",
-            content: `<p>The Illinois Biometric Information Privacy Act (<a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a>) remains the most consequential biometric privacy law in the world. Enacted in 2008, BIPA requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction policy, no sale or trade of biometric data, and reasonable security measures.</p>
+            content: `<p>The <a href="/us-state-privacy-laws">Illinois Biometric Information Privacy Act</a> (<a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a>) remains the most consequential biometric privacy law in the world. Enacted in 2008, BIPA requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction policy, no sale or trade of biometric data, and reasonable security measures.</p>
 <p>BIPA's <strong>private right of action</strong> is its most powerful feature — individuals can sue for $1,000 per negligent violation and $5,000 per intentional or reckless violation. In 2023, the Illinois Supreme Court ruled in <a href="https://courts.illinois.gov/Opinions/SupremeCourt/2023/127891.pdf" target="_blank" rel="noopener noreferrer">Cothron v. White Castle</a> that damages accrue with each scan or transmission, exponentially increasing exposure.</p>
 <ul><li>Facebook/Meta — $650M (2021)</li><li>Google — $100M (2022)</li><li>BNSF Railway — $228M jury verdict (2022)</li></ul>`,
           },
@@ -46,9 +46,9 @@ export default function BiometricPrivacyPage() {
             id: "state-laws",
             h2: "State Biometric Privacy Laws — Texas, Washington and Beyond",
             synthesisKey: "biometric__state_laws",
-            content: `<p><strong>Texas CUBI</strong> (<a href="https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm" target="_blank" rel="noopener noreferrer">Tex. Bus. &amp; Com. Code § 503.001</a>) prohibits capturing biometric identifiers for commercial purposes without informed consent. In 2024, AG Ken Paxton secured a <strong>$1.4B settlement from Meta</strong> for unauthorized facial recognition data collection.</p>
-<p><strong>Washington Biometric Privacy</strong> (<a href="https://app.leg.wa.gov/rcw/default.aspx?cite=19.375" target="_blank" rel="noopener noreferrer">RCW 19.375</a>) prohibits enrolling biometric identifiers in a commercial database without consent, enforced by the AG.</p>
-<p>Nearly every comprehensive state privacy law (California CPRA, Colorado, Connecticut, Virginia, Oregon, Montana, Texas) classifies biometric data as <strong>sensitive personal information</strong> requiring opt-in consent.</p>`,
+            content: `<p><strong><a href="/us-state-privacy-laws">Texas CUBI</a></strong> (<a href="https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm" target="_blank" rel="noopener noreferrer">Tex. Bus. &amp; Com. Code § 503.001</a>) prohibits capturing biometric identifiers for commercial purposes without informed consent. In 2024, AG Ken Paxton secured a <strong>$1.4B settlement from Meta</strong> for unauthorized facial recognition data collection.</p>
+<p><strong><a href="/us-state-privacy-laws">Washington Biometric Privacy</a></strong> (<a href="https://app.leg.wa.gov/rcw/default.aspx?cite=19.375" target="_blank" rel="noopener noreferrer">RCW 19.375</a>) prohibits enrolling biometric identifiers in a commercial database without consent, enforced by the AG.</p>
+<p>Nearly <a href="/us-state-privacy-laws">every comprehensive state privacy law</a> (California CPRA, Colorado, Connecticut, Virginia, Oregon, Montana, Texas) classifies biometric data as <strong>sensitive personal information</strong> requiring opt-in consent.</p>`,
             toolCta: {
               toolName: "Biometric Compliance Checker",
               toolDescription:
@@ -72,7 +72,7 @@ export default function BiometricPrivacyPage() {
             id: "enforcement",
             h2: "Biometric Enforcement — Settlements and Verdicts",
             synthesisKey: "biometric__enforcement",
-            content: `<p>Biometric privacy enforcement is accelerating. BIPA class actions remain the dominant litigation vector. State AG enforcement is expanding — Texas' $1.4B Meta settlement signals a new era of AG-driven biometric enforcement. The <a href="https://www.ftc.gov/" target="_blank" rel="noopener noreferrer">FTC</a> has brought enforcement actions against <a href="https://www.ftc.gov/legal-library/browse/cases-proceedings/232-3060-rite-aid-corporation" target="_blank" rel="noopener noreferrer">Rite Aid</a> (facial recognition) and Amazon (Alexa voice data), signaling federal interest.</p>`,
+            content: `<p>Biometric privacy enforcement is accelerating. BIPA class actions remain the dominant litigation vector. State AG enforcement is expanding — Texas' $1.4B Meta settlement signals a new era of AG-driven biometric enforcement. The <a href="/regulator/ftc">FTC</a> has brought enforcement actions against <a href="https://www.ftc.gov/legal-library/browse/cases-proceedings/232-3060-rite-aid-corporation" target="_blank" rel="noopener noreferrer">Rite Aid</a> (facial recognition) and Amazon (Alexa voice data), signaling federal interest.</p>`,
           },
         ]}
         relatedLinks={[
