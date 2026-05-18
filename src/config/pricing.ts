@@ -561,10 +561,16 @@ export const EU_NOTICE_PRICING = {
 //    RegistrationLanding (flat $50/filing replaces $59/$149/$275/$499 +
 //    $399 Counsel-Ready + EU/AI bundles + $79 renewal monitoring),
 //    Dashboard (10-day trial countdown banner added),
-//    useToolPrice FALLBACK (drives every tool intake page header/CTA price
-//    label — LIA, DPIA, DPA, IR, RoPA, EU/US Notices, Governance, CPPA).
-//    The hook now ignores get-tool-price cents and always renders v7
-//    fallback amounts, so display matches advertised prices everywhere.
+//    useToolPrice (drives every tool intake page header/CTA price label —
+//    LIA, DPIA, DPA, IR Playbook, RoPA, EU/US Notice reviews, Governance,
+//    CPPA Risk/Cyber/Suite). Hook now reads PRICING.tools as the single
+//    source of truth and applies tier discounts via getToolPrice:
+//      Professional (annual / annual_founding) → 25% off (subscriberPrice).
+//      Intelligence (monthly)                  → 20% off.
+//      Free / anonymous                        → standalone.
+//    No tool is "included free" under v7 — every intake page charges
+//    per-use. Free monthly run is handled separately by ToolPricingCTA /
+//    checkFreeToolRun.
 //  Reconciled to v7 fallback (2026-05-18): create-tool-checkout and
 //    get-tool-price edge functions now carry v7 cents in their TOOLS
 //    fallback tables AND apply per-tier discounts directly:
