@@ -264,6 +264,7 @@ serve(async (req) => {
         amount_cents: effectiveCents,
         standalone_amount_cents: standaloneCents,
         subscriber_amount_cents: subscriberCents,
+        intelligence_amount_cents: intelligenceCents,
         stripe_price_id: null, // resolved server-side at checkout
         stripe_configured: stripeConfigured || tool.fallback_standalone_cents > 0,
       }),
