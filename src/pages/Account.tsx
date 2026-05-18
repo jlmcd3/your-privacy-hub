@@ -306,12 +306,10 @@ export default function Account() {
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
-              Compliance Platform or Intelligence Feed
+              Professional or Intelligence
             </h3>
             <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">
-              Annual Platform at {PLATFORM_PRICING.standard()} — every assessment,
-              notice, and document tool included. Or Intelligence Feed at{" "}
-              {INTELLIGENCE_PRICING.monthly()}.
+              Professional from {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr — client workspaces and 25% off every compliance tool. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
             </p>
             <Link
               to="/subscribe"
