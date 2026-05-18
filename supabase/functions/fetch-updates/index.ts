@@ -80,6 +80,28 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'insideprivacy.com':         ['us-federal', 'eu', 'united-kingdom'],
 };
 
+// Domains that are official DPA or government regulatory sources.
+// Articles from these domains with Binding/Enforcement legal weight
+// are dual-written to enforcement_actions.
+const DPA_OFFICIAL_DOMAINS = new Set([
+  "edpb.europa.eu", "cnil.fr", "ico.org.uk", "bfdi.bund.de",
+  "garanteprivacy.it", "aepd.es", "autoriteitpersoonsgegevens.nl",
+  "datatilsynet.dk", "datatilsynet.no", "imy.se", "cnpd.public.lu",
+  "dataprotection.ie", "dpc.ie", "ftc.gov", "consumerfinance.gov",
+  "cppa.ca.gov", "texasattorneygeneral.gov", "coag.gov", "portal.ct.gov",
+  "oaic.gov.au", "pdpc.gov.sg", "priv.gc.ca", "uodo.gov.pl",
+  "gdprhub.eu", "noyb.eu",
+]);
+
+// Compute a stable etid for an article URL (matches ingest-gov-enforcement pattern).
+async function computeEtid(url: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(url);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
 const extractDomain = (url: string): string => {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
@@ -1526,6 +1548,54 @@ Deno.serve(async (req) => {
         } else {
           results.inserted++;
           existingUrls.add(link);
+
+          // ── Dual-write to enforcement_actions for official DPA enforcement/binding articles ──
+          const articleDomain = extractDomain(row.url ?? "");
+          const isOfficialDPA = DPA_OFFICIAL_DOMAINS.has(articleDomain);
+          const isEnforcementWeight =
+            row.legal_weight === "Enforcement" || row.legal_weight === "Binding";
+
+          if (isOfficialDPA && isEnforcementWeight) {
+            try {
+              const etid = await computeEtid(row.url ?? "");
+
+              const jurisdictionSlugs: string[] =
+                DPA_SOURCE_JURISDICTIONS[articleDomain] ??
+                (Array.isArray(row.direct_jurisdictions) ? row.direct_jurisdictions : []);
+              const jurisdiction = jurisdictionSlugs[0] ?? "global";
+
+              const regulatorName =
+                row.source_name ?? source.regulator ?? articleDomain;
+
+              const { error: enfErr } = await supabase
+                .from("enforcement_actions")
+                .upsert({
+                  etid,
+                  regulator: regulatorName,
+                  jurisdiction,
+                  violation: row.title,
+                  decision_date: row.published_at
+                    ? new Date(row.published_at).toISOString().split("T")[0]
+                    : null,
+                  source_url: row.url,
+                  source_database: row.source_name ?? "RSS",
+                  subject: null,
+                  law: null,
+                  fine_amount: null,
+                  fine_eur: null,
+                  sector: null,
+                  enrichment_version: 0,
+                }, { onConflict: "etid", ignoreDuplicates: true });
+
+              if (enfErr) {
+                console.error("dual-write to enforcement_actions failed", row.url, enfErr.message);
+              } else {
+                console.log("dual-write to enforcement_actions succeeded", row.url);
+              }
+            } catch (enfDualErr) {
+              console.error("enforcement dual-write error", row.url, enfDualErr);
+            }
+          }
         }
 
         // Prevent Anthropic API rate limiting — small delay between AI calls
