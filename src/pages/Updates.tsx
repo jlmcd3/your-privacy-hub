@@ -296,20 +296,22 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        // Region filter
-        if (activeRegion !== "all" && u.category !== activeRegion) return false;
+        // Region filter — OR across selected regions; empty = all
+        if (selectedRegions.length > 0 && !selectedRegions.includes(u.category)) return false;
 
-        // Topic filter (independent / additive with region)
-        if (activeTopic !== "all") {
-            const t = TOPIC_FILTERS.find(f => f.key === activeTopic);
-            if (t) {
-                if (t.match === 'category' && u.category !== t.key) return false;
+        // Topic filter — OR across selected topics; empty = all
+        if (selectedTopics.length > 0) {
+            const matchesAny = selectedTopics.some((key) => {
+                const t = TOPIC_FILTERS.find((f) => f.key === key);
+                if (!t) return false;
+                if (t.match === 'category') return u.category === t.key;
                 if (t.match === 'keyword' && t.terms) {
-                    const terms = t.terms.map(x => x.toLowerCase());
                     const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
-                    if (!terms.some(term => text.includes(term))) return false;
+                    return t.terms.some((term) => text.includes(term.toLowerCase()));
                 }
-            }
+                return false;
+            });
+            if (!matchesAny) return false;
         }
 
         if (searchTerm) {
