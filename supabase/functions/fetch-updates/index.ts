@@ -45,6 +45,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'texasattorneygeneral.gov': ['texas'],
   'ag.ny.gov':              ['new-york'],
   'oag.dc.gov':             ['district-of-columbia'],
+  'coag.gov':               ['colorado'],
   // Other global authorities
   'gdprhub.eu':             [],
   'pdpc.gov.sg':            ['singapore'],
