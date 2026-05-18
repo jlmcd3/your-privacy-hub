@@ -127,21 +127,38 @@ const Updates = () => {
 
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    const activeRegion = searchParams.get("region") || "all";
-    const activeTopic = searchParams.get("topic") || "all";
+    const parseMulti = (v: string | null): string[] =>
+        v ? v.split(",").map(s => s.trim()).filter(Boolean) : [];
 
-    // Independent setters: region and topic are additive in the URL.
-    const selectRegion = useCallback((key: string) => {
+    const selectedRegions = parseMulti(searchParams.get("region"));
+    const selectedTopics = parseMulti(searchParams.get("topic"));
+
+    // Toggle membership; "all" clears the dimension.
+    const toggleRegion = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("region");
-        else next.set("region", key);
+        if (!key || key === "all") {
+            next.delete("region");
+            setSearchParams(next);
+            return;
+        }
+        const cur = new Set(parseMulti(next.get("region")));
+        cur.has(key) ? cur.delete(key) : cur.add(key);
+        if (cur.size === 0) next.delete("region");
+        else next.set("region", [...cur].join(","));
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
-    const selectTopic = useCallback((key: string) => {
+    const toggleTopic = useCallback((key: string) => {
         const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("topic");
-        else next.set("topic", key);
+        if (!key || key === "all") {
+            next.delete("topic");
+            setSearchParams(next);
+            return;
+        }
+        const cur = new Set(parseMulti(next.get("topic")));
+        cur.has(key) ? cur.delete(key) : cur.add(key);
+        if (cur.size === 0) next.delete("topic");
+        else next.set("topic", [...cur].join(","));
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
