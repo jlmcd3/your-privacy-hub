@@ -327,7 +327,7 @@ export default function Account() {
               Client Workspaces
             </h2>
             <p className="text-sm text-slate mb-3 leading-relaxed">
-              Add additional client workspaces for {PLATFORM_PRICING.clientAddon()}. Each
+              Add additional client workspaces for {PRICING.professional.perClient.display}/client/year. Each
               workspace gets separate document storage and tool history.
             </p>
             <button
@@ -336,7 +336,7 @@ export default function Account() {
               disabled={addonBusy}
               className="text-sm font-semibold text-navy border border-navy px-4 py-2 rounded-lg hover:bg-navy/5 bg-transparent cursor-pointer disabled:opacity-50"
             >
-              {addonBusy ? "Opening checkout…" : `+ Add client workspace — ${PLATFORM_PRICING.clientAddon()}`}
+              {addonBusy ? "Opening checkout…" : `+ Add client workspace — ${PRICING.professional.perClient.display}/yr`}
             </button>
           </div>
         )}
