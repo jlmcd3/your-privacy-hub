@@ -147,8 +147,8 @@ const TOOLS: ToolDef[] = [
     name: "Privacy Programme Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
-    subscriberPrice: "Included with Annual Platform",
-    standalonePrice: "$49",
+    subscriberPrice: "Intelligence: $40 · Professional: $38",
+    standalonePrice: "$50",
     freeBadge: "Quick scan free",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
