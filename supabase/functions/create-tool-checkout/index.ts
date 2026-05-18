@@ -13,8 +13,11 @@ const corsHeaders = {
 };
 
 // Tool catalog. Lookup keys map to prices created in the payment system
-// (see payments--batch_create_product results). Subscriber tier optional —
-// if not set, falls back to the standalone price.
+// (see payments--batch_create_product results). Fallback cents reflect
+// the v7 pricing model — standalone = full per-use price, subscriber =
+// Professional rate (25% off). Intelligence subscribers (20% off) are
+// computed at runtime. Keep in sync with src/hooks/useToolPrice.ts
+// FALLBACK and src/config/pricing.ts PRICING.tools.
 const TOOLS: Record<
   string,
   {
@@ -31,136 +34,136 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
-    fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 3500,
+    fallback_standalone_cents: 3000,
+    fallback_subscriber_cents: 2300,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
-    fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 2500,
+    fallback_standalone_cents: 5000,
+    fallback_subscriber_cents: 3800,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 4000,
+    fallback_subscriber_cents: 3000,
   },
   dpa_generator: {
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
-    fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 0,
+    fallback_standalone_cents: 4000,
+    fallback_subscriber_cents: 3000,
   },
   ir_playbook: {
     name: "Your Breach Response Playbook",
     standalone_lookup: "ir_standalone_v2",
-    subscriber_lookup: null,
+    subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
-    fallback_standalone_cents: 3900,
-    fallback_subscriber_cents: 0,
+    fallback_standalone_cents: 2000,
+    fallback_subscriber_cents: 1500,
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Checker",
     standalone_lookup: "biometric_standalone_v2",
-    subscriber_lookup: null,
+    subscriber_lookup: "biometric_subscriber_v2",
     table: "biometric_assessments",
-    fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 0,
+    fallback_standalone_cents: 1000,
+    fallback_subscriber_cents: 800,
   },
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
     standalone_lookup: "ropa_initial_standalone",
     subscriber_lookup: "ropa_initial_subscriber",
     table: "ropa_sessions",
-    fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 3500,
+    fallback_standalone_cents: 4000,
+    fallback_subscriber_cents: 3000,
   },
   ropa_refresh: {
     name: "RoPA Builder — Annual Refresh",
     standalone_lookup: "ropa_refresh_standalone",
     subscriber_lookup: "ropa_refresh_subscriber",
     table: "ropa_sessions",
-    fallback_standalone_cents: 3500,
-    fallback_subscriber_cents: 1500,
+    fallback_standalone_cents: 4000,
+    fallback_subscriber_cents: 3000,
   },
   us_notice_single: {
     name: "US Privacy Notice — Single State",
     standalone_lookup: "us_notice_single_standalone",
     subscriber_lookup: "us_notice_single_subscriber",
     table: "us_notice_sessions",
-    fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 1200,
+    fallback_standalone_cents: 3000,
+    fallback_subscriber_cents: 2300,
   },
   us_notice_all_states: {
     name: "US Privacy Notice — All States Suite",
     standalone_lookup: "us_notice_all_standalone",
     subscriber_lookup: "us_notice_all_subscriber",
     table: "us_notice_sessions",
-    fallback_standalone_cents: 5900,
-    fallback_subscriber_cents: 2900,
+    fallback_standalone_cents: 3000,
+    fallback_subscriber_cents: 2300,
   },
   eu_notice_single: {
     name: "EU & Global Notice — Single Framework",
     standalone_lookup: "eu_notice_single_standalone",
     subscriber_lookup: "eu_notice_single_subscriber",
     table: "eu_notice_sessions",
-    fallback_standalone_cents: 4500,
-    fallback_subscriber_cents: 1900,
+    fallback_standalone_cents: 5000,
+    fallback_subscriber_cents: 3800,
   },
   eu_notice_suite: {
     name: "EU Notice Suite — GDPR + UK GDPR + FADP",
     standalone_lookup: "eu_notice_suite_standalone",
     subscriber_lookup: "eu_notice_suite_subscriber",
     table: "eu_notice_sessions",
-    fallback_standalone_cents: 11900,
-    fallback_subscriber_cents: 6500,
+    fallback_standalone_cents: 5000,
+    fallback_subscriber_cents: 3800,
   },
   eu_notice_full_international: {
     name: "EU & Global Notice — Full International",
     standalone_lookup: "eu_notice_intl_standalone",
     subscriber_lookup: "eu_notice_intl_subscriber",
     table: "eu_notice_sessions",
-    fallback_standalone_cents: 22900,
-    fallback_subscriber_cents: 9900,
+    fallback_standalone_cents: 5000,
+    fallback_subscriber_cents: 3800,
   },
   eu_notice_refresh: {
     name: "EU & Global Notice — Annual Refresh",
     standalone_lookup: "eu_notice_refresh_standalone",
     subscriber_lookup: "eu_notice_refresh_subscriber",
     table: "eu_notice_sessions",
-    fallback_standalone_cents: 3500,
-    fallback_subscriber_cents: 1900,
+    fallback_standalone_cents: 5000,
+    fallback_subscriber_cents: 3800,
   },
   cppa_risk_assessment: {
     name: "CPPA Risk Assessment — Module 1",
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 14900,
-    fallback_subscriber_cents: 7900,
+    fallback_standalone_cents: 6000,
+    fallback_subscriber_cents: 4500,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 19900,
-    fallback_subscriber_cents: 9900,
+    fallback_standalone_cents: 8000,
+    fallback_subscriber_cents: 6000,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 29900,
-    fallback_subscriber_cents: 14900,
+    fallback_standalone_cents: 14000,
+    fallback_subscriber_cents: 10500,
   },
 };
 
@@ -205,12 +208,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // New Model gating:
-    //   - Annual subscribers (annual / annual_founding) get standard tools
-    //     INCLUDED — block checkout entirely.
-    //   - Annual subscribers get CPPA tools at the subscriber rate.
-    //   - Monthly Intelligence subscribers get NO tool discount and pay
-    //     standalone, same as anonymous users.
+    // v7 gating: every tool is per-use. Apply the appropriate discount
+    // based on subscription tier.
+    //   - Professional (annual / annual_founding) → subscriber rate (25% off).
+    //   - Intelligence (monthly)                  → 20% off standalone.
+    //   - Free / anonymous                        → standalone.
     const CPPA_TOOL_LOOKUPS = new Set([
       "cppa_risk_standalone", "cppa_risk_subscriber",
       "cppa_cyber_standalone", "cppa_cyber_subscriber",
@@ -218,7 +220,8 @@ Deno.serve(async (req) => {
     ]);
     const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
 
-    let isAnnualSubscriber = false;
+    let isProfessionalSubscriber = false;
+    let isIntelligenceSubscriber = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
@@ -228,39 +231,43 @@ Deno.serve(async (req) => {
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
       if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
-        isAnnualSubscriber = true;
+        isProfessionalSubscriber = true;
+      } else if (subscriptionType === "monthly") {
+        isIntelligenceSubscriber = true;
       } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
-        // Legacy premium without subscription_type — grandfather as annual.
-        isAnnualSubscriber = true;
+        // Legacy premium without subscription_type — grandfather as Professional.
+        isProfessionalSubscriber = true;
       }
     }
 
-    // Annual subscriber + standard tool → tool is included; refuse checkout.
-    if (isAnnualSubscriber && !isCppa) {
-      return new Response(
-        JSON.stringify({
-          error: "tool_included",
-          message: "This tool is included with your Annual Platform subscription. No checkout is required.",
-        }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const isSubscriber = isAnnualSubscriber; // backwards-compat alias used below
+    const isSubscriber = isProfessionalSubscriber; // backwards-compat alias used below
 
     const lookupKey =
-      isSubscriber && tool.subscriber_lookup ? tool.subscriber_lookup : tool.standalone_lookup;
-    const fallbackCents =
-      isSubscriber && tool.subscriber_lookup
-        ? tool.fallback_subscriber_cents
-        : tool.fallback_standalone_cents;
+      isProfessionalSubscriber && tool.subscriber_lookup
+        ? tool.subscriber_lookup
+        : tool.standalone_lookup;
 
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
     // Resolve the human-readable price ID to Stripe's internal price ID.
-    const stripePrice = await resolvePriceId(stripe, lookupKey);
-    const amountCents = stripePrice?.unit_amount ?? fallbackCents;
+    // Note: when applying the Intelligence 20% discount we deliberately
+    // skip the resolved Stripe price (it does not correspond to this
+    // dynamic amount) and fall back to price_data with computed cents.
+    const stripePrice = isIntelligenceSubscriber
+      ? null
+      : await resolvePriceId(stripe, lookupKey);
+
+    const standaloneCents = tool.fallback_standalone_cents;
+    const subscriberCents = tool.fallback_subscriber_cents;
+    let amountCents: number;
+    if (isProfessionalSubscriber) {
+      amountCents = stripePrice?.unit_amount ?? subscriberCents;
+    } else if (isIntelligenceSubscriber) {
+      amountCents = Math.round(standaloneCents * 0.8);
+    } else {
+      amountCents = stripePrice?.unit_amount ?? standaloneCents;
+    }
 
     const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
     const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
@@ -302,7 +309,7 @@ Deno.serve(async (req) => {
           tool_type,
           assessment_id: sessionId,
           user_id: user_id || "",
-          tier: isSubscriber ? "subscriber" : "standalone",
+          tier: isProfessionalSubscriber ? "professional" : isIntelligenceSubscriber ? "intelligence" : "standalone",
         },
       };
 
@@ -451,7 +458,7 @@ Deno.serve(async (req) => {
         // webhook can dispatch both edge functions after payment.
         ...(suiteCyberId ? { suite_cyber_id: suiteCyberId } : {}),
         user_id: user_id || "",
-        tier: isSubscriber ? "subscriber" : "standalone",
+        tier: isProfessionalSubscriber ? "professional" : isIntelligenceSubscriber ? "intelligence" : "standalone",
       },
       ...(embedded
         ? {

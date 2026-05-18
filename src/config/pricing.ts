@@ -565,13 +565,22 @@ export const EU_NOTICE_PRICING = {
 //    label — LIA, DPIA, DPA, IR, RoPA, EU/US Notices, Governance, CPPA).
 //    The hook now ignores get-tool-price cents and always renders v7
 //    fallback amounts, so display matches advertised prices everywhere.
-//  Still references legacy registry: edge functions (create-checkout-session,
-//    create-tool-checkout, get-tool-price, sync-pricing), useToolPrice hook,
+//  Reconciled to v7 fallback (2026-05-18): create-tool-checkout and
+//    get-tool-price edge functions now carry v7 cents in their TOOLS
+//    fallback tables AND apply per-tier discounts directly:
+//      Professional (annual/annual_founding) → subscriber rate (25% off).
+//      Intelligence (monthly)                → 20% off standalone (computed).
+//      Free / anonymous                      → standalone.
+//    The "tool_included" 409 gate is removed — every tool is per-use under
+//    v7. Stripe Price IDs at the lookup keys below are still legacy until
+//    Katherine creates the v7 Price objects; until then the edge functions
+//    will charge the v7 fallback cents via price_data fallback. Once the
+//    new Stripe prices are in place at the same lookup keys, resolved
+//    Stripe prices will take precedence automatically.
+//  Still references legacy registry: create-checkout-session, sync-pricing,
 //    ToolSampleOverlay, ToolCheckoutModal, useToolAccess — these read the
-//    legacy per-tool standalone/subscriber prices. They MUST be migrated to
-//    PRICING + getToolPrice before Katherine flips Stripe Price IDs live,
-//    or checkout will charge legacy amounts ($49/$69/$99/$149/$199) while
-//    the UI advertises v7 amounts ($10–$80).
+//    legacy subscription/per-tool prices and must still be migrated before
+//    flipping the new Stripe Price IDs live for subscription products.
 //  ─────────────────────────────────────────────────────────────────────────
 //  UI (v7 PRICING)                       vs.  Legacy registry / backend
 //  -------------------------------------------------------------------------
