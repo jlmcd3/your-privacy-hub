@@ -430,8 +430,8 @@ const Updates = () => {
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
                 {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
-                <aside className="hidden md:block">
-                    <div className="sticky top-32 bg-card rounded-lg p-3 max-h-[calc(100vh-9rem)] overflow-y-auto">
+                <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto">
+                    <div className="bg-card rounded-lg p-3">
                         <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
