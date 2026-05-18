@@ -93,15 +93,15 @@
 
   h1 {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 2.5rem;   /* 40px */
+    font-size: 2.75rem;  /* 44px */
     font-weight: 400;
-    line-height: 1.15;
+    line-height: 1.1;
   }
   h2 {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 1.75rem;  /* 28px */
+    font-size: 2rem;     /* 32px */
     font-weight: 400;
-    line-height: 1.25;
+    line-height: 1.2;
   }
   h3 {
     font-family: 'DM Sans', system-ui, sans-serif;
@@ -111,8 +111,8 @@
   }
 
   @media (max-width: 768px) {
-    h1 { font-size: 2rem; }    /* 32px */
-    h2 { font-size: 1.5rem; }  /* 24px */
+    h1 { font-size: 2.25rem; }  /* 36px */
+    h2 { font-size: 1.625rem; } /* 26px */
   }
 }
 
@@ -137,28 +137,29 @@
 /*
   CANONICAL TYPE SCALE — use these classes, not ad-hoc text-[Xpx]
   ----------------------------------------------------------------
-  .text-eyebrow    11px  DM Sans 700 uppercase tracking  — badges, tags, labels above headings
+  .text-eyebrow    12px  DM Sans 700 uppercase tracking  — badges, tags, labels above headings
   .text-label      12px  DM Sans 600 uppercase tracking  — table column headers, form section labels
-  .text-meta       12px  DM Sans 400                     — timestamps, source lines, secondary info
-  .text-body       14px  DM Sans 400                     — primary body copy, table cells, card text
+  .text-meta       13px  DM Sans 400                     — timestamps, source lines, secondary info
+  .text-body       16px  DM Sans 400                     — primary body copy, lead paragraphs, long-form prose
   .text-nav        14px  DM Sans 500 tracking            — navigation items
   .text-cta        15px  DM Sans 700                     — buttons, CTAs
-  .text-card-title 16px  DM Sans 600                     — card headings, tile titles
-  .text-section-h2 24/28px  Georgia 400                  — major in-page section headings
-  .text-page-h1    28/36px  Georgia 400                  — page-level H1s
-  .text-hero-h1    36/44px  Georgia 400                  — landing/hero headings only
+  .text-card-title 20/22px DM Sans 600                   — article-card and tile titles (mobile/desktop)
+  .text-section-h2 26/32px Georgia 400                   — major in-page section headings
+  .text-page-h1    32/44px Georgia 400                   — page-level H1s
+  .text-hero-h1    40/56px Georgia 400                   — landing/hero headings only
 
-  Tailwind utilities still in use for one-off sizes:
-  text-xs (12px)   — same size as text-meta, no semantic weight
-  text-sm (14px)   — same size as text-body, no semantic weight
-  text-base (16px) — lead paragraphs, prominent descriptions
-  text-lg (18px)   — large card headings, prominent sub-headings
-  text-2xl (24px)  — section headings where Georgia is not appropriate
-  text-3xl (30px)  — page titles where font-display is not applied
+  Tailwind utilities (restored to industry-standard):
+  text-xs (12px)   — badges, tiny chrome
+  text-sm (14px)   — secondary copy, table cells, dense UI
+  text-base (16px) — body copy (= .text-body)
+  text-lg (18px)   — sub-headings, prominent card text
+  text-xl (20px)   — small section headings (sans)
+  text-2xl (24px)  — sub-section headings where Georgia isn't appropriate
+  text-3xl (30px)  — large page titles where font-display isn't applied
   text-4xl (36px)  — section H1s
   text-5xl (48px)  — heroes only
 
-  HARD FLOOR: 11px. Nothing below this anywhere on the site.
+  HARD FLOOR: 12px. Nothing below this anywhere on the site.
   GEORGIA: headings only (text-section-h2 and above, or font-display class).
            Do not use Georgia on body copy, table cells, or UI chrome.
 */
@@ -166,43 +167,46 @@
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
 .text-hero-h1 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 2.25rem;     /* 36px */
+  font-size: 2.5rem;      /* 40px */
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1.1;
   letter-spacing: -0.01em;
 }
 @media (min-width: 768px) {
-  .text-hero-h1 { font-size: 2.75rem; } /* 44px */
+  .text-hero-h1 { font-size: 3.5rem; } /* 56px */
 }
 
 /* Page H1 — used on standard light-background page headers */
 .text-page-h1 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.75rem;     /* 28px */
+  font-size: 2rem;        /* 32px */
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 @media (min-width: 768px) {
-  .text-page-h1 { font-size: 2.25rem; } /* 36px */
+  .text-page-h1 { font-size: 2.75rem; } /* 44px */
 }
 
 /* Section H2 — used for major page sections */
 .text-section-h2 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.5rem;      /* 24px */
+  font-size: 1.625rem;    /* 26px */
   font-weight: 400;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 @media (min-width: 768px) {
-  .text-section-h2 { font-size: 1.75rem; } /* 28px */
+  .text-section-h2 { font-size: 2rem; } /* 32px */
 }
 
 /* Card title — used on article cards, dashboard tiles, list items */
 .text-card-title {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 1.125rem;    /* 18px */
+  font-size: 1.25rem;     /* 20px */
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
+}
+@media (min-width: 768px) {
+  .text-card-title { font-size: 1.375rem; } /* 22px */
 }
 
 /* --- Supporting text roles --- */
@@ -210,7 +214,7 @@
 /* Eyebrow — small uppercase label above a heading ("Intelligence Guide") */
 .text-eyebrow {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.6875rem;   /* 11px */
+  font-size: 0.75rem;     /* 12px */
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -239,7 +243,7 @@
 
 .text-meta {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.75rem;     /* 12px */
+  font-size: 0.8125rem;   /* 13px */
   font-weight: 400;
 }
 

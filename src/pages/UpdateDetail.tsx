@@ -325,7 +325,7 @@ const UpdateDetail = () => {
                     <div className="text-meta uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
-                    <p className="text-sm leading-relaxed text-navy">
+                    <p className="text-base leading-relaxed text-navy">
                       {ai?.why_it_matters_short || (ai?.why_it_matters?.split('. ')[0] + '…')}
                     </p>
                   </div>
@@ -366,7 +366,7 @@ const UpdateDetail = () => {
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
                       style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
-                      <p className="text-sm leading-relaxed text-navy m-0">
+                      <p className="text-base leading-relaxed text-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
                       </p>
                     </div>
@@ -375,7 +375,7 @@ const UpdateDetail = () => {
                   {ai?.takeaways && ai.takeaways.length > 0 && (
                     <ul className="list-disc pl-5 space-y-1.5 mb-4">
                       {ai.takeaways.slice(0, 2).map((item, i) => (
-                        <li key={i} className="text-sm text-foreground leading-relaxed">{item}</li>
+                        <li key={i} className="text-base text-foreground leading-relaxed">{item}</li>
                       ))}
                     </ul>
                   )}
@@ -477,7 +477,7 @@ const UpdateDetail = () => {
                             <span className="text-eyebrow pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
-                                <li key={i} className="text-sm text-foreground leading-relaxed">
+                                <li key={i} className="text-base text-foreground leading-relaxed">
                                   {a.role && <span className="font-semibold">{a.role}: </span>}
                                   {a.action}
                                 </li>
@@ -502,7 +502,7 @@ const UpdateDetail = () => {
                     <hr className="border-border mb-4" />
                     <ul className="space-y-2">
                       {((article as any).related_signals as RelatedSignal[]).map((sig, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-sm text-foreground leading-relaxed">
+                        <li key={i} className="flex items-start gap-2.5 text-base text-foreground leading-relaxed">
                           <span
                             className="inline-block w-2 h-2 rounded-full mt-1.5 shrink-0"
                             style={{ background: 'hsl(var(--cobalt))' }}
@@ -539,7 +539,7 @@ const UpdateDetail = () => {
                         <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Regulatory theory
                         </div>
-                        <p className="text-sm leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
+                        <p className="text-base leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
                       </div>
                     )}
                     {article.related_development && (
@@ -547,7 +547,7 @@ const UpdateDetail = () => {
                         <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
                           Related development
                         </div>
-                        <p className="text-sm leading-relaxed text-foreground m-0">{article.related_development}</p>
+                        <p className="text-base leading-relaxed text-foreground m-0">{article.related_development}</p>
                       </div>
                     )}
                   </section>
