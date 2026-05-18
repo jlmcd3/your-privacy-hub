@@ -560,7 +560,11 @@ export const EU_NOTICE_PRICING = {
 //    ProToolsBanner, GovernanceAssessment header CTA,
 //    RegistrationLanding (flat $50/filing replaces $59/$149/$275/$499 +
 //    $399 Counsel-Ready + EU/AI bundles + $79 renewal monitoring),
-//    Dashboard (10-day trial countdown banner added).
+//    Dashboard (10-day trial countdown banner added),
+//    useToolPrice FALLBACK (drives every tool intake page header/CTA price
+//    label — LIA, DPIA, DPA, IR, RoPA, EU/US Notices, Governance, CPPA).
+//    The hook now ignores get-tool-price cents and always renders v7
+//    fallback amounts, so display matches advertised prices everywhere.
 //  Still references legacy registry: edge functions (create-checkout-session,
 //    create-tool-checkout, get-tool-price, sync-pricing), useToolPrice hook,
 //    ToolSampleOverlay, ToolCheckoutModal, useToolAccess — these read the
