@@ -335,6 +335,13 @@ const RSS_SOURCES = [
     regulator: "DLA Piper LLP",
   },
   {
+    url: "https://www.insideprivacy.com/feed/",
+    source: "Covington Inside Privacy",
+    domain: "insideprivacy.com",
+    defaultCategory: "global",
+    regulator: "Covington & Burling LLP",
+  },
+  {
     url: "https://www.aoshearman.com/en/insights/rss",
     source: "A&O Shearman",
     domain: "aoshearman.com",
