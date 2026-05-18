@@ -60,7 +60,7 @@ const TOOLS: Tool[] = [
     icon: FileSearch,
     title: "Impact Assessment Builder (DPIA)",
     blurb: "Article 35-aligned DPIA with the necessity and proportionality analysis most templates omit.",
-    price: "From $49 — subscribers · $99 standalone",
+    price: "$40 · 20–25% off for subscribers",
     cta: "Build DPIA",
     href: "/dpia-framework",
   },
