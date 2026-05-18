@@ -52,10 +52,14 @@ export default function CPPACybersecurity() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_cybersecurity");
-  const displayPrice = pricing.isSubscriber ? pricing.subscriberPrice : pricing.price;
   const [searchParams] = useSearchParams();
   const isSuite = searchParams.get("suite") === "true";
   const suitePricing = useToolPrice("cppa_suite");
+  // v7: show the price the current viewer will pay; switch to Suite pricing
+  // when launched in suite mode.
+  const activePricing = isSuite ? suitePricing : pricing;
+  const headerLabel = isSuite ? "CPPA AUDIT READINESS · FULL SUITE (M1 + M2)" : "CPPA AUDIT READINESS · MODULE 2";
+  const displayPrice = activePricing.price;
 
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -102,8 +106,13 @@ export default function CPPACybersecurity() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            CPPA AUDIT READINESS · MODULE 2 · ${displayPrice}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Subscribers pay ${pricing.subscriberPrice} →</a></>}
+            {headerLabel} · ${displayPrice}
+            {activePricing.isSubscriber && activePricing.standalonePrice > displayPrice && (
+              <> · subscriber rate (standalone ${activePricing.standalonePrice})</>
+            )}
+            {!activePricing.isSubscriber && (
+              <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>
+            )}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
