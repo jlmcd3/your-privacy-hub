@@ -106,8 +106,13 @@ export default function CPPACybersecurity() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            CPPA AUDIT READINESS · MODULE 2 · ${displayPrice}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Subscribers pay ${pricing.subscriberPrice} →</a></>}
+            {headerLabel} · ${displayPrice}
+            {activePricing.isSubscriber && activePricing.standalonePrice > displayPrice && (
+              <> · subscriber rate (standalone ${activePricing.standalonePrice})</>
+            )}
+            {!activePricing.isSubscriber && (
+              <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>
+            )}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
