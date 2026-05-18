@@ -127,23 +127,57 @@ const Updates = () => {
 
     const [showFilterGate, setShowFilterGate] = useState<string | null>(null);
 
-    const activeRegion = searchParams.get("region") || "all";
-    const activeTopic = searchParams.get("topic") || "all";
+    // Multi-select region & topic — comma-separated in URL.
+    // Empty / missing param = "All" (matches everything).
+    const REGION_KEYS = LOCATION_FILTERS.filter(f => f.key !== "all").map(f => f.key);
+    const TOPIC_KEYS = TOPIC_FILTERS.filter(f => f.key !== "all").map(f => f.key);
 
-    // Independent setters: region and topic are additive in the URL.
-    const selectRegion = useCallback((key: string) => {
+    const parseMulti = (raw: string | null, all: string[]): string[] => {
+        if (!raw || raw === "all") return [];
+        const parts = raw.split(",").map(s => s.trim()).filter(Boolean).filter(k => all.includes(k));
+        return parts;
+    };
+
+    const activeRegions = parseMulti(searchParams.get("region"), REGION_KEYS);
+    const activeTopics = parseMulti(searchParams.get("topic"), TOPIC_KEYS);
+
+    // For display: when empty, treat as "all selected" (every chip highlighted).
+    const effectiveRegions = activeRegions.length === 0 ? REGION_KEYS : activeRegions;
+    const effectiveTopics = activeTopics.length === 0 ? TOPIC_KEYS : activeTopics;
+    const allRegionsSelected = activeRegions.length === 0 || activeRegions.length === REGION_KEYS.length;
+    const allTopicsSelected = activeTopics.length === 0 || activeTopics.length === TOPIC_KEYS.length;
+
+    const writeMulti = useCallback((param: "region" | "topic", values: string[], allKeys: string[]) => {
         const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("region");
-        else next.set("region", key);
+        if (values.length === 0 || values.length === allKeys.length) next.delete(param);
+        else next.set(param, values.join(","));
         setSearchParams(next);
     }, [searchParams, setSearchParams]);
 
-    const selectTopic = useCallback((key: string) => {
-        const next = new URLSearchParams(searchParams);
-        if (!key || key === "all") next.delete("topic");
-        else next.set("topic", key);
-        setSearchParams(next);
-    }, [searchParams, setSearchParams]);
+    const toggleRegion = useCallback((key: string) => {
+        if (key === "all") {
+            // Toggle: if everything is already on, clear to none-selected-state (which still = all visually); otherwise force-all.
+            writeMulti("region", [], REGION_KEYS);
+            return;
+        }
+        const current = activeRegions.length === 0 ? [...REGION_KEYS] : [...activeRegions];
+        const idx = current.indexOf(key);
+        if (idx >= 0) current.splice(idx, 1);
+        else current.push(key);
+        writeMulti("region", current, REGION_KEYS);
+    }, [activeRegions, writeMulti, REGION_KEYS]);
+
+    const toggleTopic = useCallback((key: string) => {
+        if (key === "all") {
+            writeMulti("topic", [], TOPIC_KEYS);
+            return;
+        }
+        const current = activeTopics.length === 0 ? [...TOPIC_KEYS] : [...activeTopics];
+        const idx = current.indexOf(key);
+        if (idx >= 0) current.splice(idx, 1);
+        else current.push(key);
+        writeMulti("topic", current, TOPIC_KEYS);
+    }, [activeTopics, writeMulti, TOPIC_KEYS]);
 
     const handleGatedFilterClick = (filterLabel: string, action: () => void) => {
       if (!user) {
@@ -279,20 +313,22 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        // Region filter
-        if (activeRegion !== "all" && u.category !== activeRegion) return false;
+        // Region filter: pass if category is in selected set (empty set = all)
+        if (activeRegions.length > 0 && !activeRegions.includes(u.category)) return false;
 
-        // Topic filter (independent / additive with region)
-        if (activeTopic !== "all") {
-            const t = TOPIC_FILTERS.find(f => f.key === activeTopic);
-            if (t) {
-                if (t.match === 'category' && u.category !== t.key) return false;
+        // Topic filter: pass if ANY selected topic matches
+        if (activeTopics.length > 0) {
+            const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
+            const matches = activeTopics.some(key => {
+                const t = TOPIC_FILTERS.find(f => f.key === key);
+                if (!t) return false;
+                if (t.match === 'category') return u.category === t.key;
                 if (t.match === 'keyword' && t.terms) {
-                    const terms = t.terms.map(x => x.toLowerCase());
-                    const text = (u.title + ' ' + (u.summary || '')).toLowerCase();
-                    if (!terms.some(term => text.includes(term))) return false;
+                    return t.terms.some(term => text.includes(term.toLowerCase()));
                 }
-            }
+                return false;
+            });
+            if (!matches) return false;
         }
 
         if (searchTerm) {
@@ -348,7 +384,7 @@ const Updates = () => {
         setSearchParams(next);
     };
 
-    const hasJurisdictionOrTopic = activeRegion !== "all" || activeTopic !== "all";
+    const hasJurisdictionOrTopic = activeRegions.length > 0 || activeTopics.length > 0;
 
     const articlesForFeed = filtered.map((a) => ({
         ...a,
@@ -374,11 +410,7 @@ const Updates = () => {
                         </div>
                     )}
                     <h1 className="font-display text-[24px] font-bold text-navy leading-tight m-0">
-                        {regionFilter
-                            ? formatFilterLabel(regionFilter)
-                            : topicFilter
-                                ? formatFilterLabel(topicFilter)
-                                : "Privacy Intelligence Feed"}
+                        Privacy Intelligence Feed
                     </h1>
                     <p className="text-sm text-slate mt-0.5">
                         {updates[0]?.published_at
@@ -388,80 +420,63 @@ const Updates = () => {
                 </div>
             </div>
 
-            {/* Jurisdiction subnav (pill style) */}
-            <div className="border-b border-border bg-card">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-                    <div className="flex items-center gap-3 overflow-x-auto pl-6">
-                        <span className="text-eyebrow text-muted-foreground whitespace-nowrap">Jurisdiction</span>
-                        {LOCATION_FILTERS.map((f) => {
-                            const isActive = activeRegion === f.key;
-                            return (
-                                <button
-                                    key={f.key}
-                                    onClick={() => selectRegion(f.key)}
-                                    className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
-                                        isActive
-                                            ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
-                                            : "text-slate hover:text-foreground"
-                                    }`}
-                                >
-                                    {f.label}
-                                </button>
-                            );
-                        })}
+            {/* Unified sticky filter card: Jurisdiction pills + Topic chips. */}
+            <div className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3 space-y-2">
+                    {/* Jurisdiction row */}
+                    <div className="flex items-start gap-3 flex-wrap">
+                        <span className="text-eyebrow text-muted-foreground whitespace-nowrap pt-1.5 w-24 shrink-0">Jurisdiction</span>
+                        <div className="flex flex-wrap gap-1.5 flex-1">
+                            {LOCATION_FILTERS.map((f) => {
+                                const isAll = f.key === "all";
+                                const isActive = isAll ? allRegionsSelected : effectiveRegions.includes(f.key);
+                                return (
+                                    <button
+                                        key={f.key}
+                                        onClick={() => toggleRegion(f.key)}
+                                        aria-pressed={isActive}
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+                                            isActive
+                                                ? "bg-[hsl(var(--cobalt))] text-white border-[hsl(var(--cobalt))]"
+                                                : "bg-background text-slate border-border hover:border-[hsl(var(--cobalt))]/40 hover:text-foreground"
+                                        }`}
+                                    >
+                                        {f.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
-                {/* Left: Topics sidebar */}
-                <aside className="hidden md:block">
-                    <div className="sticky top-20 bg-card rounded-lg p-3">
-                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
-                        <nav className="flex flex-col">
+                    {/* Topics row */}
+                    <div className="flex items-start gap-3 flex-wrap">
+                        <span className="text-eyebrow text-muted-foreground whitespace-nowrap pt-1.5 w-24 shrink-0">Topics</span>
+                        <div className="flex flex-wrap gap-1.5 flex-1">
                             {TOPIC_FILTERS.map((t) => {
-                                const isActive = activeTopic === t.key;
+                                const isAll = t.key === "all";
+                                const isActive = isAll ? allTopicsSelected : effectiveTopics.includes(t.key);
                                 return (
                                     <button
                                         key={t.key}
-                                        onClick={() => selectTopic(t.key)}
-                                        className={`text-left text-sm px-3 py-2 transition-colors border-l-2 ${
+                                        onClick={() => toggleTopic(t.key)}
+                                        aria-pressed={isActive}
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
                                             isActive
-                                                ? "border-[hsl(var(--cobalt))] text-foreground font-medium bg-muted/40"
-                                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                                                ? "bg-[hsl(var(--cobalt))] text-white border-[hsl(var(--cobalt))]"
+                                                : "bg-background text-slate border-border hover:border-[hsl(var(--cobalt))]/40 hover:text-foreground"
                                         }`}
                                     >
                                         {t.label}
                                     </button>
                                 );
                             })}
-                        </nav>
-                    </div>
-                </aside>
-
-                {/* Main feed column */}
-                <div>
-                {/* Mobile: topics as scrollable pills */}
-                <div className="md:hidden -mx-4 mb-4 overflow-x-auto">
-                    <div className="flex items-center gap-2 px-4">
-                        {TOPIC_FILTERS.map((t) => {
-                            const isActive = activeTopic === t.key;
-                            return (
-                                <button
-                                    key={t.key}
-                                    onClick={() => selectTopic(t.key)}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                                        isActive
-                                            ? "bg-[hsl(var(--cobalt))] text-white"
-                                            : "bg-muted text-foreground hover:bg-muted/80"
-                                    }`}
-                                >
-                                    {t.label}
-                                </button>
-                            );
-                        })}
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
+                {/* Main feed column */}
+                <div>
 
                 {hasJurisdictionOrTopic && (
                     <div className="mb-3 flex items-center gap-2 text-xs">
