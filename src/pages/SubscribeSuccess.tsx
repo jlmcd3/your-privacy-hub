@@ -7,7 +7,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 
 export default function SubscribeSuccess() {
   const { user } = useAuth();
