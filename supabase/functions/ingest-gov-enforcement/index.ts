@@ -150,6 +150,7 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
   let inserted = 0, skipped = 0, errors = 0;
   const summary: Record<string, number> = {};
 
