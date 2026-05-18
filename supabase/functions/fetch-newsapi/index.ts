@@ -64,9 +64,22 @@ const REGULATORY_OVERRIDE_PATTERNS = [
   /\b(gdpr|ccpa|cpra|tdpsa|vcdpa|ctdpa|coppa|hipaa|lgpd|pipl|pdpa|dpdp|ai act|duaa)\s+(enforcement|compliance|violation|fine|amendment|update)\b/i,
 ];
 
+// First-person "we updated our privacy policy" company announcements — pure noise.
+const POLICY_UPDATE_NOTICE_PATTERNS = [
+  /\b(we|we[''']ve|we\s+have|we\s+are|we[''']re)\s+(updated|updating|revised|revising|changed|changing|made\s+changes\s+to)\s+(our|the)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\b(update|updates|changes|revision|amendment)s?\s+to\s+(our|the)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\b(our|the)\s+(new|updated|revised)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\bnotice\s+of\s+(changes?|updates?|amendments?)\s+to\s+(our|the)?\s*privacy\s+(policy|notice|statement)\b/i,
+  /^\s*privacy\s+(policy|notice|statement)\s+(update|notice|change|revision)s?\s*$/i,
+];
+
 function isRelevant(title: string, description: string): boolean {
   const text = (title + " " + (description || "")).toLowerCase();
   const titleLower = title.toLowerCase();
+
+  // Drop company "we updated our privacy policy" announcements.
+  const combined = title + " " + (description || "");
+  if (POLICY_UPDATE_NOTICE_PATTERNS.some(p => p.test(combined))) return false;
 
   // Filter out breach announcements unless they're about regulatory action
   const isBreach = BREACH_ANNOUNCEMENT_PATTERNS.some(p => p.test(title + " " + (description || "")));

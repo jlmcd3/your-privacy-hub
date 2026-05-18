@@ -799,9 +799,22 @@ const NON_EDITORIAL_PATTERNS = [
   /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
 ];
 
+// First-person "we updated our privacy policy" company announcements — pure noise.
+// Tight patterns: require possessive "our" or first-person verb so we don't catch
+// regulator pieces like "ICO updates UK GDPR guidance" or "FTC rule on privacy policies".
+const POLICY_UPDATE_NOTICE_PATTERNS = [
+  /\b(we|we[''']ve|we\s+have|we\s+are|we[''']re)\s+(updated|updating|revised|revising|changed|changing|made\s+changes\s+to)\s+(our|the)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\b(update|updates|changes|revision|amendment)s?\s+to\s+(our|the)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\b(our|the)\s+(new|updated|revised)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\bnotice\s+of\s+(changes?|updates?|amendments?)\s+to\s+(our|the)?\s*privacy\s+(policy|notice|statement)\b/i,
+  /^\s*privacy\s+(policy|notice|statement)\s+(update|notice|change|revision)s?\s*$/i,
+];
+
 function isNonEditorial(title: string, description: string): boolean {
   const text = title + " " + (description || "");
-  return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
+  if (NON_EDITORIAL_PATTERNS.some(p => p.test(text))) return true;
+  if (POLICY_UPDATE_NOTICE_PATTERNS.some(p => p.test(text))) return true;
+  return false;
 }
 
 function isRelevant(title: string, description: string): boolean {
