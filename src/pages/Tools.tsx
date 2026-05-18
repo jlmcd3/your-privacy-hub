@@ -419,20 +419,20 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", "$49 standalone → Included with Annual Platform"],
-  ["Legitimate Interest Assessment", "$69 standalone → Included with Annual Platform"],
-  ["Impact Assessment (DPIA)", "$99 standalone → Included with Annual Platform"],
-  ["DPA Generator", "$49 standalone → Included with Annual Platform"],
-  ["Incident Response Playbook", `${getPrice("ir_playbook_standalone").displayPrice} standalone → Included with Annual Platform`],
-  ["Biometric Privacy Check", "$49 standalone → Included with Annual Platform"],
-  ["RoPA Builder", "$79 standalone → Included with Annual Platform"],
-  ["U.S. Privacy Notice", "$25/state or $59 all states → Included"],
-  ["EU/UK Privacy Notice", "$45/framework or $119 suite → Included"],
-  ["Registration Manager (Annual)", "Standalone rates → Included with Annual Platform"],
-  ["Registration Manager (Monthly)", "20% off DIY · $75 off Counsel-Ready"],
+  ["Privacy Programme Assessment", "$50 · Intelligence $40 · Professional $38"],
+  ["Legitimate Interest Assessment", "$30 · Intelligence $24 · Professional $23"],
+  ["Impact Assessment (DPIA)", "$40 · Intelligence $32 · Professional $30"],
+  ["DPA Generator", "$40 · Intelligence $32 · Professional $30"],
+  ["Incident Response Playbook", "$20 · Intelligence $16 · Professional $15"],
+  ["Biometric Privacy Check", "$10 · Intelligence $8 · Professional $8"],
+  ["RoPA Builder", "$40 · Intelligence $32 · Professional $30"],
+  ["U.S. Privacy Notice", "$30 · Intelligence $24 · Professional $23"],
+  ["EU/UK Privacy Notice", "$50 · Intelligence $40 · Professional $38"],
+  ["Registration Manager", "Free assessment · $50/filing · 20–25% subscriber discount"],
   ["CPPA Scope Checker", "Always free"],
-  ["CPPA Risk Assessment", "$149 standalone → $79 subscriber rate"],
-  ["CPPA Cybersecurity Audit", "$199 standalone → $99 subscriber rate"],
+  ["CPPA Risk Assessment", "$60 · Intelligence $48 · Professional $45"],
+  ["CPPA Cybersecurity Audit", "$80 · Intelligence $64 · Professional $60"],
+  ["All subscribers", "1 free tool run per month included"],
 ];
 
 export default function Tools() {
