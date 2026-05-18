@@ -194,8 +194,68 @@ Deno.serve(async (req) => {
           fine_amount,
           fine_eur,
         });
-        if (error) { errors++; console.error("insert", etid, error.message); }
-        else inserted++;
+        if (error) {
+          errors++;
+          console.error("insert enforcement_actions", etid, error.message);
+        } else {
+          inserted++;
+
+          // ── Dual-write to updates table so content appears in the brief and feed ──
+          if (anthropicKey) {
+            try {
+              const aiSummary = await generateUpdateSummary(
+                a.title,
+                a.title,
+                src.source,
+                src.regulator,
+                src.jurisdiction,
+                anthropicKey,
+              );
+
+              if (aiSummary && aiSummary.legal_weight !== undefined) {
+                const updateRow: Record<string, unknown> = {
+                  url: a.url,
+                  title: a.title,
+                  summary: a.title,
+                  source_name: src.source,
+                  source_url: src.url,
+                  category: "enforcement",
+                  published_at: a.date
+                    ? new Date(a.date).toISOString()
+                    : new Date().toISOString(),
+                  source_tier: 1,
+                  legal_weight: aiSummary.legal_weight ?? "Enforcement",
+                  attention_level: aiSummary.attention_level ?? "High",
+                  why_it_matters_short: aiSummary.why_it_matters_short ?? null,
+                  why_it_matters: aiSummary.why_it_matters ?? null,
+                  compliance_impact: aiSummary.compliance_impact ?? null,
+                  takeaways: aiSummary.takeaways ?? [],
+                  affected_jurisdictions: aiSummary.affected_jurisdictions ?? [],
+                  regulatory_theory: aiSummary.regulatory_theory ?? null,
+                  action_items: aiSummary.action_items ?? [],
+                  defense_considerations: aiSummary.defense_considerations ?? null,
+                  entities: aiSummary.entities ?? {},
+                  ai_summary: aiSummary,
+                  direct_jurisdictions: Array.isArray(aiSummary.affected_jurisdictions)
+                    ? aiSummary.affected_jurisdictions
+                    : [],
+                };
+
+                const { error: updateErr } = await supabase
+                  .from("updates")
+                  .upsert(updateRow, { onConflict: "url", ignoreDuplicates: true });
+
+                if (updateErr) {
+                  console.error("dual-write to updates failed", a.url, updateErr.message);
+                } else {
+                  console.log("dual-write to updates succeeded", a.url);
+                }
+              }
+            } catch (aiErr) {
+              console.error("generateUpdateSummary failed", a.url, aiErr);
+            }
+          }
+        }
       }
       await new Promise((r) => setTimeout(r, 800));
     } catch (e) {
