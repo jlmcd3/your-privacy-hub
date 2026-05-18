@@ -44,7 +44,7 @@ export default function CrossBorderTransfersPage() {
             id: "eu-mechanisms",
             h2: "EU/EEA Transfer Mechanisms — GDPR Chapter V",
             synthesisKey: "crossborder__eu_mechanisms",
-            content: `<p>The GDPR provides a structured hierarchy of transfer mechanisms. <strong>Adequacy decisions</strong> (<a href="https://gdpr-info.eu/art-45-gdpr/" target="_blank" rel="noopener noreferrer">Art. 45</a>) cover roughly 15 countries including the UK (renewal pending), Japan, South Korea, Canada (commercial), Israel, Switzerland, and New Zealand. <strong>Standard Contractual Clauses</strong> (<a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32021D0914" target="_blank" rel="noopener noreferrer">2021 SCCs</a>) are the most widely used mechanism and require a Transfer Impact Assessment. <strong>Binding Corporate Rules</strong> (<a href="https://gdpr-info.eu/art-47-gdpr/" target="_blank" rel="noopener noreferrer">Art. 47</a>) are the gold standard for intra-group transfers but require DPA approval. <strong>Article 49 derogations</strong> are interpreted narrowly and unsuitable for systematic transfers.</p>`,
+            content: `<p>The GDPR provides a structured hierarchy of transfer mechanisms. <strong>Adequacy decisions</strong> (<a href="https://gdpr-info.eu/art-45-gdpr/" target="_blank" rel="noopener noreferrer">Art. 45</a>) cover roughly 15 countries including the <a href="/jurisdiction/united-kingdom">UK</a> (renewal pending), <a href="/jurisdiction/japan">Japan</a>, <a href="/jurisdiction/south-korea">South Korea</a>, <a href="/jurisdiction/canada">Canada</a> (commercial), <a href="/jurisdiction/israel">Israel</a>, <a href="/jurisdiction/switzerland">Switzerland</a>, and <a href="/jurisdiction/new-zealand">New Zealand</a>. <strong>Standard Contractual Clauses</strong> (<a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32021D0914" target="_blank" rel="noopener noreferrer">2021 SCCs</a>) are the most widely used mechanism and require a Transfer Impact Assessment. <strong>Binding Corporate Rules</strong> (<a href="https://gdpr-info.eu/art-47-gdpr/" target="_blank" rel="noopener noreferrer">Art. 47</a>) are the gold standard for intra-group transfers but require DPA approval. <strong>Article 49 derogations</strong> are interpreted narrowly and unsuitable for systematic transfers.</p>`,
           },
           {
             id: "dpf",
@@ -63,11 +63,11 @@ export default function CrossBorderTransfersPage() {
             h2: "Asia-Pacific Transfer Frameworks",
             synthesisKey: "crossborder__apac",
             content: `<ul>
-<li><strong><a href="https://www.cac.gov.cn/" target="_blank" rel="noopener noreferrer">China PIPL</a></strong> (Articles 38–43) — security assessments, standard contracts, or certification.</li>
-<li><strong><a href="https://www.ppc.go.jp/en/" target="_blank" rel="noopener noreferrer">Japan APPI</a></strong> — equivalent-protection model; mutual EU adequacy.</li>
-<li><strong><a href="https://www.pipc.go.kr/eng/" target="_blank" rel="noopener noreferrer">South Korea PIPA</a></strong> — mutual EU adequacy since 2024.</li>
-<li><strong><a href="https://www.meity.gov.in/content/personal-data-protection" target="_blank" rel="noopener noreferrer">India DPDP Act</a></strong> — permits transfers except to a future government blacklist.</li>
-<li><strong><a href="https://www.pdpc.gov.sg/Overview-of-PDPA/The-Legislation/Personal-Data-Protection-Act" target="_blank" rel="noopener noreferrer">Singapore PDPA</a></strong> — comparable-protection standard.</li>
+<li><strong><a href="/jurisdiction/china">China PIPL</a></strong> (Articles 38–43) — security assessments, standard contracts, or certification. Enforced by the <a href="/regulator/cac">CAC</a>.</li>
+<li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — equivalent-protection model; mutual EU adequacy. Enforced by the <a href="/regulator/ppc">PPC</a>.</li>
+<li><strong><a href="/jurisdiction/south-korea">South Korea PIPA</a></strong> — mutual EU adequacy since 2024. Enforced by the <a href="/regulator/pipc">PIPC</a>.</li>
+<li><strong><a href="/jurisdiction/india">India DPDP Act</a></strong> — permits transfers except to a future government blacklist.</li>
+<li><strong><a href="/jurisdiction/singapore">Singapore PDPA</a></strong> — comparable-protection standard. Enforced by the <a href="/regulator/pdpc">PDPC</a>.</li>
 <li><strong><a href="https://globalcbpr.org/" target="_blank" rel="noopener noreferrer">Global CBPR Forum</a></strong> — voluntary certification framework succeeding APEC CBPR.</li>
 </ul>`,
           },
@@ -75,7 +75,7 @@ export default function CrossBorderTransfersPage() {
             id: "enforcement",
             h2: "Cross-Border Transfer Enforcement",
             synthesisKey: "crossborder__enforcement",
-            content: `<p>Cross-border enforcement has been concentrated in CJEU rulings and major DPA actions: <strong>Schrems II</strong> invalidated Privacy Shield; the Irish DPC's <strong>€1.2B Meta fine</strong> targeted EU-U.S. transfers; the Austrian DSB and CNIL ruled <strong>Google Analytics</strong> transfers unlawful absent supplementary measures. China's CAC has actively enforced PIPL cross-border transfer requirements against multinational and domestic operators.</p>`,
+            content: `<p>Cross-border enforcement has been concentrated in CJEU rulings and major DPA actions: <strong>Schrems II</strong> invalidated Privacy Shield; the Irish <a href="/regulator/dpc">DPC</a>'s <strong>€1.2B Meta fine</strong> targeted EU-U.S. transfers; the Austrian <a href="/regulator/dsb">DSB</a> and <a href="/regulator/cnil">CNIL</a> ruled <strong>Google Analytics</strong> transfers unlawful absent supplementary measures. China's <a href="/regulator/cac">CAC</a> has actively enforced <a href="/jurisdiction/china">PIPL</a> cross-border transfer requirements against multinational and domestic operators.</p>`,
           },
         ]}
         relatedLinks={[
