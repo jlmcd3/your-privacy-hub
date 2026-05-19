@@ -1562,6 +1562,20 @@ Deno.serve(async (req) => {
           results.inserted++;
           existingUrls.add(link);
 
+          // Fire-and-forget: trigger contextual enrichment for Tier 1 sources
+          const insertedId = upserted[0]?.id;
+          if (insertedId && inferSourceTier(source) === 1) {
+            const enrichUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/enrich-with-context`;
+            fetch(enrichUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              },
+              body: JSON.stringify({ article_id: insertedId, force: false }),
+            }).catch((e) => console.warn("enrich-with-context trigger failed:", e.message));
+          }
+
           // ── Dual-write to enforcement_actions for official DPA enforcement/binding articles ──
           const articleDomain = extractDomain(row.url ?? "");
           const isOfficialDPA = DPA_OFFICIAL_DOMAINS.has(articleDomain);

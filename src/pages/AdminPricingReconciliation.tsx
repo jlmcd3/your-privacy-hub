@@ -30,6 +30,8 @@ export default function AdminPricingReconciliation() {
   const allOk = findings.length === 0;
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [backfillRunning, setBackfillRunning] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
 
   const handleSync = async (environment: "sandbox" | "live") => {
     setSyncing(true);
@@ -44,6 +46,22 @@ export default function AdminPricingReconciliation() {
       setSyncResult(`Error: ${e.message ?? String(e)}`);
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleBackfill = async () => {
+    setBackfillRunning(true);
+    setBackfillResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("backfill-enrichment");
+      if (error) throw error;
+      setBackfillResult(
+        `Backfill complete: ${data.succeeded} enriched, ${data.skipped} already done, ${data.failed} failed.`
+      );
+    } catch (e: any) {
+      setBackfillResult(`Error: ${e.message ?? String(e)}`);
+    } finally {
+      setBackfillRunning(false);
     }
   };
 
@@ -96,6 +114,32 @@ export default function AdminPricingReconciliation() {
           <pre className="rounded-xl border border-fog bg-fog/30 p-3 mb-6 text-[11px] overflow-x-auto whitespace-pre-wrap">
             {syncResult}
           </pre>
+        )}
+
+        <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-navy">Run Enrichment Backfill</h3>
+            <p className="text-[12px] text-slate mt-1">
+              Processes up to 20 Tier 1 articles missing contextual intelligence. Run multiple times to catch up.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <Button onClick={handleBackfill} disabled={backfillRunning}>
+              {backfillRunning ? "Running…" : "Run Enrichment Backfill"}
+            </Button>
+          </div>
+        </div>
+
+        {backfillResult && (
+          <div
+            className={`rounded-xl border p-3 mb-6 text-sm ${
+              backfillResult.startsWith("Error:")
+                ? "border-red-200 bg-red-50 text-red-900"
+                : "border-emerald-200 bg-emerald-50 text-emerald-900"
+            }`}
+          >
+            {backfillResult}
+          </div>
         )}
 
         <div
