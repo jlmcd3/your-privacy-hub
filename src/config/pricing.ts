@@ -863,11 +863,11 @@ export const INTELLIGENCE_PRICING = {
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
 } as const;
 
-/** Platform pricing helpers (annual subscriptions with tool access included). */
+/** Platform pricing helpers (annual subscriptions). */
 export const PLATFORM_PRICING = {
-  standard: () => formatPrice("intelligence_yearly"),                              // "$399/year"
-  standardMonthly: () => "$33.25/mo",
-  clientAddon: () => formatPrice("per_client_addon"),                              // "$199/year per client"
+  standard: () => formatPrice("professional_annual"),                              // "$300/year"
+  standardMonthly: () => formatPrice("professional_monthly"),                      // "$30/month"
+  clientAddon: () => formatPrice("professional_client"),                           // "$150/client/year"
 } as const;
 
 /** US Notice price helpers — derived from the registry, never hardcode. */
