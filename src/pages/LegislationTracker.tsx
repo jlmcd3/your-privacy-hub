@@ -103,7 +103,7 @@ export default function LegislationTracker() {
         <AdBanner variant="leaderboard" className="mt-4" />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <div className="mb-8">
-            <ResearchSynthesisBlock sectionKey="legislation__page" />
+            <ResearchSynthesisBlock sectionKey="legislation__page" promoteHeading />
           </div>
 
           <div className="text-[11px] text-slate-light mb-6">
