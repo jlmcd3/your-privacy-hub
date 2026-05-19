@@ -542,10 +542,12 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
         <span className="text-[11px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
       )}
     </div>
-    <Link to={`/updates/${item.id}`}
+    <a
+      href={item.source_url || `/updates/${item.id}`}
+      {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
       {normalizeTitle(item.title)}
-    </Link>
+    </a>
     {(item.summary || item.ai_summary?.why_it_matters) && (
       <p className="text-sm text-blue-200 leading-relaxed line-clamp-3">
         {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
