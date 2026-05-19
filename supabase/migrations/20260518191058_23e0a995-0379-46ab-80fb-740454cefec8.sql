@@ -1,0 +1,1 @@
+UPDATE public.homepage_spotlight SET update_id = '58a6e887-43db-4e58-842f-3609c8c8870e' WHERE spotlight_date = CURRENT_DATE AND slot = 1;

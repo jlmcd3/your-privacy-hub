@@ -24,7 +24,7 @@ export default function SectionShell({
     <section className={`rounded-xl border border-[hsl(var(--cobalt)/0.2)] bg-card overflow-hidden ${className}`}>
       <div className="px-5 py-4 border-b border-[hsl(var(--cobalt)/0.1)] flex items-start justify-between gap-4">
         <div>
-          <p className="text-eyebrow text-[hsl(var(--cobalt))] mb-1">
+          <p className="text-eyebrow !text-sm text-[hsl(var(--cobalt))] mb-1">
             {eyebrow}
           </p>
           <h2 className="text-section-h2 text-navy">

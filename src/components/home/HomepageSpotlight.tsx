@@ -181,7 +181,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
     <p className="text-eyebrow text-gold mb-2">
       Privacy Intelligence Feed
     </p>
-    <h2 className="font-display text-[22px] md:text-[26px] font-bold text-white mb-2">
+    <h2 className="text-section-h2 font-bold text-white mb-2">
       Today's full feed — {count > 0 ? `${count} developments` : "all developments"}, every one enriched
     </h2>
     <p className="text-sm text-blue-100/80 mb-5 max-w-xl mx-auto">
@@ -198,7 +198,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
 );
 
 export default function HomepageSpotlight() {
-  const [articles, setArticles] = useState<(SpotlightArticle | null)[]>([null, null, null]);
+  const [article, setArticle] = useState<SpotlightArticle | null>(null);
   const [feedCount, setFeedCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -206,26 +206,74 @@ export default function HomepageSpotlight() {
     const today = new Date().toISOString().split("T")[0];
 
     const fetchSpotlight = async () => {
+      // Only show articles that have been FULLY enriched. We require all four
+      // enrichment outputs (ai_summary, why_it_matters_short, action_items,
+      // related_signals) so every tier (anonymous / free / paid) has real
+      // content to render. Partially-enriched articles are skipped.
+      const isFullyEnriched = (a: any) =>
+        a &&
+        a.ai_summary &&
+        typeof a.ai_summary === "object" &&
+        (a.ai_summary.why_it_matters || a.ai_summary.compliance_impact) &&
+        a.why_it_matters_short &&
+        Array.isArray(a.action_items) &&
+        a.action_items.length > 0 &&
+        Array.isArray(a.related_signals) &&
+        a.related_signals.length > 0;
+
+      const fetchEnriched = async (id: string) => {
+        const { data } = await supabase
+          .from("updates")
+          .select(
+            `id, title, source_name, source_url:url, published_at,
+             jurisdiction:direct_jurisdictions,
+             category, attention_level, image_url, why_it_matters_short,
+             ai_summary, action_items, related_signals`
+          )
+          .eq("id", id)
+          .maybeSingle();
+        return data;
+      };
+
+      // Try today's curated spotlight first; only accept if fully enriched.
       const { data: spotlight } = await supabase
         .from("homepage_spotlight")
         .select("slot, update_id")
         .eq("spotlight_date", today)
         .order("slot");
 
-      let updateIds: string[] = [];
-      if (spotlight && spotlight.length === 3) {
-        const sorted = [...spotlight].sort((a, b) => a.slot - b.slot);
-        updateIds = sorted.map(s => s.update_id);
-      } else {
-        const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      let chosen: any = null;
+      if (spotlight && spotlight.length > 0) {
+        const ordered = [...spotlight].sort((a, b) => a.slot - b.slot);
+        for (const row of ordered) {
+          const candidate = await fetchEnriched(row.update_id);
+          if (isFullyEnriched(candidate)) {
+            chosen = candidate;
+            break;
+          }
+        }
+      }
+
+      // Fallback: scan recent enriched articles and take the first that
+      // passes the full-enrichment check.
+      if (!chosen) {
+        const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         const { data: fallback } = await supabase
           .from("updates")
-          .select("id, attention_level")
+          .select(
+            `id, title, source_name, source_url:url, published_at,
+             jurisdiction:direct_jurisdictions,
+             category, attention_level, image_url, why_it_matters_short,
+             ai_summary, action_items, related_signals`
+          )
           .gte("created_at", cutoff)
           .eq("is_hidden", false)
-          
+          .not("ai_summary", "is", null)
+          .not("why_it_matters_short", "is", null)
+          .not("action_items", "is", null)
+          .not("related_signals", "is", null)
           .order("published_at", { ascending: false })
-          .limit(50);
+          .limit(100);
 
         if (fallback && fallback.length > 0) {
           const severityOrder: Record<string, number> = { "WATCH CLOSELY": 0, "MONITOR": 1 };
@@ -234,32 +282,16 @@ export default function HomepageSpotlight() {
               (severityOrder[a.attention_level ?? ""] ?? 2) -
               (severityOrder[b.attention_level ?? ""] ?? 2)
           );
-          updateIds = sorted.slice(0, 3).map(a => a.id);
+          chosen = sorted.find(isFullyEnriched) ?? null;
         }
       }
 
-      if (updateIds.length < 3) {
+      if (!chosen) {
         setLoading(false);
         return;
       }
 
-      const { data: updateData } = await supabase
-        .from("updates")
-        .select(
-          `id, title, source_name, source_url:url, published_at,
-           jurisdiction:direct_jurisdictions,
-           category, attention_level, image_url, why_it_matters_short,
-           ai_summary, action_items, related_signals`
-        )
-        .in("id", updateIds);
-
-      if (updateData) {
-        const list = updateData as unknown as SpotlightArticle[];
-        const ordered = updateIds
-          .map(id => list.find(a => a.id === id) ?? null)
-          .filter(Boolean) as SpotlightArticle[];
-        setArticles([ordered[0] ?? null, ordered[1] ?? null, ordered[2] ?? null]);
-      }
+      setArticle(chosen as unknown as SpotlightArticle);
 
       const { count } = await supabase
         .from("updates")
@@ -295,9 +327,7 @@ export default function HomepageSpotlight() {
     );
   }
 
-  const hasArticles = articles.some(a => a !== null);
-
-  if (!hasArticles) {
+  if (!article) {
     return (
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="rounded-2xl border border-dashed border-fog bg-slate-50/60 px-6 py-12 text-center">
@@ -333,24 +363,21 @@ export default function HomepageSpotlight() {
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
       <div className="mb-6">
         <p className="text-eyebrow text-slate/60 mb-1">
-          Today's regulatory developments
+          Today's top regulatory development
         </p>
         <h2 className="text-section-h2 text-navy">
           What you see — and what you're missing
         </h2>
         <p className="text-sm text-slate mt-1">
-          Three of today's top developments, shown at each level of intelligence.
+          The same story, shown at each level of intelligence.
         </p>
       </div>
 
       <div className="space-y-0">
-        {articles.map((article, i) => {
-          if (!article) return null;
+        {tiers.map((tier, i) => {
           const label = SLOT_LABELS[i];
-          const tier = tiers[i];
-
           return (
-            <div key={article.id} className="py-5 border-b border-fog last:border-0">
+            <div key={tier} className="py-5 border-b border-fog last:border-0">
               <div className={`text-meta uppercase tracking-wider mb-3 ${label.className}`}>
                 {label.icon} {label.text}
               </div>

@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
   // Use title/summary text matching and enrichment fields
   const { data: articles, error } = await supabase
     .from("updates")
-    .select("id, title, summary, category, published_at, ai_summary, regulatory_theory, affected_sectors, attention_level, related_development")
+    .select("id, title, summary, category, published_at, source_name, ai_summary, regulatory_theory, affected_sectors, attention_level, related_development, direct_jurisdictions, legal_weight")
     .gte("published_at", periodStart.toISOString())
     .lte("published_at", periodEnd.toISOString())
     .order("published_at", { ascending: false })
@@ -116,6 +116,8 @@ Deno.serve(async (req) => {
   const digest = matchingArticles.slice(0, 50).map((a: any) => ({
     title: a.title,
     date: a.published_at?.split("T")[0],
+    source_name: a.source_name ?? null,
+    legal_weight: a.legal_weight ?? null,
     category: a.category,
     summary: a.ai_summary?.why_it_matters ?? a.summary ?? "",
     regulatory_theory: a.regulatory_theory ?? null,
@@ -144,7 +146,9 @@ Return ONLY a JSON object (no markdown, no preamble) with this exact schema:
 Generate 4-6 key_observations. Each should be a specific, factual statement citing concrete developments.
 Focus on patterns, trends, and trajectory — not individual article summaries.
 
-Articles:\n${JSON.stringify(digest, null, 2)}`;
+Articles:\n${JSON.stringify(digest, null, 2)}
+
+Return ONLY a valid JSON object. Your entire response must start with { and end with }. No markdown fences, no preamble, no trailing text after the closing brace.`;
 
   // Call Claude
   const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -155,18 +159,37 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2000,
-      system: `You are a senior privacy regulatory analyst conducting longitudinal analysis of privacy regulatory developments over an extended time window for a compliance platform serving DPOs and privacy counsel.
+      model: "claude-opus-4-7",
+      max_tokens: 2500,
+      system: `You are a senior privacy regulatory analyst at a leading intelligence firm. You conduct multi-month longitudinal analysis of regulatory developments for DPOs and privacy counsel who rely on your synthesis to understand where enforcement is heading — not just what happened last week.
 
-Your task: identify patterns, trajectories, and notable shifts across a set of articles spanning weeks to months. Return ONLY valid JSON matching the schema in the user prompt. No preamble, no markdown, no explanation.
+VOICE:
+Write in direct, active voice. Lead with what the pattern means for the compliance professional, not with a description of the pattern.
+WRONG: "There has been an increase in enforcement activity related to cookie consent across multiple EU jurisdictions."
+RIGHT: "Cookie consent is now a simultaneous enforcement priority across at least four EU DPAs — organisations with non-compliant banners face material risk regardless of jurisdiction."
 
-QUALITY STANDARDS:
-1. key_observations must be specific and factual — cite regulators, case names, or law references drawn from the provided articles.
-2. direction must reflect the weight of evidence across the full article set, not the most recent or most prominent article.
-3. notable_shifts should name the specific change in regulatory approach or enforcement posture, with the supporting evidence.
-4. Use hedging language ("this may indicate", "consistent with", "suggests") for interpretive claims; reserve definitive statements for facts directly attested by the articles.
-5. Do not fabricate patterns not grounded in the provided articles.`,
+SOURCE CALIBRATION — REQUIRED:
+The articles you receive come from sources of varying reliability. Calibrate your language accordingly.
+
+For findings grounded in PRIMARY sources (official DPA decisions, enforcement notices, published regulatory guidance): write in direct declarative voice. State the finding as established fact, citing the source name.
+EXAMPLE: "The CNIL fined Voodoo €3M for consent-bypass in mobile SDKs — the first enforcement action specifically targeting SDK-layer data flows."
+
+For findings grounded in SECONDARY sources (law firm commentary, trade publications, journalist reports): use explicit attribution. "According to reported accounts...", "Based on available reporting...", "Coverage suggests...". This is precision, not weakness.
+EXAMPLE: "According to multiple law firm briefings, the EDPB is expected to issue a binding opinion on legitimate interest for direct marketing before year-end — though no official date has been confirmed."
+
+For mixed-source findings: distinguish confirmed from reported within the same observation.
+
+NEVER USE blanket hedging phrases ("this may indicate", "it would appear", "it remains to be seen") — these obscure source quality instead of communicating it. Name the source of uncertainty precisely.
+
+INTELLIGENCE STANDARDS:
+1. Lead with pattern significance, not event description.
+2. Where multiple sources report the same development, treat convergence as a quality signal and state findings with correspondingly greater confidence.
+3. key_observations must be specific — cite regulator names, law references, or case identifiers drawn from the provided articles. "Regulatory activity has increased" is not acceptable.
+4. direction must reflect the weight of evidence across the full article set, not the most recent or most prominent article.
+5. notable_shifts must name the specific change in regulatory approach or enforcement posture, with supporting evidence from the articles.
+6. Do not assert facts not grounded in the provided articles. If the corpus is thin, say so: "The limited article set for this period prevents confident pattern analysis — the following observations are directional only."
+
+Return ONLY valid JSON. Your entire response must start with { and end with }. No text before or after the JSON object.`,
       messages: [{ role: "user", content: prompt }],
     }),
   });

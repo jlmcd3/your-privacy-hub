@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateAISummary } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -126,7 +127,19 @@ async function generateAISummary(
         // 2500 is comfortably above the ~1.5–2k tokens our enrichment JSON actually uses,
         // and keeps reserved OTPM low so we don't trip Anthropic's per-minute output ceiling.
         max_tokens: 2500,
-        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers. Rules: (1) Always name the specific regulator AND jurisdiction AND regulation where present. (2) Never write generic advice — every sentence must be specific to this article. (3) Return ONLY valid JSON — no preamble, no markdown fences, no explanation. Your entire response must start with { and end with }. (4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.`,
+        system: `You are a privacy regulatory analyst at a leading intelligence firm. Produce expert-level summaries for DPOs, privacy lawyers, and compliance managers.
+
+RULES:
+(1) Always name the specific regulator AND jurisdiction AND regulation where present.
+(2) Never write generic advice — every sentence must be specific to this article.
+(3) Return ONLY valid JSON — no preamble, no markdown fences, no explanation. Your entire response must start with { and end with }.
+(4) Be precise about legal weight: distinguish binding regulatory decisions from guidance, proposals, and commentary.
+
+VOICE:
+Write in direct, active voice. Lead with the compliance implication, not the regulatory action. The regulatory body or law is the cause — the reader's obligation or risk is the subject.
+WRONG: "The CNIL has issued guidance on session replay tools, requiring organisations to obtain consent."
+RIGHT: "Organisations using session replay tools on French websites now have a six-month compliance window following CNIL guidance published this week."
+Do not extrapolate beyond what the article text directly supports. If the article does not state a consequence, do not assert one.`,
         messages: [
           {
             role: "user",
@@ -147,13 +160,9 @@ NOTE: This article has already been confirmed as relevant to privacy, data prote
 
 Return this JSON object with every field populated:
 {
-  "why_it_matters": "2 sentences. Name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
-  "takeaways": [
-    "Specific factual point from this article — cite regulator or law name",
-    "Specific implication, deadline, or scope if present in the article",
-    "Specific type of organisation affected and what they must review or do"
-  ],
-  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no clear action exists, write exactly: Monitor — no immediate compliance action required.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
+  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
+  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
   "who_should_care": "Choose one: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
   "urgency": "Choose one: Immediate | This quarter | Monitor",
   "legal_weight": "Choose one: Binding | Enforcement | Guidance | Proposal | Commentary",
@@ -162,7 +171,7 @@ Return this JSON object with every field populated:
   "risk_level": "Choose one: Low | Medium | High | Critical",
   "affected_jurisdictions": [],
   "precedent_novelty": "Choose one: new_theory | confirms_existing | reverses_prior | routine",
-  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. Examples: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction', 'Data minimisation enforcement against over-collection'. Return null if no clear doctrine applies.",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
   "action_items": [
     {
       "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
@@ -182,7 +191,7 @@ Return this JSON object with every field populated:
 
 Generate 1–3 action_items entries. Return [] if no specific action applies. For entities: populate only from content explicitly present in the article — do not use training knowledge.
 
-For the affected_jurisdictions array: include only jurisdiction slugs where this development creates real compliance obligations or material risk. Use these exact slug values only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return an empty array [] only if the impact is genuinely too narrow to affect any listed jurisdiction.`,
+For the affected_jurisdictions array: include only jurisdiction slugs where this development creates real compliance obligations or material risk. Use these exact slug values only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return an empty array [] only if the impact is genuinely too narrow to affect any listed jurisdiction.`,
           },
         ],
       }),
@@ -237,7 +246,12 @@ For the affected_jurisdictions array: include only jurisdiction slugs where this
       }
     }
     if (parsed.skip) return { kind: "model_skip", detail: parsed.skip_reason || "model_declined" };
-    return { kind: "ok", data: parsed };
+
+    const v = validateAISummary(parsed, { fn: "backfill-ai-summaries", title });
+    if (!v.ok) {
+      return { kind: "permanent_error", detail: `schema_invalid:${v.errors[0] ?? "unknown"}` };
+    }
+    return { kind: "ok", data: v.data };
   } catch (err) {
     const msg = (err as Error).message;
     console.error(`generateAISummary threw: ${msg}`);

@@ -13,9 +13,16 @@ const supabase = createClient(
 
 function getWeekLabel(): string {
   const now = new Date();
-  const start = new Date(now);
-  start.setDate(now.getDate() - 7);
-  const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const dayOfWeek = now.getUTCDay();
+  const daysSinceSunday = dayOfWeek === 0 ? 7 : dayOfWeek;
+  const start = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - daysSinceSunday,
+    0, 0, 0, 0
+  ));
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
   return `${fmt(start)} – ${fmt(now)}`;
 }
 
@@ -115,18 +122,35 @@ Deno.serve(async (req) => {
       0, 0, 0, 0
     ));
 
-    const { data: articles, error: fetchError } = await supabase
+    const { data: rawArticles, error: fetchError } = await supabase
       .from("updates")
-      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
+      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, legal_weight, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
       .gte("published_at", weekStart.toISOString())
       .order("published_at", { ascending: false })
-      .limit(40);
+      .limit(60);
 
-    if (fetchError || !articles || articles.length === 0) {
+    if (fetchError || !rawArticles || rawArticles.length === 0) {
       if (fetchError) console.error("Fetch articles error:", fetchError);
       return new Response(JSON.stringify({ error: "No articles found for this period" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Pre-sort by signal strength so highest-value articles lead the prompt context.
+    // Binding/Enforcement > Guidance > Proposal/Commentary; High attention > Medium > Low.
+    const LEGAL_WEIGHT_RANK: Record<string, number> = {
+      "Binding": 4, "Enforcement": 3, "Guidance": 2, "Proposal": 1, "Commentary": 0,
+    };
+    const ATTENTION_RANK: Record<string, number> = { "High": 2, "Medium": 1, "Low": 0 };
+    const articles = rawArticles.sort((a, b) => {
+      const lw =
+        (LEGAL_WEIGHT_RANK[b.legal_weight ?? ""] ?? 0) -
+        (LEGAL_WEIGHT_RANK[a.legal_weight ?? ""] ?? 0);
+      if (lw !== 0) return lw;
+      return (
+        (ATTENTION_RANK[b.attention_level ?? ""] ?? 0) -
+        (ATTENTION_RANK[a.attention_level ?? ""] ?? 0)
+      );
+    });
 
     const enforcementHistory = await getEnforcementHistory();
 
@@ -217,7 +241,7 @@ Note: Based on ${enforcementHistory.briefCount} weeks of tracked data.`
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const systemPrompt = `You are a senior data protection attorney with 30 years of experience advising Fortune 500 companies, DPOs, and General Counsel. You write a weekly intelligence brief for privacy professionals and senior executives who are highly intelligent but may not have personally tracked every regulatory development.
+    const systemPrompt = `You are a senior data protection attorney with 20 years of experience advising Fortune 500 companies, DPOs, and General Counsel. You write a weekly intelligence brief for privacy professionals and senior executives who are highly intelligent but may not have personally tracked every regulatory development.
 
 Your job is not to describe what happened. Your job is to tell your reader what it means for them — and what, if anything, they need to do about it.
 
@@ -419,7 +443,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-opus-4-7",
         max_tokens: 8000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],

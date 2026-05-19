@@ -1,4 +1,5 @@
 // CPPA Privacy Risk Assessment — Module 1 intake. 5-step wizard + summary.
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -69,10 +70,15 @@ export default function CPPARiskAssessment() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_risk_assessment");
-  const displayPrice = pricing.isSubscriber ? pricing.subscriberPrice : pricing.price;
   const [searchParams] = useSearchParams();
   const isSuite = searchParams.get("suite") === "true";
   const suitePricing = useToolPrice("cppa_suite");
+  // v7: render the price the *current viewer* will pay (Intelligence 20% off,
+  // Professional 25% off, free/anon = standalone). Switch to Suite pricing
+  // when the intake was launched in suite mode.
+  const activePricing = isSuite ? suitePricing : pricing;
+  const headerLabel = isSuite ? "CPPA AUDIT READINESS · FULL SUITE (M1 + M2)" : "CPPA AUDIT READINESS · MODULE 1";
+  const displayPrice = activePricing.price;
 
   const [step, setStep] = useState(1);
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -147,8 +153,13 @@ export default function CPPARiskAssessment() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            CPPA AUDIT READINESS · MODULE 1 · ${displayPrice}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Subscribers pay ${pricing.subscriberPrice} →</a></>}
+            {headerLabel} · ${displayPrice}
+            {activePricing.isSubscriber && activePricing.standalonePrice > displayPrice && (
+              <> · subscriber rate (standalone ${activePricing.standalonePrice})</>
+            )}
+            {!activePricing.isSubscriber && (
+              <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>
+            )}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Privacy Risk Assessment</h1>
           <p className="text-slate-300 text-lg">A structured assessment of your organisation's CCPA/CPRA compliance posture mapped to the CPPA's enforcement priorities. Generates a compliance gap report with remediation guidance.</p>
@@ -159,8 +170,17 @@ export default function CPPARiskAssessment() {
           <ToolTierNote isCppa={true} />
         </div>
 
-
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <ToolOutputPreview
+          label="Sample CPPA Risk Assessment output"
+          lines={[
+            "CPPA RISK ASSESSMENT — California Privacy Protection Agency",
+            "Processing Activity: Behavioural advertising via third-party pixels",
+            "RISK LEVEL: HIGH — likely to result in significant privacy risk",
+            "  Regulatory basis: CPPA Regulations § 7150.5 — automated decision-making",
+            "  Required action: Implement opt-out mechanism before January 1, 2026",
+          ]}
+        />
         <ActiveClientLabel />
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 

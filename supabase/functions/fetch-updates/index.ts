@@ -45,6 +45,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'texasattorneygeneral.gov': ['texas'],
   'ag.ny.gov':              ['new-york'],
   'oag.dc.gov':             ['district-of-columbia'],
+  'coag.gov':               ['colorado'],
   // Other global authorities
   'gdprhub.eu':             [],
   'pdpc.gov.sg':            ['singapore'],
@@ -59,6 +60,7 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'euractiv.com':              ['eu'],
   'theregister.com':           ['united-kingdom'],
   'privacyinternational.org':  ['global'],
+  'gibsondunn.com':            ['eu', 'united-kingdom'],
   'twobirds.com':              ['eu', 'united-kingdom'],
   'edri.org':                  ['eu'],
   'openrightsgroup.org':       ['united-kingdom'],
@@ -75,7 +77,30 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'aoshearman.com':            ['global'],
   'freshfields.com':           ['global'],
   'hsfnotes.com':              ['global'],
+  'insideprivacy.com':         ['us-federal', 'eu', 'united-kingdom'],
 };
+
+// Domains that are official DPA or government regulatory sources.
+// Articles from these domains with Binding/Enforcement legal weight
+// are dual-written to enforcement_actions.
+const DPA_OFFICIAL_DOMAINS = new Set([
+  "edpb.europa.eu", "cnil.fr", "ico.org.uk", "bfdi.bund.de",
+  "garanteprivacy.it", "aepd.es", "autoriteitpersoonsgegevens.nl",
+  "datatilsynet.dk", "datatilsynet.no", "imy.se", "cnpd.public.lu",
+  "dataprotection.ie", "dpc.ie", "ftc.gov", "consumerfinance.gov",
+  "cppa.ca.gov", "texasattorneygeneral.gov", "coag.gov", "portal.ct.gov",
+  "oaic.gov.au", "pdpc.gov.sg", "priv.gc.ca", "uodo.gov.pl",
+  "gdprhub.eu", "noyb.eu",
+]);
+
+// Compute a stable etid for an article URL (matches ingest-gov-enforcement pattern).
+async function computeEtid(url: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(url);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
 
 const extractDomain = (url: string): string => {
   try {
@@ -85,8 +110,25 @@ const extractDomain = (url: string): string => {
   }
 };
 
+// NOTE: Source list audited 2026-05-18, updated 2026-05-19.
+// Sources removed because the publisher retired RSS or hard-blocks bot traffic
+// (404 / 403 / Cloudflare) and there is no current working replacement via RSS:
+//   BfDI, BSI Germany, APD Belgium, AEPD, Hamburg DPA, UOOU Czech, Statewatch,
+//   PCPD Hong Kong, ENISA, EUR-Lex (RSSF014 retired), Council of Europe, FCC,
+//   Norton Rose Data Protection Report, Linklaters Data Protected (static guide, not a blog),
+//   Hogan Lovells, Baker McKenzie, Clifford Chance, Freshfields, HSF Data Notes,
+//   Dentons, Greenberg Traurig, Lawfare.
+// NOTE: Covington Inside Privacy restored 2026-05-19 (insideprivacy.com/feed confirmed working).
+// NOTE: EU Parliament replaced with top-stories XML feed (correct replacement).
+// NOTE: The following DPAs have no RSS but are now ingested via ingest-gov-enforcement
+//       scraping: OAIC, Datatilsynet DK, Datatilsynet NO, PDPC Singapore, OPC Canada,
+//       Texas AG, Colorado AG, HHS OCR.
+// NOTE: Bird & Bird, Hogan Lovells, Baker McKenzie, Clifford Chance, Freshfields, HSF,
+//       Dentons, and Greenberg Traurig are covered via JD Supra (already in feed) which
+//       syndicates content from all of these firms.
+// If any removed publishers re-expose an RSS endpoint, re-add here.
 const RSS_SOURCES = [
-  // ── EU & UK ────────────────────────────────────────────────────────
+  // ── EU & UK Regulators / Policy ───────────────────────────────────
   {
     url: "https://www.edpb.europa.eu/feed/news_en",
     source: "EDPB",
@@ -95,69 +137,54 @@ const RSS_SOURCES = [
     regulator: "European Data Protection Board",
   },
   {
-    url: "https://www.huntonprivacyblog.com/feed/",
-    source: "Hunton Privacy Blog",
-    domain: "hunton.com",
-    defaultCategory: "us-federal",
-    regulator: "Hunton Andrews Kurth",
-  },
-  {
     url: "https://www.cnil.fr/en/rss.xml",
     source: "CNIL",
     domain: "cnil.fr",
     defaultCategory: "eu-uk",
     regulator: "Commission Nationale de l'Informatique et des Libertés",
   },
-  // ── U.S. Federal ──────────────────────────────────────────────────
   {
-    url: "https://www.ftc.gov/feeds/press-release.xml",
-    source: "FTC",
-    domain: "ftc.gov",
-    defaultCategory: "us-federal",
-    regulator: "Federal Trade Commission",
-  },
-  {
-    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
-    source: "NIST",
-    domain: "nist.gov",
-    defaultCategory: "us-federal",
-    regulator: "NIST",
-  },
-  // ── Global / Industry ─────────────────────────────────────────────
-  {
-    url: "https://iapp.org/feeds/daily_dashboard/",
-    source: "IAPP",
-    domain: "iapp.org",
-    defaultCategory: "global",
-    regulator: "International Association of Privacy Professionals",
-  },
-  {
-    url: "https://fpf.org/feed/",
-    source: "FPF",
-    domain: "fpf.org",
-    defaultCategory: "global",
-    regulator: "Future of Privacy Forum",
-  },
-  // ── Litigation / Courts ──────────────────────────────────────────────
-  // Law360 Privacy & Reuters Legal removed: feeds are paywalled / auth-only.
-  {
-    url: "https://www.jdsupra.com/topics/privacy-concerns/feed/",
-    source: "JD Supra Privacy",
-    domain: "jdsupra.com",
-    defaultCategory: "global",
-    regulator: "JD Supra",
-  },
-  // ── Additional regulatory sources ────────────────────────────────────
-  // ICO, DPC Ireland, and EDPS public RSS feeds have been retired by the
-  // publishers — leaving them in the source list only produced 404s.
-
-  // ── EU Civil Society, Policy & Legal Analysis (Batch 1) ─────────────
-  {
-    url: "https://noyb.eu/en/rss.xml",
-    source: "noyb",
-    domain: "noyb.eu",
+    url: "https://www.autoriteitpersoonsgegevens.nl/en/rss",
+    source: "Dutch AP",
+    domain: "autoriteitpersoonsgegevens.nl",
     defaultCategory: "eu-uk",
-    regulator: "noyb - European Centre for Digital Rights",
+    regulator: "Autoriteit Persoonsgegevens",
+  },
+  {
+    url: "https://www.garanteprivacy.it/web/guest/home/docweb/-/docweb-display/docweb/rss",
+    source: "Garante",
+    domain: "garanteprivacy.it",
+    defaultCategory: "eu-uk",
+    regulator: "Garante per la protezione dei dati personali",
+  },
+  {
+    url: "https://www.imy.se/en/news/rss",
+    source: "IMY Sweden",
+    domain: "imy.se",
+    defaultCategory: "eu-uk",
+    regulator: "Integritetsskyddsmyndigheten (Swedish DPA)",
+  },
+  {
+    url: "https://cnpd.public.lu/fr/rss/actualites.rss",
+    source: "CNPD Luxembourg",
+    domain: "cnpd.public.lu",
+    defaultCategory: "eu-uk",
+    regulator: "Commission nationale pour la protection des données (Luxembourg DPA)",
+    language: "fr",
+  },
+  {
+    url: "https://www.europarl.europa.eu/rss/doc/top-stories/en.xml",
+    source: "EU Parliament",
+    domain: "europarl.europa.eu",
+    defaultCategory: "eu-uk",
+    regulator: "European Parliament",
+  },
+  {
+    url: "https://www.politico.eu/category/tech/feed/",
+    source: "Politico EU Tech",
+    domain: "politico.eu",
+    defaultCategory: "eu-uk",
+    regulator: "Politico Europe",
   },
   {
     url: "https://www.out-law.com/feeds/out-law_roundup.aspx",
@@ -166,7 +193,6 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "Pinsent Masons LLP",
   },
-  // Euractiv Digital removed: publisher blocks RSS endpoints with Cloudflare 403.
   {
     url: "https://www.theregister.com/security/headlines.atom",
     source: "The Register",
@@ -174,19 +200,14 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "The Register",
   },
+
+  // ── EU Civil Society ─────────────────────────────────────────────
   {
-    url: "https://privacyinternational.org/rss.xml",
-    source: "Privacy International",
-    domain: "privacyinternational.org",
-    defaultCategory: "global",
-    regulator: "Privacy International",
-  },
-  {
-    url: "https://www.twobirds.com/rss/insights-privacy.rss",
-    source: "Bird & Bird Privacy",
-    domain: "twobirds.com",
+    url: "https://noyb.eu/en/rss.xml",
+    source: "noyb",
+    domain: "noyb.eu",
     defaultCategory: "eu-uk",
-    regulator: "Bird & Bird LLP",
+    regulator: "noyb - European Centre for Digital Rights",
   },
   {
     url: "https://edri.org/feed/",
@@ -203,134 +224,6 @@ const RSS_SOURCES = [
     regulator: "Open Rights Group",
   },
   {
-    url: "https://www.politico.eu/category/tech/feed/",
-    source: "Politico EU Tech",
-    domain: "politico.eu",
-    defaultCategory: "eu-uk",
-    regulator: "Politico Europe",
-  },
-
-  // ── EU DPA Official Feeds (Non-English — auto-translated, Batch 2) ──
-  {
-    url: "https://www.bfdi.bund.de/SiteGlobals/Functions/RSSFeed/RSSNewsfeed/RSSNewsfeed.xml",
-    source: "BfDI",
-    domain: "bfdi.bund.de",
-    defaultCategory: "eu-uk",
-    regulator: "Federal Commissioner for Data Protection (Germany)",
-    language: "de",
-  },
-  {
-    url: "https://www.autoriteitpersoonsgegevens.nl/nl/rss",
-    source: "AP Netherlands",
-    domain: "autoriteitpersoonsgegevens.nl",
-    defaultCategory: "eu-uk",
-    regulator: "Autoriteit Persoonsgegevens (Dutch DPA)",
-    language: "nl",
-  },
-  {
-    url: "https://www.aepd.es/rss/novedades",
-    source: "AEPD",
-    domain: "aepd.es",
-    defaultCategory: "eu-uk",
-    regulator: "Agencia Española de Protección de Datos (Spanish DPA)",
-    language: "es",
-  },
-  {
-    url: "https://www.dataprotectionauthority.be/rss",
-    source: "APD Belgium",
-    domain: "dataprotectionauthority.be",
-    defaultCategory: "eu-uk",
-    regulator: "Autorité de protection des données (Belgian DPA)",
-    language: "fr",
-  },
-  {
-    url: "https://cnpd.public.lu/fr/rss/actualites.rss",
-    source: "CNPD Luxembourg",
-    domain: "cnpd.public.lu",
-    defaultCategory: "eu-uk",
-    regulator: "Commission nationale pour la protection des données (Luxembourg DPA)",
-    language: "fr",
-  },
-  {
-    url: "https://www.datatilsynet.dk/rss/nyheder",
-    source: "Datatilsynet Denmark",
-    domain: "datatilsynet.dk",
-    defaultCategory: "eu-uk",
-    regulator: "Datatilsynet (Danish DPA)",
-    language: "da",
-  },
-
-  // ── EU Civil Society — English (Batch 3) ────────────────────────────
-  {
-    url: "https://statewatch.org/feed/",
-    source: "Statewatch",
-    domain: "statewatch.org",
-    defaultCategory: "eu-uk",
-    regulator: "Statewatch",
-  },
-
-  // ── Additional Law Firm Blogs (English, Batch 3) ────────────────────
-  {
-    url: "https://www.cms.law/en/int/service-area/technology-media-telecommunications/cybersecurity-data-protection/rss",
-    source: "CMS Law Privacy",
-    domain: "cms.law",
-    defaultCategory: "global",
-    regulator: "CMS Law",
-  },
-  {
-    url: "https://www.cliffordchance.com/insights/resources/blogs/data-and-privacy/rss.xml",
-    source: "Clifford Chance Privacy",
-    domain: "cliffordchance.com",
-    defaultCategory: "global",
-    regulator: "Clifford Chance LLP",
-  },
-  {
-    url: "https://www.aoshearman.com/en/insights/data-tech-cyber/rss",
-    source: "A&O Shearman Privacy",
-    domain: "aoshearman.com",
-    defaultCategory: "global",
-    regulator: "A&O Shearman LLP",
-  },
-  {
-    url: "https://www.freshfields.com/en/our-thinking/practice-areas/data-and-technology/rss",
-    source: "Freshfields Privacy",
-    domain: "freshfields.com",
-    defaultCategory: "global",
-    regulator: "Freshfields Bruckhaus Deringer LLP",
-  },
-  {
-    url: "https://hsfnotes.com/data/feed/",
-    source: "HSF Data Notes",
-    domain: "hsfnotes.com",
-    defaultCategory: "global",
-    regulator: "Herbert Smith Freehills LLP",
-  },
-
-  // ── Additional EU DPA & Civil Society (auto-translated, Batch 3) ────
-  {
-    url: "https://www.bsi.bund.de/SiteGlobals/Functions/RSSFeed/RSSNewsfeed/RSSNewsfeed.xml",
-    source: "BSI Germany",
-    domain: "bsi.bund.de",
-    defaultCategory: "eu-uk",
-    regulator: "Bundesamt für Sicherheit in der Informationstechnik (Germany)",
-    language: "de",
-  },
-  {
-    url: "https://www.imy.se/en/news/rss",
-    source: "IMY Sweden",
-    domain: "imy.se",
-    defaultCategory: "eu-uk",
-    regulator: "Integritetsskyddsmyndigheten (Swedish DPA)",
-  },
-  {
-    url: "https://www.uoou.cz/rss.php?rss=zpravy",
-    source: "UOOU Czech",
-    domain: "uoou.cz",
-    defaultCategory: "eu-uk",
-    regulator: "Úřad pro ochranu osobních údajů (Czech DPA)",
-    language: "cs",
-  },
-  {
     url: "https://www.bitsoffreedom.nl/feed/",
     source: "Bits of Freedom",
     domain: "bitsoffreedom.nl",
@@ -338,8 +231,161 @@ const RSS_SOURCES = [
     regulator: "Bits of Freedom",
     language: "nl",
   },
+  {
+    url: "https://privacyinternational.org/rss.xml",
+    source: "Privacy International",
+    domain: "privacyinternational.org",
+    defaultCategory: "global",
+    regulator: "Privacy International",
+  },
 
-  // ── AdTech & Advertising Privacy ─────────────────────────────────────
+  // ── U.S. Federal ──────────────────────────────────────────────────
+  {
+    url: "https://www.ftc.gov/feeds/press-release.xml",
+    source: "FTC",
+    domain: "ftc.gov",
+    defaultCategory: "us-federal",
+    regulator: "Federal Trade Commission",
+  },
+  {
+    url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml",
+    source: "NIST",
+    domain: "nist.gov",
+    defaultCategory: "us-federal",
+    regulator: "NIST",
+  },
+  {
+    url: "https://www.consumerfinance.gov/about-us/newsroom/feed/",
+    source: "CFPB",
+    domain: "consumerfinance.gov",
+    defaultCategory: "us-federal",
+    regulator: "Consumer Financial Protection Bureau",
+  },
+  {
+    url: "https://www.hipaajournal.com/feed/",
+    source: "HIPAA Journal",
+    domain: "hipaajournal.com",
+    defaultCategory: "us-federal",
+    regulator: "HIPAA Journal",
+  },
+  {
+    url: "https://www.huntonprivacyblog.com/feed/",
+    source: "Hunton Privacy Blog",
+    domain: "hunton.com",
+    defaultCategory: "us-federal",
+    regulator: "Hunton Andrews Kurth",
+  },
+  {
+    url: "https://alstonprivacy.com/feed",
+    source: "Alston Privacy",
+    domain: "alstonprivacy.com",
+    defaultCategory: "us-federal",
+    regulator: "Alston & Bird LLP",
+  },
+  {
+    url: "https://www.wilmerhale.com/insights/blogs/wilmerhale-privacy-and-cybersecurity-law?format=rss",
+    source: "WilmerHale Privacy",
+    domain: "wilmerhale.com",
+    defaultCategory: "us-federal",
+    regulator: "WilmerHale LLP",
+  },
+  {
+    url: "https://epic.org/feed/",
+    source: "EPIC",
+    domain: "epic.org",
+    defaultCategory: "us-federal",
+    regulator: "Electronic Privacy Information Center",
+  },
+
+  // ── U.S. State Regulators ─────────────────────────────────────────
+  {
+    url: "https://cppa.ca.gov/feed.xml",
+    source: "CPPA",
+    domain: "cppa.ca.gov",
+    defaultCategory: "us-states",
+    regulator: "California Privacy Protection Agency",
+  },
+  {
+    url: "https://portal.ct.gov/AG/RSS/PressReleases",
+    source: "Connecticut AG",
+    domain: "portal.ct.gov",
+    defaultCategory: "us-states",
+    regulator: "Connecticut Attorney General",
+  },
+
+  // ── Global Law Firm / Industry Analysis ──────────────────────────
+  {
+    url: "https://iapp.org/feeds/daily_dashboard/",
+    source: "IAPP",
+    domain: "iapp.org",
+    defaultCategory: "global",
+    regulator: "International Association of Privacy Professionals",
+  },
+  {
+    url: "https://iapp.org/news/feed/",
+    source: "IAPP News",
+    domain: "iapp.org",
+    defaultCategory: "global",
+    regulator: "International Association of Privacy Professionals",
+  },
+  {
+    url: "https://fpf.org/feed/",
+    source: "FPF",
+    domain: "fpf.org",
+    defaultCategory: "global",
+    regulator: "Future of Privacy Forum",
+  },
+  {
+    url: "https://www.jdsupra.com/topics/privacy-concerns/feed/",
+    source: "JD Supra Privacy",
+    domain: "jdsupra.com",
+    defaultCategory: "global",
+    regulator: "JD Supra",
+  },
+  {
+    url: "https://datamatters.sidley.com/feed",
+    source: "Sidley Data Matters",
+    domain: "datamatters.sidley.com",
+    defaultCategory: "global",
+    regulator: "Sidley Austin LLP",
+  },
+  {
+    url: "https://privacymatters.dlapiper.com/feed/",
+    source: "DLA Piper Privacy Matters",
+    domain: "dlapiper.com",
+    defaultCategory: "global",
+    regulator: "DLA Piper LLP",
+  },
+  {
+    url: "https://www.insideprivacy.com/feed/",
+    source: "Covington Inside Privacy",
+    domain: "insideprivacy.com",
+    defaultCategory: "global",
+    regulator: "Covington & Burling LLP",
+  },
+  {
+    url: "https://www.aoshearman.com/en/insights/rss",
+    source: "A&O Shearman",
+    domain: "aoshearman.com",
+    defaultCategory: "global",
+    regulator: "A&O Shearman LLP",
+  },
+  {
+    url: "https://www.cms-lawnow.com/rss/data-protection-privacy",
+    source: "CMS Law-Now Privacy",
+    domain: "cms-lawnow.com",
+    defaultCategory: "global",
+    regulator: "CMS Law",
+  },
+  {
+    url: "https://gdprhub.eu/index.php?title=Special:RecentChanges&feed=rss",
+    source: "GDPRhub",
+    domain: "gdprhub.eu",
+    defaultCategory: "enforcement",
+    regulator: "GDPRhub (multi-DPA)",
+  },
+
+  // ── AdTech & Advertising Privacy ─────────────────────────────────
   {
     url: "https://www.adexchanger.com/feed/",
     source: "AdExchanger",
@@ -353,6 +399,13 @@ const RSS_SOURCES = [
     domain: "iabeurope.eu",
     defaultCategory: "adtech",
     regulator: "IAB Europe",
+  },
+  {
+    url: "https://www.iab.com/blog/feed/",
+    source: "IAB Blog",
+    domain: "iab.com",
+    defaultCategory: "adtech",
+    regulator: "Interactive Advertising Bureau",
   },
   {
     url: "https://www.nai.me/blog/feed/",
@@ -383,32 +436,11 @@ const RSS_SOURCES = [
     regulator: "Clearcode",
   },
   {
-    url: "https://www.thedrums.com/rss/",
-    source: "The Drum",
-    domain: "thedrum.com",
-    defaultCategory: "adtech",
-    regulator: "The Drum",
-  },
-  {
     url: "https://digiday.com/feed/",
     source: "Digiday",
     domain: "digiday.com",
     defaultCategory: "adtech",
     regulator: "Digiday",
-  },
-  {
-    url: "https://martechalliance.com/feed/",
-    source: "MarTech Alliance",
-    domain: "martechalliance.com",
-    defaultCategory: "adtech",
-    regulator: "MarTech Alliance",
-  },
-  {
-    url: "https://blog.iab.com/feed/",
-    source: "IAB Blog",
-    domain: "iab.com",
-    defaultCategory: "adtech",
-    regulator: "Interactive Advertising Bureau",
   },
   {
     url: "https://www.cpcstrategy.com/blog/feed/",
@@ -417,253 +449,12 @@ const RSS_SOURCES = [
     defaultCategory: "adtech",
     regulator: "Tinuiti",
   },
-  // ── EU Enforcement — Additional DPAs ─────────────────────────────────────────
   {
-    url: "https://gdprhub.eu/index.php?title=Special:RecentChanges&feed=rss",
-    source: "GDPRhub",
-    domain: "gdprhub.eu",
-    defaultCategory: "enforcement",
-    regulator: "GDPRhub (multi-DPA)",
-  },
-  {
-    url: "https://www.autoriteitpersoonsgegevens.nl/en/news.rss",
-    source: "Dutch AP",
-    domain: "autoriteitpersoonsgegevens.nl",
-    defaultCategory: "eu-uk",
-    regulator: "Autoriteit Persoonsgegevens",
-  },
-  {
-    url: "https://www.aepd.es/en/rss",
-    source: "AEPD",
-    domain: "aepd.es",
-    defaultCategory: "eu-uk",
-    regulator: "Agencia Española de Protección de Datos",
-  },
-  {
-    url: "https://datenschutz-hamburg.de/news.rss",
-    source: "Hamburg DPA",
-    domain: "datenschutz-hamburg.de",
-    defaultCategory: "eu-uk",
-    regulator: "Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit",
-  },
-  {
-    url: "https://www.bfdi.bund.de/SharedDocs/rss/RSS_Pressemitteilungen.xml",
-    source: "BfDI",
-    domain: "bfdi.bund.de",
-    defaultCategory: "eu-uk",
-    regulator: "Bundesbeauftragte für den Datenschutz und die Informationsfreiheit",
-  },
-  {
-    url: "https://www.garanteprivacy.it/web/guest/home/docweb/-/docweb-display/docweb/rss",
-    source: "Garante",
-    domain: "garanteprivacy.it",
-    defaultCategory: "eu-uk",
-    regulator: "Garante per la protezione dei dati personali",
-  },
-  // ── US State Regulators ───────────────────────────────────────────────────────
-  {
-    url: "https://cppa.ca.gov/rss/news.rss",
-    source: "CPPA",
-    domain: "cppa.ca.gov",
-    defaultCategory: "us-states",
-    regulator: "California Privacy Protection Agency",
-  },
-  {
-    url: "https://www.texasattorneygeneral.gov/consumer-protection/rss.xml",
-    source: "Texas AG",
-    domain: "texasattorneygeneral.gov",
-    defaultCategory: "us-states",
-    regulator: "Texas Attorney General",
-  },
-  {
-    url: "https://coag.gov/press-releases/feed/",
-    source: "Colorado AG",
-    domain: "coag.gov",
-    defaultCategory: "us-states",
-    regulator: "Colorado Attorney General",
-  },
-  {
-    url: "https://portal.ct.gov/AG/RSS/PressReleases",
-    source: "Connecticut AG",
-    domain: "portal.ct.gov",
-    defaultCategory: "us-states",
-    regulator: "Connecticut Attorney General",
-  },
-  {
-    url: "https://www.hhs.gov/rss/news.xml",
-    source: "HHS OCR",
-    domain: "hhs.gov",
-    defaultCategory: "us-federal",
-    regulator: "HHS Office for Civil Rights",
-  },
-  // ── Legal Analysis — Premium Sources ─────────────────────────────────────────
-  {
-    url: "https://www.dataprotectionreport.com/feed/",
-    source: "Fieldfisher Data Protection",
-    domain: "dataprotectionreport.com",
-    defaultCategory: "eu-uk",
-    regulator: "Fieldfisher LLP",
-  },
-  {
-    url: "https://www.linklaters.com/en/insights/blogs/data-protected/rss",
-    source: "Linklaters Data Protected",
-    domain: "linklaters.com",
-    defaultCategory: "eu-uk",
-    regulator: "Linklaters LLP",
-  },
-  {
-    url: "https://www.twobirds.com/en/insights/practice-areas/privacy-and-data-protection/rss",
-    source: "Bird & Bird Privacy",
-    domain: "twobirds.com",
-    defaultCategory: "global",
-    regulator: "Bird & Bird LLP",
-  },
-  {
-    url: "https://iapp.org/resources/topics/privacy-tracker/rss/",
-    source: "IAPP Privacy Tracker",
-    domain: "iapp.org",
-    defaultCategory: "global",
-    regulator: "International Association of Privacy Professionals",
-  },
-  {
-    url: "https://www.wilmerhale.com/en/insights/blogs/wilmerhale-privacy-and-cybersecurity-law/rss",
-    source: "WilmerHale Privacy",
-    domain: "wilmerhale.com",
-    defaultCategory: "us-federal",
-    regulator: "WilmerHale LLP",
-  },
-  // ── Legislative Tracking ──────────────────────────────────────────────────────
-  {
-    url: "https://eur-lex.europa.eu/RSSF/RSS014.xml",
-    source: "EUR-Lex",
-    domain: "eur-lex.europa.eu",
-    defaultCategory: "eu-uk",
-    regulator: "European Commission / EUR-Lex",
-  },
-  {
-    url: "https://www.coe.int/en/web/data-protection/rss",
-    source: "Council of Europe",
-    domain: "coe.int",
-    defaultCategory: "global",
-    regulator: "Council of Europe",
-  },
-
-  // ── Law Firm Blogs ───────────────────────────────────────────────
-  {
-    url: "https://www.insideprivacy.com/feed",
-    source: "Covington Inside Privacy",
-    domain: "insideprivacy.com",
-    defaultCategory: "global",
-    regulator: "Covington & Burling LLP",
-  },
-  {
-    url: "https://datamatters.sidley.com/feed",
-    source: "Sidley Data Matters",
-    domain: "datamatters.sidley.com",
-    defaultCategory: "global",
-    regulator: "Sidley Austin LLP",
-  },
-  {
-    url: "https://www.dlapiper.com/en/rss",
-    source: "DLA Piper Privacy Matters",
-    domain: "dlapiper.com",
-    defaultCategory: "global",
-    regulator: "DLA Piper LLP",
-  },
-  {
-    url: "https://gtlaw-dataprivacydish.com/feed",
-    source: "Greenberg Traurig Privacy Dish",
-    domain: "gtlaw-dataprivacydish.com",
-    defaultCategory: "us-states",
-    regulator: "Greenberg Traurig LLP",
-  },
-  {
-    url: "https://alstonprivacy.com/feed",
-    source: "Alston Privacy",
-    domain: "alstonprivacy.com",
-    defaultCategory: "us-federal",
-    regulator: "Alston & Bird LLP",
-  },
-  {
-    url: "https://www.privacyandcybersecuritylaw.com/feed",
-    source: "Dentons Privacy & Cyber",
-    domain: "privacyandcybersecuritylaw.com",
-    defaultCategory: "global",
-    regulator: "Dentons LLP",
-  },
-  {
-    url: "https://www.hoganlovells.com/en/news-and-insights/rss",
-    source: "Hogan Lovells",
-    domain: "hoganlovells.com",
-    defaultCategory: "global",
-    regulator: "Hogan Lovells LLP",
-  },
-  {
-    url: "https://www.bakermckenzie.com/en/rss",
-    source: "Baker McKenzie",
-    domain: "bakermckenzie.com",
-    defaultCategory: "global",
-    regulator: "Baker McKenzie LLP",
-  },
-
-  // ── APAC Regulators ─────────────────────────────────────────────
-  {
-    url: "https://www.oaic.gov.au/news/rss.xml",
-    source: "OAIC",
-    domain: "oaic.gov.au",
-    defaultCategory: "global",
-    regulator: "Office of the Australian Information Commissioner",
-  },
-  {
-    url: "https://www.pdpc.gov.sg/rss",
-    source: "PDPC Singapore",
-    domain: "pdpc.gov.sg",
-    defaultCategory: "global",
-    regulator: "Personal Data Protection Commission Singapore",
-  },
-  {
-    url: "https://www.priv.gc.ca/en/news/rss/",
-    source: "OPC Canada",
-    domain: "priv.gc.ca",
-    defaultCategory: "global",
-    regulator: "Office of the Privacy Commissioner of Canada",
-  },
-  {
-    url: "https://www.pcpd.org.hk/english/news_events/rss.xml",
-    source: "PCPD Hong Kong",
-    domain: "pcpd.org.hk",
-    defaultCategory: "global",
-    regulator: "Privacy Commissioner for Personal Data Hong Kong",
-  },
-
-  // ── Civil Society & Advocacy ─────────────────────────────────────
-  {
-    url: "https://epic.org/feed/",
-    source: "EPIC",
-    domain: "epic.org",
-    defaultCategory: "us-federal",
-    regulator: "Electronic Privacy Information Center",
-  },
-  {
-    url: "https://www.eff.org/rss/updates.xml",
-    source: "EFF",
-    domain: "eff.org",
-    defaultCategory: "global",
-    regulator: "Electronic Frontier Foundation",
-  },
-  {
-    url: "https://privacyinternational.org/rss",
-    source: "Privacy International",
-    domain: "privacyinternational.org",
-    defaultCategory: "global",
-    regulator: "Privacy International",
-  },
-  {
-    url: "https://www.accessnow.org/feed/",
-    source: "Access Now",
-    domain: "accessnow.org",
-    defaultCategory: "global",
-    regulator: "Access Now",
+    url: "https://www.martechalliance.com/stories?format=rss",
+    source: "MarTech Alliance",
+    domain: "martechalliance.com",
+    defaultCategory: "adtech",
+    regulator: "MarTech Alliance",
   },
 
   // ── AI Governance ────────────────────────────────────────────────
@@ -682,45 +473,20 @@ const RSS_SOURCES = [
     regulator: "AlgorithmWatch",
   },
 
-  // ── Healthcare & Financial ───────────────────────────────────────
+  // ── Global Civil Society & Policy ────────────────────────────────
   {
-    url: "https://www.hipaajournal.com/feed/",
-    source: "HIPAA Journal",
-    domain: "hipaajournal.com",
-    defaultCategory: "us-federal",
-    regulator: "HIPAA Journal",
-  },
-  {
-    url: "https://www.consumerfinance.gov/activity/blog/feed/",
-    source: "CFPB",
-    domain: "consumerfinance.gov",
-    defaultCategory: "us-federal",
-    regulator: "Consumer Financial Protection Bureau",
-  },
-
-  // ── EU Supplemental ──────────────────────────────────────────────
-  {
-    url: "https://www.enisa.europa.eu/news/rss-news",
-    source: "ENISA",
-    domain: "enisa.europa.eu",
-    defaultCategory: "eu-uk",
-    regulator: "EU Agency for Cybersecurity",
-  },
-  {
-    url: "https://www.datatilsynet.no/en/news/rss/",
-    source: "Datatilsynet Norway",
-    domain: "datatilsynet.no",
-    defaultCategory: "eu-uk",
-    regulator: "Datatilsynet (Norwegian DPA)",
-  },
-
-  // ── Policy & Legislative ─────────────────────────────────────────
-  {
-    url: "https://www.lawfareblog.com/rss.xml",
-    source: "Lawfare",
-    domain: "lawfareblog.com",
+    url: "https://www.eff.org/rss/updates.xml",
+    source: "EFF",
+    domain: "eff.org",
     defaultCategory: "global",
-    regulator: "Lawfare Institute",
+    regulator: "Electronic Frontier Foundation",
+  },
+  {
+    url: "https://www.accessnow.org/feed/",
+    source: "Access Now",
+    domain: "accessnow.org",
+    defaultCategory: "global",
+    regulator: "Access Now",
   },
   {
     url: "https://techpolicy.press/feed/",
@@ -728,20 +494,6 @@ const RSS_SOURCES = [
     domain: "techpolicy.press",
     defaultCategory: "global",
     regulator: "Tech Policy Press",
-  },
-  {
-    url: "https://www.europarl.europa.eu/rss/en/news.xml",
-    source: "EU Parliament",
-    domain: "europarl.europa.eu",
-    defaultCategory: "eu-uk",
-    regulator: "European Parliament",
-  },
-  {
-    url: "https://www.fcc.gov/news-events/rss",
-    source: "FCC",
-    domain: "fcc.gov",
-    defaultCategory: "us-federal",
-    regulator: "Federal Communications Commission",
   },
 ];
 
@@ -1047,9 +799,22 @@ const NON_EDITORIAL_PATTERNS = [
   /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
 ];
 
+// First-person "we updated our privacy policy" company announcements — pure noise.
+// Tight patterns: require possessive "our" or first-person verb so we don't catch
+// regulator pieces like "ICO updates UK GDPR guidance" or "FTC rule on privacy policies".
+const POLICY_UPDATE_NOTICE_PATTERNS = [
+  /\b(we|we[''']ve|we\s+have|we\s+are|we[''']re)\s+(updated|updating|revised|revising|changed|changing|made\s+changes\s+to)\s+(our|the)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\b(update|updates|changes|revision|amendment)s?\s+to\s+(our|the)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\b(our|the)\s+(new|updated|revised)\s+privacy\s+(policy|notice|statement)\b/i,
+  /\bnotice\s+of\s+(changes?|updates?|amendments?)\s+to\s+(our|the)?\s*privacy\s+(policy|notice|statement)\b/i,
+  /^\s*privacy\s+(policy|notice|statement)\s+(update|notice|change|revision)s?\s*$/i,
+];
+
 function isNonEditorial(title: string, description: string): boolean {
   const text = title + " " + (description || "");
-  return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
+  if (NON_EDITORIAL_PATTERNS.some(p => p.test(text))) return true;
+  if (POLICY_UPDATE_NOTICE_PATTERNS.some(p => p.test(text))) return true;
+  return false;
 }
 
 function isRelevant(title: string, description: string): boolean {
@@ -1182,8 +947,10 @@ async function generateContextualTeaser(
   try {
     const prompt = `Given this regulatory development: "${whyShort}"
 
-Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — mention the jurisdiction or regulator and the nature of the pattern (e.g. divergence from prior enforcement focus, confirmation of emerging trend, relevant precedent history).
-DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without a subscription.
+Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — name the specific jurisdiction or regulator and the nature of the insight (divergence from prior enforcement, confirmation of emerging trend, novel regulatory theory, relevant historical precedent).
+DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without subscribing.
+WRONG: "This development reveals an important pattern in EU enforcement practices that has significant implications for data processors."
+RIGHT: "The CNIL's position here diverges from both the EDPB and ICO, creating a jurisdiction-specific compliance gap for organisations operating across all three."
 Return only the sentence, no quotes, no preamble.`;
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1227,8 +994,8 @@ async function generateAISummary(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1300,
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
         system: `You are a privacy regulatory intelligence analyst processing articles for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
 
 Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation. Return {"skip": true} for non-privacy articles, or the full enrichment object for privacy articles.
@@ -1249,7 +1016,13 @@ Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysi
 Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
 Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
 Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
-Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.`,
+Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.
+
+VOICE:
+Write in direct, active voice. Lead with the compliance implication, not the regulatory action. The regulatory body or law is the cause — the reader's obligation or risk is the subject.
+WRONG: "The CNIL has issued guidance on session replay tools, requiring organisations to obtain consent."
+RIGHT: "Organisations using session replay tools on French websites now have a six-month compliance window following CNIL guidance published this week."
+Do not extrapolate beyond what the article text directly supports. If the article does not state a consequence, do not assert one.`,
         messages: [
           {
             role: "user",
@@ -1268,7 +1041,7 @@ STEP 2 — If relevant, return this JSON:
 {
   "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what's at stake for organizations subject to it. Designed to be read at a glance in a feed. No generic phrasing.",
 
-  "why_it_matters": "2 sentences. Must name the specific regulator AND jurisdiction AND explain the specific legal significance. No generic statements.",
+  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
 
   "related_signals": [
     {
@@ -1277,13 +1050,9 @@ STEP 2 — If relevant, return this JSON:
     }
   ],
 
-  "takeaways": [
-    "Specific factual point from this article — cite regulator or law name",
-    "Specific implication, deadline, or scope if present in the article",
-    "Specific type of organization affected and what they must review or do"
-  ],
+  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
 
-  "compliance_impact": "One sentence naming the specific organization type affected and the specific action required under the specific law. If no clear action exists, write: Monitor — no immediate compliance action required.",
+  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
 
   "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
 
@@ -1297,11 +1066,11 @@ STEP 2 — If relevant, return this JSON:
 
   "risk_level": "Low | Medium | High | Critical",
 
-  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea. Return [] if impact is narrowly jurisdictional. Be conservative."],
+  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return [] if impact is narrowly jurisdictional. Be conservative."],
 
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
 
-  "regulatory_theory": "The legal doctrine or principle underlying this development. Write one sentence in plain English naming the doctrine. Examples: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary analytics', 'Data minimisation enforcement against over-collection at point of collection'. If no clear legal doctrine applies, return null.",
+  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
 
   "action_items": [
     {
@@ -1350,7 +1119,9 @@ Generate 1–3 action_items entries. Do not generate an action_items entry that 
     // If the AI determined the article is not relevant, skip it
     if (parsed.skip === true) return null;
 
-    return parsed;
+    const v = validateAISummary(parsed, { fn: "fetch-updates", title });
+    if (!v.ok) return null;
+    return v.data;
   } catch (e) {
     console.error("AI summary generation failed:", e);
     return null;
@@ -1585,6 +1356,7 @@ Description: ${(description || "").substring(0, 1000)}`,
 }
 
 import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+import { validateAISummary } from "../_shared/ai-validation.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -1789,6 +1561,54 @@ Deno.serve(async (req) => {
         } else {
           results.inserted++;
           existingUrls.add(link);
+
+          // ── Dual-write to enforcement_actions for official DPA enforcement/binding articles ──
+          const articleDomain = extractDomain(row.url ?? "");
+          const isOfficialDPA = DPA_OFFICIAL_DOMAINS.has(articleDomain);
+          const isEnforcementWeight =
+            row.legal_weight === "Enforcement" || row.legal_weight === "Binding";
+
+          if (isOfficialDPA && isEnforcementWeight) {
+            try {
+              const etid = await computeEtid(row.url ?? "");
+
+              const jurisdictionSlugs: string[] =
+                DPA_SOURCE_JURISDICTIONS[articleDomain] ??
+                (Array.isArray(row.direct_jurisdictions) ? row.direct_jurisdictions : []);
+              const jurisdiction = jurisdictionSlugs[0] ?? "global";
+
+              const regulatorName =
+                row.source_name ?? source.regulator ?? articleDomain;
+
+              const { error: enfErr } = await supabase
+                .from("enforcement_actions")
+                .upsert({
+                  etid,
+                  regulator: regulatorName,
+                  jurisdiction,
+                  violation: row.title,
+                  decision_date: row.published_at
+                    ? new Date(row.published_at).toISOString().split("T")[0]
+                    : null,
+                  source_url: row.url,
+                  source_database: row.source_name ?? "RSS",
+                  subject: null,
+                  law: null,
+                  fine_amount: null,
+                  fine_eur: null,
+                  sector: null,
+                  enrichment_version: 0,
+                }, { onConflict: "etid", ignoreDuplicates: true });
+
+              if (enfErr) {
+                console.error("dual-write to enforcement_actions failed", row.url, enfErr.message);
+              } else {
+                console.log("dual-write to enforcement_actions succeeded", row.url);
+              }
+            } catch (enfDualErr) {
+              console.error("enforcement dual-write error", row.url, enfDualErr);
+            }
+          }
         }
 
         // Prevent Anthropic API rate limiting — small delay between AI calls

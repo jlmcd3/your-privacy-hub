@@ -9,13 +9,13 @@ import HomepageFeedSection from "@/components/home/HomepageFeedSection";
 import HomepageBriefSection from "@/components/home/HomepageBriefSection";
 import HomepageToolsSection from "@/components/home/HomepageToolsSection";
 import HomepagePricingStrip from "@/components/home/HomepagePricingStrip";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 
 const Index = () => (
   <div className="min-h-screen bg-paper">
     <Helmet>
       <title>Global Privacy Law, Tracked Daily | End User Privacy</title>
-      <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Annual Platform at ${PLATFORM_PRICING.standard()} — every assessment, notice, and document tool included. Intelligence Feed from ${INTELLIGENCE_PRICING.monthly()}.`} />
+      <meta name="description" content={`Privacy regulatory intelligence and compliance tooling. Intelligence from ${PRICING.intelligence.monthly.display}/month · Professional from ${PRICING.professional.base.display}/month + ${PRICING.professional.perClient.display}/client/year · Tools available standalone.`} />
     </Helmet>
 
     <Navbar />
@@ -29,8 +29,8 @@ const Index = () => (
       <HomepageBriefSection />
 
       <section className="max-w-4xl mx-auto px-6 py-10 border-t border-gray-100">
-        <p className="text-eyebrow text-slate-400 mb-3">How it fits together</p>
-        <h2 className="font-display text-2xl text-navy mb-8">
+        <p className="text-eyebrow !text-sm text-slate-400 mb-3">How it fits together</p>
+        <h2 className="text-section-h2 text-navy mb-8">
           From intelligence to action — in the same platform.
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

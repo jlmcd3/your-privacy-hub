@@ -61,25 +61,39 @@ async function generateSynthesis(
   pageSlug: string,
   articles: any[],
   model: string,
-): Promise<string> {
+): Promise<{ synthesis_text: string; headlines: Array<{ title: string; source_article_id: string | null; why_it_matters: string }> }> {
   const articleCount = articles.length;
   const digest = buildArticleDigest(articles);
 
-  const systemPrompt = `You are a senior privacy intelligence analyst writing for an
-audience of privacy professionals, DPOs, and compliance lawyers.
-Your job is to synthesise recent regulatory developments into
-concise, actionable intelligence.
+  // Pass an explicit id index so the model can attribute headlines back to article rows.
+  const idIndex = articles.map((a: any, i: number) => `[${i + 1}] id=${a.id}`).join("\n");
 
-RULES:
-1. Write 2–3 paragraphs only. No headings. No bullet points. No preamble.
-2. Be specific: name enforcement actions, cite regulatory guidance by
-   name, reference rulings. Never be vague.
-3. If there are no significant developments, write one paragraph noting
-   the absence of activity and what practitioners should monitor.
-4. Write directly to the practitioner using "you" and "your".
-5. Do not start with "In the last 30 days" or similar time phrases.
-   Start with the most important development or observation.
-6. Return only the synthesis text. Nothing else.`;
+  const systemPrompt = `You are a senior privacy regulatory analyst at a leading intelligence firm. You write tiered research topic intelligence for DPOs and privacy counsel.
+
+You will return STRICT JSON ONLY, with this exact shape:
+{
+  "headlines": [
+    { "ref": <number>, "title": <string>, "why_it_matters": <string> }
+  ],
+  "synthesis_text": <string>
+}
+
+HEADLINES (3–5 items):
+- Pick the 3–5 most consequential developments from the supplied articles, ordered by legal weight (binding enforcement > regulatory guidance > commentary).
+- "ref" MUST be the bracket number of the source article from the digest (e.g. 1, 2, 3).
+- "title" is a tight one-line headline (no more than ~110 characters). Do not copy the source headline verbatim if it is vague — rewrite for clarity. Name the regulator/jurisdiction where helpful.
+- "why_it_matters" is ONE sentence (max ~180 chars) explaining the compliance implication for the practitioner. Concrete, not generic.
+
+SYNTHESIS_TEXT (2–3 paragraphs, plain prose):
+1. No headings. No bullets. No preamble.
+2. LEGAL WEIGHT HIERARCHY: Lead with the highest-weight development. Never open with a law-firm blog when a regulatory decision is present.
+3. Be specific: name the regulator, the decision/guidance title, fines, and the precise compliance obligation it creates.
+4. SOURCE CALIBRATION: Direct declarative voice for official regulatory sources; attribution ("According to reported accounts...", "Coverage suggests...") for secondary sources.
+5. If there are no significant developments, write one paragraph naming exactly what to monitor and why.
+6. Write directly to the practitioner using "you" and "your".
+7. Do not start with "In the last 30 days" or similar time phrases.
+
+Return JSON only. No markdown fences. No commentary.`;
 
   const userPrompt = `Section: "${sectionHeading}" (on the ${pageSlug} research page)
 
@@ -87,8 +101,10 @@ Source articles from the last 30 days (${articleCount} articles):
 
 ${digest}
 
-Write a 2–3 paragraph synthesis of what changed in this area and what
-it means for compliance practitioners. Be specific. Be direct.`;
+Article id index (use these refs in headlines[].ref):
+${idIndex}
+
+Return the JSON object now.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -99,7 +115,7 @@ it means for compliance practitioners. Be specific. Be direct.`;
     },
     body: JSON.stringify({
       model,
-      max_tokens: 600,
+      max_tokens: 1600,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
@@ -107,7 +123,39 @@ it means for compliance practitioners. Be specific. Be direct.`;
 
   if (!response.ok) throw new Error(`Anthropic API error: ${response.status}`);
   const data = await response.json();
-  return data.content?.[0]?.text?.trim() ?? "";
+  const raw = (data.content?.[0]?.text ?? "").trim();
+
+  // Strip accidental code fences and parse.
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  let parsed: any = {};
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (_e) {
+    // Fallback: treat the whole response as prose; no headlines.
+    return { synthesis_text: raw, headlines: [] };
+  }
+
+  const headlines = Array.isArray(parsed.headlines)
+    ? parsed.headlines
+        .map((h: any) => {
+          const refIdx = Number(h?.ref);
+          const src = Number.isFinite(refIdx) && refIdx >= 1 && refIdx <= articles.length
+            ? articles[refIdx - 1]
+            : null;
+          return {
+            title: String(h?.title ?? "").trim(),
+            source_article_id: src?.id ?? null,
+            why_it_matters: String(h?.why_it_matters ?? "").trim(),
+          };
+        })
+        .filter((h: any) => h.title)
+        .slice(0, 5)
+    : [];
+
+  return {
+    synthesis_text: String(parsed.synthesis_text ?? "").trim(),
+    headlines,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -161,7 +209,7 @@ Deno.serve(async (req) => {
             filters.tags ?? [],
           );
 
-          const synthesisText = await generateSynthesis(
+          const { synthesis_text: synthesisText, headlines } = await generateSynthesis(
             section.section_heading,
             section.page_slug,
             articles,
@@ -176,6 +224,7 @@ Deno.serve(async (req) => {
             .from("research_syntheses")
             .update({
               synthesis_text: synthesisText,
+              headlines,
               article_ids_used: articles.map((a: any) => a.id),
               article_count: articles.length,
               generated_at: now.toISOString(),

@@ -104,9 +104,11 @@ export default {
         extrabold: "700",
         black: "800",
       },
+      // Restore industry-standard Tailwind sizes (previously bumped to 15/17).
+      // .text-body (16px) remains the semantic body utility; text-base also = 16px.
       fontSize: {
-        sm: ['15px', { lineHeight: '1.55' }],
-        base: ['17px', { lineHeight: '1.65' }],
+        sm: ['14px', { lineHeight: '1.55' }],
+        base: ['16px', { lineHeight: '1.65' }],
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -44,25 +44,25 @@ export default function BreachNotificationPage() {
             id: "gdpr",
             h2: "GDPR Breach Notification — Articles 33 and 34",
             synthesisKey: "breach__gdpr",
-            content: `<p>The GDPR established the benchmark for modern breach notification. Controllers must notify the supervisory authority <strong>within 72 hours</strong> of becoming aware of a breach unless it is unlikely to result in risk. Communication to data subjects is required when the breach is likely to result in a "high risk" to individuals' rights and freedoms. Processors must notify controllers without undue delay.</p>
-<p>Enforcement examples: <strong>British Airways</strong> — ICO fined £20M; <strong>Marriott</strong> — £18.4M for the Starwood breach; <strong>Meta/Facebook</strong> — DPC fined €265M for a scraping incident exposing 533M users' data.</p>`,
+            content: `<p>The <a href="https://gdpr-info.eu/art-33-gdpr/" target="_blank" rel="noopener noreferrer">GDPR</a> established the benchmark for modern breach notification. Controllers must notify the supervisory authority <strong>within 72 hours</strong> of becoming aware of a breach unless it is unlikely to result in risk. Communication to data subjects is required when the breach is likely to result in a "high risk" to individuals' rights and freedoms. Processors must notify controllers without undue delay.</p>
+<p>Enforcement examples: <strong>British Airways</strong> — <a href="/regulator/ico">ICO</a> fined £20M; <strong>Marriott</strong> — £18.4M for the Starwood breach; <strong>Meta/Facebook</strong> — <a href="/regulator/dpc">DPC</a> fined €265M for a scraping incident exposing 533M users' data.</p>`,
           },
           {
             id: "us-states",
             h2: "U.S. State Breach Notification Laws",
             synthesisKey: "breach__us_states",
-            content: `<p>All 50 U.S. states plus D.C. and U.S. territories have breach notification laws. Most require notification when there is unauthorized <strong>acquisition</strong> of personal information; California and Florida use a broader unauthorized <strong>access</strong> standard. Timing varies: most states require notification "without unreasonable delay"; Florida, Colorado and Washington require 30 days; Ohio and Wisconsin 45 days; Connecticut 60 days.</p>
-<p>Many states require simultaneous notification to the AG. California provides a private right of action with statutory damages of $100–$750 per consumer per incident under CCPA/CPRA for breaches resulting from failure to implement reasonable security.</p>`,
+            content: `<p>All 50 <a href="/us-state-privacy-laws">U.S. states</a> plus D.C. and U.S. territories have breach notification laws. Most require notification when there is unauthorized <strong>acquisition</strong> of personal information; California and Florida use a broader unauthorized <strong>access</strong> standard. Timing varies: most states require notification "without unreasonable delay"; Florida, Colorado and Washington require 30 days; Ohio and Wisconsin 45 days; Connecticut 60 days.</p>
+<p>Many states require simultaneous notification to the AG. California provides a private right of action with statutory damages of $100–$750 per consumer per incident under <a href="/us-state-privacy-laws">CCPA/CPRA</a> for breaches resulting from failure to implement reasonable security.</p>`,
           },
           {
             id: "sector",
             h2: "Sector-Specific U.S. Breach Requirements",
             synthesisKey: "breach__sector_specific",
             content: `<ul>
-<li><strong>HIPAA (Health)</strong> — covered entities must notify HHS, affected individuals, and media (for breaches of 500+) within 60 days.</li>
-<li><strong>GLBA / Interagency Guidance (Financial)</strong> — banking regulators require notification within 36 hours for incidents that could impact services.</li>
-<li><strong>SEC Rules (Public Companies)</strong> — material cybersecurity incidents must be disclosed in Form 8-K within 4 business days.</li>
-<li><strong>FTC Health Breach Notification Rule</strong> — non-HIPAA entities handling health data must notify FTC and affected individuals within 60 days.</li>
+<li><strong><a href="/us-federal-privacy-law">HIPAA</a> (Health)</strong> — covered entities must notify <a href="https://www.hhs.gov/ocr" target="_blank" rel="noopener noreferrer">HHS</a>, affected individuals, and media (for breaches of 500+) within 60 days.</li>
+<li><strong><a href="/us-federal-privacy-law">GLBA</a> / Interagency Guidance (Financial)</strong> — banking regulators require notification within 36 hours for incidents that could impact services.</li>
+<li><strong><a href="https://www.sec.gov/news/press-release/2023-139" target="_blank" rel="noopener noreferrer">SEC Rules</a> (Public Companies)</strong> — material cybersecurity incidents must be disclosed in Form 8-K within 4 business days.</li>
+<li><strong><a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer">FTC Health Breach Notification Rule</a></strong> — non-HIPAA entities handling health data must notify <a href="/regulator/ftc">FTC</a> and affected individuals within 60 days.</li>
 </ul>`,
           },
           {
@@ -70,13 +70,13 @@ export default function BreachNotificationPage() {
             h2: "International Breach Notification",
             synthesisKey: "breach__international",
             content: `<ul>
-<li><strong>UK GDPR</strong> — mirrors EU GDPR's 72-hour requirement.</li>
-<li><strong>Canada PIPEDA</strong> — notification required when breach creates a "real risk of significant harm".</li>
-<li><strong>Australia NDB Scheme</strong> — notification to OAIC for "eligible data breaches"; 30-day assessment period.</li>
-<li><strong>Brazil LGPD</strong> — notification to ANPD within a "reasonable time" (ANPD recommends 2 business days).</li>
-<li><strong>China PIPL</strong> — immediate notification to authorities and affected individuals.</li>
-<li><strong>India DPDP Act</strong> — notification to Data Protection Board "without delay".</li>
-<li><strong>Japan APPI</strong> — notification to PPC for breaches affecting 1,000+ individuals or sensitive data.</li>
+<li><strong><a href="/jurisdiction/united-kingdom">UK GDPR</a></strong> — mirrors EU GDPR's 72-hour requirement; enforced by the <a href="/regulator/ico">ICO</a>.</li>
+<li><strong><a href="/jurisdiction/canada">Canada PIPEDA</a></strong> — notification required when breach creates a "real risk of significant harm"; oversight by the <a href="/regulator/opc">OPC</a>.</li>
+<li><strong><a href="/jurisdiction/australia">Australia NDB Scheme</a></strong> — notification to <a href="/regulator/oaic">OAIC</a> for "eligible data breaches"; 30-day assessment period.</li>
+<li><strong><a href="/jurisdiction/brazil">Brazil LGPD</a></strong> — notification to <a href="/regulator/anpd">ANPD</a> within a "reasonable time" (ANPD recommends 2 business days).</li>
+<li><strong><a href="/jurisdiction/china">China PIPL</a></strong> — immediate notification to authorities (<a href="/regulator/cac">CAC</a>) and affected individuals.</li>
+<li><strong><a href="/jurisdiction/india">India DPDP Act</a></strong> — notification to Data Protection Board "without delay".</li>
+<li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — notification to <a href="/regulator/ppc">PPC</a> for breaches affecting 1,000+ individuals or sensitive data.</li>
 </ul>`,
           },
         ]}

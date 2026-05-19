@@ -1,3 +1,4 @@
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -188,7 +189,7 @@ const GovernanceAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Privacy Programme Assessment · ${pricing.price}
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Included with Annual Platform · $49 standalone →</a></>}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence subscribers 20% off · Professional 25% off →</a></>}
           </span>
           <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
@@ -203,8 +204,17 @@ const GovernanceAssessment = () => {
           <ToolTierNote />
         </div>
 
-
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <ToolOutputPreview
+          label="Sample Privacy Programme Assessment output"
+          lines={[
+            "OVERALL PROGRAMME MATURITY: Developing (Score: 62/100)",
+            "DOMAIN 1 — Data Inventory & Mapping: Partially Implemented",
+            "  Finding: No formal RoPA maintained. Article 30 GDPR requires written records.",
+            "  Regulatory reference: ICO enforcement action v. Clearview AI (2022) — £7.5M fine",
+            "DOMAIN 2 — Legal Basis Management: Requires Attention",
+          ]}
+        />
         <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.

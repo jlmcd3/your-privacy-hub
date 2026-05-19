@@ -14,7 +14,7 @@ import {
   AccountClientsSection,
   ComplianceDocumentsSection,
 } from "@/components/clients/AccountClientsSection";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -197,47 +197,47 @@ export default function Account() {
         {tier === "annual_founding" && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">
-              Compliance Platform — Annual (Founding Subscriber)
+              Professional — Annual (Founding Subscriber)
             </p>
             <p className="text-sm text-amber-700 font-semibold mt-1">
-              Rate locked for life
+              Founding discount locked for life
             </p>
             <p className="text-[12px] text-slate mt-1">
-              All compliance tools included. Full intelligence brief.
+              Client workspaces, 20% off every Smart Tool, 15% off every Convenience Tool, 1 free Convenience Tool run per client per month, and the full intelligence brief.
             </p>
           </div>
         )}
 
         {tier === "annual" && (
           <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">Compliance Platform — Annual</p>
+            <p className="font-bold text-navy text-[15px]">Professional — Annual</p>
             <p className="text-sm text-slate mt-1">
-              {PLATFORM_PRICING.standard()} · {PLATFORM_PRICING.standardMonthly()} equivalent
+              {PRICING.professional.annual.display}/yr · {PRICING.professional.perClient.display}/additional client
             </p>
             <p className="text-[12px] text-slate mt-1">
-              All compliance tools included. Full intelligence brief.
+              Client workspaces, 1 free Convenience Tool run per client per month, and the full intelligence brief.
             </p>
           </div>
         )}
 
         {tier === "monthly" && (
           <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">Intelligence Feed — Monthly</p>
+            <p className="font-bold text-navy text-[15px]">Intelligence — Monthly</p>
             <p className="text-sm text-teal-700 mt-1">
-              {INTELLIGENCE_PRICING.monthly()} · Cancel any time
+              {PRICING.intelligence.monthly.display}/month · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Intelligence brief, enforcement tracking, and reference content.
+              Intelligence brief, enforcement tracking, and reference content. Compliance tools sold separately at standalone rates.
             </p>
             <div className="mt-3 p-3 bg-card rounded-lg border border-teal-100">
               <p className="text-[12px] font-semibold text-navy">
-                Add compliance tools with Annual Platform
+                Add client workspaces with Professional
               </p>
               <p className="text-[11px] text-slate mb-2">
-                All tools included. {PLATFORM_PRICING.standard()}.
+                {PRICING.professional.annual.display}/yr · 1 free Convenience Tool run per client per month.
               </p>
               <Link to="/subscribe" className="text-[12px] font-bold text-navy underline">
-                Upgrade to Platform →
+                Upgrade to Professional →
               </Link>
             </div>
           </div>
@@ -306,12 +306,10 @@ export default function Account() {
               ⭐ Upgrade
             </div>
             <h3 className="font-display font-bold text-white text-[18px] mb-2">
-              Compliance Platform or Intelligence Feed
+              Professional or Intelligence
             </h3>
             <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">
-              Annual Platform at {PLATFORM_PRICING.standard()} — every assessment,
-              notice, and document tool included. Or Intelligence Feed at{" "}
-              {INTELLIGENCE_PRICING.monthly()}.
+              Professional from {PRICING.professional.annual.display}/yr — client workspaces and 1 free Convenience Tool run per client per month. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
             </p>
             <Link
               to="/subscribe"
@@ -329,7 +327,7 @@ export default function Account() {
               Client Workspaces
             </h2>
             <p className="text-sm text-slate mb-3 leading-relaxed">
-              Add additional client workspaces for {PLATFORM_PRICING.clientAddon()}. Each
+              Add additional client workspaces for {PRICING.professional.perClient.display}/client/year. Each
               workspace gets separate document storage and tool history.
             </p>
             <button
@@ -338,7 +336,7 @@ export default function Account() {
               disabled={addonBusy}
               className="text-sm font-semibold text-navy border border-navy px-4 py-2 rounded-lg hover:bg-navy/5 bg-transparent cursor-pointer disabled:opacity-50"
             >
-              {addonBusy ? "Opening checkout…" : `+ Add client workspace — ${PLATFORM_PRICING.clientAddon()}`}
+              {addonBusy ? "Opening checkout…" : `+ Add client workspace — ${PRICING.professional.perClient.display}/yr`}
             </button>
           </div>
         )}

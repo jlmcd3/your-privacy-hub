@@ -1,59 +1,99 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
+// Federal Register agency slugs. NOTE: there is no separate slug for
+// "HHS Office for Civil Rights" — the API only recognises the parent
+// "health-and-human-services-department". Using the wrong slug returns
+// HTTP 400 {"errors":{"agencies":"invalid value"}} and (because all
+// agencies were previously bundled into one request) wiped out the
+// entire run. We now query per-agency so a single bad slug only skips
+// that one agency.
 const AGENCIES = [
   "federal-trade-commission",
-  "hhs-office-for-civil-rights",
+  "health-and-human-services-department", // covers OCR / HIPAA
   "consumer-financial-protection-bureau",
   "national-institute-of-standards-and-technology",
   "federal-communications-commission",
 ];
 
-import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
+const TYPES = ["RULE", "PRORULE", "NOTICE"];
+
+async function fetchAgency(agencySlug: string, since: string) {
+  const url = new URL("https://www.federalregister.gov/api/v1/articles.json");
+  url.searchParams.append("conditions[agencies][]", agencySlug);
+  for (const t of TYPES) url.searchParams.append("conditions[type][]", t);
+  url.searchParams.set("conditions[publication_date][gte]", since);
+  url.searchParams.set("order", "newest");
+  url.searchParams.set("per_page", "20");
+
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(12000) });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`HTTP ${res.status} ${body.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  return json.results || [];
+}
 
 Deno.serve(async () => {
   const run = await startRun(supabase, "fetch-federal-register", { agencies: AGENCIES.length });
-  const results = { inserted: 0, skipped: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, fetched: 0, errors: [] as string[] };
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   try {
-    const agencyParams = AGENCIES.map(a => `conditions[agencies][]=${a}`).join("&");
-    const typeParams = ["RULE","PRORULE","NOTICE"].map(t => `conditions[type][]=${t}`).join("&");
-    const url = `https://www.federalregister.gov/api/v1/articles.json?${agencyParams}&${typeParams}&conditions[publication_date][gte]=${since}&order=newest&per_page=20`;
+    for (const agency of AGENCIES) {
+      let docs: any[] = [];
+      try {
+        docs = await fetchAgency(agency, since);
+      } catch (e: any) {
+        results.errors.push(`${agency}: ${e.message}`);
+        continue;
+      }
 
-    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
+      for (const doc of docs) {
+        results.fetched++;
+        const docUrl = doc.html_url || doc.pdf_url || "";
+        if (!docUrl) {
+          results.skipped++;
+          continue;
+        }
+        const legalWeight = doc.type === "Rule" || doc.type === "RULE" ? "Binding" : "Proposal";
+        const agencyName = doc.agencies?.[0]?.name || "Federal Agency";
 
-    for (const doc of (json.results || [])) {
-      const docUrl = doc.html_url || doc.pdf_url || "";
-      if (!docUrl) continue;
-      const legalWeight = doc.type === "RULE" ? "Binding" : "Proposal";
-      const agencyName = doc.agencies?.[0]?.name || "Federal Agency";
+        const { error } = await supabase.from("updates").upsert(
+          {
+            title: (doc.title || "Federal Register Notice").slice(0, 400),
+            summary: (doc.abstract || doc.excerpt || `${doc.type} published by ${agencyName}`).slice(0, 500),
+            url: docUrl,
+            source_name: "Federal Register",
+            source_domain: "federalregister.gov",
+            category: "us-federal",
+            topic_tags: ["us-rulemaking"],
+            regulator: agencyName,
+            published_at: doc.publication_date
+              ? new Date(doc.publication_date).toISOString()
+              : new Date().toISOString(),
+            is_premium: false,
+            ai_summary: { legal_weight: legalWeight, source_strength: "Primary regulator" },
+          },
+          { onConflict: "url", ignoreDuplicates: true },
+        );
 
-      const { error } = await supabase.from("updates").upsert({
-        title: (doc.title || "Federal Register Notice").slice(0, 400),
-        summary: (doc.abstract || doc.excerpt || `${doc.type} published by ${agencyName}`).slice(0, 500),
-        url: docUrl,
-        source_name: "Federal Register",
-        source_domain: "federalregister.gov",
-        category: "us-federal",
-        topic_tags: ["us-rulemaking"],
-        regulator: agencyName,
-        published_at: doc.publication_date ? new Date(doc.publication_date).toISOString() : new Date().toISOString(),
-        is_premium: false,
-        ai_summary: { legal_weight: legalWeight, source_strength: "Primary regulator" },
-      }, { onConflict: "url", ignoreDuplicates: true });
-
-      if (error) results.skipped++;
-      else results.inserted++;
+        if (error) {
+          results.skipped++;
+          results.errors.push(`upsert ${docUrl}: ${error.message}`);
+        } else {
+          results.inserted++;
+        }
+      }
     }
   } catch (e: any) {
-    results.errors.push(`FedReg: ${e.message}`);
+    results.errors.push(`FedReg fatal: ${e.message}`);
     await failRun(supabase, run, e, { inserted: results.inserted, skipped: results.skipped });
     return new Response(JSON.stringify(results), {
       status: 500,
@@ -64,7 +104,7 @@ Deno.serve(async () => {
   await finishRun(supabase, run, {
     inserted: results.inserted,
     skipped: results.skipped,
-    fetched: results.inserted + results.skipped,
+    fetched: results.fetched,
     metadata: { errors: results.errors },
   });
 

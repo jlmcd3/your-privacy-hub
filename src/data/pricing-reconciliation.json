@@ -1,108 +1,114 @@
 {
-  "generatedAt": "2026-05-09T08:36:39.615Z",
+  "generatedAt": "2026-05-18T19:08:33.616Z",
   "server_truth": {
     "tools": [
       {
         "key": "li_assessment",
         "name": "Legitimate Interest Assessment Tool",
-        "standalone_cents": 6900,
-        "subscriber_cents": 3500
+        "standalone_cents": 3000,
+        "subscriber_cents": 2300
       },
       {
         "key": "governance_assessment",
         "name": "Privacy Program Assessment Tool",
-        "standalone_cents": 4900,
-        "subscriber_cents": 2500
+        "standalone_cents": 5000,
+        "subscriber_cents": 3800
       },
       {
         "key": "dpia_framework",
         "name": "Impact Assessment Builder",
-        "standalone_cents": 9900,
-        "subscriber_cents": 4900
+        "standalone_cents": 4000,
+        "subscriber_cents": 3000
       },
       {
         "key": "dpa_generator",
         "name": "Your Custom DPA",
-        "standalone_cents": 4900,
-        "subscriber_cents": 0
+        "standalone_cents": 4000,
+        "subscriber_cents": 3000
       },
       {
         "key": "ir_playbook",
         "name": "Your Breach Response Playbook",
-        "standalone_cents": 3900,
-        "subscriber_cents": 0
+        "standalone_cents": 2000,
+        "subscriber_cents": 1500
       },
       {
         "key": "biometric_checker",
         "name": "Biometric Privacy Compliance Checker",
-        "standalone_cents": 4900,
-        "subscriber_cents": 0
+        "standalone_cents": 1000,
+        "subscriber_cents": 800
       },
       {
         "key": "ropa_initial",
         "name": "RoPA Builder — Initial Generation",
-        "standalone_cents": 7900,
-        "subscriber_cents": 3500
+        "standalone_cents": 4000,
+        "subscriber_cents": 3000
       },
       {
         "key": "ropa_refresh",
         "name": "RoPA Builder — Annual Refresh",
-        "standalone_cents": 3500,
-        "subscriber_cents": 1500
+        "standalone_cents": 4000,
+        "subscriber_cents": 3000
       },
       {
         "key": "us_notice_single",
         "name": "US Privacy Notice — Single State",
-        "standalone_cents": 2500,
-        "subscriber_cents": 1200
+        "standalone_cents": 3000,
+        "subscriber_cents": 2300
       },
       {
         "key": "us_notice_all_states",
         "name": "US Privacy Notice — All States Suite",
-        "standalone_cents": 5900,
-        "subscriber_cents": 2900
+        "standalone_cents": 3000,
+        "subscriber_cents": 2300
+      },
+      {
+        "key": "us_notice_refresh",
+        "name": "US Notice — Annual Refresh",
+        "standalone_cents": 3000,
+        "subscriber_cents": 2300
       },
       {
         "key": "eu_notice_single",
         "name": "EU & Global Notice — Single Framework",
-        "standalone_cents": 4500,
-        "subscriber_cents": 1900
+        "standalone_cents": 5000,
+        "subscriber_cents": 3800
       },
       {
         "key": "eu_notice_suite",
         "name": "EU Notice Suite — GDPR + UK GDPR + FADP",
-        "standalone_cents": 11900,
-        "subscriber_cents": 6500
+        "standalone_cents": 5000,
+        "subscriber_cents": 3800
       },
       {
         "key": "eu_notice_full_international",
         "name": "EU & Global Notice — Full International",
-        "standalone_cents": 22900,
-        "subscriber_cents": 9900
+        "standalone_cents": 5000,
+        "subscriber_cents": 3800
       },
       {
         "key": "eu_notice_refresh",
         "name": "EU & Global Notice — Annual Refresh",
-        "standalone_cents": 3500,
-        "subscriber_cents": 1900
+        "standalone_cents": 5000,
+        "subscriber_cents": 3800
       },
       {
         "key": "cppa_risk_assessment",
         "name": "CPPA Risk Assessment — Module 1",
-        "standalone_cents": 14900,
-        "subscriber_cents": 7900
+        "standalone_cents": 6000,
+        "subscriber_cents": 4500
       },
       {
         "key": "cppa_cybersecurity",
         "name": "CPPA Cybersecurity Readiness — Module 2",
-        "standalone_cents": 19900,
-        "subscriber_cents": 9900
+        "standalone_cents": 8000,
+        "subscriber_cents": 6000
       },
       {
         "key": "cppa_suite",
         "name": "CPPA Full Audit Suite",
-        "standalone_cents": 29900,
-        "subscriber_cents": 14900
+        "standalone_cents": 14000,
+        "subscriber_cents": 10500
       }
     ],
     "registration": {
@@ -128,13 +134,14 @@
   "rows": [
     {
       "product": "Legitimate Interest Assessment Tool",
-      "server_standalone": "$69",
-      "server_subscriber": "$35",
+      "server_standalone": "$30",
+      "server_subscriber": "$23",
       "ui_prices_seen": [
-        "$35",
-        "$49",
-        "$69",
-        "$99"
+        "$23",
+        "$24",
+        "$30",
+        "$32",
+        "$40"
       ],
       "standalone_match": true,
       "subscriber_match": true,
@@ -142,13 +149,16 @@
     },
     {
       "product": "Privacy Program Assessment Tool",
-      "server_standalone": "$49",
-      "server_subscriber": "$25",
+      "server_standalone": "$50",
+      "server_subscriber": "$38",
       "ui_prices_seen": [
-        "$25",
-        "$49",
-        "$69",
-        "$99"
+        "$23",
+        "$24",
+        "$30",
+        "$32",
+        "$38",
+        "$40",
+        "$50"
       ],
       "standalone_match": true,
       "subscriber_match": true,
@@ -156,11 +166,15 @@
     },
     {
       "product": "Impact Assessment Builder",
-      "server_standalone": "$99",
-      "server_subscriber": "$49",
+      "server_standalone": "$40",
+      "server_subscriber": "$30",
       "ui_prices_seen": [
-        "$49",
-        "$99"
+        "$15",
+        "$16",
+        "$20",
+        "$30",
+        "$32",
+        "$40"
       ],
       "standalone_match": true,
       "subscriber_match": true,
@@ -168,10 +182,17 @@
     },
     {
       "product": "Your Custom DPA",
-      "server_standalone": "$49",
-      "server_subscriber": "—",
+      "server_standalone": "$40",
+      "server_subscriber": "$30",
       "ui_prices_seen": [
-        "$49"
+        "$10",
+        "$15",
+        "$16",
+        "$20",
+        "$30",
+        "$32",
+        "$40",
+        "$8"
       ],
       "standalone_match": true,
       "subscriber_match": true,
@@ -179,140 +200,164 @@
     },
     {
       "product": "Your Breach Response Playbook",
-      "server_standalone": "$39",
-      "server_subscriber": "—",
+      "server_standalone": "$20",
+      "server_subscriber": "$15",
       "ui_prices_seen": [
-        "$49",
-        "$79"
+        "$10",
+        "$15",
+        "$16",
+        "$20",
+        "$30",
+        "$32",
+        "$40",
+        "$8"
       ],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true,
       "unmigrated": true
     },
     {
       "product": "Biometric Privacy Compliance Checker",
-      "server_standalone": "$49",
-      "server_subscriber": "—",
+      "server_standalone": "$10",
+      "server_subscriber": "$8",
       "ui_prices_seen": [],
       "standalone_match": false,
-      "subscriber_match": true,
-      "unmigrated": true
-    },
-    {
-      "product": "RoPA Builder — Initial Generation",
-      "server_standalone": "$79",
-      "server_subscriber": "$35",
-      "ui_prices_seen": [
-        "$119",
-        "$25",
-        "$45",
-        "$59",
-        "$79"
-      ],
-      "standalone_match": true,
       "subscriber_match": false,
       "unmigrated": true
     },
     {
+      "product": "RoPA Builder — Initial Generation",
+      "server_standalone": "$40",
+      "server_subscriber": "$30",
+      "ui_prices_seen": [
+        "$23",
+        "$24",
+        "$30",
+        "$32",
+        "$38",
+        "$40",
+        "$50"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true,
+      "unmigrated": true
+    },
+    {
       "product": "RoPA Builder — Annual Refresh",
-      "server_standalone": "$35",
-      "server_subscriber": "$15",
+      "server_standalone": "$40",
+      "server_subscriber": "$30",
       "ui_prices_seen": [
         "$149",
         "$15",
         "$35"
       ],
-      "standalone_match": true,
-      "subscriber_match": true,
+      "standalone_match": false,
+      "subscriber_match": false,
       "unmigrated": true
     },
     {
       "product": "US Privacy Notice — Single State",
-      "server_standalone": "$25",
-      "server_subscriber": "$12",
+      "server_standalone": "$30",
+      "server_subscriber": "$23",
       "ui_prices_seen": [
         "registry: $25",
         "registry sub: $12"
       ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "US Privacy Notice — All States Suite",
-      "server_standalone": "$59",
-      "server_subscriber": "$29",
+      "server_standalone": "$30",
+      "server_subscriber": "$23",
       "ui_prices_seen": [
         "registry: $59",
         "registry sub: $29"
       ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "standalone_match": false,
+      "subscriber_match": false
+    },
+    {
+      "product": "US Notice — Annual Refresh",
+      "server_standalone": "$30",
+      "server_subscriber": "$23",
+      "ui_prices_seen": [],
+      "standalone_match": false,
+      "subscriber_match": false,
+      "unmigrated": true
     },
     {
       "product": "EU & Global Notice — Single Framework",
-      "server_standalone": "$45",
-      "server_subscriber": "$19",
+      "server_standalone": "$50",
+      "server_subscriber": "$38",
       "ui_prices_seen": [
         "registry: $45",
         "registry sub: $19"
       ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
-      "server_standalone": "$119",
-      "server_subscriber": "$65",
+      "server_standalone": "$50",
+      "server_subscriber": "$38",
       "ui_prices_seen": [
         "registry: $119",
         "registry sub: $65"
       ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "EU & Global Notice — Full International",
-      "server_standalone": "$229",
-      "server_subscriber": "$99",
+      "server_standalone": "$50",
+      "server_subscriber": "$38",
       "ui_prices_seen": [
         "registry: $229",
         "registry sub: $99"
       ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "EU & Global Notice — Annual Refresh",
-      "server_standalone": "$35",
-      "server_subscriber": "$19",
+      "server_standalone": "$50",
+      "server_subscriber": "$38",
       "ui_prices_seen": [
         "registry: $35",
         "registry sub: $19"
       ],
-      "standalone_match": true,
-      "subscriber_match": true
+      "standalone_match": false,
+      "subscriber_match": false
     },
     {
       "product": "CPPA Risk Assessment — Module 1",
-      "server_standalone": "$149",
-      "server_subscriber": "$79",
+      "server_standalone": "$60",
+      "server_subscriber": "$45",
       "ui_prices_seen": [
-        "$199",
-        "$79",
-        "$99"
+        "$150",
+        "$35",
+        "$45",
+        "$48",
+        "$60",
+        "$64",
+        "$80"
       ],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true,
       "unmigrated": true
     },
     {
       "product": "CPPA Cybersecurity Readiness — Module 2",
-      "server_standalone": "$199",
-      "server_subscriber": "$99",
+      "server_standalone": "$80",
+      "server_subscriber": "$60",
       "ui_prices_seen": [
         "$100",
-        "$199",
-        "$99"
+        "$150",
+        "$35",
+        "$60",
+        "$64",
+        "$80"
       ],
       "standalone_match": true,
       "subscriber_match": true,
@@ -320,8 +365,8 @@
     },
     {
       "product": "CPPA Full Audit Suite",
-      "server_standalone": "$299",
-      "server_subscriber": "$149",
+      "server_standalone": "$140",
+      "server_subscriber": "$105",
       "ui_prices_seen": [],
       "standalone_match": false,
       "subscriber_match": false,
@@ -331,13 +376,7 @@
       "product": "Registration DIY — 1 jurisdiction",
       "server_standalone": "$59",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$59",
-        "$149",
-        "$275",
-        "$499",
-        "$399"
-      ],
+      "ui_prices_seen": [],
       "standalone_match": true,
       "subscriber_match": true
     },
@@ -345,11 +384,7 @@
       "product": "Registration DIY — up to 3 jurisdictions",
       "server_standalone": "$149",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$149",
-        "$275",
-        "$499"
-      ],
+      "ui_prices_seen": [],
       "standalone_match": true,
       "subscriber_match": true
     },
@@ -357,10 +392,7 @@
       "product": "Registration DIY — up to 7 jurisdictions",
       "server_standalone": "$275",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$275",
-        "$499"
-      ],
+      "ui_prices_seen": [],
       "standalone_match": true,
       "subscriber_match": true
     },
@@ -368,13 +400,7 @@
       "product": "Registration DIY — unlimited",
       "server_standalone": "$499",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$59",
-        "$149",
-        "$275",
-        "$499",
-        "$399"
-      ],
+      "ui_prices_seen": [],
       "standalone_match": true,
       "subscriber_match": true
     },
@@ -382,14 +408,7 @@
       "product": "Registration Counsel-Ready Pack",
       "server_standalone": "$399",
       "server_subscriber": "—",
-      "ui_prices_seen": [
-        "$59",
-        "$149",
-        "$275",
-        "$499",
-        "$399",
-        "$75"
-      ],
+      "ui_prices_seen": [],
       "standalone_match": true,
       "subscriber_match": true
     },
@@ -400,15 +419,89 @@
       "ui_prices_seen": [
         "$200",
         "$199",
-        "$79"
+        "$40",
+        "$38"
       ],
       "standalone_match": true,
       "subscriber_match": true
     }
   ],
-  "findings": [],
+  "findings": [
+    {
+      "severity": "high",
+      "product": "US Privacy Notice — Single State",
+      "issue": "Registry says $25 but server charges $30 standalone.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "US Privacy Notice — Single State",
+      "issue": "Registry says $12 but server charges $23 subscriber.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "US Privacy Notice — All States Suite",
+      "issue": "Registry says $59 but server charges $30 standalone.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "US Privacy Notice — All States Suite",
+      "issue": "Registry says $29 but server charges $23 subscriber.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU & Global Notice — Single Framework",
+      "issue": "Registry says $45 but server charges $50 standalone.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU & Global Notice — Single Framework",
+      "issue": "Registry says $19 but server charges $38 subscriber.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
+      "issue": "Registry says $119 but server charges $50 standalone.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
+      "issue": "Registry says $65 but server charges $38 subscriber.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU & Global Notice — Full International",
+      "issue": "Registry says $229 but server charges $50 standalone.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU & Global Notice — Full International",
+      "issue": "Registry says $99 but server charges $38 subscriber.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU & Global Notice — Annual Refresh",
+      "issue": "Registry says $35 but server charges $50 standalone.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "EU & Global Notice — Annual Refresh",
+      "issue": "Registry says $19 but server charges $38 subscriber.",
+      "ui_prices_seen": []
+    }
+  ],
   "summary": {
-    "products_checked": 23,
-    "mismatches": 0
+    "products_checked": 24,
+    "mismatches": 12
   }
 }

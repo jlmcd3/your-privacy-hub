@@ -432,7 +432,7 @@ const FullCard = ({
 
         {/* Article excerpt — first two lines of the source summary */}
         {item.summary && (
-          <p className="text-body text-gray-500 mt-1.5 line-clamp-2">
+          <p className="text-sm text-gray-500 leading-relaxed mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
         )}
@@ -443,7 +443,7 @@ const FullCard = ({
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
-            <p className="text-body mt-2" style={{ color: '#92400E' }}>
+            <p className="text-sm leading-relaxed mt-2" style={{ color: '#92400E' }}>
               <span className="font-semibold text-warn">Alert: </span>{firstSentence}
             </p>
           );
@@ -466,7 +466,7 @@ const FullCard = ({
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
-            <p className="text-body text-steel mt-2">
+            <p className="text-sm text-steel leading-relaxed mt-2">
               <span className="font-semibold">Context: </span>{why}
             </p>
           );
@@ -500,7 +500,7 @@ const FullCard = ({
           const toolCTA = getToolCTA(item);
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-body mt-2" style={{ color: '#78350F' }}>
+              <p className="text-sm leading-relaxed mt-2" style={{ color: '#78350F' }}>
                 <span className="font-semibold text-gold">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}

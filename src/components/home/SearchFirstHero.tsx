@@ -13,7 +13,7 @@ export default function SearchFirstHero() {
             <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-3">
               For privacy professionals and the privacy-conscious
             </p>
-            <h1 className="font-display font-bold text-white text-[28px] md:text-[36px] mb-3">
+            <h1 className="text-hero-h1 font-bold text-white mb-3">
               Global privacy law, tracked daily.
             </h1>
             <p className="text-blue-200/80 text-sm md:text-base mb-8">
@@ -73,8 +73,8 @@ export default function SearchFirstHero() {
 
             {/* Subtle pricing note */}
             <p className="text-white/40 text-meta mt-4 text-center lg:text-left">
-              Intelligence Feed from {INTELLIGENCE_PRICING.monthly()} ·
-              Compliance Platform {PLATFORM_PRICING.standard()} ·
+              Intelligence from $20/month ·
+              Professional from $35/month + $150/client/year ·
               Tools available standalone
             </p>
           </div>

@@ -189,7 +189,16 @@ serve(async (req) => {
     }
 
     const stripe = createStripeClient(env);
-    const stripePrice = await resolvePriceId(stripe, lookupKey!);
+    let stripePrice = await resolvePriceId(stripe, lookupKey!);
+    // Graceful fallback: founding price may not yet exist in Stripe.
+    // Fall back to the standard annual price so checkout doesn't 404.
+    if (!stripePrice && lookupKey === "intelligence_yearly_founding") {
+      console.warn("intelligence_yearly_founding not found in Stripe — falling back to intelligence_yearly");
+      lookupKey = "intelligence_yearly";
+      metadata.subscription_type = "annual";
+      delete (metadata as any).founding_subscriber;
+      stripePrice = await resolvePriceId(stripe, lookupKey);
+    }
     if (!stripePrice) {
       return new Response(JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }), {
         status: 404,
@@ -205,12 +214,22 @@ serve(async (req) => {
       : "/subscribe/success";
     const cancelPath = addon ? "/account" : tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
+    // v7: Intelligence monthly subscriptions get a 10-day free trial.
+    const isIntelligenceMonthly =
+      mode === "subscription" &&
+      (metadata.subscription_tier === "intelligence" && metadata.subscription_interval === "month");
+
     const session = await stripe.checkout.sessions.create({
       mode,
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       customer_email: user.email!,
       metadata,
-      ...(mode === "subscription" && { subscription_data: { metadata } }),
+      ...(mode === "subscription" && {
+        subscription_data: {
+          metadata: { ...metadata, ...(isIntelligenceMonthly && { plan: "intelligence", trial: "true" }) },
+          ...(isIntelligenceMonthly && { trial_period_days: 10 }),
+        },
+      }),
       ...(embedded
         ? {
             ui_mode: "embedded",

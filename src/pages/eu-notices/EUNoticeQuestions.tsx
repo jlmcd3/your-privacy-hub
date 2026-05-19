@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
+import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ export default function EUNoticeQuestions() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [frameworks, setFrameworks] = useState<EuFrameworkCode[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -99,13 +101,19 @@ export default function EUNoticeQuestions() {
   async function saveAnswer(q: Question, v: AnswerValue) {
     if (!sessionId) return;
     setAnswers((prev) => ({ ...prev, [q.key]: v }));
+    setSaving(true);
     const { error } = await supabase
       .from("eu_notice_answers")
       .upsert(
         { session_id: sessionId, question_key: q.key, answer_value: v as never, ropa_activity_id: null, updated_at: new Date().toISOString() },
         { onConflict: "session_id,question_key" },
       );
-    if (error) console.error("[EUNoticeQuestions] save error", error);
+    setSaving(false);
+    if (error) {
+      console.error("[EUNoticeQuestions] save error", error);
+      return;
+    }
+    setLastSavedAt(new Date());
   }
 
   function handleNext() {
@@ -146,7 +154,10 @@ export default function EUNoticeQuestions() {
       <div className="mb-4">
         <div className="flex justify-between text-xs text-muted-foreground mb-2">
           <span>Question {currentIndex + 1} of {visibleQuestions.length}</span>
-          <span>{progress}%</span>
+          <div className="flex items-center gap-3">
+            <AutosaveIndicator saving={saving} savedAt={lastSavedAt} />
+            <span>{progress}%</span>
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </div>

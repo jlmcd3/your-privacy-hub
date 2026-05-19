@@ -1,3 +1,4 @@
+import { ToolOutputPreview } from "@/components/ToolOutputPreview";
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -64,34 +65,45 @@ export default function BiometricChecker() {
     logToolAcknowledgment("biometric_checker", access.user?.id ?? null);
     // 1. Require login for everyone
     if (!access.user) { setAuthModalOpen(true); return; }
-    // 2. Subscribers run free
+    // 2. Subscribers with a free run this month — run free
     if (access.isPremium) { handleGenerate(); return; }
-    // 3. Free account holders pay $49 to run — embedded checkout
+    // 3. Otherwise charge per-use ($10 standalone, discounted for subscribers)
     setCheckoutOpen(true);
   };
 
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — Included with Annual Platform"
-      : "Analyse — $49";
+      ? "Analyse — free run / subscriber rate"
+      : "Analyse — $10";
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $49 standalone or included with Annual Platform." /></Helmet>
+        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $10 per use, 20–25% off for Intelligence and Professional subscribers." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <header className="mb-8">
           <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
-          <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $49 per assessment, or included with Annual Platform ($399/yr).</p>
+          <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $10 standalone, or $8 for Intelligence/Professional subscribers (20–25% off).</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           <ToolTierNote />
         </div>
-
+        {phase !== "result" && (
+          <ToolOutputPreview
+            label="Sample Biometric Compliance Check output"
+            lines={[
+              "ILLINOIS BIPA: HIGH RISK — Written consent required before collection",
+              "  BIPA §15(b): Informed written release required for each biometric identifier",
+              "  Enforcement: Rogers v. BNSF Railway (2023) — $228M jury verdict",
+              "GDPR Article 9: Special category data — explicit consent or Art. 9(2) exception",
+              "  Required: Data Protection Impact Assessment before deployment",
+            ]}
+          />
+        )}
 
         {phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
@@ -153,11 +165,11 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-meta text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Annual Platform subscribers receive this tool included at no additional charge.</p>
+                <p className="text-meta text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Intelligence subscribers get 20% off; Professional subscribers get 25% off and 1 free tool run/month.</p>
               ) : access.isPremium ? (
-                <p className="text-meta text-muted-foreground mb-3">Included with your Annual Platform subscription.</p>
+                <p className="text-meta text-muted-foreground mb-3">Subscriber discount applied — your assessment is discounted (20% Intelligence / 25% Professional). Paid tiers also receive 1 free tool run per month.</p>
               ) : (
-                <p className="text-meta text-muted-foreground mb-3">{`Analysis is $49 — or included with Annual Platform ($399/yr).`}</p>
+                <p className="text-meta text-muted-foreground mb-3">Analysis is $10 — Intelligence subscribers get 20% off, Professional get 25% off.</p>
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">

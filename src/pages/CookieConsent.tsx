@@ -45,17 +45,17 @@ export default function CookieConsentPage() {
             id: "us-tracking",
             h2: "U.S. Cookie and Online Tracking Consent Requirements",
             synthesisKey: "cookie__us_tracking",
-            content: `<p>While no federal U.S. law directly regulates cookies, several state privacy laws impose consent-like obligations for online tracking. <strong>California (<a href="https://cppa.ca.gov/regulations/" target="_blank" rel="noopener noreferrer">CPRA/CCPA</a>)</strong> requires opt-out mechanisms for "sale" or "sharing" of personal information through cookies. <strong>Colorado, Connecticut, Virginia, Oregon, and Texas</strong> require honoring universal opt-out signals such as <a href="https://globalprivacycontrol.org/" target="_blank" rel="noopener noreferrer">Global Privacy Control (GPC)</a>. The <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">California ADMT Rules</a> further extend obligations to AI-driven profiling enabled by cookie data.</p>`,
+            content: `<p>While no federal U.S. law directly regulates cookies, several state privacy laws impose consent-like obligations for online tracking. <strong>California (<a href="/us-state-privacy-laws">CPRA/CCPA</a>)</strong> requires opt-out mechanisms for "sale" or "sharing" of personal information through cookies, with the <a href="https://cppa.ca.gov/regulations/" target="_blank" rel="noopener noreferrer">CPPA's published regulations</a> setting the technical standard. <strong><a href="/us-state-privacy-laws">Colorado, Connecticut, Virginia, Oregon, and Texas</a></strong> require honoring universal opt-out signals such as <a href="https://globalprivacycontrol.org/" target="_blank" rel="noopener noreferrer">Global Privacy Control (GPC)</a>. The <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">California ADMT Rules</a> further extend obligations to AI-driven profiling enabled by cookie data.</p>`,
           },
           {
             id: "enforcement",
             h2: "Cookie Enforcement — DPA Actions and Fines",
             synthesisKey: "cookie__enforcement",
             content: `<ul>
-<li><strong><a href="https://www.cnil.fr/en" target="_blank" rel="noopener noreferrer">CNIL (France)</a></strong> — fined Google €150M and Facebook €60M (2022) for making cookie refusal harder than acceptance.</li>
-<li><strong><a href="https://www.dataprotectionauthority.be/" target="_blank" rel="noopener noreferrer">Belgian APD</a></strong> — fined IAB Europe €250K over the TCF framework's legal basis.</li>
-<li><strong><a href="https://ico.org.uk/" target="_blank" rel="noopener noreferrer">ICO (UK)</a></strong> — issued formal warnings to over 100 top UK websites about non-compliant banners.</li>
-<li><strong><a href="https://www.aepd.es/en" target="_blank" rel="noopener noreferrer">AEPD (Spain)</a></strong> — fined companies for pre-ticked consent boxes.</li>
+<li><strong><a href="/regulator/cnil">CNIL (France)</a></strong> — fined Google €150M and Facebook €60M (2022) for making cookie refusal harder than acceptance.</li>
+<li><strong><a href="/regulator/apdgba">Belgian APD</a></strong> — fined IAB Europe €250K over the TCF framework's legal basis.</li>
+<li><strong><a href="/regulator/ico">ICO (UK)</a></strong> — issued formal warnings to over 100 top <a href="/jurisdiction/united-kingdom">UK</a> websites about non-compliant banners.</li>
+<li><strong><a href="/regulator/aepd">AEPD (Spain)</a></strong> — fined companies for pre-ticked consent boxes.</li>
 </ul>`,
           },
         ]}

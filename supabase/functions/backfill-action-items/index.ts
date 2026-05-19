@@ -3,6 +3,7 @@
 // have an ai_summary but are missing one or more of these enrichment fields.
 // Paginated, safe to call repeatedly. Default 20 rows per call.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateActionItemsPatch } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -95,7 +96,7 @@ Article summary: ${(summary || "").slice(0, 800)}
 Return JSON:
 {
   "action_items": [
-    { "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose...'). NOT generic ('monitor', 'review').", "deadline": "YYYY-MM-DD or null", "severity": "high | medium | low" }
+    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose before enforcement begins'). NOT generic ('monitor', 'review').", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
   ],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
 }
@@ -112,18 +113,21 @@ Generate 1–3 action_items. If no specific named-law action applies, return [].
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return null;
     const parsed = JSON.parse(m[0]);
+    const v = validateActionItemsPatch(parsed, { fn: "backfill-action-items", title });
+    if (!v.ok) return null;
+    const data = v.data;
     const result: any = {};
-    if (Array.isArray(parsed.action_items)) {
-      result.action_items = parsed.action_items
+    if (Array.isArray(data.action_items)) {
+      result.action_items = (data.action_items as any[])
         .filter((a: any) => a && typeof a.action === "string" && a.action.trim())
         .slice(0, 3);
     }
     if (
-      typeof parsed.precedent_novelty === "string" &&
+      typeof data.precedent_novelty === "string" &&
       ["new_theory", "confirms_existing", "reverses_prior", "routine"]
-        .includes(parsed.precedent_novelty)
+        .includes(data.precedent_novelty)
     ) {
-      result.precedent_novelty = parsed.precedent_novelty;
+      result.precedent_novelty = data.precedent_novelty;
     }
     return result;
   } catch {
@@ -139,8 +143,10 @@ async function generateContextualTeaser(
     const prompt =
       `Given this regulatory development: "${whyShort}"
 
-Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — mention the jurisdiction or regulator and the nature of the pattern (e.g. divergence from prior enforcement focus, confirmation of emerging trend, relevant precedent history).
-DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without a subscription.
+Write ONE sentence (max 30 words) that describes the TYPE of contextual intelligence available — name the specific jurisdiction or regulator and the nature of the insight (divergence from prior enforcement, confirmation of emerging trend, novel regulatory theory, relevant historical precedent).
+DO NOT reveal the specific content. The reader should understand the insight is real and specific but not be able to act on it without subscribing.
+WRONG: "This development reveals an important pattern in EU enforcement practices that has significant implications for data processors."
+RIGHT: "The CNIL's position here diverges from both the EDPB and ICO, creating a jurisdiction-specific compliance gap for organisations operating across all three."
 Return only the sentence, no quotes, no preamble.`;
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

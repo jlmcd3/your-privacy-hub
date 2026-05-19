@@ -89,8 +89,8 @@ const Login = () => {
               '119 regulatory authorities monitored',
               '150+ jurisdictions covered',
               'Weekly digest — free',
-              `Personalized analysis for ${INTELLIGENCE_PRICING.monthly()}`,
-              `Compliance Platform with all tools — ${PLATFORM_PRICING.standard()}`,
+              `Intelligence from $20/month`,
+              `Professional from $35/month base + $150/client/year`,
             ].map(item => (
               <div key={item} className="flex items-center gap-3 text-blue-200 text-[14px]">
                 <span className="text-accent font-bold">✓</span>
