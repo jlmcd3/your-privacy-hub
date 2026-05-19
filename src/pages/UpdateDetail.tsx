@@ -31,11 +31,22 @@ interface ActionItem {
   role?: string;
   action?: string;
   timeframe?: string;
+  time_horizon?: "now" | "this_quarter" | "ongoing";
 }
 
 interface RelatedSignal {
   label?: string;
   kind?: string;
+  signal?: string;
+  jurisdiction?: string;
+  significance?: string;
+}
+
+interface ContextualRecord {
+  regulatory_theory?: string;
+  precedent_novelty?: string;
+  enforcement_pattern?: string;
+  key_cases?: string[];
 }
 
 interface Update {
@@ -55,9 +66,12 @@ interface Update {
   related_development: string | null;
   attention_level: string | null;
   affected_sectors: string[] | null;
-  action_items: ActionItem[] | null;
+  affected_entities: string[] | null;
+  action_items: (ActionItem | string)[] | null;
   related_signals: RelatedSignal[] | null;
   precedent_novelty: string | null;
+  contextual_record: ContextualRecord | null;
+  contextual_teaser: string | null;
 }
 
 interface RelatedUpdate {
