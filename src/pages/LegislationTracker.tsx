@@ -221,19 +221,19 @@ export default function LegislationTracker() {
           <div className="mt-14 pt-8 border-t border-fog space-y-10">
             <section id="us-federal" className="scroll-mt-24">
               <h2 className="font-display text-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__us_federal" />
+              <ResearchSynthesisBlock sectionKey="legislation__us_federal" compact />
             </section>
             <section id="us-states" className="scroll-mt-24">
               <h2 className="font-display text-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__us_states" />
+              <ResearchSynthesisBlock sectionKey="legislation__us_states" compact />
             </section>
             <section id="eu-uk" className="scroll-mt-24">
               <h2 className="font-display text-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__eu_uk" />
+              <ResearchSynthesisBlock sectionKey="legislation__eu_uk" compact />
             </section>
             <section id="global" className="scroll-mt-24">
               <h2 className="font-display text-navy mb-4 leading-tight">Global Privacy Legislation</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__global" />
+              <ResearchSynthesisBlock sectionKey="legislation__global" compact />
             </section>
           </div>
         </main>

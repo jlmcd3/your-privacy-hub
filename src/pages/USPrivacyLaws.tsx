@@ -293,7 +293,7 @@ const USPrivacyLaws = () => {
               </div>
             ))}
           </div>
-          <ResearchSynthesisBlock sectionKey="us_privacy__federal" />
+          <ResearchSynthesisBlock sectionKey="us_privacy__federal" compact />
         </div>
 
         {/* ── State Authority Directory ── */}
@@ -413,7 +413,7 @@ const USPrivacyLaws = () => {
               );
             })}
           </div>
-          <ResearchSynthesisBlock sectionKey="us_privacy__state_directory" />
+          <ResearchSynthesisBlock sectionKey="us_privacy__state_directory" compact />
         </div>
 
         {/* ── Recent Developments ── */}
