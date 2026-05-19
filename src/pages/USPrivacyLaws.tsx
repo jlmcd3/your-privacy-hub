@@ -230,7 +230,7 @@ const USPrivacyLaws = () => {
           onClick={() => scrollTo("recent-developments")}
           className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-sky/10 to-navy/5 border border-sky/30 hover:border-sky/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
         >
-          <span className="text-sm md:text-sm text-foreground font-bold">
+          <span className="text-sm md:text-sm text-navy font-bold">
             See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
           <span className="text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
@@ -247,10 +247,10 @@ const USPrivacyLaws = () => {
           id="federal-authorities"
           className="mb-12 scroll-mt-24"
         >
-          <h2 className="font-display text-foreground mb-2">
+          <h2 className="font-display text-navy mb-2">
             U.S. Federal Privacy Authorities
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-slate leading-relaxed mb-4">
             Federal regulators with privacy and data-protection enforcement authority
             across U.S. sectors. Each oversees a distinct slice of the privacy
             regulatory landscape.
@@ -301,18 +301,18 @@ const USPrivacyLaws = () => {
           id="authority-directory"
           className="mt-12 mb-10 scroll-mt-24"
         >
-          <h2 className="font-display text-foreground mb-2">
+          <h2 className="font-display text-navy mb-2">
             U.S. State Privacy Authority Directory
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-slate leading-relaxed mb-4">
             Browse the enforcement authorities responsible for privacy regulation in
             every U.S. state and Washington, D.C. Use the search and status filters
             below to find specific states, statutes, or agencies.
           </p>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
-            <span className="text-meta font-semibold tracking-wider uppercase text-muted-foreground">
+          <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-fog shadow-sm">
+            <span className="text-meta font-semibold tracking-wider uppercase text-slate">
               Status:
             </span>
             {["All", "Enacted", "Pending", "None"].map((f) => (
@@ -321,14 +321,14 @@ const USPrivacyLaws = () => {
                 onClick={() => setAuthStatusFilter(f)}
                 className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
                   authStatusFilter === f
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                    ? "bg-navy text-white border-navy"
+                    : "bg-card text-slate border-fog hover:bg-navy hover:text-white hover:border-navy"
                 }`}
               >
                 {f}
               </span>
             ))}
-            <span className="ml-auto text-meta text-muted-foreground">
+            <span className="ml-auto text-meta text-slate">
               {filteredAuthorities.length} results
             </span>
           </div>
@@ -430,7 +430,7 @@ const USPrivacyLaws = () => {
                 Live
               </span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+            <p className="text-sm text-slate leading-relaxed mb-2">
               Stay current with the latest federal and state privacy actions,
               rulemakings, and enforcement updates.
             </p>
