@@ -12,6 +12,7 @@ interface AnonymousUpdatesCardItem {
   source_name?: string | null;
   image_url?: string | null;
   why_it_matters_short?: string | null;
+  source_url?: string | null;
   ai_summary?: { why_it_matters_short?: string | null; urgency?: string | null; legal_weight?: string | null } | null;
 }
 
