@@ -33,6 +33,12 @@ export default function CookieConsentPage() {
           ],
         }}
         pageSynthesisKey="cookie__page"
+        topToolCta={{
+          toolName: "EU/Global Privacy Notice Builder",
+          toolDescription:
+            "Generate a GDPR-compliant privacy notice covering cookie consent, legal basis, and data subject rights.",
+          href: "/eu-notice-builder",
+        }}
         sections={[
           {
             id: "gdpr-eprivacy",
@@ -57,6 +63,12 @@ export default function CookieConsentPage() {
 <li><strong><a href="/regulator/ico">ICO (UK)</a></strong> — issued formal warnings to over 100 top <a href="/jurisdiction/united-kingdom">UK</a> websites about non-compliant banners.</li>
 <li><strong><a href="/regulator/aepd">AEPD (Spain)</a></strong> — fined companies for pre-ticked consent boxes.</li>
 </ul>`,
+            toolCta: {
+              toolName: "Governance Assessment",
+              toolDescription:
+                "Assess your cookie consent program against CNIL, ICO, and EDPB enforcement patterns.",
+              href: "/governance-assessment",
+            },
           },
         ]}
         relatedLinks={[
