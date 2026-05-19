@@ -224,10 +224,14 @@
 
 .text-nav {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.875rem;    /* 14px */
+  /* Fluid sizing so top-level nav items stay on a single line on smaller md viewports.
+     ~12px at 768px → 14px at ≥1200px. */
+  font-size: clamp(0.75rem, 0.45rem + 0.625vw, 0.875rem);
   font-weight: 500;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
+
 
 .text-label {
   font-family: 'DM Sans', system-ui, sans-serif;
