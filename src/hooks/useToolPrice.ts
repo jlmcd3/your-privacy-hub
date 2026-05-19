@@ -5,7 +5,6 @@ import {
   FOUNDING_PROMO,
   foundingPrice,
   isSmartTool,
-  isConvenienceTool,
   type ToolKey,
 } from "@/config/pricing";
 
