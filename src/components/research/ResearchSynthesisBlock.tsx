@@ -329,6 +329,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
         </>
       )}
     </div>
+    )}
     </>
   );
 }
