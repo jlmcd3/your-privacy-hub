@@ -21,7 +21,7 @@
     --accent-light: 36 57% 55%;    /* slightly lighter hover state */
     --cobalt: 221 84% 53%;         /* #2563EB — interactive elements, active sidebar items, inline links */
     --warn: 16 74% 52%;
-    --gold: 36 57% 47%;
+    /* --gold removed; use --accent (gold === accent #C8922A) */
 
     --background: 210 40% 94%;
     --foreground: 210 55% 13%;
