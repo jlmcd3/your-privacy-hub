@@ -309,7 +309,7 @@ export default function Account() {
               Professional or Intelligence
             </h3>
             <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">
-              Professional from {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr — client workspaces and 25% off every compliance tool. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
+              Professional from {PRICING.professional.annual.display}/yr — client workspaces and 1 free Convenience Tool run per client per month. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
             </p>
             <Link
               to="/subscribe"
