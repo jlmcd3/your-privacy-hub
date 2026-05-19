@@ -468,8 +468,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 The globe chose
               </div>
               <h3 className={compact
-                ? "font-display font-bold text-white text-sm mb-1"
-                : "font-display font-bold text-navy text-2xl mb-2"
+                ? "font-display text-white mb-1"
+                : "font-display text-navy mb-2"
               }>{picked.name}</h3>
 
               {!compact && (
