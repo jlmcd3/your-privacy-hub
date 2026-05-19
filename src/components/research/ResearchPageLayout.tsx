@@ -112,6 +112,9 @@ export function ResearchPageLayout({
           </details>
         )}
 
+        <h2 className="font-display text-navy mb-6 leading-tight">
+          Full Analysis
+        </h2>
         <div className="space-y-12">
           {sections.map((sec) => (
             <section key={sec.id} id={sec.id} className="scroll-mt-24">
