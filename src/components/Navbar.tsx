@@ -506,19 +506,13 @@ const Navbar = () => {
                 </Link>
               )}
               {(tier === "annual" || tier === "annual_founding") && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
-                  Platform
-                </span>
+                <span className="badge-platform">Platform</span>
               )}
               {tier === "monthly" && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
-                  Intelligence
-                </span>
+                <span className="badge-intelligence">Intelligence</span>
               )}
               {tier === "free" && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
-                  FREE PLAN
-                </span>
+                <span className="badge-free">Free Plan</span>
               )}
               <UserMenu onSignOut={handleSignOut} />
             </>
