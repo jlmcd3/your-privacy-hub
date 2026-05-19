@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ChevronRight } from "lucide-react";
 
 interface StatItem {
   value: string;
   label: string;
+}
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
 }
 
 interface ResearchPageHeaderProps {
@@ -13,6 +18,7 @@ interface ResearchPageHeaderProps {
   lastUpdated?: string;
   stats?: StatItem[];
   feedCategory?: string;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 export function ResearchPageHeader({
@@ -22,13 +28,46 @@ export function ResearchPageHeader({
   lastUpdated,
   stats,
   feedCategory,
+  breadcrumbs,
 }: ResearchPageHeaderProps) {
+  const crumbs: BreadcrumbItem[] =
+    breadcrumbs && breadcrumbs.length > 0
+      ? breadcrumbs
+      : [
+          { label: "Home", href: "/" },
+          { label: "Research", href: "/research" },
+          { label: eyebrow },
+        ];
+
   return (
     <div className="w-full" style={{ background: "hsl(var(--navy))", color: "white" }}>
       <div className="max-w-4xl mx-auto px-6 py-12">
+        <nav aria-label="Breadcrumb" className="mb-4">
+          <ol className="flex flex-wrap items-center gap-1.5 text-xs" style={{ color: "hsl(var(--sky))" }}>
+            {crumbs.map((c, i) => {
+              const isLast = i === crumbs.length - 1;
+              return (
+                <li key={i} className="flex items-center gap-1.5">
+                  {c.href && !isLast ? (
+                    <Link to={c.href} className="hover:underline no-underline" style={{ color: "hsl(var(--sky))" }}>
+                      {c.label}
+                    </Link>
+                  ) : (
+                    <span aria-current={isLast ? "page" : undefined} className={isLast ? "text-white" : ""}>
+                      {c.label}
+                    </span>
+                  )}
+                  {!isLast && <ChevronRight className="w-3 h-3 opacity-60" />}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+
         <p className="text-eyebrow mb-3" style={{ color: "hsl(var(--sky))" }}>
           {eyebrow}
         </p>
+
 
         <h1
           className="font-display text-white mb-4"
