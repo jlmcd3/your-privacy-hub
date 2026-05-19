@@ -1830,6 +1830,8 @@ export type Database = {
           client_matter: string | null
           client_name: string
           created_at: string | null
+          free_run_reset_date: string | null
+          free_run_used_this_month: boolean | null
           id: string
           updated_at: string | null
           user_id: string
@@ -1838,6 +1840,8 @@ export type Database = {
           client_matter?: string | null
           client_name: string
           created_at?: string | null
+          free_run_reset_date?: string | null
+          free_run_used_this_month?: boolean | null
           id?: string
           updated_at?: string | null
           user_id: string
@@ -1846,6 +1850,8 @@ export type Database = {
           client_matter?: string | null
           client_name?: string
           created_at?: string | null
+          free_run_reset_date?: string | null
+          free_run_used_this_month?: boolean | null
           id?: string
           updated_at?: string | null
           user_id?: string
@@ -1864,6 +1870,7 @@ export type Database = {
           digest_jurisdictions: string[] | null
           digest_topics: string[] | null
           founding_subscriber: boolean | null
+          founding_subscriber_set_at: string | null
           free_tool_run_reset_date: string | null
           free_tool_run_used_this_month: boolean | null
           id: string
@@ -1876,6 +1883,7 @@ export type Database = {
           payment_failed: boolean
           preferred_language: string
           primary_jurisdiction: string | null
+          professional_annual: boolean | null
           reports_reset_date: string | null
           role_confirmed_at: string | null
           sector: string | null
@@ -1902,6 +1910,7 @@ export type Database = {
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
           founding_subscriber?: boolean | null
+          founding_subscriber_set_at?: string | null
           free_tool_run_reset_date?: string | null
           free_tool_run_used_this_month?: boolean | null
           id: string
@@ -1914,6 +1923,7 @@ export type Database = {
           payment_failed?: boolean
           preferred_language?: string
           primary_jurisdiction?: string | null
+          professional_annual?: boolean | null
           reports_reset_date?: string | null
           role_confirmed_at?: string | null
           sector?: string | null
@@ -1940,6 +1950,7 @@ export type Database = {
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
           founding_subscriber?: boolean | null
+          founding_subscriber_set_at?: string | null
           free_tool_run_reset_date?: string | null
           free_tool_run_used_this_month?: boolean | null
           id?: string
@@ -1952,6 +1963,7 @@ export type Database = {
           payment_failed?: boolean
           preferred_language?: string
           primary_jurisdiction?: string | null
+          professional_annual?: boolean | null
           reports_reset_date?: string | null
           role_confirmed_at?: string | null
           sector?: string | null

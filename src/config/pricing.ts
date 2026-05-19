@@ -99,24 +99,39 @@ export const PRICING_REGISTRY = {
     productKey: "intelligence",
     productName: "Intelligence — Monthly",
     description:
-      "Monthly Intelligence subscription. Weekly Intelligence Brief, full enforcement archive, and watchlists. Compliance tools sold separately at standalone rates.",
-    amountCents: 2900,
+      "Monthly Intelligence subscription. Daily privacy intelligence feed, weekly Intelligence Brief, AI investigation prompts. Compliance tools sold separately at standalone rates.",
+    amountCents: 2000,
     currency: "usd",
-    displayPrice: "$29",
+    displayPrice: "$20",
     displaySuffix: "/month",
     recurringInterval: "month",
     active: true,
   },
+  intelligence_annual: {
+    kind: "subscription",
+    lookupKey: "intelligence_annual",
+    productKey: "intelligence",
+    productName: "Intelligence — Annual",
+    description:
+      "Annual Intelligence subscription. Save $40 — pay for 10 months, get 12.",
+    amountCents: 20000,
+    currency: "usd",
+    displayPrice: "$200",
+    displaySuffix: "/year",
+    recurringInterval: "year",
+    active: true,
+  },
+  // Legacy alias retained so existing edge functions / Stripe lookup keys keep resolving.
   intelligence_yearly: {
     kind: "subscription",
     lookupKey: "intelligence_yearly",
     productKey: "intelligence",
-    productName: "Platform — Annual",
+    productName: "Intelligence — Annual (legacy alias)",
     description:
-      "Annual Platform subscription. All compliance tools included. $33.25/mo equivalent.",
-    amountCents: 39900,
+      "Legacy lookup key. Mirrors intelligence_annual at the new $200/yr price.",
+    amountCents: 20000,
     currency: "usd",
-    displayPrice: "$399",
+    displayPrice: "$200",
     displaySuffix: "/year",
     recurringInterval: "year",
     active: true,
@@ -125,28 +140,71 @@ export const PRICING_REGISTRY = {
     kind: "subscription",
     lookupKey: "intelligence_yearly_founding",
     productKey: "intelligence",
-    productName: "Platform — Annual (Founding Rate)",
+    productName: "Intelligence — Annual (Founding alias)",
     description:
-      "Founding subscriber annual platform subscription. All compliance tools included free. First 500 subscribers only. $369/yr — $30.75/mo equivalent.",
-    amountCents: 36900,
+      "Retained for backwards-compatibility. Founding subscriber discount is now applied at tool checkout, not on the subscription.",
+    amountCents: 20000,
     currency: "usd",
-    displayPrice: "$369",
+    displayPrice: "$200",
     displaySuffix: "/year",
     recurringInterval: "year",
     active: false,
   },
+  professional_monthly: {
+    kind: "subscription",
+    lookupKey: "professional_monthly",
+    productKey: "professional",
+    productName: "Professional — Monthly",
+    description:
+      "Monthly Professional subscription. Everything in Intelligence plus 3 seats. Annual subscription required to activate client management.",
+    amountCents: 3000,
+    currency: "usd",
+    displayPrice: "$30",
+    displaySuffix: "/month",
+    recurringInterval: "month",
+    active: true,
+  },
+  professional_annual: {
+    kind: "subscription",
+    lookupKey: "professional_annual",
+    productKey: "professional",
+    productName: "Professional — Annual",
+    description:
+      "Annual Professional subscription. Save $60. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
+    amountCents: 30000,
+    currency: "usd",
+    displayPrice: "$300",
+    displaySuffix: "/year",
+    recurringInterval: "year",
+    active: true,
+  },
+  professional_client: {
+    kind: "addon",
+    lookupKey: "professional_client",
+    productKey: "professional",
+    productName: "Professional — Per-Client (Annual)",
+    description:
+      "Additional client workspace for Professional annual subscribers.",
+    amountCents: 15000,
+    currency: "usd",
+    displayPrice: "$150",
+    displaySuffix: "/client/year",
+    parentLookupKey: "professional_annual",
+    addonReason: "multi_client",
+    active: true,
+  },
   per_client_addon: {
     kind: "addon",
     lookupKey: "per_client_addon",
-    productKey: "intelligence",
-    productName: "Per-Client Add-On",
+    productKey: "professional",
+    productName: "Per-Client Add-On (legacy alias)",
     description:
-      "Additional client workspace for annual Platform subscribers. $199/yr per additional client. Annual Platform subscription required.",
-    amountCents: 19900,
+      "Legacy alias for professional_client. Annual Professional subscription required.",
+    amountCents: 15000,
     currency: "usd",
-    displayPrice: "$199",
-    displaySuffix: "/year per client",
-    parentLookupKey: "intelligence_yearly",
+    displayPrice: "$150",
+    displaySuffix: "/client/year",
+    parentLookupKey: "professional_annual",
     addonReason: "multi_client",
     active: true,
   },
@@ -805,11 +863,11 @@ export const INTELLIGENCE_PRICING = {
   yearlyShort: () => `${getPrice("intelligence_yearly").displayPrice}/yr`,
 } as const;
 
-/** Platform pricing helpers (annual subscriptions with tool access included). */
+/** Platform pricing helpers (annual subscriptions). */
 export const PLATFORM_PRICING = {
-  standard: () => formatPrice("intelligence_yearly"),                              // "$399/year"
-  standardMonthly: () => "$33.25/mo",
-  clientAddon: () => formatPrice("per_client_addon"),                              // "$199/year per client"
+  standard: () => formatPrice("professional_annual"),                              // "$300/year"
+  standardMonthly: () => formatPrice("professional_monthly"),                      // "$30/month"
+  clientAddon: () => formatPrice("professional_client"),                           // "$150/client/year"
 } as const;
 
 /** US Notice price helpers — derived from the registry, never hardcode. */
@@ -921,69 +979,175 @@ export const PRICING = {
       dollars: 20,
       cents: 2000,
       label: 'month',
-      stripePriceId: 'intelligence_monthly_v7',
+      stripePriceId: 'intelligence_monthly',
     },
     annual: {
-      display: '$180',
-      dollars: 180,
-      cents: 18000,
+      display: '$200',
+      dollars: 200,
+      cents: 20000,
       label: 'year',
-      savingDisplay: 'Save $60 — 3 months free',
-      stripePriceId: 'intelligence_annual_v7',
+      savingDisplay: 'Save $40 — pay for 10 months, get 12',
+      stripePriceId: 'intelligence_annual',
     },
     trialDays: 10,
-    freeToolRunsPerMonth: 1,
-    toolDiscount: 0.20,
+    freeToolRunsPerMonth: 0,
   },
   professional: {
-    base: {
-      display: '$35',
-      dollars: 35,
-      cents: 3500,
+    monthly: {
+      display: '$30',
+      dollars: 30,
+      cents: 3000,
       label: 'month',
-      stripePriceId: 'professional_monthly_v7',
+      stripePriceId: 'professional_monthly',
+    },
+    annual: {
+      display: '$300',
+      dollars: 300,
+      cents: 30000,
+      label: 'year',
+      savingDisplay: 'Save $60',
+      note: 'Annual subscription required to activate client management',
+      stripePriceId: 'professional_annual',
     },
     perClient: {
       display: '$150',
       dollars: 150,
       cents: 15000,
       label: 'client/year',
-      stripePriceId: 'professional_client_annual_v7',
+      stripePriceId: 'professional_client',
     },
-    freeToolRunsPerMonth: 1,
-    toolDiscount: 0.25,
+    // Legacy alias — some UI still reads `.base`.
+    base: {
+      display: '$30',
+      dollars: 30,
+      cents: 3000,
+      label: 'month',
+      stripePriceId: 'professional_monthly',
+    },
+    freeToolRunsPerMonth: 1, // annual only — see freeConvenienceRun.ts
     teamLoginsIncluded: 3,
     additionalLoginMonthly: 10,
   },
   tools: {
+    cppa_scope:   { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
+    biometric:    { name: 'Biometric Compliance Check',         dollars: 15, display: '$15',  stripePriceId: 'biometric_onetime' },
+    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 25, display: '$25',  stripePriceId: 'ir_playbook_onetime' },
+    lia:          { name: 'Legitimate Interest Assessment',     dollars: 35, display: '$35',  stripePriceId: 'lia_onetime' },
+    us_notice:    { name: 'US Privacy Notice Builder',          dollars: 25, display: '$25',  stripePriceId: 'us_notice_onetime' },
+    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 45, display: '$45',  stripePriceId: 'dpia_onetime' },
+    dpa:          { name: 'Custom DPA Generator',               dollars: 45, display: '$45',  stripePriceId: 'dpa_onetime' },
+    ropa:         { name: 'RoPA Builder',                       dollars: 40, display: '$40',  stripePriceId: 'ropa_onetime' },
+    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'eu_notice_onetime' },
+    registration: { name: 'Registration Filings',               dollars: 45, display: '$45',  stripePriceId: 'registration_onetime' },
+    governance:   { name: 'Privacy Program Assessment',         dollars: 55, display: '$55',  stripePriceId: 'governance_onetime' },
+    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_onetime' },
+    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_onetime' },
+
+    // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
-    biometric:    { name: 'Biometric Compliance Check',         dollars: 10, display: '$10',  stripePriceId: 'biometric_standalone_v2' },
-    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 20, display: '$20',  stripePriceId: 'ir_standalone_v2' },
-    lia:          { name: 'Legitimate Interest Assessment',     dollars: 30, display: '$30',  stripePriceId: 'li_standalone_v2' },
-    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 30, display: '$30',  stripePriceId: 'us_notice_v7_standalone' },
-    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 40, display: '$40',  stripePriceId: 'dpia_standalone_v2' },
-    dpa:          { name: 'Custom DPA Generator',               dollars: 40, display: '$40',  stripePriceId: 'dpa_standalone_v2' },
-    ropa:         { name: 'RoPA Builder',                       dollars: 40, display: '$40',  stripePriceId: 'ropa_initial_standalone' },
-    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'eu_notice_v7_standalone' },
-    registration: { name: 'Registration Filings',               dollars: 50, display: '$50',  stripePriceId: 'registration_v7_standalone' },
-    governance:   { name: 'Privacy Program Assessment',         dollars: 50, display: '$50',  stripePriceId: 'hc_standalone_v2' },
-    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 60, display: '$60',  stripePriceId: 'cppa_risk_standalone' },
-    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 80, display: '$80',  stripePriceId: 'cppa_cyber_standalone' },
+    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 25, display: '$25',  stripePriceId: 'ir_playbook_onetime' },
+    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 25, display: '$25',  stripePriceId: 'us_notice_onetime' },
+    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'eu_notice_onetime' },
+    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_onetime' },
+    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_onetime' },
   },
 } as const;
 
 export type ToolKey = keyof typeof PRICING.tools;
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
-export function getToolPrice(toolKey: ToolKey, tier: SubscriptionTier): number {
+/**
+ * v2 model: no permanent structural subscriber discount on tools.
+ * Returns the full standalone price for every tier. Founding subscriber
+ * discount is applied separately by `getEffectiveToolPrice` (see
+ * src/lib/foundingSubscriber.ts).
+ */
+export function getToolPrice(toolKey: ToolKey, _tier?: SubscriptionTier): number {
   const tool = PRICING.tools[toolKey];
-  if (tool.dollars === 0) return 0;
-  if (tier === 'intelligence') return Math.round(tool.dollars * (1 - PRICING.intelligence.toolDiscount));
-  if (tier === 'professional') return Math.round(tool.dollars * (1 - PRICING.professional.toolDiscount));
   return tool.dollars;
 }
 
-export function getToolPriceDisplay(toolKey: ToolKey, tier: SubscriptionTier): string {
-  const price = getToolPrice(toolKey, tier);
+export function getToolPriceDisplay(toolKey: ToolKey, _tier?: SubscriptionTier): string {
+  const price = getToolPrice(toolKey);
   return price === 0 ? 'Free' : `$${price}`;
+}
+
+// ── TOOL CLASSIFICATION ───────────────────────────────────────────────────
+
+/**
+ * SMART TOOLS — enforcement-calibrated, multi-stage reasoning against the
+ * enforcement corpus. Methodology reviewed by qualified privacy counsel.
+ * Cannot be replicated by prompting a general AI.
+ * Never eligible for free monthly runs.
+ */
+export const SMART_TOOL_KEYS = [
+  'governance',   // Privacy Program Assessment — 10-domain scoring
+  'lia',          // Legitimate Interest Assessment — 3-part enforcement test
+  'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
+  'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
+  'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
+  'dpa',          // DPA Generator — jurisdiction-specific enforcement calibration
+  'biometric',    // Biometric Check — BIPA calculator + enforcement patterns
+] as const;
+
+export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
+
+/**
+ * CONVENIENCE TOOLS — document generators. Valuable time-savers.
+ * Professional annual subscribers receive 1 free run per client per month.
+ */
+export const CONVENIENCE_TOOL_KEYS = [
+  'ir_playbook',  // IR Playbook — structured notification timelines
+  'us_notice',    // US Privacy Notice — state-specific generation
+  'eu_notice',    // EU/Global Notice — multi-jurisdiction generation
+  'ropa',         // RoPA Builder — Article 30 structured record
+  'registration', // Registration Filings — DPO/AI Act registration docs
+] as const;
+
+export type ConvenienceToolKey = typeof CONVENIENCE_TOOL_KEYS[number];
+
+/** Always free — CPPA Scope Checker */
+export const FREE_TOOL_KEYS = ['cppa_scope'] as const;
+
+// camelCase aliases for the same tool keys (so callers using either form work)
+const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','dpa','biometric']);
+const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','usNotice','euNotice','ropa','registration']);
+
+/** Returns true if the tool uses multi-stage enforcement-corpus reasoning */
+export function isSmartTool(toolKey: string): boolean {
+  return (SMART_TOOL_KEYS as readonly string[]).includes(toolKey) || SMART_TOOL_CAMEL.has(toolKey);
+}
+
+/** Returns true if the tool is eligible for the Professional free monthly run */
+export function isConvenienceTool(toolKey: string): boolean {
+  return (CONVENIENCE_TOOL_KEYS as readonly string[]).includes(toolKey) || CONVENIENCE_TOOL_CAMEL.has(toolKey);
+}
+
+// ── FOUNDING SUBSCRIBER PROMOTION ────────────────────────────────────────
+
+/**
+ * Subscribers who join before FOUNDING_PROMO_END_DATE receive a permanent
+ * discount on all tools. Tracked via the founding_subscriber flag in profiles.
+ * Discount applied in-app at checkout — no Stripe coupon needed.
+ */
+export const FOUNDING_PROMO = {
+  endDate:                    '2026-11-19',
+  smartToolDiscountPct:       0.20,
+  convenienceToolDiscountPct: 0.15,
+  label:                      'Founding Subscriber',
+  description:                'Permanent discount on all compliance tools.',
+} as const;
+
+/** Returns true if the founding subscriber window is still open */
+export function isPromoOpen(): boolean {
+  return new Date() <= new Date(FOUNDING_PROMO.endDate + 'T23:59:59Z');
+}
+
+/** Price in cents after founding subscriber discount */
+export function foundingPrice(amountCents: number, smartTool: boolean): number {
+  if (amountCents === 0) return 0;
+  const disc = smartTool
+    ? FOUNDING_PROMO.smartToolDiscountPct
+    : FOUNDING_PROMO.convenienceToolDiscountPct;
+  return Math.round(amountCents * (1 - disc));
 }
