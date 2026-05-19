@@ -5,7 +5,24 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-// v7 pricing strings are inlined below; per-tool tier prices reference PRICING in src/config/pricing.ts.
+import { isSmartTool, isConvenienceTool, isPromoOpen, FOUNDING_PROMO } from "@/config/pricing";
+
+// Map Tools-page slugs to PRICING tool keys so we can classify per card.
+const SLUG_TO_TOOL_KEY: Record<string, string> = {
+  healthcheck: "governance",
+  "li-assessment": "lia",
+  dpia: "dpia",
+  "biometric-checker": "biometric",
+  "dpa-generator": "dpa",
+  "ir-playbook": "ir_playbook",
+  "ropa-builder": "ropa",
+  "us-notices": "us_notice",
+  "eu-notices": "eu_notice",
+  "registration-manager": "registration",
+  "cppa-scope-checker": "cppa_scope",
+  "cppa-risk-assessment": "cppa_risk",
+  "cppa-cybersecurity": "cppa_cyber",
+};
 
 // ── Section types ─────────────────────────────────────────────────────────
 type ToolSection = "assessments" | "documents" | "cppa";
@@ -36,7 +53,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   assessments: {
     label: "Assessments",
     title: "Know where you stand against what regulators actually enforce",
-    note: "Included with Professional",
+    note: "Available individually at standalone prices",
     iconPath: "M4 3h10l3 3v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z M7 8h8 M7 11h6 M7 14h3",
     colors: {
       bg: "bg-blue-50",
@@ -52,7 +69,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   documents: {
     label: "Compliance documents",
     title: "Produce the documents tailored to your jurisdictions and stack",
-    note: "Included with Professional",
+    note: "Pro annual: 1 free Convenience Tool run/client/month",
     iconPath: "M5 3h8l4 4v10a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M13 3v4h4 M7 11h8 M7 14h6",
     colors: {
       bg: "bg-amber-50",
@@ -68,7 +85,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   cppa: {
     label: "CPPA Suite · California",
     title: "California audit deadline: December 31, 2027 — are you in scope?",
-    note: "Paid for all tiers · Professional subscriber rate",
+    note: "Per-use pricing for all tiers",
     iconPath: "M9 2L2 5v5c0 4 3 7 7 8 4-1 7-4 7-8V5L9 2z M6 9h6",
     colors: {
       bg: "bg-red-50",
@@ -147,8 +164,8 @@ const TOOLS: ToolDef[] = [
     name: "Privacy Programme Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
-    subscriberPrice: "Intelligence: $40 · Professional: $38",
-    standalonePrice: "$50",
+    subscriberPrice: "$55",
+    standalonePrice: "$55",
     freeBadge: "Quick scan free",
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
@@ -170,8 +187,8 @@ const TOOLS: ToolDef[] = [
     name: "Legitimate Interest Assessment",
     tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
     href: "/li-assessment",
-    subscriberPrice: "Intelligence: $24 · Professional: $23",
-    standalonePrice: "$30",
+    subscriberPrice: "$35",
+    standalonePrice: "$35",
     freeBadge: "Step 1 free",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
@@ -193,8 +210,8 @@ const TOOLS: ToolDef[] = [
     name: "Impact Assessment Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
     href: "/dpia-framework",
-    subscriberPrice: "Intelligence: $32 · Professional: $30",
-    standalonePrice: "$40",
+    subscriberPrice: "$45",
+    standalonePrice: "$45",
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
       "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis that template-based assessments most commonly omit. The prompts are specific to your processing type — AI systems, biometric data, profiling, and systematic monitoring each present distinct risk considerations.",
@@ -215,8 +232,8 @@ const TOOLS: ToolDef[] = [
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
-    subscriberPrice: "Intelligence: $8 · Professional: $8",
-    standalonePrice: "$10",
+    subscriberPrice: "$15",
+    standalonePrice: "$15",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks.",
       "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population.",
@@ -239,8 +256,8 @@ const TOOLS: ToolDef[] = [
     name: "DPA Generator",
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
-    subscriberPrice: "Intelligence: $32 · Professional: $30",
-    standalonePrice: "$40",
+    subscriberPrice: "$45",
+    standalonePrice: "$45",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
       "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is structured for legal review before execution.",
@@ -259,8 +276,8 @@ const TOOLS: ToolDef[] = [
     name: "Incident Response Playbook",
     tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
-    subscriberPrice: "Intelligence: $16 · Professional: $15",
-    standalonePrice: "$20",
+    subscriberPrice: "$25",
+    standalonePrice: "$25",
     freeBadge: "Deadline lookup free",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
@@ -280,7 +297,7 @@ const TOOLS: ToolDef[] = [
     name: "RoPA Builder (Article 30)",
     tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction.",
     href: "/ropa-builder",
-    subscriberPrice: "Intelligence: $32 · Professional: $30",
+    subscriberPrice: "$40",
     standalonePrice: "$40",
     body: [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
@@ -300,8 +317,8 @@ const TOOLS: ToolDef[] = [
     name: "U.S. Privacy Notice Builder",
     tagline: "State-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state privacy laws.",
     href: "/us-notices",
-    subscriberPrice: "Intelligence: $24 · Professional: $23",
-    standalonePrice: "$30",
+    subscriberPrice: "$25",
+    standalonePrice: "$25",
     body: [
       "US state privacy laws are not interchangeable. CCPA disclosure requirements differ from Virginia's, which differ from Colorado's, which differ again from the more recent state laws. A single 'US privacy notice' that does not surface those differences is itself a compliance risk — and increasingly, an enforcement one.",
       "The U.S. Privacy Notice Builder produces state-specific notices that include the disclosures each statute actually requires: categories of personal information, sources, purposes, sale and sharing disclosures, sensitive data handling, and consumer rights mechanisms. State-specific overlays are applied automatically based on the jurisdictions you select.",
@@ -319,7 +336,7 @@ const TOOLS: ToolDef[] = [
     name: "EU/UK Privacy Notice Builder",
     tagline: "GDPR & UK GDPR-aligned privacy notices with Article 13/14 disclosures and international transfer language.",
     href: "/eu-notices",
-    subscriberPrice: "Intelligence: $40 · Professional: $38",
+    subscriberPrice: "$50",
     standalonePrice: "$50",
     body: [
       "Article 13 and 14 set out what a GDPR-compliant notice must contain. The gap between meeting those requirements on paper and producing a notice that withstands scrutiny is, in practice, the gap between checkbox compliance and an accountability posture that holds up.",
@@ -338,9 +355,8 @@ const TOOLS: ToolDef[] = [
     name: "Registration Manager",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
     href: "/registration-manager",
-    subscriberPrice: "Intelligence: $40 · Professional: $38 (per filing)",
-    standalonePrice: "Free assessment · $50 per filing",
-    monthlySubscriberPrice: "Intelligence: 20% off · Professional: 25% off",
+    subscriberPrice: "$45 per filing",
+    standalonePrice: "$45 per filing",
     body: [
       "Most privacy programmes know they need to register a DPO somewhere. Far fewer have a current, jurisdiction-by-jurisdiction map of where formal registration with the supervisory authority is mandatory, where an EU/UK representative must be appointed, where the AI Act register applies, and when each filing must be renewed.",
       "The Registration Manager begins with a free assessment: organisation type, size, sectors, and the markets in which you operate. From that, it produces a recommended registration footprint across 50+ jurisdictions — flagging where DPO registration, controller registration, representative appointment, and AI Act notification are required, and on what timeline.",
@@ -383,12 +399,12 @@ const TOOLS: ToolDef[] = [
     name: "CPPA Risk Assessment",
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
-    subscriberPrice: "Intelligence: $48 · Professional: $45",
-    standalonePrice: "$60",
+    subscriberPrice: "$55",
+    standalonePrice: "$55",
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
-      "Per-use pricing applies to all users — $60 standalone. Intelligence subscribers pay $48 (20% off); Professional subscribers pay $45 (25% off). The output is structured for review by California privacy counsel before being relied upon.",
+      "Standalone per-use price: $55. The output is structured for review by California privacy counsel before being relied upon. Founding subscribers receive 20% off — see your account for details.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -403,12 +419,12 @@ const TOOLS: ToolDef[] = [
     name: "CPPA Cybersecurity Audit",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
-    subscriberPrice: "Intelligence: $64 · Professional: $60",
-    standalonePrice: "$80",
+    subscriberPrice: "$70",
+    standalonePrice: "$70",
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
-      "Per-use pricing applies to all users — $80 standalone. Intelligence subscribers pay $64 (20% off); Professional subscribers pay $60 (25% off). The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
+      "Standalone per-use price: $70. Founding subscribers receive 20% off — see your account for details. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -419,20 +435,20 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", "$50 · Intelligence $40 · Professional $38"],
-  ["Legitimate Interest Assessment", "$30 · Intelligence $24 · Professional $23"],
-  ["Impact Assessment (DPIA)", "$40 · Intelligence $32 · Professional $30"],
-  ["DPA Generator", "$40 · Intelligence $32 · Professional $30"],
-  ["Incident Response Playbook", "$20 · Intelligence $16 · Professional $15"],
-  ["Biometric Privacy Check", "$10 · Intelligence $8 · Professional $8"],
-  ["RoPA Builder", "$40 · Intelligence $32 · Professional $30"],
-  ["U.S. Privacy Notice", "$30 · Intelligence $24 · Professional $23"],
-  ["EU/UK Privacy Notice", "$50 · Intelligence $40 · Professional $38"],
-  ["Registration Manager", "Free assessment · $50/filing · 20–25% subscriber discount"],
+  ["Privacy Programme Assessment", "$55 (Smart)"],
+  ["Legitimate Interest Assessment", "$35 (Smart)"],
+  ["Impact Assessment (DPIA)", "$45 (Smart)"],
+  ["DPA Generator", "$45 (Smart)"],
+  ["Incident Response Playbook", "$25 (Convenience)"],
+  ["Biometric Privacy Check", "$15 (Smart)"],
+  ["RoPA Builder", "$40 (Convenience)"],
+  ["U.S. Privacy Notice", "$25 (Convenience)"],
+  ["EU/UK Privacy Notice", "$50 (Convenience)"],
+  ["Registration Manager", "$45 per filing (Convenience)"],
   ["CPPA Scope Checker", "Always free"],
-  ["CPPA Risk Assessment", "$60 · Intelligence $48 · Professional $45"],
-  ["CPPA Cybersecurity Audit", "$80 · Intelligence $64 · Professional $60"],
-  ["All subscribers", "1 free tool run per month included"],
+  ["CPPA Risk Assessment", "$55 (Smart)"],
+  ["CPPA Cybersecurity Audit", "$70 (Smart)"],
+  ["Professional annual", "1 free Convenience Tool run/client/month"],
 ];
 
 export default function Tools() {
@@ -450,7 +466,7 @@ export default function Tools() {
     <>
       <Helmet>
         <title>Compliance Tools — Enforcement-Calibrated Assessments & Documents | End User Privacy</title>
-        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Per-use pricing from $10. Intelligence ($20/mo) and Professional ($35/mo) subscribers get 20–25% off plus 1 free run/month." />
+        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $15. Founding subscribers receive permanent discounts on every tool." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
@@ -465,7 +481,7 @@ export default function Tools() {
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
-            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Pay per use, with 20% off for Intelligence subscribers ($20/mo) and 25% off for Professional ($35/mo) — plus 1 free tool run per month included.
+            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Founding subscribers receive permanent discounts on every tool.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
@@ -616,10 +632,10 @@ export default function Tools() {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
-            Per-use pricing. 20–25% off for subscribers. 1 free run per month.
+            Available individually at standalone prices.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
-            Every tool is pay-per-use. Intelligence subscribers ($20/mo) get 20% off plus one free tool run each month. Professional ($35/mo + $150/client/yr) gets 25% off plus the same monthly free run.
+            Every tool is pay-per-use. Founding subscribers receive permanent discounts on every tool — 20% off Smart Tools and 15% off Convenience Tools.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
@@ -633,7 +649,7 @@ export default function Tools() {
             Start 10-day Intelligence trial →
           </Link>
           <p className="text-blue-200/60 text-meta mt-4">
-            Intelligence $20/mo (10-day free trial) · Professional $35/mo + $150/client/yr · Cancel any time
+            Intelligence $20/mo (10-day free trial) · Professional $30/mo + $150/client/yr · Cancel any time
           </p>
         </div>
       </div>
