@@ -189,7 +189,16 @@ serve(async (req) => {
     }
 
     const stripe = createStripeClient(env);
-    const stripePrice = await resolvePriceId(stripe, lookupKey!);
+    let stripePrice = await resolvePriceId(stripe, lookupKey!);
+    // Graceful fallback: founding price may not yet exist in Stripe.
+    // Fall back to the standard annual price so checkout doesn't 404.
+    if (!stripePrice && lookupKey === "intelligence_yearly_founding") {
+      console.warn("intelligence_yearly_founding not found in Stripe — falling back to intelligence_yearly");
+      lookupKey = "intelligence_yearly";
+      metadata.subscription_type = "annual";
+      delete (metadata as any).founding_subscriber;
+      stripePrice = await resolvePriceId(stripe, lookupKey);
+    }
     if (!stripePrice) {
       return new Response(JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }), {
         status: 404,
