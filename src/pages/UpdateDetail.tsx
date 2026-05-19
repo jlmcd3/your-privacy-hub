@@ -78,6 +78,7 @@ interface RelatedUpdate {
   id: string;
   title: string;
   source_name: string | null;
+  source_url: string | null;
   published_at: string;
 }
 
