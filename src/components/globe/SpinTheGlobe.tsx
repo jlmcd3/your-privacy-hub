@@ -388,7 +388,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {!compact && (
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy mb-2">Feeling Curious?</h2>
+          <h2 className="font-display text-navy mb-2">Feeling Curious?</h2>
           <p className="text-slate text-sm max-w-md mx-auto">
             Spin the globe and discover a jurisdiction you may not have been tracking.
             Every country has a story.

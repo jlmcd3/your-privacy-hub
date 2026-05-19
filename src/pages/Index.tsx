@@ -36,7 +36,7 @@ const Index = () => (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div>
             <div className="text-2xl mb-2">📡</div>
-            <h3 className="font-semibold text-navy mb-1">Monitor</h3>
+            <h3 className="text-navy mb-1">Monitor</h3>
             <p className="text-sm text-gray-600">
               119 authorities tracked daily. Every enforcement action,
               regulatory guidance, and legislative development — enriched
@@ -45,7 +45,7 @@ const Index = () => (
           </div>
           <div>
             <div className="text-2xl mb-2">🧠</div>
-            <h3 className="font-semibold text-navy mb-1">Analyse</h3>
+            <h3 className="text-navy mb-1">Analyse</h3>
             <p className="text-sm text-gray-600">
               Your weekly Privacy Intelligence Report synthesises what
               matters for your role, jurisdiction, and industry. Not a
@@ -54,7 +54,7 @@ const Index = () => (
           </div>
           <div>
             <div className="text-2xl mb-2">⚖️</div>
-            <h3 className="font-semibold text-navy mb-1">Act</h3>
+            <h3 className="text-navy mb-1">Act</h3>
             <p className="text-sm text-gray-600">
               Run an LIA. Draft a DPA. Generate an IR playbook. Assess
               your CPPA readiness. Ten compliance tools included with

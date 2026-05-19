@@ -322,7 +322,7 @@ function ResultsPanel({
     const isGeoOut = q1 === "No";
     return (
       <div className="bg-card border rounded-lg p-8 space-y-4">
-        <h2 className="font-semibold">
+        <h2 className="">
           Based on your answers, CCPA/CPRA likely does not apply to you.
         </h2>
         {isGeoOut ? (
@@ -433,7 +433,7 @@ function ResultsPanel({
   return (
     <div className="space-y-6">
       <section className="border-l-4 border-emerald-500 bg-card border rounded-lg p-6">
-        <h2 className="font-semibold">
+        <h2 className="">
           CCPA/CPRA applies — or likely applies — to your business.
         </h2>
         {thresholdSummary && (
@@ -496,7 +496,7 @@ function ResultsPanel({
       </section>
 
       <section className="bg-card border rounded-lg p-6 space-y-3">
-        <h3 className="font-semibold">Next steps</h3>
+        <h3 className="">Next steps</h3>
         <div className="flex flex-wrap gap-3">
           {obligationMap.riskAssessmentRequired && (
             <Button onClick={() => navigate("/cppa-risk-assessment")}>

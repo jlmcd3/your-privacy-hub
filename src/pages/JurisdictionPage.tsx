@@ -568,7 +568,7 @@ const JurisdictionPage = () => {
         {!user && (
           <div className="mb-8 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-7 text-center">
             <div className="text-eyebrow text-sky mb-2">⭐ Intelligence</div>
-            <h3 className="text-lg text-white mb-3">
+            <h3 className="text-white mb-3">
               Monitor {jurisdiction.name} — get weekly intelligence alerts →
             </h3>
             <p className="text-sm text-slate-light mb-4 max-w-[500px] mx-auto">
@@ -619,7 +619,7 @@ const JurisdictionPage = () => {
                 </>
               ) : (
                 <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
-                  <h3 className="text-lg text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
+                  <h3 className="text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
                   <p className="text-sm text-slate leading-relaxed mb-4">
                     We haven't picked up jurisdiction-specific news in the last 90 days. This usually means the regulator hasn't
                     published high-profile actions recently — not that nothing is happening. Try the options below.
@@ -701,7 +701,7 @@ const JurisdictionPage = () => {
 
         {/* Related */}
         <div className="border-t border-fog pt-8 mb-8">
-          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(() => {
               const isEU = derivedCategory === "eu-uk";

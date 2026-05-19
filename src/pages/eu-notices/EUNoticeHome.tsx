@@ -203,7 +203,7 @@ export default function EUNoticeHome() {
           <CardContent className="p-5 md:p-6">
             <div className="flex items-center gap-2 mb-2">
               <Plus className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <h3 className="text-lg">Start a new notice</h3>
+              <h3 className="">Start a new notice</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Pick from 12 global frameworks. Single, EU Suite, or Full International.
@@ -220,7 +220,7 @@ export default function EUNoticeHome() {
           <CardContent className="p-5 md:p-6">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <h3 className="text-lg">Your generated notices</h3>
+              <h3 className="">Your generated notices</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               View, download, and embed every notice you've generated.
@@ -238,7 +238,7 @@ export default function EUNoticeHome() {
       {sessions.length > 0 && (
         <Card>
           <CardContent className="p-4 md:p-6">
-            <h2 className="font-serif text-lg mb-4">All notice projects</h2>
+            <h2 className="font-serif mb-4">All notice projects</h2>
             <ul className="divide-y">
               {sessions.map((s) => {
                 const status = STATUS_LABELS[s.status] ?? { label: s.status, tone: "outline" as const };

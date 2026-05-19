@@ -113,7 +113,7 @@ export default function DPAGenerator() {
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
         <header className="mb-8">
-          <h1 className="font-display font-extrabold text-navy mb-2">Your Custom DPA</h1>
+          <h1 className="font-display text-navy mb-2">Your Custom DPA</h1>
           <p className="text-slate text-sm">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
           {phase === "sample" && (() => {
             const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];
@@ -160,7 +160,7 @@ export default function DPAGenerator() {
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display font-bold text-navy text-lg">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display text-navy">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
             <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
@@ -176,7 +176,7 @@ export default function DPAGenerator() {
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h2 className="font-display font-bold text-navy text-lg">DPA Intake</h2>
+            <h2 className="font-display text-navy">DPA Intake</h2>
             <div className="space-y-3 text-sm">
               <label className="block"><span className="font-semibold text-navy">Controller name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>

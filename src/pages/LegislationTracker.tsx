@@ -189,7 +189,7 @@ export default function LegislationTracker() {
                           </span>
                         )}
                       </div>
-                      <h3 className="font-bold text-navy text-[15px] mb-2">{bill.bill_name}</h3>
+                      <h3 className="text-navy text-[15px] mb-2">{bill.bill_name}</h3>
                       {bill.summary && (
                         <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
                       )}

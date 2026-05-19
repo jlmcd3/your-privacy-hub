@@ -149,7 +149,7 @@ function ClientRow({ client }: { client: Client }) {
       {confirming && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-card border border-fog rounded-xl shadow-eup-md max-w-md w-full p-5">
-            <h3 className="text-lg font-bold text-navy mb-2">
+            <h3 className="text-navy mb-2">
               Delete {client.name}?
             </h3>
             <p className="text-sm text-slate mb-4">
@@ -233,7 +233,7 @@ export function AccountClientsSection() {
       {/* Personal workspace card */}
       <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
+          <h2 className="text-navy text-[14px] uppercase tracking-wider">
             My Workspace
           </h2>
           <span className="text-[11px] font-bold uppercase tracking-wider bg-[#EEF2F8] text-navy px-2 py-0.5 rounded">
@@ -294,7 +294,7 @@ export function AccountClientsSection() {
       {/* Clients card */}
       <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
+          <h2 className="text-navy text-[14px] uppercase tracking-wider">
             My Clients{clients.length > 0 ? ` — ${clients.length} active` : ''}
           </h2>
           <span className="text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
@@ -478,7 +478,7 @@ export function ComplianceDocumentsSection() {
 
   return (
     <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
-      <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+      <h2 className="text-navy text-[14px] uppercase tracking-wider mb-4">
         Compliance Documents
       </h2>
       <div>

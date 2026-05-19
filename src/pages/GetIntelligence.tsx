@@ -18,7 +18,7 @@ const GetIntelligence = () => (
         <p className="text-[11px] font-bold uppercase tracking-widest text-gold mb-2">
           Weekly Privacy Intelligence Report
         </p>
-        <h1 className="font-display font-bold text-navy leading-tight mb-3">
+        <h1 className="font-display text-navy leading-tight mb-3">
           Build your sample Privacy Intelligence Report
         </h1>
         <p className="text-slate text-[15px] leading-relaxed">

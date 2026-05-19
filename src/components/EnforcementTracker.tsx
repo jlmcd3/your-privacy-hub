@@ -33,7 +33,7 @@ const EnforcementTracker = () => {
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <h3 className="text-lg text-white">Recent Enforcement Actions</h3>
+              <h3 className="text-white">Recent Enforcement Actions</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">✓ Free preview</span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⭐ Full database with Intelligence</span>

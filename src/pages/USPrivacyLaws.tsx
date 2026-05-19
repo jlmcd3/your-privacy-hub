@@ -445,7 +445,7 @@ const USPrivacyLaws = () => {
 
         {/* Related Resources */}
         <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {RELATED_LINKS.map((link) => (
               <Link

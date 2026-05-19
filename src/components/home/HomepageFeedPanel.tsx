@@ -394,7 +394,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
     return (
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="rounded-xl border border-dashed border-fog bg-card px-6 py-10 text-center">
-          <h2 className="font-display font-bold text-navy mb-2">
+          <h2 className="font-display text-navy mb-2">
             No developments available yet
           </h2>
           <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">

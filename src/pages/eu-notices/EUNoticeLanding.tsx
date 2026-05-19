@@ -103,17 +103,17 @@ export default function EUNoticeLanding() {
             <div className="grid gap-6 md:grid-cols-3">
               <div>
                 <Globe2 className="h-6 w-6 text-primary mb-3" />
-                <h3 className="font-medium mb-1">One session, every notice</h3>
+                <h3 className="mb-1">One session, every notice</h3>
                 <p className="text-sm text-muted-foreground">Answer questions once. Get a separate notice per framework, plus an optional combined international notice.</p>
               </div>
               <div>
                 <ShieldCheck className="h-6 w-6 text-primary mb-3" />
-                <h3 className="font-medium mb-1">Counsel-grade structure</h3>
+                <h3 className="mb-1">Counsel-grade structure</h3>
                 <p className="text-sm text-muted-foreground">Structured around GDPR Art. 13/14 with framework-specific overlays for each jurisdiction.</p>
               </div>
               <div>
                 <Clock className="h-6 w-6 text-primary mb-3" />
-                <h3 className="font-medium mb-1">Annual refresh built in</h3>
+                <h3 className="mb-1">Annual refresh built in</h3>
                 <p className="text-sm text-muted-foreground">When the law changes, refresh in minutes — your prior answers carry forward.</p>
               </div>
             </div>

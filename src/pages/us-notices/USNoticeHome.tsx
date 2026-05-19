@@ -283,7 +283,7 @@ export default function USNoticeHome() {
           <CardContent className="p-5 md:p-6">
             <div className="flex items-center gap-2 mb-2">
               <Plus className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <h3 className="text-lg">Start a new notice</h3>
+              <h3 className="">Start a new notice</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Begin a fresh state-by-state notice project from scratch.
@@ -304,7 +304,7 @@ export default function USNoticeHome() {
             <CardContent className="p-5 md:p-6">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden />
-                <h3 className="text-lg">Latest completed</h3>
+                <h3 className="">Latest completed</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
                 {latestCompleted.state_count ?? 0} state
@@ -335,7 +335,7 @@ export default function USNoticeHome() {
             <CardContent className="p-5 md:p-6">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="h-4 w-4 text-muted-foreground" aria-hidden />
-                <h3 className="text-lg">Generated notices appear here</h3>
+                <h3 className="">Generated notices appear here</h3>
               </div>
               <p className="text-sm text-muted-foreground">
                 Once you finish a notice project, your latest version shows up for quick
@@ -350,7 +350,7 @@ export default function USNoticeHome() {
       {sessions.length > 0 && (
         <Card>
           <CardContent className="p-4 md:p-6">
-            <h2 className="font-serif text-lg mb-4">All notice projects</h2>
+            <h2 className="font-serif mb-4">All notice projects</h2>
             <ul className="divide-y">
               {sessions.map((s) => {
                 const status = STATUS_LABELS[s.status] ?? {

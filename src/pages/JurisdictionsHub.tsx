@@ -164,7 +164,7 @@ export default function JurisdictionsHub() {
                   <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
                     <span>🌐</span> Jurisdictions
                   </div>
-                  <h1 className="font-display font-bold text-white mb-2">
+                  <h1 className="font-display text-white mb-2">
                     Global Privacy Law Map
                   </h1>
                   <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
@@ -207,7 +207,7 @@ export default function JurisdictionsHub() {
           {(recentLoading || recentUpdates.length > 0) && (
             <div className="border-t border-fog bg-white">
               <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
+                <h2 className="text-navy uppercase tracking-wider mb-4">
                   🕐 Recently Updated Jurisdictions
                 </h2>
                 <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>

@@ -81,7 +81,7 @@ const Login = () => {
         {/* Left panel — hidden on mobile */}
         <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-navy to-steel flex-col justify-center px-12 py-16">
           <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">End User Privacy</div>
-          <h2 className="font-display text-white font-bold leading-tight mb-6">
+          <h2 className="font-display text-white leading-tight mb-6">
             Global privacy law, tracked daily.
           </h2>
           <div className="space-y-4">

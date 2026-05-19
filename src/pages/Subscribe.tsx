@@ -228,7 +228,7 @@ const Subscribe = () => {
       {/* Smart Tools / Convenience Tools explainer */}
       <div className="max-w-3xl mx-auto px-4 mt-8">
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">
+          <h3 className="text-slate-700 mb-3">
             About our compliance tools
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-sm text-slate-600">
@@ -351,7 +351,7 @@ const Subscribe = () => {
 
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy mb-2">
+          <h2 className="font-display text-navy mb-2">
             See what your report would look like
           </h2>
           <p className="text-slate text-sm">
@@ -534,7 +534,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
-            <h3 className="text-base text-navy mb-2 leading-snug">
+            <h3 className="text-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">

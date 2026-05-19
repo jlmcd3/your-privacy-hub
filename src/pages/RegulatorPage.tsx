@@ -238,7 +238,7 @@ const RegulatorPage = () => {
         {/* Recent Developments */}
         {recentArticles.length > 0 && (
           <div className="mt-10 pt-8 border-t border-fog">
-            <h2 className="font-display font-bold text-navy text-lg mb-4">
+            <h2 className="font-display text-navy mb-4">
               Recent Developments
             </h2>
             <div className="space-y-4">
@@ -281,7 +281,7 @@ const RegulatorPage = () => {
 
         {/* Related */}
         <div className="border-t border-fog pt-8 mt-8">
-          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium">
               <span className="text-blue">→</span> {regulator.country} Jurisdiction Page

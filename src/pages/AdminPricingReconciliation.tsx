@@ -75,7 +75,7 @@ export default function AdminPricingReconciliation() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="font-bold text-navy">Pricing Reconciliation</h1>
+            <h1 className="text-navy">Pricing Reconciliation</h1>
             <p className="text-sm text-slate mt-1">
               Cross-references marketed prices in UI files against the amounts
               actually charged by Stripe edge functions. Re-run with{" "}
@@ -94,7 +94,7 @@ export default function AdminPricingReconciliation() {
 
         <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-navy">Sync All Stripe Prices</h3>
+            <h3 className="text-navy">Sync All Stripe Prices</h3>
             <p className="text-[12px] text-slate mt-1">
               Push every active entry in <code>PRICING_REGISTRY</code> to Stripe. Existing
               prices with the same lookup key are replaced; old prices are archived.
@@ -118,7 +118,7 @@ export default function AdminPricingReconciliation() {
 
         <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-navy">Run Enrichment Backfill</h3>
+            <h3 className="text-navy">Run Enrichment Backfill</h3>
             <p className="text-[12px] text-slate mt-1">
               Processes up to 20 Tier 1 articles missing contextual intelligence. Run multiple times to catch up.
             </p>
@@ -160,7 +160,7 @@ export default function AdminPricingReconciliation() {
         </div>
 
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-navy mb-3">
+          <h2 className="text-navy mb-3">
             Reconciliation table
           </h2>
           <div className="overflow-x-auto rounded-xl border border-fog">
@@ -215,7 +215,7 @@ export default function AdminPricingReconciliation() {
 
         {findings.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-semibold text-navy mb-3">
+            <h2 className="text-navy mb-3">
               Mismatches ({findings.length})
             </h2>
             <div className="space-y-3">

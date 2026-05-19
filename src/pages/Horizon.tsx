@@ -86,7 +86,7 @@ function HorizonCard({ item }: { item: HorizonItem }) {
           </span>
         )}
       </div>
-      <h2 className="font-display font-bold text-navy leading-snug mb-2">
+      <h2 className="font-display text-navy leading-snug mb-2">
         {item.anticipated_development}
       </h2>
       {item.source_signal && (
@@ -179,7 +179,7 @@ export default function Horizon() {
          <div className="text-eyebrow text-[hsl(var(--accent))] mb-3">
            Forward-looking intelligence
           </div>
-          <h1 className="font-display font-bold leading-tight mb-3">
+          <h1 className="font-display leading-tight mb-3">
             Enforcement Forecast Intelligence
           </h1>
           <p className="text-blue-100 text-[15px] leading-relaxed max-w-2xl">

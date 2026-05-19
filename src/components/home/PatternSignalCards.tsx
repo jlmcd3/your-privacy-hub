@@ -50,7 +50,7 @@ export default function PatternSignalCards() {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-bold text-[15px] text-navy">
+        <h3 className="text-[15px] text-navy">
           Enforcement Pattern Signals
         </h3>
         {reportDate && (

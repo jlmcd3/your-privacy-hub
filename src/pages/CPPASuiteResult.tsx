@@ -53,7 +53,7 @@ function RiskReportBody({ row }: { row: any }) {
 
       {report?.scope_confirmation && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-3">Scope Confirmation</h2>
+          <h2 className="mb-3">Scope Confirmation</h2>
           <p className="text-sm"><strong>In scope:</strong> {String(report.scope_confirmation.in_scope)}</p>
           {report.scope_confirmation.threshold_met && <p className="text-sm mt-1"><strong>Threshold met:</strong> {report.scope_confirmation.threshold_met}</p>}
           {Array.isArray(report.scope_confirmation.applicable_deadlines) && report.scope_confirmation.applicable_deadlines.length > 0 && (
@@ -73,7 +73,7 @@ function RiskReportBody({ row }: { row: any }) {
 
       {Array.isArray(report?.domains) && report.domains.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Domain Findings</h2>
+          <h2 className="mb-4">Domain Findings</h2>
           <Accordion type="multiple">
             {report.domains.map((d: any, i: number) => (
               <AccordionItem key={i} value={`d${i}`}>
@@ -98,7 +98,7 @@ function RiskReportBody({ row }: { row: any }) {
 
       {Array.isArray(report?.top_risks) && report.top_risks.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Top Risks</h2>
+          <h2 className="mb-3">Top Risks</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {report.top_risks.slice(0, 3).map((r: any, i: number) => (
               <div key={i} className="bg-card border rounded-lg p-4">
@@ -114,7 +114,7 @@ function RiskReportBody({ row }: { row: any }) {
 
       {Array.isArray(report?.next_steps) && report.next_steps.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-3">Next Steps</h2>
+          <h2 className="mb-3">Next Steps</h2>
           <ol className="list-decimal pl-5 space-y-1 text-sm">
             {report.next_steps.map((s: string, i: number) => <li key={i}>{s}</li>)}
           </ol>
