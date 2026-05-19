@@ -324,7 +324,7 @@ function CoverageGroup({
   return (
     <div>
       <div className="flex flex-wrap items-baseline gap-2 mb-3">
-        <h3 className={`font-medium text-foreground ${emphasized ? "text-lg" : ""}`}>
+        <h3 className="text-foreground">
           {title}
         </h3>
         <span className="text-xs text-muted-foreground italic">— {tag}</span>
