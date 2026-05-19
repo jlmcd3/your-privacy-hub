@@ -656,10 +656,39 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   }
 
-  // Admin auth
-  const adminToken = Deno.env.get("ADMIN_SECRET_TOKEN");
+  // Admin auth via Supabase JWT + has_role('admin'). Also supports the legacy
+  // ADMIN_SECRET_TOKEN for back-compat with scripted callers.
   const auth = req.headers.get("authorization") || "";
-  if (!adminToken || auth !== `Bearer ${adminToken}`) {
+  const adminToken = Deno.env.get("ADMIN_SECRET_TOKEN");
+  let authorized = false;
+
+  if (adminToken && auth === `Bearer ${adminToken}`) {
+    authorized = true;
+  } else if (auth.startsWith("Bearer ")) {
+    try {
+      const { createClient } = await import(
+        "https://esm.sh/@supabase/supabase-js@2.45.0"
+      );
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: auth } } }
+      );
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      if (userId) {
+        const { data: isAdmin } = await supabase.rpc("has_role", {
+          _user_id: userId,
+          _role: "admin",
+        });
+        if (isAdmin === true) authorized = true;
+      }
+    } catch (e) {
+      console.error("auth check failed", e);
+    }
+  }
+
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -672,7 +701,9 @@ Deno.serve(async (req) => {
   } catch {
     body = {};
   }
-  const env = body.environment;
+  // Default to the environment that matches the deployed Stripe keys.
+  // Frontend may still pass an explicit value.
+  const env = body.environment ?? (Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox");
   if (env !== "sandbox" && env !== "live") {
     return new Response(
       JSON.stringify({ error: "environment must be 'sandbox' or 'live'" }),
