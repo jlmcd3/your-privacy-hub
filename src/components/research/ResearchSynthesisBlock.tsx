@@ -15,9 +15,10 @@ interface Headline {
 
 interface ResearchSynthesisBlockProps {
   sectionKey: string;
+  promoteHeading?: boolean;
 }
 
-export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockProps) {
+export function ResearchSynthesisBlock({ sectionKey, promoteHeading }: ResearchSynthesisBlockProps) {
   const [data, setData] = useState<{
     synthesis_text: string;
     generated_at: string;
