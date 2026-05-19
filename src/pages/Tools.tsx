@@ -5,7 +5,24 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-// v7 pricing strings are inlined below; per-tool tier prices reference PRICING in src/config/pricing.ts.
+import { isSmartTool, isConvenienceTool, isPromoOpen, FOUNDING_PROMO } from "@/config/pricing";
+
+// Map Tools-page slugs to PRICING tool keys so we can classify per card.
+const SLUG_TO_TOOL_KEY: Record<string, string> = {
+  healthcheck: "governance",
+  "li-assessment": "lia",
+  dpia: "dpia",
+  "biometric-checker": "biometric",
+  "dpa-generator": "dpa",
+  "ir-playbook": "ir_playbook",
+  "ropa-builder": "ropa",
+  "us-notices": "us_notice",
+  "eu-notices": "eu_notice",
+  "registration-manager": "registration",
+  "cppa-scope-checker": "cppa_scope",
+  "cppa-risk-assessment": "cppa_risk",
+  "cppa-cybersecurity": "cppa_cyber",
+};
 
 // ── Section types ─────────────────────────────────────────────────────────
 type ToolSection = "assessments" | "documents" | "cppa";
