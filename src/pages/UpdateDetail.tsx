@@ -427,6 +427,8 @@ const UpdateDetail = () => {
                         ))}
                       </div>
                     );
+                  })()}
+
                   {article.affected_sectors && article.affected_sectors.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       <span className="text-meta uppercase tracking-wide text-muted-foreground font-semibold mr-1 self-center">Sectors:</span>
