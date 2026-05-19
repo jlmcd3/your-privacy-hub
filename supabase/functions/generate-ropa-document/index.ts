@@ -237,6 +237,7 @@ function buildHtml(d: AssembledData): string {
               <tr><th>Last reviewed</th><td>${escapeHtml(d.settings.documentDate)}</td></tr>
             </tbody>
           </table>
+          <p class="footer-note">Recorded pursuant to: ${d.profile?.is_processor && !d.profile?.is_controller ? "Article 30(2) GDPR (processor activity)" : "Article 30(1) GDPR (controller activity)"}</p>
         </section>
       `;
     })
@@ -329,13 +330,16 @@ function buildHtml(d: AssembledData): string {
 
   <section class="cover">
     <h1>${escapeHtml(d.client?.name ?? "")}</h1>
-    <div style="font-size: 16px; color: #555; margin-top: 4px;">Records of Processing Activities</div>
+    <div style="font-size: 18px; color: #333; margin-top: 8px; font-weight: 600;">Records of Processing Activities</div>
+    <div style="font-size: 13px; color: #555; margin-top: 4px;">Maintained pursuant to Article 30 of the General Data Protection Regulation (GDPR)</div>
     <div class="meta">${escapeHtml(d.settings.documentDate)}</div>
     <div class="meta">Jurisdictions: ${escapeHtml(d.jurisdictions.join(", ") || "—")}</div>
     <div class="meta">Author: ${escapeHtml(d.settings.authorName)} · Version ${d.session.version_number}</div>
     ${d.settings.internalReference ? `<div class="meta">Internal reference: ${escapeHtml(d.settings.internalReference)}</div>` : ""}
     <div class="confidential">Confidential — internal compliance record</div>
   </section>
+
+  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It documents all processing activities carried out by the controller and, where relevant, the processor.</p>
 
   <h2>1. Client record</h2>
   <table class="kv">
@@ -373,6 +377,8 @@ function buildHtml(d: AssembledData): string {
   <div class="signature">
     Signature: _____________________________ &nbsp;&nbsp; Date: _______________
   </div>
+
+  <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. Maintained in compliance with Article 30 GDPR obligations. Review recommended at least annually or upon any material change to processing activities.</p>
 
 </body>
 </html>`;
