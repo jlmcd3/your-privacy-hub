@@ -78,6 +78,7 @@ interface RelatedUpdate {
   id: string;
   title: string;
   source_name: string | null;
+  source_url: string | null;
   published_at: string;
 }
 
@@ -160,7 +161,7 @@ const UpdateDetail = () => {
     if (!article?.topic_tags || article.topic_tags.length === 0) return;
     (supabase as any)
       .from("updates")
-      .select("id, title, source_name, published_at")
+      .select("id, title, source_name, source_url, published_at")
       .eq("is_hidden", false)
       .overlaps("topic_tags", article.topic_tags)
       .neq("id", article.id)
@@ -654,9 +655,10 @@ const UpdateDetail = () => {
                 <h2 className="font-bold text-foreground text-[15px] mb-3">Related Updates</h2>
                 <div className="space-y-3">
                   {related.map((r) => (
-                    <Link
+                    <a
                       key={r.id}
-                      to={`/updates/${r.id}`}
+                      href={r.source_url || `/updates/${r.id}`}
+                      {...(r.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                       className="block no-underline hover:bg-muted rounded-lg p-3 -mx-3 transition-colors"
                     >
                       <p className="text-sm text-foreground font-medium leading-snug">{r.title}</p>
@@ -664,7 +666,7 @@ const UpdateDetail = () => {
                         {r.source_name && <span>{r.source_name} · </span>}
                         {formatDate(r.published_at)}
                       </p>
-                    </Link>
+                    </a>
                   ))}
                 </div>
               </div>

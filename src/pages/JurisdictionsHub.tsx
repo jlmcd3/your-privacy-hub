@@ -54,6 +54,7 @@ type RecentItem = {
   update: string;
   fullTitle: string;
   days: string;
+  source_url: string | null;
 };
 
 export default function JurisdictionsHub() {
@@ -94,7 +95,7 @@ export default function JurisdictionsHub() {
       setRecentLoading(true);
       const { data } = await supabase
         .from("updates")
-        .select("id, title, direct_jurisdictions, published_at, ai_summary")
+        .select("id, title, source_url, direct_jurisdictions, published_at, ai_summary")
         .eq("is_hidden", false)
         .not("direct_jurisdictions", "is", null)
         .order("published_at", { ascending: false })
@@ -127,6 +128,7 @@ export default function JurisdictionsHub() {
           update: title.length > 55 ? title.substring(0, 52) + "…" : title,
           fullTitle: title,
           days: relativeDays(a.published_at),
+          source_url: a.source_url ?? null,
         });
         if (items.length >= 6) break;
       }
@@ -223,9 +225,10 @@ export default function JurisdictionsHub() {
                         </div>
                       ))
                     : recentUpdates.map((item) => (
-                        <Link
+                        <a
                           key={item.id}
-                          to={`/updates/${item.id}`}
+                          href={item.source_url || `/updates/${item.id}`}
+                          {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                           title={item.fullTitle}
                           aria-label={`${item.name}: ${item.fullTitle} (${item.days})`}
                           className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
@@ -236,7 +239,7 @@ export default function JurisdictionsHub() {
                           <div className="font-bold text-navy mt-1">{item.name}</div>
                           <div className="text-slate leading-snug">{item.update}</div>
                           <div className="text-slate-light mt-0.5">{item.days}</div>
-                        </Link>
+                        </a>
                       ))}
                 </div>
               </div>
