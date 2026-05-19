@@ -90,6 +90,8 @@ export default function AdminPricingReconciliation() {
               {syncing ? "Syncing…" : "Sync Live"}
             </Button>
           </div>
+        </div>
+
         {syncResult && (
           <pre className="rounded-xl border border-fog bg-fog/30 p-3 mb-6 text-[11px] overflow-x-auto whitespace-pre-wrap">
             {syncResult}
