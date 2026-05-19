@@ -112,12 +112,15 @@ export function ResearchPageLayout({
           </details>
         )}
 
+        <h2 className="font-display text-navy mb-6 leading-tight">
+          Full Analysis
+        </h2>
         <div className="space-y-12">
           {sections.map((sec) => (
             <section key={sec.id} id={sec.id} className="scroll-mt-24">
-              <h2 className="font-display text-navy mb-4 leading-tight">
+              <h3 className="font-display text-navy mb-4 leading-tight">
                 {sec.h2}
-              </h2>
+              </h3>
               {sec.content && (
                 <div
                   className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-cobalt [&_a]:font-bold [&_a]:underline [&_a:hover]:text-navy [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-navy [&_strong]:font-semibold [&_a_strong]:text-cobalt"
