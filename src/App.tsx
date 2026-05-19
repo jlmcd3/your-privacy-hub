@@ -85,7 +85,7 @@ import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import BlankScreenDiagnostic from "./components/BlankScreenDiagnostic.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
-import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
+
 import LegislationTracker from "./pages/LegislationTracker.tsx";
 import BriefPreferences from "./pages/BriefPreferences.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -193,7 +193,7 @@ const App = () => (
             <Route path="/timelines" element={<Timelines />} />
             <Route path="/timelines/:slug" element={<TimelineDetail />} />
             <Route path="/compare/us-states" element={<USStateComparison />} />
-            <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
+            
             <Route path="/legislation-tracker" element={<LegislationTracker />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/cookie-consent" element={<CookieConsent />} />
