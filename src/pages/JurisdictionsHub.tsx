@@ -54,6 +54,7 @@ type RecentItem = {
   update: string;
   fullTitle: string;
   days: string;
+  source_url: string | null;
 };
 
 export default function JurisdictionsHub() {
