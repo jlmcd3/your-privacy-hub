@@ -30,6 +30,8 @@ export default function AdminPricingReconciliation() {
   const allOk = findings.length === 0;
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [backfillRunning, setBackfillRunning] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
 
   const handleSync = async (environment: "sandbox" | "live") => {
     setSyncing(true);
@@ -44,6 +46,22 @@ export default function AdminPricingReconciliation() {
       setSyncResult(`Error: ${e.message ?? String(e)}`);
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleBackfill = async () => {
+    setBackfillRunning(true);
+    setBackfillResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("backfill-enrichment");
+      if (error) throw error;
+      setBackfillResult(
+        `Backfill complete: ${data.succeeded} enriched, ${data.skipped} already done, ${data.failed} failed.`
+      );
+    } catch (e: any) {
+      setBackfillResult(`Error: ${e.message ?? String(e)}`);
+    } finally {
+      setBackfillRunning(false);
     }
   };
 
