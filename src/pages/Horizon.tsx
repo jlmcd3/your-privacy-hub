@@ -176,8 +176,8 @@ export default function Horizon() {
 
       <header className="bg-gradient-to-br from-navy to-steel text-white py-12 px-4">
         <div className="max-w-[1080px] mx-auto">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-3">
-            ⏱ Forward-looking intelligence
+         <div className="text-eyebrow text-[hsl(var(--accent))] mb-3">
+           Forward-looking intelligence
           </div>
           <h1 className="font-display font-bold text-[32px] md:text-[40px] leading-tight mb-3">
             Enforcement Forecast Intelligence
