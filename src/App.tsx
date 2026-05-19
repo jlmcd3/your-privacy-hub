@@ -85,7 +85,7 @@ import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import BlankScreenDiagnostic from "./components/BlankScreenDiagnostic.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
-import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
+
 import LegislationTracker from "./pages/LegislationTracker.tsx";
 import BriefPreferences from "./pages/BriefPreferences.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
