@@ -129,7 +129,7 @@ export function ResearchPageLayout({
                 />
               )}
               {sec.children}
-              {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} />}
+              {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
               {sec.toolCta && <ResearchToolCTA {...sec.toolCta} />}
             </section>
           ))}
