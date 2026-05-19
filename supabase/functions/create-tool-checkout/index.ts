@@ -270,55 +270,28 @@ Deno.serve(async (req) => {
 
     const standaloneCents = tool.fallback_standalone_cents;
 
-    // Check free convenience run eligibility (Professional annual + Convenience tool + client_id).
-    const clientId = (intake_data as any)?.client_id ?? null;
-    let useFreeRun = false;
-    if (isProfessionalAnnual && isConvenience && clientId) {
-      const { data: clientRow } = await supabase
-        .from("professional_clients")
-        .select("free_run_used_this_month, free_run_reset_date")
-        .eq("id", clientId)
-        .eq("user_id", user_id)
-        .maybeSingle();
-      const c = clientRow as { free_run_used_this_month?: boolean; free_run_reset_date?: string } | null;
-      if (c) {
-        const reset = c.free_run_reset_date ? new Date(c.free_run_reset_date) : new Date(0);
-        const now = new Date();
-        const newMonth = reset.getFullYear() < now.getFullYear() || reset.getMonth() < now.getMonth();
-        if (newMonth || !c.free_run_used_this_month) {
-          useFreeRun = true;
-        }
-      }
-    }
+    // NOTE: free convenience-run consumption is enforced client-side via
+    // checkFreeConvenienceRun()/consumeFreeConvenienceRun() in
+    // src/lib/freeConvenienceRun.ts. Stripe disallows $0 sessions, so when
+    // a free run is available the client should mark the row as paid
+    // directly and skip create-tool-checkout entirely.
 
     let amountCents: number;
-    if (useFreeRun) {
-      amountCents = 0;
-    } else if (isFoundingSubscriber && (isSmart || isConvenience)) {
+    if (isFoundingSubscriber && (isSmart || isConvenience)) {
       const pct = isSmart ? 0.20 : 0.15;
       amountCents = Math.round(standaloneCents * (1 - pct));
     } else {
-      const stripePrice = await resolvePriceId(stripe, lookupKey);
-      amountCents = stripePrice?.unit_amount ?? standaloneCents;
+      const resolved = await resolvePriceId(stripe, lookupKey);
+      amountCents = resolved?.unit_amount ?? standaloneCents;
     }
 
-    // For free-run consumption: mark the client's monthly free run as used.
-    if (useFreeRun && clientId) {
-      await supabase
-        .from("professional_clients")
-        .update({
-          free_run_used_this_month: true,
-          free_run_reset_date: new Date().toISOString().split("T")[0],
-        })
-        .eq("id", clientId);
-    }
-
-    // Existing flow further below still references stripePrice; preserve the var name.
+    // Preserve legacy variable names referenced later in the file.
     const stripePrice: { id: string; unit_amount?: number | null } | null = null;
     const subscriberCents = tool.fallback_subscriber_cents;
     const isProfessionalSubscriber = isProfessionalAnnual; // alias for legacy code below
     const isIntelligenceSubscriber = subscriptionType === "monthly";
     void subscriberCents; void stripePrice; void isIntelligenceSubscriber;
+
 
 
     const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
