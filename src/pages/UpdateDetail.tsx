@@ -465,34 +465,57 @@ const UpdateDetail = () => {
                     SECTION 2 — NEXT STEPS (paid only)
                     ======================================================== */}
                 {isPremium && article.action_items && article.action_items.length > 0 && (() => {
-                  const groups: Record<"now" | "quarter" | "ongoing", ActionItem[]> = { now: [], quarter: [], ongoing: [] };
-                  article.action_items.forEach(a => {
+                  const items = article.action_items;
+                  // Legacy: string array — show ungrouped
+                  const isLegacyStrings = items.every(i => typeof i === "string");
+                  if (isLegacyStrings) {
+                    return (
+                      <section aria-label="Next Steps" className="mt-8 pt-8 border-t border-silver mb-8">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Action Intelligence</span>
+                        </div>
+                        <h2 className="font-display text-xl text-foreground mb-3">Next Steps</h2>
+                        <ul className="list-disc pl-5 space-y-1.5">
+                          {(items as string[]).map((s, i) => (
+                            <li key={i} className="text-base text-foreground leading-relaxed">{s}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    );
+                  }
+
+                  const objs = items.filter((i): i is ActionItem => typeof i === "object" && i !== null);
+                  const groups: Record<"now" | "this_quarter" | "ongoing", ActionItem[]> = { now: [], this_quarter: [], ongoing: [] };
+                  objs.forEach(a => {
+                    const th = a.time_horizon;
+                    if (th && groups[th]) { groups[th].push(a); return; }
+                    // Fallback: derive from legacy timeframe
                     const tf = String(a.timeframe ?? "").toLowerCase();
-                    if (tf.includes("immediate") || tf.includes("7 day")) groups.now.push(a);
-                    else if (tf.includes("quarter")) groups.quarter.push(a);
-                    else if (tf.includes("monitor") || tf.includes("ongoing")) groups.ongoing.push(a);
+                    if (tf.includes("immediate") || tf.includes("7 day") || tf.includes("now")) groups.now.push(a);
+                    else if (tf.includes("quarter") || tf.includes("month")) groups.this_quarter.push(a);
                     else groups.ongoing.push(a);
                   });
-                  const bands: { key: keyof typeof groups; label: string }[] = [
-                    { key: "now", label: "Now" },
-                    { key: "quarter", label: "This Quarter" },
-                    { key: "ongoing", label: "Ongoing" },
+                  const bands: { key: keyof typeof groups; label: string; border: string; color: string }[] = [
+                    { key: "now", label: "Now", border: "border-orange-400", color: "text-orange-600" },
+                    { key: "this_quarter", label: "This Quarter", border: "border-[hsl(var(--cobalt))]", color: "text-[hsl(var(--cobalt))]" },
+                    { key: "ongoing", label: "Ongoing", border: "border-slate-300", color: "text-slate-600" },
                   ];
+                  const activeBands = bands.filter(b => groups[b.key].length > 0);
+                  if (activeBands.length === 0) return null;
                   return (
-                    <section aria-label="Next Steps" className="mb-8">
+                    <section aria-label="Next Steps" className="mt-8 pt-8 border-t border-silver mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
-                        <span className="text-meta text-muted-foreground/60">Actions by timeframe</span>
+                        <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Action Intelligence</span>
                       </div>
-                      <hr className="border-border mb-4" />
-                      <div className="space-y-3">
-                        {bands.filter(b => groups[b.key].length > 0).map(b => (
-                          <div key={b.key} className="grid grid-cols-[90px_1fr] gap-3 items-start">
-                            <span className="text-eyebrow pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
+                      <h2 className="font-display text-xl text-foreground mb-4">Next Steps</h2>
+                      <div className="space-y-4">
+                        {activeBands.map(b => (
+                          <div key={b.key} className={`border-l-4 ${b.border} pl-4`}>
+                            <div className={`text-eyebrow uppercase tracking-wide font-semibold mb-2 ${b.color}`}>{b.label}</div>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
                                 <li key={i} className="text-base text-foreground leading-relaxed">
-                                  {a.role && <span className="font-semibold">{a.role}: </span>}
+                                  {a.role && <span className="inline-block text-meta font-semibold text-muted-foreground mr-2 px-1.5 py-0.5 rounded bg-muted">{a.role}</span>}
                                   {a.action}
                                 </li>
                               ))}
@@ -507,21 +530,22 @@ const UpdateDetail = () => {
                 {/* ========================================================
                     SECTION 3 — WATCH (paid only) — related_signals
                     ======================================================== */}
-                {isPremium && (article as any).related_signals && (article as any).related_signals.length > 0 && (
-                  <section aria-label="Watch" className="mb-8">
+                {isPremium && article.related_signals && article.related_signals.length > 0 && (
+                  <section aria-label="Watch" className="mt-8 pt-8 border-t border-silver mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
-                      <span className="text-meta text-muted-foreground/60">Related signals</span>
+                      <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>Related Signals</span>
                     </div>
-                    <hr className="border-border mb-4" />
+                    <h2 className="font-display text-xl text-foreground mb-3">Watch</h2>
                     <ul className="space-y-2">
-                      {((article as any).related_signals as RelatedSignal[]).map((sig, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-base text-foreground leading-relaxed">
-                          <span
-                            className="inline-block w-2 h-2 rounded-full mt-1.5 shrink-0"
-                            style={{ background: 'hsl(var(--cobalt))' }}
-                          />
-                          <span>{sig.label}</span>
+                      {(article.related_signals as RelatedSignal[]).map((sig, i) => (
+                        <li key={i} className="bg-muted/30 rounded-lg border border-border p-3">
+                          <div className="text-base font-semibold text-foreground">{sig.signal || sig.label}</div>
+                          {sig.jurisdiction && (
+                            <span className="inline-block text-meta px-1.5 py-0.5 rounded bg-muted text-muted-foreground mt-1 mr-2">{sig.jurisdiction}</span>
+                          )}
+                          {sig.significance && (
+                            <p className="text-sm text-muted-foreground mt-1 m-0">{sig.significance}</p>
+                          )}
                         </li>
                       ))}
                     </ul>
