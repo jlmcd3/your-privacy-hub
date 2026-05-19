@@ -626,7 +626,7 @@ const Navbar = () => {
                 {!isPremium && (
                   <Link
                     to="/subscribe"
-                    className="block text-center text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    className="block text-center text-sm font-semibold text-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.25)] px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
                     ⭐ See plans
