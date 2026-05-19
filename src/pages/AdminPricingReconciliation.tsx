@@ -31,11 +31,13 @@ export default function AdminPricingReconciliation() {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
 
-  const handleSync = async () => {
+  const handleSync = async (environment: "sandbox" | "live") => {
     setSyncing(true);
     setSyncResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("sync-pricing", { body: {} });
+      const { data, error } = await supabase.functions.invoke("sync-pricing", {
+        body: { environment },
+      });
       if (error) throw error;
       setSyncResult(JSON.stringify(data, null, 2));
     } catch (e: any) {
