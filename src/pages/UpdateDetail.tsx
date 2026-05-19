@@ -161,7 +161,7 @@ const UpdateDetail = () => {
     if (!article?.topic_tags || article.topic_tags.length === 0) return;
     (supabase as any)
       .from("updates")
-      .select("id, title, source_name, published_at")
+      .select("id, title, source_name, source_url, published_at")
       .eq("is_hidden", false)
       .overlaps("topic_tags", article.topic_tags)
       .neq("id", article.id)
