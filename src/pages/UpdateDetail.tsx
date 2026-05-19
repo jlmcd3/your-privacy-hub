@@ -553,43 +553,61 @@ const UpdateDetail = () => {
                 )}
 
                 {/* ========================================================
-                    SECTION 4 — CONTEXTUAL RECORD (paid only — placeholder)
+                    SECTION 4 — CONTEXTUAL RECORD (paid only)
                     ======================================================== */}
-                {isPremium && (
-                  <section aria-label="Contextual Record" className="mb-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-eyebrow text-navy">Contextual Record</span>
-                    </div>
-                    <hr className="border-border mb-4" />
-                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
-                      <p className="text-sm italic text-muted-foreground m-0">
-                        Contextual intelligence drawing on the enforcement corpus will appear here once the enrichment pipeline update is deployed.
+                {isPremium && (() => {
+                  const cr = article.contextual_record;
+                  const hasAny = cr && (cr.regulatory_theory || cr.precedent_novelty || cr.enforcement_pattern || (cr.key_cases && cr.key_cases.length > 0));
+                  // Legacy fallbacks
+                  const legacyTheory = !cr?.regulatory_theory ? article.regulatory_theory : null;
+                  const legacyDev = !cr?.precedent_novelty ? article.related_development : null;
+                  return (
+                    <section aria-label="Contextual Record" className="mt-8 pt-8 border-t border-silver mb-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-eyebrow text-navy">Enforcement Corpus Intelligence</span>
+                      </div>
+                      <h2 className="font-display text-xl text-foreground mb-2">Contextual Record</h2>
+                      <p className="italic text-sm text-muted-foreground mb-4">
+                        Drawn from 3,500+ enforcement decisions. Patterns and precedents from the EUP corpus.
                       </p>
-                    </div>
-                  </section>
-                )}
-
-                {/* Pro: regulatory theory & related development (kept) */}
-                {isPremium && (article.regulatory_theory || article.related_development) && (
-                  <section aria-label="Regulatory context" className="mb-8 space-y-3">
-                    {article.regulatory_theory && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Regulatory theory
-                        </div>
-                        <p className="text-base leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
+                      <div className="bg-navy/[0.02] rounded-xl p-6 border border-border space-y-4">
+                        {(cr?.regulatory_theory || legacyTheory) && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory Theory</div>
+                            <p className="text-base leading-relaxed text-foreground m-0">{cr?.regulatory_theory || legacyTheory}</p>
+                          </div>
+                        )}
+                        {(cr?.precedent_novelty || legacyDev) && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Precedent &amp; Novelty</div>
+                            <p className="text-base leading-relaxed text-foreground m-0">{cr?.precedent_novelty || legacyDev}</p>
+                          </div>
+                        )}
+                        {cr?.enforcement_pattern && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Enforcement Pattern</div>
+                            <p className="text-base leading-relaxed text-foreground m-0">{cr.enforcement_pattern}</p>
+                          </div>
+                        )}
+                        {cr?.key_cases && cr.key_cases.length > 0 && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-2">Related Cases</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {cr.key_cases.map((c, i) => (
+                                <span key={i} className="text-meta px-2 py-0.5 rounded-full bg-muted text-foreground border border-border">{c}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {!hasAny && !legacyTheory && !legacyDev && (
+                          <p className="text-sm text-muted-foreground italic text-center py-6 m-0">
+                            Contextual intelligence not yet generated for this article.
+                          </p>
+                        )}
                       </div>
-                    )}
-                    {article.related_development && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Related development
-                        </div>
-                        <p className="text-base leading-relaxed text-foreground m-0">{article.related_development}</p>
-                      </div>
-                    )}
-                  </section>
-                )}
+                    </section>
+                  );
+                })()}
               </>
             )}
 
