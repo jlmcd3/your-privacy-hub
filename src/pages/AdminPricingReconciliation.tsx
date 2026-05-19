@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import NavReportButton from "@/components/admin/NavReportButton";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import report from "@/data/pricing-reconciliation.json";
 
 interface Row {
@@ -25,6 +28,22 @@ export default function AdminPricingReconciliation() {
   const rows = report.rows as Row[];
   const findings = report.findings as Finding[];
   const allOk = findings.length === 0;
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-pricing", { body: {} });
+      if (error) throw error;
+      setSyncResult(JSON.stringify(data, null, 2));
+    } catch (e: any) {
+      setSyncResult(`Error: ${e.message ?? String(e)}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <>
@@ -52,6 +71,24 @@ export default function AdminPricingReconciliation() {
           </div>
           <NavReportButton />
         </header>
+
+        <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-navy">Sync All Stripe Prices</h3>
+            <p className="text-[12px] text-slate mt-1">
+              Push every active entry in <code>PRICING_REGISTRY</code> to Stripe. Existing
+              prices with the same lookup key are replaced; old prices are archived.
+            </p>
+          </div>
+          <Button onClick={handleSync} disabled={syncing} className="shrink-0">
+            {syncing ? "Syncing…" : "Sync All Stripe Prices"}
+          </Button>
+        </div>
+        {syncResult && (
+          <pre className="rounded-xl border border-fog bg-fog/30 p-3 mb-6 text-[11px] overflow-x-auto whitespace-pre-wrap">
+            {syncResult}
+          </pre>
+        )}
 
         <div
           className={`rounded-xl border p-4 mb-6 ${

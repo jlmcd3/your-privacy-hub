@@ -132,10 +132,11 @@ const About = () => {
                   <p className="text-sm text-gray-600">
                     The privacy tools most professionals use — LIAs, DPIAs, DPA
                     generators, IR playbooks — are sold separately by specialist
-                    vendors at significant cost. We offer ten enforcement-calibrated
-                    compliance tools at per-use prices, with 20% off for Intelligence
-                    subscribers and 25% off for Professional. The intelligence that
-                    informs the tools and the tools themselves live in the same place.
+                    vendors at significant cost. We offer thirteen enforcement-calibrated
+                    compliance tools at standalone per-use prices. Founding subscribers
+                    get a permanent 20% off Smart Tools and 15% off Convenience Tools.
+                    The intelligence that informs the tools and the tools themselves
+                    live in the same place.
                   </p>
                 </div>
               </div>

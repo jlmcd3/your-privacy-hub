@@ -200,22 +200,22 @@ export default function Account() {
               Professional — Annual (Founding Subscriber)
             </p>
             <p className="text-sm text-amber-700 font-semibold mt-1">
-              Rate locked for life
+              Founding discount locked for life
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Client workspaces, 25% off every compliance tool, and the full intelligence brief.
+              Client workspaces, 20% off every Smart Tool, 15% off every Convenience Tool, 1 free Convenience Tool run per client per month, and the full intelligence brief.
             </p>
           </div>
         )}
 
         {tier === "annual" && (
           <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">Professional</p>
+            <p className="font-bold text-navy text-[15px]">Professional — Annual</p>
             <p className="text-sm text-slate mt-1">
-              {PRICING.professional.base.display}/mo base + {PRICING.professional.perClient.display}/client/yr
+              {PRICING.professional.annual.display}/yr · {PRICING.professional.perClient.display}/additional client
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Client workspaces, 25% off every compliance tool, full intelligence brief, and 1 free tool run per month.
+              Client workspaces, 1 free Convenience Tool run per client per month, and the full intelligence brief.
             </p>
           </div>
         )}
@@ -227,14 +227,14 @@ export default function Account() {
               {PRICING.intelligence.monthly.display}/month · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Intelligence brief, enforcement tracking, reference content, 20% off tools, and 1 free tool run per month.
+              Intelligence brief, enforcement tracking, and reference content. Compliance tools sold separately at standalone rates.
             </p>
             <div className="mt-3 p-3 bg-card rounded-lg border border-teal-100">
               <p className="text-[12px] font-semibold text-navy">
                 Add client workspaces with Professional
               </p>
               <p className="text-[11px] text-slate mb-2">
-                {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr · 25% off every tool.
+                {PRICING.professional.annual.display}/yr · 1 free Convenience Tool run per client per month.
               </p>
               <Link to="/subscribe" className="text-[12px] font-bold text-navy underline">
                 Upgrade to Professional →
@@ -309,7 +309,7 @@ export default function Account() {
               Professional or Intelligence
             </h3>
             <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">
-              Professional from {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr — client workspaces and 25% off every compliance tool. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
+              Professional from {PRICING.professional.annual.display}/yr — client workspaces and 1 free Convenience Tool run per client per month. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
             </p>
             <Link
               to="/subscribe"
