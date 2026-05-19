@@ -389,15 +389,15 @@ const Navbar = () => {
           <img src="/logo.png" alt="End User Privacy" width={1111} height={281} className="h-10 w-auto shrink-0 rounded-md object-contain" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-0.5 lg:gap-2">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const basePadX = item.directLink ? "px-4" : "px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav`;
+            const basePadX = item.directLink ? "px-2 lg:px-4" : "px-2 lg:px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav whitespace-nowrap`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
