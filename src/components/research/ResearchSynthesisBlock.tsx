@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { RefreshCw, Copy, Check, FlaskConical, Lock } from "lucide-react";
+import { RefreshCw, Copy, Check, FlaskConical, Lock, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useSubscriberContext } from "@/hooks/useSubscriberContext";
@@ -39,6 +39,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
   const [promptError, setPromptError] = useState<string | null>(null);
   const [promptOpen, setPromptOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     supabase
@@ -105,11 +106,24 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
   return (
     <>
       {promoteHeading && (
-        <h1 className="font-display text-navy mb-3 leading-tight" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400 }}>
-          Recent Developments — Last 30 Days
-        </h1>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          aria-controls="page-recent-developments-panel"
+          className="group w-full flex items-center justify-between gap-3 mb-3 text-left"
+        >
+          <h1 className="font-display text-navy leading-tight" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400 }}>
+            Recent Developments — Last 30 Days
+          </h1>
+          <ChevronDown
+            className={`w-5 h-5 flex-shrink-0 text-cobalt transition-transform ${expanded ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
       )}
-      <div className="mt-6 mb-2 rounded-r-lg" style={containerStyle}>
+      {promoteHeading && !expanded ? null : (
+      <div id={promoteHeading ? "page-recent-developments-panel" : undefined} className="mt-6 mb-2 rounded-r-lg" style={containerStyle}>
         {!promoteHeading && (
           <div className="flex items-center gap-2 mb-3">
             <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
@@ -315,6 +329,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
         </>
       )}
     </div>
+    )}
     </>
   );
 }
