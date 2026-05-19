@@ -206,27 +206,74 @@ export default function HomepageSpotlight() {
     const today = new Date().toISOString().split("T")[0];
 
     const fetchSpotlight = async () => {
-      // Try to use today's curated spotlight (first slot = highest applicability)
+      // Only show articles that have been FULLY enriched. We require all four
+      // enrichment outputs (ai_summary, why_it_matters_short, action_items,
+      // related_signals) so every tier (anonymous / free / paid) has real
+      // content to render. Partially-enriched articles are skipped.
+      const isFullyEnriched = (a: any) =>
+        a &&
+        a.ai_summary &&
+        typeof a.ai_summary === "object" &&
+        (a.ai_summary.why_it_matters || a.ai_summary.compliance_impact) &&
+        a.why_it_matters_short &&
+        Array.isArray(a.action_items) &&
+        a.action_items.length > 0 &&
+        Array.isArray(a.related_signals) &&
+        a.related_signals.length > 0;
+
+      const fetchEnriched = async (id: string) => {
+        const { data } = await supabase
+          .from("updates")
+          .select(
+            `id, title, source_name, source_url:url, published_at,
+             jurisdiction:direct_jurisdictions,
+             category, attention_level, image_url, why_it_matters_short,
+             ai_summary, action_items, related_signals`
+          )
+          .eq("id", id)
+          .maybeSingle();
+        return data;
+      };
+
+      // Try today's curated spotlight first; only accept if fully enriched.
       const { data: spotlight } = await supabase
         .from("homepage_spotlight")
         .select("slot, update_id")
         .eq("spotlight_date", today)
         .order("slot");
 
-      let topId: string | null = null;
+      let chosen: any = null;
       if (spotlight && spotlight.length > 0) {
-        topId = [...spotlight].sort((a, b) => a.slot - b.slot)[0].update_id;
-      } else {
-        // Fallback: highest severity recent article
-        const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const ordered = [...spotlight].sort((a, b) => a.slot - b.slot);
+        for (const row of ordered) {
+          const candidate = await fetchEnriched(row.update_id);
+          if (isFullyEnriched(candidate)) {
+            chosen = candidate;
+            break;
+          }
+        }
+      }
+
+      // Fallback: scan recent enriched articles and take the first that
+      // passes the full-enrichment check.
+      if (!chosen) {
+        const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         const { data: fallback } = await supabase
           .from("updates")
-          .select("id, attention_level")
+          .select(
+            `id, title, source_name, source_url:url, published_at,
+             jurisdiction:direct_jurisdictions,
+             category, attention_level, image_url, why_it_matters_short,
+             ai_summary, action_items, related_signals`
+          )
           .gte("created_at", cutoff)
           .eq("is_hidden", false)
           .not("ai_summary", "is", null)
+          .not("why_it_matters_short", "is", null)
+          .not("action_items", "is", null)
+          .not("related_signals", "is", null)
           .order("published_at", { ascending: false })
-          .limit(50);
+          .limit(100);
 
         if (fallback && fallback.length > 0) {
           const severityOrder: Record<string, number> = { "WATCH CLOSELY": 0, "MONITOR": 1 };
@@ -235,7 +282,7 @@ export default function HomepageSpotlight() {
               (severityOrder[a.attention_level ?? ""] ?? 2) -
               (severityOrder[b.attention_level ?? ""] ?? 2)
           );
-          topId = sorted[0].id;
+          chosen = sorted.find(isFullyEnriched) ?? null;
         }
       }
 
