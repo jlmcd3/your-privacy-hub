@@ -69,10 +69,9 @@ export type ToolSlug = keyof typeof SLUG_TO_TOOL_KEY;
 function standaloneCentsFor(slug: ToolSlug): number {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (key === "cppa_suite_combo") {
-    return PRICING.tools.cppaRisk.cents ?? PRICING.tools.cppaRisk.dollars * 100
-         + (PRICING.tools.cppaCyber.cents ?? PRICING.tools.cppaCyber.dollars * 100);
+    return (PRICING.tools.cppaRisk.dollars + PRICING.tools.cppaCyber.dollars) * 100;
   }
-  return (PRICING.tools[key] as any).cents ?? PRICING.tools[key].dollars * 100;
+  return PRICING.tools[key].dollars * 100;
 }
 
 function canonicalKeyFor(slug: ToolSlug): string {
