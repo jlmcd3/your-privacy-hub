@@ -179,7 +179,7 @@ export default function TestLIA() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
-          <h1 className="font-serif text-3xl mb-2">🧪 TEST: Legitimate Interest Assessment</h1>
+          <h1 className="font-serif mb-2">🧪 TEST: Legitimate Interest Assessment</h1>
           <p className="text-sm text-muted-foreground">
             Meridian Health Analytics Ltd · Healthcare predictive analytics · EU+UK · Health data
           </p>
@@ -215,7 +215,7 @@ export default function TestLIA() {
         {result && (
           <>
             <div className="border rounded-lg p-4 bg-card">
-              <h2 className="font-serif text-xl mb-3">
+              <h2 className="font-serif mb-3">
                 Assertions ({passCount} pass / {failCount} fail)
               </h2>
               <ul className="space-y-1 text-sm">
@@ -229,7 +229,7 @@ export default function TestLIA() {
             </div>
 
             <div className="border rounded-lg p-4 bg-card">
-              <h2 className="font-serif text-xl mb-2">Result Page</h2>
+              <h2 className="font-serif mb-2">Result Page</h2>
               {assessmentId && (
                 <a
                   className="text-blue underline"

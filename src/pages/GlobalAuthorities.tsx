@@ -34,7 +34,7 @@ const GlobalAuthorities = () => {
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             🌐 Authority Directory
           </div>
-          <h1 className="font-display text-[36px] text-white mb-3">Global Privacy Authorities</h1>
+          <h1 className="font-display text-white mb-3">Global Privacy Authorities</h1>
           <p className="text-base text-slate-light max-w-[700px]">
             Comprehensive directory of data protection authorities worldwide, organized by region. Includes authority names, primary legislation, official websites, and complaint portals.
           </p>
@@ -77,7 +77,7 @@ const GlobalAuthorities = () => {
               <div key={region.region} className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
                 <div className="px-6 py-5 bg-gradient-to-br from-navy-mid to-navy-light flex justify-between items-center">
                   <div>
-                    <h3 className="font-display text-xl text-white flex items-center gap-2">
+                    <h3 className="text-white flex items-center gap-2">
                       {regionFlags[region.region] || "🌐"} {region.region}
                     </h3>
                     <p className="text-[12px] text-slate-light mt-1">{regionEntries.length} authorities</p>

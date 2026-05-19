@@ -477,7 +477,7 @@ export default function Tools() {
           <div className="inline-flex items-center gap-2 text-eyebrow text-amber-300 bg-amber-300/10 border border-amber-300/20 px-3 py-1.5 rounded-full mb-6">
             Compliance Tools
           </div>
-          <h1 className="font-display text-[32px] md:text-[44px] text-white font-bold leading-tight mb-4">
+          <h1 className="font-display text-white font-bold leading-tight mb-4">
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
@@ -500,7 +500,7 @@ export default function Tools() {
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
-              <h3 className="font-display font-semibold text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
+              <h3 className="font-semibold text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-fog" />
               <ul className="space-y-1.5">
@@ -584,7 +584,7 @@ export default function Tools() {
                       </div>
                     </div>
 
-                    <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
+                    <h2 className="font-display font-bold text-navy mb-1">{tool.name}</h2>
                     <p className="text-sm text-gray-600">{tool.tagline}</p>
                     {tool.freeBadge && (
                       <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
@@ -631,7 +631,7 @@ export default function Tools() {
       {/* ── Closing pricing section ───────────────────────────────────── */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
-          <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
+          <h2 className="font-display text-white font-bold mb-4">
             Available individually at standalone prices.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">

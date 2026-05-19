@@ -89,7 +89,7 @@ export default function ImagePoolPanel() {
     <div className="mb-8 rounded-xl border border-border bg-card p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <h2 className="font-display text-[18px] text-foreground">Article Image Pool</h2>
+          <h2 className="font-display text-foreground">Article Image Pool</h2>
           <p className="text-xs text-muted-foreground mt-1">
             Curate photos, then approve or reject before they're assigned to articles.
           </p>

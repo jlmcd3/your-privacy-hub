@@ -153,7 +153,7 @@ export default function CPPAScopeChecker() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 mb-3">
             FREE · No account required
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Scope Checker</h1>
+          <h1 className="font-serif mb-3">CPPA Scope Checker</h1>
           <p className="text-slate-300 text-lg">
             Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA
             enforcement obligations apply to your business. Takes 2 minutes.
@@ -322,7 +322,7 @@ function ResultsPanel({
     const isGeoOut = q1 === "No";
     return (
       <div className="bg-card border rounded-lg p-8 space-y-4">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="font-semibold">
           Based on your answers, CCPA/CPRA likely does not apply to you.
         </h2>
         {isGeoOut ? (
@@ -433,7 +433,7 @@ function ResultsPanel({
   return (
     <div className="space-y-6">
       <section className="border-l-4 border-emerald-500 bg-card border rounded-lg p-6">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="font-semibold">
           CCPA/CPRA applies — or likely applies — to your business.
         </h2>
         {thresholdSummary && (

@@ -382,7 +382,7 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-[#0D1F35] border-b border-[#0D1F35] sticky top-0 z-50">
+    <nav className="bg-navy border-b border-navy sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
@@ -506,19 +506,13 @@ const Navbar = () => {
                 </Link>
               )}
               {(tier === "annual" || tier === "annual_founding") && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
-                  Platform
-                </span>
+                <span className="badge-platform">Platform</span>
               )}
               {tier === "monthly" && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
-                  Intelligence
-                </span>
+                <span className="badge-intelligence">Intelligence</span>
               )}
               {tier === "free" && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
-                  FREE PLAN
-                </span>
+                <span className="badge-free">Free Plan</span>
               )}
               <UserMenu onSignOut={handleSignOut} />
             </>
@@ -621,7 +615,7 @@ const Navbar = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-brand-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => {
                     setMobileOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -632,7 +626,7 @@ const Navbar = () => {
                 {!isPremium && (
                   <Link
                     to="/subscribe"
-                    className="block text-center text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    className="block text-center text-sm font-semibold text-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.25)] px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
                     ⭐ See plans

@@ -35,7 +35,7 @@ const TOOLTIP_STYLE = {
 export default function EnforcementCharts() {
   return (
     <div className="mt-10 space-y-6">
-      <h2 className="font-display font-bold text-navy text-xl">
+      <h2 className="font-display font-bold text-navy">
         📊 Enforcement Analytics
       </h2>
 

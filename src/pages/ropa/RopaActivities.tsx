@@ -232,7 +232,7 @@ export default function RopaActivities() {
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
       <div className="bg-foreground text-background rounded-xl p-6 md:p-8 mb-6">
-        <h1 className="font-serif text-2xl md:text-3xl mb-2">
+        <h1 className="font-serif mb-2">
           What does your organisation do with personal data?
         </h1>
         <p className="text-sm opacity-80">

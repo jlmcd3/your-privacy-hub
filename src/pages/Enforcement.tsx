@@ -317,7 +317,7 @@ export default function Enforcement() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
-          <h1 className="font-serif text-4xl md:text-5xl mb-3">
+          <h1 className="font-serif mb-3">
             {view === "archive" ? "Enforcement Tracker — Full Archive" : "Enforcement Tracker"}
           </h1>
           {view === "recent" &&

@@ -123,7 +123,7 @@ const GovernanceAssessmentResult = () => {
           <>
             {/* Cover */}
             <section className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="text-3xl font-serif mb-2">Privacy Program Assessment Tool</h1>
+              <h1 className="font-serif mb-2">Privacy Program Assessment Tool</h1>
               <p className="text-slate-300 text-sm">
                 {intake.sector ? `${intake.sector} · ` : ""}{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : ""}
               </p>

@@ -276,7 +276,7 @@ export default function BriefPreferences() {
             <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
               <span>⭐</span> Intelligence
             </div>
-            <h1 className="font-display font-bold text-navy text-[24px] mb-2">Configure your Privacy Intelligence Report</h1>
+            <h1 className="font-display font-bold text-navy mb-2">Configure your Privacy Intelligence Report</h1>
             <p className="text-slate text-sm mb-3 max-w-lg">
               Your Privacy Intelligence Report is created specifically for your regulatory environment. The more context you
               provide, the more precisely it speaks to your actual compliance obligations.

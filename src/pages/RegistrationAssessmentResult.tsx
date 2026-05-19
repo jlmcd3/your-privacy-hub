@@ -226,7 +226,7 @@ export default function RegistrationAssessmentResult() {
           <div className="max-w-5xl mx-auto py-10">
             <header className="mb-8">
               <div className="flex items-center justify-between flex-wrap gap-3">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground">Your Registration Map</h1>
+                <h1 className="font-bold text-foreground">Your Registration Map</h1>
                 <Button variant="outline" size="sm" onClick={copyShareLink}>
                   <Copy className="h-4 w-4 mr-2" />Share / save link
                 </Button>

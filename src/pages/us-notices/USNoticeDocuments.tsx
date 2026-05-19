@@ -306,7 +306,7 @@ export default function USNoticeDocuments() {
               className="h-10 w-10 mx-auto text-muted-foreground mb-3"
               aria-hidden
             />
-            <h3 className="font-serif text-lg mb-1">No notices yet</h3>
+            <h3 className="text-lg mb-1">No notices yet</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Once you generate your notices, each state-specific document will appear
               here with download options.

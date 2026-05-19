@@ -361,7 +361,7 @@ export default function USNoticeRefresh() {
               <Card key={st.state_code}>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
-                    <h2 className="font-serif text-xl">{st.state_name}</h2>
+                    <h2 className="font-serif">{st.state_name}</h2>
                     <Badge variant="secondary">{FRAMEWORK_LABEL[st.framework_type] ?? st.framework_type}</Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -394,7 +394,7 @@ export default function USNoticeRefresh() {
         <div className="max-w-3xl space-y-4">
           <Card>
             <CardContent className="p-6 space-y-3">
-              <h2 className="font-serif text-xl">Refresh summary</h2>
+              <h2 className="font-serif">Refresh summary</h2>
               <p className="text-sm">
                 <span className="font-medium">{states.length}</span> states reviewed ·{" "}
                 <span className="font-medium text-emerald-600">{unchangedCount}</span> confirmed unchanged ·{" "}

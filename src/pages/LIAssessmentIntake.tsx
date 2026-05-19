@@ -193,7 +193,7 @@ const LIAssessmentIntake = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             Step 2 — Full assessment · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate)` : ""}
           </span>
-          <h1 className="text-2xl md:text-3xl font-serif">Full Legitimate Interest Assessment</h1>
+          <h1 className="font-serif">Full Legitimate Interest Assessment</h1>
           <p className="text-slate-300 mt-2 text-sm">
             These questions track the EDPB's three-part test. We've already loaded what you told us in Step 1
             and adapted the rest to your use case ({row.preview_signal?.use_case_label}).
@@ -218,7 +218,7 @@ const LIAssessmentIntake = () => {
         <section className="bg-card border rounded-lg p-6 space-y-5">
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 01</span>
-            <h2 className="text-xl font-serif">Purpose test</h2>
+            <h2 className="font-serif">Purpose test</h2>
             <p className="text-sm text-muted-foreground">Is the interest legitimate, specific and present?</p>
           </div>
 
@@ -267,7 +267,7 @@ const LIAssessmentIntake = () => {
         <section className="bg-card border rounded-lg p-6 space-y-5">
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 02</span>
-            <h2 className="text-xl font-serif">Necessity test</h2>
+            <h2 className="font-serif">Necessity test</h2>
             <p className="text-sm text-muted-foreground">Is processing necessary, and is the data minimum?</p>
           </div>
 
@@ -301,7 +301,7 @@ const LIAssessmentIntake = () => {
         <section className="bg-card border rounded-lg p-6 space-y-5">
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 03</span>
-            <h2 className="text-xl font-serif">Balancing test</h2>
+            <h2 className="font-serif">Balancing test</h2>
             <p className="text-sm text-muted-foreground">Do data subjects' interests, rights and freedoms override yours?</p>
           </div>
 

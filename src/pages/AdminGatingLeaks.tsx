@@ -43,7 +43,7 @@ export default function AdminGatingLeaks() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-navy">Gating Leak Scanner</h1>
+            <h1 className="font-bold text-navy">Gating Leak Scanner</h1>
             <p className="text-sm text-slate mt-1">
               Cross-references route protection against user-visible Pro/Premium
               labels. Re-run with{" "}

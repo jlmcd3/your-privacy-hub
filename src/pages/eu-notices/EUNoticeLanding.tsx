@@ -63,7 +63,7 @@ export default function EUNoticeLanding() {
         <section className="py-16 md:py-20 border-b border-border">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
             <Badge variant="secondary" className="mb-4">12 global frameworks · One session</Badge>
-            <h1 className="font-serif text-4xl md:text-5xl mb-4 max-w-3xl">
+            <h1 className="font-serif mb-4 max-w-3xl">
               EU & Global Privacy Notice Builder
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mb-6">
@@ -81,7 +81,7 @@ export default function EUNoticeLanding() {
 
         <section className="py-12">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-2xl mb-6">Supported frameworks</h2>
+            <h2 className="font-serif mb-6">Supported frameworks</h2>
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {FRAMEWORKS.map((f) => (
                 <Card key={f.code}>
@@ -123,7 +123,7 @@ export default function EUNoticeLanding() {
         <section className="py-16">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <FileText className="h-10 w-10 mx-auto text-primary mb-4" />
-            <h2 className="font-serif text-3xl mb-3">Ready to build your global notice set?</h2>
+            <h2 className="font-serif mb-3">Ready to build your global notice set?</h2>
             <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
               Pick the frameworks you operate under and we'll generate tailored privacy notices for each.
             </p>

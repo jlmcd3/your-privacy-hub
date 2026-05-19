@@ -193,7 +193,7 @@ export default function RopaHome() {
             <Card className="border-dashed">
               <CardContent className="py-10 text-center">
                 <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <h2 className="font-serif text-xl text-foreground mb-2">
+                <h2 className="font-serif text-foreground mb-2">
                   Build your Record of Processing Activities
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">

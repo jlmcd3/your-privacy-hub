@@ -152,7 +152,7 @@ export default function EnforcementActionDetail() {
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h1 className="font-serif text-3xl mb-4">Action not found</h1>
+          <h1 className="font-serif mb-4">Action not found</h1>
           <Link to="/enforcement" className="text-primary hover:underline">← Back to Enforcement</Link>
         </main>
         <Footer />
@@ -186,7 +186,7 @@ export default function EnforcementActionDetail() {
             {action.decision_date && <><span>•</span><span>{new Date(action.decision_date).toLocaleDateString()}</span></>}
             {action.law && <><span>•</span><span>{action.law}</span></>}
           </div>
-          <h1 className="font-serif text-3xl md:text-4xl mb-4">{title}</h1>
+          <h1 className="font-serif mb-4">{title}</h1>
 
           <div className="flex flex-wrap items-center gap-4 mb-4">
             {fine && (
@@ -323,7 +323,7 @@ export default function EnforcementActionDetail() {
 
         {related.length > 0 && (
           <section className="mt-12">
-            <h2 className="font-serif text-2xl mb-4">More from {action.jurisdiction}</h2>
+            <h2 className="font-serif mb-4">More from {action.jurisdiction}</h2>
             <div className="space-y-2">
               {related.map((r) => (
                 <Link key={r.id} to={`/enforcement-intelligence/${r.id}`} className="block">

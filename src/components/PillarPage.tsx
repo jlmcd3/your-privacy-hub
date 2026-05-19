@@ -148,7 +148,7 @@ const PillarPage = ({
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             {icon} Intelligence Guide
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">{title}</h1>
+          <h1 className="font-display text-white mb-3 leading-tight">{title}</h1>
           {subtitleHtml ? (
             <p
               className="text-sm md:text-base text-slate-light max-w-[700px] [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
@@ -227,7 +227,7 @@ const PillarPage = ({
                 <div className="text-[11px] font-bold tracking-widest uppercase text-teal-700 mb-1.5">
                   ✓ Assessment tool
                 </div>
-                <h3 className="font-display text-[16px] md:text-[18px] text-navy leading-snug mb-1">
+                <h3 className="text-[16px] text-navy leading-snug mb-1">
                   {toolCta.heading}
                 </h3>
                 <p className="text-sm text-slate leading-relaxed">{toolCta.description}</p>
@@ -291,7 +291,7 @@ const PillarPage = ({
                 <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">
                   ⭐ Weekly Intelligence
                 </div>
-                <h3 className="font-display text-[16px] md:text-[18px] text-white leading-snug">
+                <h3 className="text-[16px] text-white leading-snug">
                   {intelligenceLabel || "What changed in this area this week"}
                 </h3>
               </div>
@@ -342,7 +342,7 @@ const PillarPage = ({
             return (
               <React.Fragment key={i}>
                 <div id={slug} className="scroll-mt-24">
-                  <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+                  <h2 className="font-display text-navy mb-3">{sec.heading}</h2>
                   <div
                     className="text-[14px] text-slate leading-relaxed whitespace-pre-line [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
                     dangerouslySetInnerHTML={{
@@ -358,7 +358,7 @@ const PillarPage = ({
 
         {/* Related links */}
         <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link
@@ -387,7 +387,7 @@ const PillarPage = ({
         {!isPremium && (
           <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
-            <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on {title}</h3>
+            <h3 className="text-white mb-3">Get weekly intelligence on {title}</h3>
             <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>

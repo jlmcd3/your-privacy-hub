@@ -93,7 +93,7 @@ export default function IRPlaybook() {
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
         <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
+          <h1 className="font-display font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
           <p className="text-slate text-sm">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">

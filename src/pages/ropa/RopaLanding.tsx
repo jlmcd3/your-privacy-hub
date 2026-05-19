@@ -120,7 +120,7 @@ export default function RopaLanding() {
         {/* HERO */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-foreground leading-tight mb-5">
+            <h1 className="font-serif text-foreground leading-tight mb-5">
               Build an audit-ready RoPA in under an hour.
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -157,7 +157,7 @@ export default function RopaLanding() {
         {/* HOW IT WORKS */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="max-w-5xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-10">
+            <h2 className="font-serif text-center mb-10">
               How it works
             </h2>
             <ol className="grid gap-6 md:grid-cols-3">
@@ -174,7 +174,7 @@ export default function RopaLanding() {
                       </span>
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="font-serif text-xl text-foreground mb-2">
+                    <h3 className="text-foreground mb-2">
                       {s.title}
                     </h3>
                     <p className="text-sm text-muted-foreground">{s.body}</p>
@@ -188,7 +188,7 @@ export default function RopaLanding() {
         {/* JURISDICTION COVERAGE */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-3">
+            <h2 className="font-serif text-center mb-3">
               Jurisdiction coverage
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
@@ -197,7 +197,7 @@ export default function RopaLanding() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {JURISDICTIONS.map((j) => (
                 <div key={j.region} className="bg-card border border-border rounded-xl p-5">
-                  <h3 className="font-serif text-lg text-foreground mb-3">
+                  <h3 className="text-lg text-foreground mb-3">
                     {j.region}
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -216,7 +216,7 @@ export default function RopaLanding() {
         {/* PRICING */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-3">
+            <h2 className="font-serif text-center mb-3">
               Pricing
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
@@ -271,7 +271,7 @@ export default function RopaLanding() {
         {/* FAQ */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-3xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-10">
+            <h2 className="font-serif text-center mb-10">
               Frequently asked questions
             </h2>
             <Accordion type="single" collapsible className="w-full">
@@ -291,7 +291,7 @@ export default function RopaLanding() {
 
         {/* FOOTER CTA */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl text-foreground mb-4">
+          <h2 className="font-serif text-foreground mb-4">
             Start documenting — free to begin.
           </h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">

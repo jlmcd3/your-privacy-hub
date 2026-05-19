@@ -55,7 +55,7 @@ export default function ResetPassword() {
           {success ? (
             <div className="text-center py-4">
               <div className="text-4xl mb-4">✅</div>
-              <h2 className="font-display text-[22px] text-navy mb-2">Password updated</h2>
+              <h2 className="font-display text-navy mb-2">Password updated</h2>
               <p className="text-slate text-sm">
                 Your password has been changed. Redirecting to your account…
               </p>
@@ -76,7 +76,7 @@ export default function ResetPassword() {
             </div>
           ) : (
             <>
-              <h1 className="font-display text-[24px] text-navy text-center mb-1.5">
+              <h1 className="font-display text-navy text-center mb-1.5">
                 Set New Password
               </h1>
               <p className="text-sm text-slate text-center mb-7">

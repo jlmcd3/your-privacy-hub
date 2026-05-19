@@ -150,7 +150,7 @@ export default function Account() {
       </Helmet>
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
+        <h1 className="font-display font-bold text-navy mb-8">My Account</h1>
 
         {!onboardingComplete && (
           <div className="bg-gradient-to-br from-blue/10 to-sky/10 border border-blue/30 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
@@ -305,7 +305,7 @@ export default function Account() {
             <div className="text-[11px] font-bold uppercase tracking-widest text-sky mb-2">
               ⭐ Upgrade
             </div>
-            <h3 className="font-display font-bold text-white text-[18px] mb-2">
+            <h3 className="font-bold text-white mb-2">
               Professional or Intelligence
             </h3>
             <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">

@@ -162,7 +162,7 @@ export default function JurisdictionsHub() {
                   <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
                     <span>🌐</span> Jurisdictions
                   </div>
-                  <h1 className="font-display font-bold text-3xl md:text-4xl text-white mb-2">
+                  <h1 className="font-display font-bold text-white mb-2">
                     Global Privacy Law Map
                   </h1>
                   <p className="text-blue-200 text-sm max-w-xl leading-relaxed">

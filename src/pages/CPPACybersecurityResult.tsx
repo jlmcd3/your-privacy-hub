@@ -40,7 +40,7 @@ export function CybersecurityReportBody({ row }: { row: any }) {
         </p>
       </section>
       <section className="bg-slate-900 text-white rounded-lg p-8">
-        <h1 className="text-3xl font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
+        <h1 className="font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
         <p className="text-slate-300 text-sm">
           Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
         </p>

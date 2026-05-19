@@ -167,7 +167,7 @@ export default function RopaActivity() {
         {/* Question zone */}
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-serif text-2xl flex-1">
+            <h1 className="font-serif flex-1">
               {currentActivity.display_name}
             </h1>
             {currentActivity.is_high_risk && (
