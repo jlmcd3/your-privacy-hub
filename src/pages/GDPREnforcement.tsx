@@ -33,6 +33,12 @@ export default function GDPREnforcement() {
           ],
         }}
         pageSynthesisKey="gdpr__page"
+        topToolCta={{
+          toolName: "Data Protection Impact Assessment",
+          toolDescription:
+            "Generate a GDPR-compliant DPIA structured to EDPB WP 248 requirements, calibrated to DPA enforcement patterns.",
+          href: "/dpia-framework",
+        }}
         sections={[
           {
             id: "framework",
