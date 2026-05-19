@@ -28,6 +28,22 @@ export default function AdminPricingReconciliation() {
   const rows = report.rows as Row[];
   const findings = report.findings as Finding[];
   const allOk = findings.length === 0;
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-pricing", { body: {} });
+      if (error) throw error;
+      setSyncResult(JSON.stringify(data, null, 2));
+    } catch (e: any) {
+      setSyncResult(`Error: ${e.message ?? String(e)}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <>
