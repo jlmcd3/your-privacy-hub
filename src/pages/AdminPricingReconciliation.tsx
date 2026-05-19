@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import NavReportButton from "@/components/admin/NavReportButton";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import report from "@/data/pricing-reconciliation.json";
 
 interface Row {
