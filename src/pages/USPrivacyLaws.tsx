@@ -443,6 +443,21 @@ const USPrivacyLaws = () => {
           </div>
         )}
 
+        {/* CPPA Risk Assessment CTA */}
+        <div className="mt-12 rounded-xl border border-accent/30 bg-gradient-to-br from-[hsl(var(--accent)/0.05)] to-card p-6">
+          <p className="text-eyebrow mb-2 text-accent">Assessment tool</p>
+          <h3 className="font-display text-navy mb-2">CPPA Risk Assessment</h3>
+          <p className="text-sm text-slate leading-relaxed mb-4">
+            Generate a CPPA-aligned risk assessment calibrated to California enforcement patterns - covers ADMT, sensitive data, and high-risk processing.
+          </p>
+          <Link
+            to="/cppa-risk-assessment"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent no-underline hover:underline"
+          >
+            Run Assessment <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
         {/* Related Resources */}
         <div className="mt-12 pt-8 border-t border-fog">
           <h3 className="text-navy mb-4">Related Resources</h3>
