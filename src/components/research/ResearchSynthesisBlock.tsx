@@ -15,9 +15,10 @@ interface Headline {
 
 interface ResearchSynthesisBlockProps {
   sectionKey: string;
+  promoteHeading?: boolean;
 }
 
-export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockProps) {
+export function ResearchSynthesisBlock({ sectionKey, promoteHeading }: ResearchSynthesisBlockProps) {
   const [data, setData] = useState<{
     synthesis_text: string;
     generated_at: string;
@@ -79,13 +80,21 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
   } as const;
 
   return (
-    <div className="mt-6 mb-2 rounded-r-lg" style={containerStyle}>
-      <div className="flex items-center gap-2 mb-3">
-        <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
-        <span className="text-eyebrow" style={{ color: "hsl(var(--cobalt))" }}>
+    <>
+      {promoteHeading && (
+        <h1 className="font-display text-navy mb-3 leading-tight" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400 }}>
           Recent Developments — Last 30 Days
-        </span>
-      </div>
+        </h1>
+      )}
+      <div className="mt-6 mb-2 rounded-r-lg" style={containerStyle}>
+        {!promoteHeading && (
+          <div className="flex items-center gap-2 mb-3">
+            <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
+            <span className="text-eyebrow" style={{ color: "hsl(var(--cobalt))" }}>
+              Recent Developments — Last 30 Days
+            </span>
+          </div>
+        )}
 
       {/* ANONYMOUS: headlines list only (no links, no why-it-matters), CTA to sign up */}
       {isAnon && (
@@ -283,5 +292,6 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
         </>
       )}
     </div>
+    </>
   );
 }
