@@ -637,7 +637,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
             <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
           )}
         </div>
-      </Link>
+      </a>
       {hasExternal && (
         <a
           href={articleUrl}
