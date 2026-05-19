@@ -193,7 +193,7 @@ const App = () => (
             <Route path="/timelines" element={<Timelines />} />
             <Route path="/timelines/:slug" element={<TimelineDetail />} />
             <Route path="/compare/us-states" element={<USStateComparison />} />
-            <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
+            
             <Route path="/legislation-tracker" element={<LegislationTracker />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/cookie-consent" element={<CookieConsent />} />
