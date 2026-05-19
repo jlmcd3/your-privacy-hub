@@ -51,8 +51,9 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
   const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
 
   return (
-    <Link
-      to={`/updates/${item.id}`}
+    <a
+      href={item.source_url || `/updates/${item.id}`}
+      {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="group flex gap-4 items-start py-4 border-b border-fog last:border-0 no-underline"
     >
       {/* Article thumbnail — falls back to EUP brand tile when missing */}
