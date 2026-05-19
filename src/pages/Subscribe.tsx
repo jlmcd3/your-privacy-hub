@@ -94,13 +94,32 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
-        <title>{`Two products. One mission. — ${PRICING.intelligence.monthly.display}/month or Professional from ${PRICING.professional.base.display}/month | End User Privacy`}</title>
+        <title>{`Two products. One mission. — ${PRICING.intelligence.monthly.display}/month or Professional from ${PRICING.professional.monthly.display}/month | End User Privacy`}</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.base.display}/month base + ${PRICING.professional.perClient.display}/client/year — client workspaces and 25% off all compliance tools.`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs, 1 free Convenience Tool run per client per month (annual).`}
         />
       </Helmet>
       <Navbar />
+
+      {/* Founding subscriber promotional banner */}
+      {isPromoOpen() && (
+        <div className="max-w-[800px] mx-auto mt-6 px-4">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 mb-2 text-center">
+            <p className="text-sm font-semibold text-amber-900">
+              🎁 Founding Subscriber Offer — closes{' '}
+              {new Date(FOUNDING_PROMO.endDate).toLocaleDateString('en-US', {
+                month: 'long', day: 'numeric', year: 'numeric',
+              })}
+            </p>
+            <p className="text-sm text-amber-800 mt-1">
+              Subscribe now and lock in <strong>20% off Smart Tools</strong> and{' '}
+              <strong>15% off Convenience Tools</strong> — permanently,
+              for the life of your subscription.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Two-product hero */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
@@ -110,7 +129,7 @@ const Subscribe = () => {
           </h1>
           <p className="text-[15px] text-slate-light max-w-[600px] mx-auto leading-relaxed mb-10">
             Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.
-            Run a client-facing practice with Professional from {PRICING.professional.base.display}/month base.
+            Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>
 
           <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
@@ -128,12 +147,11 @@ const Subscribe = () => {
               <p className="text-blue-200 text-meta mb-4">Cancel any time</p>
               <ul className="space-y-2 mb-6">
                 {[
-                  "Weekly Privacy Intelligence Report",
-                  "Enforcement tracking — all 119 authorities",
-                  "Jurisdiction monitoring",
-                  "All reference content",
+                  "Daily privacy intelligence feed",
+                  "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "AI investigation prompt on every article",
-                  "1 free tool run/month + 20% off all other tool runs",
+                  "Access to all compliance tools at standalone prices",
+                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
@@ -148,7 +166,7 @@ const Subscribe = () => {
                 Start free 10-day trial →
               </button>
               <p className="text-center text-blue-200/80 text-meta mt-2">
-                10-day free trial · Card required · No tools included in trial
+                10-day free trial · Card required · No tools in trial
               </p>
             </div>
 
@@ -159,24 +177,27 @@ const Subscribe = () => {
               </p>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-white font-display font-bold text-[36px] leading-none">
-                  {PRICING.professional.base.display}
+                  {PRICING.professional.monthly.display}
                 </span>
-                <span className="text-blue-200 text-lg font-normal">/month base</span>
+                <span className="text-blue-200 text-lg font-normal">/month</span>
               </div>
               <p className="text-amber-100 text-meta mb-1">
-                + {PRICING.professional.perClient.display}/client/year
+                or {PRICING.professional.annual.display}/year — {PRICING.professional.annual.savingDisplay}
               </p>
-              <p className="text-blue-200/70 text-meta mb-4">
-                Add clients à la carte — no minimum
+              <p className="text-blue-200/80 text-meta mb-1">
+                {PRICING.professional.annual.note}
+              </p>
+              <p className="text-amber-100 text-meta mb-4">
+                + {PRICING.professional.perClient.display} per client/year
               </p>
               <ul className="space-y-2 mb-6">
                 {[
                   "Everything in Intelligence (for account holder)",
-                  "Client/matter workspace",
+                  `${PRICING.professional.teamLoginsIncluded} seats included`,
+                  "Client/matter workspace & compliance record",
                   "Branded document outputs",
-                  `Up to ${PRICING.professional.teamLoginsIncluded} team logins`,
-                  "25% discount on all compliance tools",
-                  "Per-client tool allowances included",
+                  "1 free Convenience Tool run per client/month (annual only)",
+                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
@@ -191,7 +212,6 @@ const Subscribe = () => {
                 Start Professional →
               </button>
               <p className="text-center text-amber-100/80 text-meta mt-2">
-                Base fee covers your own Intelligence access.<br />
                 Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
               </p>
             </div>
@@ -205,8 +225,43 @@ const Subscribe = () => {
         </div>
       </div>
 
+      {/* Smart Tools / Convenience Tools explainer */}
+      <div className="max-w-3xl mx-auto px-4 mt-8">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+          <h3 className="text-sm font-semibold text-slate-700 mb-3">
+            About our compliance tools
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-sm text-slate-600">
+            <div>
+              <p className="font-semibold text-slate-800 mb-1">Smart Tools</p>
+              <p>
+                Multi-stage assessments calibrated against 3,500+ enforcement
+                decisions. Methodology reviewed by qualified privacy counsel.
+                Cannot be replicated by prompting a general AI.
+              </p>
+              <p className="mt-2 text-xs text-slate-500">
+                Governance Assessment · LIA · DPIA · CPPA Risk ·
+                CPPA Cybersecurity · DPA Generator · Biometric Check
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800 mb-1">Convenience Tools</p>
+              <p>
+                Jurisdiction-specific document generators that save significant
+                drafting time. Professional annual subscribers receive
+                1 free run per client per month.
+              </p>
+              <p className="mt-2 text-xs text-slate-500">
+                IR Playbook · US Notice Builder · EU/Global Notice Builder ·
+                RoPA Builder · Registration Filings
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Registration Manager mention */}
-      <div className="bg-white border-b border-fog py-4 px-4">
+      <div className="bg-white border-b border-fog py-4 px-4 mt-6">
         <div className="max-w-[720px] mx-auto text-center text-sm text-slate">
           Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
           <Link
@@ -215,7 +270,7 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-slate-light">— $50 per filing, 20% off for Intelligence subscribers, 25% off for Professional.</span>
+          <span className="text-slate-light">— $45 per filing.</span>
         </div>
       </div>
 
