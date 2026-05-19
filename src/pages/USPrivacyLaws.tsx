@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import { supabase } from "@/integrations/supabase/client";
