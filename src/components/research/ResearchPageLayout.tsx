@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import { ResearchPageHeader } from "./ResearchPageHeader";
+import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
 
