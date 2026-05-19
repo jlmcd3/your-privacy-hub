@@ -118,6 +118,6 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
           </Link>
         </div>
       </div>
-    </Link>
+    </a>
   );
 }
