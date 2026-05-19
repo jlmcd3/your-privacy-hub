@@ -75,6 +75,17 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
     active: true,
   },
   {
+    lookupKey: "intelligence_yearly_founding",
+    productKey: "intelligence",
+    productName: "Platform — Annual (Founding Rate)",
+    description: "Founding subscriber annual platform subscription. All compliance tools included free. First 500 subscribers only. $369/yr — $30.75/mo equivalent.",
+    amountCents: 36900,
+    currency: "usd",
+    kind: "subscription",
+    recurringInterval: "year",
+    active: true,
+  },
+  {
     lookupKey: "per_client_addon",
     productKey: "intelligence",
     productName: "Per-Client Add-On",
