@@ -86,7 +86,7 @@ export function ResearchPageLayout({
       <div className="max-w-4xl mx-auto px-6 py-8">
         {pageSynthesisKey && (
           <div className="mb-10">
-            <ResearchSynthesisBlock sectionKey={pageSynthesisKey} />
+            <ResearchSynthesisBlock sectionKey={pageSynthesisKey} promoteHeading />
           </div>
         )}
 
