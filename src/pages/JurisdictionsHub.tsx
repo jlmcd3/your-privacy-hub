@@ -225,9 +225,10 @@ export default function JurisdictionsHub() {
                         </div>
                       ))
                     : recentUpdates.map((item) => (
-                        <Link
+                        <a
                           key={item.id}
-                          to={`/updates/${item.id}`}
+                          href={item.source_url || `/updates/${item.id}`}
+                          {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                           title={item.fullTitle}
                           aria-label={`${item.name}: ${item.fullTitle} (${item.days})`}
                           className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
@@ -238,7 +239,7 @@ export default function JurisdictionsHub() {
                           <div className="font-bold text-navy mt-1">{item.name}</div>
                           <div className="text-slate leading-snug">{item.update}</div>
                           <div className="text-slate-light mt-0.5">{item.days}</div>
-                        </Link>
+                        </a>
                       ))}
                 </div>
               </div>
