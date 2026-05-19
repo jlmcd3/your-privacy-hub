@@ -1,19 +1,27 @@
 import { useEffect, useState } from "react";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, getToolPrice, type ToolKey } from "@/config/pricing";
+import {
+  PRICING,
+  FOUNDING_PROMO,
+  foundingPrice,
+  isSmartTool,
+  isConvenienceTool,
+  type ToolKey,
+} from "@/config/pricing";
 
 /**
- * v7 pricing model — per-use tools for ALL tiers with uniform discounts:
- *   Intelligence ($20/mo) subscribers : 20% off
- *   Professional ($35/mo) subscribers : 25% off
- *   Free / anonymous                  : standalone price
+ * New pricing model (v8):
+ *   • Standalone tool price is the same for every tier.
+ *   • Founding subscribers (founding_subscriber flag) get a permanent
+ *     discount applied at checkout: 20% off Smart Tools, 15% off
+ *     Convenience Tools.
+ *   • Professional annual subscribers additionally get 1 free
+ *     Convenience Tool run per client per month (handled in
+ *     freeConvenienceRun.ts at checkout time, not here).
  *
- * Source of truth: `PRICING.tools` in src/config/pricing.ts.
- * Stripe charge reconciliation lives in the create-tool-checkout +
- * get-tool-price edge functions (see DRIFT LOG in src/config/pricing.ts).
+ * Source of truth: PRICING.tools in src/config/pricing.ts.
  */
 
-/** Map legacy slugs used across intake pages → canonical PRICING.tools keys. */
 const SLUG_TO_TOOL_KEY: Record<string, ToolKey | "cppa_suite_combo"> = {
   li_assessment:                "lia",
   governance_assessment:        "governance",
@@ -58,38 +66,43 @@ const DISPLAY_NAMES: Record<string, string> = {
 
 export type ToolSlug = keyof typeof SLUG_TO_TOOL_KEY;
 
-function standaloneFor(slug: ToolSlug): number {
+function standaloneCentsFor(slug: ToolSlug): number {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (key === "cppa_suite_combo") {
-    // Suite = Risk + Cyber bundle
-    return PRICING.tools.cppaRisk.dollars + PRICING.tools.cppaCyber.dollars;
+    return PRICING.tools.cppaRisk.cents ?? PRICING.tools.cppaRisk.dollars * 100
+         + (PRICING.tools.cppaCyber.cents ?? PRICING.tools.cppaCyber.dollars * 100);
   }
-  return PRICING.tools[key].dollars;
+  return (PRICING.tools[key] as any).cents ?? PRICING.tools[key].dollars * 100;
 }
 
-function discountedFor(slug: ToolSlug, kind: "intelligence" | "professional"): number {
+function canonicalKeyFor(slug: ToolSlug): string {
+  // For classification purposes (smart vs convenience). Treat CPPA suite as smart.
   const key = SLUG_TO_TOOL_KEY[slug];
-  if (key === "cppa_suite_combo") {
-    return getToolPrice("cppaRisk", kind) + getToolPrice("cppaCyber", kind);
-  }
-  return getToolPrice(key, kind);
+  return key === "cppa_suite_combo" ? "cppaRisk" : key;
 }
 
 export interface ToolPricing {
   /** Price the current viewer will pay, in dollars. */
   price: number;
-  /** Standalone (non-subscriber) price in dollars. */
+  /** Standalone (non-discounted) price in dollars. */
   standalonePrice: number;
-  /** Best subscriber price (Professional, 25% off) — shown as strike-through reference for free users. */
+  /**
+   * Founding-subscriber discounted price (in dollars) — used as strike-through
+   * reference to advertise the founding-subscriber discount on intake pages.
+   */
   subscriberPrice: number;
-  /** True when the current viewer is on any paid tier (and therefore getting a discount). */
+  /** True when the current viewer is currently being charged less than standalone. */
   isSubscriber: boolean;
-  /** Legacy flag — under v7 no tool is "included free". Always false. */
+  /** Legacy flag — no tool is "included free" under the new model. Always false. */
   isIncluded: boolean;
-  /** True for monthly Intelligence subscribers (20% off). */
+  /** True for monthly Intelligence subscribers (no longer discounted under v8). */
   isMonthlyIntelligence: boolean;
-  /** True for CPPA tools (purely informational; no longer changes pricing logic). */
+  /** True for CPPA tools (purely informational). */
   isCppa: boolean;
+  /** True if viewer qualifies for founding-subscriber pricing. */
+  isFoundingSubscriber: boolean;
+  /** Founding-subscriber discount percent label, e.g. "20%". */
+  foundingDiscountLabel: string;
   /** Tool display name. */
   name: string;
   /** True when Stripe is fully wired up server-side. */
@@ -100,41 +113,29 @@ export interface ToolPricing {
 
 const CPPA_TOOLS = new Set(["cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite"]);
 
-/**
- * Returns v7 subscriber-aware pricing for a tool intake page.
- *
- *   tier free                       → price = standalone
- *   tier monthly (Intelligence)     → price = standalone × 0.80
- *   tier annual / annual_founding   → price = standalone × 0.75
- *
- * `subscriberPrice` always reflects the best available discount (Professional / 25% off),
- * so intake-page strike-through copy advertises the maximum savings to free users.
- */
 export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
-  const { tier, isLoading } = useSubscriptionTier();
+  const { tier, isFoundingSubscriber, isLoading } = useSubscriptionTier();
   const isCppa = CPPA_TOOLS.has(toolSlug);
   const name = DISPLAY_NAMES[toolSlug] ?? toolSlug;
 
-  const standalone = standaloneFor(toolSlug);
-  const professional = discountedFor(toolSlug, "professional");
-  const intelligence = discountedFor(toolSlug, "intelligence");
+  const standaloneCents = standaloneCentsFor(toolSlug);
+  const canonicalKey = canonicalKeyFor(toolSlug);
+  const smart = isSmartTool(canonicalKey);
+  const foundingCents = foundingPrice(standaloneCents, smart);
 
-  let price = standalone;
-  let isSubscriber = false;
-  if (tier === "annual" || tier === "annual_founding") {
-    price = professional;
-    isSubscriber = true;
-  } else if (tier === "monthly") {
-    price = intelligence;
-    isSubscriber = true;
-  }
+  const standalone = standaloneCents / 100;
+  const founding = foundingCents / 100;
+
+  const price = isFoundingSubscriber ? founding : standalone;
+
+  const foundingDiscountPct = smart
+    ? FOUNDING_PROMO.smartToolDiscountPct
+    : FOUNDING_PROMO.convenienceToolDiscountPct;
+  const foundingDiscountLabel = `${Math.round(foundingDiscountPct * 100)}%`;
 
   const [stripeConfigured, setStripeConfigured] = useState(false);
 
   useEffect(() => {
-    // Best-effort: ping get-tool-price purely to learn whether Stripe is wired.
-    // We deliberately ignore any amounts it returns — the v7 displayed price
-    // is driven by PRICING in src/config/pricing.ts. See DRIFT LOG.
     let cancelled = false;
     (async () => {
       try {
@@ -156,11 +157,13 @@ export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
   return {
     price,
     standalonePrice: standalone,
-    subscriberPrice: professional, // best available discount, used as strike-through reference
-    isSubscriber,
-    isIncluded: false, // v7: nothing is "included" — every tool is per-use
+    subscriberPrice: founding,
+    isSubscriber: isFoundingSubscriber,
+    isIncluded: false,
     isMonthlyIntelligence: tier === "monthly",
     isCppa,
+    isFoundingSubscriber,
+    foundingDiscountLabel,
     name,
     stripeConfigured,
     loading: isLoading,
