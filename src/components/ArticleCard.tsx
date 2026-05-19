@@ -568,10 +568,12 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
       style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
       <div className="flex-1 min-w-0">
-        <Link to={`/updates/${item.id}`}
+        <a
+          href={item.source_url || `/updates/${item.id}`}
+          {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           className="text-sm font-semibold text-gray-900 hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
-        </Link>
+        </a>
         {item.summary && (
           <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
