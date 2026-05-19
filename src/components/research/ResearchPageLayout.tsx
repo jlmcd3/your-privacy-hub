@@ -38,6 +38,7 @@ export interface ResearchPageLayoutProps {
     lastUpdated?: string;
     stats?: { value: string; label: string }[];
     feedCategory?: string;
+    breadcrumbs?: BreadcrumbItem[];
   };
   /** Page-level synthesis sectionKey, rendered above sections */
   pageSynthesisKey?: string;
