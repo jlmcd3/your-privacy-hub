@@ -216,11 +216,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // v7 gating: every tool is per-use. Apply the appropriate discount
-    // based on subscription tier.
-    //   - Professional (annual / annual_founding) → subscriber rate (25% off).
-    //   - Intelligence (monthly)                  → 20% off standalone.
-    //   - Free / anonymous                        → standalone.
+    // v8 gating:
+    //   - Every tool is per-use (no "included free" tier).
+    //   - Founding subscribers (founding_subscriber = true) get 20% off
+    //     Smart Tools / 15% off Convenience Tools, applied to standalone.
+    //   - Professional annual subscribers may use 1 free Convenience Tool
+    //     run per client per month (free_run_used_this_month gate).
     const CPPA_TOOL_LOOKUPS = new Set([
       "cppa_risk_standalone", "cppa_risk_subscriber",
       "cppa_cyber_standalone", "cppa_cyber_subscriber",
@@ -228,54 +229,97 @@ Deno.serve(async (req) => {
     ]);
     const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
 
-    let isProfessionalSubscriber = false;
-    let isIntelligenceSubscriber = false;
+    // Classify tool for founding-discount %.
+    const SMART_TOOL_TYPES = new Set([
+      "li_assessment", "governance_assessment", "dpia_framework",
+      "cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite",
+      "dpa_generator", "biometric_checker",
+    ]);
+    const CONVENIENCE_TOOL_TYPES = new Set([
+      "ir_playbook", "ropa_initial", "ropa_refresh",
+      "us_notice_single", "us_notice_all_states", "us_notice_refresh",
+      "eu_notice_single", "eu_notice_suite", "eu_notice_full_international", "eu_notice_refresh",
+    ]);
+    const isSmart = SMART_TOOL_TYPES.has(tool_type);
+    const isConvenience = CONVENIENCE_TOOL_TYPES.has(tool_type);
+
+    let isFoundingSubscriber = false;
+    let isProfessionalAnnual = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_premium, is_pro, subscription_type")
+        .select("is_premium, is_pro, subscription_type, founding_subscriber, professional_annual")
         .eq("id", user_id)
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
-      if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
-        isProfessionalSubscriber = true;
-      } else if (subscriptionType === "monthly") {
-        isIntelligenceSubscriber = true;
-      } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
-        // Legacy premium without subscription_type — grandfather as Professional.
-        isProfessionalSubscriber = true;
-      }
+      isFoundingSubscriber = (profile as any)?.founding_subscriber === true
+        || subscriptionType === "annual_founding";
+      isProfessionalAnnual = (profile as any)?.professional_annual === true
+        || subscriptionType === "annual" || subscriptionType === "annual_founding";
     }
 
-    const isSubscriber = isProfessionalSubscriber; // backwards-compat alias used below
+    const isSubscriber = isFoundingSubscriber; // backwards-compat alias used below
 
-    const lookupKey =
-      isProfessionalSubscriber && tool.subscriber_lookup
-        ? tool.subscriber_lookup
-        : tool.standalone_lookup;
+    // Always charge the standalone Stripe price (subscriber lookup deprecated under v8);
+    // founding discount is computed at runtime via price_data fallback.
+    const lookupKey = tool.standalone_lookup;
 
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
-    // Resolve the human-readable price ID to Stripe's internal price ID.
-    // Note: when applying the Intelligence 20% discount we deliberately
-    // skip the resolved Stripe price (it does not correspond to this
-    // dynamic amount) and fall back to price_data with computed cents.
-    const stripePrice = isIntelligenceSubscriber
-      ? null
-      : await resolvePriceId(stripe, lookupKey);
-
     const standaloneCents = tool.fallback_standalone_cents;
-    const subscriberCents = tool.fallback_subscriber_cents;
+
+    // Check free convenience run eligibility (Professional annual + Convenience tool + client_id).
+    const clientId = (intake_data as any)?.client_id ?? null;
+    let useFreeRun = false;
+    if (isProfessionalAnnual && isConvenience && clientId) {
+      const { data: clientRow } = await supabase
+        .from("professional_clients")
+        .select("free_run_used_this_month, free_run_reset_date")
+        .eq("id", clientId)
+        .eq("user_id", user_id)
+        .maybeSingle();
+      const c = clientRow as { free_run_used_this_month?: boolean; free_run_reset_date?: string } | null;
+      if (c) {
+        const reset = c.free_run_reset_date ? new Date(c.free_run_reset_date) : new Date(0);
+        const now = new Date();
+        const newMonth = reset.getFullYear() < now.getFullYear() || reset.getMonth() < now.getMonth();
+        if (newMonth || !c.free_run_used_this_month) {
+          useFreeRun = true;
+        }
+      }
+    }
+
     let amountCents: number;
-    if (isProfessionalSubscriber) {
-      amountCents = stripePrice?.unit_amount ?? subscriberCents;
-    } else if (isIntelligenceSubscriber) {
-      amountCents = Math.round(standaloneCents * 0.8);
+    if (useFreeRun) {
+      amountCents = 0;
+    } else if (isFoundingSubscriber && (isSmart || isConvenience)) {
+      const pct = isSmart ? 0.20 : 0.15;
+      amountCents = Math.round(standaloneCents * (1 - pct));
     } else {
+      const stripePrice = await resolvePriceId(stripe, lookupKey);
       amountCents = stripePrice?.unit_amount ?? standaloneCents;
     }
+
+    // For free-run consumption: mark the client's monthly free run as used.
+    if (useFreeRun && clientId) {
+      await supabase
+        .from("professional_clients")
+        .update({
+          free_run_used_this_month: true,
+          free_run_reset_date: new Date().toISOString().split("T")[0],
+        })
+        .eq("id", clientId);
+    }
+
+    // Existing flow further below still references stripePrice; preserve the var name.
+    const stripePrice: { id: string; unit_amount?: number | null } | null = null;
+    const subscriberCents = tool.fallback_subscriber_cents;
+    const isProfessionalSubscriber = isProfessionalAnnual; // alias for legacy code below
+    const isIntelligenceSubscriber = subscriptionType === "monthly";
+    void subscriberCents; void stripePrice; void isIntelligenceSubscriber;
+
 
     const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
     const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
