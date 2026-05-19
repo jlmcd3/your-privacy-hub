@@ -604,8 +604,9 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
   const hasExternal = articleUrl && articleUrl !== '#';
   return (
     <div className="group relative flex gap-3 py-3 border-b border-fog hover:bg-slate-50/50 transition-colors">
-      <Link
-        to={`/updates/${item.id}`}
+      <a
+        href={hasExternal ? articleUrl : `/updates/${item.id}`}
+        {...(hasExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="flex gap-3 flex-1 min-w-0 no-underline"
       >
         <img
