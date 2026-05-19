@@ -114,7 +114,7 @@ export default function CPPACybersecurity() {
               <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>
             )}
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
+          <h1 className="font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
         </div>
@@ -127,7 +127,7 @@ export default function CPPACybersecurity() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <section className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Organisation Profile</h2>
+          <h2 className="font-semibold">Organisation Profile</h2>
           <div>
             <Label>Industry sector *</Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
@@ -157,7 +157,7 @@ export default function CPPACybersecurity() {
 
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold">18 Cybersecurity Programme Components</h2>
+            <h2 className="font-semibold">18 Cybersecurity Programme Components</h2>
             <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
           </div>
 

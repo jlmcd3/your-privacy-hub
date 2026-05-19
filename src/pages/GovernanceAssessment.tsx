@@ -191,7 +191,7 @@ const GovernanceAssessment = () => {
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
             {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence subscribers 20% off · Professional 25% off →</a></>}
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
+          <h1 className="font-serif mb-3">Privacy Program Assessment Tool</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
@@ -225,7 +225,7 @@ const GovernanceAssessment = () => {
         <div className="bg-card border rounded-lg p-6 space-y-6">
           {step === 1 && (
             <>
-              <h2 className="text-xl font-semibold">Gateway Questions</h2>
+              <h2 className="font-semibold">Gateway Questions</h2>
               <div>
                 <Label>Q1: Primary sector *</Label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
@@ -256,7 +256,7 @@ const GovernanceAssessment = () => {
 
           {step === 2 && (
             <>
-              <h2 className="text-xl font-semibold">Data and Processing Profile</h2>
+              <h2 className="font-semibold">Data and Processing Profile</h2>
               <div>
                 <Label>Q6: Categories of personal data processed *</Label>
                 <div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div>
@@ -273,7 +273,7 @@ const GovernanceAssessment = () => {
 
           {step === 3 && (
             <>
-              <h2 className="text-xl font-semibold">Governance Infrastructure</h2>
+              <h2 className="font-semibold">Governance Infrastructure</h2>
               <div><Label>Q8: Documented privacy policy/notice *</Label><div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
               <div><Label>Q9: Acceptable use policy for technology tools *</Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
               {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent? *</Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
@@ -284,7 +284,7 @@ const GovernanceAssessment = () => {
 
           {step === 4 && (
             <>
-              <h2 className="text-xl font-semibold">Training and Awareness</h2>
+              <h2 className="font-semibold">Training and Awareness</h2>
               <div><Label>Q13: Privacy / data protection training *</Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
               <div><Label>Q14: Instruction on what data may/may not be submitted to external technology tools *</Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
             </>
@@ -292,7 +292,7 @@ const GovernanceAssessment = () => {
 
           {step === 5 && showStep5 && (
             <>
-              <h2 className="text-xl font-semibold">Transfer and Compliance</h2>
+              <h2 className="font-semibold">Transfer and Compliance</h2>
               <div><Label>Q15: DPAs signed with relevant vendors *</Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
               <div><Label>Q16: Cross-border transfers outside EU/UK *</Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
             </>
@@ -334,7 +334,7 @@ const GovernanceAssessment = () => {
             return (
               <>
                 <div>
-                  <h2 className="text-xl font-semibold">Review your answers</h2>
+                  <h2 className="font-semibold">Review your answers</h2>
                   <p className="text-sm text-muted-foreground mt-1">
                     Review the inputs below before running. You can go back to edit any step.
                   </p>

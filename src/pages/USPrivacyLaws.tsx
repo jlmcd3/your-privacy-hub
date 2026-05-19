@@ -181,7 +181,7 @@ const USPrivacyLaws = () => {
           <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             🇺🇸 Intelligence Guide
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
+          <h1 className="font-display text-white mb-3 leading-tight">
             U.S. Privacy Laws
           </h1>
           <p className="text-sm md:text-base text-slate-light max-w-[700px]">
@@ -247,7 +247,7 @@ const USPrivacyLaws = () => {
           id="federal-authorities"
           className="mb-12 scroll-mt-24"
         >
-          <h2 className="font-display text-xl md:text-[24px] text-foreground mb-2">
+          <h2 className="font-display text-foreground mb-2">
             U.S. Federal Privacy Authorities
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -301,7 +301,7 @@ const USPrivacyLaws = () => {
           id="authority-directory"
           className="mt-12 mb-10 scroll-mt-24"
         >
-          <h2 className="font-display text-xl md:text-[24px] text-foreground mb-2">
+          <h2 className="font-display text-foreground mb-2">
             U.S. State Privacy Authority Directory
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -423,7 +423,7 @@ const USPrivacyLaws = () => {
             className="mt-12 mb-8 scroll-mt-24"
           >
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-display text-xl text-navy">
+              <h2 className="font-display text-navy">
                 Recent U.S. Privacy Developments
               </h2>
               <span className="text-eyebrow px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
@@ -445,7 +445,7 @@ const USPrivacyLaws = () => {
 
         {/* Related Resources */}
         <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {RELATED_LINKS.map((link) => (
               <Link
@@ -468,7 +468,7 @@ const USPrivacyLaws = () => {
           <div className="text-eyebrow text-sky mb-2">
             ⭐ Intelligence
           </div>
-          <h3 className="font-display text-xl text-white mb-3">
+          <h3 className="text-white mb-3">
             Get weekly intelligence on U.S. Privacy Laws
           </h3>
           <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">

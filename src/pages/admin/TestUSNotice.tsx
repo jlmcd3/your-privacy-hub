@@ -303,7 +303,7 @@ export default function TestUSNotice() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
-          <h1 className="font-serif text-3xl mb-2">
+          <h1 className="font-serif mb-2">
             🧪 TEST: US Privacy Notice Builder
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -330,7 +330,7 @@ export default function TestUSNotice() {
         {stateTexts.length > 0 && (
           <>
             <div className="border rounded-lg p-4 bg-card">
-              <h2 className="font-serif text-xl mb-3">
+              <h2 className="font-serif mb-3">
                 Assertions ({passCount} pass / {failCount} fail)
               </h2>
               <ul className="space-y-1 text-sm">
@@ -344,7 +344,7 @@ export default function TestUSNotice() {
             </div>
 
             <div className="border rounded-lg p-4 bg-card">
-              <h2 className="font-serif text-xl mb-2">Generated documents</h2>
+              <h2 className="font-serif mb-2">Generated documents</h2>
               <ul className="text-sm space-y-1">
                 {docPaths.map((d) => (
                   <li key={d.state}>

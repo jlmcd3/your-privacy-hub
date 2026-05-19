@@ -149,7 +149,7 @@ export default function AdminIngestionDashboard() {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <h1 className="font-display text-2xl text-foreground mb-3">Admin access required</h1>
+          <h1 className="font-display text-foreground mb-3">Admin access required</h1>
           <p className="text-muted-foreground text-sm mb-6">
             This page is restricted to administrators. If you should have access,
             ask another admin to add the <code className="bg-muted px-1 rounded">admin</code> role to your account.
@@ -183,7 +183,7 @@ export default function AdminIngestionDashboard() {
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">Admin</p>
-            <h1 className="font-display text-[28px] text-foreground">Ingestion Run Dashboard</h1>
+            <h1 className="font-display text-foreground">Ingestion Run Dashboard</h1>
             <p className="text-muted-foreground text-sm mt-1">
               Telemetry for cron-driven news ingestion and enrichment jobs. Showing last 200 runs.
             </p>
@@ -359,7 +359,7 @@ export default function AdminIngestionDashboard() {
         <section className="mt-12">
           <div className="mb-4">
             <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">Article moderation</p>
-            <h2 className="font-display text-[22px] text-foreground">Hide articles from feeds</h2>
+            <h2 className="font-display text-foreground">Hide articles from feeds</h2>
             <p className="text-muted-foreground text-sm mt-1">
               Hidden articles will not appear on /updates, the homepage, pillar pages, or article drawers. They remain in the database.
             </p>

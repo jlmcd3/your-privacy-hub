@@ -32,7 +32,7 @@ function RiskReportBody({ row }: { row: any }) {
   return (
     <div className="space-y-6">
       <section className="bg-slate-900 text-white rounded-lg p-8">
-        <h1 className="text-3xl font-serif mb-2">CPPA Privacy Risk Assessment</h1>
+        <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
         <p className="text-slate-300 text-sm">
           Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
         </p>
@@ -197,7 +197,7 @@ export default function CPPASuiteResult() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             CPPA AUDIT READINESS SUITE
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif">Combined CPPA Audit Readiness Report</h1>
+          <h1 className="font-serif">Combined CPPA Audit Readiness Report</h1>
           <p className="text-slate-300 mt-2 text-sm">Module 1 (Privacy Risk Assessment) and Module 2 (Cybersecurity Audit Readiness) for your organisation.</p>
         </header>
 

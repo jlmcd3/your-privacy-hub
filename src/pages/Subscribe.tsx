@@ -124,7 +124,7 @@ const Subscribe = () => {
       {/* Two-product hero */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[800px] mx-auto text-center">
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
+          <h1 className="font-display text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
           <p className="text-[15px] text-slate-light max-w-[600px] mx-auto leading-relaxed mb-10">
@@ -280,7 +280,7 @@ const Subscribe = () => {
 
       {/* Feature comparison table */}
       <div className="max-w-3xl mx-auto px-4 mt-12 mb-8">
-        <h2 className="text-center font-display text-xl text-navy mb-6">
+        <h2 className="text-center font-display text-navy mb-6">
           What's included at each level
         </h2>
         <div className="overflow-x-auto">
@@ -351,7 +351,7 @@ const Subscribe = () => {
 
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy text-xl mb-2">
+          <h2 className="font-display font-bold text-navy mb-2">
             See what your report would look like
           </h2>
           <p className="text-slate text-sm">
@@ -364,7 +364,7 @@ const Subscribe = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Three-column comparison table */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
+          <h2 className="font-display text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -438,7 +438,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.09em] text-slate mb-3">
               Where we fit
             </p>
-            <h2 className="font-display text-[22px] md:text-[28px] text-navy mb-3 leading-tight">
+            <h2 className="font-display text-navy mb-3 leading-tight">
               The missing piece of the privacy toolkit
             </h2>
             <p className="text-sm text-slate max-w-[480px] mx-auto leading-relaxed">
@@ -534,7 +534,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
-            <h3 className="font-display text-base text-navy mb-2 leading-snug">
+            <h3 className="text-base text-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">

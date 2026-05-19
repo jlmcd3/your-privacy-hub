@@ -109,7 +109,7 @@ export default function OnboardingProfile() {
       <Navbar />
       <div className="flex-1 flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-lg bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
-          <h1 className="font-display text-[26px] text-navy mb-2">
+          <h1 className="font-display text-navy mb-2">
             Personalise your intelligence feed
           </h1>
           <p className="text-slate text-[14px] leading-relaxed mb-6">

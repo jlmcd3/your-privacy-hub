@@ -40,7 +40,7 @@ export function USNoticeShell({
               currentIndex={breadcrumb.currentIndex}
             />
           )}
-          <h1 className="font-serif text-3xl md:text-4xl text-foreground mb-6">
+          <h1 className="font-serif text-foreground mb-6">
             {heading}
           </h1>
           {children ?? (

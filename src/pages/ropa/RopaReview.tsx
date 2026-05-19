@@ -246,7 +246,7 @@ export default function RopaReview() {
         })()}
         {/* Header */}
         <header>
-          <h1 className="text-[28px] font-serif text-navy mb-3">
+          <h1 className="font-serif text-navy mb-3">
             Review before generating your RoPA
           </h1>
           <div className="flex flex-wrap gap-2">
@@ -588,7 +588,7 @@ export default function RopaReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-base font-serif text-navy mb-4">Building your RoPA…</h3>
+            <h3 className="text-base text-navy mb-4">Building your RoPA…</h3>
             <ul className="space-y-2 text-sm">
               <GenStepRow done={genSteps.client === "done"} label="Client record" />
               <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />

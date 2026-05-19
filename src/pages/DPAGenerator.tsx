@@ -113,7 +113,7 @@ export default function DPAGenerator() {
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
         <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Custom DPA</h1>
+          <h1 className="font-display font-extrabold text-navy mb-2">Your Custom DPA</h1>
           <p className="text-slate text-sm">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
           {phase === "sample" && (() => {
             const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];

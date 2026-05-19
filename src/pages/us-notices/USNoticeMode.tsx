@@ -149,7 +149,7 @@ export default function USNoticeMode() {
               </div>
               {hasCompletedRopa && <Badge variant="default">Recommended</Badge>}
             </div>
-            <h2 className="font-serif text-2xl mb-2">From my RoPA</h2>
+            <h2 className="font-serif mb-2">From my RoPA</h2>
             <p className="text-sm text-muted-foreground mb-4 flex-1">
               Pre-populated from your existing data map. Answer 4–8 questions per
               activity. Fastest path if you've completed a RoPA.
@@ -216,7 +216,7 @@ export default function USNoticeMode() {
                 <ClipboardList className="h-6 w-6 text-primary" />
               </div>
             </div>
-            <h2 className="font-serif text-2xl mb-2">Start fresh</h2>
+            <h2 className="font-serif mb-2">Start fresh</h2>
             <p className="text-sm text-muted-foreground mb-4 flex-1">
               Answer questions specific to your business and selected states. No
               RoPA required. 8–18 questions depending on state coverage.

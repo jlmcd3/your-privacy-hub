@@ -82,7 +82,7 @@ export default function ThisWeekInPrivacy() {
           </span>
         </div>
 
-        <h2 className="font-display font-bold text-lg md:text-xl leading-snug mb-3">
+        <h2 className="font-display font-bold text-lg leading-snug mb-3">
           {headline}
         </h2>
 
@@ -133,7 +133,7 @@ export default function ThisWeekInPrivacy() {
         )}
       </div>
 
-      <h2 className="font-display font-bold text-lg md:text-xl leading-snug mb-3">
+      <h2 className="font-display font-bold text-lg leading-snug mb-3">
         {brief.headline}
       </h2>
 

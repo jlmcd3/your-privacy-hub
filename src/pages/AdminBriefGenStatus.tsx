@@ -75,7 +75,7 @@ export default function AdminBriefGenStatus() {
   return (
     <div className="container max-w-4xl mx-auto py-10 space-y-6">
       <div>
-        <h1 className="font-serif text-3xl mb-1">Sample Brief Generation Status</h1>
+        <h1 className="font-serif mb-1">Sample Brief Generation Status</h1>
         <p className="text-sm text-muted-foreground">
           Live progress for <code className="font-mono text-xs">scripts/generate-sample-briefs.mjs</code>.
           Polls every {POLL_MS / 1000}s.

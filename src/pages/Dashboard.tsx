@@ -84,7 +84,7 @@ function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: str
   if (!content) return null;
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
-      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-1">
+      <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-1">
         <span className="mr-2"><FlagIcon icon={icon} /></span>{title}
       </h3>
       {subtitle && (
@@ -306,7 +306,7 @@ const Dashboard = () => {
         {showDigestPrefs && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-              <h2 className="font-display font-bold text-navy text-xl mb-6">
+              <h2 className="font-display font-bold text-navy mb-6">
                 Your weekly digest
               </h2>
               <DigestPreferences
@@ -327,7 +327,7 @@ const Dashboard = () => {
               <div className="text-eyebrow text-amber-400 mb-2">
                 ⭐ Get Intelligence
               </div>
-              <h3 className="font-display font-bold text-white text-lg mb-2">
+              <h3 className="font-bold text-white text-lg mb-2">
                 This brief, re-analyzed for your practice
               </h3>
               <p className="text-blue-200 text-sm mb-4 max-w-md mx-auto">
@@ -435,7 +435,7 @@ const Dashboard = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <TrialCountdownBanner />
         <div className="mb-6 pb-6 border-b border-gray-100">
-          <h1 className="font-display text-2xl text-navy font-bold mb-1">
+          <h1 className="font-display text-navy font-bold mb-1">
             Privacy Intelligence Workspace
           </h1>
           <WorkspaceStatusLine />
@@ -447,7 +447,7 @@ const Dashboard = () => {
             <p className="text-meta font-semibold tracking-widest uppercase text-primary mb-2">
               📋 Weekly Privacy Intelligence Report
             </p>
-            <h1 className="font-display text-[28px] md:text-[34px] text-foreground leading-tight">
+            <h1 className="font-display text-foreground leading-tight">
               {loading
                 ? "Loading your latest brief…"
                 : brief?.headline ?? "Your next brief is on the way"}
@@ -474,7 +474,7 @@ const Dashboard = () => {
             <div className="flex items-start gap-4">
               <p className="text-3xl">📬</p>
               <div className="flex-1 min-w-0">
-                <h3 className="font-display font-bold text-foreground text-lg mb-1">
+                <h3 className="font-bold text-foreground text-lg mb-1">
                   Your Privacy Intelligence Report arrives next Monday
                 </h3>
                 <p className="text-muted-foreground text-sm mb-3 leading-relaxed">
@@ -621,7 +621,7 @@ const Dashboard = () => {
                       Covering {describeBriefPeriod(brief.published_at)} · {brief.article_count} updates reviewed
                     </span>
                   </div>
-                  <h2 className="font-display text-lg md:text-[22px] text-white font-bold leading-tight">
+                  <h2 className="font-display text-lg text-white font-bold leading-tight">
                     {brief.headline}
                   </h2>
                   <p className="mt-2 text-meta text-blue-200">
@@ -634,7 +634,7 @@ const Dashboard = () => {
 
                   {/* Executive Summary */}
                   <section className="py-7 border-b border-slate-100">
-                    <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
+                    <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
                     <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                       <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
                     </div>
@@ -655,7 +655,7 @@ const Dashboard = () => {
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">
                         ⚖️ Enforcement Actions This Week
                       </h3>
                       <div className="overflow-x-auto rounded-xl border border-slate-100">
@@ -695,7 +695,7 @@ const Dashboard = () => {
                   {/* Top 10 enforcement signals — ranked by significance + recency */}
                   {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-1">
+                      <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-1">
                         🔝 Top 10 Enforcement Signals
                       </h3>
                       <p className="text-meta text-slate-500 mb-4">
@@ -752,7 +752,7 @@ const Dashboard = () => {
 
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">
                         🌐 Cross-Jurisdiction Patterns
                       </h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
@@ -764,7 +764,7 @@ const Dashboard = () => {
                   {/* Trend signal */}
                   {brief.trend_signal && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
+                      <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                         <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
                       </div>
@@ -776,7 +776,7 @@ const Dashboard = () => {
                   {brief.why_this_matters && (
                     <section className="py-7">
                       <div className="bg-navy rounded-xl p-6">
-                        <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-amber-400 mb-5">
+                        <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-amber-400 mb-5">
                           🎯 Action Items for This Week
                         </h3>
                         <div className="text-sm text-blue-100 leading-relaxed space-y-3">
@@ -795,7 +795,7 @@ const Dashboard = () => {
             {brief.source_map && Object.keys(brief.source_map).length > 0 && (
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
-                  <h3 className="font-display text-meta font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
+                  <h3 className="text-meta font-bold uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
                     <span>📚</span> All source articles for this report
                   </h3>
                   <p className="text-meta text-slate-400 mb-4">

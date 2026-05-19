@@ -241,7 +241,7 @@ const UpdateDetail = () => {
         {notFound && !loading && (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📄</p>
-            <h1 className="font-display text-[22px] text-foreground mb-2">Article not found</h1>
+            <h1 className="font-display text-foreground mb-2">Article not found</h1>
             <p className="text-muted-foreground text-sm mb-6">
               This article may have been removed or the link is incorrect.
             </p>
@@ -285,7 +285,7 @@ const UpdateDetail = () => {
             </span>
 
             {/* Title */}
-            <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">{article.title}</h1>
+            <h1 className="font-display text-foreground font-bold leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground mb-4">
@@ -483,7 +483,7 @@ const UpdateDetail = () => {
                         <div className="flex items-center gap-2 mb-3">
                           <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Action Intelligence</span>
                         </div>
-                        <h2 className="font-display text-xl text-foreground mb-3">Next Steps</h2>
+                        <h2 className="font-display text-foreground mb-3">Next Steps</h2>
                         <ul className="list-disc pl-5 space-y-1.5">
                           {(items as string[]).map((s, i) => (
                             <li key={i} className="text-base text-foreground leading-relaxed">{s}</li>
@@ -516,7 +516,7 @@ const UpdateDetail = () => {
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Action Intelligence</span>
                       </div>
-                      <h2 className="font-display text-xl text-foreground mb-4">Next Steps</h2>
+                      <h2 className="font-display text-foreground mb-4">Next Steps</h2>
                       <div className="space-y-4">
                         {activeBands.map(b => (
                           <div key={b.key} className={`border-l-4 ${b.border} pl-4`}>
@@ -544,7 +544,7 @@ const UpdateDetail = () => {
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>Related Signals</span>
                     </div>
-                    <h2 className="font-display text-xl text-foreground mb-3">Watch</h2>
+                    <h2 className="font-display text-foreground mb-3">Watch</h2>
                     <ul className="space-y-2">
                       {(article.related_signals as RelatedSignal[]).map((sig, i) => (
                         <li key={i} className="bg-muted/30 rounded-lg border border-border p-3">
@@ -575,7 +575,7 @@ const UpdateDetail = () => {
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-eyebrow text-navy">Enforcement Corpus Intelligence</span>
                       </div>
-                      <h2 className="font-display text-xl text-foreground mb-2">Contextual Record</h2>
+                      <h2 className="font-display text-foreground mb-2">Contextual Record</h2>
                       <p className="italic text-sm text-muted-foreground mb-4">
                         Drawn from 3,500+ enforcement decisions. Patterns and precedents from the EUP corpus.
                       </p>

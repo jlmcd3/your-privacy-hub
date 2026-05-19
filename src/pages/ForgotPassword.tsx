@@ -35,7 +35,7 @@ export default function ForgotPassword() {
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
           {!sent ? (
             <>
-              <h1 className="font-display text-[24px] text-navy text-center mb-1.5">
+              <h1 className="font-display text-navy text-center mb-1.5">
                 Reset Password
               </h1>
               <p className="text-sm text-slate text-center mb-7">
@@ -77,7 +77,7 @@ export default function ForgotPassword() {
           ) : (
             <div className="text-center py-4">
               <div className="text-4xl mb-4">📧</div>
-              <h2 className="font-display text-[22px] text-navy mb-2">Check your inbox</h2>
+              <h2 className="font-display text-navy mb-2">Check your inbox</h2>
               <p className="text-slate text-sm leading-relaxed mb-6">
                 We sent a password reset link to <strong>{email}</strong>.
                 Click the link in that email to set a new password.

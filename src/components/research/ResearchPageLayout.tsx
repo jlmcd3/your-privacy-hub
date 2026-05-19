@@ -115,7 +115,7 @@ export function ResearchPageLayout({
         <div className="space-y-12">
           {sections.map((sec) => (
             <section key={sec.id} id={sec.id} className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">
+              <h2 className="font-display text-navy mb-4 leading-tight">
                 {sec.h2}
               </h2>
               {sec.content && (
@@ -133,7 +133,7 @@ export function ResearchPageLayout({
 
         {/* Related resources */}
         <div className="mt-14 pt-8 border-t border-fog">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link
@@ -153,7 +153,7 @@ export function ResearchPageLayout({
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">
               ⭐ Weekly Intelligence
             </div>
-            <h3 className="font-display text-xl text-white mb-3">
+            <h3 className="text-white mb-3">
               Get weekly intelligence on {intelligenceUpsellTopic ?? header.title}
             </h3>
             <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">

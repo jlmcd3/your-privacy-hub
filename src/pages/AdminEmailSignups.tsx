@@ -145,7 +145,7 @@ export default function AdminEmailSignups() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl text-navy">Email signups</h1>
+            <h1 className="font-display text-navy">Email signups</h1>
             <p className="text-sm text-slate mt-1">
               Showing {filtered.length} of {rows.length} {rows.length === 1000 ? "(capped at 1000)" : ""}
             </p>

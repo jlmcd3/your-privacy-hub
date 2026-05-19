@@ -212,7 +212,7 @@ export default function ToolSamplePreview({
             <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-2">
               Purchase to unlock your full report
             </p>
-            <h3 className="font-display text-xl md:text-2xl font-bold mb-1">{toolName}</h3>
+            <h3 className="font-bold mb-1">{toolName}</h3>
             <p className="text-blue-200 text-sm mb-5">
               Complete the form above and purchase to generate your full analysis.
             </p>

@@ -24,7 +24,7 @@ const FreeDigestSignup = ({ source = "website", className = "" }: FreeDigestSign
         </p>
         <h2
           id="free-digest-signup-heading"
-          className="font-display text-2xl md:text-3xl text-foreground mb-2"
+          className="font-display text-foreground mb-2"
         >
           Not ready for the full Intelligence Brief?
         </h2>
