@@ -85,7 +85,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   cppa: {
     label: "CPPA Suite · California",
     title: "California audit deadline: December 31, 2027 — are you in scope?",
-    note: "Paid for all tiers · Professional subscriber rate",
+    note: "Per-use pricing for all tiers",
     iconPath: "M9 2L2 5v5c0 4 3 7 7 8 4-1 7-4 7-8V5L9 2z M6 9h6",
     colors: {
       bg: "bg-red-50",
