@@ -286,25 +286,12 @@ export default function HomepageSpotlight() {
         }
       }
 
-      if (!topId) {
+      if (!chosen) {
         setLoading(false);
         return;
       }
 
-      const { data: updateData } = await supabase
-        .from("updates")
-        .select(
-          `id, title, source_name, source_url:url, published_at,
-           jurisdiction:direct_jurisdictions,
-           category, attention_level, image_url, why_it_matters_short,
-           ai_summary, action_items, related_signals`
-        )
-        .eq("id", topId)
-        .maybeSingle();
-
-      if (updateData) {
-        setArticle(updateData as unknown as SpotlightArticle);
-      }
+      setArticle(chosen as unknown as SpotlightArticle);
 
       const { count } = await supabase
         .from("updates")
