@@ -16,9 +16,11 @@ interface Headline {
 interface ResearchSynthesisBlockProps {
   sectionKey: string;
   promoteHeading?: boolean;
+  /** Render a tight one-line "What changed" pullquote instead of the full tiered card. */
+  compact?: boolean;
 }
 
-export function ResearchSynthesisBlock({ sectionKey, promoteHeading }: ResearchSynthesisBlockProps) {
+export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: ResearchSynthesisBlockProps) {
   const [data, setData] = useState<{
     synthesis_text: string;
     generated_at: string;
