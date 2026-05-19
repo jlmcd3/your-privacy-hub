@@ -270,7 +270,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setEditDrawerOpen(true)}
-              className="text-sm font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-cobalt hover:underline"
             >
               Edit →
             </button>
@@ -309,7 +309,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setShowAllActivities((v) => !v)}
-              className="text-sm font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-cobalt hover:underline"
             >
               {showAllActivities
                 ? "Show flagged only"
@@ -350,7 +350,7 @@ export default function RopaReview() {
                         <p>{a.is_high_risk ? "Marked high-risk" : "Standard risk"}</p>
                         <button
                           onClick={() => navigate(`/ropa/activity/${a.id}`)}
-                          className="mt-2 inline-flex items-center gap-1 text-teal-700 font-semibold hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-cobalt font-semibold hover:underline"
                         >
                           Edit answers →
                         </button>
@@ -382,7 +382,7 @@ export default function RopaReview() {
                       {f.activity_id && (
                         <button
                           onClick={() => navigate(`/ropa/activity/${f.activity_id}`)}
-                          className="text-meta font-semibold text-teal-700 hover:underline"
+                          className="text-meta font-semibold text-cobalt hover:underline"
                         >
                           Resolve in activity →
                         </button>
@@ -516,7 +516,7 @@ export default function RopaReview() {
               <span>+ Excel worksheet</span><span>Included</span>
             </div>
             {!pricing.isSubscriber && !currentSession?.payment_confirmed && (
-              <p className="text-meta text-teal-700 mt-2">
+              <p className="text-meta text-cobalt mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"
