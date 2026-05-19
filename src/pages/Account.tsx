@@ -221,15 +221,15 @@ export default function Account() {
         )}
 
         {tier === "monthly" && (
-          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 mb-4">
+          <div className="bg-[hsl(var(--cobalt)/0.06)] border border-[hsl(var(--cobalt)/0.20)] rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">Intelligence — Monthly</p>
-            <p className="text-sm text-teal-700 mt-1">
+            <p className="text-sm text-cobalt mt-1">
               {PRICING.intelligence.monthly.display}/month · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
               Intelligence brief, enforcement tracking, and reference content. Compliance tools sold separately at standalone rates.
             </p>
-            <div className="mt-3 p-3 bg-card rounded-lg border border-teal-100">
+            <div className="mt-3 p-3 bg-card rounded-lg border border-[hsl(var(--cobalt)/0.15)]">
               <p className="text-[12px] font-semibold text-navy">
                 Add client workspaces with Professional
               </p>

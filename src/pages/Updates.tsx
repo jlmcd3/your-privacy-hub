@@ -524,7 +524,7 @@ const Updates = () => {
                         </p>
                         <Link
                             to="/signup"
-                            className="text-[11px] px-3 py-1 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap no-underline"
+                            className="text-[11px] px-3 py-1 rounded-lg bg-accent text-white font-semibold hover:bg-accent-light transition-colors whitespace-nowrap no-underline"
                         >
                             Register free →
                         </Link>

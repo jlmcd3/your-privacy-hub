@@ -741,7 +741,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
           </p>
           <Link
             to="/signup"
-            className="shrink-0 text-[11px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap"
+            className="shrink-0 text-[11px] px-3 py-1.5 rounded-lg bg-accent text-white font-semibold hover:bg-accent-light transition-colors whitespace-nowrap"
           >
             Register free →
           </Link>

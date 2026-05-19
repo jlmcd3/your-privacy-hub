@@ -25,15 +25,15 @@ export default function SearchFirstHero() {
               {/* Card 1 — Privacy Intelligence Feed (Primary) */}
               <a
                 href="#updates"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-teal-600 hover:bg-teal-500 border border-teal-600 hover:border-teal-500 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-accent hover:bg-accent-light border border-accent hover:border-accent-light transition-all duration-200"
               >
-                <p className="text-eyebrow text-teal-100 mb-1.5">
+                <p className="text-eyebrow text-white/80 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
-                <p className="text-meta text-teal-100 leading-snug">
+                <p className="text-meta text-white/85 leading-snug">
                   119 monitored sources. Enriched with compliance intelligence. Updated daily.
                 </p>
               </a>

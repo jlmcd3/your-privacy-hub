@@ -110,7 +110,7 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
           <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
           <Link
             to="/signup"
-            className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
+            className="flex-shrink-0 text-[11px] font-semibold bg-accent text-white px-2.5 py-1.5 rounded-lg hover:bg-accent-light transition-colors no-underline whitespace-nowrap"
             onClick={(e) => e.stopPropagation()}
           >
             Register free →
