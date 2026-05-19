@@ -435,20 +435,20 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", "$50 · Intelligence $40 · Professional $38"],
-  ["Legitimate Interest Assessment", "$30 · Intelligence $24 · Professional $23"],
-  ["Impact Assessment (DPIA)", "$40 · Intelligence $32 · Professional $30"],
-  ["DPA Generator", "$40 · Intelligence $32 · Professional $30"],
-  ["Incident Response Playbook", "$20 · Intelligence $16 · Professional $15"],
-  ["Biometric Privacy Check", "$10 · Intelligence $8 · Professional $8"],
-  ["RoPA Builder", "$40 · Intelligence $32 · Professional $30"],
-  ["U.S. Privacy Notice", "$30 · Intelligence $24 · Professional $23"],
-  ["EU/UK Privacy Notice", "$50 · Intelligence $40 · Professional $38"],
-  ["Registration Manager", "Free assessment · $50/filing · 20–25% subscriber discount"],
+  ["Privacy Programme Assessment", "$55 (Smart)"],
+  ["Legitimate Interest Assessment", "$35 (Smart)"],
+  ["Impact Assessment (DPIA)", "$45 (Smart)"],
+  ["DPA Generator", "$45 (Smart)"],
+  ["Incident Response Playbook", "$25 (Convenience)"],
+  ["Biometric Privacy Check", "$15 (Smart)"],
+  ["RoPA Builder", "$40 (Convenience)"],
+  ["U.S. Privacy Notice", "$25 (Convenience)"],
+  ["EU/UK Privacy Notice", "$50 (Convenience)"],
+  ["Registration Manager", "$45 per filing (Convenience)"],
   ["CPPA Scope Checker", "Always free"],
-  ["CPPA Risk Assessment", "$60 · Intelligence $48 · Professional $45"],
-  ["CPPA Cybersecurity Audit", "$80 · Intelligence $64 · Professional $60"],
-  ["All subscribers", "1 free tool run per month included"],
+  ["CPPA Risk Assessment", "$55 (Smart)"],
+  ["CPPA Cybersecurity Audit", "$70 (Smart)"],
+  ["Professional annual", "1 free Convenience Tool run/client/month"],
 ];
 
 export default function Tools() {
