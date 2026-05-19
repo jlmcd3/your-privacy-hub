@@ -81,6 +81,27 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
     padding: "1rem 1.25rem",
   } as const;
 
+  if (compact) {
+    if (!hasHeadlines) return null;
+    const topHeadline = data.headlines[0];
+    return (
+      <div
+        className="mt-6 mb-2 rounded-r"
+        style={{ borderLeft: "3px solid hsl(var(--cobalt))", background: "hsl(210 52% 97%)", padding: "0.625rem 1rem" }}
+      >
+        <p className="text-meta" style={{ lineHeight: 1.5 }}>
+          <span className="text-eyebrow mr-2" style={{ color: "hsl(var(--cobalt))" }}>
+            What changed
+          </span>
+          <span className="text-navy font-semibold">{topHeadline.title}</span>
+          {!isAnon && topHeadline.why_it_matters && (
+            <span className="text-slate"> — {topHeadline.why_it_matters}</span>
+          )}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       {promoteHeading && (
