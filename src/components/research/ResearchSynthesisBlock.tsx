@@ -292,5 +292,6 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading }: ResearchS
         </>
       )}
     </div>
+    </>
   );
 }
