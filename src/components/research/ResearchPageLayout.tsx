@@ -156,9 +156,9 @@ export function ResearchPageLayout({
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">
               ⭐ Weekly Intelligence
             </div>
-            <h3 className="text-white mb-3">
+            <h2 className="text-white mb-3">
               Get weekly intelligence on {intelligenceUpsellTopic ?? header.title}
-            </h3>
+            </h2>
             <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>
