@@ -632,10 +632,10 @@ export default function Tools() {
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
-            Per-use pricing. 20–25% off for subscribers. 1 free run per month.
+            Available individually at standalone prices.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
-            Every tool is pay-per-use. Intelligence subscribers ($20/mo) get 20% off plus one free tool run each month. Professional ($35/mo + $150/client/yr) gets 25% off plus the same monthly free run.
+            Every tool is pay-per-use. Founding subscribers receive permanent discounts on every tool — 20% off Smart Tools and 15% off Convenience Tools.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
