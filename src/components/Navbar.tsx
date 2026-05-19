@@ -382,7 +382,7 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-[#0D1F35] border-b border-[#0D1F35] sticky top-0 z-50">
+    <nav className="bg-navy border-b border-navy sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
