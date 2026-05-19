@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { RefreshCw, Copy, Check, FlaskConical, Lock } from "lucide-react";
+import { RefreshCw, Copy, Check, FlaskConical, Lock, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useSubscriberContext } from "@/hooks/useSubscriberContext";
