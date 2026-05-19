@@ -322,12 +322,38 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
           </div>
         </>
       )}
-      {collapsed && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-12"
-          style={{ background: "linear-gradient(to bottom, transparent, hsl(210 52% 97%))" }}
-        />
+      {promoteHeading && collapsed && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
+            style={{ background: "linear-gradient(to bottom, transparent, hsl(210 52% 97%))" }}
+          />
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-expanded={false}
+            aria-controls="page-recent-developments-panel"
+            className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold hover:underline"
+            style={{ color: "hsl(var(--cobalt))" }}
+          >
+            Show more
+            <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+        </>
+      )}
+      {promoteHeading && expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          aria-expanded={true}
+          aria-controls="page-recent-developments-panel"
+          className="mt-3 flex items-center gap-1.5 text-xs font-semibold hover:underline"
+          style={{ color: "hsl(var(--cobalt))" }}
+        >
+          Show less
+          <ChevronDown className="w-3.5 h-3.5 rotate-180" aria-hidden="true" />
+        </button>
       )}
     </div>
         );
