@@ -39,6 +39,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
   const [promptError, setPromptError] = useState<string | null>(null);
   const [promptOpen, setPromptOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     supabase
