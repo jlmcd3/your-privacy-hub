@@ -38,20 +38,20 @@ export default function RopaInlineFlag({
 
   if (isCrossSell) {
     return (
-      <div className="border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-950/30 rounded-r-lg p-3 my-2">
+      <div className="border-l-4 border-cobalt bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] rounded-r-lg p-3 my-2">
         <div className="flex items-start gap-2">
-          <Briefcase className="w-4 h-4 text-teal-700 dark:text-teal-400 mt-0.5 shrink-0" />
+          <Briefcase className="w-4 h-4 text-cobalt mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-semibold text-teal-900 dark:text-teal-200 mb-1">
+            <p className="text-[12px] font-semibold text-cobalt mb-1">
               Related compliance tool
             </p>
-            <p className="text-sm text-teal-900 dark:text-teal-100">{message}</p>
+            <p className="text-sm text-navy dark:text-white">{message}</p>
             {actionRoute && actionLabel && (
               <a
                 href={actionRoute}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-2 text-[12px] font-semibold text-teal-700 dark:text-teal-300 hover:underline"
+                className="inline-block mt-2 text-[12px] font-semibold text-cobalt hover:underline"
               >
                 {actionLabel} →
               </a>
