@@ -122,8 +122,14 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
           />
         </button>
       )}
-      {promoteHeading && !expanded ? null : (
-      <div id={promoteHeading ? "page-recent-developments-panel" : undefined} className="mt-6 mb-2 rounded-r-lg" style={containerStyle}>
+      {(() => {
+        const collapsed = promoteHeading && !expanded;
+        return (
+      <div
+        id={promoteHeading ? "page-recent-developments-panel" : undefined}
+        className={`mt-6 mb-2 rounded-r-lg ${collapsed ? "relative overflow-hidden" : ""}`}
+        style={collapsed ? { ...containerStyle, maxHeight: "7.5rem" } : containerStyle}
+      >
         {!promoteHeading && (
           <div className="flex items-center gap-2 mb-3">
             <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
