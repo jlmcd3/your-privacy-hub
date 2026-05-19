@@ -264,7 +264,7 @@ const GovernanceAssessmentResult = () => {
 
             {/* DPIA Scope */}
             {Array.isArray(report?.dpia_scope) && report.dpia_scope.length > 0 && (
-              <section className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg p-6">
+              <section className="bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border border-[hsl(var(--cobalt)/0.25)] rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-3">Processing Activities Requiring a Formal DPIA</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                   The following processing activities identified in your assessment may require a Data Protection Impact Assessment under GDPR Article 35 or equivalent provisions before proceeding. This list is provided as a starting point for review with your Data Protection Officer or legal counsel.
