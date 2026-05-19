@@ -361,3 +361,52 @@ dt {
 /* Smooth scroll for in-page anchor jumps */
 html { scroll-behavior: smooth; }
 
+
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Subscriber tier badges (per EUP Design Guide)
+   ───────────────────────────────────────────────────────────────────────── */
+.badge-platform {
+  background: hsl(var(--navy) / 0.08);
+  color: hsl(var(--navy));
+  border: 1px solid hsl(var(--navy) / 0.20);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+.badge-intelligence {
+  background: hsl(var(--cobalt) / 0.08);
+  color: hsl(var(--cobalt));
+  border: 1px solid hsl(var(--cobalt) / 0.25);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+.badge-free {
+  background: hsl(var(--slate) / 0.10);
+  color: hsl(var(--slate));
+  border: 1px solid hsl(var(--slate) / 0.20);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+/* Site shadow utilities (matches boxShadow tokens in tailwind.config.ts) */
+.shadow-eup-sm {
+  box-shadow: 0 1px 3px hsl(var(--navy) / 0.08), 0 1px 2px hsl(var(--navy) / 0.04);
+}
+.shadow-eup-md {
+  box-shadow: 0 4px 12px hsl(var(--navy) / 0.10), 0 2px 4px hsl(var(--navy) / 0.06);
+}
