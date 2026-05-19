@@ -49,6 +49,12 @@ const GlobalPrivacyLaws = () => (
         h2: "Global Privacy Enforcement — Key Cases",
         synthesisKey: "global__enforcement",
         content: `<p>Notable global enforcement includes Korea's <a href="/regulator/pipc">PIPC</a> <strong>₩5.6B Kakao</strong> penalty, China's <a href="/regulator/cac">CAC</a> enforcement of <a href="/jurisdiction/china">PIPL</a> cross-border requirements, and South Africa's <a href="/regulator/information-regulator">Information Regulator</a>'s expanding POPIA actions. Trends across regions: the global spread of GDPR-style legislation continues; AI-specific provisions are being integrated into privacy frameworks; children's privacy is receiving heightened attention; cross-border DPA cooperation is increasing; and data localization requirements are expanding, particularly in Asia and the Middle East.</p>`,
+        toolCta: {
+          toolName: "Governance Assessment",
+          toolDescription:
+            "Assess your privacy program against enforcement patterns from 119 regulators worldwide.",
+          href: "/governance-assessment",
+        },
       },
     ]}
     relatedLinks={[
