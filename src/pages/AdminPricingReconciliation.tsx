@@ -82,10 +82,14 @@ export default function AdminPricingReconciliation() {
               prices with the same lookup key are replaced; old prices are archived.
             </p>
           </div>
-          <Button onClick={handleSync} disabled={syncing} className="shrink-0">
-            {syncing ? "Syncing…" : "Sync All Stripe Prices"}
-          </Button>
-        </div>
+          <div className="shrink-0 flex gap-2">
+            <Button onClick={() => handleSync("sandbox")} disabled={syncing} variant="outline">
+              {syncing ? "Syncing…" : "Sync Sandbox"}
+            </Button>
+            <Button onClick={() => handleSync("live")} disabled={syncing}>
+              {syncing ? "Syncing…" : "Sync Live"}
+            </Button>
+          </div>
         {syncResult && (
           <pre className="rounded-xl border border-fog bg-fog/30 p-3 mb-6 text-[11px] overflow-x-auto whitespace-pre-wrap">
             {syncResult}
