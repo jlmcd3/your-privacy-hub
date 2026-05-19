@@ -146,7 +146,7 @@ export default function AdminLawUpdates() {
           public page is updated.
         </p>
 
-        <h2 className="font-display text-lg text-navy mb-3">
+        <h2 className="font-display text-navy mb-3">
           Pending review ({pending.length})
         </h2>
         {loading ? (
@@ -220,7 +220,7 @@ export default function AdminLawUpdates() {
           </div>
         )}
 
-        <h2 className="font-display text-lg text-navy mb-3">History</h2>
+        <h2 className="font-display text-navy mb-3">History</h2>
         {history.length === 0 ? (
           <div className="bg-card border border-fog rounded-xl p-6 text-sm text-slate">
             No reviewed candidates yet.

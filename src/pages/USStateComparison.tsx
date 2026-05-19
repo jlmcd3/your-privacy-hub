@@ -45,7 +45,7 @@ const USStateComparison = () => {
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📊 Comparison Tool</p>
-          <h1 className="font-extrabold text-foreground mb-3">U.S. State Privacy Law Comparison</h1>
+          <h1 className="text-foreground mb-3">U.S. State Privacy Law Comparison</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
             Side-by-side comparison of all {states.length} enacted US comprehensive state privacy laws across 12 standard provisions.
             <br />

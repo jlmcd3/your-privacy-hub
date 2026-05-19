@@ -286,7 +286,7 @@ const UpdateDetail = () => {
             </span>
 
             {/* Title */}
-            <h1 className="font-display text-foreground font-bold leading-tight mb-3">{article.title}</h1>
+            <h1 className="font-display text-foreground leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground mb-4">
@@ -652,7 +652,7 @@ const UpdateDetail = () => {
             {/* Related Updates */}
             {related.length > 0 && (
               <div className="mt-10">
-                <h2 className="font-bold text-foreground text-[15px] mb-3">Related Updates</h2>
+                <h2 className="text-foreground text-[15px] mb-3">Related Updates</h2>
                 <div className="space-y-3">
                   {related.map((r) => (
                     <a

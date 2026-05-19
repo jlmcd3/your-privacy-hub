@@ -315,7 +315,7 @@ const PillarPage = ({
         {recentArticles.length > 0 && (
           <div id="recent-developments" className="scroll-mt-24 mb-10">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="font-display text-base text-navy">Recent developments</h2>
+              <h2 className="font-display text-navy">Recent developments</h2>
               <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-[hsl(var(--cobalt)/0.12)] text-[hsl(var(--cobalt))]">
                 Live
               </span>
@@ -358,7 +358,7 @@ const PillarPage = ({
 
         {/* Related links */}
         <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link

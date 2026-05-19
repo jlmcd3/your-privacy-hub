@@ -403,7 +403,7 @@ export default function Enforcement() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Lock className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                  <h2 className="font-semibold text-base">Premium archive</h2>
+                  <h2 className="">Premium archive</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Search 3,700+ historical enforcement actions with full intelligence — significance ratings, key
@@ -650,7 +650,7 @@ export default function Enforcement() {
                             </>
                           )}
                         </div>
-                        <h3 className="font-semibold text-base group-hover:text-primary transition line-clamp-2">
+                        <h3 className="group-hover:text-primary transition line-clamp-2">
                           {r.subject || "Undisclosed entity"}
                         </h3>
                       </div>

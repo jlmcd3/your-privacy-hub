@@ -286,7 +286,7 @@ export default function USNoticeStates() {
       <div className="grid gap-6 md:grid-cols-2 mb-10">
         <Card>
           <CardContent className="p-5">
-            <h3 className="font-medium text-foreground mb-3">
+            <h3 className="text-foreground mb-3">
               How many consumers' data do you process annually?
             </h3>
             <RadioGroup value={volume ?? ""} onValueChange={(v) => setVolume(v as ConsumerVolume)}>
@@ -301,7 +301,7 @@ export default function USNoticeStates() {
         </Card>
         <Card>
           <CardContent className="p-5">
-            <h3 className="font-medium text-foreground mb-3">
+            <h3 className="text-foreground mb-3">
               What percentage of your revenue comes from selling personal data?
             </h3>
             <RadioGroup value={revenue ?? ""} onValueChange={(v) => setRevenue(v as RevenueShare)}>
@@ -361,7 +361,7 @@ export default function USNoticeStates() {
 
           {/* Virginia model */}
           <section className="mb-6">
-            <h3 className="font-medium text-foreground mb-3">
+            <h3 className="text-foreground mb-3">
               Virginia model states ({grouped.virginia.length})
             </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -435,7 +435,7 @@ export default function USNoticeStates() {
 
           {/* Pending */}
           <section className="mb-24">
-            <h3 className="font-medium text-foreground mb-3">Pending states</h3>
+            <h3 className="text-foreground mb-3">Pending states</h3>
             <div className="flex flex-wrap gap-2">
               {grouped.pending.map((law) => (
                 <Badge key={law.state_code} variant="secondary" className="opacity-60">

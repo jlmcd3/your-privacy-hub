@@ -86,7 +86,7 @@ export default function BiometricChecker() {
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <header className="mb-8">
-          <h1 className="font-display font-extrabold text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
+          <h1 className="font-display text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
           <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $10 standalone, or $8 for Intelligence/Professional subscribers (20–25% off).</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
@@ -107,10 +107,10 @@ export default function BiometricChecker() {
 
         {phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between"><h2 className="font-display font-bold text-navy text-lg">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
+            <div className="flex items-center justify-between"><h2 className="font-display text-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
             {result.bipa_risk && (
               <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
-                <h3 className="font-bold text-amber-900 text-sm mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
+                <h3 className="text-amber-900 mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
                 <p className="text-sm text-amber-900">Low end: <strong>${result.bipa_risk.lowEnd.toLocaleString()}</strong> · High end: <strong>${result.bipa_risk.highEnd.toLocaleString()}</strong></p>
                 <p className="text-meta text-amber-800 mt-1">{result.bipa_risk.note}</p>
               </div>

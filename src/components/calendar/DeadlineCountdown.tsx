@@ -76,7 +76,7 @@ export default function DeadlineCountdown() {
   return (
     <div className="bg-white rounded-2xl border border-fog shadow-eup-sm mb-8">
       <div className="flex items-center justify-between px-6 py-4 border-b border-fog">
-        <h2 className="font-display font-bold text-navy text-[15px] flex items-center gap-2">
+        <h2 className="font-display text-navy text-[15px] flex items-center gap-2">
           ⏱ Upcoming Regulatory Deadlines
         </h2>
         <span className="text-xs text-slate-light">Next 12 months</span>

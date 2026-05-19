@@ -705,7 +705,7 @@ export default function EUNoticeReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-base text-navy mb-4">
+            <h3 className="text-navy mb-4">
               Generating your EU & global privacy notices…
             </h3>
             <ul className="space-y-2 text-sm">

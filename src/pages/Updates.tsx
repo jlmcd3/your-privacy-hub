@@ -385,7 +385,7 @@ const Updates = () => {
 
             <div className="px-4 sm:px-6 py-5 border-b border-fog bg-card">
                 <div className="max-w-[1280px] mx-auto">
-                    <h1 className="font-display font-bold text-navy leading-tight m-0">
+                    <h1 className="font-display text-navy leading-tight m-0">
                         {selectedRegions.length === 1 && selectedTopics.length === 0
                             ? formatFilterLabel(selectedRegions[0])
                             : selectedTopics.length === 1 && selectedRegions.length === 0

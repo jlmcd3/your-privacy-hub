@@ -219,7 +219,7 @@ export default function EnforcementActionDetail() {
           {action.key_compliance_failure && (
             <Card className="md:col-span-2">
               <CardContent className="p-5">
-                <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Key compliance failure</h2>
+                <h2 className="uppercase tracking-wide text-muted-foreground mb-2">Key compliance failure</h2>
                 <p className="text-base leading-relaxed">{action.key_compliance_failure}</p>
               </CardContent>
             </Card>
@@ -227,7 +227,7 @@ export default function EnforcementActionDetail() {
           {action.preventive_measures && (
             <Card>
               <CardContent className="p-5">
-                <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">What should have been done</h2>
+                <h2 className="uppercase tracking-wide text-muted-foreground mb-2">What should have been done</h2>
                 <p className="text-sm leading-relaxed">{action.preventive_measures}</p>
               </CardContent>
             </Card>
@@ -239,7 +239,7 @@ export default function EnforcementActionDetail() {
             <CardContent className="p-5 space-y-4">
               {action.violation_types && action.violation_types.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Violation types</h3>
+                  <h3 className="uppercase tracking-wide text-muted-foreground mb-2">Violation types</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {action.violation_types.map((v) => <Badge key={v} variant="secondary" className="capitalize">{v}</Badge>)}
                   </div>
@@ -247,7 +247,7 @@ export default function EnforcementActionDetail() {
               )}
               {action.data_categories && action.data_categories.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Data categories</h3>
+                  <h3 className="uppercase tracking-wide text-muted-foreground mb-2">Data categories</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {action.data_categories.map((c) => (
                       <Badge key={c} className="capitalize bg-primary/10 text-primary hover:bg-primary/20">{c}</Badge>
@@ -262,7 +262,7 @@ export default function EnforcementActionDetail() {
         {action.violation && (
           <Card className="mb-6">
             <CardContent className="p-5">
-              <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-2">Violation summary</h2>
+              <h2 className="uppercase tracking-wide text-muted-foreground mb-2">Violation summary</h2>
               <p className="text-base leading-relaxed whitespace-pre-wrap">{action.violation}</p>
             </CardContent>
           </Card>
@@ -271,7 +271,7 @@ export default function EnforcementActionDetail() {
         {action.tool_relevance && action.tool_relevance.length > 0 && (
           <Card className="mb-6">
             <CardContent className="p-5">
-              <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">Relevant compliance tools</h2>
+              <h2 className="uppercase tracking-wide text-muted-foreground mb-3">Relevant compliance tools</h2>
               <div className="flex flex-wrap gap-2">
                 {action.tool_relevance.map((t) => {
                   const href = TOOL_LINKS[t];
@@ -305,7 +305,7 @@ export default function EnforcementActionDetail() {
               <div className="text-[11px] font-bold uppercase tracking-widest text-amber-800 mb-1">
                 Avoid this category of risk
               </div>
-              <h3 className="font-semibold text-navy text-base mb-1">
+              <h3 className="text-navy mb-1">
                 Are your registrations & DPO appointments current in {action.jurisdiction}?
               </h3>
               <p className="text-sm text-muted-foreground">

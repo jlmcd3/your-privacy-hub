@@ -169,7 +169,7 @@ export default function USNoticeLanding() {
                 <Card key={step.n}>
                   <CardContent className="p-6">
                     <div className="font-serif text-3xl text-primary mb-3">{step.n}</div>
-                    <h3 className="font-medium text-lg mb-2">{step.title}</h3>
+                    <h3 className="mb-2">{step.title}</h3>
                     <p className="text-sm text-muted-foreground">{step.body}</p>
                   </CardContent>
                 </Card>
@@ -211,7 +211,7 @@ export default function USNoticeLanding() {
                 items={["Florida (FDBR)"]}
               />
               <div>
-                <h3 className="font-medium text-foreground mb-3">Pending states</h3>
+                <h3 className="text-foreground mb-3">Pending states</h3>
                 <div className="flex flex-wrap gap-2">
                   {PENDING_STATES.map((s) => (
                     <Badge key={s} variant="secondary" className="opacity-60">
@@ -324,7 +324,7 @@ function CoverageGroup({
   return (
     <div>
       <div className="flex flex-wrap items-baseline gap-2 mb-3">
-        <h3 className={`font-medium text-foreground ${emphasized ? "text-lg" : ""}`}>
+        <h3 className="text-foreground">
           {title}
         </h3>
         <span className="text-xs text-muted-foreground italic">— {tag}</span>

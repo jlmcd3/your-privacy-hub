@@ -31,7 +31,7 @@ const Glossary = () => {
       <div className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📖 Reference</p>
-          <h1 className="font-extrabold text-foreground mb-3">Privacy Law Glossary</h1>
+          <h1 className="text-foreground mb-3">Privacy Law Glossary</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
             Plain-English definitions of key privacy and data protection terms sourced from regulation text. {glossaryData.length} terms and growing.
           </p>
@@ -59,7 +59,7 @@ const Glossary = () => {
         {groupedEntries.map(([letter, terms], idx) => (
           <div key={letter}>
             <div id={`letter-${letter}`} className="mb-8">
-              <h2 className="font-bold text-foreground mb-4 border-b border-border pb-2">{letter}</h2>
+              <h2 className="text-foreground mb-4 border-b border-border pb-2">{letter}</h2>
               <div className="space-y-3">
                 {terms.map((t) => (
                   <Link
@@ -67,7 +67,7 @@ const Glossary = () => {
                     to={`/glossary/${t.slug}`}
                     className="block p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all no-underline"
                   >
-                    <h3 className="text-sm font-semibold text-foreground mb-1">{t.term}</h3>
+                    <h3 className="text-foreground mb-1">{t.term}</h3>
                     <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.definition}</p>
                     <div className="flex gap-1.5 mt-2 flex-wrap">
                       {t.regulations.map((r) => (

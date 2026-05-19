@@ -18,7 +18,7 @@ export default function EnforcementStatsBanner() {
   return (
     <div className="bg-card border border-fog rounded-2xl p-5 mb-8">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-navy font-bold text-sm uppercase tracking-wider">
+        <h3 className="text-navy uppercase tracking-wider">
           📊 Live Enforcement Snapshot
         </h3>
         <Link

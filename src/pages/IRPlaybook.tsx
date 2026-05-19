@@ -93,7 +93,7 @@ export default function IRPlaybook() {
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
         <header className="mb-8">
-          <h1 className="font-display font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
+          <h1 className="font-display text-navy mb-2">Your Breach Response Playbook</h1>
           <p className="text-slate text-sm">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
         </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
@@ -114,7 +114,7 @@ export default function IRPlaybook() {
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-lg">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display text-navy">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-meta text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
             <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
@@ -127,7 +127,7 @@ export default function IRPlaybook() {
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <h2 className="font-display font-bold text-navy text-lg">Incident details</h2>
+            <h2 className="font-display text-navy">Incident details</h2>
             <label className="block text-sm"><span className="font-semibold text-navy">Date & time of discovery</span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-navy">Apparent cause</span>
@@ -160,7 +160,7 @@ export default function IRPlaybook() {
             subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
           >
             <div className="bg-card border border-border rounded-2xl p-6">
-              <h2 className="font-display font-bold text-navy text-base mb-3">Sample playbook preview</h2>
+              <h2 className="font-display text-navy mb-3">Sample playbook preview</h2>
               <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
             </div>
           </ToolSampleOverlay>

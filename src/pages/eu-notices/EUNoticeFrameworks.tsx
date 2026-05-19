@@ -139,7 +139,7 @@ export default function EUNoticeFrameworks() {
 
       {Object.entries(grouped).map(([region, fws]) => (
         <section key={region} className="mb-6">
-          <h3 className="font-medium text-foreground mb-3">{region}</h3>
+          <h3 className="text-foreground mb-3">{region}</h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {fws.map((fw) => {
               const isSelected = selected.has(fw.framework_code);

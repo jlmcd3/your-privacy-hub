@@ -264,7 +264,7 @@ export default function TestBrief() {
 
         {foundProhibited.length > 0 && (
           <div className="border-2 border-red-500 rounded-lg p-4 bg-red-50">
-            <h2 className="font-serif text-lg text-red-900 mb-2">
+            <h2 className="font-serif text-red-900 mb-2">
               ⚠️ PROHIBITED PHRASES DETECTED
             </h2>
             <p className="text-sm text-red-900 mb-2">

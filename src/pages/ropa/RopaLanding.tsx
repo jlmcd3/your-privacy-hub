@@ -197,7 +197,7 @@ export default function RopaLanding() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {JURISDICTIONS.map((j) => (
                 <div key={j.region} className="bg-card border border-border rounded-xl p-5">
-                  <h3 className="text-lg text-foreground mb-3">
+                  <h3 className="text-foreground mb-3">
                     {j.region}
                   </h3>
                   <div className="flex flex-wrap gap-1.5">

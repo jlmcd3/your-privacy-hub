@@ -388,7 +388,7 @@ export default function USNoticeReview() {
       {/* States covered */}
       <Card className="mb-6">
         <CardContent className="p-4 md:p-6">
-          <h2 className="font-serif text-lg mb-3">States in this notice set</h2>
+          <h2 className="font-serif mb-3">States in this notice set</h2>
           <div className="flex flex-wrap gap-2">
             {states.map((s) => (
               <Badge key={s.state_code} variant="secondary" className="text-xs">
@@ -409,7 +409,7 @@ export default function USNoticeReview() {
                 aria-hidden
               />
               <div className="flex-1">
-                <h2 className="font-medium mb-2">
+                <h2 className="mb-2">
                   {missingRequired.length} required question
                   {missingRequired.length === 1 ? "" : "s"} unanswered
                 </h2>
@@ -441,7 +441,7 @@ export default function USNoticeReview() {
       {triggeredFlags.length > 0 && (
         <Card className="mb-6">
           <CardContent className="p-4 md:p-6">
-            <h2 className="font-serif text-lg mb-4">Flags & recommendations</h2>
+            <h2 className="font-serif mb-4">Flags & recommendations</h2>
             <div className="space-y-3">
               {triggeredFlags.map(({ question, flag }, i) => (
                 <FlagRow key={`${question.key}-${i}`} flag={flag} />
@@ -455,7 +455,7 @@ export default function USNoticeReview() {
       {qualityIssues.length > 0 && (
         <Card className="mb-6">
           <CardContent className="p-4 md:p-6">
-            <h2 className="font-serif text-lg mb-4">Quality checks</h2>
+            <h2 className="font-serif mb-4">Quality checks</h2>
             <div className="space-y-3">
               {qualityIssues.map((issue) => (
                 <FlagRow
@@ -479,7 +479,7 @@ export default function USNoticeReview() {
       <Card className="mb-8">
         <CardContent className="p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-lg">Your answers</h2>
+            <h2 className="font-serif">Your answers</h2>
             <Button asChild size="sm" variant="ghost">
               <Link to={`/us-notices/${sessionId}/questions`}>
                 <Pencil className="h-3.5 w-3.5 mr-1.5" />

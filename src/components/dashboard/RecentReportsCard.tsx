@@ -69,7 +69,7 @@ export default function RecentReportsCard() {
   return (
     <section className="bg-card border border-border rounded-2xl p-5 my-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-display font-bold text-navy text-[16px] flex items-center gap-2">
+        <h2 className="font-display text-navy text-[16px] flex items-center gap-2">
           <FileText className="w-4 h-4" /> Recent reports
         </h2>
         <Link to="/dashboard/reports" className="text-[12px] font-semibold text-primary hover:underline">

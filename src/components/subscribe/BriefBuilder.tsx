@@ -190,7 +190,7 @@ export default function BriefBuilder() {
         </button>
       )}
       <div className="mb-6">
-        <h3 className="font-bold text-navy mb-1">
+        <h3 className="text-navy mb-1">
           Build your sample Privacy Intelligence Report
         </h3>
         <p className="text-sm text-slate mb-5">

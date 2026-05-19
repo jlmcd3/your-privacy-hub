@@ -21,7 +21,7 @@ const sevColor = (s: string) => {
 
 const Section = ({ num, title, guidance, completion, children }: any) => (
   <section className="bg-card border rounded-lg p-6 print:break-before-page">
-    <h2 className="font-semibold mb-2">Section {num}: {title}</h2>
+    <h2 className="mb-2">Section {num}: {title}</h2>
     {guidance && (
       <details className="mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded p-3 text-sm">
         <summary className="cursor-pointer font-medium">Article 35 Requirement</summary>

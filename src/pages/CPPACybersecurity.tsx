@@ -127,7 +127,7 @@ export default function CPPACybersecurity() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <section className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="font-semibold">Organisation Profile</h2>
+          <h2 className="">Organisation Profile</h2>
           <div>
             <Label>Industry sector *</Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
@@ -157,7 +157,7 @@ export default function CPPACybersecurity() {
 
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="font-semibold">18 Cybersecurity Programme Components</h2>
+            <h2 className="">18 Cybersecurity Programme Components</h2>
             <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
           </div>
 
@@ -165,7 +165,7 @@ export default function CPPACybersecurity() {
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">
               <div className="flex items-baseline gap-2">
                 <span className="text-xs text-muted-foreground font-mono">{String(i + 1).padStart(2, "0")}</span>
-                <h3 className="font-medium">{c.label}</h3>
+                <h3 className="">{c.label}</h3>
               </div>
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">

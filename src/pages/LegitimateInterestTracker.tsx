@@ -231,7 +231,7 @@ const LegitimateInterestTracker = () => {
                   <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
                     <div className={`w-1.5 flex-shrink-0 ${stripeFor(e.outcome)}`} aria-hidden />
                     <div className="p-5 flex-1 min-w-0">
-                      <h3 className="text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
+                      <h3 className="text-navy mb-2 leading-snug">{e.processing_activity}</h3>
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
                         <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>

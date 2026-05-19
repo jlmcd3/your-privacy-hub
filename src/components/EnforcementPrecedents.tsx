@@ -37,7 +37,7 @@ const EnforcementPrecedents = ({
   return (
     <section className="bg-card border rounded-lg p-6">
       <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
-        <h2 className="text-lg font-semibold">Cited Enforcement Precedents</h2>
+        <h2 className="">Cited Enforcement Precedents</h2>
         <Link to="/enforcement-intelligence" className="text-xs text-blue-700 hover:underline">
           Browse full database →
         </Link>

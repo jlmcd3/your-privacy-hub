@@ -105,7 +105,7 @@ export default function SubscribeSuccess() {
           <div className="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">
             ⭐ Payment Confirmed
           </div>
-          <h1 className="font-display font-bold text-navy mb-3 leading-tight">
+          <h1 className="font-display text-navy mb-3 leading-tight">
             {headline}
           </h1>
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
@@ -125,7 +125,7 @@ export default function SubscribeSuccess() {
 
         {/* What happens next */}
         <div className="mb-8">
-          <h2 className="font-display font-bold text-navy mb-4">
+          <h2 className="font-display text-navy mb-4">
             What happens next
           </h2>
           <div className="space-y-3">

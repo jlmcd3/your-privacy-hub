@@ -80,7 +80,7 @@ export default function BriefLanguageSelector() {
     <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
       <div className="flex items-center gap-2 mb-2">
         <Globe className="w-4 h-4 text-navy" />
-        <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider">
+        <h2 className="text-navy text-[14px] uppercase tracking-wider">
           Weekly Brief Language
         </h2>
         <PremiumBadge />

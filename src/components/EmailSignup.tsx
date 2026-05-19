@@ -24,7 +24,7 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
       <div className={`bg-gradient-to-r from-navy to-navy-mid py-8 px-4 md:px-8 ${className}`}>
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
-            <h3 className="text-lg text-white mb-1">
+            <h3 className="text-white mb-1">
               Free: your personalized weekly digest, every Monday
             </h3>
             <p className="text-sm text-slate-light">

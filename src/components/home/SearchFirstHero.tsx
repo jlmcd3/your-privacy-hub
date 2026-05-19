@@ -13,7 +13,7 @@ export default function SearchFirstHero() {
             <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-3">
               For privacy professionals and the privacy-conscious
             </p>
-            <h1 className="text-hero-h1 font-bold text-white mb-3">
+            <h1 className="text-hero-h1 text-white mb-3">
               Global privacy law, tracked daily.
             </h1>
             <p className="text-blue-200/80 text-sm md:text-base mb-8">
