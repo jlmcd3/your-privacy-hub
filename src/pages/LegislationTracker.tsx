@@ -84,7 +84,7 @@ function nextActionFor(bill: Bill): { label: string; href: string } | null {
 // "expected/effective date" column, so we surface source_last_action_at as
 // the most informative timestamp and colour by stage urgency.
 function urgencyFor(bill: Bill): { tone: "red" | "amber" | "slate"; label: string } {
-  if (bill.stage === "passed") return { tone: "red", tone_unused: undefined as any, label: "Awaiting signature / promulgation" } as any;
+  if (bill.stage === "passed") return { tone: "red", label: "Awaiting signature / promulgation" };
   if (bill.stage === "committee") return { tone: "amber", label: "In committee" };
   if (bill.stage === "enacted") return { tone: "slate", label: "Enacted" };
   return { tone: "slate", label: "Early stage" };
