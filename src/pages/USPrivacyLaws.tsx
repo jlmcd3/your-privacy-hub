@@ -435,6 +435,7 @@ const USPrivacyLaws = () => {
               Stay current with the latest federal and state privacy actions,
               rulemakings, and enforcement updates.
             </p>
+            <ResearchSynthesisBlock sectionKey="us_privacy__page" promoteHeading />
             <TieredFeed
               articles={recentArticles}
               previewCount={1}
