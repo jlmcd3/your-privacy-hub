@@ -38,20 +38,20 @@ function detectEnv(override?: string): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
-// DIY pricing ladder — must stay in sync with src/pages/RegistrationLanding.tsx
-// and src/pages/Tools.tsx. The pricing reconciliation scanner
-// (scripts/scan-pricing.mjs) enforces this.
-function diyPriceCents(numJurisdictions: number): number {
-  if (numJurisdictions <= 1) return 5900;   // $59
-  if (numJurisdictions <= 3) return 14900;  // $149
-  if (numJurisdictions <= 7) return 27500;  // $275
-  return 49900;                             // $499 — Portfolio (unlimited)
+// DIY pricing — flat per-filing price (May 2026 memo). One price regardless
+// of jurisdiction count. Founding subscribers get a 15% Convenience-Tools
+// discount. Mirror this in src/pages/RegistrationAssessmentResult.tsx and
+// src/config/pricing.ts (registration_standalone / registration_subscriber).
+const DIY_STANDALONE_CENTS = 4500;   // $45
+const DIY_SUBSCRIBER_CENTS = 3800;   // $38 (founding subscriber)
+function diyPriceCents(_numJurisdictions: number, isSubscriber: boolean): number {
+  return isSubscriber ? DIY_SUBSCRIBER_CENTS : DIY_STANDALONE_CENTS;
 }
 function diyPriceLabel(numJurisdictions: number): string {
-  if (numJurisdictions <= 1) return "Registration Manager — DIY Toolkit (1 jurisdiction)";
-  if (numJurisdictions <= 3) return `Registration Manager — DIY Toolkit (up to 3 jurisdictions, ${numJurisdictions} selected)`;
-  if (numJurisdictions <= 7) return `Registration Manager — DIY Toolkit (up to 7 jurisdictions, ${numJurisdictions} selected)`;
-  return `Registration Manager — DIY Portfolio (unlimited, ${numJurisdictions} jurisdictions)`;
+  const suffix = numJurisdictions === 1
+    ? "1 jurisdiction"
+    : `${numJurisdictions} jurisdictions`;
+  return `Registration Manager — DIY Toolkit (${suffix})`;
 }
 
 const COUNSEL_REVIEW_CENTS = 39900; // $399 flat
@@ -115,24 +115,24 @@ serve(async (req) => {
     );
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("is_premium, is_pro")
+      .select("is_premium, is_pro, founding_subscriber")
       .eq("id", user.id)
       .single();
     const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
+    const isFoundingSubscriber = !!profile?.founding_subscriber;
 
-    // Pricing rules (must match src/pages/RegistrationLanding.tsx + Tools.tsx):
-    //   diy            -> tiered flat fee by jurisdiction count, 20% off for subscribers
+    // Pricing rules (must match src/pages/RegistrationAssessmentResult.tsx):
+    //   diy            -> flat $45, $38 for founding subscribers (May 2026 memo)
     //   counsel_review -> flat $399, -$75 for subscribers
     //   renewal        -> $79/yr × N jurisdictions (no subscriber discount)
     let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
     let productName: string = cfg.name;
     if (tier === "diy") {
-      unitAmount = diyPriceCents(codes.length);
+      unitAmount = diyPriceCents(codes.length, isFoundingSubscriber);
       productName = diyPriceLabel(codes.length);
-      if (isSubscriber) {
-        unitAmount = Math.round(unitAmount * 0.8); // 20% off
-        productName = `${productName} — Professional 20% off`;
+      if (isFoundingSubscriber) {
+        productName = `${productName} — Founding Subscriber 15% off`;
       }
     } else if (tier === "counsel_review" && isSubscriber) {
       unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
