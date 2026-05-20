@@ -569,6 +569,32 @@ export const PRICING_REGISTRY = {
     addonReason: "founding_subscriber_discount",
     active: true,
   },
+  registration_standalone: {
+    kind: "one_time",
+    lookupKey: "registration_standalone",
+    productKey: "registration",
+    productName: "Registration Filings — DIY Toolkit (Standalone)",
+    description: "Flat per-filing price for the DPO / DPA / AI Act registration document pack. One price regardless of jurisdiction count.",
+    amountCents: 4500,
+    currency: "usd",
+    displayPrice: "$45",
+    displaySuffix: " flat",
+    active: true,
+  },
+  registration_subscriber: {
+    kind: "addon",
+    lookupKey: "registration_subscriber",
+    productKey: "registration",
+    productName: "Registration Filings — DIY Toolkit (Founding Subscriber)",
+    description: "Founding subscriber rate (15% off Convenience Tools) for the DPO / DPA / AI Act registration document pack.",
+    amountCents: 3800,
+    currency: "usd",
+    displayPrice: "$38",
+    displaySuffix: " flat",
+    parentLookupKey: "intelligence_annual",
+    addonReason: "founding_subscriber_discount",
+    active: true,
+  },
 } as const satisfies Record<string, PriceEntry>;
 
 export type PriceLookupKey = keyof typeof PRICING_REGISTRY;
