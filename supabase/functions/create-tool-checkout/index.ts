@@ -58,8 +58,8 @@ const TOOLS: Record<
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 3375,
   },
   ir_playbook: {
     name: "Your Breach Response Playbook",
