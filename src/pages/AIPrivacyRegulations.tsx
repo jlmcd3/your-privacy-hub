@@ -37,6 +37,11 @@ const AIPrivacyRegulations = () => (
         h2: "GDPR and AI Training Data",
         synthesisKey: "ai_privacy__gdpr_ai",
         content: `<p>The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">March 2026 binding guidance</a> on personal data use in AI model training represents the most significant regulatory development at the AI–privacy intersection. The guidance establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
+        toolCta: {
+          toolName: "Legitimate Interest Assessment",
+          toolDescription: "The EDPB's March 2026 guidance requires a documented balancing test for each AI training use case. Generate a structured LIA aligned to EDPB guidance.",
+          href: "/lia-assessment",
+        },
       },
       {
         id: "national-ai",
