@@ -117,8 +117,44 @@ export default function LegislationTracker() {
 
   const filtered = bills
     .filter((b) => region === "All Regions" || b.region === region)
-    .filter((b) => stage === "All Stages" || b.stage === stage)
-    .sort((a, b) => (STAGE_CONFIG[a.stage]?.order ?? 99) - (STAGE_CONFIG[b.stage]?.order ?? 99));
+    .filter((b) => stage === "All Stages" || b.stage === stage);
+
+  // Track groupings (default priority sort)
+  const recentlyEnacted = filtered
+    .filter((b) => b.stage === "enacted" && (daysSince(b.source_last_action_at) ?? 999) <= 90)
+    .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? ""));
+
+  const inProgress = filtered.filter((b) => b.stage !== "enacted" && b.stage !== "withdrawn");
+
+  const tracks: { id: string; label: string; sub: string; tone: string; bills: Bill[] }[] = [
+    {
+      id: "high",
+      label: "High likelihood — imminent",
+      sub: "Passed at least one chamber; awaiting signature or promulgation.",
+      tone: "border-red-500 bg-red-50 text-red-700",
+      bills: inProgress
+        .filter((b) => b.stage === "passed")
+        .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? "")),
+    },
+    {
+      id: "active",
+      label: "Active — committee stage",
+      sub: "Moving through committee; outcome uncertain but on the agenda.",
+      tone: "border-amber-500 bg-amber-50 text-amber-700",
+      bills: inProgress
+        .filter((b) => b.stage === "committee")
+        .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? "")),
+    },
+    {
+      id: "early",
+      label: "Introduced — early stage",
+      sub: "Recently introduced or proposed; long road to enactment.",
+      tone: "border-violet-500 bg-violet-50 text-violet-700",
+      bills: inProgress
+        .filter((b) => b.stage === "introduced" || b.stage === "proposed")
+        .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? "")),
+    },
+  ];
 
   return (
     <>
