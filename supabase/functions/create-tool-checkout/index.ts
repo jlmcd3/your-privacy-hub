@@ -74,8 +74,8 @@ const TOOLS: Record<
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     table: "biometric_assessments",
-    fallback_standalone_cents: 1000,
-    fallback_subscriber_cents: 800,
+    fallback_standalone_cents: 1500,
+    fallback_subscriber_cents: 1125,
   },
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
