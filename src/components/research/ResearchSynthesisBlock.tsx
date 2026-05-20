@@ -105,19 +105,19 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
 
   return (
     <>
-      {promoteHeading && (
-        <h1 className="font-display text-navy leading-tight mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400 }}>
-          Last 30 Days
-        </h1>
-      )}
       {(() => {
         const collapsed = promoteHeading && !expanded;
         return (
       <div
         id={promoteHeading ? "page-recent-developments-panel" : undefined}
         className={`mt-6 mb-2 rounded-r-lg relative ${collapsed ? "overflow-hidden" : ""}`}
-        style={collapsed ? { ...containerStyle, maxHeight: "7.5rem" } : containerStyle}
+        style={collapsed ? { ...containerStyle, maxHeight: "9.5rem" } : containerStyle}
       >
+        {promoteHeading && (
+          <h2 className="font-display text-navy leading-tight mb-3" style={{ fontSize: "clamp(1.25rem, 2.4vw, 1.6rem)", fontWeight: 400 }}>
+            Last 30 Days
+          </h2>
+        )}
         {!promoteHeading && (
           <div className="flex items-center gap-2 mb-3">
             <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
