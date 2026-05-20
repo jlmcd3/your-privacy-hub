@@ -569,24 +569,24 @@ export const PLATFORM_PRICING = {
   clientAddon: () => formatPrice("professional_client"),                           // "$150/client/year"
 } as const;
 
-/** US Notice price helpers — derived from the registry, never hardcode. */
+/** US Notice price helpers — v8 model uses uniform pricing across all variants. */
 export const US_NOTICE_PRICING = {
-  singleStandalone: () => getPrice("us_notice_single_standalone").displayPrice,   // "$25"
-  singleSubscriber: () => getPrice("us_notice_single_subscriber").displayPrice,   // "$12"
-  allStatesStandalone: () => getPrice("us_notice_all_standalone").displayPrice,   // "$59"
-  allStatesSubscriber: () => getPrice("us_notice_all_subscriber").displayPrice,   // "$29"
+  singleStandalone: () => getPrice("us_notice_v7_standalone").displayPrice,
+  singleSubscriber: () => getPrice("us_notice_v7_subscriber").displayPrice,
+  allStatesStandalone: () => getPrice("us_notice_v7_standalone").displayPrice,
+  allStatesSubscriber: () => getPrice("us_notice_v7_subscriber").displayPrice,
 } as const;
 
-/** EU & Global Notice price helpers — derived from the registry, never hardcode. */
+/** EU & Global Notice price helpers — v8 model uses uniform pricing across all variants. */
 export const EU_NOTICE_PRICING = {
-  singleStandalone: () => getPrice("eu_notice_single_standalone").displayPrice,                       // "$45"
-  singleSubscriber: () => getPrice("eu_notice_single_subscriber").displayPrice,                       // "$19"
-  suiteStandalone: () => getPrice("eu_notice_suite_standalone").displayPrice,                         // "$119"
-  suiteSubscriber: () => getPrice("eu_notice_suite_subscriber").displayPrice,                         // "$65"
-  fullInternationalStandalone: () => getPrice("eu_notice_full_international_standalone").displayPrice, // "$229"
-  fullInternationalSubscriber: () => getPrice("eu_notice_full_international_subscriber").displayPrice, // "$99"
-  refreshStandalone: () => getPrice("eu_notice_refresh_standalone").displayPrice,                     // "$35"
-  refreshSubscriber: () => getPrice("eu_notice_refresh_subscriber").displayPrice,                     // "$19"
+  singleStandalone: () => getPrice("eu_notice_v7_standalone").displayPrice,
+  singleSubscriber: () => getPrice("eu_notice_v7_subscriber").displayPrice,
+  suiteStandalone: () => getPrice("eu_notice_v7_standalone").displayPrice,
+  suiteSubscriber: () => getPrice("eu_notice_v7_subscriber").displayPrice,
+  fullInternationalStandalone: () => getPrice("eu_notice_v7_standalone").displayPrice,
+  fullInternationalSubscriber: () => getPrice("eu_notice_v7_subscriber").displayPrice,
+  refreshStandalone: () => getPrice("eu_notice_v7_standalone").displayPrice,
+  refreshSubscriber: () => getPrice("eu_notice_v7_subscriber").displayPrice,
 } as const;
 
 // ============================================================================
