@@ -296,8 +296,6 @@ const USPrivacyLaws = () => {
           <ResearchSynthesisBlock sectionKey="us_privacy__federal" compact />
         </div>
 
-        <ResearchSynthesisBlock sectionKey="us_privacy__page" promoteHeading />
-
         {/* ── State Authority Directory ── */}
         <div
           ref={setRef("authority-directory")}
