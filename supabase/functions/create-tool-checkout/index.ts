@@ -154,8 +154,8 @@ const TOOLS: Record<
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 6000,
-    fallback_subscriber_cents: 4500,
+    fallback_standalone_cents: 5500,
+    fallback_subscriber_cents: 4125,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
