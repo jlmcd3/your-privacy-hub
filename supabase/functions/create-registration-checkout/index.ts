@@ -38,20 +38,20 @@ function detectEnv(override?: string): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
-// DIY pricing ladder — must stay in sync with src/pages/RegistrationLanding.tsx
-// and src/pages/Tools.tsx. The pricing reconciliation scanner
-// (scripts/scan-pricing.mjs) enforces this.
-function diyPriceCents(numJurisdictions: number): number {
-  if (numJurisdictions <= 1) return 5900;   // $59
-  if (numJurisdictions <= 3) return 14900;  // $149
-  if (numJurisdictions <= 7) return 27500;  // $275
-  return 49900;                             // $499 — Portfolio (unlimited)
+// DIY pricing — flat per-filing price (May 2026 memo). One price regardless
+// of jurisdiction count. Founding subscribers get a 15% Convenience-Tools
+// discount. Mirror this in src/pages/RegistrationAssessmentResult.tsx and
+// src/config/pricing.ts (registration_standalone / registration_subscriber).
+const DIY_STANDALONE_CENTS = 4500;   // $45
+const DIY_SUBSCRIBER_CENTS = 3800;   // $38 (founding subscriber)
+function diyPriceCents(_numJurisdictions: number, isSubscriber: boolean): number {
+  return isSubscriber ? DIY_SUBSCRIBER_CENTS : DIY_STANDALONE_CENTS;
 }
 function diyPriceLabel(numJurisdictions: number): string {
-  if (numJurisdictions <= 1) return "Registration Manager — DIY Toolkit (1 jurisdiction)";
-  if (numJurisdictions <= 3) return `Registration Manager — DIY Toolkit (up to 3 jurisdictions, ${numJurisdictions} selected)`;
-  if (numJurisdictions <= 7) return `Registration Manager — DIY Toolkit (up to 7 jurisdictions, ${numJurisdictions} selected)`;
-  return `Registration Manager — DIY Portfolio (unlimited, ${numJurisdictions} jurisdictions)`;
+  const suffix = numJurisdictions === 1
+    ? "1 jurisdiction"
+    : `${numJurisdictions} jurisdictions`;
+  return `Registration Manager — DIY Toolkit (${suffix})`;
 }
 
 const COUNSEL_REVIEW_CENTS = 39900; // $399 flat
