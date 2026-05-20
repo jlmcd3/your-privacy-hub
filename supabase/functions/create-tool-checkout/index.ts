@@ -114,8 +114,8 @@ const TOOLS: Record<
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 1875,
   },
   eu_notice_single: {
     name: "EU & Global Notice — Single Framework",
