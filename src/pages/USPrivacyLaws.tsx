@@ -229,6 +229,25 @@ const USPrivacyLaws = () => {
         </div>
       </div>
 
+      {/* Landscape at a glance */}
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Enacted", count: enactedCount, stripe: "bg-emerald-600", text: "text-emerald-700", bg: "bg-emerald-600/5" },
+            { label: "Pending", count: pendingCount, stripe: "bg-amber-600", text: "text-amber-700", bg: "bg-amber-600/5" },
+            { label: "No statute", count: noneCount, stripe: "bg-slate-400", text: "text-slate", bg: "bg-slate-400/5" },
+          ].map((t) => (
+            <div key={t.label} className={`grid grid-cols-[4px_1fr] items-stretch rounded-lg border border-fog overflow-hidden ${t.bg}`}>
+              <div className={`${t.stripe} self-stretch`} aria-hidden="true" />
+              <div className="px-4 py-3">
+                <div className={`font-display text-2xl md:text-3xl leading-none ${t.text}`}>{t.count}</div>
+                <div className="text-meta uppercase tracking-wider text-slate-light mt-1">{t.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <AdBanner variant="leaderboard" className="my-4" />
 
       {/* Recent Developments CTA */}
