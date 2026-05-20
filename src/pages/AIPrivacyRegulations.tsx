@@ -31,6 +31,11 @@ const AIPrivacyRegulations = () => (
         h2: "The EU AI Act",
         synthesisKey: "ai_privacy__eu_ai_act",
         content: `<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a>, which entered into force in August 2024 with phased implementation through 2027, establishes the world's first comprehensive regulatory framework specifically for artificial intelligence. The Act classifies AI systems by risk level — unacceptable, high-risk, limited, and minimal — and imposes corresponding obligations. <a href="https://artificialintelligenceact.eu/annex/3/" target="_blank" rel="noopener noreferrer">High-risk AI systems</a> used in areas like employment, credit scoring, and law enforcement face requirements for conformity assessments, risk management systems, data governance, transparency, human oversight, and accuracy monitoring. The Act's interaction with the <a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR</a> creates a dual compliance requirement for AI systems processing personal data.</p>`,
+        toolCta: {
+          toolName: "Data Protection Impact Assessment",
+          toolDescription: "High-risk AI systems under the EU AI Act and GDPR Article 35 require a DPIA. Generate one structured to EDPB WP 248 requirements.",
+          href: "/dpia-framework",
+        },
       },
       {
         id: "gdpr-ai-training",
