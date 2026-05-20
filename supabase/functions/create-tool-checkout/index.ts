@@ -12,12 +12,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tool catalog. Lookup keys map to prices created in the payment system
-// (see payments--batch_create_product results). Fallback cents reflect
-// the v7 pricing model — standalone = full per-use price, subscriber =
-// Professional rate (25% off). Intelligence subscribers (20% off) are
-// computed at runtime. Keep in sync with src/hooks/useToolPrice.ts
-// FALLBACK and src/config/pricing.ts PRICING.tools.
+// Tool catalog. Lookup keys map to Stripe Price objects. Under the v8
+// pricing model (May 2026 memo): every tier pays the same standalone
+// price; the only discount is the founding-subscriber promotion
+// (20% off Smart Tools, 15% off Convenience Tools), applied at runtime
+// to founding_subscriber = true. `fallback_subscriber_cents` is the
+// founding-rate fallback. Keep in sync with src/config/pricing.ts
+// PRICING.tools and PRICING_REGISTRY.
 const TOOLS: Record<
   string,
   {
@@ -35,7 +36,7 @@ const TOOLS: Record<
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
     fallback_standalone_cents: 3500,
-    fallback_subscriber_cents: 2625,
+    fallback_subscriber_cents: 2800,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
@@ -43,7 +44,7 @@ const TOOLS: Record<
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
     fallback_standalone_cents: 5500,
-    fallback_subscriber_cents: 4125,
+    fallback_subscriber_cents: 4400,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
@@ -51,7 +52,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
     fallback_standalone_cents: 4500,
-    fallback_subscriber_cents: 3375,
+    fallback_subscriber_cents: 3600,
   },
   dpa_generator: {
     name: "Your Custom DPA",
@@ -59,7 +60,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
     fallback_standalone_cents: 4500,
-    fallback_subscriber_cents: 3375,
+    fallback_subscriber_cents: 3600,
   },
   ir_playbook: {
     name: "Your Breach Response Playbook",
@@ -67,7 +68,7 @@ const TOOLS: Record<
     subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 1875,
+    fallback_subscriber_cents: 2125,
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Checker",
@@ -75,7 +76,7 @@ const TOOLS: Record<
     subscriber_lookup: "biometric_subscriber_v2",
     table: "biometric_assessments",
     fallback_standalone_cents: 1500,
-    fallback_subscriber_cents: 1125,
+    fallback_subscriber_cents: 1200,
   },
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
@@ -83,7 +84,7 @@ const TOOLS: Record<
     subscriber_lookup: "ropa_initial_subscriber",
     table: "ropa_sessions",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_subscriber_cents: 3400,
   },
   ropa_refresh: {
     name: "RoPA Builder — Annual Refresh",
@@ -91,7 +92,7 @@ const TOOLS: Record<
     subscriber_lookup: "ropa_refresh_subscriber",
     table: "ropa_sessions",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_subscriber_cents: 3400,
   },
   us_notice_single: {
     name: "US Privacy Notice — Single State",
@@ -99,7 +100,7 @@ const TOOLS: Record<
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 1875,
+    fallback_subscriber_cents: 2125,
   },
   us_notice_all_states: {
     name: "US Privacy Notice — All States Suite",
@@ -107,7 +108,7 @@ const TOOLS: Record<
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 1875,
+    fallback_subscriber_cents: 2125,
   },
   us_notice_refresh: {
     name: "US Notice — Annual Refresh",
@@ -115,7 +116,7 @@ const TOOLS: Record<
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 1875,
+    fallback_subscriber_cents: 2125,
   },
   eu_notice_single: {
     name: "EU & Global Notice — Single Framework",
@@ -123,7 +124,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 4250,
   },
   eu_notice_suite: {
     name: "EU Notice Suite — GDPR + UK GDPR + FADP",
@@ -131,7 +132,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 4250,
   },
   eu_notice_full_international: {
     name: "EU & Global Notice — Full International",
@@ -139,7 +140,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 4250,
   },
   eu_notice_refresh: {
     name: "EU & Global Notice — Annual Refresh",
@@ -147,7 +148,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 4250,
   },
   cppa_risk_assessment: {
     name: "CPPA Risk Assessment — Module 1",
@@ -155,7 +156,7 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
     fallback_standalone_cents: 5500,
-    fallback_subscriber_cents: 4125,
+    fallback_subscriber_cents: 4400,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
@@ -163,7 +164,7 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
     fallback_standalone_cents: 7000,
-    fallback_subscriber_cents: 5250,
+    fallback_subscriber_cents: 5600,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
@@ -171,7 +172,7 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
     fallback_standalone_cents: 12500,
-    fallback_subscriber_cents: 9375,
+    fallback_subscriber_cents: 10000,
   },
 };
 
