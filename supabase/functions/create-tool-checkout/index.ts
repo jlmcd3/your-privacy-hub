@@ -162,8 +162,8 @@ const TOOLS: Record<
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 8000,
-    fallback_subscriber_cents: 6000,
+    fallback_standalone_cents: 7000,
+    fallback_subscriber_cents: 5250,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
