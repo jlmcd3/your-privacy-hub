@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -8,25 +8,98 @@ import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
 
-const regionFlags: Record<string, string> = {
-  "European Union": "🇪🇺",
-  "United Kingdom": "🇬🇧",
-  "Canada": "🇨🇦",
-  "Asia-Pacific": "🌏",
-  "Latin America": "🌎",
-  "Middle East & Africa": "🌍",
-  "Other Notable": "🌐",
+type Entry = {
+  id: string;
+  country: string;
+  slug?: string;
+  authority_name: string;
+  authority_abbreviation?: string;
+  primary_legislation?: string;
+  legislation_abbreviation?: string;
+  website?: string;
+  complaint_portal?: string | null;
+  notes?: string;
+  monitoring_tier?: number;
 };
+
+type RegionGroup = "Europe" | "Americas" | "Asia-Pacific" | "Other";
+
+const REGION_GROUP: Record<string, RegionGroup> = {
+  "European Union": "Europe",
+  "United Kingdom": "Europe",
+  "Canada": "Americas",
+  "Latin America": "Americas",
+  "Asia-Pacific": "Asia-Pacific",
+  "Middle East & Africa": "Other",
+  "Other Notable Jurisdictions": "Other",
+};
+
+const REGION_FLAG: Record<RegionGroup, string> = {
+  Europe: "🇪🇺",
+  Americas: "🌎",
+  "Asia-Pacific": "🌏",
+  Other: "🌍",
+};
+
+const FILTERS: ("All" | RegionGroup)[] = ["All", "Europe", "Americas", "Asia-Pacific", "Other"];
+
+// Activity derived from monitoring_tier (Tier 1 = High enforcement volume, 2 = Medium, 3 = Low).
+function activityFor(tier?: number): { level: "High" | "Medium" | "Low"; rank: number; cls: string } {
+  if (tier === 1) return { level: "High", rank: 3, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+  if (tier === 2) return { level: "Medium", rank: 2, cls: "bg-amber-100 text-amber-800 border-amber-300" };
+  return { level: "Low", rank: 1, cls: "bg-slate-100 text-slate-700 border-slate-300" };
+}
+
+type FlatEntry = Entry & { regionGroup: RegionGroup; originRegion: string };
+
+const ALL_ENTRIES: FlatEntry[] = (globalAuthorities as any[]).flatMap((region: any) =>
+  region.entries.map((e: Entry) => ({
+    ...e,
+    originRegion: region.region,
+    regionGroup: REGION_GROUP[region.region] || "Other",
+  }))
+);
 
 const GlobalAuthorities = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedRegion, setExpandedRegion] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"All" | RegionGroup>("All");
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { All: ALL_ENTRIES.length };
+    for (const f of FILTERS) if (f !== "All") c[f] = ALL_ENTRIES.filter((e) => e.regionGroup === f).length;
+    return c;
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return ALL_ENTRIES
+      .filter((e) => (filter === "All" ? true : e.regionGroup === filter))
+      .filter((e) => {
+        if (!q) return true;
+        return (
+          e.authority_name.toLowerCase().includes(q) ||
+          e.country.toLowerCase().includes(q) ||
+          (e.authority_abbreviation || "").toLowerCase().includes(q) ||
+          (e.primary_legislation || "").toLowerCase().includes(q) ||
+          (e.legislation_abbreviation || "").toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => {
+        const ra = activityFor(a.monitoring_tier).rank;
+        const rb = activityFor(b.monitoring_tier).rank;
+        if (rb !== ra) return rb - ra;
+        return a.authority_name.localeCompare(b.authority_name);
+      });
+  }, [searchTerm, filter]);
 
   return (
     <div className="min-h-screen bg-paper">
       <Helmet>
         <title>Global Privacy Authority Directory — 119+ DPAs | End User Privacy</title>
-        <meta name="description" content="Directory of 119+ data protection authorities worldwide. Find DPA names, legislation, websites, and complaint portals organized by region." />
+        <meta
+          name="description"
+          content="Searchable directory of 119+ data protection authorities worldwide, ranked by enforcement activity. Find DPA contacts, complaint portals, and legislation."
+        />
       </Helmet>
       <Navbar />
       <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">
@@ -36,133 +109,143 @@ const GlobalAuthorities = () => {
           </div>
           <h1 className="font-display text-white mb-3">Global Privacy Authorities</h1>
           <p className="text-base text-slate-light max-w-[700px]">
-            Comprehensive directory of data protection authorities worldwide, organized by region. Includes authority names, primary legislation, official websites, and complaint portals.
+            {ALL_ENTRIES.length} data protection authorities worldwide, ranked by enforcement activity. Search by name,
+            country, or acronym, and jump directly to each authority's complaint portal.
           </p>
         </div>
       </div>
 
-
       <AdBanner variant="leaderboard" className="mt-6" />
 
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Search */}
-        <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-fog shadow-eup-sm">
-          <div className="relative flex-1 max-w-[400px]">
+      {/* Sticky filter + search bar */}
+      <div className="sticky top-0 z-30 bg-paper/95 backdrop-blur border-b border-fog">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {FILTERS.map((f) => {
+              const active = filter === f;
+              return (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`text-xs font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full border transition-colors ${
+                    active
+                      ? "bg-navy text-white border-navy"
+                      : "bg-card text-slate border-silver hover:border-navy/40"
+                  }`}
+                >
+                  {f === "All" ? "All" : `${REGION_FLAG[f as RegionGroup]} ${f}`}
+                  <span className={`ml-1.5 text-[10px] ${active ? "text-white/80" : "text-slate-light"}`}>
+                    {counts[f] ?? 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="relative w-full lg:max-w-[360px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-light w-4 h-4" />
             <input
-              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-paper text-navy outline-none focus:border-blue transition-colors"
-              placeholder="Search countries, authorities, or legislation…"
+              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-card text-navy outline-none focus:border-blue transition-colors"
+              placeholder="Search ICO, CNIL, country, legislation…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
+      </div>
 
-        {/* Regions */}
-        <div className="space-y-6">
-          {(globalAuthorities as any[]).map((region: any) => {
-            const regionEntries = region.entries.filter((e: any) =>
-              !searchTerm ||
-              e.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              e.authority_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (e.primary_legislation && e.primary_legislation.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
-
-            if (regionEntries.length === 0) return null;
-
-            const isExpanded = expandedRegion === region.region || searchTerm.length > 0;
-            const displayEntries = isExpanded ? regionEntries : regionEntries.slice(0, 5);
-
-            return (
-              <div key={region.region} className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
-                <div className="px-6 py-5 bg-gradient-to-br from-navy-mid to-navy-light flex justify-between items-center">
-                  <div>
-                    <h3 className="text-white flex items-center gap-2">
-                      {regionFlags[region.region] || "🌐"} {region.region}
-                    </h3>
-                    <p className="text-[12px] text-slate-light mt-1">{regionEntries.length} authorities</p>
-                  </div>
-                  <div className="font-display text-[28px] text-sky leading-none">{regionEntries.length}</div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead className="bg-fog">
-                      <tr>
-                        {["Country", "Authority", "Legislation", "Tier", "Links"].map((h) => (
-                          <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-slate text-left border-b border-silver">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {displayEntries.map((entry: any) => (
-                        <tr key={entry.id} className="hover:bg-paper transition-colors">
-                          <td className="px-4 py-3 text-sm text-navy font-medium border-b border-fog whitespace-nowrap">
-                            <Link
-                              to={`/jurisdiction/${entry.slug || slugify(entry.country)}`}
-                              className="text-primary hover:underline font-medium no-underline"
-                            >
-                              {entry.country}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-navy border-b border-fog">
-                            <div className="font-medium">{entry.authority_name}</div>
-                            <div className="text-[11px] text-slate mt-0.5">{entry.authority_abbreviation}</div>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-navy border-b border-fog">
-                            {entry.primary_legislation}
-                            {entry.legislation_abbreviation && (
-                              <span className="text-[11px] text-slate ml-1">({entry.legislation_abbreviation})</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 border-b border-fog whitespace-nowrap">
-                            <span className={`text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${
-                              entry.monitoring_tier === 1 ? "bg-[#EBF3FB] text-[#1A5F9E]" :
-                              entry.monitoring_tier === 2 ? "status-pending" : "status-none"
-                            }`}>
-                              Tier {entry.monitoring_tier}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm border-b border-fog">
-                            <div className="flex gap-2">
-                              <a href={entry.website} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline no-underline text-[12px]">Website ↗</a>
-                              {entry.complaint_portal && (
-                                <a href={entry.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-blue hover:underline no-underline text-[12px]">Complaints ↗</a>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {!searchTerm && regionEntries.length > 5 && !isExpanded && (
-                  <div className="p-3.5 text-center border-t border-fog bg-paper">
-                    <button
-                      onClick={() => setExpandedRegion(region.region)}
-                      className="text-sm font-medium text-blue hover:underline cursor-pointer bg-transparent border-none"
-                    >
-                      View all {regionEntries.length} authorities in {region.region} →
-                    </button>
-                  </div>
-                )}
-                {isExpanded && !searchTerm && regionEntries.length > 5 && (
-                  <div className="p-3.5 text-center border-t border-fog bg-paper">
-                    <button
-                      onClick={() => setExpandedRegion(null)}
-                      className="text-sm font-medium text-blue hover:underline cursor-pointer bg-transparent border-none"
-                    >
-                      Show less
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-slate uppercase tracking-wider font-semibold">
+            {filtered.length} {filtered.length === 1 ? "authority" : "authorities"} · sorted by enforcement activity
+          </p>
+          <div className="flex items-center gap-3 text-[11px] text-slate">
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> High
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500" /> Medium
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-slate-400" /> Low
+            </span>
+          </div>
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="bg-card border border-fog rounded-xl p-10 text-center text-slate">
+            No authorities match your search.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((entry) => {
+              const activity = activityFor(entry.monitoring_tier);
+              return (
+                <div
+                  key={entry.id}
+                  className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm flex flex-col gap-3 hover:border-navy/30 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-slate font-semibold">
+                        {REGION_FLAG[entry.regionGroup]} {entry.country}
+                      </div>
+                      <Link
+                        to={`/jurisdiction/${entry.slug || slugify(entry.country)}`}
+                        className="block mt-1 text-sm font-semibold text-navy hover:text-blue no-underline"
+                      >
+                        {entry.authority_name}
+                      </Link>
+                      {entry.authority_abbreviation && (
+                        <div className="text-[11px] text-slate mt-0.5">{entry.authority_abbreviation}</div>
+                      )}
+                    </div>
+                    <span
+                      className={`shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full border ${activity.cls}`}
+                      title="Enforcement activity derived from monitoring tier"
+                    >
+                      {activity.level}
+                    </span>
+                  </div>
+
+                  {entry.primary_legislation && (
+                    <div className="text-xs text-slate">
+                      <span className="text-slate-light">Law: </span>
+                      {entry.primary_legislation}
+                      {entry.legislation_abbreviation && (
+                        <span className="text-slate-light"> ({entry.legislation_abbreviation})</span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-auto pt-3 border-t border-fog flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+                    {entry.website && (
+                      <a
+                        href={entry.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue hover:underline no-underline"
+                      >
+                        Website ↗
+                      </a>
+                    )}
+                    {entry.complaint_portal ? (
+                      <a
+                        href={entry.complaint_portal}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue hover:underline no-underline font-medium"
+                      >
+                        File complaint / notify ↗
+                      </a>
+                    ) : (
+                      <span className="text-slate-light">No public complaint portal</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
       <Footer />
     </div>
