@@ -811,7 +811,7 @@ export const PRICING = {
     dpa:          { name: 'Custom DPA Generator',               dollars: 45, display: '$45',  stripePriceId: 'dpa_standalone_v2' },
     ropa:         { name: 'RoPA Builder',                       dollars: 40, display: '$40',  stripePriceId: 'ropa_initial_standalone' },
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'eu_notice_v7_standalone' },
-    registration: { name: 'Registration Filings',               dollars: 45, display: '$45',  stripePriceId: null },
+    registration: { name: 'Registration Filings',               dollars: 45, display: '$45',  stripePriceId: 'registration_standalone' },
     governance:   { name: 'Privacy Program Assessment',         dollars: 55, display: '$55',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_standalone' },
