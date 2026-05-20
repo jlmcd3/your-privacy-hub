@@ -8,14 +8,14 @@ const AIPrivacyRegulations = () => (
       eyebrow: "Research · AI & Privacy",
       title: "AI Privacy Regulations",
       description:
-        "The intersection of artificial intelligence and data privacy has become the most dynamic area of regulatory activity worldwide. This reference covers the EU AI Act, GDPR's application to AI training, national AI strategies, and the enforcement actions shaping practice.",
+        "AI regulation is moving faster than any other area of privacy law. The EDPB's March 2026 binding guidance on AI training data is a live compliance obligation. The EU AI Act's high-risk provisions are phasing in through 2027. California's ADMT rules are finalized. This reference covers the frameworks, the enforcement, and what each means for your compliance program.",
       lastUpdated: "March 9, 2026",
       feedCategory: "ai-privacy",
       stats: [
-        { value: "2024", label: "EU AI Act in force" },
-        { value: "Art. 22", label: "GDPR ADM right" },
-        { value: "€15M", label: "Garante OpenAI fine (overturned)" },
-        { value: "2026", label: "CPPA ADMT rules finalized" },
+        { value: "Aug 2024", label: "EU AI Act in force" },
+        { value: "Art. 22", label: "GDPR right against ADM" },
+        { value: "Mar 2026", label: "EDPB AI training guidance" },
+        { value: "Mar 2026", label: "CPPA ADMT rules finalized" },
       ],
     }}
     pageSynthesisKey="ai_privacy__page"
