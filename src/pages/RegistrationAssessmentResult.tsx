@@ -311,8 +311,8 @@ export default function RegistrationAssessmentResult() {
                 <PlanCard
                   title="DIY Toolkit"
                   price={`$${diyPrice}`}
-                  priceFootnote={`${diyTierLabel} · ${selectedCount || "0"} selected`}
-                  blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Tiered: $49 / $89 / $149 by count."
+                  priceFootnote={`Flat — any jurisdiction count · $${diyFoundingPrice} for Founding Subscribers`}
+                  blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Flat $45 regardless of count."
                   cta={purchasing === "diy" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
                   disabled={purchasing !== null || selectedCount === 0}
