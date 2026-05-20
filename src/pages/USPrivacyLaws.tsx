@@ -124,8 +124,14 @@ const USPrivacyLaws = () => {
   const overrides = useStateLawOverrides();
   const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
 
+  const enactedCount = usStates.filter((s: any) => s.statute_status === "Enacted").length;
+  const pendingCount = usStates.filter((s: any) => s.statute_status === "Pending").length;
+  const noneCount = usStates.filter((s: any) => !s.statute_status || s.statute_status === "None").length;
+
   const filteredAuthorities = usStates.filter((state: any) => {
-    return authStatusFilter === "All" || state.statute_status === authStatusFilter;
+    if (authStatusFilter === "All") return true;
+    if (authStatusFilter === "None") return !state.statute_status || state.statute_status === "None";
+    return state.statute_status === authStatusFilter;
   });
 
   useEffect(() => {
