@@ -55,6 +55,41 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const daysSince = (iso: string | null): number | null => {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / DAY_MS);
+};
+
+// Map a bill to its "what to do now" compliance tool. Returned only for
+// high-likelihood bills.
+function nextActionFor(bill: Bill): { label: string; href: string } | null {
+  const j = (bill.jurisdiction || "").toLowerCase();
+  const iso = bill.iso2 || "";
+  if (j.includes("california")) {
+    return { label: "Run CPPA Risk Assessment", href: "/cppa-risk-assessment" };
+  }
+  if (iso === "EU" || iso === "GB" || j.includes("united kingdom") || j.includes("european")) {
+    return { label: "Generate a DPIA", href: "/dpia-framework" };
+  }
+  if (iso === "US" || bill.region === "Americas") {
+    return { label: "Generate a U.S. Privacy Notice", href: "/us-notice-builder" };
+  }
+  return { label: "Run Governance Assessment", href: "/governance-assessment" };
+}
+
+// Pick the most relevant date for a bill. We don't have an explicit
+// "expected/effective date" column, so we surface source_last_action_at as
+// the most informative timestamp and colour by stage urgency.
+function urgencyFor(bill: Bill): { tone: "red" | "amber" | "slate"; label: string } {
+  if (bill.stage === "passed") return { tone: "red", tone_unused: undefined as any, label: "Awaiting signature / promulgation" } as any;
+  if (bill.stage === "committee") return { tone: "amber", label: "In committee" };
+  if (bill.stage === "enacted") return { tone: "slate", label: "Enacted" };
+  return { tone: "slate", label: "Early stage" };
+}
+
 export default function LegislationTracker() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
