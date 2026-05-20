@@ -26,6 +26,10 @@ export interface ResearchSectionConfig {
   synthesisKey?: string;
   /** Optional tool CTA shown after the synthesis block */
   toolCta?: ResearchToolCtaConfig;
+  /** Where the tool CTA renders relative to section content. Defaults to "bottom". */
+  toolCtaPlacement?: "top" | "bottom";
+  /** Optional one-sentence "does this apply to me?" callout rendered above content. */
+  complianceTrigger?: string;
 }
 
 export interface ResearchPageLayoutProps {
