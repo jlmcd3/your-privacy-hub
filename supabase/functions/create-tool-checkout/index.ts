@@ -170,8 +170,8 @@ const TOOLS: Record<
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 14000,
-    fallback_subscriber_cents: 10500,
+    fallback_standalone_cents: 12500,
+    fallback_subscriber_cents: 9375,
   },
 };
 
