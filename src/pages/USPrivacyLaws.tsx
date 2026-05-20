@@ -92,7 +92,7 @@ const TAB_ITEMS = [
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   
-  const [authStatusFilter, setAuthStatusFilter] = useState("All");
+  const [authStatusFilter, setAuthStatusFilter] = useState("Enacted");
   const [activeTab, setActiveTab] = useState("federal-authorities");
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
