@@ -70,7 +70,28 @@ const AIPrivacyRegulations = () => (
         id: "enforcement",
         h2: "Emerging Enforcement",
         synthesisKey: "ai_privacy__enforcement",
-        content: `<p>Enforcement at the AI–privacy intersection is accelerating, but recent court rulings show that AI-related sanctions are also being tested on appeal. Italy's <a href="/regulator/garante">Garante</a> <a href="https://www.garanteprivacy.it/web/guest/home/docweb/-/docweb-display/docweb/9870832" target="_blank" rel="noopener noreferrer">temporarily banned ChatGPT in 2023</a> and, in Decision No. 755 of 2 November 2024, imposed a €15 million fine on OpenAI. That decision was overturned by judgment No. 4153/2026 of the Court of Rome (published 18 March 2026). The <a href="/regulator/ftc">FTC</a> has taken action against companies using AI for deceptive practices. The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/coordinated-enforcement-action_en" target="_blank" rel="noopener noreferrer">coordinated enforcement framework</a> has prioritized AI as a focus area.</p>`,
+        content: `<p>Enforcement at the AI–privacy intersection is accelerating across multiple regulators simultaneously.</p>
+
+<ul>
+
+<li><strong><a href="/regulator/garante">Garante (Italy)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — overturned by the Court of Rome in March 2026. Significant for establishing that AI enforcement decisions face serious appellate scrutiny.</li>
+
+<li><strong><a href="/regulator/edpb">EDPB:</a></strong> March 2026 binding guidance on AI training data is enforceable across all 27 EU DPAs. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
+
+<li><strong><a href="/regulator/ftc">FTC (U.S.):</a></strong> Active enforcement against AI-driven deceptive practices and voice-cloning fraud. The FTC's <em>Section 5 unfairness</em> theory is being extended to AI systems that produce harmful outputs.</li>
+
+<li><strong><a href="/regulator/ico">ICO (UK):</a></strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
+
+<li><strong>CPPA (California):</strong> Finalized ADMT regulations in March 2026. First enforcement actions expected H2 2026.</li>
+
+</ul>
+
+<p><strong>Key pattern:</strong> Regulators are not waiting for AI-specific legislation — they are applying existing GDPR, CCPA, and FTC Act frameworks to AI systems right now.</p>`,
+        toolCta: {
+          toolName: "Governance Assessment",
+          toolDescription: "Assess your AI governance program against active enforcement patterns from the EDPB, FTC, ICO, and CPPA.",
+          href: "/governance-assessment",
+        },
       },
     ]}
     relatedLinks={[
