@@ -115,24 +115,24 @@ serve(async (req) => {
     );
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("is_premium, is_pro")
+      .select("is_premium, is_pro, founding_subscriber")
       .eq("id", user.id)
       .single();
     const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
+    const isFoundingSubscriber = !!profile?.founding_subscriber;
 
-    // Pricing rules (must match src/pages/RegistrationLanding.tsx + Tools.tsx):
-    //   diy            -> tiered flat fee by jurisdiction count, 20% off for subscribers
+    // Pricing rules (must match src/pages/RegistrationAssessmentResult.tsx):
+    //   diy            -> flat $45, $38 for founding subscribers (May 2026 memo)
     //   counsel_review -> flat $399, -$75 for subscribers
     //   renewal        -> $79/yr × N jurisdictions (no subscriber discount)
     let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
     let productName: string = cfg.name;
     if (tier === "diy") {
-      unitAmount = diyPriceCents(codes.length);
+      unitAmount = diyPriceCents(codes.length, isFoundingSubscriber);
       productName = diyPriceLabel(codes.length);
-      if (isSubscriber) {
-        unitAmount = Math.round(unitAmount * 0.8); // 20% off
-        productName = `${productName} — Professional 20% off`;
+      if (isFoundingSubscriber) {
+        productName = `${productName} — Founding Subscriber 15% off`;
       }
     } else if (tier === "counsel_review" && isSubscriber) {
       unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
