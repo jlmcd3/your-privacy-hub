@@ -92,7 +92,7 @@ const TAB_ITEMS = [
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   
-  const [authStatusFilter, setAuthStatusFilter] = useState("All");
+  const [authStatusFilter, setAuthStatusFilter] = useState("Enacted");
   const [activeTab, setActiveTab] = useState("federal-authorities");
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -124,8 +124,14 @@ const USPrivacyLaws = () => {
   const overrides = useStateLawOverrides();
   const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
 
+  const enactedCount = usStates.filter((s: any) => s.statute_status === "Enacted").length;
+  const pendingCount = usStates.filter((s: any) => s.statute_status === "Pending").length;
+  const noneCount = usStates.filter((s: any) => !s.statute_status || s.statute_status === "None").length;
+
   const filteredAuthorities = usStates.filter((state: any) => {
-    return authStatusFilter === "All" || state.statute_status === authStatusFilter;
+    if (authStatusFilter === "All") return true;
+    if (authStatusFilter === "None") return !state.statute_status || state.statute_status === "None";
+    return state.statute_status === authStatusFilter;
   });
 
   useEffect(() => {
@@ -223,6 +229,25 @@ const USPrivacyLaws = () => {
         </div>
       </div>
 
+      {/* Landscape at a glance */}
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Enacted", count: enactedCount, stripe: "bg-emerald-600", text: "text-emerald-700", bg: "bg-emerald-600/5" },
+            { label: "Pending", count: pendingCount, stripe: "bg-amber-600", text: "text-amber-700", bg: "bg-amber-600/5" },
+            { label: "No statute", count: noneCount, stripe: "bg-slate-400", text: "text-slate", bg: "bg-slate-400/5" },
+          ].map((t) => (
+            <div key={t.label} className={`grid grid-cols-[4px_1fr] items-stretch rounded-lg border border-fog overflow-hidden ${t.bg}`}>
+              <div className={`${t.stripe} self-stretch`} aria-hidden="true" />
+              <div className="px-4 py-3">
+                <div className={`font-display text-2xl md:text-3xl leading-none ${t.text}`}>{t.count}</div>
+                <div className="text-meta uppercase tracking-wider text-slate-light mt-1">{t.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <AdBanner variant="leaderboard" className="my-4" />
 
       {/* Recent Developments CTA */}
@@ -311,22 +336,42 @@ const USPrivacyLaws = () => {
             below to find specific states, statutes, or agencies.
           </p>
 
-          {/* Filters */}
+          {/* Prominent Compare CTA — sticky above grid */}
+          <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-4">
+            <Link
+              to="/compare/us-states"
+              className="flex items-center justify-between gap-3 bg-gradient-to-r from-blue/10 to-navy/5 border border-blue/40 hover:border-blue rounded-xl px-4 py-3 shadow-eup-sm transition-all no-underline group"
+            >
+              <span className="text-sm font-bold text-navy">
+                Compare enacted state laws side by side
+              </span>
+              <span className="text-blue whitespace-nowrap font-bold text-sm group-hover:translate-x-0.5 transition-transform">
+                Open comparison →
+              </span>
+            </Link>
+          </div>
+
+          {/* Filter tabs */}
           <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-fog shadow-sm">
             <span className="text-meta font-semibold tracking-wider uppercase text-slate">
-              Status:
+              Show:
             </span>
-            {["All", "Enacted", "Pending", "None"].map((f) => (
+            {[
+              { value: "All", label: "All" },
+              { value: "Enacted", label: "Enacted" },
+              { value: "Pending", label: "Pending" },
+              { value: "None", label: "No statute" },
+            ].map((f) => (
               <span
-                key={f}
-                onClick={() => setAuthStatusFilter(f)}
+                key={f.value}
+                onClick={() => setAuthStatusFilter(f.value)}
                 className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
-                  authStatusFilter === f
+                  authStatusFilter === f.value
                     ? "bg-navy text-white border-navy"
                     : "bg-card text-slate border-fog hover:bg-navy hover:text-white hover:border-navy"
                 }`}
               >
-                {f}
+                {f.label}
               </span>
             ))}
             <span className="ml-auto text-meta text-slate">
@@ -334,15 +379,7 @@ const USPrivacyLaws = () => {
             </span>
           </div>
 
-          {/* Compare CTA */}
-          <div className="mb-3">
-            <Link
-              to="/compare/us-states"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
-            >
-              Compare enacted state laws side by side →
-            </Link>
-          </div>
+
 
           {/* Compact card grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
