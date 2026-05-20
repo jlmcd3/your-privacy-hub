@@ -483,7 +483,7 @@ export const PRICING_REGISTRY = {
     productKey: "eu_notice_v8",
     productName: "EU & Global Privacy Notice Builder (Founding Subscriber)",
     description: "Founding subscriber rate (15% off Convenience Tools) for any EU/global notice variant.",
-    amountCents: 4250,
+    amountCents: 4300,
     currency: "usd",
     displayPrice: "$43",
     displaySuffix: " flat",
