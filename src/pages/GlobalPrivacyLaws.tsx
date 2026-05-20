@@ -1,14 +1,15 @@
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { JurisdictionDirectory } from "@/components/research/JurisdictionDirectory";
 
 const GlobalPrivacyLaws = () => (
   <ResearchPageLayout
-    metaTitle="Global Privacy Laws — APAC, LATAM, MEA Frameworks | End User Privacy"
-    metaDescription="Comparative reference for privacy regulation outside the U.S. and EU: APAC, Latin America, Middle East, and Africa frameworks, with cross-border transfer mechanisms and enforcement."
+    metaTitle="Global Privacy Laws — Jurisdiction Directory & Adequacy Status | End User Privacy"
+    metaDescription="Browse 70+ privacy regimes by region, status, and EU GDPR adequacy. Comparative reference covering APAC, Latin America, Middle East, and Africa frameworks."
     header={{
       eyebrow: "Research · Global Privacy",
       title: "Global Privacy Laws",
       description:
-        "Over 140 countries have enacted data protection legislation — and the majority are GDPR-modelled, meaning EU-trained compliance instincts transfer further than you might expect. This reference covers the major frameworks outside the U.S. and EU: Asia-Pacific, Latin America, the Middle East, and Africa. For U.S. law see /us-privacy-laws; for EU/GDPR see /gdpr-enforcement.",
+        "Over 140 countries have enacted data protection legislation — and the majority are GDPR-modelled, meaning EU-trained compliance instincts transfer further than you might expect. Browse the directory by region, filter by statutory status, and check EU adequacy at a glance. For U.S. law see /us-privacy-laws; for EU/GDPR see /gdpr-enforcement.",
       lastUpdated: "March 7, 2026",
       feedCategory: "global",
       stats: [
@@ -18,7 +19,6 @@ const GlobalPrivacyLaws = () => (
         { value: "2026", label: "newest regimes active" },
       ],
     }}
-    pageSynthesisKey="global__page"
     topToolCta={{
       toolName: "Data Processing Agreement Generator",
       toolDescription:
@@ -26,6 +26,17 @@ const GlobalPrivacyLaws = () => (
       href: "/dpa-generator",
     }}
     sections={[
+      {
+        id: "directory",
+        h2: "Jurisdiction Directory",
+        children: <JurisdictionDirectory />,
+      },
+      {
+        id: "overview",
+        h2: "Regional Overview",
+        synthesisKey: "global__page",
+        content: `<p>The directory above is the practical starting point; the sections below cover regional patterns, cross-border transfer mechanisms, and recent enforcement.</p>`,
+      },
       {
         id: "apac",
         h2: "Asia-Pacific Data Protection Laws",
