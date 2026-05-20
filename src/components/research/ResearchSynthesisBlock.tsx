@@ -107,7 +107,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
     <>
       {promoteHeading && (
         <h1 className="font-display text-navy leading-tight mb-3" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400 }}>
-          Recent Developments — Last 30 Days
+          Last 30 Days
         </h1>
       )}
       {(() => {
@@ -122,7 +122,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
           <div className="flex items-center gap-2 mb-3">
             <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
             <span className="text-eyebrow" style={{ color: "hsl(var(--cobalt))" }}>
-              Recent Developments — Last 30 Days
+              Last 30 Days
             </span>
           </div>
         )}
