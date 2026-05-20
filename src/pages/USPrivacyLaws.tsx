@@ -336,22 +336,42 @@ const USPrivacyLaws = () => {
             below to find specific states, statutes, or agencies.
           </p>
 
-          {/* Filters */}
+          {/* Prominent Compare CTA — sticky above grid */}
+          <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-4">
+            <Link
+              to="/compare/us-states"
+              className="flex items-center justify-between gap-3 bg-gradient-to-r from-blue/10 to-navy/5 border border-blue/40 hover:border-blue rounded-xl px-4 py-3 shadow-eup-sm transition-all no-underline group"
+            >
+              <span className="text-sm font-bold text-navy">
+                Compare enacted state laws side by side
+              </span>
+              <span className="text-blue whitespace-nowrap font-bold text-sm group-hover:translate-x-0.5 transition-transform">
+                Open comparison →
+              </span>
+            </Link>
+          </div>
+
+          {/* Filter tabs */}
           <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-fog shadow-sm">
             <span className="text-meta font-semibold tracking-wider uppercase text-slate">
-              Status:
+              Show:
             </span>
-            {["All", "Enacted", "Pending", "None"].map((f) => (
+            {[
+              { value: "All", label: "All" },
+              { value: "Enacted", label: "Enacted" },
+              { value: "Pending", label: "Pending" },
+              { value: "None", label: "No statute" },
+            ].map((f) => (
               <span
-                key={f}
-                onClick={() => setAuthStatusFilter(f)}
+                key={f.value}
+                onClick={() => setAuthStatusFilter(f.value)}
                 className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
-                  authStatusFilter === f
+                  authStatusFilter === f.value
                     ? "bg-navy text-white border-navy"
                     : "bg-card text-slate border-fog hover:bg-navy hover:text-white hover:border-navy"
                 }`}
               >
-                {f}
+                {f.label}
               </span>
             ))}
             <span className="ml-auto text-meta text-slate">
@@ -359,15 +379,7 @@ const USPrivacyLaws = () => {
             </span>
           </div>
 
-          {/* Compare CTA */}
-          <div className="mb-3">
-            <Link
-              to="/compare/us-states"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
-            >
-              Compare enacted state laws side by side →
-            </Link>
-          </div>
+
 
           {/* Compact card grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
