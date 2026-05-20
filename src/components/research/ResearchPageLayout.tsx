@@ -68,6 +68,7 @@ export function ResearchPageLayout({
   relatedLinks,
   intelligenceUpsellTopic,
   adAfterHeader = true,
+  introBlock,
 }: ResearchPageLayoutProps) {
   const { isPremium } = usePremiumStatus();
 
