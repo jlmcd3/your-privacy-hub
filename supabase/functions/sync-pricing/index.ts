@@ -157,6 +157,8 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
   { lookupKey: "cppa_cyber_subscriber",   productKey: "cppa_cyber",    productName: "CPPA Cybersecurity Readiness — Module 2 (Founding Subscriber)", description: "Founding subscriber rate (20% off Smart Tools) for the CPPA Cybersecurity Readiness assessment.",      amountCents: 5600,  currency: "usd", kind: "addon",    active: true },
   { lookupKey: "cppa_suite_standalone",   productKey: "cppa_suite",    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",       description: "Complete CPPA audit readiness bundle.",                                                                   amountCents: 12500, currency: "usd", kind: "one_time", active: true },
   { lookupKey: "cppa_suite_subscriber",   productKey: "cppa_suite",    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Founding Subscriber)", description: "Founding subscriber rate (20% off Smart Tools) for the CPPA Full Audit Suite.",                        amountCents: 10000, currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "registration_standalone", productKey: "registration",  productName: "Registration Filings — DIY Toolkit (Standalone)",          description: "Flat per-filing price for the DPO / DPA / AI Act registration document pack. One price regardless of jurisdiction count.", amountCents: 4500, currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "registration_subscriber", productKey: "registration",  productName: "Registration Filings — DIY Toolkit (Founding Subscriber)", description: "Founding subscriber rate (15% off Convenience Tools) for the DPO / DPA / AI Act registration document pack.",     amountCents: 3800, currency: "usd", kind: "addon",    active: true },
 ];
 
 interface SyncResult {
