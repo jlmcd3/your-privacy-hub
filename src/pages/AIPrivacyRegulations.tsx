@@ -25,67 +25,76 @@ const AIPrivacyRegulations = () => (
         "Assess your AI governance program against the EU AI Act, GDPR Article 22, and CPPA ADMT enforcement patterns.",
       href: "/governance-assessment",
     }}
+    introBlock={
+      <div className="rounded-xl border border-cobalt/30 bg-cobalt/5 px-5 py-4">
+        <div className="text-[11px] font-bold tracking-wider uppercase text-cobalt mb-1.5">
+          Why this matters now
+        </div>
+        <p className="text-sm text-navy leading-relaxed m-0">
+          AI compliance is no longer prospective. The EU AI Act's prohibitions and
+          general-purpose-model obligations are live, the EDPB's March 2026 binding
+          guidance on AI training data is enforceable across all 27 EU DPAs, and
+          California's CPPA finalised its ADMT regulations the same month — first
+          enforcement actions are expected H2 2026.
+        </p>
+      </div>
+    }
     sections={[
       {
         id: "eu-ai-act",
         h2: "The EU AI Act",
         synthesisKey: "ai_privacy__eu_ai_act",
-        content: `<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a>, which entered into force in August 2024 with phased implementation through 2027, establishes the world's first comprehensive regulatory framework specifically for artificial intelligence. The Act classifies AI systems by risk level — unacceptable, high-risk, limited, and minimal — and imposes corresponding obligations. <a href="https://artificialintelligenceact.eu/annex/3/" target="_blank" rel="noopener noreferrer">High-risk AI systems</a> used in areas like employment, credit scoring, and law enforcement face requirements for conformity assessments, risk management systems, data governance, transparency, human oversight, and accuracy monitoring. The Act's interaction with the <a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR</a> creates a dual compliance requirement for AI systems processing personal data.</p>`,
+        complianceTrigger:
+          "Applies if you place an AI system on the EU market, put one into service in the EU, or your AI system's output is used in the EU — regardless of where you're established.",
+        toolCtaPlacement: "top",
         toolCta: {
           toolName: "Data Protection Impact Assessment",
           toolDescription: "High-risk AI systems under the EU AI Act and GDPR Article 35 require a DPIA. Generate one structured to EDPB WP 248 requirements.",
           href: "/dpia-framework",
         },
+        content: `<p>The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a>, which entered into force in August 2024 with phased implementation through 2027, establishes the world's first comprehensive regulatory framework specifically for artificial intelligence. The Act classifies AI systems by risk level — unacceptable, high-risk, limited, and minimal — and imposes corresponding obligations. <a href="https://artificialintelligenceact.eu/annex/3/" target="_blank" rel="noopener noreferrer">High-risk AI systems</a> used in areas like employment, credit scoring, and law enforcement face requirements for conformity assessments, risk management systems, data governance, transparency, human oversight, and accuracy monitoring. The Act's interaction with the <a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR</a> creates a dual compliance requirement for AI systems processing personal data.</p>`,
       },
       {
         id: "gdpr-ai-training",
         h2: "GDPR and AI Training Data",
         synthesisKey: "ai_privacy__gdpr_ai",
-        content: `<p>The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">March 2026 binding guidance</a> on personal data use in AI model training represents the most significant regulatory development at the AI–privacy intersection. The guidance establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
+        complianceTrigger:
+          "Applies if you train, fine-tune, or deploy a model using personal data of EU/EEA individuals — including scraped public web data.",
+        toolCtaPlacement: "top",
         toolCta: {
           toolName: "Legitimate Interest Assessment",
           toolDescription: "The EDPB's March 2026 guidance requires a documented balancing test for each AI training use case. Generate a structured LIA aligned to EDPB guidance.",
           href: "/lia-assessment",
         },
-      },
-      {
-        id: "national-ai",
-        h2: "National AI Strategies and Privacy",
-        synthesisKey: "ai_privacy__national",
-        content: `<p>Beyond the EU, AI governance frameworks are developing on divergent tracks — ranging from sector-specific guidance to hard legislative obligations.</p>
-
-<ul>
-
-<li><strong><a href="/jurisdiction/united-kingdom">UK:</a></strong> Sector-specific regulation through existing regulators. The <a href="/regulator/ico">ICO</a> has published binding guidance on AI and data protection. No dedicated AI Act equivalent — deliberate policy choice to stay flexible.</li>
-
-<li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> proposes mandatory impact assessments for high-impact AI systems, alongside PIPEDA amendments. Still in legislative process as of 2026.</li>
-
-<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">CAC</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
-
-<li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
-
-<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">SB 24-205</a> (effective 2026) requires impact assessments for consequential AI decisions — the first U.S. state AI Act equivalent.</li>
-
-</ul>
-
-<p><strong>Practical implication:</strong> China and the EU are the only jurisdictions with active AI-specific enforcement right now. The rest are still in guidance or legislative phases.</p>`,
+        content: `<p>The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">March 2026 binding guidance</a> on personal data use in AI model training represents the most significant regulatory development at the AI–privacy intersection. The guidance establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
       },
       {
         id: "admt",
-        h2: "Automated Decision-Making",
+        h2: "Automated Decision-Making (CPPA ADMT)",
         synthesisKey: "ai_privacy__cppa_admt",
-        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">finalized ADMT regulations</a> in March 2026, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">ICO</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">March 2026 guidance on biometric data in workplace AI systems</a> clarifies that biometric processing by AI requires explicit consent and DPIAs.</p>`,
+        complianceTrigger:
+          "Applies if you make significant decisions about California residents — employment, housing, credit, education, healthcare, insurance — using automated decision-making technology, including AI.",
+        toolCtaPlacement: "top",
         toolCta: {
           toolName: "CPPA Risk Assessment",
           toolDescription:
             "Generate a CPPA-aligned risk assessment for automated decision-making and high-risk processing.",
           href: "/cppa-risk-assessment",
         },
+        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">finalized ADMT regulations</a> in March 2026, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">ICO</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">March 2026 guidance on biometric data in workplace AI systems</a> clarifies that biometric processing by AI requires explicit consent and DPIAs.</p>`,
       },
       {
         id: "enforcement",
         h2: "Emerging Enforcement",
         synthesisKey: "ai_privacy__enforcement",
+        complianceTrigger:
+          "Applies to every AI deployer — regulators are using existing GDPR, CCPA, and FTC Act powers against AI systems now, without waiting for AI-specific legislation.",
+        toolCtaPlacement: "top",
+        toolCta: {
+          toolName: "Governance Assessment",
+          toolDescription: "Assess your AI governance program against active enforcement patterns from the EDPB, FTC, ICO, and CPPA.",
+          href: "/governance-assessment",
+        },
         content: `<p>Enforcement at the AI–privacy intersection is accelerating across multiple regulators simultaneously.</p>
 
 <ul>
@@ -103,11 +112,30 @@ const AIPrivacyRegulations = () => (
 </ul>
 
 <p><strong>Key pattern:</strong> Regulators are not waiting for AI-specific legislation — they are applying existing GDPR, CCPA, and FTC Act frameworks to AI systems right now.</p>`,
-        toolCta: {
-          toolName: "Governance Assessment",
-          toolDescription: "Assess your AI governance program against active enforcement patterns from the EDPB, FTC, ICO, and CPPA.",
-          href: "/governance-assessment",
-        },
+      },
+      {
+        id: "national-ai",
+        h2: "National AI Strategies and Privacy",
+        synthesisKey: "ai_privacy__national",
+        complianceTrigger:
+          "Applies if you operate in the UK, Canada, China, Brazil, or Colorado — divergent national AI frameworks now layer on top of general privacy law.",
+        content: `<p>Beyond the EU, AI governance frameworks are developing on divergent tracks — ranging from sector-specific guidance to hard legislative obligations.</p>
+
+<ul>
+
+<li><strong><a href="/jurisdiction/united-kingdom">UK:</a></strong> Sector-specific regulation through existing regulators. The <a href="/regulator/ico">ICO</a> has published binding guidance on AI and data protection. No dedicated AI Act equivalent — deliberate policy choice to stay flexible.</li>
+
+<li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> proposes mandatory impact assessments for high-impact AI systems, alongside PIPEDA amendments. Still in legislative process as of 2026.</li>
+
+<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">CAC</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
+
+<li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
+
+<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">SB 24-205</a> (effective 2026) requires impact assessments for consequential AI decisions — the first U.S. state AI Act equivalent.</li>
+
+</ul>
+
+<p><strong>Practical implication:</strong> China and the EU are the only jurisdictions with active AI-specific enforcement right now. The rest are still in guidance or legislative phases.</p>`,
       },
     ]}
     relatedLinks={[
