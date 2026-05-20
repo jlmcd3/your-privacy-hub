@@ -52,7 +52,23 @@ const AIPrivacyRegulations = () => (
         id: "national-ai",
         h2: "National AI Strategies and Privacy",
         synthesisKey: "ai_privacy__national",
-        content: `<p>Beyond the EU, numerous jurisdictions are developing AI governance frameworks with privacy components. The <a href="/jurisdiction/united-kingdom">UK</a>'s approach emphasizes sector-specific regulation through existing regulators, with the <a href="/regulator/ico">ICO</a> publishing <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/artificial-intelligence/" target="_blank" rel="noopener noreferrer">updated guidance on AI and data protection</a>. <a href="/jurisdiction/canada">Canada</a>'s <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> proposes AI-specific obligations alongside amendments to <a href="https://laws-lois.justice.gc.ca/ENG/ACTS/P-8.6/index.html" target="_blank" rel="noopener noreferrer">PIPEDA</a>. <a href="/jurisdiction/brazil">Brazil</a>'s <a href="https://www25.senado.leg.br/web/atividade/materias/-/materia/157233" target="_blank" rel="noopener noreferrer">AI regulation bill (PL 2338/2023)</a> includes provisions for algorithmic impact assessments. <a href="/jurisdiction/china">China</a> — through the <a href="/regulator/cac">CAC</a> — has implemented a series of AI-specific regulations covering <a href="http://www.cac.gov.cn/2022-03/01/c_1647874097948255.htm" target="_blank" rel="noopener noreferrer">algorithmic recommendations</a>, <a href="http://www.cac.gov.cn/2022-12/11/c_1672221949354811.htm" target="_blank" rel="noopener noreferrer">deep synthesis</a>, and <a href="http://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm" target="_blank" rel="noopener noreferrer">generative AI</a>.</p>`,
+        content: `<p>Beyond the EU, AI governance frameworks are developing on divergent tracks — ranging from sector-specific guidance to hard legislative obligations.</p>
+
+<ul>
+
+<li><strong><a href="/jurisdiction/united-kingdom">UK:</a></strong> Sector-specific regulation through existing regulators. The <a href="/regulator/ico">ICO</a> has published binding guidance on AI and data protection. No dedicated AI Act equivalent — deliberate policy choice to stay flexible.</li>
+
+<li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> proposes mandatory impact assessments for high-impact AI systems, alongside PIPEDA amendments. Still in legislative process as of 2026.</li>
+
+<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">CAC</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
+
+<li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
+
+<li><strong>Colorado (U.S.):</strong> <a href="https://leg.colorado.gov/bills/sb24-205" target="_blank" rel="noopener noreferrer">SB 24-205</a> (effective 2026) requires impact assessments for consequential AI decisions — the first U.S. state AI Act equivalent.</li>
+
+</ul>
+
+<p><strong>Practical implication:</strong> China and the EU are the only jurisdictions with active AI-specific enforcement right now. The rest are still in guidance or legislative phases.</p>`,
       },
       {
         id: "admt",
