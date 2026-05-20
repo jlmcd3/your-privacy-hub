@@ -89,6 +89,128 @@ function urgencyFor(bill: Bill): { tone: "red" | "amber" | "slate"; label: strin
   if (bill.stage === "enacted") return { tone: "slate", label: "Enacted" };
   return { tone: "slate", label: "Early stage" };
 }
+function BillCard({
+  bill,
+  variant,
+}: {
+  bill: Bill;
+  variant: "imminent" | "default" | "enacted";
+}) {
+  const cfg = STAGE_CONFIG[bill.stage] ?? STAGE_CONFIG.introduced;
+  const flagUrl = bill.iso2 ? FLAG_BY_ISO[bill.iso2] : undefined;
+  const isStale = bill.status === "stale";
+  const action = variant === "imminent" ? nextActionFor(bill) : null;
+  const urg = urgencyFor(bill);
+  const dateTone =
+    variant === "enacted"
+      ? "text-emerald-700"
+      : urg.tone === "red"
+      ? "text-red-600"
+      : urg.tone === "amber"
+      ? "text-amber-600"
+      : "text-slate";
+  const dateLabel =
+    variant === "enacted" ? "Effective" : urg.tone === "red" ? "Awaiting signature" : "Last action";
+
+  return (
+    <div
+      className={`bg-white rounded-2xl border p-5 transition-all hover:shadow-eup-sm ${
+        variant === "imminent" ? "border-red-500/40" : "border-fog"
+      }`}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            {flagUrl && (
+              <img
+                src={flagUrl}
+                alt={`${bill.jurisdiction} flag`}
+                loading="lazy"
+                className="w-5 h-3.5 object-cover rounded-[2px] shadow-sm flex-shrink-0"
+              />
+            )}
+            <span className="text-xs font-bold text-slate uppercase tracking-wider">
+              {bill.jurisdiction}
+            </span>
+            {bill.bill_number && (
+              <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
+            )}
+            <span
+              className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
+              style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}
+            >
+              {cfg.label}
+            </span>
+            {isStale && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                Stale
+              </span>
+            )}
+          </div>
+          <h3 className="text-navy text-[15px] mb-2">{bill.bill_name}</h3>
+          {bill.summary && (
+            <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
+          )}
+
+          {action && (
+            <div className="mb-3 rounded-lg border-l-4 border-accent bg-accent/5 px-3 py-2">
+              <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-0.5">
+                What to do now
+              </div>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-navy leading-snug m-0">
+                  Prepare ahead of enactment — assess your exposure with the recommended tool.
+                </p>
+                <Link
+                  to={action.href}
+                  className="text-sm font-semibold text-accent no-underline hover:underline whitespace-nowrap"
+                >
+                  {action.label} →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-light">
+            {bill.source_url ? (
+              <a
+                href={bill.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue hover:underline font-medium"
+              >
+                View at {bill.source_name ?? "source"} →
+              </a>
+            ) : bill.source_name ? (
+              <span>Source: {bill.source_name}</span>
+            ) : null}
+            <span>· Verified {formatDate(bill.last_seen_at)}</span>
+            {bill.jurisdiction_slug && (
+              <Link
+                to={`/jurisdiction/${bill.jurisdiction_slug}`}
+                className="text-blue hover:underline font-medium"
+              >
+                · Jurisdiction page →
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Prominent date */}
+        <div className="md:text-right md:border-l md:border-fog md:pl-4">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-light mb-1">
+            {dateLabel}
+          </div>
+          <div className={`font-display text-xl md:text-2xl leading-tight ${dateTone}`}>
+            {formatDate(bill.source_last_action_at)}
+          </div>
+          <div className="text-[11px] text-slate mt-1">{urg.label}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export default function LegislationTracker() {
   const [bills, setBills] = useState<Bill[]>([]);
