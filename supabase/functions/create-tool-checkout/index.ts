@@ -66,8 +66,8 @@ const TOOLS: Record<
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
-    fallback_standalone_cents: 2000,
-    fallback_subscriber_cents: 1500,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 1875,
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Checker",
