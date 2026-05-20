@@ -145,9 +145,10 @@ export default function RegistrationAssessmentResult() {
   const selectedCount = selected.size;
   const crpTotal = 299;
 
-  // Tiered DIY pricing — must mirror diyPriceCents() in create-registration-checkout
-  const diyPrice = selectedCount <= 1 ? 49 : selectedCount <= 3 ? 89 : 149;
-  const diyTierLabel = selectedCount <= 1 ? "1 jurisdiction" : selectedCount <= 3 ? "2-3 jurisdictions" : "4+ jurisdictions";
+  // Flat DIY pricing — mirrors diyPriceCents() in create-registration-checkout
+  // and PRICING.tools.registration in src/config/pricing.ts (May 2026 memo).
+  const diyPrice = 45;
+  const diyFoundingPrice = 38;
 
   // Confidence-tier copy: rewrite CTA framing so users understand WHY to upgrade
   const confidenceCopy: Record<string, { headline: string; subline: string }> = {
