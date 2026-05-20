@@ -111,9 +111,9 @@ const AIPrivacyRegulations = () => (
       },
     ]}
     relatedLinks={[
+      { label: "Biometric Privacy Guide", href: "/biometric-privacy" },
       { label: "GDPR Enforcement", href: "/gdpr-enforcement" },
-      { label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
-      { label: "Global Privacy Laws", href: "/global-privacy-laws" },
+      { label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
       { label: "Enforcement Tracker", href: "/enforcement-tracker" },
     ]}
     intelligenceUpsellTopic="AI privacy and the EU AI Act"
