@@ -34,8 +34,8 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 2625,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
