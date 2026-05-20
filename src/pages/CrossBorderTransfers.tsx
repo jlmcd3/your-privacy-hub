@@ -1,5 +1,97 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
+
+const MECHANISM_TABLE = `
+<div class="overflow-x-auto rounded-xl border border-fog">
+  <table class="w-full text-sm border-collapse">
+    <thead class="bg-fog text-slate">
+      <tr>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Mechanism</th>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Who can use it</th>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Effort to implement</th>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">When to use</th>
+      </tr>
+    </thead>
+    <tbody class="bg-card">
+      <tr class="border-t border-fog align-top">
+        <td class="px-4 py-3 font-semibold text-navy">
+          Adequacy decision
+          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Art. 45</div>
+        </td>
+        <td class="px-4 py-3 text-slate">Any exporter transferring to a country on the EU/UK adequacy list.</td>
+        <td class="px-4 py-3 text-slate"><strong class="text-emerald-700">Low.</strong> No transfer-specific contract needed; a DPA still applies under Art. 28.</td>
+        <td class="px-4 py-3 text-slate">Default whenever the destination is covered — UK, Japan, Canada (commercial), Switzerland, South Korea, New Zealand, Israel, EU–US DPF certified importers.</td>
+      </tr>
+      <tr class="border-t border-fog align-top">
+        <td class="px-4 py-3 font-semibold text-navy">
+          2021 Standard Contractual Clauses
+          <div class="text-[11px] font-normal text-slate-light mt-0.5">Commission Decision 2021/914</div>
+        </td>
+        <td class="px-4 py-3 text-slate">Any exporter — four modules cover C2C, C2P, P2P, P2C scenarios.</td>
+        <td class="px-4 py-3 text-slate"><strong class="text-amber-700">Medium.</strong> Module selection, annex completion and a Transfer Impact Assessment per data flow.</td>
+        <td class="px-4 py-3 text-slate">Default for non-adequate destinations. Also recommended as fallback alongside DPF certifications.</td>
+      </tr>
+      <tr class="border-t border-fog align-top">
+        <td class="px-4 py-3 font-semibold text-navy">
+          Binding Corporate Rules
+          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Art. 47</div>
+        </td>
+        <td class="px-4 py-3 text-slate">Multinational corporate groups for intra-group transfers only.</td>
+        <td class="px-4 py-3 text-slate"><strong class="text-rose-700">High.</strong> 18–36 month lead supervisory authority approval process.</td>
+        <td class="px-4 py-3 text-slate">Established groups with significant intra-group data flows that want a durable, audit-friendly mechanism.</td>
+      </tr>
+      <tr class="border-t border-fog align-top">
+        <td class="px-4 py-3 font-semibold text-navy">
+          Article 49 derogations
+          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Art. 49</div>
+        </td>
+        <td class="px-4 py-3 text-slate">Any exporter — but only for occasional, non-systematic transfers.</td>
+        <td class="px-4 py-3 text-slate"><strong class="text-emerald-700">Low</strong> for one-offs; <strong class="text-rose-700">unusable</strong> for ongoing flows.</td>
+        <td class="px-4 py-3 text-slate">Explicit consent, contract necessity, legal claims, vital interests, or compelling legitimate interests on a narrow basis.</td>
+      </tr>
+      <tr class="border-t border-fog align-top">
+        <td class="px-4 py-3 font-semibold text-navy">
+          Certification / Codes of Conduct
+          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Arts. 40–42</div>
+        </td>
+        <td class="px-4 py-3 text-slate">Sectoral participants once a Commission-approved scheme exists.</td>
+        <td class="px-4 py-3 text-slate"><strong class="text-amber-700">Medium.</strong> Depends on scheme; ongoing monitoring required.</td>
+        <td class="px-4 py-3 text-slate">Emerging option — limited approved schemes today; watch the Global CBPR Forum.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+const ADEQUACY_TABLE = `
+<div class="overflow-x-auto rounded-xl border border-fog">
+  <table class="w-full text-sm border-collapse">
+    <thead class="bg-fog text-slate">
+      <tr>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Country / Territory</th>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Adopted</th>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Last review</th>
+        <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Status</th>
+      </tr>
+    </thead>
+    <tbody class="bg-card">
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">United Kingdom</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2025</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Renewal under review</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Japan</td><td class="px-4 py-3 text-slate">2019</td><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">South Korea</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Switzerland</td><td class="px-4 py-3 text-slate">2000</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Canada (commercial)</td><td class="px-4 py-3 text-slate">2001</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">New Zealand</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Israel</td><td class="px-4 py-3 text-slate">2011</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Argentina</td><td class="px-4 py-3 text-slate">2003</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Uruguay</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Andorra, Faroe Islands, Guernsey, Isle of Man, Jersey</td><td class="px-4 py-3 text-slate">2010–2013</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">United States (DPF-certified entities)</td><td class="px-4 py-3 text-slate">Jul 2023</td><td class="px-4 py-3 text-slate">2024 (first review)</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Schrems III challenge pending</span></td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="text-[11px] text-slate-light mt-2">Adequacy decisions cover specific scopes (e.g. commercial transfers in Canada, certified entities in the US). Always confirm scope against the operative Commission decision.</p>
+`;
 
 export default function CrossBorderTransfersPage() {
   return (
@@ -39,12 +131,29 @@ export default function CrossBorderTransfersPage() {
             "Walks your team through every required TIA step, jurisdiction by jurisdiction. Structured output ready for DPA review.",
           href: "/dpia-framework",
         }}
+        introBlock={<TransferMechanismSelector />}
         sections={[
           {
             id: "eu-mechanisms",
-            h2: "EU/EEA Transfer Mechanisms — GDPR Chapter V",
+            h2: "Transfer mechanisms at a glance",
             synthesisKey: "crossborder__eu_mechanisms",
-            content: `<p>The GDPR provides a structured hierarchy of transfer mechanisms. <strong>Adequacy decisions</strong> (<a href="https://gdpr-info.eu/art-45-gdpr/" target="_blank" rel="noopener noreferrer">Art. 45</a>) cover roughly 15 countries including the <a href="/jurisdiction/united-kingdom">UK</a> (renewal pending), <a href="/jurisdiction/japan">Japan</a>, <a href="/jurisdiction/south-korea">South Korea</a>, <a href="/jurisdiction/canada">Canada</a> (commercial), <a href="/jurisdiction/israel">Israel</a>, <a href="/jurisdiction/switzerland">Switzerland</a>, and <a href="/jurisdiction/new-zealand">New Zealand</a>. <strong>Standard Contractual Clauses</strong> (<a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32021D0914" target="_blank" rel="noopener noreferrer">2021 SCCs</a>) are the most widely used mechanism and require a Transfer Impact Assessment. <strong>Binding Corporate Rules</strong> (<a href="https://gdpr-info.eu/art-47-gdpr/" target="_blank" rel="noopener noreferrer">Art. 47</a>) are the gold standard for intra-group transfers but require DPA approval. <strong>Article 49 derogations</strong> are interpreted narrowly and unsuitable for systematic transfers.</p>`,
+            content: MECHANISM_TABLE,
+            toolCta: {
+              toolName: "SCC & DPA Generator",
+              toolDescription:
+                "Draft 2021 SCCs and the surrounding DPA in minutes — module selection, annexes and sub-processor schedule included.",
+              href: "/dpa-generator",
+              context: "Pairs with Module 2 (C2P) and Module 3 (P2P) SCC workflows.",
+            },
+            toolCtaPlacement: "bottom",
+          },
+          {
+            id: "adequacy",
+            h2: "Current adequacy decisions",
+            synthesisKey: "crossborder__adequacy",
+            content: ADEQUACY_TABLE,
+            complianceTrigger:
+              "Adequacy is the simplest path — but the UK renewal and the EU–US DPF both sit under active legal challenge.",
           },
           {
             id: "dpf",
@@ -57,6 +166,19 @@ export default function CrossBorderTransfersPage() {
             h2: "Transfer Impact Assessments",
             synthesisKey: "crossborder__tia",
             content: `<p>Post-Schrems II, TIAs are required when relying on SCCs or BCRs. The <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/recommendations/recommendations-012020-measures-supplement-transfer_en" target="_blank" rel="noopener noreferrer">EDPB's Recommendations 01/2020</a> provide the authoritative framework: map transfers, identify the mechanism, assess recipient country surveillance law, evaluate practical risk, implement supplementary measures (encryption, pseudonymization, split processing), and document.</p>`,
+          },
+          {
+            id: "derogations",
+            h2: "Article 49 derogations",
+            synthesisKey: "crossborder__derogations",
+            content: `<p>Article 49 permits transfers without an adequacy decision or appropriate safeguards in narrow circumstances — explicit consent, contract necessity, important reasons of public interest, legal claims, vital interests, or transfers from a public register. The "compelling legitimate interests" sub-derogation is interpreted by the <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-22018-derogations-article-49-under-regulation-2016679_en" target="_blank" rel="noopener noreferrer">EDPB Guidelines 2/2018</a> as a measure of last resort, non-systematic, and requiring a documented balancing test plus DPA notification.</p>`,
+            toolCta: {
+              toolName: "Legitimate Interest Assessment",
+              toolDescription:
+                "Run the three-part LIA — necessity, balancing, safeguards — to support reliance on the Art. 49(1)(g) compelling legitimate interests derogation.",
+              href: "/lia-tool",
+            },
+            toolCtaPlacement: "bottom",
           },
           {
             id: "apac",
