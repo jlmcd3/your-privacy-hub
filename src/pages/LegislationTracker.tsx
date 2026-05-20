@@ -211,83 +211,62 @@ export default function LegislationTracker() {
           </div>
 
 
-          <div className="space-y-4">
-            {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
-            {!loading && filtered.map((bill, idx) => {
-              const cfg = STAGE_CONFIG[bill.stage] ?? STAGE_CONFIG.introduced;
-              const flagUrl = bill.iso2 ? FLAG_BY_ISO[bill.iso2] : undefined;
-              const chipInner = (
-                <>
-                  {flagUrl && (
-                    <img src={flagUrl} alt={`${bill.jurisdiction} flag`} loading="lazy"
-                      className="w-6 h-4 object-cover rounded-[2px] shadow-sm flex-shrink-0" />
-                  )}
-                  {bill.iso2 && (
-                    <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{bill.iso2}</span>
-                  )}
-                </>
-              );
-              const isStale = bill.status === "stale";
-              const showAdAfter = (idx + 1) % 6 === 0 && idx !== filtered.length - 1;
-              return (
-                <Fragment key={bill.id}>
-                <div className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
-                  <div className="flex items-start gap-4">
-                    {bill.jurisdiction_slug ? (
-                      <Link to={`/jurisdiction/${bill.jurisdiction_slug}`}
-                        aria-label={`View ${bill.jurisdiction} jurisdiction page`}
-                        className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white hover:border-navy/30 hover:shadow-eup-sm transition-all no-underline">
-                        {chipInner}
-                      </Link>
-                    ) : (
-                      <div className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white">
-                        {chipInner}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                        <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
-                        {bill.bill_number && (
-                          <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
-                        )}
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
-                          style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}>
-                          {cfg.label}
-                        </span>
-                        {isStale && (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
-                            Stale
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-navy text-[15px] mb-2">{bill.bill_name}</h3>
-                      {bill.summary && (
-                        <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
-                      )}
-                      <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-light">
-                        {bill.source_url ? (
-                          <a href={bill.source_url} target="_blank" rel="noopener noreferrer"
-                            className="text-blue hover:underline font-medium">
-                            View at {bill.source_name ?? "source"} →
-                          </a>
-                        ) : bill.source_name ? (
-                          <span>Source: {bill.source_name}</span>
-                        ) : null}
-                        {bill.source_last_action_at && (
-                          <span>· Last action {formatDate(bill.source_last_action_at)}</span>
-                        )}
-                        <span>· Verified {formatDate(bill.last_seen_at)}</span>
-                      </div>
-                    </div>
+          {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
+
+          {!loading && (
+            <>
+              {/* ── Recently enacted (last 90 days) ── */}
+              {recentlyEnacted.length > 0 && (
+                <section className="mb-10">
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <h2 className="font-display text-navy leading-tight">Recently enacted</h2>
+                    <span className="text-meta uppercase tracking-wider font-semibold text-emerald-700">
+                      Last 90 days · {recentlyEnacted.length}
+                    </span>
                   </div>
-                </div>
-                </Fragment>
-              );
-            })}
-            {!loading && filtered.length === 0 && (
-              <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
-            )}
-          </div>
+                  <p className="text-sm text-slate mb-4">
+                    Bills that crossed the finish line recently — what returning practitioners may
+                    have missed.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {recentlyEnacted.map((bill) => (
+                      <BillCard key={bill.id} bill={bill} variant="enacted" />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ── Priority tracks ── */}
+              {tracks.map((track) => (
+                <section key={track.id} className="mb-10">
+                  <div className={`flex items-center gap-3 mb-1 pl-3 border-l-4 ${track.tone.split(" ")[0]}`}>
+                    <h2 className="font-display text-navy leading-tight">{track.label}</h2>
+                    <span className={`text-meta uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${track.tone}`}>
+                      {track.bills.length}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate mb-4 pl-4">{track.sub}</p>
+                  {track.bills.length === 0 ? (
+                    <p className="text-meta text-slate-light pl-4">No bills in this track for the current filters.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {track.bills.map((bill) => (
+                        <BillCard
+                          key={bill.id}
+                          bill={bill}
+                          variant={track.id === "high" ? "imminent" : "default"}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ))}
+
+              {filtered.length === 0 && (
+                <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
+              )}
+            </>
+          )}
 
           <div className="mt-14 pt-8 border-t border-fog space-y-10">
             <section id="us-federal" className="scroll-mt-24">
