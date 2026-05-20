@@ -526,7 +526,7 @@ export const PRICING_REGISTRY = {
     displayPrice: "$249",
     displaySuffix: "/year",
     recurringInterval: "year",
-    active: true,
+    active: false,
   },
 
   // ── v7 per-use tool prices (uniform per category, replaces tier-based notice pricing) ──
