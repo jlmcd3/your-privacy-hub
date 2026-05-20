@@ -54,6 +54,8 @@ export interface ResearchPageLayoutProps {
   intelligenceUpsellTopic?: string;
   /** Optional ad banner placement: "after-header" (between header & page synthesis) */
   adAfterHeader?: boolean;
+  /** Optional block rendered immediately after pageSynthesis/topToolCta and before the section nav. */
+  introBlock?: ReactNode;
 }
 
 export function ResearchPageLayout({
