@@ -21,7 +21,8 @@ export default function SearchFirstHero() {
             </p>
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-3xl mt-2">
+            <div className="@container flex flex-col gap-3 w-full max-w-3xl mt-2">
+              <div className="grid grid-cols-1 @md:grid-cols-2 @[900px]:grid-cols-3 gap-3">
               {/* Card 1 — Privacy Intelligence Feed (Primary) */}
               <a
                 href="#updates"
