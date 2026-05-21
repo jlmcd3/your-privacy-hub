@@ -395,3 +395,31 @@ html { scroll-behavior: smooth; }
 .shadow-eup-md {
   box-shadow: 0 4px 12px hsl(var(--navy) / 0.10), 0 2px 4px hsl(var(--navy) / 0.06);
 }
+
+/* ============================================================
+   RESPONSIVE COMPARISON TABLES (Phase 2 helper)
+   ------------------------------------------------------------
+   Opt-in: wrap an .overflow-x-auto container with .cmp-table and
+   the first column becomes sticky during horizontal scroll, with a
+   subtle right-edge shadow indicating more content. Pair with a
+   min-width on the inner <table> so the scroll actually triggers.
+   Used by the Cookie Consent / Cross-Border / Health-Data matrices.
+   ============================================================ */
+.cmp-table {
+  position: relative;
+}
+.cmp-table table {
+  min-width: 640px;
+}
+.cmp-table th:first-child,
+.cmp-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: hsl(var(--card));
+  box-shadow: 1px 0 0 hsl(var(--fog)), 4px 0 6px -4px hsl(var(--navy) / 0.08);
+}
+.cmp-table thead th:first-child {
+  background: hsl(var(--fog));
+}
+

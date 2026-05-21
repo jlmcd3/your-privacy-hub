@@ -15,17 +15,27 @@ function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
     <NavLink
       to={item.to}
       end
+      title={item.label}
       className={cn(
-        "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline",
+        // At md (768px) the sidebar is icon-only; label appears at lg (1024px+).
+        "inline-flex items-center gap-2 px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline justify-center lg:justify-start",
         active
           ? "bg-navy text-white"
           : "text-slate hover:bg-fog hover:text-navy",
       )}
       aria-current={active ? "page" : undefined}
     >
-      <Icon className="w-4 h-4" aria-hidden="true" />
-      <span>{item.label}</span>
+      <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+      <span className="hidden lg:inline">{item.label}</span>
     </NavLink>
+  );
+}
+
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 px-3 mb-2 hidden lg:block">
+      {children}
+    </p>
   );
 }
 
@@ -40,13 +50,12 @@ export default function WorkspaceSidebar() {
   return (
     <aside
       aria-label="Workspace navigation"
-      className="hidden md:flex flex-col w-[220px] shrink-0 border-r border-fog bg-card sticky top-14 md:top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto"
+      // Three-step width: hidden under md, icon-only 768–1023px, full 1024px+.
+      className="hidden md:flex flex-col w-14 lg:w-[220px] shrink-0 border-r border-fog bg-card sticky top-14 md:top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto transition-[width] duration-200"
     >
-      <div className="p-3">
+      <div className="p-2 lg:p-3">
         <div className="mb-6">
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 px-3 mb-2">
-            Intelligence
-          </p>
+          <GroupLabel>Intelligence</GroupLabel>
           <nav className="flex flex-col gap-0.5">
             {INTELLIGENCE_ITEMS.map((item) => (
               <NavItem key={item.to} item={item} active={activeTo === item.to} />
@@ -55,9 +64,7 @@ export default function WorkspaceSidebar() {
         </div>
 
         <div className="mb-6">
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 px-3 mb-2">
-            Operations
-          </p>
+          <GroupLabel>Operations</GroupLabel>
           <nav className="flex flex-col gap-0.5">
             {OPERATIONS_ITEMS.map((item) => (
               <NavItem key={item.to} item={item} active={activeTo === item.to} />

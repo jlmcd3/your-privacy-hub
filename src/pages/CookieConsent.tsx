@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 
 const REQUIREMENTS_MATRIX = `
-<div class="overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
   <table class="w-full text-sm border-collapse">
     <thead class="bg-fog text-slate">
       <tr>
