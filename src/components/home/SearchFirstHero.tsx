@@ -70,6 +70,7 @@ export default function SearchFirstHero() {
                   LIA, DPIA, DPA Generator, RoPA Builder, CPPA Suite. Enforcement-calibrated.
                 </p>
               </a>
+              </div>
             </div>
 
             {/* Subtle pricing note */}
