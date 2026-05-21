@@ -542,7 +542,7 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
+          className="lg:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
