@@ -389,15 +389,15 @@ const Navbar = () => {
           <img src="/logo.png" alt="End User Privacy" width={1111} height={281} className="h-10 w-auto shrink-0 rounded-md object-contain" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const basePadX = item.directLink ? "px-4" : "px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav`;
+            const basePadX = item.directLink ? "px-2 lg:px-4" : "px-2 lg:px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav text-xs lg:text-sm`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
@@ -487,13 +487,13 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-2 xl:gap-3">
           {user ? (
             <>
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
+                className="text-xs xl:text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-3 xl:px-4 py-1.5 xl:py-2 rounded-lg no-underline transition-all whitespace-nowrap"
               >
                 🧠 My Dashboard
               </Link>
@@ -542,7 +542,7 @@ const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
+          className="lg:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -551,7 +551,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+        <div className="lg:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
           {navItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
