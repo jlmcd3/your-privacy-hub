@@ -1,72 +1,85 @@
-## Site-wide content organization audit
+# Responsive optimization — phased plan
 
-Scope: every file in `src/pages/` and `src/components/`. Apply 6 rules; touch only structure/spacing, no copy/routing/logic changes.
+Goal: the site should look intentional at **every** width from 320px to 1920px, not just at the `sm/md/lg/xl` breakpoints. This matters most for users who resize browser windows, use split-screen, or zoom.
 
-### Rules to enforce
+The plan is split into 4 phases. Each phase is independently shippable — we can stop after any phase if you've gotten what you need.
 
-1. **Heading hierarchy** — Ensure ≥1 `<h1>` per page. No level skips (h1→h2→h3). Strip `text-*xl*`, `font-bold`, `font-semibold`, `font-medium` etc. from `<h1>/<h2>/<h3>` (sizing comes from `index.css`).
-2. **Eyebrow labels** — Small uppercase labels → `.text-eyebrow` class, placed directly above their heading with nothing between, never orphaned.
-3. **Section spacing** — Major sections use `<section className="py-8 md:py-12">`. Heading→first paragraph = `mt-3`. Consecutive paragraphs = `mt-4`. No `<br />` for spacing.
-4. **Reading width** — Prose wrapped in `max-w-[72ch]`. Excludes tables, cards, grids, feeds.
-5. **Lists** — `ul` → `list-disc list-outside pl-5 space-y-2 text-body`; `ol` → `list-decimal ...`. No bold-as-pseudo-heading items; convert to `<dl>/<dt>/<dd>`.
-6. No business logic, copy, routing, or data-fetching changes.
+---
 
-### Execution approach
+## Phase 1 — Fluid design tokens (foundation)
 
-Given the volume (~250 files), I'll work in passes by area, batching parallel edits within each pass and running ripgrep audits to find violators before editing.
+Touches design tokens only. Every page benefits automatically. Lowest risk.
 
-**Pass A — Audit scripts (read-only)**
-Run ripgrep queries to enumerate violations across the codebase:
-- Pages with no `<h1>` (`rg -L '<h1' src/pages/`)
-- Sized headings (`rg '<h[123][^>]*className="[^"]*text-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl)' src`)
-- Weighted headings (`rg '<h[123][^>]*className="[^"]*font-(bold|semibold|medium|light|thin|normal)' src`)
-- `<br />` usage (`rg '<br\s*/?>' src`)
-- Eyebrow candidates missing class (`rg 'uppercase tracking' src`)
-- `list-disc|list-decimal` without required classes
-- Long-prose containers missing `max-w-[72ch]`
+**`tailwind.config.ts`**
+- Convert `fontSize.sm` and `fontSize.base` from hardcoded `14px`/`16px` to `rem` so they respect user zoom and OS font-size preferences.
+- Add a fluid type scale using `clamp()`:
+  - `text-fluid-sm`, `text-fluid-base`, `text-fluid-lg`, `text-fluid-xl`, `text-fluid-2xl`, `text-fluid-hero` — each scales smoothly between a min and max width (e.g. `clamp(1rem, 0.95rem + 0.3vw, 1.125rem)`).
+- Add fluid spacing utilities: `space-fluid-sm/md/lg` using `clamp()` for section padding and gaps.
+- Enable container queries plugin (`@tailwindcss/container-queries`) so cards can respond to their parent width, not just viewport width.
 
-**Pass B — Layout primitives first**
-Fix shared shells where one edit cascades to many pages:
-- `PageContainer`, `SectionShell`, `ReportShell`, `PillarPage`, `RopaShell`, `EUNoticeShell`, `USNoticeShell`, `PillarPage`, `Navbar`, `Footer`
+**`src/index.css`**
+- Add CSS custom properties for fluid scales so non-Tailwind CSS (PDF templates, report shells) can use them.
 
-**Pass C — High-traffic pages**
-`Index`, `Updates`, `UpdateDetail`, `Subscribe`, `Tools`, `About`, `FAQ`, `PrivacyPolicy`, `Terms`, `Contact`, `Dashboard`, `Account`, `JurisdictionsHub`, `GlobalAuthorities`, jurisdiction/topic/regulator pages, glossary, timeline pages.
+**`src/components/PageContainer.tsx`**
+- Replace the 4 fixed widths with fluid versions that use `clamp()` for padding (`clamp(1rem, 3vw, 2rem)` instead of stepped `px-4 sm:px-6 lg:px-8`).
+- Keep the `narrow/default/wide/full` API the same — internal change only.
 
-**Pass D — Tool pages**
-LIA, DPA, DPIA, CPPA suite, IR Playbook, Biometric, Governance, Registration, RoPA, EU/US Notice flows, Result pages.
+**Acceptance:** No visual regression at standard breakpoints; smooth scaling between them.
 
-**Pass E — Admin pages**
-All `src/pages/admin/*` and admin-named pages (lower priority but still in scope).
+---
 
-**Pass F — Components**
-All `src/components/**` not already covered (cards, panels, modals, feed widgets).
+## Phase 2 — Fix the known offenders
 
-**Pass G — Verification**
-- Re-run audit ripgrep queries; confirm zero violators (or document intentional exceptions).
-- Build check (auto by harness).
-- Spot-check 3–5 routes via preview.
+Pages and components that visibly break at in-between widths.
 
-### Edit guidelines
+1. **`SearchFirstHero`** — 3-card row collapses awkwardly between ~900–1100px. Switch to a container-query grid that goes 1 → 2 → 3 columns based on available width rather than viewport.
+2. **`WorkspaceLayout` + `WorkspaceSidebar`** — Sidebar is hardcoded 220px and binary (visible on `md+`, hidden below). Add an intermediate collapsed-icon state for ~768–1024px so subscribers don't lose nav when resizing.
+3. **Comparison/matrix tables** — `CookieConsent`, `CrossBorderTransfers`, `HealthDataPrivacy`, `USStateComparison`. Currently `overflow-x-auto` which is unusable on narrow widths. Implement a shared `<ResponsiveComparisonTable>` that:
+   - Keeps the first column sticky horizontally
+   - Collapses to a stacked card layout below a container threshold (not viewport — so it works in sidebar contexts too)
+4. **`SectionShell` header** — flex row with CTA on the right wraps poorly; switch to a container query that stacks the CTA below the heading when width < ~500px.
+5. **Article cards** (`ArticleCard`, `NewsfeedList`) — verify meta row (date · source · tags) wraps cleanly at narrow widths.
 
-- Use targeted `code--line_replace` over rewrites.
-- When a heading has only `text-xl font-semibold text-foreground` → strip size+weight, keep color. When wrapped in custom serif/utility classes I'll preserve color-only utilities.
-- For eyebrow candidates: any `<p>`/`<div>` with `uppercase tracking-* text-xs/sm` immediately preceding a heading → swap to `<p className="text-eyebrow">…</p>`.
-- For prose width: only wrap pure text blocks (intro paragraphs, policy/terms/about bodies). Skip cards, grids, dashboards.
-- For `<br/>`-as-spacer: replace with `mt-4` on the following block.
-- Lists: only retrofit standard prose lists, not menu/nav/checkbox lists with custom rendering.
+**Acceptance:** Manual screenshot pass of these 5 areas at 360 / 600 / 768 / 900 / 1100 / 1280 / 1600px.
 
-### What I will NOT touch
+---
 
-- Copy text, links, route definitions, data fetching, business logic, pricing, auth, RLS.
-- `src/components/ui/*` shadcn primitives (kept generic).
-- Generated/auto files: `supabase/*`, `integrations/supabase/*`.
-- Test files.
+## Phase 3 — Tables specifically (deeper)
 
-### Expected outcome
+If Phase 2's `<ResponsiveComparisonTable>` lands well, apply it consistently:
 
-A site where every page has a proper h1, no skipped heading levels, no hand-sized headings, consistent eyebrows, consistent section rhythm, capped reading widths on prose, and uniform list styling — with zero functional change.
+- Audit every `<table>` in `src/pages/` (there are ~15).
+- Migrate the comparison-style ones to the shared component.
+- Leave data-grid tables (admin pages, ingestion dashboard) alone — those legitimately need horizontal scroll.
+- Add a Storybook-style page at `/dev/responsive` (admin-only) that renders all shared layout components at multiple widths for visual regression.
 
-### Risk / caveats
+**Acceptance:** All public-facing comparison tables readable at 375px without horizontal scroll.
 
-- This is a large edit set. I'll proceed in passes and pause if I hit ambiguous cases (e.g. a heading whose custom size is intentional for a hero) and ask before stripping.
-- I won't add `max-w-[72ch]` inside layouts that already constrain width via `PageContainer` width=`narrow`/`default` — that would double-constrain.
+---
+
+## Phase 4 — Tooling & guardrails
+
+Prevent future regressions.
+
+1. **Screenshot script** — `scripts/responsive-screenshots.mjs` using Playwright, capturing the top 10 pages at `[360, 600, 900, 1200, 1600]`px. Output to `/tmp/responsive/` for manual review.
+2. **ESLint rule (or simple convention doc)** — discourage new hardcoded `w-[NNNpx]` and `text-[NNpx]` in layout components.
+3. **Memory entry** — add a Core rule to `mem://index.md`: "Layout components use fluid tokens (clamp, container queries). Avoid fixed `px` widths outside icons."
+4. **Playwright test** — extend existing `tests/subscribe-layout.spec.ts` pattern to assert no horizontal overflow on key pages at 5 widths.
+
+**Acceptance:** Screenshot script runnable locally; one Playwright test guarding overflow.
+
+---
+
+## Technical notes
+
+- Container queries require the `@tailwindcss/container-queries` plugin (one `bun add` away) and Tailwind v3.2+ (we're on v3 — fine).
+- `clamp()` is supported in all evergreen browsers; no polyfill needed.
+- Phase 1 changes are token-level and shouldn't require touching component files — that's the point. If any component overrides tokens with hardcoded values, that's a Phase 2 item.
+- We can ship Phase 1 today. Phases 2–4 are roughly 1 session each.
+
+---
+
+## What I need from you
+
+1. **Confirm to proceed with Phase 1** (or pick a different starting point).
+2. **Optional:** any specific pages you'd like prioritized in Phase 2 beyond the 5 listed.
