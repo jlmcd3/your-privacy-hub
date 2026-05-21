@@ -484,9 +484,9 @@ const Navbar = () => {
         {/* Right side */}
         <div className="hidden lg:flex items-center gap-3 ml-auto">
           <Link
-            to="/subscribe"
+            to={user ? "/subscribe" : "/login"}
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
-              location.pathname === "/subscribe"
+              (user ? location.pathname === "/subscribe" : location.pathname === "/login")
                 ? "text-[hsl(var(--accent-light))]"
                 : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
             }`}
