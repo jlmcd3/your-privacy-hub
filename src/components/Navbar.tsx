@@ -482,7 +482,7 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6">
+        <div className="hidden lg:flex items-center gap-3 ml-auto">
           <Link
             to="/subscribe"
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
@@ -491,7 +491,7 @@ const Navbar = () => {
                 : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
             }`}
           >
-            Pricing
+            {user ? "Pricing" : "Sign In"}
           </Link>
           {user ? (
             <>
@@ -502,32 +502,15 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              {(tier === "annual" || tier === "annual_founding") && (
-                <span className="badge-platform">Platform</span>
-              )}
-              {tier === "monthly" && (
-                <span className="badge-intelligence">Intelligence</span>
-              )}
-              {tier === "free" && (
-                <span className="badge-free">Free Plan</span>
-              )}
               <UserMenu onSignOut={handleSignOut} />
             </>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="text-[15px] font-semibold text-white/80 hover:text-white no-underline transition-colors px-3 py-2"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="text-sm font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
-              >
-                Sign up free
-              </Link>
-            </>
+            <Link
+              to="/signup"
+              className="text-sm font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
+            >
+              Sign up free
+            </Link>
           )}
         </div>
 
