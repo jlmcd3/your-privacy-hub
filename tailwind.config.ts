@@ -111,11 +111,28 @@ export default {
         extrabold: "700",
         black: "800",
       },
-      // Restore industry-standard Tailwind sizes (previously bumped to 15/17).
-      // .text-body (16px) remains the semantic body utility; text-base also = 16px.
+      // Industry-standard Tailwind sizes expressed in rem so they respect
+      // user zoom / OS font-size preferences. .text-body (16px) remains the
+      // semantic body utility; text-base also = 16px.
       fontSize: {
-        sm: ['14px', { lineHeight: '1.55' }],
-        base: ['16px', { lineHeight: '1.65' }],
+        sm: ['0.875rem', { lineHeight: '1.55' }],
+        base: ['1rem', { lineHeight: '1.65' }],
+        // Fluid scale — smooth between min and max widths instead of snapping
+        // at md/lg breakpoints. Use sparingly for hero / section copy where
+        // smooth scaling matters more than precise pixel control.
+        'fluid-sm': ['clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem)', { lineHeight: '1.55' }],
+        'fluid-base': ['clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem)', { lineHeight: '1.6' }],
+        'fluid-lg': ['clamp(1rem, 0.95rem + 0.3vw, 1.1875rem)', { lineHeight: '1.5' }],
+        'fluid-xl': ['clamp(1.125rem, 1.05rem + 0.45vw, 1.375rem)', { lineHeight: '1.4' }],
+        'fluid-2xl': ['clamp(1.375rem, 1.25rem + 0.75vw, 1.875rem)', { lineHeight: '1.25' }],
+        'fluid-hero': ['clamp(2rem, 1.4rem + 3vw, 3.5rem)', { lineHeight: '1.1' }],
+      },
+      spacing: {
+        'fluid-sm': 'clamp(0.5rem, 0.4rem + 0.4vw, 0.75rem)',
+        'fluid-md': 'clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem)',
+        'fluid-lg': 'clamp(1rem, 0.75rem + 1vw, 2rem)',
+        'fluid-xl': 'clamp(1.5rem, 1rem + 2vw, 3rem)',
+        'gutter': 'clamp(1rem, 0.5rem + 2vw, 2rem)',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -146,5 +163,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/container-queries"),
+  ],
 } satisfies Config;

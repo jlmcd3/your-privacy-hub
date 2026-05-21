@@ -91,30 +91,27 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Fluid headings — scale smoothly between mobile and desktop instead of
+     snapping at the 768px breakpoint. Min/max match the previous stepped
+     values so existing designs are preserved at the endpoints. */
   h1 {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 2.75rem;  /* 44px desktop */
+    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px */
     font-weight: 400;
     line-height: 1.1;
     letter-spacing: -0.01em;
   }
   h2 {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 2rem;     /* 32px desktop */
+    font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px */
     font-weight: 400;
     line-height: 1.2;
   }
   h3 {
     font-family: 'DM Sans', system-ui, sans-serif;
-    font-size: 1.125rem; /* 18px */
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.125rem); /* 17px → 18px */
     font-weight: 600;
     line-height: 1.35;
-  }
-
-  @media (max-width: 767px) {
-    h1 { font-size: 2rem; }      /* 32px */
-    h2 { font-size: 1.625rem; }  /* 26px */
-    h3 { font-size: 1.0625rem; } /* 17px */
   }
 }
 
@@ -169,35 +166,29 @@
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
 .text-hero-h1 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 2.5rem;      /* 40px */
+  font-size: clamp(2.5rem, 1.7rem + 4vw, 3.5rem); /* 40px → 56px fluid */
   font-weight: 400;
   line-height: 1.1;
   letter-spacing: -0.01em;
-}
-@media (min-width: 768px) {
-  .text-hero-h1 { font-size: 3.5rem; } /* 56px */
 }
 
 /* Page H1 — used on standard light-background page headers */
 .text-page-h1 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 2rem;        /* 32px */
+  font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px fluid */
   font-weight: 400;
   line-height: 1.15;
-}
-@media (min-width: 768px) {
-  .text-page-h1 { font-size: 2.75rem; } /* 44px */
 }
 
 /* Section H2 — used for major page sections */
 .text-section-h2 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.625rem;    /* 26px */
+  font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px fluid */
   font-weight: 400;
   line-height: 1.2;
 }
 @media (min-width: 768px) {
-  .text-section-h2 { font-size: 2rem; } /* 32px */
+  .text-section-h2 { /* preserved selector — fluid handled above */
 }
 
 /* Card title — used on article cards, dashboard tiles, list items */
