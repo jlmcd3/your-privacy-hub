@@ -189,16 +189,11 @@
 }
 
 /* Card title — used on article cards, dashboard tiles, list items */
-
-/* Card title — used on article cards, dashboard tiles, list items */
 .text-card-title {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 1.25rem;     /* 20px */
+  font-size: clamp(1.25rem, 1.18rem + 0.35vw, 1.375rem); /* 20px → 22px fluid */
   font-weight: 600;
   line-height: 1.3;
-}
-@media (min-width: 768px) {
-  .text-card-title { font-size: 1.375rem; } /* 22px */
 }
 
 /* --- Supporting text roles --- */
