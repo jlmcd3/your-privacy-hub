@@ -483,6 +483,16 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="hidden lg:flex items-center gap-2 xl:gap-3">
+          <Link
+            to="/subscribe"
+            className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
+              location.pathname === "/subscribe"
+                ? "text-[hsl(var(--accent-light))]"
+                : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
+            }`}
+          >
+            Pricing
+          </Link>
           {user ? (
             <>
               <Link
@@ -492,14 +502,6 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              {!isPremium && (
-                <Link
-                  to="/subscribe"
-                  className="text-sm font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
-                >
-                  ⭐ See plans
-                </Link>
-              )}
               {(tier === "annual" || tier === "annual_founding") && (
                 <span className="badge-platform">Platform</span>
               )}
@@ -525,15 +527,10 @@ const Navbar = () => {
               >
                 Sign up free
               </Link>
-              <Link
-                to="/subscribe"
-                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
-              >
-                See Plans →
-              </Link>
             </>
           )}
         </div>
+
 
         {/* Mobile toggle */}
         <button
