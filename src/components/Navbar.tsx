@@ -396,8 +396,8 @@ const Navbar = () => {
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const basePadX = item.directLink ? "px-4" : "px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav`;
+            const basePadX = item.directLink ? "px-2 lg:px-4" : "px-2 lg:px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav text-xs lg:text-sm`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
