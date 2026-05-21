@@ -200,11 +200,6 @@ const navItems: NavItem[] = [
       },
     ],
   },
-  {
-    label: "Pricing",
-    href: "/subscribe",
-    accent: true,
-  },
 ];
 
 /** Compact user-icon dropdown that replaces Account + Sign Out in the logged-in nav. */
