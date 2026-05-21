@@ -223,7 +223,7 @@ export default function RopaLanding() {
               Start free. Pay only when you generate a document.
             </p>
 
-            <div className="overflow-x-auto border border-border rounded-2xl">
+            <div className="cmp-table overflow-x-auto border border-border rounded-2xl">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40">
                   <tr>

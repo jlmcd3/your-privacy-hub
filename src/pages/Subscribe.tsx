@@ -283,7 +283,7 @@ const Subscribe = () => {
         <h2 className="text-center font-display text-navy mb-6">
           What's included at each level
         </h2>
-        <div className="overflow-x-auto">
+        <div className="cmp-table overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-gray-200">
@@ -366,7 +366,7 @@ const Subscribe = () => {
         <div className="mb-14">
           <h2 className="font-display text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
-            <div className="overflow-x-auto">
+            <div className="cmp-table overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-fog">
