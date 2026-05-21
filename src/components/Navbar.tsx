@@ -502,9 +502,6 @@ const Navbar = () => {
               >
                 🧠 My Dashboard
               </Link>
-              {(tier === "annual" || tier === "annual_founding") && (
-                <span className="badge-platform">Platform</span>
-              )}
               {tier === "monthly" && (
                 <span className="badge-intelligence">Intelligence</span>
               )}
