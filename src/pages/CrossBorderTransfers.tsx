@@ -3,7 +3,7 @@ import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
 
 const MECHANISM_TABLE = `
-<div class="overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
   <table class="w-full text-sm border-collapse">
     <thead class="bg-fog text-slate">
       <tr>
@@ -65,7 +65,7 @@ const MECHANISM_TABLE = `
 `;
 
 const ADEQUACY_TABLE = `
-<div class="overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
   <table class="w-full text-sm border-collapse">
     <thead class="bg-fog text-slate">
       <tr>
