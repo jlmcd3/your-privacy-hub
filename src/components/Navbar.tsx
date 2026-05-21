@@ -389,7 +389,7 @@ const Navbar = () => {
           <img src="/logo.png" alt="End User Privacy" width={1111} height={281} className="h-10 w-auto shrink-0 rounded-md object-contain" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
