@@ -73,7 +73,7 @@ const USStateComparison = () => {
 
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="cmp-table overflow-x-auto">
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-muted">

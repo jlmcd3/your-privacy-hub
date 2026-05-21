@@ -234,7 +234,7 @@ export default function USNoticeLanding() {
               Answering questions is always free. You only pay when you generate.
             </p>
             <Card>
-              <CardContent className="p-0 overflow-x-auto">
+              <CardContent className="cmp-table p-0 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">

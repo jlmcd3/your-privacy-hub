@@ -42,7 +42,7 @@ const TIERED_STATE_LAWS = `
 `;
 
 const ENFORCEMENT_HISTORY = `
-<div class="overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
   <table class="w-full text-sm border-collapse">
     <thead class="bg-fog text-slate">
       <tr>

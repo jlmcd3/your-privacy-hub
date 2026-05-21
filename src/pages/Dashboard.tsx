@@ -658,7 +658,7 @@ const Dashboard = () => {
                       <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-4">
                         ⚖️ Enforcement Actions This Week
                       </h3>
-                      <div className="overflow-x-auto rounded-xl border border-slate-100">
+                      <div className="cmp-table overflow-x-auto rounded-xl border border-slate-100">
                         <table className="w-full text-sm">
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
