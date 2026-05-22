@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { isSmartTool, isConvenienceTool, isPromoOpen, FOUNDING_PROMO } from "@/config/pricing";
+import { isSmartTool, isConvenienceTool } from "@/config/pricing";
 
 // Map Tools-page slugs to PRICING tool keys so we can classify per card.
 const SLUG_TO_TOOL_KEY: Record<string, string> = {
@@ -404,7 +404,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
-      "Standalone per-use price: $55. The output is structured for review by California privacy counsel before being relied upon. Founding subscribers receive 20% off — see your account for details.",
+      "Standalone per-use price: $55. The output is structured for review by California privacy counsel before being relied upon.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -424,7 +424,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
-      "Standalone per-use price: $70. Founding subscribers receive 20% off — see your account for details. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
+      "Standalone per-use price: $70. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -466,7 +466,7 @@ export default function Tools() {
     <>
       <Helmet>
         <title>Compliance Tools — Enforcement-Calibrated Assessments & Documents | End User Privacy</title>
-        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $15. Founding subscribers receive permanent discounts on every tool." />
+        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $15." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
@@ -481,7 +481,7 @@ export default function Tools() {
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
-            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Founding subscribers receive permanent discounts on every tool.
+            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
@@ -635,7 +635,7 @@ export default function Tools() {
             Available individually at standalone prices.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
-            Every tool is pay-per-use. Founding subscribers receive permanent discounts on every tool — 20% off Smart Tools and 15% off Convenience Tools.
+            Every tool is pay-per-use.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (

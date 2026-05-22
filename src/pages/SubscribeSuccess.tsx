@@ -12,7 +12,7 @@ import { PRICING } from "@/config/pricing";
 export default function SubscribeSuccess() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const { hasToolAccess, isFoundingSubscriber, isIntelligenceOnly, isPremium } = useSubscriptionTier();
+  const { hasToolAccess, isIntelligenceOnly, isPremium } = useSubscriptionTier();
   const [activated, setActivated] = useState(false);
 
   useEffect(() => {
@@ -111,11 +111,6 @@ export default function SubscribeSuccess() {
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
             {subheadline}
           </p>
-          {isFoundingSubscriber && (
-            <p className="text-amber-700 text-sm font-semibold mt-3">
-              Welcome, founding subscriber. Your rate is locked for life.
-            </p>
-          )}
           {!activated && isPremium && (
             <p className="text-slate-light text-[12px] mt-3 animate-pulse">
               Activating your account…

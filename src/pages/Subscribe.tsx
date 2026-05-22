@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { PRICING, FOUNDING_PROMO, isPromoOpen } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
@@ -102,24 +102,8 @@ const Subscribe = () => {
       </Helmet>
       <Navbar />
 
-      {/* Founding subscriber promotional banner */}
-      {isPromoOpen() && (
-        <div className="max-w-[800px] mx-auto mt-6 px-4">
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 mb-2 text-center">
-            <p className="text-sm font-semibold text-amber-900">
-              🎁 Founding Subscriber Offer — closes{' '}
-              {new Date(FOUNDING_PROMO.endDate).toLocaleDateString('en-US', {
-                month: 'long', day: 'numeric', year: 'numeric',
-              })}
-            </p>
-            <p className="text-sm text-amber-800 mt-1">
-              Subscribe now and lock in <strong>20% off Smart Tools</strong> and{' '}
-              <strong>15% off Convenience Tools</strong> — permanently,
-              for the life of your subscription.
-            </p>
-          </div>
-        </div>
-      )}
+
+
 
       {/* Two-product hero */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
@@ -151,7 +135,7 @@ const Subscribe = () => {
                   "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "AI investigation prompt on every article",
                   "Access to all compliance tools at standalone prices",
-                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
+
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
@@ -197,7 +181,7 @@ const Subscribe = () => {
                   "Client/matter workspace & compliance record",
                   "Branded document outputs",
                   "1 free Convenience Tool run per client/month (annual only)",
-                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
+                  
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
