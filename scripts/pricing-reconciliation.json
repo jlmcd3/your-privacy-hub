@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-22T16:59:20.359Z",
+  "generatedAt": "2026-05-22T16:59:52.896Z",
   "server_truth": {
     "tools": [
       {
@@ -342,14 +342,6 @@
       "subscriber_match": true
     },
     {
-      "product": "Registration DIY — flat per-filing (subscriber alias)",
-      "server_standalone": "—",
-      "server_subscriber": "—",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": true
-    },
-    {
       "product": "Registration Counsel-Ready Pack",
       "server_standalone": "$399",
       "server_subscriber": "—",
@@ -370,16 +362,9 @@
       "subscriber_match": true
     }
   ],
-  "findings": [
-    {
-      "severity": "high",
-      "product": "Registration DIY — flat per-filing (subscriber alias)",
-      "issue": "UI markets $45 but server charges —.",
-      "ui_prices_seen": []
-    }
-  ],
+  "findings": [],
   "summary": {
-    "products_checked": 22,
-    "mismatches": 1
+    "products_checked": 21,
+    "mismatches": 0
   }
 }
