@@ -62,6 +62,17 @@ Deno.serve(async () => {
           results.skipped++;
           continue;
         }
+        // Filter out low-value federal notices: meetings and job postings.
+        const titleLower = (doc.title || "").toLowerCase();
+        if (
+          /notice of (a |an )?(public )?meeting/.test(titleLower) ||
+          /sunshine act meeting/.test(titleLower) ||
+          /notice of (a |an )?(available )?position/.test(titleLower) ||
+          /notice of (a |an )?(job )?(opening|vacancy)/.test(titleLower)
+        ) {
+          results.skipped++;
+          continue;
+        }
         const legalWeight = doc.type === "Rule" || doc.type === "RULE" ? "Binding" : "Proposal";
         const agencyName = doc.agencies?.[0]?.name || "Federal Agency";
 
