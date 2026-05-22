@@ -315,11 +315,24 @@ export default function Enforcement() {
       </Helmet>
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-6">
-          <h1 className="font-serif mb-3">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🗄️ Enforcement Tracker
+          </span>
+          <h1 className="font-serif text-white mb-3">
             {view === "archive" ? "Enforcement Tracker — Full Archive" : "Enforcement Tracker"}
           </h1>
+          <p className="text-slate-300 text-lg max-w-3xl">
+            {view === "recent"
+              ? "Search the last 60 days of enriched privacy enforcement actions — free for everyone. Filter by jurisdiction, sector, data category, violation type, and precedent significance."
+              : "Full historical archive of enriched privacy enforcement actions. Search across 3,700+ decisions worldwide."}
+          </p>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
           {view === "recent" &&
             (() => {
               const PUBLIC_WINDOW_DAYS = 60;
@@ -346,20 +359,33 @@ export default function Enforcement() {
                 </div>
               );
             })()}
-          <p className="text-muted-foreground max-w-3xl">
-            {view === "recent" ? (
-              <>
-                Search the last <strong>60 days</strong> of enriched privacy enforcement actions — free for everyone.
-                Filter by jurisdiction, sector, data category, violation type, and precedent significance.
-              </>
-            ) : (
-              <>
-                Full historical archive of enriched privacy enforcement actions. Search across 3,700+ decisions
-                worldwide.
-              </>
-            )}
-          </p>
-        </header>
+        </div>
+          {view === "recent" &&
+            (() => {
+              const PUBLIC_WINDOW_DAYS = 60;
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - PUBLIC_WINDOW_DAYS);
+              const cutoffLabel = cutoff.toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              });
+              return (
+                <div
+                  className="mb-3 inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground"
+                  data-testid="enforcement-window-indicator"
+                  data-window-days={PUBLIC_WINDOW_DAYS}
+                  data-cutoff-date={cutoff.toISOString().slice(0, 10)}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  <span>
+                    Window: <strong className="text-foreground">{PUBLIC_WINDOW_DAYS} days</strong>
+                    {" · "}
+                    Showing actions on or after <strong className="text-foreground">{cutoffLabel}</strong>
+                  </span>
+                </div>
+              );
+            })()}
 
         <AdBanner variant="leaderboard" className="my-4" />
 

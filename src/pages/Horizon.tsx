@@ -174,15 +174,15 @@ export default function Horizon() {
       </Helmet>
       <Navbar />
 
-      <header className="bg-gradient-to-br from-navy to-steel text-white py-12 px-4">
-        <div className="max-w-[1080px] mx-auto">
-         <div className="text-eyebrow text-[hsl(var(--accent))] mb-3">
-           Forward-looking intelligence
-          </div>
-          <h1 className="font-display leading-tight mb-3">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🛰️ Forward-looking intelligence
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Enforcement Forecast Intelligence
           </h1>
-          <p className="text-blue-100 text-[15px] leading-relaxed max-w-2xl">
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             What's coming next. Anticipated privacy regulations, enforcement
             shifts, and policy signals — synthesized from primary regulator
             output and updated weekly.

@@ -472,27 +472,27 @@ export default function Tools() {
       <DashboardSubnav />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-navy to-navy-mid py-16 px-4 text-center">
-        <div className="max-w-[760px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-eyebrow text-amber-300 bg-amber-300/10 border border-amber-300/20 px-3 py-1.5 rounded-full mb-6">
-            Compliance Tools
-          </div>
-          <h1 className="font-display text-white leading-tight mb-4">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🧰 Compliance Tools
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Intelligence, assessments, and compliance documents
           </h1>
-          <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
+          <p className="text-slate-300 text-lg max-w-3xl">
             Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+          <div className="flex gap-3 mt-6 flex-wrap">
+            <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
               Start 10-day Intelligence trial — $20/mo →
             </Link>
-            <a href="#tools" className="text-sm font-semibold text-white border border-white/30 px-6 py-3 rounded-xl hover:bg-white/10 transition-all no-underline">
+            <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
               See the tools ↓
             </a>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* ── Differentiators ────────────────────────────────────────────── */}
       <div className="bg-background py-14 px-4">

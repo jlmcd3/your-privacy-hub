@@ -171,16 +171,18 @@ const Glossary = () => {
       </Helmet>
       <Navbar />
 
-      <div className="border-b border-fog bg-card">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-          <p className="text-sm font-medium text-slate mb-2">📖 Reference</p>
-          <h1 className="text-navy mb-3">Privacy Law Glossary</h1>
-          <p className="text-slate max-w-2xl leading-relaxed">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📖 Reference
+          </span>
+          <h1 className="font-serif text-white mb-3">Privacy Law Glossary</h1>
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Plain-English definitions of key privacy and data protection terms sourced from regulation text,
             grouped by theme. {glossaryData.length} terms and growing.
           </p>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Search */}

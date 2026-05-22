@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -151,19 +151,6 @@ export default function DPAGenerator() {
         <div className="mb-4">
           <ToolTierNote />
         </div>
-        {phase !== "result" && phase !== "generating" && (
-          <ToolOutputPreview
-            label="Sample Data Processing Agreement output"
-            lines={[
-              "DATA PROCESSING AGREEMENT",
-              "Between: [Controller name] ('Controller') and [Processor name] ('Processor')",
-              "Clause 1 — Subject matter: Processor shall process personal data only on",
-              "  documented instructions from Controller, including with regard to transfers",
-              "  of personal data to a third country (Article 28(3)(a) GDPR).",
-              "Clause 2 — Duration: This Agreement commences on the Effective Date and",
-            ]}
-          />
-        )}
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">

@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -104,19 +104,6 @@ export default function RopaLanding() {
         <ToolTierNote />
       </div>
       <main className="flex-1">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <ToolOutputPreview
-            label="Sample Article 30 RoPA output"
-            lines={[
-              "RECORD OF PROCESSING ACTIVITIES — Article 30 GDPR / UK GDPR",
-              "Organisation: [Your organisation name]",
-              "ACTIVITY 1: Customer account management",
-              "  Purpose: Contract performance and service delivery",
-              "  Legal basis: Article 6(1)(b) — performance of contract",
-              "  Data categories: Identity, contact, account credentials",
-            ]}
-          />
-        </div>
         {/* HERO */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="max-w-4xl mx-auto text-center">

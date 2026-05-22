@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+import { PageHero } from "@/components/PageHero";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -89,43 +89,28 @@ export default function USNoticeLanding() {
           </div>
         )}
       </div>
-      <main className="flex-1">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <ToolOutputPreview
-            label="Sample US Privacy Notice output"
-            lines={[
-              "PRIVACY NOTICE — California / Virginia / Colorado",
-              "Effective date: [Date]",
-              "We collect the following categories of personal information:",
-              "  • Identifiers (name, email, IP address) — CCPA Category A",
-              "  • Commercial information (purchase history) — CCPA Category F",
-              "Your rights: Access · Deletion · Correction · Opt-out of sale/sharing",
-            ]}
-          />
+      <PageHero
+        chip="📋 US Privacy Notice Builder"
+        title="Generate US privacy notices for all 20 states — in one session."
+        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA, or start fresh in under 15 minutes."
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild size="lg" className="min-h-[48px]">
+            <Link to="/us-notices/mode">
+              Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="min-h-[48px] bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+          >
+            <Link to="/us-notices">View my notice projects</Link>
+          </Button>
         </div>
-        {/* HERO */}
-        <section className="border-b border-border">
-          <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <h1 className="font-serif text-foreground leading-tight mb-5">
-              Generate US privacy notices for all 20 states — in one session.
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mb-8">
-              Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state
-              privacy law. Pre-populated from your RoPA, or start fresh in under
-              15 minutes.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="min-h-[48px]">
-                <Link to="/us-notices/mode">
-                  Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="min-h-[48px]">
-                <Link to="/us-notices">View my notice projects</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+      </PageHero>
+      <main className="flex-1">
 
         {/* TRUST BAR */}
         <section className="border-b border-border bg-muted/30">
