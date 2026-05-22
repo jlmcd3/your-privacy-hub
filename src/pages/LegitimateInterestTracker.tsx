@@ -89,16 +89,16 @@ const LegitimateInterestTracker = () => {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Intelligence Guide
-          </div>
-          <h1 className="font-display text-white mb-3 leading-tight">Legitimate Interest Tracker</h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">Global privacy law, tracked daily.</p>
-          <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated || "Updated regularly"}</div>
+          </span>
+          <h1 className="font-serif text-white mb-3">Legitimate Interest Tracker</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">Global privacy law, tracked daily.</p>
+          <div className="text-slate-400 text-xs mt-4">Last updated: {lastUpdated || "Updated regularly"}</div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intro + 3-Part Test */}

@@ -157,17 +157,17 @@ export default function JurisdictionsHub() {
 
         <main className="flex-1">
           {/* Page header */}
-          <div className="bg-navy text-white py-6 md:py-7 px-4">
-            <div className="max-w-[1280px] mx-auto">
+          <header className="bg-slate-900 text-white py-12">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div>
-                  <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
-                    <span>🌐</span> Jurisdictions
-                  </div>
-                  <h1 className="font-display text-white mb-2">
+                  <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+                    🌐 Jurisdictions
+                  </span>
+                  <h1 className="font-serif text-white mb-3">
                     Global Privacy Law Map
                   </h1>
-                  <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
+                  <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
                     160+ jurisdictions tracked. Click any country on the map to explore its
                     privacy law, regulator, and recent enforcement actions.
                     Switch to Grid view to browse or filter by region.
@@ -183,14 +183,14 @@ export default function JurisdictionsHub() {
                       />
                       <div>
                         <div className="font-bold text-white text-lg leading-none">{stat.num}</div>
-                        <div className="text-blue-300 text-[11px] mt-0.5">{stat.label}</div>
+                        <div className="text-slate-400 text-[11px] mt-0.5">{stat.label}</div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
+          </header>
 
 
           {/* Map section */}

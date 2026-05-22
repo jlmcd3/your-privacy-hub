@@ -183,20 +183,20 @@ const USPrivacyLaws = () => {
       <Navbar />
 
       {/* Page Header */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🇺🇸 Intelligence Guide
-          </div>
-          <h1 className="font-display text-white mb-3 leading-tight">
+          </span>
+          <h1 className="font-serif text-white mb-3">
             U.S. Privacy Laws
           </h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             A complete guide to the U.S. privacy regulatory framework — federal
             enforcement authorities, state-level authorities and privacy laws across all 50 states,
             and the latest regulatory developments.
           </p>
-          <div className="text-meta text-slate-light mt-4">
+          <div className="text-slate-400 text-xs mt-4">
             Last updated:{" "}
             {recentArticles[0]?.published_at
               ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", {
