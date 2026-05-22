@@ -225,13 +225,17 @@ function registryCents(lookupKey) {
   return m ? Number(m[1]) : null;
 }
 // Map server tool key -> { standalone: registry lookup key, subscriber: lookup key | null }
+// v8 model collapsed per-variant lookup keys into a single uniform key per
+// product family. The Notice Builders use one standalone + one founding-
+// subscriber price across every variant (single state / all-states / refresh
+// for US; single framework / suite / full international / refresh for EU).
 const REGISTRY_MAP = {
-  us_notice_single:               { standalone: "us_notice_single_standalone",            subscriber: "us_notice_single_subscriber" },
-  us_notice_all_states:           { standalone: "us_notice_all_standalone",               subscriber: "us_notice_all_subscriber" },
-  eu_notice_single:               { standalone: "eu_notice_single_standalone",            subscriber: "eu_notice_single_subscriber" },
-  eu_notice_suite:                { standalone: "eu_notice_suite_standalone",             subscriber: "eu_notice_suite_subscriber" },
-  eu_notice_full_international:   { standalone: "eu_notice_full_international_standalone",subscriber: "eu_notice_full_international_subscriber" },
-  eu_notice_refresh:              { standalone: "eu_notice_refresh_standalone",           subscriber: "eu_notice_refresh_subscriber" },
+  us_notice_single:               { standalone: "us_notice_v7_standalone", subscriber: "us_notice_v7_subscriber" },
+  us_notice_all_states:           { standalone: "us_notice_v7_standalone", subscriber: "us_notice_v7_subscriber" },
+  eu_notice_single:               { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
+  eu_notice_suite:                { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
+  eu_notice_full_international:   { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
+  eu_notice_refresh:              { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
 };
 
 // Tools
