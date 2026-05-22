@@ -12,7 +12,7 @@ import { PRICING } from "@/config/pricing";
 export default function SubscribeSuccess() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const { hasToolAccess, isFoundingSubscriber, isIntelligenceOnly, isPremium } = useSubscriptionTier();
+  const { hasToolAccess, isIntelligenceOnly, isPremium } = useSubscriptionTier();
   const [activated, setActivated] = useState(false);
 
   useEffect(() => {
