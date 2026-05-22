@@ -299,12 +299,12 @@ for (const t of serverTools) {
   // reliably. The registry check above is what catches real drift.
 }
 
-// Registration: compare each marketed tier against the server ladder.
+// Registration: under the May 2026 memo, DIY is a flat per-filing fee
+// regardless of jurisdiction count, so the legacy 1/3/7/unlimited UI tier
+// checks no longer apply. We assert the flat fee + counsel + renewal only.
 const regChecks = [
-  { key: "registration_diy_1", marketed_cents: 5900, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 1)?.cents, label: "Registration DIY — 1 jurisdiction" },
-  { key: "registration_diy_3", marketed_cents: 14900, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 3)?.cents, label: "Registration DIY — up to 3 jurisdictions" },
-  { key: "registration_diy_7", marketed_cents: 27500, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 7)?.cents, label: "Registration DIY — up to 7 jurisdictions" },
-  { key: "registration_diy_unlimited", marketed_cents: 49900, server_cents: serverRegistration.diy_unlimited_cents, label: "Registration DIY — unlimited" },
+  { key: "registration_diy_flat", marketed_cents: 4500, server_cents: serverRegistration.diy_flat_standalone_cents, label: "Registration DIY — flat per-filing (standalone)" },
+  { key: "registration_diy_flat_sub", marketed_cents: 3800, server_cents: serverRegistration.diy_flat_subscriber_cents, label: "Registration DIY — flat per-filing (founding subscriber)" },
   { key: "registration_counsel_review", marketed_cents: 39900, server_cents: serverRegistration.counsel_review_cents, label: "Registration Counsel-Ready Pack" },
   { key: "registration_renewal", marketed_cents: 7900, server_cents: serverRegistration.renewal_per_jurisdiction_cents, label: "Registration Annual Renewal Monitoring (per jurisdiction)" },
 ];
