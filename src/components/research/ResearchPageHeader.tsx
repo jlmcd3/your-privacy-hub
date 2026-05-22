@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ExternalLink, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 interface StatItem {
   value: string;
