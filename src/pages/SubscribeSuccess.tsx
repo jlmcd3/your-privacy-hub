@@ -111,11 +111,6 @@ export default function SubscribeSuccess() {
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
             {subheadline}
           </p>
-          {isFoundingSubscriber && (
-            <p className="text-amber-700 text-sm font-semibold mt-3">
-              Welcome, founding subscriber. Your rate is locked for life.
-            </p>
-          )}
           {!activated && isPremium && (
             <p className="text-slate-light text-[12px] mt-3 animate-pulse">
               Activating your account…
