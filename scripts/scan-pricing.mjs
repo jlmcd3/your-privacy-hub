@@ -304,7 +304,7 @@ for (const t of serverTools) {
 // checks no longer apply. We assert the flat fee + counsel + renewal only.
 const regChecks = [
   { key: "registration_diy_flat", marketed_cents: 4500, server_cents: serverRegistration.diy_flat_standalone_cents, label: "Registration DIY — flat per-filing (standalone)" },
-  { key: "registration_diy_flat_sub", marketed_cents: 4500, server_cents: serverRegistration.diy_flat_subscriber_cents, label: "Registration DIY — flat per-filing (subscriber alias)" },
+  // Subscriber alias removed — all tiers pay the standalone price per the May 19, 2026 memo.
   { key: "registration_counsel_review", marketed_cents: 39900, server_cents: serverRegistration.counsel_review_cents, label: "Registration Counsel-Ready Pack" },
   { key: "registration_renewal", marketed_cents: 7900, server_cents: serverRegistration.renewal_per_jurisdiction_cents, label: "Registration Annual Renewal Monitoring (per jurisdiction)" },
 ];
