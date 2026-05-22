@@ -74,30 +74,6 @@ export function ResearchPageHeader({
           {description}
         </p>
 
-        {stats && stats.length > 0 && (
-          <div className="flex flex-wrap gap-6 mb-6 pt-4 border-t border-slate-700">
-            {stats.map((stat, i) => (
-              <div key={i}>
-                <p className="text-xl font-semibold text-white">{stat.value}</p>
-                <p className="text-xs text-slate-400">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-4">
-          {feedCategory && (
-            <Link
-              to={`/updates?category=${feedCategory}`}
-              className="flex items-center gap-1 text-xs font-semibold no-underline hover:underline text-amber-300 hover:text-amber-200"
-            >
-              Latest developments in feed <ExternalLink className="w-3 h-3" />
-            </Link>
-          )}
-          {lastUpdated && (
-            <span className="text-xs text-slate-400">Updated {lastUpdated}</span>
-          )}
-        </div>
       </div>
     </header>
   );

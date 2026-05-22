@@ -196,20 +196,8 @@ const USPrivacyLaws = () => {
             enforcement authorities, state-level authorities and privacy laws across all 50 states,
             and the latest regulatory developments.
           </p>
-          <div className="text-slate-400 text-xs mt-4">
-            Last updated:{" "}
-            {recentArticles[0]?.published_at
-              ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : new Date().toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-          </div>
+
+
 
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
             {TAB_ITEMS.map((tab) => (

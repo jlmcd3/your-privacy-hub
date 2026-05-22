@@ -150,8 +150,8 @@ export default function CPPAScopeChecker() {
 
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 mb-3">
-            FREE · No account required
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🛡️ CPPA Scope Checker · Free · No account required
           </span>
           <h1 className="font-serif mb-3">CPPA Scope Checker</h1>
           <p className="text-slate-300 text-lg">
