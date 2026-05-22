@@ -148,7 +148,6 @@ export default function RegistrationAssessmentResult() {
   // Flat DIY pricing — mirrors diyPriceCents() in create-registration-checkout
   // and PRICING.tools.registration in src/config/pricing.ts (May 2026 memo).
   const diyPrice = 45;
-  const diyFoundingPrice = 38;
 
   // Confidence-tier copy: rewrite CTA framing so users understand WHY to upgrade
   const confidenceCopy: Record<string, { headline: string; subline: string }> = {
