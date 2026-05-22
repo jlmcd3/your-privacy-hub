@@ -166,7 +166,6 @@ export default function CPPAScopeChecker() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         {!showResults && (
-        {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <div>
               <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents?</Label>
