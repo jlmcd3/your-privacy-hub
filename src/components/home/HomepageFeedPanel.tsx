@@ -292,9 +292,84 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
-    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // An article is only eligible for the homepage demo if it carries
+    // every enrichment field — otherwise the anonymous / free / paid
+    // tiers would render with empty content.
+    const isFullyEnriched = (a: any) =>
+      a &&
+      a.ai_summary &&
+      typeof a.ai_summary === "object" &&
+      (a.ai_summary.why_it_matters || a.ai_summary.compliance_impact) &&
+      a.why_it_matters_short &&
+      Array.isArray(a.action_items) &&
+      a.action_items.length > 0 &&
+      Array.isArray(a.related_signals) &&
+      a.related_signals.length > 0;
+
+    const ARTICLE_SELECT = `id, title, summary, source_name, url, published_at,
+       direct_jurisdictions, affected_jurisdictions,
+       category, attention_level, image_url, why_it_matters_short,
+       ai_summary, action_items, related_signals`;
 
     const fetchArticles = async () => {
+      // Anonymous demo: pick a SINGLE fully-enriched article and render
+      // it three times at the three tier views. Same article, three
+      // levels of intelligence.
+      if (!isAuthenticated) {
+        let chosen: any = null;
+
+        // Prefer today's curated spotlight if any entry is fully enriched.
+        const { data: spotlight } = await supabase
+          .from("homepage_spotlight")
+          .select("slot, update_id")
+          .eq("spotlight_date", today)
+          .order("slot");
+
+        if (spotlight && spotlight.length > 0) {
+          const ids = spotlight.sort((a, b) => a.slot - b.slot).map((s) => s.update_id);
+          const { data } = await supabase.from("updates").select(ARTICLE_SELECT).in("id", ids);
+          if (data) {
+            for (const id of ids) {
+              const cand = data.find((d: any) => d.id === id);
+              if (isFullyEnriched(cand)) { chosen = cand; break; }
+            }
+          }
+        }
+
+        // Fallback: scan recent enriched articles for the first that passes.
+        if (!chosen) {
+          const { data: fallback } = await supabase
+            .from("updates")
+            .select(ARTICLE_SELECT)
+            .gte("created_at", cutoff)
+            .eq("is_hidden", false)
+            .not("ai_summary", "is", null)
+            .not("why_it_matters_short", "is", null)
+            .not("action_items", "is", null)
+            .not("related_signals", "is", null)
+            .order("published_at", { ascending: false })
+            .limit(100);
+          if (fallback && fallback.length > 0) {
+            const order: Record<string, number> = { "WATCH CLOSELY": 0, "MONITOR": 1 };
+            const sorted = [...fallback].sort(
+              (a, b) => (order[a.attention_level ?? ""] ?? 2) - (order[b.attention_level ?? ""] ?? 2)
+            );
+            chosen = sorted.find(isFullyEnriched) ?? null;
+          }
+        }
+
+        if (chosen) {
+          const item = toArticleItem({ ...chosen, source_url: (chosen as any).url } as UpdateArticleRow);
+          setArticles([item]);
+          setSelectedArticle(item);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Authenticated: keep the existing 3-article feed view.
       const { data: spotlight } = await supabase
         .from("homepage_spotlight")
         .select("slot, update_id")
@@ -309,7 +384,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         const { data: fallback } = await supabase
           .from("updates")
           .select("id, attention_level")
-          .gte("created_at", cutoff)
+          .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
           .eq("is_hidden", false)
           .order("published_at", { ascending: false })
           .limit(50);
@@ -330,12 +405,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
 
       const { data, error: dataError } = await supabase
         .from("updates")
-        .select(
-          `id, title, summary, source_name, url, published_at,
-           direct_jurisdictions, affected_jurisdictions,
-           category, attention_level, image_url, why_it_matters_short,
-           ai_summary, action_items, related_signals`
-        )
+        .select(ARTICLE_SELECT)
         .in("id", ids);
 
       if (dataError) {
@@ -364,7 +434,9 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
     fetchArticles();
   }, [isAuthenticated]);
 
-  const showTierLabels = !isAuthenticated && articles.length >= 3;
+  // Anonymous demo renders the same article three times (one per tier).
+  const showTierLabels = !isAuthenticated && articles.length >= 1;
+
 
   if (loading) {
     return (
@@ -433,19 +505,26 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         <div className="min-w-0">
           {(() => {
             const DEMO_TIERS: ("anonymous" | "free" | "paid")[] = ["anonymous", "free", "paid"];
-            return articles.slice(0, 3).map((article, i) => (
+            // For anonymous visitors, show the SAME fully-enriched article
+            // three times — once per tier view. Authenticated users see the
+            // normal multi-article feed.
+            const rows = !isAuthenticated && articles.length > 0
+              ? DEMO_TIERS.map((tier) => ({ article: articles[0], tier }))
+              : articles.slice(0, 3).map((article) => ({ article, tier: undefined as undefined }));
+            return rows.map(({ article, tier }, i) => (
               <HomepageArticleCard
-                key={article.id}
+                key={tier ? `${article.id}-${tier}` : article.id}
                 article={article}
                 isSelected={selectedArticle?.id === article.id}
                 onSelect={() => setSelectedArticle(article)}
                 tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
                 evenRow={i % 2 === 1}
-                demoTier={!isAuthenticated ? DEMO_TIERS[i] : undefined}
+                demoTier={tier}
                 isPremium={isPremium}
               />
             ));
           })()}
+
 
           <div className="mt-5 pt-4 border-t border-fog">
             <Link
