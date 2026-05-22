@@ -129,8 +129,8 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
     active: true,
   },
 
-  // ── v8 per-use tool prices (Standalone + Founding Subscriber rate) ────
-  // Founding subscriber discount: 20% off Smart Tools, 15% off Convenience.
+  // ── v8 per-use tool prices (standalone — subscriber discount retired) ────
+  // Subscriber aliases mirror the standalone amount.
   { lookupKey: "hc_standalone_v2",        productKey: "governance_v8", productName: "Privacy Program Assessment (Standalone)",                  description: "Standalone per-use price for the Privacy Program Assessment Tool.",                                        amountCents: 5500,  currency: "usd", kind: "one_time", active: true },
   { lookupKey: "hc_subscriber_v2",        productKey: "governance_v8", productName: "Privacy Program Assessment (Subscriber alias)",         description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Privacy Program Assessment Tool.",                  amountCents: 4400,  currency: "usd", kind: "addon",    active: true },
   { lookupKey: "li_standalone_v2",        productKey: "lia_v8",        productName: "Legitimate Interest Assessment (Standalone)",              description: "Standalone per-use price for the LIA Tool.",                                                              amountCents: 3500,  currency: "usd", kind: "one_time", active: true },
