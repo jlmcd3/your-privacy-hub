@@ -386,20 +386,6 @@ export default function Enforcement() {
                 </div>
               );
             })()}
-          <p className="text-muted-foreground max-w-3xl">
-            {view === "recent" ? (
-              <>
-                Search the last <strong>60 days</strong> of enriched privacy enforcement actions — free for everyone.
-                Filter by jurisdiction, sector, data category, violation type, and precedent significance.
-              </>
-            ) : (
-              <>
-                Full historical archive of enriched privacy enforcement actions. Search across 3,700+ decisions
-                worldwide.
-              </>
-            )}
-          </p>
-        </header>
 
         <AdBanner variant="leaderboard" className="my-4" />
 
