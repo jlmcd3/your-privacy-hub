@@ -315,9 +315,12 @@ export default function Enforcement() {
       </Helmet>
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-6">
-          <h1 className="font-serif mb-3">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🗄️ Enforcement Tracker
+          </span>
+          <h1 className="font-serif text-white mb-3">
             {view === "archive" ? "Enforcement Tracker — Full Archive" : "Enforcement Tracker"}
           </h1>
           {view === "recent" &&
