@@ -10,7 +10,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:laws": "node scripts/verify-law-urls.mjs",
+    "verify:laws:write": "node scripts/verify-law-urls.mjs --write",
+    "health:calendar": "node scripts/health-check-calendar.mjs",
+    "admin:check": "npm run test && npm run verify:laws && npm run health:calendar"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
