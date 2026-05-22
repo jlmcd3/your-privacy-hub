@@ -11,7 +11,7 @@ interface PageHeroProps {
   meta?: ReactNode;
   /** Optional CTA / actions row. */
   children?: ReactNode;
-  /** Container width — defaults to a comfortable reading column. */
+  /** Container width — defaults to the site-wide 1280px to align with navbar/footer. */
   maxWidth?: "4xl" | "5xl" | "6xl" | "1280";
   className?: string;
 }
@@ -34,7 +34,7 @@ export function PageHero({
   description,
   meta,
   children,
-  maxWidth = "5xl",
+  maxWidth = "1280",
   className = "",
 }: PageHeroProps) {
   return (

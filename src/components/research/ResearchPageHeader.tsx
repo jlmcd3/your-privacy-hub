@@ -41,7 +41,7 @@ export function ResearchPageHeader({
 
   return (
     <header className="w-full bg-slate-900 text-white py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <nav aria-label="Breadcrumb" className="mb-4">
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
             {crumbs.map((c, i) => {
