@@ -39,13 +39,11 @@ function detectEnv(override?: string): StripeEnv {
 }
 
 // DIY pricing — flat per-filing price (May 2026 memo). One price regardless
-// of jurisdiction count. Founding subscribers get a 15% Convenience-Tools
-// discount. Mirror this in src/pages/RegistrationAssessmentResult.tsx and
-// src/config/pricing.ts (registration_standalone / registration_subscriber).
+// of jurisdiction count. Mirror this in src/pages/RegistrationAssessmentResult.tsx
+// and src/config/pricing.ts (registration_standalone).
 const DIY_STANDALONE_CENTS = 4500;   // $45
-const DIY_SUBSCRIBER_CENTS = 3800;   // $38 (founding subscriber)
-function diyPriceCents(_numJurisdictions: number, isSubscriber: boolean): number {
-  return isSubscriber ? DIY_SUBSCRIBER_CENTS : DIY_STANDALONE_CENTS;
+function diyPriceCents(_numJurisdictions: number): number {
+  return DIY_STANDALONE_CENTS;
 }
 function diyPriceLabel(numJurisdictions: number): string {
   const suffix = numJurisdictions === 1
@@ -115,25 +113,21 @@ serve(async (req) => {
     );
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("is_premium, is_pro, founding_subscriber")
+      .select("is_premium, is_pro")
       .eq("id", user.id)
       .single();
     const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
-    const isFoundingSubscriber = !!profile?.founding_subscriber;
 
     // Pricing rules (must match src/pages/RegistrationAssessmentResult.tsx):
-    //   diy            -> flat $45, $38 for founding subscribers (May 2026 memo)
+    //   diy            -> flat $45
     //   counsel_review -> flat $399, -$75 for subscribers
     //   renewal        -> $79/yr × N jurisdictions (no subscriber discount)
     let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
     let productName: string = cfg.name;
     if (tier === "diy") {
-      unitAmount = diyPriceCents(codes.length, isFoundingSubscriber);
+      unitAmount = diyPriceCents(codes.length);
       productName = diyPriceLabel(codes.length);
-      if (isFoundingSubscriber) {
-        productName = `${productName} — Founding Subscriber 15% off`;
-      }
     } else if (tier === "counsel_review" && isSubscriber) {
       unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
       productName = `${productName} — Professional $75 off`;

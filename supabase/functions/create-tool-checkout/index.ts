@@ -230,40 +230,23 @@ Deno.serve(async (req) => {
     ]);
     const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
 
-    // Classify tool for founding-discount %.
-    const SMART_TOOL_TYPES = new Set([
-      "li_assessment", "governance_assessment", "dpia_framework",
-      "cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite",
-      "dpa_generator", "biometric_checker",
-    ]);
-    const CONVENIENCE_TOOL_TYPES = new Set([
-      "ir_playbook", "ropa_initial", "ropa_refresh",
-      "us_notice_single", "us_notice_all_states", "us_notice_refresh",
-      "eu_notice_single", "eu_notice_suite", "eu_notice_full_international", "eu_notice_refresh",
-    ]);
-    const isSmart = SMART_TOOL_TYPES.has(tool_type);
-    const isConvenience = CONVENIENCE_TOOL_TYPES.has(tool_type);
-
-    let isFoundingSubscriber = false;
+    // Founding-subscriber discount has been retired. Every tier pays the
+    // standalone price; we still surface `subscription_type` for downstream
+    // routing (e.g. Professional free convenience runs are handled client-side).
     let isProfessionalAnnual = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_premium, is_pro, subscription_type, founding_subscriber, professional_annual")
+        .select("is_premium, is_pro, subscription_type, professional_annual")
         .eq("id", user_id)
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
-      isFoundingSubscriber = (profile as any)?.founding_subscriber === true
-        || subscriptionType === "annual_founding";
       isProfessionalAnnual = (profile as any)?.professional_annual === true
         || subscriptionType === "annual" || subscriptionType === "annual_founding";
     }
 
-    const isSubscriber = isFoundingSubscriber; // backwards-compat alias used below
-
-    // Always charge the standalone Stripe price (subscriber lookup deprecated under v8);
-    // founding discount is computed at runtime via price_data fallback.
+    // Always charge the standalone Stripe price.
     const lookupKey = tool.standalone_lookup;
 
     const env = detectEnv(environment);
@@ -277,21 +260,14 @@ Deno.serve(async (req) => {
     // a free run is available the client should mark the row as paid
     // directly and skip create-tool-checkout entirely.
 
-    let amountCents: number;
-    if (isFoundingSubscriber && (isSmart || isConvenience)) {
-      const pct = isSmart ? 0.20 : 0.15;
-      amountCents = Math.round(standaloneCents * (1 - pct));
-    } else {
-      const resolved = await resolvePriceId(stripe, lookupKey);
-      amountCents = resolved?.unit_amount ?? standaloneCents;
-    }
+    const resolved = await resolvePriceId(stripe, lookupKey);
+    const amountCents: number = resolved?.unit_amount ?? standaloneCents;
 
     // Preserve legacy variable names referenced later in the file.
     const stripePrice: { id: string; unit_amount?: number | null } | null = null;
-    const subscriberCents = tool.fallback_subscriber_cents;
     const isProfessionalSubscriber = isProfessionalAnnual; // alias for legacy code below
     const isIntelligenceSubscriber = subscriptionType === "monthly";
-    void subscriberCents; void stripePrice; void isIntelligenceSubscriber;
+    void stripePrice; void isIntelligenceSubscriber; void isProfessionalSubscriber;
 
 
 
@@ -436,7 +412,7 @@ Deno.serve(async (req) => {
           user_id,
           status: "pending",
           processing_description: intake_data?.processing_description || "",
-          purchased_as_standalone: !isSubscriber,
+          purchased_as_standalone: true,
           purchase_price_cents: amountCents,
           ...filteredIntake,
         };
@@ -445,7 +421,7 @@ Deno.serve(async (req) => {
           user_id,
           status: "pending",
           intake_data: intake_data || {},
-          purchased_as_standalone: !isSubscriber,
+          purchased_as_standalone: true,
           purchase_price_cents: amountCents,
         };
       }

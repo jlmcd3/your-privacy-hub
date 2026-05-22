@@ -247,14 +247,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "hc_subscriber_v2",
     productKey: "governance_v8",
-    productName: "Privacy Program Assessment (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the Privacy Program Assessment Tool.",
-    amountCents: 4400,
+    productName: "Privacy Program Assessment (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Privacy Program Assessment Tool.",
+    amountCents: 5500,
     currency: "usd",
-    displayPrice: "$44",
+    displayPrice: "$55",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   li_standalone_v2: {
@@ -273,14 +273,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "li_subscriber_v2",
     productKey: "lia_v8",
-    productName: "Legitimate Interest Assessment (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the LIA Tool.",
-    amountCents: 2800,
+    productName: "Legitimate Interest Assessment (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the LIA Tool.",
+    amountCents: 3500,
     currency: "usd",
-    displayPrice: "$28",
+    displayPrice: "$35",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   dpia_standalone_v2: {
@@ -299,14 +299,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "dpia_subscriber_v2",
     productKey: "dpia_v8",
-    productName: "Impact Assessment Builder (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the DPIA Tool.",
-    amountCents: 3600,
+    productName: "Impact Assessment Builder (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPIA Tool.",
+    amountCents: 4500,
     currency: "usd",
-    displayPrice: "$36",
+    displayPrice: "$45",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   dpa_standalone_v2: {
@@ -325,14 +325,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "dpa_subscriber_v2",
     productKey: "dpa_v8",
-    productName: "Custom DPA Generator (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the DPA Generator.",
-    amountCents: 3600,
+    productName: "Custom DPA Generator (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPA Generator.",
+    amountCents: 4500,
     currency: "usd",
-    displayPrice: "$36",
+    displayPrice: "$45",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   ir_standalone_v2: {
@@ -351,14 +351,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "ir_subscriber_v2",
     productKey: "ir_v8",
-    productName: "Breach Response Playbook (Founding Subscriber)",
-    description: "Founding subscriber rate (15% off Convenience Tools) for the Breach Response Playbook.",
-    amountCents: 2125,
+    productName: "Breach Response Playbook (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Breach Response Playbook.",
+    amountCents: 2500,
     currency: "usd",
-    displayPrice: "$21",
+    displayPrice: "$25",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   biometric_standalone_v2: {
@@ -377,14 +377,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "biometric_subscriber_v2",
     productKey: "biometric_v8",
-    productName: "Biometric Compliance Check (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the Biometric Compliance Check.",
-    amountCents: 1200,
+    productName: "Biometric Compliance Check (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Biometric Compliance Check.",
+    amountCents: 1500,
     currency: "usd",
-    displayPrice: "$12",
+    displayPrice: "$15",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   ropa_initial_standalone: {
@@ -415,28 +415,28 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "ropa_initial_subscriber",
     productKey: "rofa",
-    productName: "RoPA Builder — Initial (Founding Subscriber)",
-    description: "Founding subscriber rate (15% off Convenience Tools) for RoPA initial generation.",
-    amountCents: 3400,
+    productName: "RoPA Builder — Initial (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for RoPA initial generation.",
+    amountCents: 4000,
     currency: "usd",
-    displayPrice: "$34",
+    displayPrice: "$40",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   ropa_refresh_subscriber: {
     kind: "addon",
     lookupKey: "ropa_refresh_subscriber",
     productKey: "rofa",
-    productName: "RoPA Builder — Annual Refresh (Founding Subscriber)",
-    description: "Founding subscriber rate (15% off Convenience Tools) for RoPA annual refresh.",
-    amountCents: 3400,
+    productName: "RoPA Builder — Annual Refresh (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for RoPA annual refresh.",
+    amountCents: 4000,
     currency: "usd",
-    displayPrice: "$34",
+    displayPrice: "$40",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   us_notice_v7_standalone: {
@@ -455,14 +455,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "us_notice_v7_subscriber",
     productKey: "us_notice_v8",
-    productName: "US Privacy Notice Builder (Founding Subscriber)",
-    description: "Founding subscriber rate (15% off Convenience Tools) for any US notice variant.",
-    amountCents: 2125,
+    productName: "US Privacy Notice Builder (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for any US notice variant.",
+    amountCents: 2500,
     currency: "usd",
-    displayPrice: "$21",
+    displayPrice: "$25",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   eu_notice_v7_standalone: {
@@ -481,28 +481,28 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "eu_notice_v7_subscriber",
     productKey: "eu_notice_v8",
-    productName: "EU & Global Privacy Notice Builder (Founding Subscriber)",
-    description: "Founding subscriber rate (15% off Convenience Tools) for any EU/global notice variant.",
-    amountCents: 4250,
+    productName: "EU & Global Privacy Notice Builder (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for any EU/global notice variant.",
+    amountCents: 5000,
     currency: "usd",
-    displayPrice: "$42.50",
+    displayPrice: "$50",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   cppa_risk_subscriber: {
     kind: "addon",
     lookupKey: "cppa_risk_subscriber",
     productKey: "cppa_risk",
-    productName: "CPPA Risk Assessment — Module 1 (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the CPPA Risk Assessment.",
-    amountCents: 4400,
+    productName: "CPPA Risk Assessment — Module 1 (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the CPPA Risk Assessment.",
+    amountCents: 5500,
     currency: "usd",
-    displayPrice: "$44",
+    displayPrice: "$55",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   cppa_risk_standalone: {
@@ -545,28 +545,28 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "cppa_cyber_subscriber",
     productKey: "cppa_cybersecurity",
-    productName: "CPPA Cybersecurity Readiness — Module 2 (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the CPPA Cybersecurity Readiness assessment.",
-    amountCents: 5600,
+    productName: "CPPA Cybersecurity Readiness — Module 2 (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the CPPA Cybersecurity Readiness assessment.",
+    amountCents: 7000,
     currency: "usd",
-    displayPrice: "$56",
+    displayPrice: "$70",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   cppa_suite_subscriber: {
     kind: "addon",
     lookupKey: "cppa_suite_subscriber",
     productKey: "cppa_suite",
-    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Founding Subscriber)",
-    description: "Founding subscriber rate (20% off Smart Tools) for the CPPA Full Audit Suite.",
-    amountCents: 10000,
+    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the CPPA Full Audit Suite.",
+    amountCents: 12500,
     currency: "usd",
-    displayPrice: "$100",
+    displayPrice: "$125",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
   registration_standalone: {
@@ -585,14 +585,14 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "registration_subscriber",
     productKey: "registration",
-    productName: "Registration Filings — DIY Toolkit (Founding Subscriber)",
-    description: "Founding subscriber rate (15% off Convenience Tools) for the DPO / DPA / AI Act registration document pack.",
-    amountCents: 3800,
+    productName: "Registration Filings — DIY Toolkit (Subscriber alias)",
+    description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPO / DPA / AI Act registration document pack.",
+    amountCents: 4500,
     currency: "usd",
-    displayPrice: "$38",
+    displayPrice: "$45",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
-    addonReason: "founding_subscriber_discount",
+    addonReason: "subscriber_alias",
     active: true,
   },
 } as const satisfies Record<string, PriceEntry>;
@@ -896,31 +896,29 @@ export function isConvenienceTool(toolKey: string): boolean {
   return (CONVENIENCE_TOOL_KEYS as readonly string[]).includes(toolKey) || CONVENIENCE_TOOL_CAMEL.has(toolKey);
 }
 
-// ── FOUNDING SUBSCRIBER PROMOTION ────────────────────────────────────────
+// ── SUBSCRIBER PRICING (no promotional discount) ─────────────────────────
+//
+// Earlier versions of the app offered a "founding subscriber" discount
+// (20% off Smart Tools, 15% off Convenience Tools). That program has
+// been retired. Every tier — anonymous, free, monthly, annual — pays
+// the standalone per-use price. The helpers below remain as no-op
+// shims so older call sites keep compiling; they always return the
+// standalone amount.
 
-/**
- * Subscribers who join before FOUNDING_PROMO_END_DATE receive a permanent
- * discount on all tools. Tracked via the founding_subscriber flag in profiles.
- * Discount applied in-app at checkout — no Stripe coupon needed.
- */
 export const FOUNDING_PROMO = {
   endDate:                    '2026-11-19',
-  smartToolDiscountPct:       0.20,
-  convenienceToolDiscountPct: 0.15,
-  label:                      'Founding Subscriber',
-  description:                'Permanent discount on all compliance tools.',
+  smartToolDiscountPct:       0,
+  convenienceToolDiscountPct: 0,
+  label:                      '',
+  description:                '',
 } as const;
 
-/** Returns true if the founding subscriber window is still open */
+/** Retired program — always returns false. */
 export function isPromoOpen(): boolean {
-  return new Date() <= new Date(FOUNDING_PROMO.endDate + 'T23:59:59Z');
+  return false;
 }
 
-/** Price in cents after founding subscriber discount */
-export function foundingPrice(amountCents: number, smartTool: boolean): number {
-  if (amountCents === 0) return 0;
-  const disc = smartTool
-    ? FOUNDING_PROMO.smartToolDiscountPct
-    : FOUNDING_PROMO.convenienceToolDiscountPct;
-  return Math.round(amountCents * (1 - disc));
+/** No-op: returns the standalone amount unchanged. */
+export function foundingPrice(amountCents: number, _smartTool: boolean): number {
+  return amountCents;
 }

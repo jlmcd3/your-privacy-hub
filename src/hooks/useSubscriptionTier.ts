@@ -12,7 +12,10 @@ export interface SubscriptionTierState {
   hasToolAccess: boolean;
   /** True for monthly subscribers — intelligence only, no tool access. */
   isIntelligenceOnly: boolean;
-  /** True if this is a founding subscriber ($369/yr rate). */
+  /**
+   * Retired program — always `false`. Field retained for backwards
+   * compatibility with older callers that destructure it.
+   */
   isFoundingSubscriber: boolean;
   isLoading: boolean;
   user: ReturnType<typeof useAuth>["user"];
@@ -22,18 +25,21 @@ export interface SubscriptionTierState {
  * Single source of truth for subscription tier.
  *
  * Tier mapping:
- *   annual_founding → hasToolAccess = true, isFoundingSubscriber = true
+ *   annual_founding → hasToolAccess = true (legacy alias for annual)
  *   annual          → hasToolAccess = true
  *   monthly         → hasToolAccess = false (intelligence only)
  *   free            → hasToolAccess = false
  *
  * Use hasToolAccess to gate tool generation, not isPremium.
  * Use isPremium to gate intelligence content.
+ *
+ * NOTE: the "founding subscriber" discount has been retired. The
+ * `isFoundingSubscriber` field is permanently `false` and the
+ * `annual_founding` tier is treated identically to `annual`.
  */
 export function useSubscriptionTier(): SubscriptionTierState {
   const { user, loading: authLoading } = useAuth();
   const [tier, setTier] = useState<SubscriptionTier | null>(null);
-  const [foundingSubscriber, setFoundingSubscriber] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -41,13 +47,12 @@ export function useSubscriptionTier(): SubscriptionTierState {
 
     if (!user) {
       setTier("free");
-      setFoundingSubscriber(false);
       return;
     }
 
     supabase
       .from("profiles")
-      .select("is_premium, is_pro, subscription_type, founding_subscriber")
+      .select("is_premium, is_pro, subscription_type")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
@@ -55,23 +60,16 @@ export function useSubscriptionTier(): SubscriptionTierState {
         const subType = (data as any)?.subscription_type as string | null;
         const isPrem = data?.is_premium === true || data?.is_pro === true;
 
-        if (subType === "annual_founding") {
-          setTier("annual_founding");
-          setFoundingSubscriber(true);
-        } else if (subType === "annual") {
-          setTier("annual");
-          setFoundingSubscriber((data as any)?.founding_subscriber === true);
+        if (subType === "annual_founding" || subType === "annual") {
+          setTier(subType as SubscriptionTier);
         } else if (subType === "monthly") {
           setTier("monthly");
-          setFoundingSubscriber(false);
         } else if (isPrem) {
           // Legacy is_premium subscribers without subscription_type set —
           // treat as annual (grandfathered access, most permissive).
           setTier("annual");
-          setFoundingSubscriber(false);
         } else {
           setTier("free");
-          setFoundingSubscriber(false);
         }
       });
 
@@ -90,7 +88,7 @@ export function useSubscriptionTier(): SubscriptionTierState {
     isPremium,
     hasToolAccess,
     isIntelligenceOnly: resolvedTier === "monthly",
-    isFoundingSubscriber: foundingSubscriber,
+    isFoundingSubscriber: false,
     isLoading: authLoading || tier === null,
     user,
   };

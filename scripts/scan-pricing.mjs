@@ -80,7 +80,7 @@ while ((m = TOOL_BLOCK_RE.exec(TOOL_SRC)) !== null) {
 }
 
 // Parse registration: under the May 2026 memo, DIY is a single flat
-// per-filing price ($45 standalone / $38 founding subscriber) regardless of
+// per-filing price ($45 standalone / $38 subscriber alias) regardless of
 // jurisdiction count. Counsel-Ready and Renewal remain top-level constants.
 const diyStandaloneMatch = REG_SRC.match(/DIY_STANDALONE_CENTS\s*=\s*(\d+)/);
 const diySubscriberMatch = REG_SRC.match(/DIY_SUBSCRIBER_CENTS\s*=\s*(\d+)/);
@@ -304,7 +304,7 @@ for (const t of serverTools) {
 // checks no longer apply. We assert the flat fee + counsel + renewal only.
 const regChecks = [
   { key: "registration_diy_flat", marketed_cents: 4500, server_cents: serverRegistration.diy_flat_standalone_cents, label: "Registration DIY — flat per-filing (standalone)" },
-  { key: "registration_diy_flat_sub", marketed_cents: 3800, server_cents: serverRegistration.diy_flat_subscriber_cents, label: "Registration DIY — flat per-filing (founding subscriber)" },
+  { key: "registration_diy_flat_sub", marketed_cents: 4500, server_cents: serverRegistration.diy_flat_subscriber_cents, label: "Registration DIY — flat per-filing (subscriber alias)" },
   { key: "registration_counsel_review", marketed_cents: 39900, server_cents: serverRegistration.counsel_review_cents, label: "Registration Counsel-Ready Pack" },
   { key: "registration_renewal", marketed_cents: 7900, server_cents: serverRegistration.renewal_per_jurisdiction_cents, label: "Registration Annual Renewal Monitoring (per jurisdiction)" },
 ];

@@ -162,9 +162,8 @@ function canonicalCentsForSlug(slug, canonical) {
     }
   }
   const standalone = standaloneDollars * 100;
-  const discount = isSmart ? 0.20 : 0.15; // founding promo
-  const subscriber = Math.round(standalone * (1 - discount));
-  return { standalone, subscriber };
+  // Founding-subscriber discount retired — subscriber rate mirrors standalone.
+  return { standalone, subscriber: standalone };
 }
 
 // ─── Compare ─────────────────────────────────────────────────────────────
@@ -183,8 +182,8 @@ function compareEdge(label, edge, canonical) {
     }
     if (edgePrice.subscriber !== expected.subscriber) {
       errs(
-        `[${label}] ${slug}: founding ${edgePrice.subscriber}¢ ≠ canonical ${expected.subscriber}¢ ` +
-          `(${edgePrice.subscriber / 100} vs ${expected.subscriber / 100} USD @ founding rate)`,
+        `[${label}] ${slug}: subscriber ${edgePrice.subscriber}¢ ≠ canonical ${expected.subscriber}¢ ` +
+          `(${edgePrice.subscriber / 100} vs ${expected.subscriber / 100} USD @ subscriber rate)`,
       );
     }
   }
