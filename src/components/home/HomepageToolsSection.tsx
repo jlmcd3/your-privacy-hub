@@ -109,7 +109,7 @@ export default function HomepageToolsSection() {
     <SectionShell
       eyebrow="Compliance Toolkit"
       headline="Assessments and documents in a two-column catalogue"
-      subline={`Annual Platform includes every standard tool at ${PLATFORM_PRICING.standard()} — each calibrated against 3,700+ enforcement decisions.`}
+      subline={`Per-use compliance tools calibrated against 3,700+ enforcement decisions. Annual Platform (${PLATFORM_PRICING.standard()}) adds client workspaces, one free Convenience Tool run per client each month, and the full Intelligence Brief.`}
       ctaLabel="Browse tools →"
       ctaHref="/tools"
     >
