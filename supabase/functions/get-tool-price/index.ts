@@ -226,10 +226,9 @@ serve(async (req) => {
     ]);
     const isCppa = CPPA_TOOLS.has(tool_slug);
 
-    // Determine whether the caller is a founding subscriber. Under v8 this
-    // is the ONLY discount applied to tool pricing.
+    // Founding-subscriber discount has been retired. Every tier pays the
+    // standalone price; we still surface `subscription_type` for analytics.
     let subscriptionType: string | null = null;
-    let isFoundingSubscriber = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -246,22 +245,18 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_type, founding_subscriber")
+            .select("subscription_type")
             .eq("id", user.id)
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
-          isFoundingSubscriber = (profile as any)?.founding_subscriber === true
-            || subscriptionType === "annual_founding";
         }
       } catch (_) {
         // ignore
       }
     }
 
-    // Resolve standalone and founding-rate prices from Stripe so the client
-    // can render the v8 model accurately.
+    // Resolve the standalone price from Stripe.
     let standaloneCents = tool.fallback_standalone_cents;
-    let subscriberCents = tool.fallback_subscriber_cents; // founding rate
     let stripeConfigured = false;
     try {
       const stripe = createStripeClient(detectEnv());
@@ -270,24 +265,18 @@ serve(async (req) => {
         standaloneCents = standalonePrice.unit_amount ?? standaloneCents;
         stripeConfigured = true;
       }
-      if (tool.subscriber_lookup) {
-        const subPrice = await resolvePriceId(stripe, tool.subscriber_lookup);
-        if (subPrice) subscriberCents = subPrice.unit_amount ?? subscriberCents;
-      }
     } catch (e) {
       console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
     }
 
-    // v8 effective price:
-    //   Founding subscriber → founding-rate (subscriberCents)
-    //   Everyone else        → standalone
-    const effectiveCents = isFoundingSubscriber ? subscriberCents : standaloneCents;
+    const effectiveCents = standaloneCents;
+    const subscriberCents = standaloneCents;
 
     return new Response(
       JSON.stringify({
         tool_slug,
         tool_name: tool.name,
-        tier: isFoundingSubscriber ? "founding" : "standalone",
+        tier: "standalone",
         subscription_type: subscriptionType,
         is_cppa: isCppa,
         is_included: false,
