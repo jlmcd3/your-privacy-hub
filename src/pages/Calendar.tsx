@@ -280,11 +280,10 @@ const Calendar = () => {
             <span className="font-semibold text-foreground">Dates subject to change.</span>{" "}
             Effective dates, enforcement start dates, and compliance deadlines may be modified
             by the relevant jurisdiction's legislature, regulator, or courts (including delays,
-            injunctions, or phased rollouts). We update this calendar as official notices are
-            published. If you spot a discrepancy, please{" "}
-            <Link to="/contact" className="text-cobalt hover:underline">let us know</Link>.
-            Links marked with <span className="font-mono">↗</span> open the authoritative
-            government source in a new tab.
+            injunctions, or phased rollouts). This calendar is monitored continuously and
+            updates automatically when our news feed surfaces an authoritative change to a
+            tracked law. Links marked with <span className="font-mono">↗</span> open the
+            authoritative government source in a new tab.
           </p>
         </div>
       </div>
