@@ -40,16 +40,16 @@ export function ResearchPageHeader({
         ];
 
   return (
-    <div className="w-full" style={{ background: "hsl(var(--navy))", color: "white" }}>
-      <div className="max-w-4xl mx-auto px-6 py-12">
+    <header className="w-full bg-slate-900 text-white py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav aria-label="Breadcrumb" className="mb-4">
-          <ol className="flex flex-wrap items-center gap-1.5 text-xs" style={{ color: "hsl(var(--sky))" }}>
+          <ol className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
             {crumbs.map((c, i) => {
               const isLast = i === crumbs.length - 1;
               return (
                 <li key={i} className="flex items-center gap-1.5">
                   {c.href && !isLast ? (
-                    <Link to={c.href} className="hover:underline no-underline" style={{ color: "hsl(var(--sky))" }}>
+                    <Link to={c.href} className="hover:underline no-underline text-slate-400 hover:text-slate-200">
                       {c.label}
                     </Link>
                   ) : (
@@ -64,36 +64,22 @@ export function ResearchPageHeader({
           </ol>
         </nav>
 
-        <p className="text-eyebrow mb-3" style={{ color: "hsl(var(--sky))" }}>
+        <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
           {eyebrow}
-        </p>
+        </span>
 
+        <h1 className="font-serif text-white mb-3">{title}</h1>
 
-        <h1
-          className="font-display text-white mb-4"
-          style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 400, lineHeight: 1.15 }}
-        >
-          {title}
-        </h1>
-
-        <p
-          className="text-base mb-6"
-          style={{ color: "hsl(var(--sky))", maxWidth: "680px", lineHeight: 1.65 }}
-        >
+        <p className="text-slate-300 text-lg max-w-3xl mb-6 leading-relaxed">
           {description}
         </p>
 
         {stats && stats.length > 0 && (
-          <div
-            className="flex flex-wrap gap-6 mb-6 pt-4 border-t"
-            style={{ borderColor: "hsl(var(--navy-light))" }}
-          >
+          <div className="flex flex-wrap gap-6 mb-6 pt-4 border-t border-slate-700">
             {stats.map((stat, i) => (
               <div key={i}>
                 <p className="text-xl font-semibold text-white">{stat.value}</p>
-                <p className="text-xs" style={{ color: "hsl(var(--slate-light))" }}>
-                  {stat.label}
-                </p>
+                <p className="text-xs text-slate-400">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -103,14 +89,16 @@ export function ResearchPageHeader({
           {feedCategory && (
             <Link
               to={`/updates?category=${feedCategory}`}
-              className="flex items-center gap-1 text-xs font-semibold no-underline hover:underline"
-              style={{ color: "hsl(var(--gold))" }}
+              className="flex items-center gap-1 text-xs font-semibold no-underline hover:underline text-amber-300 hover:text-amber-200"
             >
               Latest developments in feed <ExternalLink className="w-3 h-3" />
             </Link>
           )}
+          {lastUpdated && (
+            <span className="text-xs text-slate-400">Updated {lastUpdated}</span>
+          )}
         </div>
       </div>
-    </div>
+    </header>
   );
 }
