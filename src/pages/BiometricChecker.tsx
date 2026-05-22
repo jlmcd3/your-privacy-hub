@@ -80,16 +80,23 @@ export default function BiometricChecker() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $10 per use, 20–25% off for Intelligence and Professional subscribers." /></Helmet>
+        <meta name="description" content="Per-jurisdiction biometric privacy compliance read covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with a litigation risk estimate where it matters." /></Helmet>
       <Navbar />
       <DashboardSubnav />
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🧬 Biometric Compliance Check · $10 standalone · $8 subscriber rate
+          </span>
+          <h1 className="font-serif mb-3">Biometric Privacy Compliance Assessment</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">
+            A per-jurisdiction read on your biometric data processing — surfacing the consent, disclosure, and retention obligations that apply under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with a litigation risk estimate where it matters. Run it before deploying facial recognition, fingerprint, voiceprint, or other biometric identifiers.
+          </p>
+        </div>
+      </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
-        <header className="mb-8">
-          <h1 className="font-display text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
-          <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $10 standalone, or $8 for Intelligence/Professional subscribers (20–25% off).</p>
-        </header>
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+        <div className="mb-4">
           <ToolTierNote />
         </div>
         {phase !== "result" && (
