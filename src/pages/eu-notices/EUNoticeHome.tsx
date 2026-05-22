@@ -136,11 +136,12 @@ export default function EUNoticeHome() {
   );
 
   return (
-    <EUNoticeShell title="EU & Global Notice Builder — End User Privacy" heading={heading}>
-      <p className="text-muted-foreground mb-2 max-w-3xl">
-        Build privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI,
-        India DPDPA, South Africa POPIA, and 5 other global frameworks — in one session.
-      </p>
+    <EUNoticeShell
+      title="EU & Global Notice Builder — End User Privacy"
+      heading={heading}
+      chip="🌐 Global Notice Builder"
+      description="Generate aligned privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI, India DPDPA, South Africa POPIA and five other global frameworks — in a single guided session, calibrated to each regulator's disclosure expectations."
+    >
       <p className="text-sm text-muted-foreground mb-8">
         From <span className="font-medium text-foreground">{EU_NOTICE_PRICING.singleSubscriber()}</span> (subscriber) ·{" "}
         <span className="font-medium text-foreground">{EU_NOTICE_PRICING.singleStandalone()}</span> standalone per framework ·
