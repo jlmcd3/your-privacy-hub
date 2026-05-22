@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -153,16 +153,6 @@ const DPIAFramework = () => {
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <ToolOutputPreview
-          label="Sample DPIA output"
-          lines={[
-            "DPIA REQUIRED: Yes — high risk processing identified under Article 35 GDPR",
-            "RISK 1 (HIGH): Automated profiling without meaningful human review — Art. 22",
-            "  Mitigation: Implement human review mechanism before decisions take effect",
-            "RISK 2 (MEDIUM): Large-scale processing of location data — recital 91",
-            "  Mitigation: Apply data minimisation — collect at city level, not GPS coordinates",
-          ]}
-        />
         <ActiveClientLabel />
         <div className="p-4 bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border-l-4 border-cobalt rounded text-sm">
           This tool produces an Impact Assessment document — a structured starting point for your organisation's Data Protection Officer or legal counsel to complete and own. It is not a finished Data Protection Impact Assessment (DPIA) and does not satisfy the requirements of GDPR Article 35 on its own. Qualified legal review is required before relying on this document.

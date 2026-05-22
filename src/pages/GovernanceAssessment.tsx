@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -205,16 +205,6 @@ const GovernanceAssessment = () => {
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <ToolOutputPreview
-          label="Sample Privacy Programme Assessment output"
-          lines={[
-            "OVERALL PROGRAMME MATURITY: Developing (Score: 62/100)",
-            "DOMAIN 1 — Data Inventory & Mapping: Partially Implemented",
-            "  Finding: No formal RoPA maintained. Article 30 GDPR requires written records.",
-            "  Regulatory reference: ICO enforcement action v. Clearview AI (2022) — £7.5M fine",
-            "DOMAIN 2 — Legal Basis Management: Requires Attention",
-          ]}
-        />
         <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.
