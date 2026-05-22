@@ -162,9 +162,8 @@ function canonicalCentsForSlug(slug, canonical) {
     }
   }
   const standalone = standaloneDollars * 100;
-  const discount = isSmart ? 0.20 : 0.15; // founding promo
-  const subscriber = Math.round(standalone * (1 - discount));
-  return { standalone, subscriber };
+  // Founding-subscriber discount retired — subscriber rate mirrors standalone.
+  return { standalone, subscriber: standalone };
 }
 
 // ─── Compare ─────────────────────────────────────────────────────────────
