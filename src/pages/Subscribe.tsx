@@ -102,24 +102,8 @@ const Subscribe = () => {
       </Helmet>
       <Navbar />
 
-      {/* Founding subscriber promotional banner */}
-      {isPromoOpen() && (
-        <div className="max-w-[800px] mx-auto mt-6 px-4">
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 mb-2 text-center">
-            <p className="text-sm font-semibold text-amber-900">
-              🎁 Founding Subscriber Offer — closes{' '}
-              {new Date(FOUNDING_PROMO.endDate).toLocaleDateString('en-US', {
-                month: 'long', day: 'numeric', year: 'numeric',
-              })}
-            </p>
-            <p className="text-sm text-amber-800 mt-1">
-              Subscribe now and lock in <strong>20% off Smart Tools</strong> and{' '}
-              <strong>15% off Convenience Tools</strong> — permanently,
-              for the life of your subscription.
-            </p>
-          </div>
-        </div>
-      )}
+
+
 
       {/* Two-product hero */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
