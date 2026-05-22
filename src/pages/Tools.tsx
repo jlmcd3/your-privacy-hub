@@ -481,7 +481,7 @@ export default function Tools() {
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
-            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Founding subscribers receive permanent discounts on every tool.
+            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
