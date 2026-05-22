@@ -6,6 +6,41 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 import { supabase } from "@/integrations/supabase/client";
+import { findLaw, isUrlFresh } from "@/data/lawRegistry";
+
+/**
+ * Render a law name as: internal jurisdiction link + optional external "↗" to gov source.
+ * The external link only appears when the registry has a recently-verified officialUrl.
+ */
+function LawCell({ lawName }: { lawName: string }) {
+  if (!lawName) return null;
+  const entry = findLaw(lawName);
+  if (!entry) {
+    return <span className="text-sm text-foreground">{lawName}</span>;
+  }
+  return (
+    <span className="text-sm">
+      <Link
+        to={entry.internalPath}
+        className="text-cobalt hover:underline font-medium no-underline"
+      >
+        {lawName}
+      </Link>
+      {isUrlFresh(entry) && (
+        <a
+          href={entry.officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-1 text-xs text-muted-foreground hover:text-cobalt no-underline"
+          title="View official source"
+          aria-label={`Official source for ${lawName}`}
+        >
+          ↗
+        </a>
+      )}
+    </span>
+  );
+}
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -194,7 +229,9 @@ const Calendar = () => {
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">{event.jurisdiction}</td>
-                      <td className="px-4 py-3 text-sm text-foreground border-b border-border">{event.law}</td>
+                      <td className="px-4 py-3 border-b border-border">
+                        <LawCell lawName={event.law} />
+                      </td>
                       <td className="px-4 py-3 border-b border-border">
                         <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.classes}`}>{badge.label}</span>
                       </td>
@@ -209,6 +246,19 @@ const Calendar = () => {
         {filtered.length === 0 && (
           <p className="text-center text-muted-foreground py-12">No events found for this filter.</p>
         )}
+
+        <div className="mt-8 rounded-xl border border-border bg-muted/40 px-5 py-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            <span className="font-semibold text-foreground">Dates subject to change.</span>{" "}
+            Effective dates, enforcement start dates, and compliance deadlines may be modified
+            by the relevant jurisdiction's legislature, regulator, or courts (including delays,
+            injunctions, or phased rollouts). We update this calendar as official notices are
+            published. If you spot a discrepancy, please{" "}
+            <Link to="/contact" className="text-cobalt hover:underline">let us know</Link>.
+            Links marked with <span className="font-mono">↗</span> open the authoritative
+            government source in a new tab.
+          </p>
+        </div>
       </div>
 
       <Footer />
