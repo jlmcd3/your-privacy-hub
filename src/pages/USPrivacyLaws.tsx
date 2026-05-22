@@ -227,7 +227,7 @@ const USPrivacyLaws = () => {
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Landscape at a glance */}
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
