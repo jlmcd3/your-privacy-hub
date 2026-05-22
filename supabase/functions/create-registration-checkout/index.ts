@@ -39,13 +39,11 @@ function detectEnv(override?: string): StripeEnv {
 }
 
 // DIY pricing — flat per-filing price (May 2026 memo). One price regardless
-// of jurisdiction count. Founding subscribers get a 15% Convenience-Tools
-// discount. Mirror this in src/pages/RegistrationAssessmentResult.tsx and
-// src/config/pricing.ts (registration_standalone / registration_subscriber).
+// of jurisdiction count. Mirror this in src/pages/RegistrationAssessmentResult.tsx
+// and src/config/pricing.ts (registration_standalone).
 const DIY_STANDALONE_CENTS = 4500;   // $45
-const DIY_SUBSCRIBER_CENTS = 3800;   // $38 (founding subscriber)
-function diyPriceCents(_numJurisdictions: number, isSubscriber: boolean): number {
-  return isSubscriber ? DIY_SUBSCRIBER_CENTS : DIY_STANDALONE_CENTS;
+function diyPriceCents(_numJurisdictions: number): number {
+  return DIY_STANDALONE_CENTS;
 }
 function diyPriceLabel(numJurisdictions: number): string {
   const suffix = numJurisdictions === 1
