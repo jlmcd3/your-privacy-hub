@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-20T18:31:09.347Z",
+  "generatedAt": "2026-05-22T08:12:08.724Z",
   "server_truth": {
     "tools": [
       {
@@ -112,21 +112,8 @@
       }
     ],
     "registration": {
-      "diy_ladder": [
-        {
-          "jurisdictions_max": 1,
-          "cents": 5900
-        },
-        {
-          "jurisdictions_max": 3,
-          "cents": 14900
-        },
-        {
-          "jurisdictions_max": 7,
-          "cents": 27500
-        }
-      ],
-      "diy_unlimited_cents": 49900,
+      "diy_ladder": [],
+      "diy_unlimited_cents": null,
       "counsel_review_cents": 39900,
       "renewal_per_jurisdiction_cents": 7900
     }
@@ -214,8 +201,10 @@
       "server_subscriber": "$34",
       "ui_prices_seen": [
         "$25",
+        "$35",
         "$40",
-        "$50"
+        "$50",
+        "$79"
       ],
       "standalone_match": true,
       "subscriber_match": false,
@@ -330,34 +319,34 @@
     },
     {
       "product": "Registration DIY — 1 jurisdiction",
-      "server_standalone": "$59",
+      "server_standalone": "—",
       "server_subscriber": "—",
       "ui_prices_seen": [],
-      "standalone_match": true,
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
       "product": "Registration DIY — up to 3 jurisdictions",
-      "server_standalone": "$149",
+      "server_standalone": "—",
       "server_subscriber": "—",
       "ui_prices_seen": [],
-      "standalone_match": true,
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
       "product": "Registration DIY — up to 7 jurisdictions",
-      "server_standalone": "$275",
+      "server_standalone": "—",
       "server_subscriber": "—",
       "ui_prices_seen": [],
-      "standalone_match": true,
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
       "product": "Registration DIY — unlimited",
-      "server_standalone": "$499",
+      "server_standalone": "—",
       "server_subscriber": "—",
       "ui_prices_seen": [],
-      "standalone_match": true,
+      "standalone_match": false,
       "subscriber_match": true
     },
     {
@@ -453,10 +442,34 @@
       "product": "EU & Global Notice — Annual Refresh",
       "issue": "Registry says — but server charges $42.50 subscriber.",
       "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — 1 jurisdiction",
+      "issue": "UI markets $59 but server charges —.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — up to 3 jurisdictions",
+      "issue": "UI markets $149 but server charges —.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — up to 7 jurisdictions",
+      "issue": "UI markets $275 but server charges —.",
+      "ui_prices_seen": []
+    },
+    {
+      "severity": "high",
+      "product": "Registration DIY — unlimited",
+      "issue": "UI markets $499 but server charges —.",
+      "ui_prices_seen": []
     }
   ],
   "summary": {
     "products_checked": 24,
-    "mismatches": 12
+    "mismatches": 16
   }
 }
