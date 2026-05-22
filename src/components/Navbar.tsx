@@ -433,44 +433,54 @@ const Navbar = () => {
                       className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
-                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-start"
-                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-start"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-stretch"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-stretch"
                           : "min-w-[280px]"
                       }`}
                     >
                       {(() => {
-                        const renderSection = (section: NavSection, si: number) => (
-                          <div key={si}>
-                            {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
-                            {section.header && (
-                              <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                                <span className="text-eyebrow text-slate-light">
-                                  {section.header}
-                                </span>
-                                {section.headerBadge && (
-                                  <span
-                                    className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
-                                      section.headerBadgeGreen
-                                        ? "bg-accent/10 text-accent border border-accent/20"
-                                        : "bg-blue/10 text-blue border border-blue/20"
-                                    }`}
-                                  >
-                                    {section.headerBadge}
+                        const renderSection = (section: NavSection, si: number) => {
+                          const topItems = section.items.filter((it) => !it.bottom);
+                          const bottomItems = section.items.filter((it) => it.bottom);
+                          return (
+                            <div key={si}>
+                              {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
+                              {section.header && (
+                                <div className="px-3 pt-2 pb-1 flex items-center gap-2">
+                                  <span className="text-eyebrow text-slate-light">
+                                    {section.header}
                                   </span>
-                                )}
-                              </div>
-                            )}
-                            {section.items.map((sub) => renderSubItem(sub))}
-                          </div>
-                        );
+                                  {section.headerBadge && (
+                                    <span
+                                      className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                        section.headerBadgeGreen
+                                          ? "bg-accent/10 text-accent border border-accent/20"
+                                          : "bg-blue/10 text-blue border border-blue/20"
+                                      }`}
+                                    >
+                                      {section.headerBadge}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {topItems.map((sub) => renderSubItem(sub))}
+                            </div>
+                          );
+                        };
                         if (!item.wide) return item.sections.map(renderSection);
                         const totalCols = item.columns ?? 2;
                         return Array.from({ length: totalCols }, (_, i) => {
                           const colNum = i + 1;
                           const colSections = item.sections.filter((s) => (s.column ?? 1) === colNum);
+                          const bottomItems = colSections.flatMap((s) => s.items.filter((it) => it.bottom));
                           return (
-                            <div key={colNum} className="flex flex-col">
+                            <div key={colNum} className="flex flex-col h-full">
                               {colSections.map((s, idx) => renderSection(s, idx))}
+                              {bottomItems.length > 0 && (
+                                <div className="mt-auto pt-2">
+                                  {bottomItems.map((sub) => renderSubItem(sub))}
+                                </div>
+                              )}
                             </div>
                           );
                         });
