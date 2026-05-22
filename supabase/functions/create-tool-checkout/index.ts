@@ -412,7 +412,7 @@ Deno.serve(async (req) => {
           user_id,
           status: "pending",
           processing_description: intake_data?.processing_description || "",
-          purchased_as_standalone: !isSubscriber,
+          purchased_as_standalone: true,
           purchase_price_cents: amountCents,
           ...filteredIntake,
         };
@@ -421,7 +421,7 @@ Deno.serve(async (req) => {
           user_id,
           status: "pending",
           intake_data: intake_data || {},
-          purchased_as_standalone: !isSubscriber,
+          purchased_as_standalone: true,
           purchase_price_cents: amountCents,
         };
       }
