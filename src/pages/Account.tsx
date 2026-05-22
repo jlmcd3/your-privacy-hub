@@ -194,21 +194,7 @@ export default function Account() {
         </div>
 
         {/* Plan — tier-specific block */}
-        {tier === "annual_founding" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">
-              Professional — Annual (Founding Subscriber)
-            </p>
-            <p className="text-sm text-amber-700 font-semibold mt-1">
-              Founding discount locked for life
-            </p>
-            <p className="text-[12px] text-slate mt-1">
-              Client workspaces, 20% off every Smart Tool, 15% off every Convenience Tool, 1 free Convenience Tool run per client per month, and the full intelligence brief.
-            </p>
-          </div>
-        )}
-
-        {tier === "annual" && (
+        {(tier === "annual" || tier === "annual_founding") && (
           <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">Professional — Annual</p>
             <p className="text-sm text-slate mt-1">
