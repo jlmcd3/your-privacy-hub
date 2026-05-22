@@ -1171,7 +1171,11 @@ const KNOWN_SUBJECTS = [
 ];
 
 // Words that typically open a verb-led, subject-less title fragment.
+// When the source RSS strips the leading subject (e.g. "Colorado Revises Its AI Act"
+// arrives as "Revises Its AI Act"), we detect the verb-led opener and re-prepend
+// the subject from the description or the source jurisdiction.
 const SUBJECTLESS_LEADERS = new Set([
+  // Legislative / regulatory action
   'becomes','passes','enacts','signs','adopts','issues','announces','releases',
   'publishes','proposes','launches','approves','rejects','fines','penalises',
   'penalizes','sanctions','orders','rules','warns','investigates','sues','files',
@@ -1180,7 +1184,22 @@ const SUBJECTLESS_LEADERS = new Set([
   'considers','reviews','strengthens','tightens','loosens','introduces',
   'unveils','finalizes','finalises','withdraws','postpones','delays',
   'confirms','denies','grants','refuses','seeks','wins','loses','accuses',
-  'allows','blocks','approves','adopts','demands','threatens',
+  'allows','blocks','demands','threatens',
+  // Revision / change verbs (caught Colorado/FPF "Revises Its AI Act" bug)
+  'revises','revisits','revamps','overhauls','rewrites','modifies','alters',
+  'changes','replaces','repeals','reinstates','restores','enforces','reaffirms',
+  // Movement verbs
+  'opens','closes','begins','starts','ends','drops','picks','hits','joins',
+  'votes','targets','charges','alleges','claims','names','eyes','mulls',
+  'weighs','debates','finds','holds','dismisses','certifies','awards','halts',
+  'suspends','revokes','terminates','declares','faces','plans','prepares',
+  'extends','shortens','accelerates','speeds','slows','pauses','resumes',
+  // Communication verbs
+  'says','tells','asks','responds','replies','answers','reports','reveals',
+  'discloses','admits','acknowledges','claims','asserts','argues','contends',
+  // Publication verbs (regulator guidance flow)
+  'opens','launches','rolls','rolls-out','rolled','opens','reopens','closes',
+  'publishes','republishes','reissues','reissued','re-issues',
 ]);
 
 function repairTitle(
