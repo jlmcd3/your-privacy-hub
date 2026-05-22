@@ -152,7 +152,7 @@ const navItems: NavItem[] = [
             tooltip: "Structured risk assessment aligned to CPPA audit regulations" },
           { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline" },
-          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools",
+          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools", bottom: true,
             tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
       },
