@@ -103,32 +103,39 @@ export default function RopaLanding() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
       </div>
-      <main className="flex-1">
-        {/* HERO */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-serif text-foreground leading-tight mb-5">
-              Build an audit-ready RoPA in under an hour.
-            </h1>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Guided questions in plain language. Covers GDPR, LGPD, CCPA, and
-              20+ frameworks. Used by DPOs, privacy consultants, and compliance
-              teams.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild size="lg">
-                <Link to="/ropa">
-                  Start for free <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/#brief">
-                  See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📚 RoPA Builder · Q&A free · PDF from $35 (subscriber) / $79 standalone
+          </span>
+          <h1 className="font-serif text-white mb-3">
+            Build an audit-ready RoPA in under an hour
+          </h1>
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
+            Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
+            frameworks. Used by DPOs, privacy consultants, and compliance teams to keep
+            records of processing activities current and regulator-ready.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
+              <Link to="/ropa">
+                Start for free <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+            >
+              <Link to="/#brief">
+                See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
-        </section>
+        </div>
+      </header>
+      <main className="flex-1">
 
         {/* TRUST BAR */}
         <section className="border-y border-border bg-muted/30 py-6 px-4">

@@ -383,22 +383,23 @@ const Updates = () => {
             </Helmet>
             <Navbar />
 
-            <div className="px-4 sm:px-6 py-5 border-b border-fog bg-card">
-                <div className="max-w-[1280px] mx-auto">
-                    <h1 className="font-display text-navy leading-tight m-0">
+            <header className="bg-slate-900 text-white py-12">
+                <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+                    <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+                        📰 Privacy Intelligence Feed
+                    </span>
+                    <h1 className="font-serif text-white mb-3">
                         {selectedRegions.length === 1 && selectedTopics.length === 0
                             ? formatFilterLabel(selectedRegions[0])
                             : selectedTopics.length === 1 && selectedRegions.length === 0
                                 ? formatFilterLabel(selectedTopics[0])
                                 : "Privacy Intelligence Feed"}
                     </h1>
-                    <p className="text-sm text-slate mt-0.5">
-                        {updates[0]?.published_at
-                            ? `Through ${formatDate(updates[0].published_at)} · Updated daily`
-                            : "Updated daily"}
+                    <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
+                        Daily intelligence from 119 monitored regulatory sources — filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
                     </p>
                 </div>
-            </div>
+            </header>
 
             {/* Jurisdiction subnav (pill style) — sticky under navbar */}
             <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
