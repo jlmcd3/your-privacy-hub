@@ -7,6 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PremiumGate from "@/components/PremiumGate";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface HorizonItem {
   id: string;
@@ -177,7 +178,8 @@ export default function Horizon() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🛰️ Forward-looking intelligence
+            🛰️ Forward-looking intelligence · Included with Intelligence subscription ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()})
+            {!isPremium && <> · <Link to="/subscribe" className="underline hover:text-amber-100">Start your subscription →</Link></>}
           </span>
           <h1 className="font-serif text-white mb-3">
             Enforcement Forecast Intelligence
