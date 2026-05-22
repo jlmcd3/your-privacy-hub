@@ -34,7 +34,7 @@ export function PageHero({
   description,
   meta,
   children,
-  maxWidth = "5xl",
+  maxWidth = "1280",
   className = "",
 }: PageHeroProps) {
   return (
