@@ -13,6 +13,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,6 +31,7 @@ export default function BiometricChecker() {
   const navigate = useNavigate();
   // No more anonymous free tier — every analysis requires a signed-in account.
   const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
+  const pricing = useToolPrice("biometric_checker");
   const { clientId } = useActiveClient();
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], purpose: PURPOSE[0],
@@ -86,7 +88,9 @@ export default function BiometricChecker() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🧬 Biometric Compliance Check · $10 standalone · $8 subscriber rate
+            🧬 Biometric Compliance Check · ${pricing.price}
+            {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>}
           </span>
           <h1 className="font-serif mb-3">Biometric Privacy Compliance Assessment</h1>
           <p className="text-slate-300 text-lg max-w-3xl">

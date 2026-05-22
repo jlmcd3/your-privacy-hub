@@ -170,6 +170,7 @@ const LIAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
             {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>}
           </span>
           <h1 className="font-serif text-white mb-3">
             Legitimate Interest Assessment

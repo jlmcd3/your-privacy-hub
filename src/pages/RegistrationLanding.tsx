@@ -18,6 +18,7 @@ import {
   CheckCircle2, Clock, Globe2, ShieldCheck, FileText, AlertTriangle,
   Brain, Building2, ArrowRight,
 } from "lucide-react";
+import { formatPrice } from "@/config/pricing";
 
 const FAQS = [
   {
@@ -73,7 +74,7 @@ export default function RegistrationLanding() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📂 Registration Manager
+            📂 Registration Manager · {formatPrice("registration_standalone")} per filing · {formatPrice("registration_subscriber")} for subscribers · <a href="/subscribe" className="underline hover:text-amber-100">See subscriber rates →</a>
           </span>
           <h1 className="font-serif text-white mb-3">
             Privacy registration filings, drafted and tracked
