@@ -72,7 +72,7 @@ export default function RegistrationLanding() {
       </div>
 
       <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             📂 Registration Manager · {formatPrice("registration_standalone")} per filing · {formatPrice("registration_subscriber")} for subscribers · <a href="/subscribe" className="underline hover:text-amber-100">See subscriber rates →</a>
           </span>
