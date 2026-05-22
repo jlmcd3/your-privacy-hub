@@ -22,18 +22,7 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
   const { user } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
-  const [foundingAvailable, setFoundingAvailable] = useState<boolean | null>(null);
 
-  // Resolve founding availability for year checkouts so we can preview the
-  // correct rate to the user. The actual price selection happens server-side
-  // in create-checkout-session.
-  useEffect(() => {
-    if (!open || interval !== "year") return;
-    supabase.functions
-      .invoke("get-founding-status")
-      .then(({ data }) => setFoundingAvailable(data?.isAvailable === true))
-      .catch(() => setFoundingAvailable(false));
-  }, [open, interval]);
 
   const fetchClientSecret = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
