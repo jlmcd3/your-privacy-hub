@@ -163,22 +163,12 @@ serve(async (req) => {
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else if (!addon) {
-      // Resolve interval-aware plan key. For yearly, prefer the founding
-      // rate ($369/yr) while slots remain — auto-routed via the SECURITY
-      // DEFINER `is_founding_rate_available` function (capped at 500 seats).
+      // Resolve interval-aware plan key.
       if (interval === "year") {
-        let foundingAvailable = false;
-        try {
-          const { data: foundingFlag } = await supabase.rpc("is_founding_rate_available");
-          foundingAvailable = foundingFlag === true;
-        } catch (e) {
-          console.error("is_founding_rate_available rpc failed:", (e as Error).message);
-        }
-        lookupKey = foundingAvailable ? "intelligence_yearly_founding" : "intelligence_yearly";
+        lookupKey = "intelligence_yearly";
         metadata.subscription_tier = "intelligence";
         metadata.subscription_interval = "year";
-        metadata.subscription_type = foundingAvailable ? "annual_founding" : "annual";
-        if (foundingAvailable) metadata.founding_subscriber = "true";
+        metadata.subscription_type = "annual";
       } else {
         const requestedKey = plan || "intelligence_monthly";
         lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
@@ -189,16 +179,7 @@ serve(async (req) => {
     }
 
     const stripe = createStripeClient(env);
-    let stripePrice = await resolvePriceId(stripe, lookupKey!);
-    // Graceful fallback: founding price may not yet exist in Stripe.
-    // Fall back to the standard annual price so checkout doesn't 404.
-    if (!stripePrice && lookupKey === "intelligence_yearly_founding") {
-      console.warn("intelligence_yearly_founding not found in Stripe — falling back to intelligence_yearly");
-      lookupKey = "intelligence_yearly";
-      metadata.subscription_type = "annual";
-      delete (metadata as any).founding_subscriber;
-      stripePrice = await resolvePriceId(stripe, lookupKey);
-    }
+    const stripePrice = await resolvePriceId(stripe, lookupKey!);
     if (!stripePrice) {
       return new Response(JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }), {
         status: 404,
