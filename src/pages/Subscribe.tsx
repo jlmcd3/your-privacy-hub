@@ -181,7 +181,7 @@ const Subscribe = () => {
                   "Client/matter workspace & compliance record",
                   "Branded document outputs",
                   "1 free Convenience Tool run per client/month (annual only)",
-                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
+                  
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
