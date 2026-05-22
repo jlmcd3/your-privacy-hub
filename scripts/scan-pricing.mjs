@@ -79,19 +79,12 @@ while ((m = TOOL_BLOCK_RE.exec(TOOL_SRC)) !== null) {
   });
 }
 
-// Parse registration tiers.
-// Capture the diy ladder: lines like `if (numJurisdictions <= N) return NNNN;`
-// plus the final fallback `return NNNN;` for unlimited.
-const diyLadder = [...REG_SRC.matchAll(/<=\s*(\d+)\)\s*return\s+(\d+)/g)].map(
-  (x) => ({ jurisdictions_max: Number(x[1]), cents: Number(x[2]) })
-);
-const diyFallbackMatch = REG_SRC.match(
-  /function\s+diyPriceCents[\s\S]*?\n\s*return\s+(\d+)\s*;[^\n]*\n\s*\}/
-);
-const diyDefault = diyFallbackMatch ? Number(diyFallbackMatch[1]) : null;
+// Parse registration: under the May 2026 memo, DIY is a single flat
+// per-filing price ($45 standalone / $38 founding subscriber) regardless of
+// jurisdiction count. Counsel-Ready and Renewal remain top-level constants.
+const diyStandaloneMatch = REG_SRC.match(/DIY_STANDALONE_CENTS\s*=\s*(\d+)/);
+const diySubscriberMatch = REG_SRC.match(/DIY_SUBSCRIBER_CENTS\s*=\s*(\d+)/);
 
-// Resolve top-level numeric constants (e.g. `const COUNSEL_REVIEW_CENTS = 39900;`)
-// so we can look up `unit_amount: COUNSEL_REVIEW_CENTS` references too.
 const constants = {};
 for (const m of REG_SRC.matchAll(/const\s+(\w+)\s*=\s*(\d+)\s*;/g)) {
   constants[m[1]] = Number(m[2]);
@@ -104,8 +97,8 @@ const counselMatch = REG_SRC.match(/counsel_review:[\s\S]*?unit_amount:\s*(\w+)/
 const renewalMatch = REG_SRC.match(/renewal:[\s\S]*?unit_amount:\s*(\w+)/);
 
 const serverRegistration = {
-  diy_ladder: diyLadder,
-  diy_unlimited_cents: diyDefault,
+  diy_flat_standalone_cents: diyStandaloneMatch ? Number(diyStandaloneMatch[1]) : null,
+  diy_flat_subscriber_cents: diySubscriberMatch ? Number(diySubscriberMatch[1]) : null,
   counsel_review_cents: counselMatch ? resolveAmount(counselMatch[1]) : null,
   renewal_per_jurisdiction_cents: renewalMatch ? resolveAmount(renewalMatch[1]) : null,
 };
