@@ -70,30 +70,33 @@ export default function RegistrationLanding() {
         )}
       </div>
 
-      <PageContainer>
-        {/* 1. Hero */}
-        <section className="py-12 md:py-16 text-center max-w-3xl mx-auto">
-          <Badge variant="outline" className="mb-4 border-accent/40 text-accent">Registration Manager</Badge>
-          <h1 className="font-display text-navy leading-tight">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📂 Registration Manager
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Privacy registration filings, drafted and tracked
           </h1>
-          <p className="mt-4 text-lg text-slate leading-relaxed">
+          <p className="text-slate-300 text-lg max-w-3xl">
             DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act
             registration drafts — generated in minutes, tailored to every jurisdiction you operate in,
             and renewed on schedule.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" asChild className="bg-navy hover:bg-navy/90 text-white">
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <Button size="lg" asChild className="bg-white text-slate-900 hover:bg-slate-100">
               <Link to="/registration-manager/start">Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" asChild className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white">
               <Link to="#how-it-works">How it works</Link>
             </Button>
           </div>
-          <p className="mt-3 text-xs text-slate-light">
+          <p className="mt-3 text-xs text-slate-400">
             Free assessment · No card required · Pay only when you generate documents
           </p>
-        </section>
+        </div>
+      </header>
+      <PageContainer>
 
         {/* 2. Problem */}
         <section className="py-10 border-t border-border/40">
