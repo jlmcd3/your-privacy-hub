@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -183,16 +183,6 @@ const LIAssessment = () => {
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ToolTierNote className="mb-6" />
-        <ToolOutputPreview
-          label="Sample Legitimate Interest Assessment output"
-          lines={[
-            "PRELIMINARY SIGNAL: Legitimate interest MAY be available — proceed with caution",
-            "PURPOSE TEST: Legitimate purpose identified — fraud prevention (Article 6(1)(f))",
-            "NECESSITY TEST: Processing appears proportionate to stated purpose",
-            "  Concern: Retention period of 36 months requires additional justification",
-            "BALANCING TEST: Data subject impact assessment required before proceeding",
-          ]}
-        />
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">

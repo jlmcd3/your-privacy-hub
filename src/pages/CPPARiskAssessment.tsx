@@ -1,5 +1,5 @@
 // CPPA Privacy Risk Assessment — Module 1 intake. 5-step wizard + summary.
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -171,16 +171,6 @@ export default function CPPARiskAssessment() {
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <ToolOutputPreview
-          label="Sample CPPA Risk Assessment output"
-          lines={[
-            "CPPA RISK ASSESSMENT — California Privacy Protection Agency",
-            "Processing Activity: Behavioural advertising via third-party pixels",
-            "RISK LEVEL: HIGH — likely to result in significant privacy risk",
-            "  Regulatory basis: CPPA Regulations § 7150.5 — automated decision-making",
-            "  Required action: Implement opt-out mechanism before January 1, 2026",
-          ]}
-        />
         <ActiveClientLabel />
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 

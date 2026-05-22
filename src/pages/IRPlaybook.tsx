@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -107,18 +107,6 @@ export default function IRPlaybook() {
         <div className="mb-4">
           <ToolTierNote />
         </div>
-        {phase !== "result" && phase !== "generating" && (
-          <ToolOutputPreview
-            label="Sample Incident Response Playbook output"
-            lines={[
-              "INCIDENT CLASSIFICATION: Personal Data Breach — High Severity",
-              "72-HOUR REGULATORY DEADLINE: Notify ICO by [date + 72hrs] — Article 33 GDPR",
-              "IMMEDIATE ACTIONS (0–4 hours):",
-              "  □ Contain: Isolate affected systems — do not power off (preserve forensics)",
-              "  □ Assess: Determine categories and volume of affected data subjects",
-            ]}
-          />
-        )}
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
