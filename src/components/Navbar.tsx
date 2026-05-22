@@ -35,6 +35,8 @@ interface NavSubItem {
   badge?: string;
   badgeGreen?: boolean;
   href: string;
+  /** Pin to the bottom of its column in wide multi-column dropdowns. */
+  bottom?: boolean;
 }
 
 interface NavSection {
