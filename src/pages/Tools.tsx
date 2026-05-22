@@ -635,7 +635,7 @@ export default function Tools() {
             Available individually at standalone prices.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
-            Every tool is pay-per-use. Founding subscribers receive permanent discounts on every tool — 20% off Smart Tools and 15% off Convenience Tools.
+            Every tool is pay-per-use.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (
