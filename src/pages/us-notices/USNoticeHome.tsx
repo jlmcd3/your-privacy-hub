@@ -210,12 +210,9 @@ export default function USNoticeHome() {
     <USNoticeShell
       title="US Privacy Notice Builder — End User Privacy"
       heading={heading}
+      chip="📍 US State Notice Builder"
+      description="Generate state-specific privacy notices that match your data practices and the laws that apply to you — California (CCPA/CPRA), the Virginia model (16 states), Maryland (MODPA), and Florida (FDBR) — in one guided session, with version control and refresh built in."
     >
-      <p className="text-muted-foreground mb-2 max-w-3xl">
-        Build state-by-state privacy notices that match your data practices and the laws
-        that apply to you — California (CCPA/CPRA), the Virginia model (16 states),
-        Maryland (MODPA), and Florida (FDBR).
-      </p>
       <p className="text-sm text-muted-foreground mb-8">
         From <span className="font-medium text-foreground">{US_NOTICE_PRICING.singleSubscriber()}</span> (Intelligence subscriber) ·{" "}
         <span className="font-medium text-foreground">{US_NOTICE_PRICING.singleStandalone()}</span> standalone per state

@@ -85,18 +85,26 @@ export default function IRPlaybook() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Your Breach Response Playbook | End User Privacy</title>
-        <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
+      <Helmet><title>Incident Response Playbook | End User Privacy</title>
+        <meta name="description" content="A jurisdiction-specific data breach response runbook with regulator notification deadlines, DPA portal links, and stakeholder communication templates — drafted to your incident facts." /></Helmet>
       <Navbar />
       <DashboardSubnav />
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🚨 Breach Response Playbook · ${pricing.price}
+            {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
+          </span>
+          <h1 className="font-serif mb-3">Incident Response Playbook</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">
+            A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and stakeholder communication templates — drafted to your incident facts so your team can act inside the 72-hour clock. Generate it the moment you suspect a personal data breach, or keep one on the shelf and ready.
+          </p>
+        </div>
+      </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
-        <header className="mb-8">
-          <h1 className="font-display text-navy mb-2">Your Breach Response Playbook</h1>
-          <p className="text-slate text-sm">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
-        </header>
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+        <div className="mb-4">
           <ToolTierNote />
         </div>
         {phase !== "result" && phase !== "generating" && (
