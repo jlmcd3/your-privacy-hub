@@ -81,7 +81,10 @@ const FAQ = () => {
             hello@enduserprivacy.com
           </a>
         </p>
+        </div>
       </section>
+
+
 
       {/* Accordion */}
       <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
