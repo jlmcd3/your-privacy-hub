@@ -896,31 +896,29 @@ export function isConvenienceTool(toolKey: string): boolean {
   return (CONVENIENCE_TOOL_KEYS as readonly string[]).includes(toolKey) || CONVENIENCE_TOOL_CAMEL.has(toolKey);
 }
 
-// ── FOUNDING SUBSCRIBER PROMOTION ────────────────────────────────────────
+// ── SUBSCRIBER PRICING (no promotional discount) ─────────────────────────
+//
+// Earlier versions of the app offered a "founding subscriber" discount
+// (20% off Smart Tools, 15% off Convenience Tools). That program has
+// been retired. Every tier — anonymous, free, monthly, annual — pays
+// the standalone per-use price. The helpers below remain as no-op
+// shims so older call sites keep compiling; they always return the
+// standalone amount.
 
-/**
- * Subscribers who join before FOUNDING_PROMO_END_DATE receive a permanent
- * discount on all tools. Tracked via the founding_subscriber flag in profiles.
- * Discount applied in-app at checkout — no Stripe coupon needed.
- */
 export const FOUNDING_PROMO = {
   endDate:                    '2026-11-19',
-  smartToolDiscountPct:       0.20,
-  convenienceToolDiscountPct: 0.15,
-  label:                      'Founding Subscriber',
-  description:                'Permanent discount on all compliance tools.',
+  smartToolDiscountPct:       0,
+  convenienceToolDiscountPct: 0,
+  label:                      '',
+  description:                '',
 } as const;
 
-/** Returns true if the founding subscriber window is still open */
+/** Retired program — always returns false. */
 export function isPromoOpen(): boolean {
-  return new Date() <= new Date(FOUNDING_PROMO.endDate + 'T23:59:59Z');
+  return false;
 }
 
-/** Price in cents after founding subscriber discount */
-export function foundingPrice(amountCents: number, smartTool: boolean): number {
-  if (amountCents === 0) return 0;
-  const disc = smartTool
-    ? FOUNDING_PROMO.smartToolDiscountPct
-    : FOUNDING_PROMO.convenienceToolDiscountPct;
-  return Math.round(amountCents * (1 - disc));
+/** No-op: returns the standalone amount unchanged. */
+export function foundingPrice(amountCents: number, _smartTool: boolean): number {
+  return amountCents;
 }
