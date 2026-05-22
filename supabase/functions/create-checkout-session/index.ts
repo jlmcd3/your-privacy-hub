@@ -15,7 +15,6 @@ const corsHeaders = {
 const PLAN_LOOKUPS: Record<string, string> = {
   intelligence_monthly: "intelligence_monthly",
   intelligence_yearly: "intelligence_yearly",
-  intelligence_yearly_founding: "intelligence_yearly_founding",
   // Legacy aliases — all map to the new monthly Professional price.
   pro: "intelligence_monthly",
   premium: "intelligence_monthly",
