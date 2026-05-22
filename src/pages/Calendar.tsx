@@ -116,14 +116,42 @@ const Calendar = () => {
       });
   }, []);
 
-  const staticEvents: CalendarEvent[] = useMemo(
-    () =>
-      (calendarData as any[]).map((e) => ({
-        ...e,
-        source: "static" as const,
-      })),
-    []
-  );
+  const [milestoneEvents, setMilestoneEvents] = useState<CalendarEvent[] | null>(null);
+
+  // Read structured milestones from regulatory_milestones; fall back to JSON if empty/errors.
+  useEffect(() => {
+    supabase
+      .from("regulatory_milestones")
+      .select("law_slug, milestone_type, milestone_date, title, description, jurisdiction, source_url")
+      .is("superseded_by", null)
+      .order("milestone_date", { ascending: true })
+      .then(({ data, error }) => {
+        if (error || !data || data.length === 0) {
+          setMilestoneEvents(null);
+          return;
+        }
+        setMilestoneEvents(
+          data.map((m) => ({
+            date: m.milestone_date as string,
+            title: m.title as string,
+            description: m.description ?? "",
+            jurisdiction: m.jurisdiction as string,
+            law: m.law_slug as string,
+            type: m.milestone_type as string,
+            url: m.source_url ?? "/calendar",
+            source: "static" as const,
+          }))
+        );
+      });
+  }, []);
+
+  const staticEvents: CalendarEvent[] = useMemo(() => {
+    if (milestoneEvents) return milestoneEvents;
+    return (calendarData as any[]).map((e) => ({
+      ...e,
+      source: "static" as const,
+    }));
+  }, [milestoneEvents]);
 
   const allEvents = useMemo(() => {
     // Deduplicate by title similarity
