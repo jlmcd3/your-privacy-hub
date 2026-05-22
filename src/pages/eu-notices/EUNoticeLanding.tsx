@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import { EU_NOTICE_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
