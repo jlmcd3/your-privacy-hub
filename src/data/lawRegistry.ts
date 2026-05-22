@@ -37,14 +37,14 @@ export const LAW_REGISTRY: LawRegistryEntry[] = [
     aliases: ["Indiana Comprehensive Privacy Law", "Indiana CDPA"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://iga.in.gov/legislative/2023/bills/senate/5",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
   {
     name: "Kentucky HB 15",
     aliases: ["Kentucky Consumer Data Protection Act", "KCDPA"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://apps.legislature.ky.gov/record/24rs/hb15.html",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
   {
     name: "Rhode Island HB 6122",
@@ -58,14 +58,14 @@ export const LAW_REGISTRY: LawRegistryEntry[] = [
     aliases: ["Maryland Online Data Privacy Act", "Maryland SB 541"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://mgaleg.maryland.gov/2024RS/bills/sb/sb0541E.pdf",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
   {
     name: "Minnesota HF 2309",
     aliases: ["Minnesota Consumer Data Privacy Act", "MCDPA"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://www.revisor.mn.gov/bills/text.php?number=HF2309&session=ls93&version=latest&session_number=0&session_year=2024",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
   {
     name: "Nebraska LB 1074",
@@ -81,14 +81,14 @@ export const LAW_REGISTRY: LawRegistryEntry[] = [
     aliases: ["California Privacy Rights Act", "CCPA/CPRA"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://cppa.ca.gov/regulations/",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
   {
     name: "SB 362",
     aliases: ["California Delete Act", "Delete Act", "Opt Me Out"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202320240SB362",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
 
   // ─── COLORADO ───
@@ -97,7 +97,7 @@ export const LAW_REGISTRY: LawRegistryEntry[] = [
     aliases: ["Colorado Algorithmic Accountability Act", "Colorado AI Act"],
     internalPath: "/jurisdiction/united-states",
     officialUrl: "https://leg.colorado.gov/bills/sb24-205",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
 
   // ─── EUROPEAN UNION ───
@@ -106,14 +106,14 @@ export const LAW_REGISTRY: LawRegistryEntry[] = [
     aliases: ["AI Act", "Artificial Intelligence Act"],
     internalPath: "/jurisdiction/european-union",
     officialUrl: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
   {
     name: "GDPR",
     aliases: ["General Data Protection Regulation"],
     internalPath: "/jurisdiction/european-union",
     officialUrl: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
 
   // ─── GLOBAL ───
@@ -122,7 +122,7 @@ export const LAW_REGISTRY: LawRegistryEntry[] = [
     aliases: ["Lei Geral de Proteção de Dados", "Brazil LGPD"],
     internalPath: "/jurisdiction/brazil",
     officialUrl: "https://www.gov.br/anpd/pt-br",
-    verifiedAt: null,
+    verifiedAt: "2026-05-22T06:52:02.537Z",
   },
 ];
 
