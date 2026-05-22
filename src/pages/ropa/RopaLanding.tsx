@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Check, ArrowRight, ExternalLink, FileText, ListChecks, Download } from "lucide-react";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useToolPrice } from "@/hooks/useToolPrice";
 
 const TITLE =
   "RoPA Builder — Records of Processing Activities Tool | End User Privacy";
@@ -85,6 +86,7 @@ const FAQ = [
 ];
 
 export default function RopaLanding() {
+  const pricing = useToolPrice("ropa_initial");
   useEffect(() => {
     document.title = TITLE;
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
@@ -106,7 +108,9 @@ export default function RopaLanding() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📚 RoPA Builder · Q&A free · PDF from $35 (subscriber) / $79 standalone
+            📚 RoPA Builder · Q&A free · PDF ${pricing.price}
+            {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
+            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>}
           </span>
           <h1 className="font-serif text-white mb-3">
             Build an audit-ready RoPA in under an hour
