@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-22T08:12:08.724Z",
+  "generatedAt": "2026-05-22T08:35:33.644Z",
   "server_truth": {
     "tools": [
       {
@@ -112,8 +112,8 @@
       }
     ],
     "registration": {
-      "diy_ladder": [],
-      "diy_unlimited_cents": null,
+      "diy_flat_standalone_cents": 4500,
+      "diy_flat_subscriber_cents": 3800,
       "counsel_review_cents": 39900,
       "renewal_per_jurisdiction_cents": 7900
     }
@@ -201,10 +201,8 @@
       "server_subscriber": "$34",
       "ui_prices_seen": [
         "$25",
-        "$35",
         "$40",
-        "$50",
-        "$79"
+        "$50"
       ],
       "standalone_match": true,
       "subscriber_match": false,
@@ -227,17 +225,23 @@
       "product": "US Privacy Notice — Single State",
       "server_standalone": "$25",
       "server_subscriber": "$21.25",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": false
+      "ui_prices_seen": [
+        "registry: $25",
+        "registry sub: $21.25"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
     },
     {
       "product": "US Privacy Notice — All States Suite",
       "server_standalone": "$25",
       "server_subscriber": "$21.25",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": false
+      "ui_prices_seen": [
+        "registry: $25",
+        "registry sub: $21.25"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
     },
     {
       "product": "US Notice — Annual Refresh",
@@ -252,33 +256,45 @@
       "product": "EU & Global Notice — Single Framework",
       "server_standalone": "$50",
       "server_subscriber": "$42.50",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": false
+      "ui_prices_seen": [
+        "registry: $50",
+        "registry sub: $42.50"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
     },
     {
       "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
       "server_standalone": "$50",
       "server_subscriber": "$42.50",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": false
+      "ui_prices_seen": [
+        "registry: $50",
+        "registry sub: $42.50"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
     },
     {
       "product": "EU & Global Notice — Full International",
       "server_standalone": "$50",
       "server_subscriber": "$42.50",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": false
+      "ui_prices_seen": [
+        "registry: $50",
+        "registry sub: $42.50"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
     },
     {
       "product": "EU & Global Notice — Annual Refresh",
       "server_standalone": "$50",
       "server_subscriber": "$42.50",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": false
+      "ui_prices_seen": [
+        "registry: $50",
+        "registry sub: $42.50"
+      ],
+      "standalone_match": true,
+      "subscriber_match": true
     },
     {
       "product": "CPPA Risk Assessment — Module 1",
@@ -318,35 +334,19 @@
       "unmigrated": true
     },
     {
-      "product": "Registration DIY — 1 jurisdiction",
-      "server_standalone": "—",
+      "product": "Registration DIY — flat per-filing (standalone)",
+      "server_standalone": "$45",
       "server_subscriber": "—",
       "ui_prices_seen": [],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true
     },
     {
-      "product": "Registration DIY — up to 3 jurisdictions",
-      "server_standalone": "—",
+      "product": "Registration DIY — flat per-filing (founding subscriber)",
+      "server_standalone": "$38",
       "server_subscriber": "—",
       "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": true
-    },
-    {
-      "product": "Registration DIY — up to 7 jurisdictions",
-      "server_standalone": "—",
-      "server_subscriber": "—",
-      "ui_prices_seen": [],
-      "standalone_match": false,
-      "subscriber_match": true
-    },
-    {
-      "product": "Registration DIY — unlimited",
-      "server_standalone": "—",
-      "server_subscriber": "—",
-      "ui_prices_seen": [],
-      "standalone_match": false,
+      "standalone_match": true,
       "subscriber_match": true
     },
     {
@@ -370,106 +370,9 @@
       "subscriber_match": true
     }
   ],
-  "findings": [
-    {
-      "severity": "high",
-      "product": "US Privacy Notice — Single State",
-      "issue": "Registry says — but server charges $25 standalone.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "US Privacy Notice — Single State",
-      "issue": "Registry says — but server charges $21.25 subscriber.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "US Privacy Notice — All States Suite",
-      "issue": "Registry says — but server charges $25 standalone.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "US Privacy Notice — All States Suite",
-      "issue": "Registry says — but server charges $21.25 subscriber.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU & Global Notice — Single Framework",
-      "issue": "Registry says — but server charges $50 standalone.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU & Global Notice — Single Framework",
-      "issue": "Registry says — but server charges $42.50 subscriber.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
-      "issue": "Registry says — but server charges $50 standalone.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU Notice Suite — GDPR + UK GDPR + FADP",
-      "issue": "Registry says — but server charges $42.50 subscriber.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU & Global Notice — Full International",
-      "issue": "Registry says — but server charges $50 standalone.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU & Global Notice — Full International",
-      "issue": "Registry says — but server charges $42.50 subscriber.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU & Global Notice — Annual Refresh",
-      "issue": "Registry says — but server charges $50 standalone.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "EU & Global Notice — Annual Refresh",
-      "issue": "Registry says — but server charges $42.50 subscriber.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "Registration DIY — 1 jurisdiction",
-      "issue": "UI markets $59 but server charges —.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "Registration DIY — up to 3 jurisdictions",
-      "issue": "UI markets $149 but server charges —.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "Registration DIY — up to 7 jurisdictions",
-      "issue": "UI markets $275 but server charges —.",
-      "ui_prices_seen": []
-    },
-    {
-      "severity": "high",
-      "product": "Registration DIY — unlimited",
-      "issue": "UI markets $499 but server charges —.",
-      "ui_prices_seen": []
-    }
-  ],
+  "findings": [],
   "summary": {
-    "products_checked": 24,
-    "mismatches": 16
+    "products_checked": 22,
+    "mismatches": 0
   }
 }
