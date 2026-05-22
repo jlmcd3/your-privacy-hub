@@ -505,19 +505,26 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         <div className="min-w-0">
           {(() => {
             const DEMO_TIERS: ("anonymous" | "free" | "paid")[] = ["anonymous", "free", "paid"];
-            return articles.slice(0, 3).map((article, i) => (
+            // For anonymous visitors, show the SAME fully-enriched article
+            // three times — once per tier view. Authenticated users see the
+            // normal multi-article feed.
+            const rows = !isAuthenticated && articles.length > 0
+              ? DEMO_TIERS.map((tier) => ({ article: articles[0], tier }))
+              : articles.slice(0, 3).map((article) => ({ article, tier: undefined as undefined }));
+            return rows.map(({ article, tier }, i) => (
               <HomepageArticleCard
-                key={article.id}
+                key={tier ? `${article.id}-${tier}` : article.id}
                 article={article}
                 isSelected={selectedArticle?.id === article.id}
                 onSelect={() => setSelectedArticle(article)}
                 tierLabel={showTierLabels ? SLOT_LABELS[i] : undefined}
                 evenRow={i % 2 === 1}
-                demoTier={!isAuthenticated ? DEMO_TIERS[i] : undefined}
+                demoTier={tier}
                 isPremium={isPremium}
               />
             ));
           })()}
+
 
           <div className="mt-5 pt-4 border-t border-fog">
             <Link
