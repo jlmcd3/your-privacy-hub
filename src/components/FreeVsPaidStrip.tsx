@@ -30,7 +30,7 @@ export default function FreeVsPaidStrip() {
       <p className="text-[11px] text-muted-foreground truncate">
         📚 Free to browse · Free weekly digest included{" "}
         <span className="text-border mx-1.5">·</span>
-        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, and enforcement tracking · Annual Platform includes every compliance tool`}</span>
+        <span className="text-amber-600 font-semibold">{`⭐ Intelligence ${INTELLIGENCE_PRICING.monthlyShort()} — full archive, watchlists, and enforcement tracking · Annual Platform adds client workspaces + 1 free Convenience Tool run per client/month`}</span>
         <span className="text-border mx-1.5">·</span>
         <Link to="/subscribe" className="text-primary font-semibold no-underline hover:underline">
           See what`s included →
