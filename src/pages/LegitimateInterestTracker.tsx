@@ -96,7 +96,7 @@ const LegitimateInterestTracker = () => {
           </span>
           <h1 className="font-serif text-white mb-3">Legitimate Interest Tracker</h1>
           <p className="text-slate-300 text-lg max-w-3xl">Global privacy law, tracked daily.</p>
-          <div className="text-slate-400 text-xs mt-4">Last updated: {lastUpdated || "Updated regularly"}</div>
+          
         </div>
       </header>
 

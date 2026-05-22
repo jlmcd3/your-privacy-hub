@@ -159,36 +159,17 @@ export default function JurisdictionsHub() {
           {/* Page header */}
           <header className="bg-slate-900 text-white py-12">
             <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                <div>
-                  <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-                    🌐 Jurisdictions
-                  </span>
-                  <h1 className="font-serif text-white mb-3">
-                    Global Privacy Law Map
-                  </h1>
-                  <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-                    160+ jurisdictions tracked. Click any country on the map to explore its
-                    privacy law, regulator, and recent enforcement actions.
-                    Switch to Grid view to browse or filter by region.
-                  </p>
-                </div>
-
-                <div className="flex flex-nowrap items-center gap-6 overflow-x-auto lg:min-w-[620px] lg:justify-end">
-                  {statCards.map((stat) => (
-                    <div key={stat.label} className="flex flex-shrink-0 items-center gap-2.5">
-                      <div
-                        className="w-4 h-4 rounded flex-shrink-0"
-                        style={{ background: stat.color }}
-                      />
-                      <div>
-                        <div className="font-bold text-white text-lg leading-none">{stat.num}</div>
-                        <div className="text-slate-400 text-[11px] mt-0.5">{stat.label}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+                🌐 Jurisdictions
+              </span>
+              <h1 className="font-serif text-white mb-3">
+                Global Privacy Law Map
+              </h1>
+              <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
+                160+ jurisdictions tracked. Click any country on the map to explore its
+                privacy law, regulator, and recent enforcement actions.
+                Switch to Grid view to browse or filter by region.
+              </p>
             </div>
           </header>
 

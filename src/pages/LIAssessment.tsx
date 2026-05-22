@@ -164,22 +164,23 @@ const LIAssessment = () => {
       <Navbar />
       <DashboardSubnav />
 
-      {/* Header — matches LI Tracker */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
-            Free preliminary signal · No account required
-          </div>
-          <h1 className="font-display text-white mb-3 leading-tight">
+      {/* Header */}
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            ⚖️ Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
+            {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Legitimate Interest Assessment
           </h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px] leading-relaxed">
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Get an instant indication whether your proposed processing could qualify for legitimate interest under
             GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've
-            tracked. Again, we cannot provide legal advice, but we can provide actionable Intelligence.
+            tracked. We cannot provide legal advice, but we can provide actionable Intelligence.
           </p>
         </div>
-      </div>
+      </header>
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ToolTierNote className="mb-6" />
