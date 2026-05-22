@@ -135,7 +135,7 @@ const Subscribe = () => {
                   "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "AI investigation prompt on every article",
                   "Access to all compliance tools at standalone prices",
-                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
+
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
