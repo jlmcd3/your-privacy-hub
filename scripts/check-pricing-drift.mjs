@@ -182,8 +182,8 @@ function compareEdge(label, edge, canonical) {
     }
     if (edgePrice.subscriber !== expected.subscriber) {
       errs(
-        `[${label}] ${slug}: founding ${edgePrice.subscriber}¢ ≠ canonical ${expected.subscriber}¢ ` +
-          `(${edgePrice.subscriber / 100} vs ${expected.subscriber / 100} USD @ founding rate)`,
+        `[${label}] ${slug}: subscriber ${edgePrice.subscriber}¢ ≠ canonical ${expected.subscriber}¢ ` +
+          `(${edgePrice.subscriber / 100} vs ${expected.subscriber / 100} USD @ subscriber rate)`,
       );
     }
   }
