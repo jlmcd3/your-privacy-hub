@@ -194,7 +194,7 @@ serve(async (req) => {
       : "/subscribe/success";
     const cancelPath = addon ? "/account" : tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
-    // All Intelligence subscriptions (monthly + yearly + founding) get a
+    // All Intelligence subscriptions (monthly + yearly) get a
     // 10-day free trial. Per-client add-ons are excluded — they're added
     // to an existing paid subscription, not a new signup.
     const isIntelligenceSub =
