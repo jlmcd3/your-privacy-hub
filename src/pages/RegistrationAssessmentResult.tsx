@@ -310,7 +310,7 @@ export default function RegistrationAssessmentResult() {
                 <PlanCard
                   title="DIY Toolkit"
                   price={`$${diyPrice}`}
-                  priceFootnote={`Flat — any jurisdiction count · $${diyFoundingPrice} for Founding Subscribers`}
+                  priceFootnote={`Flat — any jurisdiction count`}
                   blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Flat $45 regardless of count."
                   cta={purchasing === "diy" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
