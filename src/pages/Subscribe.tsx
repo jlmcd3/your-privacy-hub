@@ -107,11 +107,11 @@ const Subscribe = () => {
 
       {/* Two-product hero */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
-        <div className="max-w-[800px] mx-auto text-center">
+        <div className="max-w-[800px] mx-auto">
           <h1 className="font-display text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
-          <p className="text-[15px] text-slate-light max-w-[600px] mx-auto leading-relaxed mb-10">
+          <p className="text-[15px] text-slate-light max-w-[600px] leading-relaxed mb-10">
             Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.
             Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>

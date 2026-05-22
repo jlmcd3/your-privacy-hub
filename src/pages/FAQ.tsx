@@ -67,7 +67,8 @@ const FAQ = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4 text-center">
+      <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4">
+        <div className="max-w-[760px] mx-auto">
         <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
           ❓ FREQUENTLY ASKED QUESTIONS
         </span>
@@ -80,7 +81,10 @@ const FAQ = () => {
             hello@enduserprivacy.com
           </a>
         </p>
+        </div>
       </section>
+
+
 
       {/* Accordion */}
       <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
