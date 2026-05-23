@@ -50,6 +50,13 @@ type RunEntry = TestEntry & { nonce: number };
 export default function TestsDashboard() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState<RunEntry[]>([]);
+  const runsRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (running.length > 0) {
+      runsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [running]);
 
   const allSelected = selected.size === TESTS.length;
   const someSelected = selected.size > 0 && !allSelected;
