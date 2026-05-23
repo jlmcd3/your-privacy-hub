@@ -255,6 +255,31 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       analysis = { overall_assessment: { argument_strength: "uncertain" } };
     }
 
+    // Normalize overall_assessment so downstream consumers (and tests) get a
+    // guaranteed contract even when the LLM omits or mis-fills required fields.
+    const ALLOWED_STRENGTH = ["strong", "moderate", "weak", "insufficient", "uncertain"];
+    const NONE_TEXT = "None identified in current database";
+    analysis.overall_assessment = analysis.overall_assessment || {};
+    const oa = analysis.overall_assessment;
+    const rawStrength = typeof oa.argument_strength === "string" ? oa.argument_strength.toLowerCase().trim() : "";
+    if (!ALLOWED_STRENGTH.includes(rawStrength)) {
+      console.warn(`[LIA] Coercing invalid argument_strength "${oa.argument_strength}" → "uncertain"`);
+      oa.argument_strength = "uncertain";
+    } else {
+      oa.argument_strength = rawStrength;
+    }
+    if (typeof oa.closest_accepted_precedent !== "string" || oa.closest_accepted_precedent.trim().length === 0) {
+      oa.closest_accepted_precedent = NONE_TEXT;
+    }
+    if (typeof oa.closest_rejected_precedent !== "string" || oa.closest_rejected_precedent.trim().length === 0) {
+      oa.closest_rejected_precedent = NONE_TEXT;
+    }
+    if (typeof oa.strength_basis !== "string" || oa.strength_basis.trim().length === 0) {
+      oa.strength_basis = "Insufficient analysis returned by the model to support a confident rating.";
+    }
+    if (!Array.isArray(oa.key_distinguishing_factors)) oa.key_distinguishing_factors = [];
+    if (!Array.isArray(oa.blocking_issues)) oa.blocking_issues = [];
+
 
     // ── STAGE 3: Documentation recommendations ──
     const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.`;

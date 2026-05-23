@@ -1,4 +1,25 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
+
+// Robustly parse a JSON object from an LLM response, tolerating code fences,
+// prose preamble, trailing commas, and other common malformations.
+function safeParseLlmJson(text: string): any | null {
+  if (!text) return null;
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1) return null;
+  const slice = text.slice(start, end + 1);
+  try {
+    return JSON.parse(slice);
+  } catch {
+    try {
+      return JSON.parse(jsonrepair(slice));
+    } catch (e) {
+      console.error("[brief] jsonrepair failed:", e instanceof Error ? e.message : e);
+      return null;
+    }
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -582,9 +603,11 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
       }
       const data = await response.json();
       const text = data.content?.[0]?.text || "";
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) continue;
-      const customSections = JSON.parse(jsonMatch[0]);
+      const customSections = safeParseLlmJson(text);
+      if (!customSections) {
+        console.error(`Custom brief JSON parse failed for user ${user.id}. Length: ${text.length}. Tail: ${text.slice(-200)}`);
+        continue;
+      }
 
       // Verification pass with Haiku — check action items are specific
       let verificationResult: any = null;
@@ -619,8 +642,8 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         if (verifyResp.ok) {
           const vData = await verifyResp.json();
           const vText = vData.content?.[0]?.text || "";
-          const vMatch = vText.match(/\{[\s\S]*\}/);
-          if (vMatch) verificationResult = JSON.parse(vMatch[0]);
+          const vParsed = safeParseLlmJson(vText);
+          if (vParsed) verificationResult = vParsed;
         }
       } catch (e) {
         console.error(`Verification failed for user ${user.id}:`, e);
