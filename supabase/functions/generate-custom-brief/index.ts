@@ -1,4 +1,25 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
+
+// Robustly parse a JSON object from an LLM response, tolerating code fences,
+// prose preamble, trailing commas, and other common malformations.
+function safeParseLlmJson(text: string): any | null {
+  if (!text) return null;
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1) return null;
+  const slice = text.slice(start, end + 1);
+  try {
+    return JSON.parse(slice);
+  } catch {
+    try {
+      return JSON.parse(jsonrepair(slice));
+    } catch (e) {
+      console.error("[brief] jsonrepair failed:", e instanceof Error ? e.message : e);
+      return null;
+    }
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
