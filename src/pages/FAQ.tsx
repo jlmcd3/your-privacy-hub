@@ -46,7 +46,7 @@ const pricingFaqs = [
   },
   {
     q: "What is included in Professional?",
-    a: "Professional ($35/month base + $150/client/year) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace, branded document outputs, up to 3 team logins, per-client tool allowances, and a 25% discount on every compliance tool. Tools are per-use (not bundled). The CPPA Scope Checker is always free; CPPA Risk Assessment and CPPA Cybersecurity Audit are paid for all tiers but discounted for subscribers.",
+    a: "Professional ($30/month base + $150/client/year) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace, branded document outputs, up to 3 team logins, per-client tool allowances, and 1 free Convenience Tool run per client per month (annual plan). Tools are per-use for all tiers. The CPPA Scope Checker is always free; all other tools are billed per run at standalone rates.",
   },
   {
     q: "Can I try the tools before subscribing?",
