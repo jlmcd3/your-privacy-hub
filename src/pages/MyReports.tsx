@@ -52,6 +52,9 @@ type ReportRow = {
   view_path: string;
   pdf_url?: string | null;
   deletable?: boolean;
+  client_id?: string | null;
+  client_name?: string | null;
+  is_personal_client?: boolean;
 };
 
 const TOOL_LABEL: Record<string, string> = {
