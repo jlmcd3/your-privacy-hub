@@ -24,7 +24,7 @@ interface ToolAccessConfig {
  * New Model (Doc 4):
  *
  *   Standard tool (default):
- *     annual / annual_founding → effectivePrice = subscriberPrice (typically 0 / included)
+ *     annual / annual_founding → effectivePrice = subscriberPrice (0 for IR Playbook + Biometric; standalonePrice for all others)
  *     monthly / free           → effectivePrice = standalonePrice
  *
  *   CPPA tool (isCppa = true):

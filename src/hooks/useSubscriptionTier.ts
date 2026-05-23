@@ -8,7 +8,7 @@ export interface SubscriptionTierState {
   tier: SubscriptionTier;
   /** True if user has an active paid subscription (any tier). */
   isPremium: boolean;
-  /** True only for annual or annual_founding — the user gets tools included. */
+  /** True only for annual or annual_founding — the user gets IR Playbook and Biometric included; all other tools are per-run. */
   hasToolAccess: boolean;
   /** True for monthly subscribers — intelligence only, no tool access. */
   isIntelligenceOnly: boolean;
