@@ -42,7 +42,7 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: "Privacy Intelligence is $20/month (or $180/year — save $60, 3 months free) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. It starts with a 10-day free trial. Professional is $35/month base + $150/client/year and adds client/matter workspaces, branded document outputs, up to 3 team logins, and a 25% discount on every compliance tool. Both paid tiers include 1 free tool run per month. Individual compliance tools are also available standalone.",
+    a: "Privacy Intelligence is $20/month (or $200/year — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. It starts with a 10-day free trial. Professional is $30/month base + $150/client/year and adds client/matter workspaces, branded document outputs, up to 3 team logins, and 1 free Convenience Tool run per client per month (annual plan). Individual compliance tools are available standalone for all users.",
   },
   {
     q: "What is included in Professional?",
