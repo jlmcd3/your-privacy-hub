@@ -629,7 +629,7 @@ export function getActivePrices(): PriceEntry[] {
 /** Convenience accessors for the most common copy patterns. */
 export const INTELLIGENCE_PRICING = {
   monthly: () => formatPrice("intelligence_monthly"),                              // "$29/month"
-  yearly: () => formatPrice("intelligence_yearly"),                                // "$399/year"
+  yearly: () => formatPrice("intelligence_yearly"),                                // "$200/year"
   combined: () =>
     `${formatPrice("intelligence_monthly")} or ${formatPrice("intelligence_yearly")}`,
   monthlyShort: () => `${getPrice("intelligence_monthly").displayPrice}/mo`,
