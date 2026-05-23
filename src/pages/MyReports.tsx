@@ -71,6 +71,27 @@ export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  async function handleDelete(row: ReportRow) {
+    const table = TOOL_TABLE[row.tool];
+    if (!table) return;
+    const key = `${row.tool}-${row.id}`;
+    setDeletingId(key);
+    const { error } = await supabase.from(table as any).delete().eq("id", row.id);
+    setDeletingId(null);
+    if (error) {
+      toast({
+        title: "Couldn't delete report",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    setRows((prev) => prev.filter((x) => !(x.tool === row.tool && x.id === row.id)));
+    toast({ title: "Report deleted", description: row.tool_label });
+  }
 
   useEffect(() => {
     if (!user) return;
