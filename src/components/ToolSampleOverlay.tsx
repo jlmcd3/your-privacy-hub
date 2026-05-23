@@ -45,17 +45,9 @@ export default function ToolSampleOverlay({
           >
             {priceLabel}
           </button>
-          {showSubscriberDiscount && (
+          {!isFreeForUser && !isPremium && (
             <p className="text-[11px] text-muted-foreground">
-              Intelligence subscribers pay ${subscriberPrice} per document.{" "}
-              <Link to="/subscribe" className="text-primary font-semibold hover:underline">
-                See what's included in Intelligence →
-              </Link>
-            </p>
-          )}
-          {showFreeForSubscribers && !isFreeForUser && (
-            <p className="text-[11px] text-muted-foreground">
-              Included with an Intelligence subscription.{" "}
+              Included with Annual Platform subscription.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
                 See plans →
               </Link>
