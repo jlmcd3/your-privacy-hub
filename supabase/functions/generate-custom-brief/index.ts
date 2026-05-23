@@ -637,7 +637,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         preferences_snapshot: { ...effective, brief_role: userRole },
         generated_at: new Date().toISOString(),
         articles_used: topArticles.length,
-        generation_model: "claude-opus-4-7",
+        generation_model: "claude-sonnet-4-6",
         verification_result: verificationResult,
         issue_tags: issueTags,
       });
