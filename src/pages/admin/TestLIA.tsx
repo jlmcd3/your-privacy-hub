@@ -143,11 +143,11 @@ export default function TestLIA() {
       body: { assessment_id: rec.id },
     });
     if (fnErr) {
-      addLog(`❌ Edge function error: ${fnErr.message}`);
-      setStatus("failed");
-      return;
+      addLog(`⚠️ Edge function returned an error: ${fnErr.message}`);
+      addLog("▶ Checking the database anyway — the report may have completed before the response timed out...");
+    } else {
+      addLog("✓ Edge function returned. Polling for DB update...");
     }
-    addLog("✓ Edge function returned. Polling for DB update...");
 
     let polls = 0;
     const poll = async () => {
