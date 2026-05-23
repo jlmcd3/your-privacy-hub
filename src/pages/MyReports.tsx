@@ -28,8 +28,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Map tool key -> Supabase table name used for deletion.
-// registration_orders intentionally omitted: users do not have a DELETE policy
-// on orders (admins only), so the Delete button is hidden for that tool.
+// registration_orders is included, but the RLS DELETE policy only allows
+// deleting orders that are NOT paid AND have no filings attached. The UI
+// respects that by hiding the button when `deletable === false` on the row.
 const TOOL_TABLE: Partial<Record<string, string>> = {
   li: "li_assessments",
   dpia: "dpia_frameworks",
@@ -38,6 +39,7 @@ const TOOL_TABLE: Partial<Record<string, string>> = {
   ir: "ir_playbooks",
   biometric: "biometric_assessments",
   ropa: "ropa_sessions",
+  registration: "registration_orders",
 };
 
 type ReportRow = {
@@ -49,6 +51,7 @@ type ReportRow = {
   summary: string;
   view_path: string;
   pdf_url?: string | null;
+  deletable?: boolean;
 };
 
 const TOOL_LABEL: Record<string, string> = {
