@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { isSmartTool, isConvenienceTool } from "@/config/pricing";
+import { isSmartTool, isConvenienceTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 // Map Tools-page slugs to PRICING tool keys so we can classify per card.
 const SLUG_TO_TOOL_KEY: Record<string, string> = {
