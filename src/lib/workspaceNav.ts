@@ -70,10 +70,10 @@ export const INTELLIGENCE_ITEMS: WorkspaceItem[] = [
  */
 export const WORK_ITEMS: WorkspaceItem[] = [
   {
-    to: "/tools",
+    to: "/start",
     label: "Start new\u2026",
     icon: PlusCircle,
-    match: (p) => p === "/tools",
+    match: (p) => p === "/start",
   },
   {
     to: "/dashboard/reports",
