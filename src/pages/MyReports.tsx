@@ -129,7 +129,7 @@ export default function MyReports() {
           .select("id, status, created_at, intake_data, jurisdictions, pdf_url")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("registration_orders")
-          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier")
+          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier, registration_filings(id)")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         clientIds.length > 0
           ? supabase.from("ropa_sessions")
