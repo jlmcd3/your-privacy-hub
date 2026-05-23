@@ -203,7 +203,8 @@ export default function TestsDashboard() {
           </div>
 
           {running.length > 0 && (
-            <div className="mt-10">
+            <div ref={runsRef} className="mt-10 scroll-mt-20">
+
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-navy text-xl">
                   Test runs ({running.length})
