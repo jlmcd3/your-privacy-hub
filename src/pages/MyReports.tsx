@@ -283,7 +283,7 @@ export default function MyReports() {
                           {r.status === "in_progress" ? "Continue" : "View"} <ArrowRight className="w-3.5 h-3.5 ml-1" />
                         </Link>
                       </Button>
-                      {TOOL_TABLE[r.tool] && (r.tool !== "registration" || r.deletable) && (
+                      {TOOL_TABLE[r.tool] && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button

@@ -160,43 +160,43 @@ export default function RegistrationMyFilings() {
                           <Button asChild size="sm">
                             <Link to={`/registration-manager/documents/${o.id}`}>View documents</Link>
                           </Button>
-                          {o.payment_status !== "paid" && filings.length === 0 && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-destructive hover:text-destructive"
-                                  disabled={deletingId === o.id}
-                                  aria-label="Delete order"
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:text-destructive"
+                                disabled={deletingId === o.id}
+                                aria-label="Delete order"
+                              >
+                                {deletingId === o.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this order?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This permanently removes the order and any associated documents
+                                  {filings.length > 0 ? ` and ${filings.length} filing record${filings.length === 1 ? "" : "s"} on file` : ""}.
+                                  {o.payment_status === "paid" ? " The order has already been paid — deleting it here does not issue a refund." : ""}
+                                  {" "}This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(o.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                  {deletingId === o.id ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  ) : (
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  )}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete this order?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This permanently removes the unpaid order and any draft documents tied to it.
-                                    Paid orders or orders with filings on record can't be deleted here — contact support.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(o.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </CardContent>
