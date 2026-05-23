@@ -198,6 +198,7 @@ const App = () => (
             
             <Route path="/legislation-tracker" element={<LegislationTracker />} />
             <Route path="/tools" element={<Tools />} />
+            <Route path="/start" element={<StartNew />} />
             <Route path="/cookie-consent" element={<CookieConsent />} />
             <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
             <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
