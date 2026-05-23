@@ -19,7 +19,7 @@ const TOOLS = [
       "Search a curated database of enforcement decisions and regulatory guidance to see how regulators have treated processing use cases similar to yours — and what documentation you need for a defensible balancing record.",
     cta: "View Sample & Purchase",
     href: "/li-assessment",
-    standalonePrice: 79,
+    standalonePrice: 35,
     subscriberPrice: 35,
   },
   {
@@ -29,8 +29,8 @@ const TOOLS = [
       "Ten-domain review of your organisation's privacy practices mapped to applicable regulatory frameworks. Each finding is rated by severity and paired with a recommended action, suggested owner, and timeline.",
     cta: "View Sample & Purchase",
     href: "/governance-assessment",
-    standalonePrice: 49,
-    subscriberPrice: 25,
+    standalonePrice: 55,
+    subscriberPrice: 55,
   },
   {
     icon: "📋",
@@ -39,8 +39,8 @@ const TOOLS = [
       "Structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
     cta: "View Sample & Purchase",
     href: "/dpia-framework",
-    standalonePrice: 99,
-    subscriberPrice: 49,
+    standalonePrice: 45,
+    subscriberPrice: 45,
   },
   {
     icon: "📄",
@@ -49,8 +49,8 @@ const TOOLS = [
       "Draft your custom GDPR Article 28 Data Protection Agreement calibrated to real enforcement precedents. Tailored to your controller/processor relationship, sub-processor structure, and transfer mechanism.",
     cta: "View Sample & Purchase",
     href: "/dpa-generator",
-    standalonePrice: 99,
-    subscriberPrice: 49,
+    standalonePrice: 45,
+    subscriberPrice: 45,
   },
   {
     icon: "🚨",
@@ -59,17 +59,17 @@ const TOOLS = [
       "Your jurisdiction-specific data breach response playbook with hour-by-hour actions, notification timelines, DPA portal links, and notification templates.",
     cta: "View Sample & Purchase",
     href: "/ir-playbook",
-    standalonePrice: 59,
+    standalonePrice: 25,
     subscriberPrice: 0,
   },
   {
     icon: "🫆",
     title: "Biometric Privacy Compliance Assessment",
     description:
-      "Check biometric processing (face, fingerprint, voice, iris) against BIPA, GDPR Art. 9, and global biometric laws. Free account required; included with Intelligence.",
+      "Check biometric processing (face, fingerprint, voice, iris) against BIPA, GDPR Art. 9, and global biometric laws. Included with Annual Platform.",
     cta: "View Sample & Purchase",
     href: "/biometric-checker",
-    standalonePrice: 49,
+    standalonePrice: 15,
     subscriberPrice: 0,
   },
   {
@@ -79,8 +79,8 @@ const TOOLS = [
       "Free assessment maps where your organisation must register (DPO, RoPA, AI Act, Article 27 rep). Then generate a counsel-ready filing pack you submit yourself. You file; we draft and track.",
     cta: "Start Free Assessment",
     href: "/registration-manager",
-    standalonePrice: 59,
-    subscriberPrice: 47,
+    standalonePrice: 45,
+    subscriberPrice: 45,
   },
 ];
 
