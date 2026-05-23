@@ -22,6 +22,7 @@ import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import TrialCountdownBanner from "@/components/dashboard/TrialCountdownBanner";
 import WorkspaceStatusLine from "@/components/WorkspaceStatusLine";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useClientStore } from "@/stores/clientStore";
 
 
 interface EnforcementRow {
@@ -208,6 +209,18 @@ const Dashboard = () => {
   const [showDigestPrefs, setShowDigestPrefs] = useState(false);
   const [digestPrefsSet, setDigestPrefsSet] = useState(false);
   const [freeDigest, setFreeDigest] = useState<any>(null);
+
+  // The Intelligence Report is a per-user product, not per-client. If the
+  // user lands here while a client workspace is active, snap the workspace
+  // selector back to their personal context so the page header and any
+  // downstream surfaces correctly reflect "this brief is for you".
+  useEffect(() => {
+    const { activeClient, personal, switchToPersonal } = useClientStore.getState();
+    if (personal && activeClient && activeClient.id !== personal.id) {
+      switchToPersonal();
+    }
+  }, []);
+
 
   useEffect(() => {
     if (authLoading) return;
