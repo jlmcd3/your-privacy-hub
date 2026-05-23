@@ -18,7 +18,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
-import ToolTierNote from "@/components/tools/ToolTierNote";
+
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
 const ORG = ["Employer (employee biometrics)","Consumer app or platform","Healthcare provider","Financial institution / fintech","Security / access control provider","Research organisation","Other"];
@@ -99,7 +99,7 @@ export default function BiometricChecker() {
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <div className="mb-4">
-          <ToolTierNote />
+          
         </div>
 
         {phase === "result" && result ? (

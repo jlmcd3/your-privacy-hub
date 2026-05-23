@@ -16,7 +16,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
-import ToolTierNote from "@/components/tools/ToolTierNote";
+
 
 const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
@@ -148,7 +148,7 @@ export default function DPAGenerator() {
           );
         })()}
         <div className="mb-4">
-          <ToolTierNote />
+          
         </div>
 
         {phase === "result" ? (

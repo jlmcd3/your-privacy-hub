@@ -13,7 +13,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
-import ToolTierNote from "@/components/tools/ToolTierNote";
+
 
 interface PreviewRow {
   id: string;
@@ -201,7 +201,7 @@ const LIAssessmentIntake = () => {
         </div>
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-          <ToolTierNote />
+          
         </div>
 
 
