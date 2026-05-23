@@ -223,9 +223,7 @@ export default function RegistrationLanding() {
             </Card>
           </div>
           <p className="text-center text-xs text-slate-light mt-6">
-            Intelligence subscribers ($20/mo): 20% off per filing.<br />
-            Professional subscribers ($35/mo): 25% off per filing.<br />
-            All subscribers get 1 free tool run per month included.
+            Professional Annual subscribers: 1 free Convenience Tool run per client per month.
           </p>
         </section>
 

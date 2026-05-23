@@ -715,9 +715,9 @@ export const EU_NOTICE_PRICING = {
 //  ─────────────────────────────────────────────────────────────────────────
 //  UI (v7 PRICING)                       vs.  Legacy registry / backend
 //  -------------------------------------------------------------------------
-//  Intelligence monthly      $20/mo      vs.  intelligence_monthly      $29
-//  Intelligence annual       $180/yr     vs.  intelligence_only_yearly  $249
-//  Professional base         $35/mo      vs.  (no legacy equivalent — was Platform $399/yr)
+//  Intelligence monthly      $20/mo
+//  Intelligence annual       $200/yr
+//  Professional base         $30/mo
 //  Professional per-client   $150/yr     vs.  per_client_addon          $199
 //  Intelligence trial        10 days     vs.  (none — Stripe checkout has no trial)
 //  Free tool run / month     1 (paid)    vs.  (none — no usage tracking)
