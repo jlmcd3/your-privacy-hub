@@ -50,13 +50,9 @@ const PremiumBanner = () => {
           <div className="relative z-10 bg-white/[0.06] border border-white/15 rounded-2xl p-6 md:p-7 text-center min-w-[180px] md:min-w-[200px]">
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
-              <sup className="text-[18px] md:text-[22px] align-super">$</sup>29
+              <sup className="text-[18px] md:text-[22px] align-super">$</sup>20
             </div>
-            <div className="text-sm text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
-            <div className="text-[11px] text-white/70 mb-2">{`or ${INTELLIGENCE_PRICING.yearly()} — Save $78`}</div>
-            <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">
-              First 25 subscribers: free for 1 year
-            </div>
+            <div className="text-sm text-slate-light mt-1 mb-1.5">per month, or $200/year</div>
           </div>
         </div>
       </div>
