@@ -12,8 +12,33 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, FileText, Download, ArrowRight } from "lucide-react";
+import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+
+// Map tool key -> Supabase table name used for deletion.
+// registration_orders intentionally omitted: users do not have a DELETE policy
+// on orders (admins only), so the Delete button is hidden for that tool.
+const TOOL_TABLE: Partial<Record<string, string>> = {
+  li: "li_assessments",
+  dpia: "dpia_frameworks",
+  governance: "governance_assessments",
+  dpa: "dpa_documents",
+  ir: "ir_playbooks",
+  biometric: "biometric_assessments",
+  ropa: "ropa_sessions",
+};
 
 type ReportRow = {
   id: string;
@@ -46,6 +71,27 @@ export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  async function handleDelete(row: ReportRow) {
+    const table = TOOL_TABLE[row.tool];
+    if (!table) return;
+    const key = `${row.tool}-${row.id}`;
+    setDeletingId(key);
+    const { error } = await supabase.from(table as any).delete().eq("id", row.id);
+    setDeletingId(null);
+    if (error) {
+      toast({
+        title: "Couldn't delete report",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    setRows((prev) => prev.filter((x) => !(x.tool === row.tool && x.id === row.id)));
+    toast({ title: "Report deleted", description: row.tool_label });
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -229,6 +275,43 @@ export default function MyReports() {
                           {r.status === "in_progress" ? "Continue" : "View"} <ArrowRight className="w-3.5 h-3.5 ml-1" />
                         </Link>
                       </Button>
+                      {TOOL_TABLE[r.tool] && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:text-destructive"
+                              disabled={deletingId === `${r.tool}-${r.id}`}
+                              aria-label={`Delete ${r.tool_label}`}
+                            >
+                              {deletingId === `${r.tool}-${r.id}` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this report?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently remove your {r.tool_label.toLowerCase()}
+                                {r.summary ? ` ("${r.summary}")` : ""}. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(r)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
