@@ -184,8 +184,6 @@ export default function ToolSamplePreview({
   purchasing,
 }: Props) {
   const Sample = toolType === "li" ? LISample : toolType === "healthcheck" ? HealthcheckSample : DPIASample;
-  const showSubscriberTeaser = !isSubscriber && subscriberPrice && subscriberPrice < price;
-  const showStandaloneCompare = isSubscriber && standalonePrice && standalonePrice > price;
 
   return (
     <section className="bg-card border rounded-lg overflow-hidden">
