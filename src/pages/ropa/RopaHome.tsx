@@ -209,7 +209,7 @@ export default function RopaHome() {
                   <Plus className="mr-1.5 h-4 w-4" /> Start RoPA
                 </Button>
                 <p className="text-xs text-muted-foreground mt-3">
-                  From $35 (Intelligence subscriber) · $79 standalone
+                  $40 for subscribers · $79 standalone
                 </p>
               </CardContent>
             </Card>
