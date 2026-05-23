@@ -1,6 +1,6 @@
 // Admin dashboard for the /admin/test-* tool exercise pages. Lets an admin
-// pick any subset (or all) of the test pages and open each selected one in
-// its own tab so they run in parallel without leaving this page.
+// pick any subset (or all) of the test pages and run each selected one inline
+// in an embedded iframe so they can be reviewed without leaving this page.
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,7 +11,7 @@ import PageContainer from "@/components/PageContainer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ExternalLink, PlayCircle } from "lucide-react";
+import { ExternalLink, PlayCircle, X, RotateCw } from "lucide-react";
 
 type TestEntry = {
   id: string;
@@ -45,8 +45,11 @@ const GROUP_ORDER: TestEntry["group"][] = [
   "Other",
 ];
 
+type RunEntry = TestEntry & { nonce: number };
+
 export default function TestsDashboard() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [running, setRunning] = useState<RunEntry[]>([]);
 
   const allSelected = selected.size === TESTS.length;
   const someSelected = selected.size > 0 && !allSelected;
@@ -76,8 +79,21 @@ export default function TestsDashboard() {
 
   function runSelected() {
     const chosen = TESTS.filter((t) => selected.has(t.id));
-    // Open each in its own tab so they run in parallel.
-    chosen.forEach((t) => window.open(t.path, "_blank", "noopener,noreferrer"));
+    setRunning(chosen.map((t) => ({ ...t, nonce: Date.now() })));
+  }
+
+  function closeRun(id: string) {
+    setRunning((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  function reloadRun(id: string) {
+    setRunning((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, nonce: Date.now() } : r)),
+    );
+  }
+
+  function clearRuns() {
+    setRunning([]);
   }
 
   return (
@@ -92,8 +108,9 @@ export default function TestsDashboard() {
             <div>
               <h1 className="font-display text-navy">Tool Tests</h1>
               <p className="text-sm text-slate mt-1">
-                Pick any combination of tool test pages and run them. Each
-                selected test opens in its own tab so they can run in parallel.
+                Pick any combination of tool test pages and run them. Selected
+                tests load inline below so you can review them without leaving
+                this page.
               </p>
             </div>
             <Button
@@ -177,6 +194,77 @@ export default function TestsDashboard() {
               );
             })}
           </div>
+
+          {running.length > 0 && (
+            <div className="mt-10">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-display text-navy text-xl">
+                  Test runs ({running.length})
+                </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearRuns}
+                  className="gap-1.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Close all
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {running.map((r) => (
+                  <Card key={r.id} className="border border-fog overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-fog bg-cloud">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-semibold text-navy truncate">
+                          {r.label}
+                        </span>
+                        <code className="text-xs text-slate-500 truncate">
+                          {r.path}
+                        </code>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => reloadRun(r.id)}
+                          className="h-7 px-2 gap-1"
+                          title="Reload"
+                        >
+                          <RotateCw className="w-3.5 h-3.5" />
+                        </Button>
+                        <Link
+                          to={r.path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-7 px-2 text-slate hover:text-cobalt rounded-md hover:bg-fog/40"
+                          title="Open in new tab"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => closeRun(r.id)}
+                          className="h-7 px-2"
+                          title="Close"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <iframe
+                      key={r.nonce}
+                      src={r.path}
+                      title={r.label}
+                      className="w-full h-[720px] bg-white border-0"
+                      loading="lazy"
+                    />
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </PageContainer>
       <Footer />
