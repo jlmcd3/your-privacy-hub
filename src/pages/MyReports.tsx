@@ -283,6 +283,20 @@ export default function MyReports() {
                             {(r.status || "—").replace(/_/g, " ")}
                           </Badge>
                         )}
+                        {r.client_name && !r.is_personal_client && (
+                          <Badge
+                            variant="outline"
+                            className="text-[11px] border-cobalt/40 text-cobalt"
+                            title={`Client workspace: ${r.client_name}`}
+                          >
+                            {r.client_name}
+                          </Badge>
+                        )}
+                        {r.is_personal_client && (
+                          <Badge variant="outline" className="text-[11px] text-muted-foreground">
+                            Personal
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-slate truncate">{r.summary}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">
@@ -321,10 +335,24 @@ export default function MyReports() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this report?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                {r.client_name && !r.is_personal_client
+                                  ? `Delete this ${r.client_name} report?`
+                                  : "Delete this report?"}
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently remove your {r.tool_label.toLowerCase()}
-                                {r.summary ? ` ("${r.summary}")` : ""}. This action cannot be undone.
+                                {r.client_name && !r.is_personal_client ? (
+                                  <>
+                                    This report belongs to <strong>{r.client_name}</strong>. Deleting it
+                                    here permanently removes it from that client workspace too.
+                                    {r.summary ? <> Report: "{r.summary}".</> : null} This action cannot be undone.
+                                  </>
+                                ) : (
+                                  <>
+                                    This will permanently remove your {r.tool_label.toLowerCase()}
+                                    {r.summary ? ` ("${r.summary}")` : ""}. This action cannot be undone.
+                                  </>
+                                )}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
