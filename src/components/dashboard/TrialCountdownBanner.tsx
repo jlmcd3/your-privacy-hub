@@ -45,7 +45,7 @@ export default function TrialCountdownBanner() {
           {daysLeft === 1 ? "Last day of your trial" : `${daysLeft} days left in your free trial`}
         </span>
         <span className="text-amber-800 ml-1">
-          — Intelligence is $20/month after the 10-day trial ends.
+          — Intelligence is {INTELLIGENCE_PRICING.monthly()} after the 10-day trial ends.
         </span>
       </div>
       <Link
