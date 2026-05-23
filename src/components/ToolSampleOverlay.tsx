@@ -12,8 +12,6 @@ interface Props {
   onPurchase: () => void;
   isFreeForUser: boolean;
   isPremium: boolean | null;
-  subscriberPrice: number | null;
-  standalonePrice: number | null;
 }
 
 export default function ToolSampleOverlay({
@@ -23,14 +21,7 @@ export default function ToolSampleOverlay({
   onPurchase,
   isFreeForUser,
   isPremium,
-  subscriberPrice,
-  standalonePrice,
 }: Props) {
-  // Subscribers-pay-discount messaging
-  const showSubscriberDiscount =
-    !isPremium && subscriberPrice !== null && standalonePrice !== null && subscriberPrice < standalonePrice;
-  // Free-for-subscriber messaging
-  const showFreeForSubscribers = !isPremium && subscriberPrice === null && standalonePrice !== null;
 
   return (
     <div className="relative rounded-xl overflow-hidden">
