@@ -2,7 +2,7 @@
 // pick any subset (or all) of the test pages and run each selected one inline
 // in an embedded iframe so they can be reviewed without leaving this page.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -50,6 +50,13 @@ type RunEntry = TestEntry & { nonce: number };
 export default function TestsDashboard() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState<RunEntry[]>([]);
+  const runsRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (running.length > 0) {
+      runsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [running]);
 
   const allSelected = selected.size === TESTS.length;
   const someSelected = selected.size > 0 && !allSelected;
@@ -196,7 +203,8 @@ export default function TestsDashboard() {
           </div>
 
           {running.length > 0 && (
-            <div className="mt-10">
+            <div ref={runsRef} className="mt-10 scroll-mt-20">
+
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-navy text-xl">
                   Test runs ({running.length})
