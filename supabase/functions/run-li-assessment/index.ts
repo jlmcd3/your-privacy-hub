@@ -1,4 +1,29 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
+
+// Robustly parse a JSON object from an LLM response that may include
+// code fences, prose preamble, or unescaped quotes/newlines inside strings.
+function parseLlmJson(text: string): any | null {
+  if (!text) return null;
+  // Strip ```json fences if present
+  let cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+  // Extract from first { to last }
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start === -1 || end === -1) return null;
+  cleaned = cleaned.slice(start, end + 1);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    try {
+      return JSON.parse(jsonrepair(cleaned));
+    } catch (e) {
+      console.error("[LIA] jsonrepair also failed:", e instanceof Error ? e.message : e);
+      return null;
+    }
+  }
+}
+
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
