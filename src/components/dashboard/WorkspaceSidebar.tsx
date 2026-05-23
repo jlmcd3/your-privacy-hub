@@ -237,11 +237,3 @@ export default function WorkspaceSidebar() {
     </aside>
   );
 }
-
-// Small wrapper so we don't re-import Building2 with a different name.
-function Building2Small({ className }: { className?: string }) {
-  // Lazy local import keeps the top of the file tidy.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { Building2 } = require("lucide-react");
-  return <Building2 className={className} />;
-}
