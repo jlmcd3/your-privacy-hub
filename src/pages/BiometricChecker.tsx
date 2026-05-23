@@ -69,15 +69,15 @@ export default function BiometricChecker() {
     if (!access.user) { setAuthModalOpen(true); return; }
     // 2. Subscribers with a free run this month — run free
     if (access.isPremium) { handleGenerate(); return; }
-    // 3. Otherwise charge per-use ($10 standalone, discounted for subscribers)
+    // 3. Otherwise charge per-use ($15 standalone)
     setCheckoutOpen(true);
   };
 
   const ctaLabel = !access.user
     ? "Sign in to analyse"
     : access.isPremium
-      ? "Analyse — free run / subscriber rate"
-      : "Analyse — $10";
+      ? "Analyse — included with your plan"
+      : "Analyse — $15";
 
   return (
     <div className="min-h-screen bg-paper">
