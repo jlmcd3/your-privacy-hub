@@ -2,7 +2,7 @@
 // pick any subset (or all) of the test pages and run each selected one inline
 // in an embedded iframe so they can be reviewed without leaving this page.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
