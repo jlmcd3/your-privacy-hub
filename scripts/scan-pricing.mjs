@@ -23,9 +23,17 @@ const ROOT = process.cwd();
 
 // ---------- 0. Hardcoded subscription price guard ----------
 // The pricing registry (src/config/pricing.ts) is the single source of truth
-// for the Intelligence subscription. Any hardcoded "$39" / "$390" string
-// outside that file is a drift risk. This check fails the scanner if found.
+// for the Intelligence + Professional subscriptions. Any hardcoded price
+// string outside that file is a drift risk. This check fails the scanner
+// if found. Update these patterns when canonical prices change.
 const SUBSCRIPTION_PATTERNS = [
+  // Intelligence
+  "\\$20\\/month", "\\$20\\/mo\\b", "\\$200\\/year", "\\$200\\/yr\\b",
+  // Professional
+  "\\$30\\/month", "\\$30\\/mo\\b", "\\$300\\/year", "\\$300\\/yr\\b",
+  // Per-client add-on
+  "\\$150\\/client",
+  // Legacy values that must never reappear
   "\\$29\\/month", "\\$29\\/mo\\b", "\\$399\\/year", "\\$399\\/yr\\b",
 ];
 const ALLOWED_FILES = new Set([
