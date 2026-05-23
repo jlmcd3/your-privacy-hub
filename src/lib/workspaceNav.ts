@@ -11,6 +11,8 @@ import {
   Bookmark,
   Settings,
   Building2,
+  PlusCircle,
+  ScrollText,
 } from "lucide-react";
 
 export type WorkspaceItem = {
@@ -48,19 +50,10 @@ export function normalizeHash(h: string): string {
 export const INTELLIGENCE_ITEMS: WorkspaceItem[] = [
   {
     to: "/dashboard",
-    label: "Intelligence Report",
+    label: "Weekly Brief",
     icon: FileText,
     // Exact /dashboard only — sub-routes like /dashboard/reports belong elsewhere.
     match: (p) => p === "/dashboard",
-  },
-  {
-    to: "/dashboard/reports",
-    label: "My Reports",
-    icon: FolderOpen,
-    match: (p) =>
-      p === "/dashboard/reports" ||
-      p.startsWith("/dashboard/reports/") ||
-      REPORT_TOOL_PATH.test(p),
   },
   {
     to: "/watchlist",
@@ -70,13 +63,52 @@ export const INTELLIGENCE_ITEMS: WorkspaceItem[] = [
   },
 ];
 
-export const OPERATIONS_ITEMS: WorkspaceItem[] = [
+/**
+ * Work items rendered under each workspace (Personal + each Client).
+ * The `to` is the global route; the active client context scopes the
+ * page. Sidebar click handlers call setActiveClient before navigating.
+ */
+export const WORK_ITEMS: WorkspaceItem[] = [
+  {
+    to: "/tools",
+    label: "Start new\u2026",
+    icon: PlusCircle,
+    match: (p) => p === "/tools",
+  },
+  {
+    to: "/dashboard/reports",
+    label: "Reports",
+    icon: FolderOpen,
+    match: (p) =>
+      p === "/dashboard/reports" ||
+      p.startsWith("/dashboard/reports/") ||
+      REPORT_TOOL_PATH.test(p),
+  },
   {
     to: "/registration-manager/my-filings",
     label: "Filings",
     icon: FileCheck,
     match: (p) => FILING_PATH.test(p),
   },
+  {
+    to: "/ropa",
+    label: "Notices & RoPA",
+    icon: ScrollText,
+    match: (p) =>
+      p === "/ropa" ||
+      p.startsWith("/ropa/") ||
+      p.startsWith("/us-notices") ||
+      p.startsWith("/eu-notices"),
+  },
+];
+
+/**
+ * Legacy alias kept so the mobile `DashboardSubnav` (which is a flat list
+ * and doesn't show per-client expansion) keeps working. Mobile gets the
+ * Work items plus Clients as a manage-list entry.
+ */
+export const OPERATIONS_ITEMS: WorkspaceItem[] = [
+  ...WORK_ITEMS,
   {
     to: "/clients",
     label: "Clients",
