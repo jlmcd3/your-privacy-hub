@@ -32,6 +32,19 @@ export default function RegistrationMyFilings() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleDelete(orderId: string) {
+    setDeletingId(orderId);
+    const { error } = await supabase.from("registration_orders").delete().eq("id", orderId);
+    setDeletingId(null);
+    if (error) {
+      toast.error(error.message || "Couldn't delete order");
+      return;
+    }
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    toast.success("Order deleted");
+  }
 
   async function load() {
     if (!user) return;
