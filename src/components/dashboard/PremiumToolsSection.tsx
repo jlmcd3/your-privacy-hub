@@ -199,17 +199,13 @@ export default function PremiumToolsSection({ isPremium }: Props) {
                 {tool.description}
               </p>
               <div className="mb-3">
-                <span className="font-display font-bold text-foreground text-[20px]">${displayPrice}</span>
-                <span className="text-muted-foreground text-[12px] ml-1">one-time</span>
-                {!isPremium && (
-                  <span className="block text-[11px] text-amber-700 mt-0.5">
-                    ⭐ Intelligence: ${tool.subscriberPrice}
-                  </span>
-                )}
-                {isPremium && tool.standalonePrice > tool.subscriberPrice && (
-                  <span className="block text-[11px] text-muted-foreground line-through mt-0.5">
-                    Standalone ${tool.standalonePrice}
-                  </span>
+                {isPremium && tool.subscriberPrice === 0 ? (
+                  <span className="font-display font-bold text-green-700 text-[20px]">Included</span>
+                ) : (
+                  <>
+                    <span className="font-display font-bold text-foreground text-[20px]">${displayPrice}</span>
+                    <span className="text-muted-foreground text-[12px] ml-1">one-time</span>
+                  </>
                 )}
               </div>
               <Link
