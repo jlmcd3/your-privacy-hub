@@ -649,7 +649,7 @@ export default function Tools() {
             Start 10-day Intelligence trial →
           </Link>
           <p className="text-blue-200/60 text-meta mt-4">
-            Intelligence $20/mo (10-day free trial) · Professional $30/mo + $150/client/yr · Cancel any time
+            Intelligence {INTELLIGENCE_PRICING.monthlyShort()} (10-day free trial) · Professional {PLATFORM_PRICING.standardMonthly()} + {PLATFORM_PRICING.clientAddon()} · Cancel any time
           </p>
         </div>
       </div>
