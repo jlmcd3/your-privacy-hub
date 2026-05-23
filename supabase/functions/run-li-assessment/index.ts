@@ -137,7 +137,15 @@ Deno.serve(async (req) => {
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
 
-    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.`;
+    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.
+
+MANDATORY FIELD RULES — violations will cause downstream system failures:
+
+1. The "verdict" field is REQUIRED in every test object (purpose_test, necessity_test, balancing_test). You MUST include it even when evidence is incomplete or the outcome is genuinely uncertain. Use "uncertain" — never omit the field.
+
+2. The "closest_accepted_precedent" field MUST be a non-empty string. If no close match exists in the database, write "None identified in current database" — never return null.
+
+3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".`;
 
     const analysisText = await callAnthropic(
       "claude-sonnet-4-6",
