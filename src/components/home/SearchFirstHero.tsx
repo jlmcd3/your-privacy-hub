@@ -76,7 +76,7 @@ export default function SearchFirstHero() {
             {/* Subtle pricing note */}
             <p className="text-white/40 text-meta mt-4 text-center lg:text-left">
               Intelligence from $20/month ·
-              Professional from $35/month + $150/client/year ·
+              Professional from $30/month + $150/client/year ·
               Tools available standalone
             </p>
           </div>
