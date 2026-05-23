@@ -179,8 +179,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
           Compliance Framework Tools
         </h2>
         <p className="text-muted-foreground text-[14px] mt-1">
-          Standalone compliance framework reports. Purchase only what you need —
-          {isPremium ? " Premium subscriber rate applied at checkout." : " Intelligence subscribers pay less."}
+          Per-use compliance tools. IR Playbook and Biometric are included with Annual Platform.
         </p>
       </div>
 
