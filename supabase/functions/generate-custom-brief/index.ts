@@ -642,8 +642,8 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         if (verifyResp.ok) {
           const vData = await verifyResp.json();
           const vText = vData.content?.[0]?.text || "";
-          const vMatch = vText.match(/\{[\s\S]*\}/);
-          if (vMatch) verificationResult = JSON.parse(vMatch[0]);
+          const vParsed = safeParseLlmJson(vText);
+          if (vParsed) verificationResult = vParsed;
         }
       } catch (e) {
         console.error(`Verification failed for user ${user.id}:`, e);
