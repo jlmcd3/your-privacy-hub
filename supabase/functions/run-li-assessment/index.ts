@@ -237,10 +237,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "vulnerable_subject_flag": ${(balancingDetails.vulnerable_subjects || []).filter((v: string) => v && v !== "None").length > 0 ? "true" : "false"}
   },
   "overall_assessment": {
-    "argument_strength": "strong | moderate | weak | insufficient",
+    "argument_strength": "strong | moderate | weak | insufficient | uncertain (REQUIRED, never null or omitted — use 'uncertain' if genuinely unclear)",
     "strength_basis": "One sentence explaining why this rating, referencing the strongest analogous precedent.",
-    "closest_accepted_precedent": "Name from the database, or null",
-    "closest_rejected_precedent": "Name from the database, or null",
+    "closest_accepted_precedent": "Name from the database (REQUIRED non-empty string; if none, write 'None identified in current database' — never null)",
+    "closest_rejected_precedent": "Name from the database (REQUIRED non-empty string; if none, write 'None identified in current database' — never null)",
     "key_distinguishing_factors": ["factors distinguishing this case from precedents"],
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
   }
