@@ -248,21 +248,13 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       3500
     );
 
-    let analysis: any = {};
-    try {
-      const m = analysisText.match(/\{[\s\S]*\}/);
-      if (m) {
-        analysis = JSON.parse(m[0]);
-      } else {
-        console.error("[LIA] No JSON object found in analysis response. Response length:", analysisText.length);
-        console.error("[LIA] Response preview:", analysisText.slice(0, 500));
-      }
-    } catch (parseErr) {
-      console.error("[LIA] JSON parse error:", parseErr);
-      console.error("[LIA] Raw response length:", analysisText.length);
-      console.error("[LIA] Raw response tail:", analysisText.slice(-200));
+    let analysis: any = parseLlmJson(analysisText);
+    if (!analysis) {
+      console.error("[LIA] Stage 2 parse failed even with repair. Length:", analysisText.length);
+      console.error("[LIA] Tail:", analysisText.slice(-300));
       analysis = { overall_assessment: { argument_strength: "uncertain" } };
     }
+
 
     // ── STAGE 3: Documentation recommendations ──
     const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.`;
