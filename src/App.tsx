@@ -140,6 +140,7 @@ import CPPARiskAssessmentResult from "./pages/CPPARiskAssessmentResult.tsx";
 import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
 import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
 import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
+import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
 
 const queryClient = new QueryClient();
 
@@ -380,6 +381,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <AdminLawUpdates />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tests"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestsDashboard />
                   </AdminOnly>
                 </ProtectedRoute>
               }
