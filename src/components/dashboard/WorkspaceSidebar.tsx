@@ -212,7 +212,7 @@ export default function WorkspaceSidebar() {
                   isActiveWorkspace={activeClient?.id === c.id}
                   activeTo={activeTo}
                   defaultOpen={activeClient?.id === c.id}
-                  icon={Building2Small}
+                  icon={Building2}
                 />
               ))}
               <NavLink
