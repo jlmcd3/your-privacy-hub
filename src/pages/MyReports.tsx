@@ -12,8 +12,33 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, FileText, Download, ArrowRight } from "lucide-react";
+import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+
+// Map tool key -> Supabase table name used for deletion.
+// registration_orders intentionally omitted: users do not have a DELETE policy
+// on orders (admins only), so the Delete button is hidden for that tool.
+const TOOL_TABLE: Partial<Record<string, string>> = {
+  li: "li_assessments",
+  dpia: "dpia_frameworks",
+  governance: "governance_assessments",
+  dpa: "dpa_documents",
+  ir: "ir_playbooks",
+  biometric: "biometric_assessments",
+  ropa: "ropa_sessions",
+};
 
 type ReportRow = {
   id: string;
