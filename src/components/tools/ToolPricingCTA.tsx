@@ -1,20 +1,15 @@
 /**
  * ToolPricingCTA — shared price + free-run indicator block for tool intake pages.
  *
- * Renders, in order:
- *   1. The tier-aware price (struck-through standalone for subscribers,
- *      "Subscriber price — 20%/25% off" note, or full standalone price).
- *   2. The free-run status line for logged-in paid subscribers
- *      ("🎁 You have 1 free tool run available this month — this run will be free."
- *       OR  "Free run used this month — [20%/25%] subscriber discount applies.")
- *   3. For anonymous / free users: "Intelligence subscribers get 20% off".
+ * Renders the standalone tool price for all users.
+ * For logged-in paid subscribers, also shows the monthly free-run status.
  *
  * Reads from the v7 PRICING config (src/config/pricing.ts).
  */
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { checkFreeToolRun, type AnyTier } from "@/lib/freeToolRun";
-import { PRICING, type ToolKey, getToolPrice } from "@/config/pricing";
+import { PRICING, type ToolKey } from "@/config/pricing";
 
 interface Props {
   toolKey: ToolKey;
@@ -65,39 +60,26 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
     return <div className={`text-sm text-muted-foreground ${className}`}>Loading pricing…</div>;
   }
 
-  // Anonymous or free tier
+  // Anonymous or free tier — show standalone price only
   if (tier === "free") {
     return (
       <div className={`text-sm ${className}`}>
         <div className="font-bold text-navy">{standaloneDisplay}{unit}</div>
-        <div className="text-meta text-muted-foreground mt-1">
-          Intelligence subscribers: 20% off · Professional: 25% off
-        </div>
       </div>
     );
   }
 
-  // Paid subscriber — show discounted price
-  const discountedPrice = getToolPrice(toolKey, tier);
-  const discountPct = tier === "professional" ? "25%" : "20%";
-  const tierLabel = tier === "professional" ? "Professional price" : "Subscriber price";
-
+  // Paid subscriber — show standalone price plus free-run status
   return (
     <div className={`text-sm ${className}`}>
-      <div className="flex items-baseline gap-2">
-        <span className="font-bold text-navy">${discountedPrice}{unit}</span>
-        <span className="line-through text-muted-foreground text-meta">{standaloneDisplay}</span>
-      </div>
-      <div className="text-meta text-amber-700 mt-1 font-medium">
-        {tierLabel} — {discountPct} off
-      </div>
+      <div className="font-bold text-navy">{standaloneDisplay}{unit}</div>
       {hasFreeRun ? (
         <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
-          🎁 You have 1 free tool run available this month — this run will be free.
+          🎁 You have 1 free Convenience Tool run available this month — this run will be free.
         </div>
       ) : (
         <div className="mt-2 text-meta text-muted-foreground">
-          Free run used this month — {discountPct} subscriber discount applies.
+          Free run used this month — standard pricing applies.
         </div>
       )}
     </div>
