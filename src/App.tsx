@@ -94,6 +94,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import CheckEmail from "./pages/CheckEmail.tsx";
 import OnboardingProfile from "./pages/OnboardingProfile.tsx";
 import Tools from "./pages/Tools.tsx";
+import StartNew from "./pages/StartNew.tsx";
 import CookieConsent from "./pages/CookieConsent.tsx";
 import HealthDataPrivacy from "./pages/HealthDataPrivacy.tsx";
 import BiometricPrivacy from "./pages/BiometricPrivacy.tsx";
@@ -197,6 +198,7 @@ const App = () => (
             
             <Route path="/legislation-tracker" element={<LegislationTracker />} />
             <Route path="/tools" element={<Tools />} />
+            <Route path="/start" element={<StartNew />} />
             <Route path="/cookie-consent" element={<CookieConsent />} />
             <Route path="/health-data-privacy" element={<HealthDataPrivacy />} />
             <Route path="/biometric-privacy" element={<BiometricPrivacy />} />
