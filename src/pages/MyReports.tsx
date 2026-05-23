@@ -186,12 +186,17 @@ export default function MyReports() {
         view_path: `/biometric-checker/result/${r.id}`,
         pdf_url: r.pdf_url,
       }));
-      (reg.data || []).forEach((r: any) => all.push({
-        id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
-        created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
-        summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
-        view_path: `/registration-manager/order/${r.id}`,
-      }));
+      (reg.data || []).forEach((r: any) => {
+        const filingsCount = (r.registration_filings || []).length;
+        const isPaid = r.payment_status === "paid";
+        all.push({
+          id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
+          created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
+          summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
+          view_path: `/registration-manager/order/${r.id}?from=reports`,
+          deletable: !isPaid && filingsCount === 0,
+        });
+      });
       (ropa?.data || []).forEach((r: any) => {
         const done = r.completed_activities ?? 0;
         const total = r.total_activities ?? 0;
