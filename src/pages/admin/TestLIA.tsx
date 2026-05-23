@@ -67,6 +67,16 @@ export default function TestLIA() {
     [startTime]
   );
 
+  // Live ticker so the user can see the test is actually running between polls
+  useEffect(() => {
+    if (status !== "running") return;
+    const t = setInterval(() => {
+      setElapsed(Math.round((Date.now() - startTime) / 1000));
+    }, 500);
+    return () => clearInterval(t);
+  }, [status, startTime]);
+
+
   const runTest = useCallback(async () => {
     if (!user) return;
     setStatus("running");
@@ -186,12 +196,18 @@ export default function TestLIA() {
         </div>
 
         <div className="border rounded-lg p-4 bg-card">
-          <div className="font-mono text-sm">
-            Status: <strong>{status.toUpperCase()}</strong>
-            {status === "running" && ` — ${elapsed}s elapsed`}
-            {status === "complete" && ` — ${passCount}/${assertions.length} assertions passed`}
+          <div className="font-mono text-sm flex items-center gap-2">
+            {status === "running" && (
+              <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            )}
+            <span>
+              Status: <strong>{status.toUpperCase()}</strong>
+              {status === "running" && ` — ${elapsed}s elapsed (expect 30–70s)`}
+              {status === "complete" && ` — ${passCount}/${assertions.length} assertions passed`}
+            </span>
           </div>
         </div>
+
 
         {argStrength && (
           <div className="border rounded-lg p-6 bg-card">
