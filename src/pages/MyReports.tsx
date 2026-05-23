@@ -107,32 +107,40 @@ export default function MyReports() {
       // Fetch user's client ids first to scope ropa sessions
       const { data: myClients } = await supabase
         .from("clients")
-        .select("id, name")
+        .select("id, name, is_personal")
         .eq("owner_id", user.id);
       const clientIds = (myClients || []).map((c: any) => c.id);
       const clientNameById = new Map<string, string>((myClients || []).map((c: any) => [c.id, c.name]));
+      const clientIsPersonalById = new Map<string, boolean>(
+        (myClients || []).map((c: any) => [c.id, !!c.is_personal])
+      );
+      const clientMeta = (cid?: string | null) => ({
+        client_id: cid ?? null,
+        client_name: cid ? clientNameById.get(cid) ?? null : null,
+        is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
+      });
 
       const [li, dpia, gov, dpa, ir, bio, reg, ropa] = await Promise.all([
         supabase.from("li_assessments")
-          .select("id, status, created_at, processing_description, jurisdictions, pdf_url")
+          .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("dpia_frameworks")
-          .select("id, status, created_at, intake_data, pdf_url")
+          .select("id, status, created_at, intake_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("governance_assessments")
-          .select("id, status, created_at, intake_data, pdf_url")
+          .select("id, status, created_at, intake_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("dpa_documents")
-          .select("id, status, created_at, intake_data, pdf_url")
+          .select("id, status, created_at, intake_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("ir_playbooks")
-          .select("id, status, created_at, intake_data, pdf_url")
+          .select("id, status, created_at, intake_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("biometric_assessments")
-          .select("id, status, created_at, intake_data, jurisdictions, pdf_url")
+          .select("id, status, created_at, intake_data, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("registration_orders")
-          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier, registration_filings(id)")
+          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier, client_id, registration_filings(id)")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         clientIds.length > 0
           ? supabase.from("ropa_sessions")
@@ -153,6 +161,7 @@ export default function MyReports() {
         summary: (r.processing_description || "Untitled processing activity").slice(0, 110),
         view_path: `/li-assessment/result/${r.id}`,
         pdf_url: r.pdf_url,
+        ...clientMeta(r.client_id),
       }));
       (dpia.data || []).forEach((r: any) => all.push({
         id: r.id, tool: "dpia", tool_label: TOOL_LABEL.dpia,
@@ -160,6 +169,7 @@ export default function MyReports() {
         summary: r.intake_data?.processing_name || r.intake_data?.project_name || "DPIA",
         view_path: `/dpia-framework/result/${r.id}`,
         pdf_url: r.pdf_url,
+        ...clientMeta(r.client_id),
       }));
       (gov.data || []).forEach((r: any) => all.push({
         id: r.id, tool: "governance", tool_label: TOOL_LABEL.governance,
@@ -167,6 +177,7 @@ export default function MyReports() {
         summary: r.intake_data?.organisation_name || r.intake_data?.organization_name || "Governance assessment",
         view_path: `/governance-assessment/result/${r.id}`,
         pdf_url: r.pdf_url,
+        ...clientMeta(r.client_id),
       }));
       (dpa.data || []).forEach((r: any) => all.push({
         id: r.id, tool: "dpa", tool_label: TOOL_LABEL.dpa,
@@ -174,6 +185,7 @@ export default function MyReports() {
         summary: `${r.intake_data?.controllerName || "Controller"} → ${r.intake_data?.processorName || "Processor"}`,
         view_path: `/dpa-generator/result/${r.id}`,
         pdf_url: r.pdf_url,
+        ...clientMeta(r.client_id),
       }));
       (ir.data || []).forEach((r: any) => all.push({
         id: r.id, tool: "ir", tool_label: TOOL_LABEL.ir,
@@ -181,6 +193,7 @@ export default function MyReports() {
         summary: `Incident · ${(r.intake_data?.jurisdictions || []).join(", ") || "—"}`,
         view_path: `/ir-playbook/result/${r.id}`,
         pdf_url: r.pdf_url,
+        ...clientMeta(r.client_id),
       }));
       (bio.data || []).forEach((r: any) => all.push({
         id: r.id, tool: "biometric", tool_label: TOOL_LABEL.biometric,
@@ -188,6 +201,7 @@ export default function MyReports() {
         summary: `${(r.jurisdictions || []).join(", ") || "Biometric scan"}`,
         view_path: `/biometric-checker/result/${r.id}`,
         pdf_url: r.pdf_url,
+        ...clientMeta(r.client_id),
       }));
       (reg.data || []).forEach((r: any) => {
         const filingsCount = (r.registration_filings || []).length;
@@ -198,6 +212,7 @@ export default function MyReports() {
           summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
           view_path: `/registration-manager/order/${r.id}?from=reports`,
           deletable: !isPaid && filingsCount === 0,
+          ...clientMeta(r.client_id),
         });
       });
       (ropa?.data || []).forEach((r: any) => {
@@ -215,6 +230,7 @@ export default function MyReports() {
           status: "in_progress",
           summary,
           view_path: "/ropa/activities",
+          ...clientMeta(r.client_id),
         });
       });
 
