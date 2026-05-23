@@ -12,15 +12,39 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, FileText, Calendar, ArrowRight } from "lucide-react";
+import { Loader2, FileText, Calendar, ArrowRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function RegistrationMyFilings() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleDelete(orderId: string) {
+    setDeletingId(orderId);
+    const { error } = await supabase.from("registration_orders").delete().eq("id", orderId);
+    setDeletingId(null);
+    if (error) {
+      toast.error(error.message || "Couldn't delete order");
+      return;
+    }
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    toast.success("Order deleted");
+  }
 
   async function load() {
     if (!user) return;
@@ -136,6 +160,43 @@ export default function RegistrationMyFilings() {
                           <Button asChild size="sm">
                             <Link to={`/registration-manager/documents/${o.id}`}>View documents</Link>
                           </Button>
+                          {o.payment_status !== "paid" && filings.length === 0 && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive hover:text-destructive"
+                                  disabled={deletingId === o.id}
+                                  aria-label="Delete order"
+                                >
+                                  {deletingId === o.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete this order?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This permanently removes the unpaid order and any draft documents tied to it.
+                                    Paid orders or orders with filings on record can't be deleted here — contact support.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(o.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </div>
                     </CardContent>

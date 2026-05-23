@@ -28,8 +28,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Map tool key -> Supabase table name used for deletion.
-// registration_orders intentionally omitted: users do not have a DELETE policy
-// on orders (admins only), so the Delete button is hidden for that tool.
+// registration_orders is included, but the RLS DELETE policy only allows
+// deleting orders that are NOT paid AND have no filings attached. The UI
+// respects that by hiding the button when `deletable === false` on the row.
 const TOOL_TABLE: Partial<Record<string, string>> = {
   li: "li_assessments",
   dpia: "dpia_frameworks",
@@ -38,6 +39,7 @@ const TOOL_TABLE: Partial<Record<string, string>> = {
   ir: "ir_playbooks",
   biometric: "biometric_assessments",
   ropa: "ropa_sessions",
+  registration: "registration_orders",
 };
 
 type ReportRow = {
@@ -49,6 +51,7 @@ type ReportRow = {
   summary: string;
   view_path: string;
   pdf_url?: string | null;
+  deletable?: boolean;
 };
 
 const TOOL_LABEL: Record<string, string> = {
@@ -126,7 +129,7 @@ export default function MyReports() {
           .select("id, status, created_at, intake_data, jurisdictions, pdf_url")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("registration_orders")
-          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier")
+          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier, registration_filings(id)")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         clientIds.length > 0
           ? supabase.from("ropa_sessions")
@@ -183,12 +186,17 @@ export default function MyReports() {
         view_path: `/biometric-checker/result/${r.id}`,
         pdf_url: r.pdf_url,
       }));
-      (reg.data || []).forEach((r: any) => all.push({
-        id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
-        created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
-        summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
-        view_path: `/registration-manager/order/${r.id}`,
-      }));
+      (reg.data || []).forEach((r: any) => {
+        const filingsCount = (r.registration_filings || []).length;
+        const isPaid = r.payment_status === "paid";
+        all.push({
+          id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
+          created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
+          summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
+          view_path: `/registration-manager/order/${r.id}?from=reports`,
+          deletable: !isPaid && filingsCount === 0,
+        });
+      });
       (ropa?.data || []).forEach((r: any) => {
         const done = r.completed_activities ?? 0;
         const total = r.total_activities ?? 0;
@@ -275,7 +283,7 @@ export default function MyReports() {
                           {r.status === "in_progress" ? "Continue" : "View"} <ArrowRight className="w-3.5 h-3.5 ml-1" />
                         </Link>
                       </Button>
-                      {TOOL_TABLE[r.tool] && (
+                      {TOOL_TABLE[r.tool] && (r.tool !== "registration" || r.deletable) && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button

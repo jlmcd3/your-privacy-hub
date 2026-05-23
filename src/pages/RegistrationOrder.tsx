@@ -96,7 +96,11 @@ export default function RegistrationOrder() {
       <main>
         <PageContainer>
           <div className="max-w-4xl mx-auto py-10">
-            <BackLink to="/registration-manager/my-filings" label="Back to My Filings" className="mb-4" />
+            {params.get("from") === "reports" ? (
+              <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
+            ) : (
+              <BackLink to="/registration-manager/my-filings" label="Back to My Filings" className="mb-4" />
+            )}
             <header className="mb-8">
               <h1 className="text-foreground">Registration Order</h1>
               <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground">
