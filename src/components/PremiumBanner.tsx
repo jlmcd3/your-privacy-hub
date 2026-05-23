@@ -21,13 +21,13 @@ const PremiumBanner = () => {
 
           <div className="relative z-10">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-sky mb-3.5">
-              ⭐ Intelligence Intelligence
+              ⭐ Intelligence
             </div>
             <h2 className="font-display text-white leading-tight mb-3.5">
               The library is free.<br />Intelligence is {`${INTELLIGENCE_PRICING.monthly()}`}.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">
-              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Intelligence adds the full Intelligence Brief, watchlists, the complete enforcement archive, and subscriber rates on every assessment tool — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
+              Browse every regulator and jurisdiction for free, always. Free accounts include a personalized weekly digest filtered to your regions and topics. Intelligence adds the full Intelligence Brief, watchlists, the complete enforcement archive, and access to every compliance tool at standard per-run rates — re-analyzed for your industry, your jurisdictions, and your compliance priorities.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-7">
               {features.map((f) => (
@@ -50,13 +50,9 @@ const PremiumBanner = () => {
           <div className="relative z-10 bg-white/[0.06] border border-white/15 rounded-2xl p-6 md:p-7 text-center min-w-[180px] md:min-w-[200px]">
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence</div>
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
-              <sup className="text-[18px] md:text-[22px] align-super">$</sup>29
+              <sup className="text-[18px] md:text-[22px] align-super">$</sup>20
             </div>
-            <div className="text-sm text-slate-light mt-1 mb-1.5">per month · billed monthly</div>
-            <div className="text-[11px] text-white/70 mb-2">{`or ${INTELLIGENCE_PRICING.yearly()} — Save $78`}</div>
-            <div className="text-[11px] text-sky bg-sky/10 px-2.5 py-1 rounded-full border border-sky/20 inline-block">
-              First 25 subscribers: free for 1 year
-            </div>
+            <div className="text-sm text-slate-light mt-1 mb-1.5">per month, or $200/year</div>
           </div>
         </div>
       </div>
