@@ -603,9 +603,11 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
       }
       const data = await response.json();
       const text = data.content?.[0]?.text || "";
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) continue;
-      const customSections = JSON.parse(jsonMatch[0]);
+      const customSections = safeParseLlmJson(text);
+      if (!customSections) {
+        console.error(`Custom brief JSON parse failed for user ${user.id}. Length: ${text.length}. Tail: ${text.slice(-200)}`);
+        continue;
+      }
 
       // Verification pass with Haiku — check action items are specific
       let verificationResult: any = null;
