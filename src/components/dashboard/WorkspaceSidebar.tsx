@@ -1,6 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, ChevronDown, Plus, User } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, User, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   INTELLIGENCE_ITEMS,
