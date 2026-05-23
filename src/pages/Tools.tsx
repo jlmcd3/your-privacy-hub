@@ -485,7 +485,7 @@ export default function Tools() {
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
-              Start 10-day Intelligence trial — $20/mo →
+              Start 10-day Intelligence trial — {INTELLIGENCE_PRICING.monthlyShort()} →
             </Link>
             <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
               See the tools ↓
