@@ -67,6 +67,16 @@ export default function TestLIA() {
     [startTime]
   );
 
+  // Live ticker so the user can see the test is actually running between polls
+  useEffect(() => {
+    if (status !== "running") return;
+    const t = setInterval(() => {
+      setElapsed(Math.round((Date.now() - startTime) / 1000));
+    }, 500);
+    return () => clearInterval(t);
+  }, [status, startTime]);
+
+
   const runTest = useCallback(async () => {
     if (!user) return;
     setStatus("running");
