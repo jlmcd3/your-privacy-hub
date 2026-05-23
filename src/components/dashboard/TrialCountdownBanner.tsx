@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 export default function TrialCountdownBanner() {
   const { user } = useAuth();
@@ -44,7 +45,7 @@ export default function TrialCountdownBanner() {
           {daysLeft === 1 ? "Last day of your trial" : `${daysLeft} days left in your free trial`}
         </span>
         <span className="text-amber-800 ml-1">
-          — Intelligence is $20/month after the 10-day trial ends.
+          — Intelligence is {INTELLIGENCE_PRICING.monthly()} after the 10-day trial ends.
         </span>
       </div>
       <Link

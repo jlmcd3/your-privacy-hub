@@ -3,6 +3,12 @@ import { ChevronDown } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+
+const I_MO = INTELLIGENCE_PRICING.monthly();
+const I_YR = INTELLIGENCE_PRICING.yearly();
+const P_MO = PLATFORM_PRICING.standardMonthly();
+const P_CLIENT = PLATFORM_PRICING.clientAddon();
 
 const faqs = [
   {
@@ -42,11 +48,11 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: "Privacy Intelligence is $20/month (or $200/year — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. It starts with a 10-day free trial. Professional is $30/month base + $150/client/year and adds client/matter workspaces, branded document outputs, up to 3 team logins, and 1 free Convenience Tool run per client per month (annual plan). Individual compliance tools are available standalone for all users.",
+    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces, branded document outputs, up to 3 team logins, and 1 free Convenience Tool run per client per month (annual plan). Individual compliance tools are available standalone for all users.`,
   },
   {
     q: "What is included in Professional?",
-    a: "Professional ($30/month base + $150/client/year) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace, branded document outputs, up to 3 team logins, per-client tool allowances, and 1 free Convenience Tool run per client per month (annual plan). Tools are per-use for all tiers. The CPPA Scope Checker is always free; all other tools are billed per run at standalone rates.",
+    a: `Professional (${P_MO} base + ${P_CLIENT}) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace, branded document outputs, up to 3 team logins, per-client tool allowances, and 1 free Convenience Tool run per client per month (annual plan). Tools are per-use for all tiers. The CPPA Scope Checker is always free; all other tools are billed per run at standalone rates.`,
   },
   {
     q: "Can I try the tools before subscribing?",

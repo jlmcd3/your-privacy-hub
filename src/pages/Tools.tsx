@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { isSmartTool, isConvenienceTool } from "@/config/pricing";
+import { isSmartTool, isConvenienceTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 // Map Tools-page slugs to PRICING tool keys so we can classify per card.
 const SLUG_TO_TOOL_KEY: Record<string, string> = {
@@ -485,7 +485,7 @@ export default function Tools() {
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
-              Start 10-day Intelligence trial — $20/mo →
+              Start 10-day Intelligence trial — {INTELLIGENCE_PRICING.monthlyShort()} →
             </Link>
             <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
               See the tools ↓
@@ -649,7 +649,7 @@ export default function Tools() {
             Start 10-day Intelligence trial →
           </Link>
           <p className="text-blue-200/60 text-meta mt-4">
-            Intelligence $20/mo (10-day free trial) · Professional $30/mo + $150/client/yr · Cancel any time
+            Intelligence {INTELLIGENCE_PRICING.monthlyShort()} (10-day free trial) · Professional {PLATFORM_PRICING.standardMonthly()} + {PLATFORM_PRICING.clientAddon()} · Cancel any time
           </p>
         </div>
       </div>

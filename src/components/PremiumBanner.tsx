@@ -52,7 +52,7 @@ const PremiumBanner = () => {
             <div className="font-display text-[44px] md:text-[52px] text-white leading-none">
               <sup className="text-[18px] md:text-[22px] align-super">$</sup>20
             </div>
-            <div className="text-sm text-slate-light mt-1 mb-1.5">per month, or $200/year</div>
+            <div className="text-sm text-slate-light mt-1 mb-1.5">per month, or {INTELLIGENCE_PRICING.yearly()}</div>
           </div>
         </div>
       </div>
