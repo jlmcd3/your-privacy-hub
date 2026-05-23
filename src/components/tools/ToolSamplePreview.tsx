@@ -226,17 +226,6 @@ export default function ToolSamplePreview({
                   ? "Redirecting…"
                   : `Purchase Full Analysis — $${price}`}
             </Button>
-            {showStandaloneCompare && (
-              <p className="text-[11px] text-amber-300 mt-3">
-                ⭐ Intelligence subscriber rate · Standalone price ${standalonePrice}
-              </p>
-            )}
-            {showSubscriberTeaser && (
-              <p className="text-[11px] text-amber-300 mt-3">
-                Intelligence subscribers pay only ${subscriberPrice} —{" "}
-                <a href="/subscribe" className="underline hover:text-amber-200">see plans</a>
-              </p>
-            )}
             <p className="text-[11px] text-blue-200/80 mt-4">
               This tool produces a compliance framework document, not legal advice.
             </p>
