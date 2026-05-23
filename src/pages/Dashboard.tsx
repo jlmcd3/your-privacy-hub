@@ -22,6 +22,7 @@ import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import TrialCountdownBanner from "@/components/dashboard/TrialCountdownBanner";
 import WorkspaceStatusLine from "@/components/WorkspaceStatusLine";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useClientStore } from "@/stores/clientStore";
 
 
 interface EnforcementRow {
