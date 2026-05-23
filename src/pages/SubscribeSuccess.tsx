@@ -39,15 +39,15 @@ export default function SubscribeSuccess() {
     : "Your Intelligence Feed is active.";
 
   const subheadline = hasToolAccess
-    ? "Your client workspace is live. Compliance tools are 25% off and you get 1 free tool run per month."
+    ? "Your client workspace is live. You get 1 free Convenience Tool run per client per month (annual plan)."
     : "Your weekly brief is configured. You'll receive your first issue this Monday at 7am ET.";
 
   const NEXT_STEPS = hasToolAccess
     ? [
         {
           icon: "🛠️",
-          title: "All compliance tools — included",
-          body: "Governance, LIA, DPIA, DPA, IR Playbook, Biometric Checker, RoFA, US & EU Notices, and Registration. No per-document charges for any standard tool.",
+          title: "Run compliance tools at standard rates",
+          body: "All tools are available per-run. Professional Annual subscribers get 1 free Convenience Tool run per client per month. Smart Tools (Governance, LIA, DPIA, DPA, Biometric, CPPA) are per-run for all tiers.",
         },
         {
           icon: "🎯",
@@ -145,7 +145,7 @@ export default function SubscribeSuccess() {
         {isIntelligenceOnly && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
             <p className="text-amber-800 text-sm font-medium">
-              Want client workspaces and 25% off every compliance tool? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
+              Want client workspaces and 1 free Convenience Tool run per client per month? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
             </p>
           </div>
         )}

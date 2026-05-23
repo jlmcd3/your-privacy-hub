@@ -53,7 +53,7 @@ const PRICING_ROWS: { feature: string; free: string; intel: string }[] = [
   { feature: "Complete Q&A tool", free: "Included", intel: "Included" },
   { feature: "Save & resume", free: "Included", intel: "Included" },
   { feature: "25+ jurisdictions", free: "Included", intel: "Included" },
-  { feature: "Generate PDF", free: "$79", intel: "$35" },
+  { feature: "Generate PDF", free: "$79", intel: "$40" },
   { feature: "Annual refresh", free: "$35", intel: "$15" },
   { feature: "Multi-client management", free: "$149/yr", intel: "Included" },
 ];

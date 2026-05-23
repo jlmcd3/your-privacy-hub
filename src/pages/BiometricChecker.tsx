@@ -162,11 +162,11 @@ export default function BiometricChecker() {
 
             <div className="border-t border-border pt-4">
               {!access.user ? (
-                <p className="text-meta text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis. Intelligence subscribers get 20% off; Professional subscribers get 25% off and 1 free tool run/month.</p>
+                <p className="text-meta text-muted-foreground mb-3">A free End User Privacy account is required to run any analysis.</p>
               ) : access.isPremium ? (
-                <p className="text-meta text-muted-foreground mb-3">Subscriber discount applied — your assessment is discounted (20% Intelligence / 25% Professional). Paid tiers also receive 1 free tool run per month.</p>
+                <p className="text-meta text-muted-foreground mb-3">You're signed in and ready to run your assessment.</p>
               ) : (
-                <p className="text-meta text-muted-foreground mb-3">Analysis is $10 — Intelligence subscribers get 20% off, Professional get 25% off.</p>
+                <p className="text-meta text-muted-foreground mb-3">Analysis is $15 — standard rate for all tiers.</p>
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">

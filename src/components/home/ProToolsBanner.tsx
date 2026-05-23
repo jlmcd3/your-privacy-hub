@@ -44,7 +44,7 @@ const TOOLS: Tool[] = [
     icon: ShieldCheck,
     title: "Privacy Program Assessment",
     blurb: "Score your program against the domains regulators actually inspect — calibrated to enforcement precedent.",
-    price: "$50 · 20–25% off for subscribers",
+    price: "$55",
     cta: "Run assessment",
     href: "/governance-assessment",
   },
@@ -52,7 +52,7 @@ const TOOLS: Tool[] = [
     icon: Scale,
     title: "Legitimate Interest Assessment",
     blurb: "Build a defensible three-part LIA, with prompts tuned to your specific processing activity.",
-    price: "$30 · 20–25% off for subscribers",
+    price: "$35",
     cta: "Build LIA",
     href: "/li-assessment",
   },
@@ -60,7 +60,7 @@ const TOOLS: Tool[] = [
     icon: FileSearch,
     title: "Impact Assessment Builder (DPIA)",
     blurb: "Article 35-aligned DPIA with the necessity and proportionality analysis most templates omit.",
-    price: "$40 · 20–25% off for subscribers",
+    price: "$45",
     cta: "Build DPIA",
     href: "/dpia-framework",
   },
@@ -145,8 +145,9 @@ export default function ProToolsBanner() {
             </h2>
             <p className="text-blue-100 text-sm md:text-base leading-relaxed">
               Structured assessments and generated documents that draw from 3,500+ enforcement
-              decisions — designed for professional review, priced per output. Subscribers get
-              every tool at a discount.
+              decisions — designed for professional review, priced per output. Per-run pricing for
+              all tiers. Professional Annual subscribers receive 1 free Convenience Tool run per
+              client per month.
             </p>
           </div>
           <Button
