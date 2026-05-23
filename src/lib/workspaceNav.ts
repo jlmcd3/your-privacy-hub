@@ -11,6 +11,8 @@ import {
   Bookmark,
   Settings,
   Building2,
+  PlusCircle,
+  ScrollText,
 } from "lucide-react";
 
 export type WorkspaceItem = {
