@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
-import { ResearchPageHeader } from "./ResearchPageHeader";
+import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
 
@@ -26,6 +26,10 @@ export interface ResearchSectionConfig {
   synthesisKey?: string;
   /** Optional tool CTA shown after the synthesis block */
   toolCta?: ResearchToolCtaConfig;
+  /** Where the tool CTA renders relative to section content. Defaults to "bottom". */
+  toolCtaPlacement?: "top" | "bottom";
+  /** Optional one-sentence "does this apply to me?" callout rendered above content. */
+  complianceTrigger?: string;
 }
 
 export interface ResearchPageLayoutProps {
@@ -38,6 +42,7 @@ export interface ResearchPageLayoutProps {
     lastUpdated?: string;
     stats?: { value: string; label: string }[];
     feedCategory?: string;
+    breadcrumbs?: BreadcrumbItem[];
   };
   /** Page-level synthesis sectionKey, rendered above sections */
   pageSynthesisKey?: string;
@@ -49,6 +54,8 @@ export interface ResearchPageLayoutProps {
   intelligenceUpsellTopic?: string;
   /** Optional ad banner placement: "after-header" (between header & page synthesis) */
   adAfterHeader?: boolean;
+  /** Optional block rendered immediately after pageSynthesis/topToolCta and before the section nav. */
+  introBlock?: ReactNode;
 }
 
 export function ResearchPageLayout({
@@ -61,6 +68,7 @@ export function ResearchPageLayout({
   relatedLinks,
   intelligenceUpsellTopic,
   adAfterHeader = true,
+  introBlock,
 }: ResearchPageLayoutProps) {
   const { isPremium } = usePremiumStatus();
 
@@ -85,55 +93,99 @@ export function ResearchPageLayout({
       <div className="max-w-4xl mx-auto px-6 py-8">
         {pageSynthesisKey && (
           <div className="mb-10">
-            <ResearchSynthesisBlock sectionKey={pageSynthesisKey} />
+            <ResearchSynthesisBlock sectionKey={pageSynthesisKey} promoteHeading />
           </div>
         )}
 
         {topToolCta && <ResearchToolCTA {...topToolCta} />}
 
+        {introBlock && <div className="mb-8">{introBlock}</div>}
+
         {sections.length > 1 && (
-          <details open className="mb-8 rounded-xl border border-fog bg-card group">
-            <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-navy">
-              <span>On this page</span>
-              <span className="md:hidden text-slate text-[11px] group-open:rotate-180 transition-transform">▼</span>
-            </summary>
-            <nav className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
-              {sections.map((s) => (
-                <a
-                  key={s.id}
-                  href={`#${s.id}`}
-                  className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
-                >
-                  <span className="text-slate">→</span>
-                  <span>{s.h2}</span>
-                </a>
-              ))}
+          <>
+            {/* Horizontal anchor bar — always visible jump links */}
+            <nav
+              aria-label="Section anchors"
+              className="mb-4 -mx-2 px-2 overflow-x-auto"
+            >
+              <ul className="flex flex-nowrap items-center gap-2 min-w-min">
+                <li className="text-[11px] font-semibold tracking-wider uppercase text-slate-light pr-1 shrink-0">
+                  Jump to:
+                </li>
+                {sections.map((s) => (
+                  <li key={s.id} className="shrink-0">
+                    <a
+                      href={`#${s.id}`}
+                      className="inline-block px-3 py-1.5 text-xs font-semibold text-navy bg-card border border-fog rounded-full hover:border-cobalt hover:text-cobalt transition-colors no-underline whitespace-nowrap"
+                    >
+                      {s.h2}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </nav>
-          </details>
+
+            <details className="mb-8 rounded-xl border border-fog bg-card group md:hidden">
+              <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-navy">
+                <span>On this page</span>
+                <span className="text-slate text-[11px] group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <nav className="px-4 pb-4 pt-1 grid grid-cols-1 gap-x-4 gap-y-1.5">
+                {sections.map((s) => (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                  >
+                    <span className="text-slate">→</span>
+                    <span>{s.h2}</span>
+                  </a>
+                ))}
+              </nav>
+            </details>
+          </>
         )}
 
+        <h2 className="font-display text-navy mb-6 leading-tight">
+          Full Analysis
+        </h2>
         <div className="space-y-12">
-          {sections.map((sec) => (
-            <section key={sec.id} id={sec.id} className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">
-                {sec.h2}
-              </h2>
-              {sec.content && (
-                <div
-                  className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-cobalt [&_a]:font-bold [&_a]:underline [&_a:hover]:text-navy [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-navy [&_strong]:font-semibold [&_a_strong]:text-cobalt"
-                  dangerouslySetInnerHTML={{ __html: sec.content }}
-                />
-              )}
-              {sec.children}
-              {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} />}
-              {sec.toolCta && <ResearchToolCTA {...sec.toolCta} />}
-            </section>
-          ))}
+          {sections.map((sec) => {
+            const placement = sec.toolCtaPlacement ?? "bottom";
+            return (
+              <section key={sec.id} id={sec.id} className="scroll-mt-24">
+                <h3 className="font-display text-navy mb-4 leading-tight">
+                  {sec.h2}
+                </h3>
+                {sec.complianceTrigger && (
+                  <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
+                    <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
+                      Compliance trigger
+                    </div>
+                    <p className="text-sm text-navy leading-relaxed m-0">
+                      {sec.complianceTrigger}
+                    </p>
+                  </div>
+                )}
+                {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
+                {sec.content && (
+                  <div
+                    className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-cobalt [&_a]:font-bold [&_a]:underline [&_a:hover]:text-navy [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-navy [&_strong]:font-semibold [&_a_strong]:text-cobalt"
+                    dangerouslySetInnerHTML={{ __html: sec.content }}
+                  />
+                )}
+                {sec.children}
+                {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
+                {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
+              </section>
+            );
+          })}
         </div>
+
 
         {/* Related resources */}
         <div className="mt-14 pt-8 border-t border-fog">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link
@@ -153,9 +205,9 @@ export function ResearchPageLayout({
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">
               ⭐ Weekly Intelligence
             </div>
-            <h3 className="font-display text-xl text-white mb-3">
+            <h2 className="text-white mb-3">
               Get weekly intelligence on {intelligenceUpsellTopic ?? header.title}
-            </h3>
+            </h2>
             <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>

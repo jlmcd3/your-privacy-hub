@@ -50,7 +50,7 @@ export default function PatternSignalCards() {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display font-bold text-[15px] text-navy">
+        <h3 className="text-[15px] text-navy">
           Enforcement Pattern Signals
         </h3>
         {reportDate && (
@@ -81,7 +81,7 @@ export default function PatternSignalCards() {
                   {strength}
                 </span>
               </div>
-              <h4 className="font-display font-bold text-sm text-navy leading-snug">
+              <h4 className="font-bold text-sm text-navy leading-snug">
                 {p.pattern}
               </h4>
               <p className="text-meta text-slate leading-relaxed line-clamp-3 flex-1">

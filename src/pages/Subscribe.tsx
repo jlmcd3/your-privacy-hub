@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { PRICING, FOUNDING_PROMO, isPromoOpen } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
@@ -102,32 +102,16 @@ const Subscribe = () => {
       </Helmet>
       <Navbar />
 
-      {/* Founding subscriber promotional banner */}
-      {isPromoOpen() && (
-        <div className="max-w-[800px] mx-auto mt-6 px-4">
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 mb-2 text-center">
-            <p className="text-sm font-semibold text-amber-900">
-              🎁 Founding Subscriber Offer — closes{' '}
-              {new Date(FOUNDING_PROMO.endDate).toLocaleDateString('en-US', {
-                month: 'long', day: 'numeric', year: 'numeric',
-              })}
-            </p>
-            <p className="text-sm text-amber-800 mt-1">
-              Subscribe now and lock in <strong>20% off Smart Tools</strong> and{' '}
-              <strong>15% off Convenience Tools</strong> — permanently,
-              for the life of your subscription.
-            </p>
-          </div>
-        </div>
-      )}
+
+
 
       {/* Two-product hero */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
-        <div className="max-w-[800px] mx-auto text-center">
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-4 leading-tight">
+        <div className="max-w-[800px] mx-auto">
+          <h1 className="font-display text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
-          <p className="text-[15px] text-slate-light max-w-[600px] mx-auto leading-relaxed mb-10">
+          <p className="text-[15px] text-slate-light max-w-[600px] leading-relaxed mb-10">
             Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.
             Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>
@@ -151,7 +135,7 @@ const Subscribe = () => {
                   "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "AI investigation prompt on every article",
                   "Access to all compliance tools at standalone prices",
-                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
+
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-sky font-bold">✓</span> {item}
@@ -197,7 +181,7 @@ const Subscribe = () => {
                   "Client/matter workspace & compliance record",
                   "Branded document outputs",
                   "1 free Convenience Tool run per client/month (annual only)",
-                  ...(isPromoOpen() ? ["Founding subscriber discount on all tools"] : []),
+                  
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
@@ -228,7 +212,7 @@ const Subscribe = () => {
       {/* Smart Tools / Convenience Tools explainer */}
       <div className="max-w-3xl mx-auto px-4 mt-8">
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">
+          <h3 className="text-slate-700 mb-3">
             About our compliance tools
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-sm text-slate-600">
@@ -280,10 +264,10 @@ const Subscribe = () => {
 
       {/* Feature comparison table */}
       <div className="max-w-3xl mx-auto px-4 mt-12 mb-8">
-        <h2 className="text-center font-display text-xl text-navy mb-6">
+        <h2 className="text-center font-display text-navy mb-6">
           What's included at each level
         </h2>
-        <div className="overflow-x-auto">
+        <div className="cmp-table overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-gray-200">
@@ -351,7 +335,7 @@ const Subscribe = () => {
 
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy text-xl mb-2">
+          <h2 className="font-display text-navy mb-2">
             See what your report would look like
           </h2>
           <p className="text-slate text-sm">
@@ -364,9 +348,9 @@ const Subscribe = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Three-column comparison table */}
         <div className="mb-14">
-          <h2 className="font-display text-[22px] text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
+          <h2 className="font-display text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
-            <div className="overflow-x-auto">
+            <div className="cmp-table overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-fog">
@@ -438,7 +422,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.09em] text-slate mb-3">
               Where we fit
             </p>
-            <h2 className="font-display text-[22px] md:text-[28px] text-navy mb-3 leading-tight">
+            <h2 className="font-display text-navy mb-3 leading-tight">
               The missing piece of the privacy toolkit
             </h2>
             <p className="text-sm text-slate max-w-[480px] mx-auto leading-relaxed">
@@ -534,7 +518,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
-            <h3 className="font-display text-base text-navy mb-2 leading-snug">
+            <h3 className="text-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">

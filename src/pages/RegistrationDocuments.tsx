@@ -99,7 +99,7 @@ export default function RegistrationDocuments() {
 
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="font-display text-2xl font-bold text-navy">Registration Documents</h1>
+              <h1 className="font-display text-navy">Registration Documents</h1>
               <p className="text-sm text-slate mt-1">
                 {docs.length} document{docs.length === 1 ? "" : "s"} across {order.jurisdictions.length} jurisdiction{order.jurisdictions.length === 1 ? "" : "s"}
               </p>

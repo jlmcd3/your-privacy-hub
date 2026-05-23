@@ -41,7 +41,7 @@ const WeeklyBriefTeaser = () => {
         {/* Section header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">
+            <h2 className="font-display tracking-tight text-navy">
               This Week's Privacy Intelligence Report
             </h2>
             <p className="text-sm text-slate mt-1">
@@ -70,7 +70,7 @@ const WeeklyBriefTeaser = () => {
                 <span className="text-[11px] text-slate ml-auto">{brief.week_label}</span>
               )}
             </div>
-            <h3 className="font-display text-[17px] md:text-[20px] text-white leading-snug mb-4">
+            <h3 className="text-[17px] text-white leading-snug mb-4">
               {brief?.headline ?? "This week's report is being prepared…"}
             </h3>
             {teaserText && (

@@ -21,7 +21,7 @@ const Timelines = () => {
       <div className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">📜 Reference</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Regulatory Timelines</h1>
+          <h1 className="text-foreground mb-3">Regulatory Timelines</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
             Visual timelines of major regulatory milestones. Understand how privacy regulation evolved and what's coming next.
           </p>
@@ -53,7 +53,7 @@ const Timelines = () => {
             >
               <span className="text-3xl">{t.icon}</span>
               <div>
-                <h2 className="text-lg font-bold text-foreground mb-1">{t.title}</h2>
+                <h2 className="text-foreground mb-1">{t.title}</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">{t.description}</p>
               </div>
             </Link>

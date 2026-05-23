@@ -66,7 +66,7 @@ export default function ReportShell({
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-sky">
               Compliance Tool · Customised Analysis
             </p>
-            <h1 className="font-display text-[22px] sm:text-[26px] leading-tight text-white mt-1">
+            <h1 className="font-display leading-tight text-white mt-1">
               {title}
             </h1>
             {meta && (

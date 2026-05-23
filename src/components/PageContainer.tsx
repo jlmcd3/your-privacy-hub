@@ -29,9 +29,16 @@ export const PageContainer = ({
   as: Tag = "div",
 }: PageContainerProps) => {
   return (
-    <Tag className={cn(widthMap[width], "mx-auto px-4 sm:px-6 lg:px-8 w-full", className)}>
-      {children}
-    </Tag>
+      <Tag
+        className={cn(widthMap[width], "mx-auto w-full", className)}
+        style={{
+          // Fluid horizontal padding: 16px → 32px between 360px and 1280px viewport.
+          paddingLeft: "clamp(1rem, 0.5rem + 2vw, 2rem)",
+          paddingRight: "clamp(1rem, 0.5rem + 2vw, 2rem)",
+        }}
+      >
+        {children}
+      </Tag>
   );
 };
 

@@ -304,7 +304,7 @@ export default function AssessmentReport({
                   {sectionChipLabel}
                 </span>
               )}
-              <h3 className="font-display text-xl md:text-[22px] font-bold text-navy leading-tight">
+              <h3 className="text-navy leading-tight">
                 {jurisdiction}
               </h3>
               {statute && (

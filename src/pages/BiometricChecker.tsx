@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -13,6 +13,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
+import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,6 +31,7 @@ export default function BiometricChecker() {
   const navigate = useNavigate();
   // No more anonymous free tier — every analysis requires a signed-in account.
   const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
+  const pricing = useToolPrice("biometric_checker");
   const { clientId } = useActiveClient();
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], purpose: PURPOSE[0],
@@ -80,37 +82,32 @@ export default function BiometricChecker() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Check biometric privacy obligations across BIPA, GDPR, and other laws. Free account required; $10 per use, 20–25% off for Intelligence and Professional subscribers." /></Helmet>
+        <meta name="description" content="Per-jurisdiction biometric privacy compliance read covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with a litigation risk estimate where it matters." /></Helmet>
       <Navbar />
       <DashboardSubnav />
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🧬 Biometric Compliance Assessment · ${pricing.price}
+          </span>
+          <h1 className="font-serif mb-3">Biometric Privacy Compliance Assessment</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">
+            A per-jurisdiction read on your biometric data processing — surfacing the consent, disclosure, and retention obligations that apply under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with a litigation risk estimate where it matters. Run it before deploying facial recognition, fingerprint, voiceprint, or other biometric identifiers.
+          </p>
+        </div>
+      </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
-        <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Biometric Privacy Compliance Assessment</h1>
-          <p className="text-slate text-sm">Per-jurisdiction compliance assessment for biometric data processing. $10 standalone, or $8 for Intelligence/Professional subscribers (20–25% off).</p>
-        </header>
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+        <div className="mb-4">
           <ToolTierNote />
         </div>
-        {phase !== "result" && (
-          <ToolOutputPreview
-            label="Sample Biometric Compliance Check output"
-            lines={[
-              "ILLINOIS BIPA: HIGH RISK — Written consent required before collection",
-              "  BIPA §15(b): Informed written release required for each biometric identifier",
-              "  Enforcement: Rogers v. BNSF Railway (2023) — $228M jury verdict",
-              "GDPR Article 9: Special category data — explicit consent or Art. 9(2) exception",
-              "  Required: Data Protection Impact Assessment before deployment",
-            ]}
-          />
-        )}
 
         {phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between"><h2 className="font-display font-bold text-navy text-lg">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
+            <div className="flex items-center justify-between"><h2 className="font-display text-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
             {result.bipa_risk && (
               <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
-                <h3 className="font-display font-bold text-amber-900 text-sm mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
+                <h3 className="text-amber-900 mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
                 <p className="text-sm text-amber-900">Low end: <strong>${result.bipa_risk.lowEnd.toLocaleString()}</strong> · High end: <strong>${result.bipa_risk.highEnd.toLocaleString()}</strong></p>
                 <p className="text-meta text-amber-800 mt-1">{result.bipa_risk.note}</p>
               </div>

@@ -175,7 +175,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
   return (
     <section className="mt-10 mb-8">
       <div className="mb-6">
-        <h2 className="font-display text-[22px] md:text-[26px] text-foreground font-bold leading-tight">
+        <h2 className="font-display text-foreground leading-tight">
           Compliance Framework Tools
         </h2>
         <p className="text-muted-foreground text-[14px] mt-1">
@@ -193,7 +193,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               className="bg-card border border-border rounded-2xl p-5 flex flex-col"
             >
               <div className="text-[28px] mb-2">{tool.icon}</div>
-              <h3 className="font-display font-bold text-foreground text-[15px] leading-snug mb-2">
+              <h3 className="text-foreground text-[15px] leading-snug mb-2">
                 {tool.title}
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed flex-1 mb-4">
@@ -226,7 +226,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.12em] text-steel">
+          <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel">
             Your Recent Reports
           </h3>
           {hasFilings && (

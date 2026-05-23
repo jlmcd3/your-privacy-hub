@@ -3,7 +3,7 @@
  *
  * ADVERTISING POLICY — enduserprivacy.com
  * 1. Ads are shown to anonymous and free registered users only.
- *    Any paid subscriber (monthly, annual, founding) sees NO ads.
+ *    Any paid subscriber (monthly, annual) sees NO ads.
  * 2. All ads are non-personalized and contextual only.
  *    No user data from this platform is used for ad targeting.
  */

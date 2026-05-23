@@ -14,7 +14,7 @@ const Terms = () => {
       </Helmet>
       <Navbar />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
+        <h1 className="font-display text-foreground mb-2">
           EndUserPrivacy Terms of Service
         </h1>
         <p className="text-sm text-muted-foreground mb-10">Last updated: May 15, 2026</p>
@@ -36,7 +36,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               Your Acknowledgements
             </h2>
             <p>
@@ -63,7 +63,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">The Site</h2>
+            <h2 className="font-display text-foreground">The Site</h2>
             <p>
               Any new features or tools which are added to the Site shall also be subject to this
               Agreement. You can review the most current version of the Terms of Service at any
@@ -102,7 +102,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">Orders &amp; Pricing</h2>
+            <h2 className="font-display text-foreground">Orders &amp; Pricing</h2>
             <p>
               Prices for our products are subject to change without notice. We reserve the right at
               any time to modify or discontinue access to the Site (or any part or content thereof)
@@ -156,7 +156,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h3 className="font-display text-lg font-semibold text-foreground">Third Parties</h3>
+            <h3 className="text-foreground">Third Parties</h3>
             <p>
               We may provide you with access to third-party tools over which we neither monitor nor
               have any control nor input. You acknowledge and agree that we provide access to such
@@ -226,7 +226,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               License &amp; Restrictions
             </h2>
             <p>
@@ -264,7 +264,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               Term &amp; Termination
             </h2>
             <p>
@@ -284,7 +284,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">Confidentiality</h2>
+            <h2 className="font-display text-foreground">Confidentiality</h2>
             <p>
               Each party agrees that all business, technical and financial information, and any
               form of agreements or contracts it obtains from the other party is the confidential
@@ -309,7 +309,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">Feedback License</h2>
+            <h2 className="font-display text-foreground">Feedback License</h2>
             <p>
               If you provide any idea, recommendation or other suggestion regarding possible
               corrections, improvements or extensions related to any aspect of the Site or
@@ -358,7 +358,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               Modifications to This Agreement
             </h2>
             <p>
@@ -379,7 +379,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">Legal Matters</h2>
+            <h2 className="font-display text-foreground">Legal Matters</h2>
             <p>
               <u>No Warranties</u>. THE SITE, THE DOCUMENTS AND AGREEMENTS AND PRODUCTS MADE
               AVAILABLE THROUGH THE SITE, AND ALL OTHER DATA AND ELEMENTS PROVIDED THROUGH THE
@@ -458,7 +458,7 @@ const Terms = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">General</h2>
+            <h2 className="font-display text-foreground">General</h2>
             <p>
               Your rights and obligations under this Agreement are personal to you, and are not
               assignable, transferable or sublicensable by you except with our prior written

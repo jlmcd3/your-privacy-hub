@@ -80,7 +80,7 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
     <div>
       {!compact && (
         <div className="mb-6">
-          <h3 className="font-display font-bold text-foreground text-[18px] mb-1">
+          <h3 className="text-foreground mb-1">
             Customize your weekly digest
           </h3>
           <p className="text-sm text-muted-foreground">

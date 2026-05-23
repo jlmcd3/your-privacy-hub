@@ -67,11 +67,12 @@ const FAQ = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4 text-center">
+      <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4">
+        <div className="max-w-[760px] mx-auto">
         <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
           ❓ FREQUENTLY ASKED QUESTIONS
         </span>
-        <h1 className="font-display text-[32px] md:text-[40px] text-white font-bold mb-3">
+        <h1 className="font-display text-white mb-3">
           Everything you need to know
         </h1>
         <p className="text-slate-light text-[15px]">
@@ -80,7 +81,10 @@ const FAQ = () => {
             hello@enduserprivacy.com
           </a>
         </p>
+        </div>
       </section>
+
+
 
       {/* Accordion */}
       <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
@@ -107,7 +111,7 @@ const FAQ = () => {
           </div>
         ))}
 
-        <h2 className="font-display text-navy text-[22px] font-bold mt-10 mb-4">Pricing</h2>
+        <h2 className="font-display text-navy mt-10 mb-4">Pricing</h2>
         {pricingFaqs.map((faq, j) => {
           const i = faqs.length + j;
           return (
@@ -136,7 +140,7 @@ const FAQ = () => {
 
         {/* Bottom CTA */}
         <div className="bg-navy rounded-2xl p-8 text-center mt-12">
-          <h2 className="text-white font-display text-[20px] mb-2">Still have questions?</h2>
+          <h2 className="text-white font-display mb-2">Still have questions?</h2>
           <p className="text-slate-light text-[14px] mb-4">We're happy to help.</p>
           <a
             href="mailto:hello@enduserprivacy.com"

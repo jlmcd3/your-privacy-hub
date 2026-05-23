@@ -74,7 +74,7 @@ export default function ThisWeekInPrivacy() {
     return (
       <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <h2 className="font-display font-bold text-white text-lg">
+          <h2 className="font-display text-white">
             This Week in Privacy
           </h2>
           <span className="text-meta text-blue-200 bg-white/10 px-2 py-0.5 rounded-full ml-auto">
@@ -82,7 +82,7 @@ export default function ThisWeekInPrivacy() {
           </span>
         </div>
 
-        <h2 className="font-display font-bold text-lg md:text-xl leading-snug mb-3">
+        <h2 className="font-display leading-snug mb-3">
           {headline}
         </h2>
 
@@ -123,7 +123,7 @@ export default function ThisWeekInPrivacy() {
   return (
     <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
       <div className="flex items-center gap-2 mb-3">
-        <h2 className="font-display font-bold text-white text-lg">
+        <h2 className="font-display text-white">
           This Week in Privacy
         </h2>
         {brief.week_label && (
@@ -133,7 +133,7 @@ export default function ThisWeekInPrivacy() {
         )}
       </div>
 
-      <h2 className="font-display font-bold text-lg md:text-xl leading-snug mb-3">
+      <h2 className="font-display leading-snug mb-3">
         {brief.headline}
       </h2>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -91,7 +92,7 @@ const TAB_ITEMS = [
 const USPrivacyLaws = () => {
   const [recentArticles, setRecentArticles] = useState<ArticleItem[]>([]);
   
-  const [authStatusFilter, setAuthStatusFilter] = useState("All");
+  const [authStatusFilter, setAuthStatusFilter] = useState("Enacted");
   const [activeTab, setActiveTab] = useState("federal-authorities");
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -123,8 +124,14 @@ const USPrivacyLaws = () => {
   const overrides = useStateLawOverrides();
   const usStates = (usStatesRaw as any[]).map((s) => applyOverride(s, overrides));
 
+  const enactedCount = usStates.filter((s: any) => s.statute_status === "Enacted").length;
+  const pendingCount = usStates.filter((s: any) => s.statute_status === "Pending").length;
+  const noneCount = usStates.filter((s: any) => !s.statute_status || s.statute_status === "None").length;
+
   const filteredAuthorities = usStates.filter((state: any) => {
-    return authStatusFilter === "All" || state.statute_status === authStatusFilter;
+    if (authStatusFilter === "All") return true;
+    if (authStatusFilter === "None") return !state.statute_status || state.statute_status === "None";
+    return state.statute_status === authStatusFilter;
   });
 
   useEffect(() => {
@@ -176,33 +183,21 @@ const USPrivacyLaws = () => {
       <Navbar />
 
       {/* Page Header */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🇺🇸 Intelligence Guide
-          </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
+          </span>
+          <h1 className="font-serif text-white mb-3">
             U.S. Privacy Laws
           </h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             A complete guide to the U.S. privacy regulatory framework — federal
             enforcement authorities, state-level authorities and privacy laws across all 50 states,
             and the latest regulatory developments.
           </p>
-          <div className="text-meta text-slate-light mt-4">
-            Last updated:{" "}
-            {recentArticles[0]?.published_at
-              ? new Date(recentArticles[0].published_at).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : new Date().toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-          </div>
+
+
 
           <div className="flex flex-wrap gap-1.5 mt-5 overflow-x-auto">
             {TAB_ITEMS.map((tab) => (
@@ -220,6 +215,25 @@ const USPrivacyLaws = () => {
             ))}
           </div>
         </div>
+      </header>
+
+      {/* Landscape at a glance */}
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Enacted", count: enactedCount, stripe: "bg-emerald-600", text: "text-emerald-700", bg: "bg-emerald-600/5" },
+            { label: "Pending", count: pendingCount, stripe: "bg-amber-600", text: "text-amber-700", bg: "bg-amber-600/5" },
+            { label: "No statute", count: noneCount, stripe: "bg-slate-400", text: "text-slate", bg: "bg-slate-400/5" },
+          ].map((t) => (
+            <div key={t.label} className={`grid grid-cols-[4px_1fr] items-stretch rounded-lg border border-fog overflow-hidden ${t.bg}`}>
+              <div className={`${t.stripe} self-stretch`} aria-hidden="true" />
+              <div className="px-4 py-3">
+                <div className={`font-display text-2xl md:text-3xl leading-none ${t.text}`}>{t.count}</div>
+                <div className="text-meta uppercase tracking-wider text-slate-light mt-1">{t.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <AdBanner variant="leaderboard" className="my-4" />
@@ -230,14 +244,14 @@ const USPrivacyLaws = () => {
           onClick={() => scrollTo("recent-developments")}
           className="w-full flex items-center justify-between gap-3 bg-gradient-to-r from-sky/10 to-navy/5 border border-sky/30 hover:border-sky/60 hover:shadow-eup-sm rounded-xl px-4 py-3 transition-all text-left group"
         >
-          <span className="text-sm md:text-sm text-foreground font-bold">
+          <span className="text-sm md:text-sm text-navy font-bold">
             See the latest U.S. privacy regulatory developments and enforcement actions.
           </span>
           <span className="text-sky whitespace-nowrap group-hover:translate-x-0.5 transition-transform font-bold text-sm">
             Jump to Recent Developments →
           </span>
         </button>
-        <ResearchSynthesisBlock sectionKey="us_privacy__page" />
+        
       </div>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -247,10 +261,10 @@ const USPrivacyLaws = () => {
           id="federal-authorities"
           className="mb-12 scroll-mt-24"
         >
-          <h2 className="font-display text-xl md:text-[24px] text-foreground mb-2">
+          <h2 className="font-display text-navy mb-2">
             U.S. Federal Privacy Authorities
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-slate leading-relaxed mb-4">
             Federal regulators with privacy and data-protection enforcement authority
             across U.S. sectors. Each oversees a distinct slice of the privacy
             regulatory landscape.
@@ -292,7 +306,7 @@ const USPrivacyLaws = () => {
               </div>
             ))}
           </div>
-          <ResearchSynthesisBlock sectionKey="us_privacy__federal" />
+          <ResearchSynthesisBlock sectionKey="us_privacy__federal" compact />
         </div>
 
         {/* ── State Authority Directory ── */}
@@ -301,47 +315,59 @@ const USPrivacyLaws = () => {
           id="authority-directory"
           className="mt-12 mb-10 scroll-mt-24"
         >
-          <h2 className="font-display text-xl md:text-[24px] text-foreground mb-2">
+          <h2 className="font-display text-navy mb-2">
             U.S. State Privacy Authority Directory
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm text-slate leading-relaxed mb-4">
             Browse the enforcement authorities responsible for privacy regulation in
             every U.S. state and Washington, D.C. Use the search and status filters
             below to find specific states, statutes, or agencies.
           </p>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-border shadow-sm">
-            <span className="text-meta font-semibold tracking-wider uppercase text-muted-foreground">
-              Status:
+          {/* Prominent Compare CTA — sticky above grid */}
+          <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-4">
+            <Link
+              to="/compare/us-states"
+              className="flex items-center justify-between gap-3 bg-gradient-to-r from-blue/10 to-navy/5 border border-blue/40 hover:border-blue rounded-xl px-4 py-3 shadow-eup-sm transition-all no-underline group"
+            >
+              <span className="text-sm font-bold text-navy">
+                Compare enacted state laws side by side
+              </span>
+              <span className="text-blue whitespace-nowrap font-bold text-sm group-hover:translate-x-0.5 transition-transform">
+                Open comparison →
+              </span>
+            </Link>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex flex-wrap gap-3 items-center mb-4 p-4 bg-card rounded-xl border border-fog shadow-sm">
+            <span className="text-meta font-semibold tracking-wider uppercase text-slate">
+              Show:
             </span>
-            {["All", "Enacted", "Pending", "None"].map((f) => (
+            {[
+              { value: "All", label: "All" },
+              { value: "Enacted", label: "Enacted" },
+              { value: "Pending", label: "Pending" },
+              { value: "None", label: "No statute" },
+            ].map((f) => (
               <span
-                key={f}
-                onClick={() => setAuthStatusFilter(f)}
+                key={f.value}
+                onClick={() => setAuthStatusFilter(f.value)}
                 className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
-                  authStatusFilter === f
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                  authStatusFilter === f.value
+                    ? "bg-navy text-white border-navy"
+                    : "bg-card text-slate border-fog hover:bg-navy hover:text-white hover:border-navy"
                 }`}
               >
-                {f}
+                {f.label}
               </span>
             ))}
-            <span className="ml-auto text-meta text-muted-foreground">
+            <span className="ml-auto text-meta text-slate">
               {filteredAuthorities.length} results
             </span>
           </div>
 
-          {/* Compare CTA */}
-          <div className="mb-3">
-            <Link
-              to="/compare/us-states"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
-            >
-              Compare enacted state laws side by side →
-            </Link>
-          </div>
+
 
           {/* Compact card grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -412,7 +438,7 @@ const USPrivacyLaws = () => {
               );
             })}
           </div>
-          <ResearchSynthesisBlock sectionKey="us_privacy__state_directory" />
+          <ResearchSynthesisBlock sectionKey="us_privacy__state_directory" compact />
         </div>
 
         {/* ── Recent Developments ── */}
@@ -423,17 +449,18 @@ const USPrivacyLaws = () => {
             className="mt-12 mb-8 scroll-mt-24"
           >
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-display text-xl text-navy">
+              <h2 className="font-display text-navy">
                 Recent U.S. Privacy Developments
               </h2>
               <span className="text-eyebrow px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
                 Live
               </span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+            <p className="text-sm text-slate leading-relaxed mb-2">
               Stay current with the latest federal and state privacy actions,
               rulemakings, and enforcement updates.
             </p>
+            <ResearchSynthesisBlock sectionKey="us_privacy__page" promoteHeading />
             <TieredFeed
               articles={recentArticles}
               previewCount={1}
@@ -443,9 +470,24 @@ const USPrivacyLaws = () => {
           </div>
         )}
 
+        {/* CPPA Risk Assessment CTA */}
+        <div className="mt-12 rounded-xl border border-accent/30 bg-gradient-to-br from-[hsl(var(--accent)/0.05)] to-card p-6">
+          <p className="text-eyebrow mb-2 text-accent">Assessment tool</p>
+          <h3 className="font-display text-navy mb-2">CPPA Risk Assessment</h3>
+          <p className="text-sm text-slate leading-relaxed mb-4">
+            Generate a CPPA-aligned risk assessment calibrated to California enforcement patterns - covers ADMT, sensitive data, and high-risk processing.
+          </p>
+          <Link
+            to="/cppa-risk-assessment"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent no-underline hover:underline"
+          >
+            Run Assessment <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
         {/* Related Resources */}
         <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {RELATED_LINKS.map((link) => (
               <Link
@@ -468,7 +510,7 @@ const USPrivacyLaws = () => {
           <div className="text-eyebrow text-sky mb-2">
             ⭐ Intelligence
           </div>
-          <h3 className="font-display text-xl text-white mb-3">
+          <h3 className="text-white mb-3">
             Get weekly intelligence on U.S. Privacy Laws
           </h3>
           <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">

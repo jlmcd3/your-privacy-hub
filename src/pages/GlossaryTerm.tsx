@@ -15,7 +15,7 @@ const GlossaryTerm = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Term Not Found</h1>
+          <h1 className="text-foreground mb-4">Term Not Found</h1>
           <Link to="/glossary" className="text-primary hover:underline">Back to Glossary →</Link>
         </div>
         <Footer />
@@ -40,7 +40,7 @@ const GlossaryTerm = () => {
           <Link to="/glossary" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors no-underline mb-4 inline-block">
             ← Back to Glossary
           </Link>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">{term.term}</h1>
+          <h1 className="text-foreground mb-3">{term.term}</h1>
           <div className="flex gap-1.5 flex-wrap">
             {term.regulations.map((r) => (
               <span key={r} className="font-mono-code text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">{r}</span>
@@ -51,7 +51,7 @@ const GlossaryTerm = () => {
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         <div className="bg-card border border-border rounded-xl p-6 mb-8">
-          <h2 className="text-sm font-semibold text-foreground mb-3">Definition</h2>
+          <h2 className="text-foreground mb-3">Definition</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">{term.definition}</p>
           <p className="text-xs text-muted-foreground mt-4 italic">
             Source:{" "}
@@ -117,7 +117,7 @@ const GlossaryTerm = () => {
           if (!Array.isArray(t.definitionsByRegime) || t.definitionsByRegime.length === 0) return null;
           return (
             <div className="bg-card border border-border rounded-xl p-6 mb-8">
-              <h2 className="text-sm font-semibold text-foreground mb-1">Definitions across regimes</h2>
+              <h2 className="text-foreground mb-1">Definitions across regimes</h2>
               <p className="text-xs text-muted-foreground mb-4">How this term is defined in each major privacy regime. Definitions vary — read the source text before relying on any one summary.</p>
               <div className="space-y-4">
                 {t.definitionsByRegime.map((d, i) => (
@@ -147,7 +147,7 @@ const GlossaryTerm = () => {
 
         {relatedTerms.length > 0 && (
           <div>
-            <h2 className="text-sm font-semibold text-foreground mb-3">Related Terms</h2>
+            <h2 className="text-foreground mb-3">Related Terms</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {relatedTerms.map((rt) => (
                 <Link

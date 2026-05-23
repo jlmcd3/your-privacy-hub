@@ -18,7 +18,7 @@ const Signup = () => {
           <div className="mx-auto mb-5 w-12 h-12 rounded-full bg-fog flex items-center justify-center">
             <Lock className="w-5 h-5 text-slate" aria-hidden="true" />
           </div>
-          <h1 className="font-display text-[24px] text-navy mb-2">Account creation paused</h1>
+          <h1 className="font-display text-navy mb-2">Account creation paused</h1>
           <p className="text-sm text-slate mb-6 leading-relaxed">
             End User Privacy is currently in <span className="font-semibold text-navy">private beta</span>.
             New public sign-ups are temporarily disabled while we onboard our initial group of testers.

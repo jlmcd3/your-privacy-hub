@@ -388,7 +388,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {!compact && (
         <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-navy text-2xl mb-2">Feeling Curious?</h2>
+          <h2 className="font-display text-navy mb-2">Feeling Curious?</h2>
           <p className="text-slate text-sm max-w-md mx-auto">
             Spin the globe and discover a jurisdiction you may not have been tracking.
             Every country has a story.
@@ -468,8 +468,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 The globe chose
               </div>
               <h3 className={compact
-                ? "font-display font-bold text-white text-sm mb-1"
-                : "font-display font-bold text-navy text-2xl mb-2"
+                ? "font-display text-white mb-1"
+                : "font-display text-navy mb-2"
               }>{picked.name}</h3>
 
               {!compact && (

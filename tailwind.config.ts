@@ -14,69 +14,76 @@ export default {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "hsl(var(--border) / <alpha-value>)",
+        input: "hsl(var(--input) / <alpha-value>)",
+        ring: "hsl(var(--ring) / <alpha-value>)",
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
         navy: {
-          DEFAULT: "hsl(var(--navy))",
-          mid: "hsl(var(--navy-mid))",
-          light: "hsl(var(--navy-light))",
+          DEFAULT: "hsl(var(--navy) / <alpha-value>)",
+          mid: "hsl(var(--navy-mid) / <alpha-value>)",
+          light: "hsl(var(--navy-light) / <alpha-value>)",
         },
-        steel: "hsl(var(--steel))",
+        steel: "hsl(var(--steel) / <alpha-value>)",
+        // Existing nested blue/slate kept so existing usages (bg-blue, text-slate-light) keep working.
+        // Guide-recommended brand-blue aliases are added below for new code.
         blue: {
-          DEFAULT: "hsl(var(--blue))",
-          light: "hsl(var(--blue-light))",
+          DEFAULT: "hsl(var(--blue) / <alpha-value>)",
+          light: "hsl(var(--blue-light) / <alpha-value>)",
         },
-        sky: "hsl(var(--sky))",
+        "brand-blue": "hsl(var(--blue) / <alpha-value>)",
+        "brand-blue-light": "hsl(var(--blue-light) / <alpha-value>)",
+        sky: "hsl(var(--sky) / <alpha-value>)",
         slate: {
-          DEFAULT: "hsl(var(--slate))",
-          light: "hsl(var(--slate-light))",
+          DEFAULT: "hsl(var(--slate) / <alpha-value>)",
+          light: "hsl(var(--slate-light) / <alpha-value>)",
         },
-        silver: "hsl(var(--silver))",
-        fog: "hsl(var(--fog))",
-        paper: "hsl(var(--paper))",
+        "slate-light": "hsl(var(--slate-light) / <alpha-value>)",
+        silver: "hsl(var(--silver) / <alpha-value>)",
+        fog: "hsl(var(--fog) / <alpha-value>)",
+        paper: "hsl(var(--paper) / <alpha-value>)",
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          light: "hsl(var(--accent-light))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
+          light: "hsl(var(--accent-light) / <alpha-value>)",
+          foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
         },
-        warn: "hsl(var(--warn))",
-        gold: "hsl(var(--gold))",
+        "accent-light": "hsl(var(--accent-light) / <alpha-value>)",
+        cobalt: "hsl(var(--cobalt) / <alpha-value>)",
+        warn: "hsl(var(--warn) / <alpha-value>)",
+        gold: "hsl(var(--accent) / <alpha-value>)", // legacy alias — use accent in new code
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
+          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
+          foreground: "hsl(var(--secondary-foreground) / <alpha-value>)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
+          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
+          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "hsl(var(--popover) / <alpha-value>)",
+          foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
         },
         sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+          DEFAULT: "hsl(var(--sidebar-background) / <alpha-value>)",
+          foreground: "hsl(var(--sidebar-foreground) / <alpha-value>)",
+          primary: "hsl(var(--sidebar-primary) / <alpha-value>)",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground) / <alpha-value>)",
+          accent: "hsl(var(--sidebar-accent) / <alpha-value>)",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
+          border: "hsl(var(--sidebar-border) / <alpha-value>)",
+          ring: "hsl(var(--sidebar-ring) / <alpha-value>)",
         },
       },
       fontFamily: {
@@ -104,11 +111,28 @@ export default {
         extrabold: "700",
         black: "800",
       },
-      // Restore industry-standard Tailwind sizes (previously bumped to 15/17).
-      // .text-body (16px) remains the semantic body utility; text-base also = 16px.
+      // Industry-standard Tailwind sizes expressed in rem so they respect
+      // user zoom / OS font-size preferences. .text-body (16px) remains the
+      // semantic body utility; text-base also = 16px.
       fontSize: {
-        sm: ['14px', { lineHeight: '1.55' }],
-        base: ['16px', { lineHeight: '1.65' }],
+        sm: ['0.875rem', { lineHeight: '1.55' }],
+        base: ['1rem', { lineHeight: '1.65' }],
+        // Fluid scale — smooth between min and max widths instead of snapping
+        // at md/lg breakpoints. Use sparingly for hero / section copy where
+        // smooth scaling matters more than precise pixel control.
+        'fluid-sm': ['clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem)', { lineHeight: '1.55' }],
+        'fluid-base': ['clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem)', { lineHeight: '1.6' }],
+        'fluid-lg': ['clamp(1rem, 0.95rem + 0.3vw, 1.1875rem)', { lineHeight: '1.5' }],
+        'fluid-xl': ['clamp(1.125rem, 1.05rem + 0.45vw, 1.375rem)', { lineHeight: '1.4' }],
+        'fluid-2xl': ['clamp(1.375rem, 1.25rem + 0.75vw, 1.875rem)', { lineHeight: '1.25' }],
+        'fluid-hero': ['clamp(2rem, 1.4rem + 3vw, 3.5rem)', { lineHeight: '1.1' }],
+      },
+      spacing: {
+        'fluid-sm': 'clamp(0.5rem, 0.4rem + 0.4vw, 0.75rem)',
+        'fluid-md': 'clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem)',
+        'fluid-lg': 'clamp(1rem, 0.75rem + 1vw, 2rem)',
+        'fluid-xl': 'clamp(1.5rem, 1rem + 2vw, 3rem)',
+        'gutter': 'clamp(1rem, 0.5rem + 2vw, 2rem)',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -139,5 +163,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/container-queries"),
+  ],
 } satisfies Config;

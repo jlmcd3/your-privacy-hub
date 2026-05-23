@@ -195,7 +195,7 @@ export default function TestCPPAScope() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
-          <h1 className="font-serif text-3xl mb-2">🧪 TEST: CPPA Scope Checker (frontend logic)</h1>
+          <h1 className="font-serif mb-2">🧪 TEST: CPPA Scope Checker (frontend logic)</h1>
           <p className="text-sm text-muted-foreground">
             Pure-frontend determination — no AI, no edge function, no API cost.
           </p>
@@ -211,7 +211,7 @@ export default function TestCPPAScope() {
         {results.map((r, i) => (
           <div key={i} className="border rounded-lg p-4 bg-card space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="font-serif text-xl">
+              <h2 className="font-serif">
                 {r.verdict.passed ? "✅" : "❌"} Scenario {r.name}
               </h2>
               <span

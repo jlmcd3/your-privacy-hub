@@ -270,7 +270,7 @@ export default function USNoticeDocuments() {
       <Card className="mb-8">
         <CardContent className="p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="font-serif text-lg mb-1">
+            <h2 className="font-serif mb-1">
               {hasAny ? "Regenerate notices" : "Generate your notices"}
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -306,7 +306,7 @@ export default function USNoticeDocuments() {
               className="h-10 w-10 mx-auto text-muted-foreground mb-3"
               aria-hidden
             />
-            <h3 className="font-serif text-lg mb-1">No notices yet</h3>
+            <h3 className="mb-1">No notices yet</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Once you generate your notices, each state-specific document will appear
               here with download options.
@@ -427,7 +427,7 @@ export default function USNoticeDocuments() {
       {previousDocs.length > 0 && (
         <Card className="mb-8">
           <CardContent className="p-4 md:p-6">
-            <h2 className="font-serif text-lg mb-3 flex items-center gap-2">
+            <h2 className="font-serif mb-3 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden />
               Previous versions
             </h2>

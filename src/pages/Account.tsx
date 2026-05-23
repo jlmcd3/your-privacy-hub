@@ -150,12 +150,12 @@ export default function Account() {
       </Helmet>
 
       <div className="max-w-[640px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="font-display font-bold text-navy text-[24px] mb-8">My Account</h1>
+        <h1 className="font-display text-navy mb-8">My Account</h1>
 
         {!onboardingComplete && (
           <div className="bg-gradient-to-br from-blue/10 to-sky/10 border border-blue/30 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
             <div>
-              <h3 className="font-semibold text-navy text-[14px] mb-1">
+              <h3 className="text-navy text-[14px] mb-1">
                 Personalise your intelligence feed
               </h3>
               <p className="text-sm text-slate leading-relaxed">
@@ -173,7 +173,7 @@ export default function Account() {
 
         {/* Account details */}
         <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
-          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+          <h2 className="text-navy text-[14px] uppercase tracking-wider mb-4">
             Account Details
           </h2>
           <div className="space-y-3">
@@ -194,21 +194,7 @@ export default function Account() {
         </div>
 
         {/* Plan — tier-specific block */}
-        {tier === "annual_founding" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-navy text-[15px]">
-              Professional — Annual (Founding Subscriber)
-            </p>
-            <p className="text-sm text-amber-700 font-semibold mt-1">
-              Founding discount locked for life
-            </p>
-            <p className="text-[12px] text-slate mt-1">
-              Client workspaces, 20% off every Smart Tool, 15% off every Convenience Tool, 1 free Convenience Tool run per client per month, and the full intelligence brief.
-            </p>
-          </div>
-        )}
-
-        {tier === "annual" && (
+        {(tier === "annual" || tier === "annual_founding") && (
           <div className="bg-navy/5 border border-navy/20 rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">Professional — Annual</p>
             <p className="text-sm text-slate mt-1">
@@ -221,15 +207,15 @@ export default function Account() {
         )}
 
         {tier === "monthly" && (
-          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 mb-4">
+          <div className="bg-[hsl(var(--cobalt)/0.06)] border border-[hsl(var(--cobalt)/0.20)] rounded-2xl p-5 mb-4">
             <p className="font-bold text-navy text-[15px]">Intelligence — Monthly</p>
-            <p className="text-sm text-teal-700 mt-1">
+            <p className="text-sm text-cobalt mt-1">
               {PRICING.intelligence.monthly.display}/month · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
               Intelligence brief, enforcement tracking, and reference content. Compliance tools sold separately at standalone rates.
             </p>
-            <div className="mt-3 p-3 bg-card rounded-lg border border-teal-100">
+            <div className="mt-3 p-3 bg-card rounded-lg border border-[hsl(var(--cobalt)/0.15)]">
               <p className="text-[12px] font-semibold text-navy">
                 Add client workspaces with Professional
               </p>
@@ -246,7 +232,7 @@ export default function Account() {
         {/* Subscription management — for any paid tier */}
         {isPremium ? (
           <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
-            <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+            <h2 className="text-navy text-[14px] uppercase tracking-wider mb-4">
               Subscription
             </h2>
             <div className="space-y-3">
@@ -305,7 +291,7 @@ export default function Account() {
             <div className="text-[11px] font-bold uppercase tracking-widest text-sky mb-2">
               ⭐ Upgrade
             </div>
-            <h3 className="font-display font-bold text-white text-[18px] mb-2">
+            <h3 className="text-white mb-2">
               Professional or Intelligence
             </h3>
             <p className="text-slate-light text-sm mb-4 max-w-sm mx-auto">
@@ -323,7 +309,7 @@ export default function Account() {
         {/* Per-client add-on — annual subscribers only */}
         {hasToolAccess && (
           <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
-            <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-2">
+            <h2 className="text-navy text-[14px] uppercase tracking-wider mb-2">
               Client Workspaces
             </h2>
             <p className="text-sm text-slate mb-3 leading-relaxed">
@@ -352,7 +338,7 @@ export default function Account() {
 
         {/* Quick links */}
         <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
-          <h2 className="font-semibold text-navy text-[14px] uppercase tracking-wider mb-4">
+          <h2 className="text-navy text-[14px] uppercase tracking-wider mb-4">
             Quick Links
           </h2>
           <div className="space-y-2">

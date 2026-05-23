@@ -227,7 +227,7 @@ export default function TestBrief() {
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
-          <h1 className="font-serif text-3xl mb-2">
+          <h1 className="font-serif mb-2">
             🧪 TEST: Intelligence Brief (Custom Generation)
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -264,7 +264,7 @@ export default function TestBrief() {
 
         {foundProhibited.length > 0 && (
           <div className="border-2 border-red-500 rounded-lg p-4 bg-red-50">
-            <h2 className="font-serif text-lg text-red-900 mb-2">
+            <h2 className="font-serif text-red-900 mb-2">
               ⚠️ PROHIBITED PHRASES DETECTED
             </h2>
             <p className="text-sm text-red-900 mb-2">
@@ -282,7 +282,7 @@ export default function TestBrief() {
         {sections && (
           <>
             <div className="border rounded-lg p-4 bg-card">
-              <h2 className="font-serif text-xl mb-3">
+              <h2 className="font-serif mb-3">
                 Assertions ({passCount} pass / {failCount} fail)
               </h2>
               <ul className="space-y-1 text-sm">

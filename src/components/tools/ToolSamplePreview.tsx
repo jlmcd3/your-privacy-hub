@@ -190,7 +190,7 @@ export default function ToolSamplePreview({
   return (
     <section className="bg-card border rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b bg-muted/30">
-        <h2 className="text-lg font-semibold text-foreground">Sample Output Preview</h2>
+        <h2 className="text-foreground">Sample Output Preview</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
           A representative preview of what your full {toolName} report contains.
         </p>
@@ -212,7 +212,7 @@ export default function ToolSamplePreview({
             <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-2">
               Purchase to unlock your full report
             </p>
-            <h3 className="font-display text-xl md:text-2xl font-bold mb-1">{toolName}</h3>
+            <h3 className="mb-1">{toolName}</h3>
             <p className="text-blue-200 text-sm mb-5">
               Complete the form above and purchase to generate your full analysis.
             </p>

@@ -117,7 +117,7 @@ export default function AdminArticles() {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <h1 className="text-2xl font-semibold mb-2">Not authorized</h1>
+          <h1 className="mb-2">Not authorized</h1>
           <p className="text-muted-foreground">
             You need an admin or moderator role to access this page.
           </p>
@@ -137,7 +137,7 @@ export default function AdminArticles() {
       <main className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-serif tracking-tight">
+            <h1 className="font-serif tracking-tight">
               Article Moderation
             </h1>
             <p className="text-sm text-muted-foreground mt-1">

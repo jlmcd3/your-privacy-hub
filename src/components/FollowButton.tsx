@@ -55,7 +55,7 @@ const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-base font-bold text-foreground mb-2">Follow {label}</h3>
+            <h3 className="text-foreground mb-2">Follow {label}</h3>
             <p className="text-xs text-muted-foreground mb-4">Get email alerts when new articles are published about {label}.</p>
 
             {status === "duplicate" ? (

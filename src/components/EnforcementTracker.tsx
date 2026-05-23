@@ -22,7 +22,7 @@ const EnforcementTracker = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
-            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Enforcement Tracker</h2>
+            <h2 className="font-display tracking-tight text-navy">Enforcement Tracker</h2>
             <p className="text-sm text-slate mt-1">Every fine, order and sanction — all jurisdictions, updated as decisions are issued.</p>
           </div>
           <a href="/enforcement-tracker" className="text-sm font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
@@ -33,7 +33,7 @@ const EnforcementTracker = () => {
         <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
           <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <h3 className="font-display text-lg text-white">Recent Enforcement Actions</h3>
+              <h3 className="text-white">Recent Enforcement Actions</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">✓ Free preview</span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⭐ Full database with Intelligence</span>

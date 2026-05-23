@@ -25,7 +25,7 @@ const DirectoriesPreview = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Regulatory Authority Directories</h2>
+            <h2 className="font-display tracking-tight text-navy">Regulatory Authority Directories</h2>
             <p className="text-sm text-slate mt-1">Complete reference database — free access</p>
           </div>
         </div>
@@ -35,7 +35,7 @@ const DirectoriesPreview = () => {
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm hover:shadow-eup-md hover:-translate-y-0.5 transition-all">
             <div className="px-5 md:px-6 py-5 md:py-6 bg-gradient-to-br from-navy-mid to-navy-light flex justify-between items-start">
               <div>
-                <h3 className="font-display text-lg md:text-xl text-white mb-1">🇺🇸 U.S. State Privacy Authorities</h3>
+                <h3 className="text-white mb-1">🇺🇸 U.S. State Privacy Authorities</h3>
                 <p className="text-[12px] text-slate-light">All 50 states + DC — statutes, status, AG websites, complaint portals</p>
               </div>
               <div className="text-right flex-shrink-0 ml-3">
@@ -68,7 +68,7 @@ const DirectoriesPreview = () => {
           <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm hover:shadow-eup-md hover:-translate-y-0.5 transition-all">
             <div className="px-5 md:px-6 py-5 md:py-6 bg-gradient-to-br from-navy-mid to-navy-light flex justify-between items-start">
               <div>
-                <h3 className="font-display text-lg md:text-xl text-white mb-1">🌐 Global Privacy Authorities</h3>
+                <h3 className="text-white mb-1">🌐 Global Privacy Authorities</h3>
                 <p className="text-[12px] text-slate-light">68 authorities across 6 regions — legislation, DPA websites, complaint portals</p>
               </div>
               <div className="text-right flex-shrink-0 ml-3">

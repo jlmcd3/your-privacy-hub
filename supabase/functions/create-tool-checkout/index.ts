@@ -12,12 +12,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tool catalog. Lookup keys map to prices created in the payment system
-// (see payments--batch_create_product results). Fallback cents reflect
-// the v7 pricing model — standalone = full per-use price, subscriber =
-// Professional rate (25% off). Intelligence subscribers (20% off) are
-// computed at runtime. Keep in sync with src/hooks/useToolPrice.ts
-// FALLBACK and src/config/pricing.ts PRICING.tools.
+// Tool catalog. Lookup keys map to Stripe Price objects. Under the v8
+// pricing model (May 2026 memo): every tier pays the same standalone
+// price; the only discount is the founding-subscriber promotion
+// (20% off Smart Tools, 15% off Convenience Tools), applied at runtime
+// to founding_subscriber = true. `fallback_subscriber_cents` is the
+// founding-rate fallback. Keep in sync with src/config/pricing.ts
+// PRICING.tools and PRICING_REGISTRY.
 const TOOLS: Record<
   string,
   {
@@ -34,48 +35,48 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 3500,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
-    fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_standalone_cents: 5500,
+    fallback_subscriber_cents: 5500,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 4500,
   },
   dpa_generator: {
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 4500,
   },
   ir_playbook: {
     name: "Your Breach Response Playbook",
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
-    fallback_standalone_cents: 2000,
-    fallback_subscriber_cents: 1500,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Checker",
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     table: "biometric_assessments",
-    fallback_standalone_cents: 1000,
-    fallback_subscriber_cents: 800,
+    fallback_standalone_cents: 1500,
+    fallback_subscriber_cents: 1500,
   },
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
@@ -83,7 +84,7 @@ const TOOLS: Record<
     subscriber_lookup: "ropa_initial_subscriber",
     table: "ropa_sessions",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_subscriber_cents: 4000,
   },
   ropa_refresh: {
     name: "RoPA Builder — Annual Refresh",
@@ -91,31 +92,31 @@ const TOOLS: Record<
     subscriber_lookup: "ropa_refresh_subscriber",
     table: "ropa_sessions",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_subscriber_cents: 4000,
   },
   us_notice_single: {
     name: "US Privacy Notice — Single State",
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
   },
   us_notice_all_states: {
     name: "US Privacy Notice — All States Suite",
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
   },
   us_notice_refresh: {
     name: "US Notice — Annual Refresh",
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     table: "us_notice_sessions",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
   },
   eu_notice_single: {
     name: "EU & Global Notice — Single Framework",
@@ -123,7 +124,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
   },
   eu_notice_suite: {
     name: "EU Notice Suite — GDPR + UK GDPR + FADP",
@@ -131,7 +132,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
   },
   eu_notice_full_international: {
     name: "EU & Global Notice — Full International",
@@ -139,7 +140,7 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
   },
   eu_notice_refresh: {
     name: "EU & Global Notice — Annual Refresh",
@@ -147,31 +148,31 @@ const TOOLS: Record<
     subscriber_lookup: "eu_notice_v7_subscriber",
     table: "eu_notice_sessions",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
   },
   cppa_risk_assessment: {
     name: "CPPA Risk Assessment — Module 1",
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 6000,
-    fallback_subscriber_cents: 4500,
+    fallback_standalone_cents: 5500,
+    fallback_subscriber_cents: 5500,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 8000,
-    fallback_subscriber_cents: 6000,
+    fallback_standalone_cents: 7000,
+    fallback_subscriber_cents: 7000,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 14000,
-    fallback_subscriber_cents: 10500,
+    fallback_standalone_cents: 12500,
+    fallback_subscriber_cents: 12500,
   },
 };
 
@@ -229,40 +230,23 @@ Deno.serve(async (req) => {
     ]);
     const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
 
-    // Classify tool for founding-discount %.
-    const SMART_TOOL_TYPES = new Set([
-      "li_assessment", "governance_assessment", "dpia_framework",
-      "cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite",
-      "dpa_generator", "biometric_checker",
-    ]);
-    const CONVENIENCE_TOOL_TYPES = new Set([
-      "ir_playbook", "ropa_initial", "ropa_refresh",
-      "us_notice_single", "us_notice_all_states", "us_notice_refresh",
-      "eu_notice_single", "eu_notice_suite", "eu_notice_full_international", "eu_notice_refresh",
-    ]);
-    const isSmart = SMART_TOOL_TYPES.has(tool_type);
-    const isConvenience = CONVENIENCE_TOOL_TYPES.has(tool_type);
-
-    let isFoundingSubscriber = false;
+    // Founding-subscriber discount has been retired. Every tier pays the
+    // standalone price; we still surface `subscription_type` for downstream
+    // routing (e.g. Professional free convenience runs are handled client-side).
     let isProfessionalAnnual = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_premium, is_pro, subscription_type, founding_subscriber, professional_annual")
+        .select("is_premium, is_pro, subscription_type, professional_annual")
         .eq("id", user_id)
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
-      isFoundingSubscriber = (profile as any)?.founding_subscriber === true
-        || subscriptionType === "annual_founding";
       isProfessionalAnnual = (profile as any)?.professional_annual === true
         || subscriptionType === "annual" || subscriptionType === "annual_founding";
     }
 
-    const isSubscriber = isFoundingSubscriber; // backwards-compat alias used below
-
-    // Always charge the standalone Stripe price (subscriber lookup deprecated under v8);
-    // founding discount is computed at runtime via price_data fallback.
+    // Always charge the standalone Stripe price.
     const lookupKey = tool.standalone_lookup;
 
     const env = detectEnv(environment);
@@ -276,21 +260,14 @@ Deno.serve(async (req) => {
     // a free run is available the client should mark the row as paid
     // directly and skip create-tool-checkout entirely.
 
-    let amountCents: number;
-    if (isFoundingSubscriber && (isSmart || isConvenience)) {
-      const pct = isSmart ? 0.20 : 0.15;
-      amountCents = Math.round(standaloneCents * (1 - pct));
-    } else {
-      const resolved = await resolvePriceId(stripe, lookupKey);
-      amountCents = resolved?.unit_amount ?? standaloneCents;
-    }
+    const resolved = await resolvePriceId(stripe, lookupKey);
+    const amountCents: number = resolved?.unit_amount ?? standaloneCents;
 
     // Preserve legacy variable names referenced later in the file.
     const stripePrice: { id: string; unit_amount?: number | null } | null = null;
-    const subscriberCents = tool.fallback_subscriber_cents;
     const isProfessionalSubscriber = isProfessionalAnnual; // alias for legacy code below
     const isIntelligenceSubscriber = subscriptionType === "monthly";
-    void subscriberCents; void stripePrice; void isIntelligenceSubscriber;
+    void stripePrice; void isIntelligenceSubscriber; void isProfessionalSubscriber;
 
 
 
@@ -435,7 +412,7 @@ Deno.serve(async (req) => {
           user_id,
           status: "pending",
           processing_description: intake_data?.processing_description || "",
-          purchased_as_standalone: !isSubscriber,
+          purchased_as_standalone: true,
           purchase_price_cents: amountCents,
           ...filteredIntake,
         };
@@ -444,7 +421,7 @@ Deno.serve(async (req) => {
           user_id,
           status: "pending",
           intake_data: intake_data || {},
-          purchased_as_standalone: !isSubscriber,
+          purchased_as_standalone: true,
           purchase_price_cents: amountCents,
         };
       }

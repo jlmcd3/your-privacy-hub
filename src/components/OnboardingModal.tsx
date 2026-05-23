@@ -74,7 +74,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
         {/* Step 1: Role */}
         {step === 1 && (
           <>
-            <h2 className="font-display font-bold text-foreground text-[20px] text-center mb-2">
+            <h2 className="font-display text-foreground text-center mb-2">
               What best describes your role?
             </h2>
             <p className="text-muted-foreground text-sm text-center mb-6">
@@ -109,7 +109,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
         {/* Step 2: Jurisdictions */}
         {step === 2 && (
           <>
-            <h2 className="font-display font-bold text-foreground text-[20px] text-center mb-2">
+            <h2 className="font-display text-foreground text-center mb-2">
               Which regions matter most to you?
             </h2>
             <p className="text-muted-foreground text-sm text-center mb-6">
@@ -151,7 +151,7 @@ export default function OnboardingModal({ userId, onComplete }: OnboardingModalP
         {/* Step 3: Confirmation */}
         {step === 3 && (
           <>
-            <h2 className="font-display font-bold text-foreground text-[20px] text-center mb-6">
+            <h2 className="font-display text-foreground text-center mb-6">
               You're all set.
             </h2>
             <div className="space-y-4 mb-8">

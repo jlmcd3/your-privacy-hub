@@ -98,7 +98,7 @@ export default function RegistrationOrder() {
           <div className="max-w-4xl mx-auto py-10">
             <BackLink to="/registration-manager/my-filings" label="Back to My Filings" className="mb-4" />
             <header className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Registration Order</h1>
+              <h1 className="text-foreground">Registration Order</h1>
               <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground">
                 <Badge variant="secondary">{order.tier.replace(/_/g, " ")}</Badge>
                 <Badge variant="outline">Payment: {order.payment_status}</Badge>
@@ -126,7 +126,7 @@ export default function RegistrationOrder() {
             </Card>
 
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Documents</h2>
+              <h2 className="">Documents</h2>
               <Button onClick={generateDocs} disabled={generating} variant="outline" size="sm">
                 {generating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating…</> : "Regenerate documents"}
               </Button>

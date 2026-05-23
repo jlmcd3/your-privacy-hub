@@ -81,7 +81,7 @@ const Login = () => {
         {/* Left panel — hidden on mobile */}
         <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-navy to-steel flex-col justify-center px-12 py-16">
           <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">End User Privacy</div>
-          <h2 className="font-display text-white text-[24px] font-bold leading-tight mb-6">
+          <h2 className="font-display text-white leading-tight mb-6">
             Global privacy law, tracked daily.
           </h2>
           <div className="space-y-4">
@@ -103,7 +103,7 @@ const Login = () => {
         {/* Right panel — form */}
         <div className="flex-1 flex items-center justify-center py-16 px-4 bg-paper">
           <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
-            <h1 className="font-display text-[24px] text-navy text-center mb-1.5">Sign In</h1>
+            <h1 className="font-display text-navy text-center mb-1.5">Sign In</h1>
             <p className="text-sm text-slate text-center mb-7">
               {safeRedirect?.includes("subscribe")
                 ? "Sign in to complete your subscription"

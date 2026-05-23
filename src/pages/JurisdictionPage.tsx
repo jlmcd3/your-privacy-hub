@@ -357,7 +357,7 @@ const JurisdictionPage = () => {
       <div className="min-h-screen bg-paper">
         <Navbar />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-          <h1 className="font-display text-3xl text-navy mb-4">Jurisdiction Not Found</h1>
+          <h1 className="font-display text-navy mb-4">Jurisdiction Not Found</h1>
           <p className="text-slate mb-6">The jurisdiction you're looking for is not yet in our database.</p>
           <Link to="/global-privacy-authorities" className="text-blue hover:underline">Browse all jurisdictions →</Link>
         </div>
@@ -394,7 +394,7 @@ const JurisdictionPage = () => {
             <span>🌐</span>
             <span>Jurisdiction Profile</span>
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{jurisdiction.name}</h1>
+          <h1 className="font-display text-white mb-2">{jurisdiction.name}</h1>
           <p className="text-sm text-slate-light">Region: {jurisdiction.region} · {jurisdiction.authorities.length} regulatory {jurisdiction.authorities.length === 1 ? "authority" : "authorities"}</p>
         </div>
       </div>
@@ -403,19 +403,19 @@ const JurisdictionPage = () => {
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Overview */}
         <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-8">
-          <h2 className="font-display text-xl text-navy mb-3">Overview</h2>
+          <h2 className="font-display text-navy mb-3">Overview</h2>
           <p className="text-sm text-slate leading-relaxed">{jurisdiction.overview}</p>
         </div>
 
         {/* Authorities */}
-        <h2 className="font-display text-xl text-navy mb-4">Regulatory Authorities</h2>
+        <h2 className="font-display text-navy mb-4">Regulatory Authorities</h2>
         <div className="space-y-4 mb-10">
           {jurisdiction.authorities.map((auth, i) => (
             <div key={i} className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm">
               {(auth as any).stateName ? (
                 <>
                   <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-                    <h3 className="font-display text-[22px] leading-tight text-navy">
+                    <h3 className="leading-tight text-navy">
                       <Link to={`/jurisdiction/${(auth as any).stateSlug}`} className="hover:underline">
                         {(auth as any).stateName}
                       </Link>
@@ -436,7 +436,7 @@ const JurisdictionPage = () => {
                 </>
               ) : (
                 <>
-                  <h3 className="font-display text-xl leading-tight text-navy mb-1">{auth.name}</h3>
+                  <h3 className="leading-tight text-navy mb-1">{auth.name}</h3>
                   {auth.abbreviation && <span className="text-meta text-slate">{auth.abbreviation}</span>}
                 </>
               )}
@@ -542,7 +542,7 @@ const JurisdictionPage = () => {
 
           return (
             <div className="mb-10">
-              <h2 className="font-display text-xl text-navy mb-4">
+              <h2 className="font-display text-navy mb-4">
                 Compliance tools for {jurisdiction.name}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -568,7 +568,7 @@ const JurisdictionPage = () => {
         {!user && (
           <div className="mb-8 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-7 text-center">
             <div className="text-eyebrow text-sky mb-2">⭐ Intelligence</div>
-            <h3 className="font-display text-lg md:text-xl text-white mb-3">
+            <h3 className="text-white mb-3">
               Monitor {jurisdiction.name} — get weekly intelligence alerts →
             </h3>
             <p className="text-sm text-slate-light mb-4 max-w-[500px] mx-auto">
@@ -588,7 +588,7 @@ const JurisdictionPage = () => {
           if (devLoading) {
             return (
               <div className="mb-10">
-                <h2 className="font-display text-xl text-navy mb-1">Recent Developments</h2>
+                <h2 className="font-display text-navy mb-1">Recent Developments</h2>
                 <p className="text-sm text-slate mb-4">Top stories relevant to {jurisdiction.name}</p>
                 <div className="flex flex-col gap-2">
                   {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
@@ -604,7 +604,7 @@ const JurisdictionPage = () => {
           return (
             <div className="mb-10">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="font-display text-xl text-navy">
+                <h2 className="font-display text-navy">
                   {hasDirect ? `Recent developments — ${jurisdiction.name}` : "Recent Developments"}
                 </h2>
                 <span className="text-eyebrow text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">Live</span>
@@ -619,7 +619,7 @@ const JurisdictionPage = () => {
                 </>
               ) : (
                 <div className="bg-card border border-fog rounded-2xl p-6 mt-2">
-                  <h3 className="font-display text-lg text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
+                  <h3 className="text-navy mb-2">No recent direct coverage of {jurisdiction.name}</h3>
                   <p className="text-sm text-slate leading-relaxed mb-4">
                     We haven't picked up jurisdiction-specific news in the last 90 days. This usually means the regulator hasn't
                     published high-profile actions recently — not that nothing is happening. Try the options below.
@@ -701,7 +701,7 @@ const JurisdictionPage = () => {
 
         {/* Related */}
         <div className="border-t border-fog pt-8 mb-8">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(() => {
               const isEU = derivedCategory === "eu-uk";
@@ -745,7 +745,7 @@ const JurisdictionPage = () => {
         {/* Premium CTA */}
         <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-eyebrow text-sky mb-2">⭐ Intelligence Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
+          <h3 className="text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
           <p className="text-sm text-slate-light mb-2 max-w-[500px] mx-auto">
             Intelligence subscribers receive the weekly Intelligence Brief covering all global developments.
           </p>

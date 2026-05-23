@@ -92,7 +92,7 @@ function ProductColumn({ label, products }: { label: string; products: Product[]
               to={p.href}
               className="block rounded-lg border border-fog bg-paper px-4 py-3 no-underline hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card transition-colors"
             >
-              <h3 className="font-display text-sm font-bold text-navy mb-1 leading-snug">
+              <h3 className="text-navy mb-1 leading-snug">
                 {p.title}
               </h3>
               <p className="text-meta text-slate leading-relaxed">{p.blurb}</p>
@@ -109,7 +109,7 @@ export default function HomepageToolsSection() {
     <SectionShell
       eyebrow="Compliance Toolkit"
       headline="Assessments and documents in a two-column catalogue"
-      subline={`Annual Platform includes every standard tool at ${PLATFORM_PRICING.standard()} — each calibrated against 3,700+ enforcement decisions.`}
+      subline={`Per-use compliance tools calibrated against 3,700+ enforcement decisions. Annual Platform (${PLATFORM_PRICING.standard()}) adds client workspaces, one free Convenience Tool run per client each month, and the full Intelligence Brief.`}
       ctaLabel="Browse tools →"
       ctaHref="/tools"
     >

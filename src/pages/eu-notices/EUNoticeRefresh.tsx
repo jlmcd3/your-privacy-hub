@@ -107,7 +107,7 @@ export default function EUNoticeRefresh() {
           <div className="flex items-start gap-3 mb-4">
             <div className="rounded-lg bg-primary/10 p-3"><RefreshCw className="h-6 w-6 text-primary" /></div>
             <div>
-              <h2 className="font-serif text-xl mb-1">Annual refresh</h2>
+              <h2 className="font-serif mb-1">Annual refresh</h2>
               <p className="text-sm text-muted-foreground">
                 We'll copy your prior answers and frameworks into a new session so you only need to update what's changed.
                 Last generated: {session.completed_at ? new Date(session.completed_at).toLocaleDateString() : "—"} · v{session.version_number ?? 1}

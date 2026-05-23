@@ -23,7 +23,7 @@ const PremiumBanner = () => {
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-sky mb-3.5">
               ⭐ Intelligence Intelligence
             </div>
-            <h2 className="font-display text-[24px] md:text-[30px] text-white leading-tight mb-3.5">
+            <h2 className="font-display text-white leading-tight mb-3.5">
               The library is free.<br />Intelligence is {`${INTELLIGENCE_PRICING.monthly()}`}.
             </h2>
             <p className="text-[14px] md:text-[15px] text-slate-light leading-relaxed mb-6">

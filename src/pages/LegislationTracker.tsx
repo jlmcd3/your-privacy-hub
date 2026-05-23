@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -55,6 +55,163 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const daysSince = (iso: string | null): number | null => {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / DAY_MS);
+};
+
+// Map a bill to its "what to do now" compliance tool. Returned only for
+// high-likelihood bills.
+function nextActionFor(bill: Bill): { label: string; href: string } | null {
+  const j = (bill.jurisdiction || "").toLowerCase();
+  const iso = bill.iso2 || "";
+  if (j.includes("california")) {
+    return { label: "Run CPPA Risk Assessment", href: "/cppa-risk-assessment" };
+  }
+  if (iso === "EU" || iso === "GB" || j.includes("united kingdom") || j.includes("european")) {
+    return { label: "Generate a DPIA", href: "/dpia-framework" };
+  }
+  if (iso === "US" || bill.region === "Americas") {
+    return { label: "Generate a U.S. Privacy Notice", href: "/us-notice-builder" };
+  }
+  return { label: "Run Governance Assessment", href: "/governance-assessment" };
+}
+
+// Pick the most relevant date for a bill. We don't have an explicit
+// "expected/effective date" column, so we surface source_last_action_at as
+// the most informative timestamp and colour by stage urgency.
+function urgencyFor(bill: Bill): { tone: "red" | "amber" | "slate"; label: string } {
+  if (bill.stage === "passed") return { tone: "red", label: "Awaiting signature / promulgation" };
+  if (bill.stage === "committee") return { tone: "amber", label: "In committee" };
+  if (bill.stage === "enacted") return { tone: "slate", label: "Enacted" };
+  return { tone: "slate", label: "Early stage" };
+}
+function BillCard({
+  bill,
+  variant,
+}: {
+  bill: Bill;
+  variant: "imminent" | "default" | "enacted";
+}) {
+  const cfg = STAGE_CONFIG[bill.stage] ?? STAGE_CONFIG.introduced;
+  const flagUrl = bill.iso2 ? FLAG_BY_ISO[bill.iso2] : undefined;
+  const isStale = bill.status === "stale";
+  const action = variant === "imminent" ? nextActionFor(bill) : null;
+  const urg = urgencyFor(bill);
+  const dateTone =
+    variant === "enacted"
+      ? "text-emerald-700"
+      : urg.tone === "red"
+      ? "text-red-600"
+      : urg.tone === "amber"
+      ? "text-amber-600"
+      : "text-slate";
+  const dateLabel =
+    variant === "enacted" ? "Effective" : urg.tone === "red" ? "Awaiting signature" : "Last action";
+
+  return (
+    <div
+      className={`bg-white rounded-2xl border p-5 transition-all hover:shadow-eup-sm ${
+        variant === "imminent" ? "border-red-500/40" : "border-fog"
+      }`}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            {flagUrl && (
+              <img
+                src={flagUrl}
+                alt={`${bill.jurisdiction} flag`}
+                loading="lazy"
+                className="w-5 h-3.5 object-cover rounded-[2px] shadow-sm flex-shrink-0"
+              />
+            )}
+            <span className="text-xs font-bold text-slate uppercase tracking-wider">
+              {bill.jurisdiction}
+            </span>
+            {bill.bill_number && (
+              <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
+            )}
+            <span
+              className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
+              style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}
+            >
+              {cfg.label}
+            </span>
+            {isStale && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                Stale
+              </span>
+            )}
+          </div>
+          <h3 className="text-navy text-[15px] mb-2">{bill.bill_name}</h3>
+          {bill.summary && (
+            <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
+          )}
+
+          {action && (
+            <div className="mb-3 rounded-lg border-l-4 border-accent bg-accent/5 px-3 py-2">
+              <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-0.5">
+                What to do now
+              </div>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-navy leading-snug m-0">
+                  Prepare ahead of enactment — assess your exposure with the recommended tool.
+                </p>
+                <Link
+                  to={action.href}
+                  className="text-sm font-semibold text-accent no-underline hover:underline whitespace-nowrap"
+                >
+                  {action.label} →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-light">
+            {bill.source_url ? (
+              <a
+                href={bill.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue hover:underline font-medium"
+              >
+                View at {bill.source_name ?? "source"} →
+              </a>
+            ) : bill.source_name ? (
+              <span>Source: {bill.source_name}</span>
+            ) : null}
+            <span>· Verified {formatDate(bill.last_seen_at)}</span>
+            {bill.jurisdiction_slug && (
+              <Link
+                to={`/jurisdiction/${bill.jurisdiction_slug}`}
+                className="text-blue hover:underline font-medium"
+              >
+                · Jurisdiction page →
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Prominent date */}
+        <div className="md:text-right md:border-l md:border-fog md:pl-4">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-light mb-1">
+            {dateLabel}
+          </div>
+          <div className={`font-display text-xl md:text-2xl leading-tight ${dateTone}`}>
+            {formatDate(bill.source_last_action_at)}
+          </div>
+          <div className="text-[11px] text-slate mt-1">{urg.label}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export default function LegislationTracker() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,8 +239,44 @@ export default function LegislationTracker() {
 
   const filtered = bills
     .filter((b) => region === "All Regions" || b.region === region)
-    .filter((b) => stage === "All Stages" || b.stage === stage)
-    .sort((a, b) => (STAGE_CONFIG[a.stage]?.order ?? 99) - (STAGE_CONFIG[b.stage]?.order ?? 99));
+    .filter((b) => stage === "All Stages" || b.stage === stage);
+
+  // Track groupings (default priority sort)
+  const recentlyEnacted = filtered
+    .filter((b) => b.stage === "enacted" && (daysSince(b.source_last_action_at) ?? 999) <= 90)
+    .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? ""));
+
+  const inProgress = filtered.filter((b) => b.stage !== "enacted" && b.stage !== "withdrawn");
+
+  const tracks: { id: string; label: string; sub: string; tone: string; bills: Bill[] }[] = [
+    {
+      id: "high",
+      label: "High likelihood — imminent",
+      sub: "Passed at least one chamber; awaiting signature or promulgation.",
+      tone: "border-red-500 bg-red-50 text-red-700",
+      bills: inProgress
+        .filter((b) => b.stage === "passed")
+        .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? "")),
+    },
+    {
+      id: "active",
+      label: "Active — committee stage",
+      sub: "Moving through committee; outcome uncertain but on the agenda.",
+      tone: "border-amber-500 bg-amber-50 text-amber-700",
+      bills: inProgress
+        .filter((b) => b.stage === "committee")
+        .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? "")),
+    },
+    {
+      id: "early",
+      label: "Introduced — early stage",
+      sub: "Recently introduced or proposed; long road to enactment.",
+      tone: "border-violet-500 bg-violet-50 text-violet-700",
+      bills: inProgress
+        .filter((b) => b.stage === "introduced" || b.stage === "proposed")
+        .sort((a, b) => (b.source_last_action_at ?? "").localeCompare(a.source_last_action_at ?? "")),
+    },
+  ];
 
   return (
     <>
@@ -103,7 +296,7 @@ export default function LegislationTracker() {
         <AdBanner variant="leaderboard" className="mt-4" />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <div className="mb-8">
-            <ResearchSynthesisBlock sectionKey="legislation__page" />
+            <ResearchSynthesisBlock sectionKey="legislation__page" promoteHeading />
           </div>
 
           <div className="text-[11px] text-slate-light mb-6">
@@ -140,100 +333,79 @@ export default function LegislationTracker() {
           </div>
 
 
-          <div className="space-y-4">
-            {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
-            {!loading && filtered.map((bill, idx) => {
-              const cfg = STAGE_CONFIG[bill.stage] ?? STAGE_CONFIG.introduced;
-              const flagUrl = bill.iso2 ? FLAG_BY_ISO[bill.iso2] : undefined;
-              const chipInner = (
-                <>
-                  {flagUrl && (
-                    <img src={flagUrl} alt={`${bill.jurisdiction} flag`} loading="lazy"
-                      className="w-6 h-4 object-cover rounded-[2px] shadow-sm flex-shrink-0" />
-                  )}
-                  {bill.iso2 && (
-                    <span className="font-mono text-[11px] font-bold text-navy tracking-wider">{bill.iso2}</span>
-                  )}
-                </>
-              );
-              const isStale = bill.status === "stale";
-              const showAdAfter = (idx + 1) % 6 === 0 && idx !== filtered.length - 1;
-              return (
-                <Fragment key={bill.id}>
-                <div className="bg-white rounded-2xl border border-fog p-6 hover:shadow-eup-sm transition-all">
-                  <div className="flex items-start gap-4">
-                    {bill.jurisdiction_slug ? (
-                      <Link to={`/jurisdiction/${bill.jurisdiction_slug}`}
-                        aria-label={`View ${bill.jurisdiction} jurisdiction page`}
-                        className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white hover:border-navy/30 hover:shadow-eup-sm transition-all no-underline">
-                        {chipInner}
-                      </Link>
-                    ) : (
-                      <div className="flex flex-shrink-0 items-center gap-1.5 px-2 py-1 rounded-lg border border-fog bg-white">
-                        {chipInner}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                        <span className="text-xs font-bold text-slate uppercase tracking-wider">{bill.jurisdiction}</span>
-                        {bill.bill_number && (
-                          <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
-                        )}
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
-                          style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}>
-                          {cfg.label}
-                        </span>
-                        {isStale && (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
-                            Stale
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-navy text-[15px] mb-2">{bill.bill_name}</h3>
-                      {bill.summary && (
-                        <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
-                      )}
-                      <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-light">
-                        {bill.source_url ? (
-                          <a href={bill.source_url} target="_blank" rel="noopener noreferrer"
-                            className="text-blue hover:underline font-medium">
-                            View at {bill.source_name ?? "source"} →
-                          </a>
-                        ) : bill.source_name ? (
-                          <span>Source: {bill.source_name}</span>
-                        ) : null}
-                        {bill.source_last_action_at && (
-                          <span>· Last action {formatDate(bill.source_last_action_at)}</span>
-                        )}
-                        <span>· Verified {formatDate(bill.last_seen_at)}</span>
-                      </div>
-                    </div>
+          {loading && <p className="text-slate text-sm py-12 text-center">Loading bills…</p>}
+
+          {!loading && (
+            <>
+              {/* ── Recently enacted (last 90 days) ── */}
+              {recentlyEnacted.length > 0 && (
+                <section className="mb-10">
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <h2 className="font-display text-navy leading-tight">Recently enacted</h2>
+                    <span className="text-meta uppercase tracking-wider font-semibold text-emerald-700">
+                      Last 90 days · {recentlyEnacted.length}
+                    </span>
                   </div>
-                </div>
-                </Fragment>
-              );
-            })}
-            {!loading && filtered.length === 0 && (
-              <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
-            )}
-          </div>
+                  <p className="text-sm text-slate mb-4">
+                    Bills that crossed the finish line recently — what returning practitioners may
+                    have missed.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {recentlyEnacted.map((bill) => (
+                      <BillCard key={bill.id} bill={bill} variant="enacted" />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ── Priority tracks ── */}
+              {tracks.map((track) => (
+                <section key={track.id} className="mb-10">
+                  <div className={`flex items-center gap-3 mb-1 pl-3 border-l-4 ${track.tone.split(" ")[0]}`}>
+                    <h2 className="font-display text-navy leading-tight">{track.label}</h2>
+                    <span className={`text-meta uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${track.tone}`}>
+                      {track.bills.length}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate mb-4 pl-4">{track.sub}</p>
+                  {track.bills.length === 0 ? (
+                    <p className="text-meta text-slate-light pl-4">No bills in this track for the current filters.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {track.bills.map((bill) => (
+                        <BillCard
+                          key={bill.id}
+                          bill={bill}
+                          variant={track.id === "high" ? "imminent" : "default"}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ))}
+
+              {filtered.length === 0 && (
+                <p className="text-center text-slate py-12 text-sm">No bills match your filters.</p>
+              )}
+            </>
+          )}
 
           <div className="mt-14 pt-8 border-t border-fog space-y-10">
             <section id="us-federal" className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__us_federal" />
+              <h2 className="font-display text-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__us_federal" compact />
             </section>
             <section id="us-states" className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__us_states" />
+              <h2 className="font-display text-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__us_states" compact />
             </section>
             <section id="eu-uk" className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__eu_uk" />
+              <h2 className="font-display text-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__eu_uk" compact />
             </section>
             <section id="global" className="scroll-mt-24">
-              <h2 className="font-display text-[20px] md:text-[26px] text-navy mb-4 leading-tight">Global Privacy Legislation</h2>
-              <ResearchSynthesisBlock sectionKey="legislation__global" />
+              <h2 className="font-display text-navy mb-4 leading-tight">Global Privacy Legislation</h2>
+              <ResearchSynthesisBlock sectionKey="legislation__global" compact />
             </section>
           </div>
         </main>

@@ -283,7 +283,7 @@ export default function USNoticeQuestions() {
           )}
 
           {/* Question text */}
-          <h2 className="font-serif text-xl md:text-2xl text-foreground leading-snug">
+          <h2 className="font-serif text-foreground leading-snug">
             {currentQuestion.text}
             {currentQuestion.isRequired && (
               <span className="text-destructive ml-1">*</span>

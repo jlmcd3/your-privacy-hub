@@ -28,7 +28,7 @@ export default function CountryPanel({ jurisdiction: j, onClose }: CountryPanelP
       <div className="flex items-start justify-between mb-5">
         <div>
           <div className="text-3xl mb-2">{j.flag}</div>
-          <h2 className="font-display font-bold text-navy text-lg leading-tight">{j.name}</h2>
+          <h2 className="font-display text-navy leading-tight">{j.name}</h2>
           <span
             className="inline-block mt-2 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border"
             style={{

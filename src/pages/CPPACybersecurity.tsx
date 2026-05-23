@@ -104,17 +104,11 @@ export default function CPPACybersecurity() {
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
-            {activePricing.isSubscriber && activePricing.standalonePrice > displayPrice && (
-              <> · subscriber rate (standalone ${activePricing.standalonePrice})</>
-            )}
-            {!activePricing.isSubscriber && (
-              <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>
-            )}
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
+          <h1 className="font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
         </div>
@@ -127,7 +121,7 @@ export default function CPPACybersecurity() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <section className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Organisation Profile</h2>
+          <h2 className="">Organisation Profile</h2>
           <div>
             <Label>Industry sector *</Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
@@ -157,7 +151,7 @@ export default function CPPACybersecurity() {
 
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold">18 Cybersecurity Programme Components</h2>
+            <h2 className="">18 Cybersecurity Programme Components</h2>
             <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
           </div>
 
@@ -165,7 +159,7 @@ export default function CPPACybersecurity() {
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">
               <div className="flex items-baseline gap-2">
                 <span className="text-xs text-muted-foreground font-mono">{String(i + 1).padStart(2, "0")}</span>
-                <h3 className="font-medium">{c.label}</h3>
+                <h3 className="">{c.label}</h3>
               </div>
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">

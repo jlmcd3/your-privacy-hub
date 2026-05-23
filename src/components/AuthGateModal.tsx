@@ -40,7 +40,7 @@ export default function AuthGateModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 mb-3">
-          <h2 className="font-display font-bold text-navy text-[20px] leading-snug">
+          <h2 className="font-display text-navy leading-snug">
             {heading}
           </h2>
           <button

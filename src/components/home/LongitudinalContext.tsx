@@ -71,7 +71,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-steel" />
-          <h3 className="font-display font-bold text-[15px] text-navy">
+          <h3 className="text-[15px] text-navy">
             {signal.period_days}-Day Context: {topicLabel}
           </h3>
         </div>

@@ -8,6 +8,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// v8 pricing model (May 2026 memo):
+//   Standalone = the per-use price for every tier — Intelligence and
+//   Professional subscribers pay the SAME standalone price. The only
+//   discount is the founding-subscriber promotion (20% off Smart Tools,
+//   15% off Convenience Tools), applied to founding_subscriber = true.
+//
+//   `subscriber_lookup` is retained as the Stripe lookup key for the
+//   founding-rate Price object; `fallback_subscriber_cents` is the
+//   founding-rate fallback used when Stripe lookup fails.
+//
+//   Keep in sync with src/config/pricing.ts PRICING.tools and the
+//   PRICING_REGISTRY v8 entries.
 const TOOLS: Record<
   string,
   {
@@ -16,159 +28,176 @@ const TOOLS: Record<
     subscriber_lookup: string | null;
     fallback_standalone_cents: number;
     fallback_subscriber_cents: number;
+    classification: "smart" | "convenience";
   }
 > = {
-  // v7 fallback amounts. Standalone = full per-use price.
-  // Subscriber = Professional rate (25% off). Intelligence-tier callers
-  // get an additional client-side recompute (20% off standalone) via
-  // ToolPricingCTA. Keep in sync with src/hooks/useToolPrice.ts FALLBACK
-  // and src/config/pricing.ts PRICING.tools.
   healthcheck: {
     name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
-    fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_standalone_cents: 5500,
+    fallback_subscriber_cents: 5500,
+    classification: "smart",
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
-    fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_standalone_cents: 5500,
+    fallback_subscriber_cents: 5500,
+    classification: "smart",
   },
   li_analyzer: {
     name: "Legitimate Interest Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 3500,
+    classification: "smart",
   },
   li_assessment: {
     name: "Legitimate Interest Assessment Tool",
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 3500,
+    fallback_subscriber_cents: 3500,
+    classification: "smart",
   },
   dpia_builder: {
     name: "Impact Assessment Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 4500,
+    classification: "smart",
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 4500,
+    classification: "smart",
   },
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
     standalone_lookup: "ropa_initial_standalone",
     subscriber_lookup: "ropa_initial_subscriber",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_subscriber_cents: 4000,
+    classification: "convenience",
   },
   ropa_refresh: {
     name: "RoPA Builder — Annual Refresh",
     standalone_lookup: "ropa_refresh_standalone",
     subscriber_lookup: "ropa_refresh_subscriber",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_subscriber_cents: 4000,
+    classification: "convenience",
   },
   us_notice_single: {
     name: "US Privacy Notice — Single State",
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
+    classification: "convenience",
   },
   us_notice_all_states: {
     name: "US Privacy Notice — All States Suite",
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
+    classification: "convenience",
   },
   us_notice_refresh: {
     name: "US Notice — Annual Refresh",
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 2300,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
+    classification: "convenience",
   },
   eu_notice_single: {
     name: "EU & Global Notice — Single Framework",
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
+    classification: "convenience",
   },
   eu_notice_suite: {
     name: "EU Notice Suite",
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
+    classification: "convenience",
   },
   eu_notice_full_international: {
     name: "EU & Global Notice — Full International",
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
+    classification: "convenience",
   },
   eu_notice_refresh: {
     name: "EU Notice — Annual Refresh",
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 5000,
-    fallback_subscriber_cents: 3800,
+    fallback_subscriber_cents: 5000,
+    classification: "convenience",
   },
   cppa_risk_assessment: {
     name: "CPPA Risk Assessment — Module 1",
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
-    fallback_standalone_cents: 6000,
-    fallback_subscriber_cents: 4500,
+    fallback_standalone_cents: 5500,
+    fallback_subscriber_cents: 5500,
+    classification: "smart",
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
-    fallback_standalone_cents: 8000,
-    fallback_subscriber_cents: 6000,
+    fallback_standalone_cents: 7000,
+    fallback_subscriber_cents: 7000,
+    classification: "smart",
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
-    fallback_standalone_cents: 14000,
-    fallback_subscriber_cents: 10500,
+    fallback_standalone_cents: 12500,
+    fallback_subscriber_cents: 12500,
+    classification: "smart",
   },
   dpa_generator: {
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 4500,
+    fallback_subscriber_cents: 4500,
+    classification: "smart",
   },
   ir_playbook: {
     name: "Breach Response Playbook",
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
-    fallback_standalone_cents: 2000,
-    fallback_subscriber_cents: 1500,
+    fallback_standalone_cents: 2500,
+    fallback_subscriber_cents: 2500,
+    classification: "convenience",
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Assessment",
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
-    fallback_standalone_cents: 1000,
-    fallback_subscriber_cents: 800,
+    fallback_standalone_cents: 1500,
+    fallback_subscriber_cents: 1500,
+    classification: "smart",
   },
 };
 
@@ -190,10 +219,6 @@ serve(async (req) => {
       });
     }
 
-    // v7 model: every tool is per-use. Professional subscribers get the
-    // subscriber rate (25% off). Intelligence subscribers get a separate
-    // 20%-off rate computed client-side. Anonymous / free users pay
-    // standalone. CPPA tools follow the same per-use rules.
     const CPPA_TOOLS = new Set([
       "cppa_risk_assessment",
       "cppa_cybersecurity",
@@ -201,10 +226,9 @@ serve(async (req) => {
     ]);
     const isCppa = CPPA_TOOLS.has(tool_slug);
 
-    // Determine subscription tier.
+    // Founding-subscriber discount has been retired. Every tier pays the
+    // standalone price; we still surface `subscription_type` for analytics.
     let subscriptionType: string | null = null;
-    let isProfessionalSubscriber = false; // annual/annual_founding → 25% off
-    let isIntelligenceSubscriber = false; // monthly → 20% off
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -221,29 +245,18 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("is_premium, is_pro, subscription_type, founding_subscriber")
+            .select("subscription_type")
             .eq("id", user.id)
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
-          if (subscriptionType === "annual" || subscriptionType === "annual_founding") {
-            isProfessionalSubscriber = true;
-          } else if (subscriptionType === "monthly") {
-            isIntelligenceSubscriber = true;
-          } else if (!subscriptionType && (profile?.is_premium || (profile as any)?.is_pro)) {
-            // Legacy premium without subscription_type — grandfather as Professional.
-            isProfessionalSubscriber = true;
-            subscriptionType = "annual";
-          }
         }
       } catch (_) {
         // ignore
       }
     }
 
-    // Resolve BOTH standalone and subscriber prices from Stripe so the
-    // client can render the v7 model accurately.
+    // Resolve the standalone price from Stripe.
     let standaloneCents = tool.fallback_standalone_cents;
-    let subscriberCents = tool.fallback_subscriber_cents;
     let stripeConfigured = false;
     try {
       const stripe = createStripeClient(detectEnv());
@@ -252,40 +265,26 @@ serve(async (req) => {
         standaloneCents = standalonePrice.unit_amount ?? standaloneCents;
         stripeConfigured = true;
       }
-      if (tool.subscriber_lookup) {
-        const subPrice = await resolvePriceId(stripe, tool.subscriber_lookup);
-        if (subPrice) subscriberCents = subPrice.unit_amount ?? subscriberCents;
-      }
     } catch (e) {
       console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
     }
 
-    // v7 effective price:
-    //   Professional (annual / annual_founding) → 25% off (subscriberCents)
-    //   Intelligence (monthly)                  → 20% off (computed)
-    //   Free / anonymous                        → standalone
-    const intelligenceCents = Math.round(standaloneCents * 0.8);
-    let effectiveCents: number;
-    if (isProfessionalSubscriber) effectiveCents = subscriberCents;
-    else if (isIntelligenceSubscriber) effectiveCents = intelligenceCents;
-    else effectiveCents = standaloneCents;
+    const effectiveCents = standaloneCents;
+    const subscriberCents = standaloneCents;
 
     return new Response(
       JSON.stringify({
         tool_slug,
         tool_name: tool.name,
-        tier: isProfessionalSubscriber
-          ? "professional"
-          : isIntelligenceSubscriber
-            ? "intelligence"
-            : "standalone",
+        tier: "standalone",
         subscription_type: subscriptionType,
         is_cppa: isCppa,
         is_included: false,
+        classification: tool.classification,
         amount_cents: effectiveCents,
         standalone_amount_cents: standaloneCents,
         subscriber_amount_cents: subscriberCents,
-        intelligence_amount_cents: intelligenceCents,
+        founding_amount_cents: subscriberCents,
         stripe_price_id: null, // resolved server-side at checkout
         stripe_configured: stripeConfigured || tool.fallback_standalone_cents > 0,
       }),

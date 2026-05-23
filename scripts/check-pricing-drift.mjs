@@ -108,16 +108,22 @@ function parseCanonical() {
     }
   }
 
-  // Discount percentages.
-  const discRe = /toolDiscount:\s*(0?\.\d+)/g;
-  const discounts = [];
-  while ((m = discRe.exec(src)) !== null) discounts.push(Number(m[1]));
-  // Expect 0.20 (intelligence) and 0.25 (professional)
-  if (!discounts.includes(0.2)) errs("[canonical] PRICING.intelligence.toolDiscount must be 0.20");
-  if (!discounts.includes(0.25)) errs("[canonical] PRICING.professional.toolDiscount must be 0.25");
+  // Discount percentages — v8 model only checks the founding-promo rates.
+  // Memo (May 2026): no permanent structural subscriber discount. Only
+  // founding subscribers (founding_subscriber=true) get 20% off Smart
+  // Tools / 15% off Convenience Tools.
 
   return { tools };
 }
+
+// Tool classification — must match SMART_TOOL_KEYS / CONVENIENCE_TOOL_KEYS
+// in src/config/pricing.ts.
+const SMART_TOOL_KEYS = new Set([
+  "governance", "lia", "dpia", "cppaRisk", "cppaCyber", "dpa", "biometric",
+]);
+const CONVENIENCE_TOOL_KEYS = new Set([
+  "irPlaybook", "usNotice", "euNotice", "ropa", "registration",
+]);
 
 // ─── Parse edge-function TOOLS table ─────────────────────────────────────
 function parseEdgeFunction(rel) {
@@ -136,21 +142,28 @@ function parseEdgeFunction(rel) {
   return out;
 }
 
-// ─── Canonical price lookup for a slug ───────────────────────────────────
+// ─── Canonical price lookup for a slug (v8 founding model) ───────────────
 function canonicalCentsForSlug(slug, canonical) {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (!key) return null;
   let standaloneDollars;
+  let isSmart;
   if (key === "__suite__") {
     if (!canonical.tools.cppaRisk || !canonical.tools.cppaCyber) return null;
     standaloneDollars = canonical.tools.cppaRisk.dollars + canonical.tools.cppaCyber.dollars;
+    isSmart = true; // CPPA suite classified as Smart
   } else {
     if (!canonical.tools[key]) return null;
     standaloneDollars = canonical.tools[key].dollars;
+    isSmart = SMART_TOOL_KEYS.has(key);
+    if (!isSmart && !CONVENIENCE_TOOL_KEYS.has(key)) {
+      // Unknown classification — default to standalone (no discount).
+      return { standalone: standaloneDollars * 100, subscriber: standaloneDollars * 100 };
+    }
   }
   const standalone = standaloneDollars * 100;
-  const subscriber = Math.round(standaloneDollars * (1 - 0.25)) * 100; // Professional 25% off
-  return { standalone, subscriber };
+  // Founding-subscriber discount retired — subscriber rate mirrors standalone.
+  return { standalone, subscriber: standalone };
 }
 
 // ─── Compare ─────────────────────────────────────────────────────────────
@@ -170,7 +183,7 @@ function compareEdge(label, edge, canonical) {
     if (edgePrice.subscriber !== expected.subscriber) {
       errs(
         `[${label}] ${slug}: subscriber ${edgePrice.subscriber}¢ ≠ canonical ${expected.subscriber}¢ ` +
-          `(${edgePrice.subscriber / 100} vs ${expected.subscriber / 100} USD @ 25% off)`,
+          `(${edgePrice.subscriber / 100} vs ${expected.subscriber / 100} USD @ subscriber rate)`,
       );
     }
   }

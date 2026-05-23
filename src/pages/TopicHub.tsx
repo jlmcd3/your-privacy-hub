@@ -143,7 +143,7 @@ const TopicHub = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Topic Not Found</h1>
+          <h1 className="text-foreground mb-4">Topic Not Found</h1>
           <Link to="/" className="text-primary hover:underline">Return to homepage →</Link>
         </div>
         <Footer />
@@ -167,7 +167,7 @@ const TopicHub = () => {
       <div className="border-b border-border bg-card">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <p className="text-sm font-medium text-muted-foreground mb-2">{meta.icon} Topic Hub</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">{meta.name}</h1>
+          <h1 className="text-foreground mb-3">{meta.name}</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">{meta.description}</p>
           {!loading && (
             <p className="mt-4 text-xs text-muted-foreground">
@@ -205,7 +205,7 @@ const TopicHub = () => {
                   <span>·</span>
                   <span>{formatDate(u.published_at)}</span>
                 </div>
-                <h3 className="text-sm md:text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                <h3 className="text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                   {normalizeTitle(u.title)}
                 </h3>
                 {u.summary && (

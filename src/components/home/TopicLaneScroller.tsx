@@ -31,7 +31,7 @@ export default function TopicLaneScroller({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg flag-emoji">{laneIcon}</span>
-          <h3 className="font-display font-bold text-navy text-[15px]">{laneTitle}</h3>
+          <h3 className="text-navy text-[15px]">{laneTitle}</h3>
         </div>
         <div className="flex items-center gap-2">
           <button

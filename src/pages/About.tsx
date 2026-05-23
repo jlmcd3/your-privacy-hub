@@ -17,7 +17,7 @@ const About = () => {
             <span className="inline-block text-meta font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
               ABOUT END USER PRIVACY
             </span>
-            <h1 className="font-display text-[32px] md:text-[40px] font-extrabold text-white leading-tight mb-4">
+            <h1 className="font-display text-white leading-tight mb-4">
               About End User Privacy
             </h1>
             <p className="text-slate-light text-[15px] max-w-[520px] mx-auto">
@@ -93,7 +93,7 @@ const About = () => {
               <div className="flex gap-4">
                 <div className="text-2xl flex-shrink-0">⚖️</div>
                 <div>
-                  <h3 className="font-semibold text-navy mb-1">
+                  <h3 className="text-navy mb-1">
                     Enforcement-calibrated, not statute-summarising
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -110,7 +110,7 @@ const About = () => {
               <div className="flex gap-4">
                 <div className="text-2xl flex-shrink-0">🤖</div>
                 <div>
-                  <h3 className="font-semibold text-navy mb-1">
+                  <h3 className="text-navy mb-1">
                     Intelligence, not aggregation
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -126,15 +126,14 @@ const About = () => {
               <div className="flex gap-4">
                 <div className="text-2xl flex-shrink-0">🛠️</div>
                 <div>
-                  <h3 className="font-semibold text-navy mb-1">
+                  <h3 className="text-navy mb-1">
                     Intelligence and compliance tools in one platform
                   </h3>
                   <p className="text-sm text-gray-600">
                     The privacy tools most professionals use — LIAs, DPIAs, DPA
                     generators, IR playbooks — are sold separately by specialist
                     vendors at significant cost. We offer thirteen enforcement-calibrated
-                    compliance tools at standalone per-use prices. Founding subscribers
-                    get a permanent 20% off Smart Tools and 15% off Convenience Tools.
+                    compliance tools at standalone per-use prices.
                     The intelligence that informs the tools and the tools themselves
                     live in the same place.
                   </p>
@@ -144,7 +143,7 @@ const About = () => {
               <div className="flex gap-4">
                 <div className="text-2xl flex-shrink-0">🎯</div>
                 <div>
-                  <h3 className="font-semibold text-navy mb-1">
+                  <h3 className="text-navy mb-1">
                     Personalised to your professional context
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -184,13 +183,13 @@ const About = () => {
             <p>
               Whether you're a Chief Privacy Officer at a Fortune 500 company, a privacy attorney at a global law firm, or a consultant advising clients on compliance, End User Privacy gives you the intelligence you need in one place.
             </p>
-            <h2 className="font-display text-xl font-bold text-navy pt-4">Our Mission</h2>
+            <h2 className="font-display text-navy pt-4">Our Mission</h2>
             <p>
               To make privacy regulatory intelligence accessible, comprehensive, and actionable — at any price point. We believe that staying informed about the global privacy landscape shouldn`t require expensive enterprise subscriptions or hours of manual research.
             </p>
 
             {/* Free Tools section */}
-            <h2 className="font-display text-xl font-bold text-navy pt-4">Free Tools</h2>
+            <h2 className="font-display text-navy pt-4">Free Tools</h2>
             <p>
               These tools are free. The digest and some features require a free account:
             </p>
@@ -211,7 +210,7 @@ const About = () => {
               ))}
             </ul>
 
-            <h2 className="font-display text-xl font-bold text-navy pt-4">Contact</h2>
+            <h2 className="font-display text-navy pt-4">Contact</h2>
             <p>
               Have questions or feedback? Reach us at{" "}
               <a href="mailto:hello@enduserprivacy.com" className="text-sky hover:underline">

@@ -181,7 +181,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
     <p className="text-eyebrow text-gold mb-2">
       Privacy Intelligence Feed
     </p>
-    <h2 className="text-section-h2 font-bold text-white mb-2">
+    <h2 className="text-section-h2 text-white mb-2">
       Today's full feed — {count > 0 ? `${count} developments` : "all developments"}, every one enriched
     </h2>
     <p className="text-sm text-blue-100/80 mb-5 max-w-xl mx-auto">
@@ -332,7 +332,7 @@ export default function HomepageSpotlight() {
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
         <div className="rounded-2xl border border-dashed border-fog bg-slate-50/60 px-6 py-12 text-center">
           <Sparkles className="w-8 h-8 mx-auto text-slate/40 mb-3" aria-hidden />
-          <h2 className="font-display text-xl font-bold text-navy mb-2">
+          <h2 className="font-display text-navy mb-2">
             No new developments yet today
           </h2>
           <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">

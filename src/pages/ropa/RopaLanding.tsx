@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Check, ArrowRight, ExternalLink, FileText, ListChecks, Download } from "lucide-react";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import { useToolPrice } from "@/hooks/useToolPrice";
 
 const TITLE =
   "RoPA Builder — Records of Processing Activities Tool | End User Privacy";
@@ -85,6 +86,7 @@ const FAQ = [
 ];
 
 export default function RopaLanding() {
+  const pricing = useToolPrice("ropa_initial");
   useEffect(() => {
     document.title = TITLE;
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
@@ -103,45 +105,39 @@ export default function RopaLanding() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
       </div>
-      <main className="flex-1">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <ToolOutputPreview
-            label="Sample Article 30 RoPA output"
-            lines={[
-              "RECORD OF PROCESSING ACTIVITIES — Article 30 GDPR / UK GDPR",
-              "Organisation: [Your organisation name]",
-              "ACTIVITY 1: Customer account management",
-              "  Purpose: Contract performance and service delivery",
-              "  Legal basis: Article 6(1)(b) — performance of contract",
-              "  Data categories: Identity, contact, account credentials",
-            ]}
-          />
-        </div>
-        {/* HERO */}
-        <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-foreground leading-tight mb-5">
-              Build an audit-ready RoPA in under an hour.
-            </h1>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Guided questions in plain language. Covers GDPR, LGPD, CCPA, and
-              20+ frameworks. Used by DPOs, privacy consultants, and compliance
-              teams.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild size="lg">
-                <Link to="/ropa">
-                  Start for free <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/#brief">
-                  See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📚 RoPA Builder · Q&A free · PDF ${pricing.price}
+          </span>
+          <h1 className="font-serif text-white mb-3">
+            Build an audit-ready RoPA in under an hour
+          </h1>
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
+            Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
+            frameworks. Used by DPOs, privacy consultants, and compliance teams to keep
+            records of processing activities current and regulator-ready.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
+              <Link to="/ropa">
+                Start for free <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+            >
+              <Link to="/#brief">
+                See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
-        </section>
+        </div>
+      </header>
+      <main className="flex-1">
 
         {/* TRUST BAR */}
         <section className="border-y border-border bg-muted/30 py-6 px-4">
@@ -157,7 +153,7 @@ export default function RopaLanding() {
         {/* HOW IT WORKS */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="max-w-5xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-10">
+            <h2 className="font-serif text-center mb-10">
               How it works
             </h2>
             <ol className="grid gap-6 md:grid-cols-3">
@@ -174,7 +170,7 @@ export default function RopaLanding() {
                       </span>
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="font-serif text-xl text-foreground mb-2">
+                    <h3 className="text-foreground mb-2">
                       {s.title}
                     </h3>
                     <p className="text-sm text-muted-foreground">{s.body}</p>
@@ -188,7 +184,7 @@ export default function RopaLanding() {
         {/* JURISDICTION COVERAGE */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-3">
+            <h2 className="font-serif text-center mb-3">
               Jurisdiction coverage
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
@@ -197,7 +193,7 @@ export default function RopaLanding() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {JURISDICTIONS.map((j) => (
                 <div key={j.region} className="bg-card border border-border rounded-xl p-5">
-                  <h3 className="font-serif text-lg text-foreground mb-3">
+                  <h3 className="text-foreground mb-3">
                     {j.region}
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -216,14 +212,14 @@ export default function RopaLanding() {
         {/* PRICING */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-3">
+            <h2 className="font-serif text-center mb-3">
               Pricing
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
               Start free. Pay only when you generate a document.
             </p>
 
-            <div className="overflow-x-auto border border-border rounded-2xl">
+            <div className="cmp-table overflow-x-auto border border-border rounded-2xl">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40">
                   <tr>
@@ -271,7 +267,7 @@ export default function RopaLanding() {
         {/* FAQ */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-3xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-4xl text-center mb-10">
+            <h2 className="font-serif text-center mb-10">
               Frequently asked questions
             </h2>
             <Accordion type="single" collapsible className="w-full">
@@ -291,7 +287,7 @@ export default function RopaLanding() {
 
         {/* FOOTER CTA */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl text-foreground mb-4">
+          <h2 className="font-serif text-foreground mb-4">
             Start documenting — free to begin.
           </h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">

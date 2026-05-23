@@ -124,7 +124,7 @@ export default function EUNoticeMode() {
               <div className="rounded-lg bg-primary/10 p-3"><FileText className="h-6 w-6 text-primary" /></div>
               {hasCompletedRopa && <Badge variant="default">Recommended</Badge>}
             </div>
-            <h2 className="font-serif text-2xl mb-2">From my RoPA</h2>
+            <h2 className="font-serif mb-2">From my RoPA</h2>
             <p className="text-sm text-muted-foreground mb-4 flex-1">
               Pre-populated from your existing data map. Fastest path if you've completed a RoPA.
             </p>
@@ -165,7 +165,7 @@ export default function EUNoticeMode() {
             <div className="flex items-start justify-between mb-4">
               <div className="rounded-lg bg-primary/10 p-3"><ClipboardList className="h-6 w-6 text-primary" /></div>
             </div>
-            <h2 className="font-serif text-2xl mb-2">Start fresh</h2>
+            <h2 className="font-serif mb-2">Start fresh</h2>
             <p className="text-sm text-muted-foreground mb-4 flex-1">
               Answer a curated set of universal + framework-specific questions. No RoPA required.
             </p>

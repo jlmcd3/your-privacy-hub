@@ -60,7 +60,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
     return (
       <div className="bg-fog rounded-2xl p-6 text-center">
         <Lock className="w-8 h-8 text-slate mx-auto mb-3" />
-        <h3 className="font-bold text-navy text-[15px] mb-2">Watchlist is an Intelligence feature</h3>
+        <h3 className="text-navy text-[15px] mb-2">Watchlist is an Intelligence feature</h3>
         <p className="text-slate text-sm mb-4">
           Follow specific jurisdictions, regulators, and topics to receive
           weekly digest updates on what changed.
@@ -79,7 +79,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Bell className="w-5 h-5 text-blue" />
-        <h2 className="font-bold text-navy text-[16px]">My Watchlist</h2>
+        <h2 className="text-navy text-[16px]">My Watchlist</h2>
         <span className="text-xs text-slate-light">· Alerts delivered in your weekly digest</span>
       </div>
 
@@ -110,7 +110,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
 
       {(["jurisdictions", "topics"] as const).map(type => (
         <div key={type}>
-          <h3 className="font-bold text-navy text-xs uppercase tracking-widest mb-3 capitalize">
+          <h3 className="text-navy uppercase tracking-widest mb-3 capitalize">
             {type === "jurisdictions" ? "🌐 Jurisdictions" : "📂 Topics"}
           </h3>
           <div className="flex flex-wrap gap-2">

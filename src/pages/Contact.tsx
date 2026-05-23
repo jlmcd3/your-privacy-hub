@@ -16,7 +16,7 @@ const Contact = () => {
             <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-sky bg-sky/10 border border-sky/20 rounded-full px-3 py-1 mb-4">
               ✉️ CONTACT
             </span>
-            <h1 className="font-display text-[32px] md:text-[40px] font-extrabold text-white leading-tight mb-4">
+            <h1 className="font-display text-white leading-tight mb-4">
               Get in Touch
             </h1>
             <p className="text-slate-light text-[15px] max-w-[520px] mx-auto">
@@ -26,7 +26,7 @@ const Contact = () => {
         </section>
         <section className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <div className="bg-card border border-fog rounded-2xl p-8 max-w-[480px] mx-auto">
-            <h2 className="font-display text-[20px] font-bold text-navy mb-2">Email Us</h2>
+            <h2 className="font-display text-navy mb-2">Email Us</h2>
             <p className="text-[14px] text-slate mb-6">
               Our team typically responds within 24 hours.
             </p>

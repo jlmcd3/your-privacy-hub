@@ -12,6 +12,7 @@ interface AnonymousUpdatesCardItem {
   source_name?: string | null;
   image_url?: string | null;
   why_it_matters_short?: string | null;
+  source_url?: string | null;
   ai_summary?: { why_it_matters_short?: string | null; urgency?: string | null; legal_weight?: string | null } | null;
 }
 
@@ -51,8 +52,9 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
   const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
 
   return (
-    <Link
-      to={`/updates/${item.id}`}
+    <a
+      href={item.source_url || `/updates/${item.id}`}
+      {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="group flex gap-4 items-start py-4 border-b border-fog last:border-0 no-underline"
     >
       {/* Article thumbnail — falls back to EUP brand tile when missing */}
@@ -110,13 +112,13 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
           <p className="text-[11px] text-slate flex-1">Full analysis on every update — free account</p>
           <Link
             to="/signup"
-            className="flex-shrink-0 text-[11px] font-semibold bg-teal-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-teal-500 transition-colors no-underline whitespace-nowrap"
+            className="flex-shrink-0 text-[11px] font-semibold bg-accent text-white px-2.5 py-1.5 rounded-lg hover:bg-accent-light transition-colors no-underline whitespace-nowrap"
             onClick={(e) => e.stopPropagation()}
           >
             Register free →
           </Link>
         </div>
       </div>
-    </Link>
+    </a>
   );
 }

@@ -148,7 +148,7 @@ const PillarPage = ({
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             {icon} Intelligence Guide
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">{title}</h1>
+          <h1 className="font-display text-white mb-3 leading-tight">{title}</h1>
           {subtitleHtml ? (
             <p
               className="text-sm md:text-base text-slate-light max-w-[700px] [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
@@ -188,7 +188,7 @@ const PillarPage = ({
                   />
                   <button
                     type="submit"
-                    className="text-[12px] px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition-colors whitespace-nowrap"
+                    className="text-[12px] px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-light transition-colors whitespace-nowrap"
                   >
                     Get updates →
                   </button>
@@ -221,20 +221,20 @@ const PillarPage = ({
         {/* Assessment CTA — shown to all users when this pillar has an associated tool/assessment.
             Placed below the intro card (context first) and above the TOC (high visibility). */}
         {toolCta && (
-          <div className="mb-8 rounded-xl border border-teal-600/30 bg-gradient-to-br from-teal-50 to-card overflow-hidden shadow-eup-sm">
+          <div className="mb-8 rounded-xl border border-accent/30 bg-gradient-to-br from-[hsl(var(--accent)/0.05)] to-card overflow-hidden shadow-eup-sm">
             <div className="px-5 py-4 md:px-6 md:py-5 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
               <div>
-                <div className="text-[11px] font-bold tracking-widest uppercase text-teal-700 mb-1.5">
+                <div className="text-[11px] font-bold tracking-widest uppercase text-[hsl(var(--accent))] mb-1.5">
                   ✓ Assessment tool
                 </div>
-                <h3 className="font-display text-[16px] md:text-[18px] text-navy leading-snug mb-1">
+                <h3 className="text-[16px] text-navy leading-snug mb-1">
                   {toolCta.heading}
                 </h3>
                 <p className="text-sm text-slate leading-relaxed">{toolCta.description}</p>
               </div>
               <Link
                 to={toolCta.link}
-                className="inline-flex w-full md:w-auto items-center justify-center text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 px-5 py-2.5 rounded-lg no-underline transition-colors whitespace-nowrap"
+                className="inline-flex w-full md:w-auto items-center justify-center text-sm font-semibold text-white bg-accent hover:bg-accent-light px-5 py-2.5 rounded-lg no-underline transition-colors whitespace-nowrap"
               >
                 {toolCta.linkLabel}
               </Link>
@@ -259,7 +259,7 @@ const PillarPage = ({
                   className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
                 >
                   <span className="text-slate">→</span>
-                  <span>Recent developments <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-teal-600/15 text-teal-700 align-middle">Live</span></span>
+                  <span>Recent developments <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-[hsl(var(--cobalt)/0.12)] text-[hsl(var(--cobalt))] align-middle">Live</span></span>
                 </a>
               )}
               {sections.map((sec, i) => {
@@ -291,7 +291,7 @@ const PillarPage = ({
                 <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">
                   ⭐ Weekly Intelligence
                 </div>
-                <h3 className="font-display text-[16px] md:text-[18px] text-white leading-snug">
+                <h3 className="text-[16px] text-white leading-snug">
                   {intelligenceLabel || "What changed in this area this week"}
                 </h3>
               </div>
@@ -315,8 +315,8 @@ const PillarPage = ({
         {recentArticles.length > 0 && (
           <div id="recent-developments" className="scroll-mt-24 mb-10">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="font-display text-base text-navy">Recent developments</h2>
-              <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-teal-600/15 text-teal-700">
+              <h2 className="font-display text-navy">Recent developments</h2>
+              <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-[hsl(var(--cobalt)/0.12)] text-[hsl(var(--cobalt))]">
                 Live
               </span>
             </div>
@@ -342,7 +342,7 @@ const PillarPage = ({
             return (
               <React.Fragment key={i}>
                 <div id={slug} className="scroll-mt-24">
-                  <h2 className="font-display text-[20px] md:text-[24px] text-navy mb-3">{sec.heading}</h2>
+                  <h2 className="font-display text-navy mb-3">{sec.heading}</h2>
                   <div
                     className="text-[14px] text-slate leading-relaxed whitespace-pre-line [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
                     dangerouslySetInnerHTML={{
@@ -358,7 +358,7 @@ const PillarPage = ({
 
         {/* Related links */}
         <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link
@@ -387,7 +387,7 @@ const PillarPage = ({
         {!isPremium && (
           <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
             <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
-            <h3 className="font-display text-xl text-white mb-3">Get weekly intelligence on {title}</h3>
+            <h3 className="text-white mb-3">Get weekly intelligence on {title}</h3>
             <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>

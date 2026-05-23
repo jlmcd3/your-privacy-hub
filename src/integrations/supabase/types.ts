@@ -2341,6 +2341,59 @@ export type Database = {
         }
         Relationships: []
       }
+      regulatory_drift_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          law_slug: string
+          matched_at: string
+          matched_update_id: string | null
+          matched_update_title: string | null
+          matched_update_url: string | null
+          milestone_id: string | null
+          resolution: string | null
+          reviewed: boolean
+          reviewed_at: string | null
+          signal_keyword: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          law_slug: string
+          matched_at?: string
+          matched_update_id?: string | null
+          matched_update_title?: string | null
+          matched_update_url?: string | null
+          milestone_id?: string | null
+          resolution?: string | null
+          reviewed?: boolean
+          reviewed_at?: string | null
+          signal_keyword: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          law_slug?: string
+          matched_at?: string
+          matched_update_id?: string | null
+          matched_update_title?: string | null
+          matched_update_url?: string | null
+          milestone_id?: string | null
+          resolution?: string | null
+          reviewed?: boolean
+          reviewed_at?: string | null
+          signal_keyword?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_drift_alerts_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "regulatory_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regulatory_entities: {
         Row: {
           created_at: string | null
@@ -2367,6 +2420,62 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      regulatory_milestones: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          jurisdiction: string
+          law_slug: string
+          milestone_date: string
+          milestone_type: string
+          notes: string | null
+          source_url: string | null
+          superseded_by: string | null
+          title: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          jurisdiction: string
+          law_slug: string
+          milestone_date: string
+          milestone_type: string
+          notes?: string | null
+          source_url?: string | null
+          superseded_by?: string | null
+          title: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          jurisdiction?: string
+          law_slug?: string
+          milestone_date?: string
+          milestone_type?: string
+          notes?: string | null
+          source_url?: string | null
+          superseded_by?: string | null
+          title?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_milestones_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "regulatory_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       renewal_notifications: {
         Row: {
@@ -3432,6 +3541,7 @@ export type Database = {
           is_hidden: boolean
           is_premium: boolean
           key_date: string | null
+          law_slug: string | null
           li_processed: boolean | null
           li_relevant: boolean | null
           precedent_novelty: string | null
@@ -3472,6 +3582,7 @@ export type Database = {
           is_hidden?: boolean
           is_premium?: boolean
           key_date?: string | null
+          law_slug?: string | null
           li_processed?: boolean | null
           li_relevant?: boolean | null
           precedent_novelty?: string | null
@@ -3512,6 +3623,7 @@ export type Database = {
           is_hidden?: boolean
           is_premium?: boolean
           key_date?: string | null
+          law_slug?: string | null
           li_processed?: boolean | null
           li_relevant?: boolean | null
           precedent_novelty?: string | null

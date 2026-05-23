@@ -15,7 +15,7 @@ export default function Watchlist() {
       <PageContainer>
         <div className="py-6 max-w-3xl">
           <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold text-navy">Watchlist</h1>
+            <h1 className="font-display text-navy">Watchlist</h1>
             <p className="text-sm text-slate mt-1">
               Follow jurisdictions and topics. Updates appear in your weekly digest.
             </p>

@@ -15,7 +15,7 @@ export default function RegistrationManagerBanner() {
             <Badge className="bg-amber-400 text-navy hover:bg-amber-400 mb-3">
               <Sparkles className="w-3 h-3 mr-1" /> Registration Manager
             </Badge>
-            <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">
+            <h2 className="font-display mb-2">
               Privacy registration filings — drafted in minutes
             </h2>
             <p className="text-blue-100 text-sm md:text-base leading-relaxed">

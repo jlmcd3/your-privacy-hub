@@ -46,7 +46,7 @@ const TimelineDetail = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Timeline Not Found</h1>
+          <h1 className="text-foreground mb-4">Timeline Not Found</h1>
           <Link to="/timelines" className="text-primary hover:underline">Back to Timelines →</Link>
         </div>
         <Footer />
@@ -70,7 +70,7 @@ const TimelineDetail = () => {
           <Link to="/timelines" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors no-underline mb-4 inline-block">
             ← All Timelines
           </Link>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">{meta.icon} {meta.title}</h1>
+          <h1 className="text-foreground mb-3">{meta.icon} {meta.title}</h1>
           <p className="text-muted-foreground leading-relaxed">{meta.description}</p>
         </div>
       </div>
@@ -114,7 +114,7 @@ const TimelineDetail = () => {
                       {isFuture && <span className="text-[11px] font-bold text-muted-foreground uppercase">Upcoming</span>}
                     </div>
 
-                    <h3 className="text-sm font-semibold text-foreground mb-1">{event.title}</h3>
+                    <h3 className="text-foreground mb-1">{event.title}</h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">{event.description}</p>
 
                     {event.source_url && event.source_url.startsWith("http") && (

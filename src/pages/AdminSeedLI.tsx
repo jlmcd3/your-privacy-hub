@@ -29,7 +29,7 @@ const StepCard = ({
         <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
           {step}
         </span>
-        <h3 className="font-semibold text-sm text-foreground">{label}</h3>
+        <h3 className="text-foreground">{label}</h3>
       </div>
       <span
         className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
@@ -148,7 +148,7 @@ const AdminSeedLI = () => {
     <div className="min-h-screen bg-paper">
       <Navbar />
       <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="font-display text-2xl text-foreground mb-2">Admin: LI Tracker Setup</h1>
+        <h1 className="font-display text-foreground mb-2">Admin: LI Tracker Setup</h1>
         <p className="text-sm text-muted-foreground mb-8">Three-step deployment workflow for the Legitimate Interest Tracker.</p>
 
         <div className="space-y-4 mb-8">
@@ -185,7 +185,7 @@ const AdminSeedLI = () => {
 
         {stats && (
           <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-            <h2 className="font-display text-lg text-foreground">Status Panel</h2>
+            <h2 className="font-display text-foreground">Status Panel</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Total entries:</span>{" "}
@@ -201,7 +201,7 @@ const AdminSeedLI = () => {
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-1">By Outcome</h3>
+              <h3 className="text-foreground mb-1">By Outcome</h3>
               <div className="flex gap-3 text-sm flex-wrap">
                 {["accepted", "conditional", "rejected", "contested"].map((k) => (
                   <span key={k} className="bg-muted px-2.5 py-1 rounded capitalize">
@@ -211,7 +211,7 @@ const AdminSeedLI = () => {
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-1">By Signal Type</h3>
+              <h3 className="text-foreground mb-1">By Signal Type</h3>
               <div className="flex flex-wrap gap-2 text-sm">
                 {Object.entries(stats.signalCounts).map(([k, v]) => (
                   <span key={k} className="bg-muted px-2.5 py-1 rounded">

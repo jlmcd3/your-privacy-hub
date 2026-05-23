@@ -15,7 +15,6 @@ const corsHeaders = {
 const PLAN_LOOKUPS: Record<string, string> = {
   intelligence_monthly: "intelligence_monthly",
   intelligence_yearly: "intelligence_yearly",
-  intelligence_yearly_founding: "intelligence_yearly_founding",
   // Legacy aliases — all map to the new monthly Professional price.
   pro: "intelligence_monthly",
   premium: "intelligence_monthly",
@@ -163,22 +162,12 @@ serve(async (req) => {
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else if (!addon) {
-      // Resolve interval-aware plan key. For yearly, prefer the founding
-      // rate ($369/yr) while slots remain — auto-routed via the SECURITY
-      // DEFINER `is_founding_rate_available` function (capped at 500 seats).
+      // Resolve interval-aware plan key.
       if (interval === "year") {
-        let foundingAvailable = false;
-        try {
-          const { data: foundingFlag } = await supabase.rpc("is_founding_rate_available");
-          foundingAvailable = foundingFlag === true;
-        } catch (e) {
-          console.error("is_founding_rate_available rpc failed:", (e as Error).message);
-        }
-        lookupKey = foundingAvailable ? "intelligence_yearly_founding" : "intelligence_yearly";
+        lookupKey = "intelligence_yearly";
         metadata.subscription_tier = "intelligence";
         metadata.subscription_interval = "year";
-        metadata.subscription_type = foundingAvailable ? "annual_founding" : "annual";
-        if (foundingAvailable) metadata.founding_subscriber = "true";
+        metadata.subscription_type = "annual";
       } else {
         const requestedKey = plan || "intelligence_monthly";
         lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
@@ -189,16 +178,7 @@ serve(async (req) => {
     }
 
     const stripe = createStripeClient(env);
-    let stripePrice = await resolvePriceId(stripe, lookupKey!);
-    // Graceful fallback: founding price may not yet exist in Stripe.
-    // Fall back to the standard annual price so checkout doesn't 404.
-    if (!stripePrice && lookupKey === "intelligence_yearly_founding") {
-      console.warn("intelligence_yearly_founding not found in Stripe — falling back to intelligence_yearly");
-      lookupKey = "intelligence_yearly";
-      metadata.subscription_type = "annual";
-      delete (metadata as any).founding_subscriber;
-      stripePrice = await resolvePriceId(stripe, lookupKey);
-    }
+    const stripePrice = await resolvePriceId(stripe, lookupKey!);
     if (!stripePrice) {
       return new Response(JSON.stringify({ error: "Price not found in payment system", lookup_key: lookupKey }), {
         status: 404,
@@ -214,10 +194,11 @@ serve(async (req) => {
       : "/subscribe/success";
     const cancelPath = addon ? "/account" : tool_slug ? `/${tool_slug.replace(/_/g, "-")}` : "/subscribe";
 
-    // v7: Intelligence monthly subscriptions get a 10-day free trial.
-    const isIntelligenceMonthly =
-      mode === "subscription" &&
-      (metadata.subscription_tier === "intelligence" && metadata.subscription_interval === "month");
+    // All Intelligence subscriptions (monthly + yearly) get a
+    // 10-day free trial. Per-client add-ons are excluded — they're added
+    // to an existing paid subscription, not a new signup.
+    const isIntelligenceSub =
+      mode === "subscription" && metadata.subscription_tier === "intelligence";
 
     const session = await stripe.checkout.sessions.create({
       mode,
@@ -226,8 +207,8 @@ serve(async (req) => {
       metadata,
       ...(mode === "subscription" && {
         subscription_data: {
-          metadata: { ...metadata, ...(isIntelligenceMonthly && { plan: "intelligence", trial: "true" }) },
-          ...(isIntelligenceMonthly && { trial_period_days: 10 }),
+          metadata: { ...metadata, ...(isIntelligenceSub && { plan: "intelligence", trial: "true" }) },
+          ...(isIntelligenceSub && { trial_period_days: 10 }),
         },
       }),
       ...(embedded

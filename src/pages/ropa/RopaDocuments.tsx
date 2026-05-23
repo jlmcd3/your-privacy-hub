@@ -224,7 +224,7 @@ export default function RopaDocuments() {
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="font-heading text-xl mb-2">No RoPA documents yet</h3>
+            <h3 className="font-heading mb-2">No RoPA documents yet</h3>
             <p className="font-body text-muted-foreground mb-6">
               Complete the RoPA builder to generate your first Record of Processing Activities.
             </p>

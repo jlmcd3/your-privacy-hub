@@ -42,19 +42,20 @@ const USStateComparison = () => {
       </Helmet>
       <Navbar />
 
-      <div className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-          <p className="text-sm font-medium text-muted-foreground mb-2">📊 Comparison Tool</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">U.S. State Privacy Law Comparison</h1>
-          <p className="text-muted-foreground max-w-2xl leading-relaxed">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📊 Comparison Tool
+          </span>
+          <h1 className="font-serif text-white mb-3">U.S. State Privacy Law Comparison</h1>
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Side-by-side comparison of all {states.length} enacted US comprehensive state privacy laws across 12 standard provisions.
-            <br />
-            <span className="text-sm text-muted-foreground/80">
-              Hover any ✓ to see the statute citation. Click to open the law.
-            </span>
+          </p>
+          <p className="text-slate-400 text-sm mt-2">
+            Hover any ✓ to see the statute citation. Click to open the law.
           </p>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Premium upsell — slim contextual banner */}
@@ -73,7 +74,7 @@ const USStateComparison = () => {
 
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="cmp-table overflow-x-auto">
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-muted">

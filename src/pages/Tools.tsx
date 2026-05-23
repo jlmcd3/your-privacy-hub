@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { isSmartTool, isConvenienceTool, isPromoOpen, FOUNDING_PROMO } from "@/config/pricing";
+import { isSmartTool, isConvenienceTool } from "@/config/pricing";
 
 // Map Tools-page slugs to PRICING tool keys so we can classify per card.
 const SLUG_TO_TOOL_KEY: Record<string, string> = {
@@ -404,7 +404,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
-      "Standalone per-use price: $55. The output is structured for review by California privacy counsel before being relied upon. Founding subscribers receive 20% off — see your account for details.",
+      "Standalone per-use price: $55. The output is structured for review by California privacy counsel before being relied upon.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -424,7 +424,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
-      "Standalone per-use price: $70. Founding subscribers receive 20% off — see your account for details. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
+      "Standalone per-use price: $70. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -466,33 +466,33 @@ export default function Tools() {
     <>
       <Helmet>
         <title>Compliance Tools — Enforcement-Calibrated Assessments & Documents | End User Privacy</title>
-        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $15. Founding subscribers receive permanent discounts on every tool." />
+        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $15." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-navy to-navy-mid py-16 px-4 text-center">
-        <div className="max-w-[760px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-eyebrow text-amber-300 bg-amber-300/10 border border-amber-300/20 px-3 py-1.5 rounded-full mb-6">
-            Compliance Tools
-          </div>
-          <h1 className="font-display text-[32px] md:text-[44px] text-white font-bold leading-tight mb-4">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🧰 Compliance Tools
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Intelligence, assessments, and compliance documents
           </h1>
-          <p className="text-blue-200 text-base leading-relaxed max-w-[600px] mx-auto mb-8">
-            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Founding subscribers receive permanent discounts on every tool.
+          <p className="text-slate-300 text-lg max-w-3xl">
+            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link to="/subscribe" className="text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+          <div className="flex gap-3 mt-6 flex-wrap">
+            <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
               Start 10-day Intelligence trial — $20/mo →
             </Link>
-            <a href="#tools" className="text-sm font-semibold text-white border border-white/30 px-6 py-3 rounded-xl hover:bg-white/10 transition-all no-underline">
+            <a href="#tools" className="text-sm font-semibold text-white border border-slate-500 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition no-underline">
               See the tools ↓
             </a>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* ── Differentiators ────────────────────────────────────────────── */}
       <div className="bg-background py-14 px-4">
@@ -500,7 +500,7 @@ export default function Tools() {
           {DIFFERENTIATORS.map((d) => (
             <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
-              <h3 className="font-display font-semibold text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
+              <h3 className="text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
               <hr className="my-4 border-t border-fog" />
               <ul className="space-y-1.5">
@@ -584,7 +584,7 @@ export default function Tools() {
                       </div>
                     </div>
 
-                    <h2 className="font-display font-bold text-navy text-[24px] mb-1">{tool.name}</h2>
+                    <h2 className="font-display text-navy mb-1">{tool.name}</h2>
                     <p className="text-sm text-gray-600">{tool.tagline}</p>
                     {tool.freeBadge && (
                       <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
@@ -631,11 +631,11 @@ export default function Tools() {
       {/* ── Closing pricing section ───────────────────────────────────── */}
       <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
-          <h2 className="font-display text-[26px] md:text-[32px] text-white font-bold mb-4">
+          <h2 className="font-display text-white mb-4">
             Available individually at standalone prices.
           </h2>
           <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
-            Every tool is pay-per-use. Founding subscribers receive permanent discounts on every tool — 20% off Smart Tools and 15% off Convenience Tools.
+            Every tool is pay-per-use.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
             {PRICING_GRID.map(([name, price]) => (

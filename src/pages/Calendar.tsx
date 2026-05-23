@@ -6,6 +6,41 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeadlineCountdown from "@/components/calendar/DeadlineCountdown";
 import { supabase } from "@/integrations/supabase/client";
+import { findLaw, isUrlFresh } from "@/data/lawRegistry";
+
+/**
+ * Render a law name as: internal jurisdiction link + optional external "↗" to gov source.
+ * The external link only appears when the registry has a recently-verified officialUrl.
+ */
+function LawCell({ lawName }: { lawName: string }) {
+  if (!lawName) return null;
+  const entry = findLaw(lawName);
+  if (!entry) {
+    return <span className="text-sm text-foreground">{lawName}</span>;
+  }
+  return (
+    <span className="text-sm">
+      <Link
+        to={entry.internalPath}
+        className="text-cobalt hover:underline font-medium no-underline"
+      >
+        {lawName}
+      </Link>
+      {isUrlFresh(entry) && (
+        <a
+          href={entry.officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-1 text-xs text-muted-foreground hover:text-cobalt no-underline"
+          title="View official source"
+          aria-label={`Official source for ${lawName}`}
+        >
+          ↗
+        </a>
+      )}
+    </span>
+  );
+}
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -81,14 +116,42 @@ const Calendar = () => {
       });
   }, []);
 
-  const staticEvents: CalendarEvent[] = useMemo(
-    () =>
-      (calendarData as any[]).map((e) => ({
-        ...e,
-        source: "static" as const,
-      })),
-    []
-  );
+  const [milestoneEvents, setMilestoneEvents] = useState<CalendarEvent[] | null>(null);
+
+  // Read structured milestones from regulatory_milestones; fall back to JSON if empty/errors.
+  useEffect(() => {
+    supabase
+      .from("regulatory_milestones")
+      .select("law_slug, milestone_type, milestone_date, title, description, jurisdiction, source_url")
+      .is("superseded_by", null)
+      .order("milestone_date", { ascending: true })
+      .then(({ data, error }) => {
+        if (error || !data || data.length === 0) {
+          setMilestoneEvents(null);
+          return;
+        }
+        setMilestoneEvents(
+          data.map((m) => ({
+            date: m.milestone_date as string,
+            title: m.title as string,
+            description: m.description ?? "",
+            jurisdiction: m.jurisdiction as string,
+            law: m.law_slug as string,
+            type: m.milestone_type as string,
+            url: m.source_url ?? "/calendar",
+            source: "static" as const,
+          }))
+        );
+      });
+  }, []);
+
+  const staticEvents: CalendarEvent[] = useMemo(() => {
+    if (milestoneEvents) return milestoneEvents;
+    return (calendarData as any[]).map((e) => ({
+      ...e,
+      source: "static" as const,
+    }));
+  }, [milestoneEvents]);
 
   const allEvents = useMemo(() => {
     // Deduplicate by title similarity
@@ -111,15 +174,17 @@ const Calendar = () => {
       </Helmet>
       <Navbar />
 
-      <div className="border-b border-border bg-card">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-          <p className="text-sm font-medium text-muted-foreground mb-2">📅 Reference</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">Regulatory Key Dates Calendar</h1>
-          <p className="text-muted-foreground max-w-2xl leading-relaxed">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📅 Reference
+          </span>
+          <h1 className="font-serif text-white mb-3">Regulatory Key Dates Calendar</h1>
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Every significant regulatory effective date, enforcement start date, and compliance deadline for 2026–2027. Now enhanced with key dates extracted from our news feed.
           </p>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         <DeadlineCountdown />
@@ -159,7 +224,7 @@ const Calendar = () => {
         </div>
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="cmp-table overflow-x-auto">
             <table className="w-full border-collapse">
               <thead className="bg-muted">
                 <tr>
@@ -192,7 +257,9 @@ const Calendar = () => {
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground border-b border-border whitespace-nowrap">{event.jurisdiction}</td>
-                      <td className="px-4 py-3 text-sm text-foreground border-b border-border">{event.law}</td>
+                      <td className="px-4 py-3 border-b border-border">
+                        <LawCell lawName={event.law} />
+                      </td>
                       <td className="px-4 py-3 border-b border-border">
                         <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.classes}`}>{badge.label}</span>
                       </td>
@@ -207,6 +274,18 @@ const Calendar = () => {
         {filtered.length === 0 && (
           <p className="text-center text-muted-foreground py-12">No events found for this filter.</p>
         )}
+
+        <div className="mt-8 rounded-xl border border-border bg-muted/40 px-5 py-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            <span className="font-semibold text-foreground">Dates subject to change.</span>{" "}
+            Effective dates, enforcement start dates, and compliance deadlines may be modified
+            by the relevant jurisdiction's legislature, regulator, or courts (including delays,
+            injunctions, or phased rollouts). This calendar is monitored continuously and
+            updates automatically when our news feed surfaces an authoritative change to a
+            tracked law. Links marked with <span className="font-mono">↗</span> open the
+            authoritative government source in a new tab.
+          </p>
+        </div>
       </div>
 
       <Footer />

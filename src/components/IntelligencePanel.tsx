@@ -50,7 +50,7 @@ export function IntelligencePanel({
           <p className="text-[11px] font-bold uppercase tracking-widest text-gold mb-0.5">
             Privacy Intelligence Brief
           </p>
-          <h3 className="font-display text-[17px] font-bold text-white leading-snug">
+          <h3 className="text-[17px] text-white leading-snug">
             Build your sample brief
           </h3>
           <p className="text-[12px] text-blue-200/80 mt-1">

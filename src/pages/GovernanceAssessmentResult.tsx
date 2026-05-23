@@ -123,7 +123,7 @@ const GovernanceAssessmentResult = () => {
           <>
             {/* Cover */}
             <section className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="text-3xl font-serif mb-2">Privacy Program Assessment Tool</h1>
+              <h1 className="font-serif mb-2">Privacy Program Assessment Tool</h1>
               <p className="text-slate-300 text-sm">
                 {intake.sector ? `${intake.sector} · ` : ""}{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : ""}
               </p>
@@ -140,7 +140,7 @@ const GovernanceAssessmentResult = () => {
             {/* 10-Domain Overview grid */}
             {domainList.length > 0 && (
               <section>
-                <h2 className="text-lg font-semibold mb-1">10-Domain Overview</h2>
+                <h2 className="mb-1">10-Domain Overview</h2>
                 <p className="text-sm text-muted-foreground mb-3">Click any domain below for detailed findings</p>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   {domainList.map((d: any, i: number) => (
@@ -160,7 +160,7 @@ const GovernanceAssessmentResult = () => {
             {/* Top risks */}
             {Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
               <section>
-                <h2 className="text-lg font-semibold mb-3">Top Risks</h2>
+                <h2 className="mb-3">Top Risks</h2>
                 <div className="grid md:grid-cols-3 gap-4">
                   {report.top_three_risks.slice(0, 3).map((r: any, i: number) => (
                     <div key={i} className="bg-card border rounded-lg p-4">
@@ -177,7 +177,7 @@ const GovernanceAssessmentResult = () => {
             {/* Immediate Actions */}
             {Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
               <section className="bg-card border rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">Immediate Actions</h2>
+                <h2 className="mb-3">Immediate Actions</h2>
                 <ol className="list-decimal pl-5 space-y-2">
                   {report.immediate_actions.map((a: any, i: number) => (
                     <li key={i} className="text-sm">
@@ -196,7 +196,7 @@ const GovernanceAssessmentResult = () => {
               !Array.isArray(report.domain_findings) &&
               Object.values(report.domain_findings).length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
-                  <h2 className="text-lg font-semibold mb-4">Domain Findings</h2>
+                  <h2 className="mb-4">Domain Findings</h2>
                   <Accordion type="multiple">
                     {Object.values(report.domain_findings).map((d: any, i: number) => (
                       <AccordionItem key={i} value={`d${i}`}>
@@ -236,7 +236,7 @@ const GovernanceAssessmentResult = () => {
 
             {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
               <section className="bg-card border rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-4">Domain Findings</h2>
+                <h2 className="mb-4">Domain Findings</h2>
                 <Accordion type="multiple">
                   {report.domain_findings.map((d: any, i: number) => (
                     <AccordionItem key={i} value={`d${i}`}>
@@ -264,8 +264,8 @@ const GovernanceAssessmentResult = () => {
 
             {/* DPIA Scope */}
             {Array.isArray(report?.dpia_scope) && report.dpia_scope.length > 0 && (
-              <section className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">Processing Activities Requiring a Formal DPIA</h2>
+              <section className="bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border border-[hsl(var(--cobalt)/0.25)] rounded-lg p-6">
+                <h2 className="mb-3">Processing Activities Requiring a Formal DPIA</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                   The following processing activities identified in your assessment may require a Data Protection Impact Assessment under GDPR Article 35 or equivalent provisions before proceeding. This list is provided as a starting point for review with your Data Protection Officer or legal counsel.
                 </p>
@@ -286,7 +286,7 @@ const GovernanceAssessmentResult = () => {
 
             {report?.interaction_effects && (
               <section className="bg-muted/30 border rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-2">Cross-Domain Considerations</h2>
+                <h2 className="mb-2">Cross-Domain Considerations</h2>
                 <p className="text-sm">{report.interaction_effects}</p>
               </section>
             )}

@@ -218,7 +218,7 @@ function ClientCard({
     <article className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm hover:shadow-eup-md transition-shadow">
       <header className="flex items-start justify-between mb-3">
         <div>
-          <h2 className="text-lg font-bold text-navy flex items-center gap-2">
+          <h2 className="text-navy flex items-center gap-2">
             <Building2 className="w-4 h-4 text-slate-light" />
             {client.name}
           </h2>
@@ -394,7 +394,7 @@ export default function ClientsPortfolio() {
       <main className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-navy">{heading}</h1>
+          <h1 className="text-navy">{heading}</h1>
           <p className="text-sm text-slate mt-1">
             Your complete compliance document status across all clients.
           </p>
@@ -470,7 +470,7 @@ export default function ClientsPortfolio() {
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-card border border-fog rounded-xl shadow-eup-md max-w-md w-full p-5">
-            <h3 className="text-lg font-bold text-navy mb-2">
+            <h3 className="text-navy mb-2">
               Delete {confirmDelete.name}?
             </h3>
             <p className="text-sm text-slate mb-4">

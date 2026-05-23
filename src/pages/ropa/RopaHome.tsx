@@ -99,7 +99,12 @@ export default function RopaHome() {
   };
 
   return (
-    <RopaShell title="RoPA Builder — End User Privacy" heading="RoPA Builder">
+    <RopaShell
+      title="RoPA Builder — End User Privacy"
+      heading="RoPA Builder"
+      chip="📒 Article 30 Record Builder"
+      description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record in .docx, .pdf, and .xlsx."
+    >
       {loading ? (
         <div className="space-y-4">
           <Skeleton className="h-32 w-full" />
@@ -193,7 +198,7 @@ export default function RopaHome() {
             <Card className="border-dashed">
               <CardContent className="py-10 text-center">
                 <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <h2 className="font-serif text-xl text-foreground mb-2">
+                <h2 className="font-serif text-foreground mb-2">
                   Build your Record of Processing Activities
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">

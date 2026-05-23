@@ -35,6 +35,8 @@ interface NavSubItem {
   badge?: string;
   badgeGreen?: boolean;
   href: string;
+  /** Pin to the bottom of its column in wide multi-column dropdowns. */
+  bottom?: boolean;
 }
 
 interface NavSection {
@@ -131,11 +133,11 @@ const navItems: NavItem[] = [
             tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
           { icon: "📂", label: "Registration Filings", href: "/registration-manager",
             tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions" },
-          { icon: "📋", label: "RoPA Builder", href: "/ropa",
+          { icon: "📋", label: "RoPA Builder", href: "/ropa-builder",
             tooltip: "Versioned Article 30 record of processing activities, per-activity entry" },
-          { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notices",
+          { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notice-builder",
             tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more" },
-          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-notices",
+          { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
             tooltip: "GDPR Article 13/14 notices with multi-jurisdiction overlays" },
         ],
       },
@@ -150,7 +152,7 @@ const navItems: NavItem[] = [
             tooltip: "Structured risk assessment aligned to CPPA audit regulations" },
           { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline" },
-          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools",
+          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools", bottom: true,
             tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
       },
@@ -199,11 +201,6 @@ const navItems: NavItem[] = [
         ],
       },
     ],
-  },
-  {
-    label: "Pricing",
-    href: "/subscribe",
-    accent: true,
   },
 ];
 
@@ -382,22 +379,22 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-[#0D1F35] border-b border-[#0D1F35] sticky top-0 z-50">
+    <nav className="bg-navy border-b border-navy sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
           <img src="/logo.png" alt="End User Privacy" width={1111} height={281} className="h-10 w-auto shrink-0 rounded-md object-contain" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6 ml-12 xl:ml-16">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
               : item.sections?.some((s) =>
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
-            const basePadX = item.directLink ? "px-4" : "px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav`;
+            const basePadX = item.directLink ? "px-2 lg:px-4" : "px-2 lg:px-3";
+            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav text-xs lg:text-sm`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
@@ -436,44 +433,54 @@ const Navbar = () => {
                       className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
-                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-start"
-                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-start"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-stretch"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-stretch"
                           : "min-w-[280px]"
                       }`}
                     >
                       {(() => {
-                        const renderSection = (section: NavSection, si: number) => (
-                          <div key={si}>
-                            {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
-                            {section.header && (
-                              <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                                <span className="text-eyebrow text-slate-light">
-                                  {section.header}
-                                </span>
-                                {section.headerBadge && (
-                                  <span
-                                    className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
-                                      section.headerBadgeGreen
-                                        ? "bg-accent/10 text-accent border border-accent/20"
-                                        : "bg-blue/10 text-blue border border-blue/20"
-                                    }`}
-                                  >
-                                    {section.headerBadge}
+                        const renderSection = (section: NavSection, si: number) => {
+                          const topItems = section.items.filter((it) => !it.bottom);
+                          const bottomItems = section.items.filter((it) => it.bottom);
+                          return (
+                            <div key={si}>
+                              {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
+                              {section.header && (
+                                <div className="px-3 pt-2 pb-1 flex items-center gap-2">
+                                  <span className="text-eyebrow text-slate-light">
+                                    {section.header}
                                   </span>
-                                )}
-                              </div>
-                            )}
-                            {section.items.map((sub) => renderSubItem(sub))}
-                          </div>
-                        );
+                                  {section.headerBadge && (
+                                    <span
+                                      className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
+                                        section.headerBadgeGreen
+                                          ? "bg-accent/10 text-accent border border-accent/20"
+                                          : "bg-blue/10 text-blue border border-blue/20"
+                                      }`}
+                                    >
+                                      {section.headerBadge}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {topItems.map((sub) => renderSubItem(sub))}
+                            </div>
+                          );
+                        };
                         if (!item.wide) return item.sections.map(renderSection);
                         const totalCols = item.columns ?? 2;
                         return Array.from({ length: totalCols }, (_, i) => {
                           const colNum = i + 1;
                           const colSections = item.sections.filter((s) => (s.column ?? 1) === colNum);
+                          const bottomItems = colSections.flatMap((s) => s.items.filter((it) => it.bottom));
                           return (
-                            <div key={colNum} className="flex flex-col">
+                            <div key={colNum} className="flex flex-col h-full">
                               {colSections.map((s, idx) => renderSection(s, idx))}
+                              {bottomItems.length > 0 && (
+                                <div className="mt-auto pt-2">
+                                  {bottomItems.map((sub) => renderSubItem(sub))}
+                                </div>
+                              )}
                             </div>
                           );
                         });
@@ -487,68 +494,42 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3 ml-auto">
+          <Link
+            to={user ? "/subscribe" : "/login"}
+            className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
+              (user ? location.pathname === "/subscribe" : location.pathname === "/login")
+                ? "text-[hsl(var(--accent-light))]"
+                : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
+            }`}
+          >
+            {user ? "Pricing" : "Sign In"}
+          </Link>
           {user ? (
             <>
               <Link
                 to="/dashboard"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
+                className="text-xs xl:text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-3 xl:px-4 py-1.5 xl:py-2 rounded-lg no-underline transition-all whitespace-nowrap"
               >
                 🧠 My Dashboard
               </Link>
-              {!isPremium && (
-                <Link
-                  to="/subscribe"
-                  className="text-sm font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors flex items-center gap-1"
-                >
-                  ⭐ See plans
-                </Link>
-              )}
-              {(tier === "annual" || tier === "annual_founding") && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300">
-                  Platform
-                </span>
-              )}
-              {tier === "monthly" && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-300">
-                  Intelligence
-                </span>
-              )}
-              {tier === "free" && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white/15 text-white border border-white/25">
-                  FREE PLAN
-                </span>
-              )}
               <UserMenu onSignOut={handleSignOut} />
             </>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="text-[15px] font-semibold text-white/80 hover:text-white no-underline transition-colors px-3 py-2"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="text-sm font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
-              >
-                Sign up free
-              </Link>
-              <Link
-                to="/subscribe"
-                className="text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-4 py-2 rounded-lg no-underline transition-all"
-              >
-                See Plans →
-              </Link>
-            </>
+            <Link
+              to="/signup"
+              className="text-sm font-medium px-3 py-1.5 rounded-md bg-white/10 text-white border border-white/25 hover:bg-white/20 transition-colors no-underline"
+            >
+              Sign up free
+            </Link>
           )}
         </div>
 
+
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-white bg-transparent border-none cursor-pointer"
+          className="lg:hidden p-2 text-white bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -557,7 +538,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+        <div className="lg:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
           {navItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
@@ -621,7 +602,7 @@ const Navbar = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-brand-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => {
                     setMobileOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -632,7 +613,7 @@ const Navbar = () => {
                 {!isPremium && (
                   <Link
                     to="/subscribe"
-                    className="block text-center text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg no-underline"
+                    className="block text-center text-sm font-semibold text-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.25)] px-4 py-2.5 rounded-lg no-underline"
                     onClick={() => setMobileOpen(false)}
                   >
                     ⭐ See plans

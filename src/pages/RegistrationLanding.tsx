@@ -18,6 +18,7 @@ import {
   CheckCircle2, Clock, Globe2, ShieldCheck, FileText, AlertTriangle,
   Brain, Building2, ArrowRight,
 } from "lucide-react";
+import { formatPrice } from "@/config/pricing";
 
 const FAQS = [
   {
@@ -70,30 +71,33 @@ export default function RegistrationLanding() {
         )}
       </div>
 
-      <PageContainer>
-        {/* 1. Hero */}
-        <section className="py-12 md:py-16 text-center max-w-3xl mx-auto">
-          <Badge variant="outline" className="mb-4 border-accent/40 text-accent">Registration Manager</Badge>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-navy leading-tight">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📂 Registration Manager · {formatPrice("registration_standalone")} per filing
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Privacy registration filings, drafted and tracked
           </h1>
-          <p className="mt-4 text-lg text-slate leading-relaxed">
+          <p className="text-slate-300 text-lg max-w-3xl">
             DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act
             registration drafts — generated in minutes, tailored to every jurisdiction you operate in,
             and renewed on schedule.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" asChild className="bg-navy hover:bg-navy/90 text-white">
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <Button size="lg" asChild className="bg-white text-slate-900 hover:bg-slate-100">
               <Link to="/registration-manager/start">Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" asChild className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white">
               <Link to="#how-it-works">How it works</Link>
             </Button>
           </div>
-          <p className="mt-3 text-xs text-slate-light">
+          <p className="mt-3 text-xs text-slate-400">
             Free assessment · No card required · Pay only when you generate documents
           </p>
-        </section>
+        </div>
+      </header>
+      <PageContainer>
 
         {/* 2. Problem */}
         <section className="py-10 border-t border-border/40">
@@ -105,7 +109,7 @@ export default function RegistrationLanding() {
             ].map((b, i) => (
               <div key={i} className="space-y-2">
                 <b.icon className="w-6 h-6 text-amber-600" />
-                <h3 className="font-display font-semibold text-navy">{b.title}</h3>
+                <h3 className="text-navy">{b.title}</h3>
                 <p className="text-sm text-slate leading-relaxed">{b.body}</p>
               </div>
             ))}
@@ -114,7 +118,7 @@ export default function RegistrationLanding() {
 
         {/* 3. How it works */}
         <section id="how-it-works" className="py-12 border-t border-border/40">
-          <h2 className="font-display text-3xl font-bold text-navy text-center mb-8">How it works</h2>
+          <h2 className="font-display text-navy text-center mb-8">How it works</h2>
           <div className="grid md:grid-cols-4 gap-4">
             {[
               ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
@@ -135,7 +139,7 @@ export default function RegistrationLanding() {
 
         {/* 4. What you get */}
         <section className="py-12 border-t border-border/40">
-          <h2 className="font-display text-3xl font-bold text-navy text-center mb-8">What you get</h2>
+          <h2 className="font-display text-navy text-center mb-8">What you get</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
               { icon: ShieldCheck, t: "DPO Appointment Letter", b: "Authority-specific format with mandatory fields." },
@@ -159,7 +163,7 @@ export default function RegistrationLanding() {
         {/* 5. Confidence model */}
         <section className="py-12 border-t border-border/40 bg-fog/40 rounded-xl">
           <div className="max-w-3xl mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-navy mb-4">Three-tier confidence rating</h2>
+            <h2 className="font-display text-navy mb-4">Three-tier confidence rating</h2>
             <p className="text-slate text-sm mb-6">
               Every recommendation is rated based on how directly the law applies to your inputs.
             </p>
@@ -182,7 +186,7 @@ export default function RegistrationLanding() {
 
         {/* 6. Pricing */}
         <section className="py-12 border-t border-border/40">
-          <h2 className="font-display text-3xl font-bold text-navy text-center mb-8">Pricing</h2>
+          <h2 className="font-display text-navy text-center mb-8">Pricing</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card className="border-border/60">
               <CardHeader>
@@ -228,7 +232,7 @@ export default function RegistrationLanding() {
 
         {/* 7. Jurisdictions */}
         <section className="py-12 border-t border-border/40 text-center">
-          <h2 className="font-display text-2xl font-bold text-navy mb-3">30+ jurisdictions covered</h2>
+          <h2 className="font-display text-navy mb-3">30+ jurisdictions covered</h2>
           <p className="text-slate text-sm max-w-2xl mx-auto">
             All 27 EU member states, EEA (Norway, Iceland, Liechtenstein), UK, Switzerland — with rolling
             additions for the U.S., LATAM, APAC, and Africa.
@@ -255,7 +259,7 @@ export default function RegistrationLanding() {
 
         {/* 9. FAQ */}
         <section className="py-12 border-t border-border/40 max-w-3xl mx-auto">
-          <h2 className="font-display text-2xl font-bold text-navy mb-6">Frequently asked questions</h2>
+          <h2 className="font-display text-navy mb-6">Frequently asked questions</h2>
           <div className="space-y-4">
             {FAQS.map((f, i) => (
               <div key={i} className="border-b border-border/40 pb-4">
@@ -268,7 +272,7 @@ export default function RegistrationLanding() {
 
         {/* 10. Final CTA + disclaimer */}
         <section className="py-12 text-center">
-          <h2 className="font-display text-2xl font-bold text-navy mb-3">Ready to start?</h2>
+          <h2 className="font-display text-navy mb-3">Ready to start?</h2>
           <p className="text-slate text-sm mb-6">The free assessment takes about 5 minutes.</p>
           <Button size="lg" asChild className="bg-navy hover:bg-navy/90 text-white">
             <Link to="/registration-manager/start">Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>

@@ -136,11 +136,12 @@ export default function EUNoticeHome() {
   );
 
   return (
-    <EUNoticeShell title="EU & Global Notice Builder — End User Privacy" heading={heading}>
-      <p className="text-muted-foreground mb-2 max-w-3xl">
-        Build privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI,
-        India DPDPA, South Africa POPIA, and 5 other global frameworks — in one session.
-      </p>
+    <EUNoticeShell
+      title="EU & Global Notice Builder — End User Privacy"
+      heading={heading}
+      chip="🌐 Global Notice Builder"
+      description="Generate aligned privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI, India DPDPA, South Africa POPIA and five other global frameworks — in a single guided session, calibrated to each regulator's disclosure expectations."
+    >
       <p className="text-sm text-muted-foreground mb-8">
         From <span className="font-medium text-foreground">{EU_NOTICE_PRICING.singleSubscriber()}</span> (subscriber) ·{" "}
         <span className="font-medium text-foreground">{EU_NOTICE_PRICING.singleStandalone()}</span> standalone per framework ·
@@ -151,7 +152,7 @@ export default function EUNoticeHome() {
         <Card className="border-dashed mb-8">
           <CardContent className="p-8 text-center">
             <Globe2 className="h-10 w-10 mx-auto text-muted-foreground mb-3" aria-hidden />
-            <h2 className="font-serif text-xl mb-1">No EU or global notices yet</h2>
+            <h2 className="font-serif mb-1">No EU or global notices yet</h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-5">
               Pick the frameworks you operate under and we'll generate a tailored
               privacy notice for each.
@@ -173,7 +174,7 @@ export default function EUNoticeHome() {
               <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
                 Pick up where you left off
               </div>
-              <h2 className="font-serif text-xl mb-1">In-progress notice</h2>
+              <h2 className="font-serif mb-1">In-progress notice</h2>
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Badge variant={STATUS_LABELS[activeSession.status]?.tone ?? "secondary"}>
                   {STATUS_LABELS[activeSession.status]?.label ?? activeSession.status}
@@ -203,7 +204,7 @@ export default function EUNoticeHome() {
           <CardContent className="p-5 md:p-6">
             <div className="flex items-center gap-2 mb-2">
               <Plus className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <h3 className="font-serif text-lg">Start a new notice</h3>
+              <h3 className="">Start a new notice</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Pick from 12 global frameworks. Single, EU Suite, or Full International.
@@ -220,7 +221,7 @@ export default function EUNoticeHome() {
           <CardContent className="p-5 md:p-6">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <h3 className="font-serif text-lg">Your generated notices</h3>
+              <h3 className="">Your generated notices</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               View, download, and embed every notice you've generated.
@@ -238,7 +239,7 @@ export default function EUNoticeHome() {
       {sessions.length > 0 && (
         <Card>
           <CardContent className="p-4 md:p-6">
-            <h2 className="font-serif text-lg mb-4">All notice projects</h2>
+            <h2 className="font-serif mb-4">All notice projects</h2>
             <ul className="divide-y">
               {sessions.map((s) => {
                 const status = STATUS_LABELS[s.status] ?? { label: s.status, tone: "outline" as const };

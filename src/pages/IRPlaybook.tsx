@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -85,36 +85,31 @@ export default function IRPlaybook() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Your Breach Response Playbook | End User Privacy</title>
-        <meta name="description" content="Generate your jurisdiction-specific data breach response playbook with notification deadlines, DPA portal links, and templates." /></Helmet>
+      <Helmet><title>Incident Response Playbook | End User Privacy</title>
+        <meta name="description" content="A jurisdiction-specific data breach response runbook with regulator notification deadlines, DPA portal links, and stakeholder communication templates — drafted to your incident facts." /></Helmet>
       <Navbar />
       <DashboardSubnav />
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🚨 Breach Response Playbook · ${pricing.price}
+          </span>
+          <h1 className="font-serif mb-3">Incident Response Playbook</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">
+            A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and stakeholder communication templates — drafted to your incident facts so your team can act inside the 72-hour clock. Generate it the moment you suspect a personal data breach, or keep one on the shelf and ready.
+          </p>
+        </div>
+      </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
-        <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Breach Response Playbook</h1>
-          <p className="text-slate text-sm">Generate your jurisdiction-specific breach response playbook with notification deadlines and templates.</p>
-        </header>
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+        <div className="mb-4">
           <ToolTierNote />
         </div>
-        {phase !== "result" && phase !== "generating" && (
-          <ToolOutputPreview
-            label="Sample Incident Response Playbook output"
-            lines={[
-              "INCIDENT CLASSIFICATION: Personal Data Breach — High Severity",
-              "72-HOUR REGULATORY DEADLINE: Notify ICO by [date + 72hrs] — Article 33 GDPR",
-              "IMMEDIATE ACTIONS (0–4 hours):",
-              "  □ Contain: Isolate affected systems — do not power off (preserve forensics)",
-              "  □ Assess: Determine categories and volume of affected data subjects",
-            ]}
-          />
-        )}
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-bold text-navy text-lg">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display text-navy">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-meta text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
             <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
@@ -127,7 +122,7 @@ export default function IRPlaybook() {
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <h2 className="font-display font-bold text-navy text-lg">Incident details</h2>
+            <h2 className="font-display text-navy">Incident details</h2>
             <label className="block text-sm"><span className="font-semibold text-navy">Date & time of discovery</span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-navy">Apparent cause</span>
@@ -160,7 +155,7 @@ export default function IRPlaybook() {
             subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
           >
             <div className="bg-card border border-border rounded-2xl p-6">
-              <h2 className="font-display font-bold text-navy text-base mb-3">Sample playbook preview</h2>
+              <h2 className="font-display text-navy mb-3">Sample playbook preview</h2>
               <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
             </div>
           </ToolSampleOverlay>

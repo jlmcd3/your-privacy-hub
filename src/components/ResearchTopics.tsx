@@ -14,7 +14,7 @@ const ResearchTopics = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="font-display text-[22px] md:text-[26px] tracking-tight text-navy">Research Topics</h2>
+            <h2 className="font-display tracking-tight text-navy">Research Topics</h2>
             <p className="text-sm text-slate mt-1">In-depth regulatory landscape guides</p>
           </div>
         </div>

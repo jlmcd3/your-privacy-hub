@@ -76,7 +76,7 @@ export default function FeaturedBriefCard({
         </div>
 
         {/* Headline — large, editorial */}
-        <h2 className="font-display font-bold text-[24px] md:text-[30px] leading-tight text-white mb-4 max-w-3xl group-hover:text-blue-100 transition-colors">
+        <h2 className="font-display leading-tight text-white mb-4 max-w-3xl group-hover:text-blue-100 transition-colors">
           {headline}
         </h2>
 

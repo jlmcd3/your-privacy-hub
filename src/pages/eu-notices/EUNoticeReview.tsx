@@ -406,7 +406,7 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => navigate(`/eu-notices/frameworks/${sessionId}`)}
-              className="text-sm font-semibold text-teal-700 hover:underline inline-flex items-center gap-1"
+              className="text-sm font-semibold text-cobalt hover:underline inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" /> Edit scope →
             </button>
@@ -439,7 +439,7 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => setShowAllFrameworks((v) => !v)}
-              className="text-sm font-semibold text-teal-700 hover:underline"
+              className="text-sm font-semibold text-cobalt hover:underline"
             >
               {showAllFrameworks ? "Show flagged only" : `Show all ${frameworks.length} frameworks`}
             </button>
@@ -500,7 +500,7 @@ export default function EUNoticeReview() {
                         </ul>
                         <button
                           onClick={() => navigate(`/eu-notices/questions/${sessionId}`)}
-                          className="mt-2 inline-flex items-center gap-1 text-teal-700 font-semibold hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-cobalt font-semibold hover:underline"
                         >
                           Edit answers →
                         </button>
@@ -637,7 +637,7 @@ export default function EUNoticeReview() {
               </div>
             )}
             {!pricing.isSubscriber && !session?.payment_confirmed && pricing.standalonePrice > pricing.subscriberPrice && (
-              <p className="text-meta text-teal-700 mt-2">
+              <p className="text-meta text-cobalt mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"
@@ -705,7 +705,7 @@ export default function EUNoticeReview() {
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
           <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-base font-serif text-navy mb-4">
+            <h3 className="text-navy mb-4">
               Generating your EU & global privacy notices…
             </h3>
             <ul className="space-y-2 text-sm">

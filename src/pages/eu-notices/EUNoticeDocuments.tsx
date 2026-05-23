@@ -96,7 +96,7 @@ export default function EUNoticeDocuments() {
         <Card className="border-dashed">
           <CardContent className="p-8 text-center">
             <FileText className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <h2 className="font-serif text-xl mb-1">No notices generated yet</h2>
+            <h2 className="font-serif mb-1">No notices generated yet</h2>
             <p className="text-sm text-muted-foreground mb-5">Complete a notice session to see your documents here.</p>
             <Button asChild><Link to="/eu-notices/mode">Start a notice</Link></Button>
           </CardContent>

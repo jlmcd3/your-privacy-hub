@@ -377,7 +377,7 @@ export default function RopaSetup() {
         {/* STEP 1 — Identity */}
         {step === 0 && (
           <>
-            <h2 className="font-serif text-2xl">Tell us about your organisation</h2>
+            <h2 className="font-serif">Tell us about your organisation</h2>
             <Field label="Organisation name" required>
               <input
                 type="text"
@@ -448,7 +448,7 @@ export default function RopaSetup() {
         {/* STEP 2 — Data roles */}
         {step === 1 && (
           <>
-            <h2 className="font-serif text-2xl">What is your role?</h2>
+            <h2 className="font-serif">What is your role?</h2>
             <p className="text-sm text-muted-foreground">
               Most organisations are controllers. You can be both.
             </p>
@@ -475,7 +475,7 @@ export default function RopaSetup() {
         {/* STEP 3 — DPO */}
         {step === 2 && (
           <>
-            <h2 className="font-serif text-2xl">
+            <h2 className="font-serif">
               Do you have a Data Protection Officer?
             </h2>
             <div className="flex flex-col md:flex-row gap-2">
@@ -540,7 +540,7 @@ export default function RopaSetup() {
         {/* STEP 4 — Primary jurisdiction */}
         {step === 3 && (
           <>
-            <h2 className="font-serif text-2xl">Where are you based?</h2>
+            <h2 className="font-serif">Where are you based?</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {PRIMARY_REGIONS.map((r) => (
                 <button
@@ -562,7 +562,7 @@ export default function RopaSetup() {
         {/* STEP 5 — Jurisdictions */}
         {step === 4 && (
           <>
-            <h2 className="font-serif text-2xl">
+            <h2 className="font-serif">
               Where do you operate, and whose personal data do you process?
             </h2>
             <button
@@ -676,7 +676,7 @@ export default function RopaSetup() {
         {/* STEP 6 — Review */}
         {step === 5 && (
           <>
-            <h2 className="font-serif text-2xl">Review &amp; confirm</h2>
+            <h2 className="font-serif">Review &amp; confirm</h2>
             <ReviewRow
               label="Organisation"
               value={`${orgName} · ${profile.legal_entity_type} · ${sector}`}

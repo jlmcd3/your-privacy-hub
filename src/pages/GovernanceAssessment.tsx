@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -185,13 +185,11 @@ const GovernanceAssessment = () => {
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Privacy Programme Assessment · ${pricing.price}
-            {pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate · standalone $${pricing.standalonePrice})` : ""}
-            {!pricing.isSubscriber && <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence subscribers 20% off · Professional 25% off →</a></>}
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">Privacy Program Assessment Tool</h1>
+          <h1 className="font-serif mb-3">Privacy Program Assessment Tool</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
@@ -205,16 +203,6 @@ const GovernanceAssessment = () => {
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <ToolOutputPreview
-          label="Sample Privacy Programme Assessment output"
-          lines={[
-            "OVERALL PROGRAMME MATURITY: Developing (Score: 62/100)",
-            "DOMAIN 1 — Data Inventory & Mapping: Partially Implemented",
-            "  Finding: No formal RoPA maintained. Article 30 GDPR requires written records.",
-            "  Regulatory reference: ICO enforcement action v. Clearview AI (2022) — £7.5M fine",
-            "DOMAIN 2 — Legal Basis Management: Requires Attention",
-          ]}
-        />
         <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.
@@ -225,7 +213,7 @@ const GovernanceAssessment = () => {
         <div className="bg-card border rounded-lg p-6 space-y-6">
           {step === 1 && (
             <>
-              <h2 className="text-xl font-semibold">Gateway Questions</h2>
+              <h2 className="">Gateway Questions</h2>
               <div>
                 <Label>Q1: Primary sector *</Label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
@@ -256,7 +244,7 @@ const GovernanceAssessment = () => {
 
           {step === 2 && (
             <>
-              <h2 className="text-xl font-semibold">Data and Processing Profile</h2>
+              <h2 className="">Data and Processing Profile</h2>
               <div>
                 <Label>Q6: Categories of personal data processed *</Label>
                 <div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div>
@@ -273,7 +261,7 @@ const GovernanceAssessment = () => {
 
           {step === 3 && (
             <>
-              <h2 className="text-xl font-semibold">Governance Infrastructure</h2>
+              <h2 className="">Governance Infrastructure</h2>
               <div><Label>Q8: Documented privacy policy/notice *</Label><div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
               <div><Label>Q9: Acceptable use policy for technology tools *</Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
               {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent? *</Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
@@ -284,7 +272,7 @@ const GovernanceAssessment = () => {
 
           {step === 4 && (
             <>
-              <h2 className="text-xl font-semibold">Training and Awareness</h2>
+              <h2 className="">Training and Awareness</h2>
               <div><Label>Q13: Privacy / data protection training *</Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
               <div><Label>Q14: Instruction on what data may/may not be submitted to external technology tools *</Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
             </>
@@ -292,7 +280,7 @@ const GovernanceAssessment = () => {
 
           {step === 5 && showStep5 && (
             <>
-              <h2 className="text-xl font-semibold">Transfer and Compliance</h2>
+              <h2 className="">Transfer and Compliance</h2>
               <div><Label>Q15: DPAs signed with relevant vendors *</Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
               <div><Label>Q16: Cross-border transfers outside EU/UK *</Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
             </>
@@ -334,7 +322,7 @@ const GovernanceAssessment = () => {
             return (
               <>
                 <div>
-                  <h2 className="text-xl font-semibold">Review your answers</h2>
+                  <h2 className="">Review your answers</h2>
                   <p className="text-sm text-muted-foreground mt-1">
                     Review the inputs below before running. You can go back to edit any step.
                   </p>

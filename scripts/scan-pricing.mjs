@@ -79,19 +79,12 @@ while ((m = TOOL_BLOCK_RE.exec(TOOL_SRC)) !== null) {
   });
 }
 
-// Parse registration tiers.
-// Capture the diy ladder: lines like `if (numJurisdictions <= N) return NNNN;`
-// plus the final fallback `return NNNN;` for unlimited.
-const diyLadder = [...REG_SRC.matchAll(/<=\s*(\d+)\)\s*return\s+(\d+)/g)].map(
-  (x) => ({ jurisdictions_max: Number(x[1]), cents: Number(x[2]) })
-);
-const diyFallbackMatch = REG_SRC.match(
-  /function\s+diyPriceCents[\s\S]*?\n\s*return\s+(\d+)\s*;[^\n]*\n\s*\}/
-);
-const diyDefault = diyFallbackMatch ? Number(diyFallbackMatch[1]) : null;
+// Parse registration: under the May 2026 memo, DIY is a single flat
+// per-filing price ($45 standalone / $38 subscriber alias) regardless of
+// jurisdiction count. Counsel-Ready and Renewal remain top-level constants.
+const diyStandaloneMatch = REG_SRC.match(/DIY_STANDALONE_CENTS\s*=\s*(\d+)/);
+const diySubscriberMatch = REG_SRC.match(/DIY_SUBSCRIBER_CENTS\s*=\s*(\d+)/);
 
-// Resolve top-level numeric constants (e.g. `const COUNSEL_REVIEW_CENTS = 39900;`)
-// so we can look up `unit_amount: COUNSEL_REVIEW_CENTS` references too.
 const constants = {};
 for (const m of REG_SRC.matchAll(/const\s+(\w+)\s*=\s*(\d+)\s*;/g)) {
   constants[m[1]] = Number(m[2]);
@@ -104,8 +97,8 @@ const counselMatch = REG_SRC.match(/counsel_review:[\s\S]*?unit_amount:\s*(\w+)/
 const renewalMatch = REG_SRC.match(/renewal:[\s\S]*?unit_amount:\s*(\w+)/);
 
 const serverRegistration = {
-  diy_ladder: diyLadder,
-  diy_unlimited_cents: diyDefault,
+  diy_flat_standalone_cents: diyStandaloneMatch ? Number(diyStandaloneMatch[1]) : null,
+  diy_flat_subscriber_cents: diySubscriberMatch ? Number(diySubscriberMatch[1]) : null,
   counsel_review_cents: counselMatch ? resolveAmount(counselMatch[1]) : null,
   renewal_per_jurisdiction_cents: renewalMatch ? resolveAmount(renewalMatch[1]) : null,
 };
@@ -225,13 +218,17 @@ function registryCents(lookupKey) {
   return m ? Number(m[1]) : null;
 }
 // Map server tool key -> { standalone: registry lookup key, subscriber: lookup key | null }
+// v8 model collapsed per-variant lookup keys into a single uniform key per
+// product family. The Notice Builders use one standalone + one founding-
+// subscriber price across every variant (single state / all-states / refresh
+// for US; single framework / suite / full international / refresh for EU).
 const REGISTRY_MAP = {
-  us_notice_single:               { standalone: "us_notice_single_standalone",            subscriber: "us_notice_single_subscriber" },
-  us_notice_all_states:           { standalone: "us_notice_all_standalone",               subscriber: "us_notice_all_subscriber" },
-  eu_notice_single:               { standalone: "eu_notice_single_standalone",            subscriber: "eu_notice_single_subscriber" },
-  eu_notice_suite:                { standalone: "eu_notice_suite_standalone",             subscriber: "eu_notice_suite_subscriber" },
-  eu_notice_full_international:   { standalone: "eu_notice_full_international_standalone",subscriber: "eu_notice_full_international_subscriber" },
-  eu_notice_refresh:              { standalone: "eu_notice_refresh_standalone",           subscriber: "eu_notice_refresh_subscriber" },
+  us_notice_single:               { standalone: "us_notice_v7_standalone", subscriber: "us_notice_v7_subscriber" },
+  us_notice_all_states:           { standalone: "us_notice_v7_standalone", subscriber: "us_notice_v7_subscriber" },
+  eu_notice_single:               { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
+  eu_notice_suite:                { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
+  eu_notice_full_international:   { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
+  eu_notice_refresh:              { standalone: "eu_notice_v7_standalone", subscriber: "eu_notice_v7_subscriber" },
 };
 
 // Tools
@@ -302,12 +299,12 @@ for (const t of serverTools) {
   // reliably. The registry check above is what catches real drift.
 }
 
-// Registration: compare each marketed tier against the server ladder.
+// Registration: under the May 2026 memo, DIY is a flat per-filing fee
+// regardless of jurisdiction count, so the legacy 1/3/7/unlimited UI tier
+// checks no longer apply. We assert the flat fee + counsel + renewal only.
 const regChecks = [
-  { key: "registration_diy_1", marketed_cents: 5900, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 1)?.cents, label: "Registration DIY — 1 jurisdiction" },
-  { key: "registration_diy_3", marketed_cents: 14900, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 3)?.cents, label: "Registration DIY — up to 3 jurisdictions" },
-  { key: "registration_diy_7", marketed_cents: 27500, server_cents: serverRegistration.diy_ladder.find((l) => l.jurisdictions_max === 7)?.cents, label: "Registration DIY — up to 7 jurisdictions" },
-  { key: "registration_diy_unlimited", marketed_cents: 49900, server_cents: serverRegistration.diy_unlimited_cents, label: "Registration DIY — unlimited" },
+  { key: "registration_diy_flat", marketed_cents: 4500, server_cents: serverRegistration.diy_flat_standalone_cents, label: "Registration DIY — flat per-filing (standalone)" },
+  // Subscriber alias removed — all tiers pay the standalone price per the May 19, 2026 memo.
   { key: "registration_counsel_review", marketed_cents: 39900, server_cents: serverRegistration.counsel_review_cents, label: "Registration Counsel-Ready Pack" },
   { key: "registration_renewal", marketed_cents: 7900, server_cents: serverRegistration.renewal_per_jurisdiction_cents, label: "Registration Annual Renewal Monitoring (per jurisdiction)" },
 ];

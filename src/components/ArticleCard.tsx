@@ -542,10 +542,12 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
         <span className="text-[11px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">⚡ Immediate</span>
       )}
     </div>
-    <Link to={`/updates/${item.id}`}
+    <a
+      href={item.source_url || `/updates/${item.id}`}
+      {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
       {normalizeTitle(item.title)}
-    </Link>
+    </a>
     {(item.summary || item.ai_summary?.why_it_matters) && (
       <p className="text-sm text-blue-200 leading-relaxed line-clamp-3">
         {stripHtml(item.summary) || item.ai_summary?.why_it_matters}
@@ -566,10 +568,12 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
       style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
     >
       <div className="flex-1 min-w-0">
-        <Link to={`/updates/${item.id}`}
+        <a
+          href={item.source_url || `/updates/${item.id}`}
+          {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           className="text-sm font-semibold text-gray-900 hover:text-blue no-underline leading-snug block">
           {normalizeTitle(item.title)}
-        </Link>
+        </a>
         {item.summary && (
           <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
             {stripHtml(item.summary)}
@@ -600,8 +604,9 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
   const hasExternal = articleUrl && articleUrl !== '#';
   return (
     <div className="group relative flex gap-3 py-3 border-b border-fog hover:bg-slate-50/50 transition-colors">
-      <Link
-        to={`/updates/${item.id}`}
+      <a
+        href={hasExternal ? articleUrl : `/updates/${item.id}`}
+        {...(hasExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="flex gap-3 flex-1 min-w-0 no-underline"
       >
         <img
@@ -632,7 +637,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
             <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
           )}
         </div>
-      </Link>
+      </a>
       {hasExternal && (
         <a
           href={articleUrl}
@@ -741,7 +746,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
           </p>
           <Link
             to="/signup"
-            className="shrink-0 text-[11px] px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500 transition-colors whitespace-nowrap"
+            className="shrink-0 text-[11px] px-3 py-1.5 rounded-lg bg-accent text-white font-semibold hover:bg-accent-light transition-colors whitespace-nowrap"
           >
             Register free →
           </Link>

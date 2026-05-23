@@ -40,7 +40,7 @@ export function CybersecurityReportBody({ row }: { row: any }) {
         </p>
       </section>
       <section className="bg-slate-900 text-white rounded-lg p-8">
-        <h1 className="text-3xl font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
+        <h1 className="font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
         <p className="text-slate-300 text-sm">
           Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
         </p>
@@ -68,7 +68,7 @@ export function CybersecurityReportBody({ row }: { row: any }) {
 
       {Array.isArray(report?.controls) && report.controls.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Control Findings</h2>
+          <h2 className="mb-4">Control Findings</h2>
           <Accordion type="multiple">
             {report.controls.map((d: any, i: number) => (
               <AccordionItem key={i} value={`c${i}`}>
@@ -93,7 +93,7 @@ export function CybersecurityReportBody({ row }: { row: any }) {
 
       {Array.isArray(report?.top_risks) && report.top_risks.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Top Risks</h2>
+          <h2 className="mb-3">Top Risks</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {report.top_risks.slice(0, 3).map((r: any, i: number) => (
               <div key={i} className="bg-card border rounded-lg p-4">
@@ -109,7 +109,7 @@ export function CybersecurityReportBody({ row }: { row: any }) {
 
       {Array.isArray(report?.next_steps) && report.next_steps.length > 0 && (
         <section className="bg-card border rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-3">Next Steps</h2>
+          <h2 className="mb-3">Next Steps</h2>
           <ol className="list-decimal pl-5 space-y-1 text-sm">
             {report.next_steps.map((s: string, i: number) => <li key={i}>{s}</li>)}
           </ol>

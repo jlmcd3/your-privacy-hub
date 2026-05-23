@@ -7,6 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PremiumGate from "@/components/PremiumGate";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface HorizonItem {
   id: string;
@@ -86,7 +87,7 @@ function HorizonCard({ item }: { item: HorizonItem }) {
           </span>
         )}
       </div>
-      <h2 className="font-display font-bold text-navy text-[18px] leading-snug mb-2">
+      <h2 className="font-display text-navy leading-snug mb-2">
         {item.anticipated_development}
       </h2>
       {item.source_signal && (
@@ -174,15 +175,16 @@ export default function Horizon() {
       </Helmet>
       <Navbar />
 
-      <header className="bg-gradient-to-br from-navy to-steel text-white py-12 px-4">
-        <div className="max-w-[1080px] mx-auto">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-3">
-            ⏱ Forward-looking intelligence
-          </div>
-          <h1 className="font-display font-bold text-[32px] md:text-[40px] leading-tight mb-3">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🛰️ Forward-looking intelligence · Included with Intelligence subscription ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()})
+            {!isPremium && <> · <Link to="/subscribe" className="underline hover:text-amber-100">Start your subscription →</Link></>}
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Enforcement Forecast Intelligence
           </h1>
-          <p className="text-blue-100 text-[15px] leading-relaxed max-w-2xl">
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             What's coming next. Anticipated privacy regulations, enforcement
             shifts, and policy signals — synthesized from primary regulator
             output and updated weekly.

@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+import { PageHero } from "@/components/PageHero";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -89,43 +89,28 @@ export default function USNoticeLanding() {
           </div>
         )}
       </div>
-      <main className="flex-1">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <ToolOutputPreview
-            label="Sample US Privacy Notice output"
-            lines={[
-              "PRIVACY NOTICE — California / Virginia / Colorado",
-              "Effective date: [Date]",
-              "We collect the following categories of personal information:",
-              "  • Identifiers (name, email, IP address) — CCPA Category A",
-              "  • Commercial information (purchase history) — CCPA Category F",
-              "Your rights: Access · Deletion · Correction · Opt-out of sale/sharing",
-            ]}
-          />
+      <PageHero
+        chip={<>📋 US Privacy Notice Builder · From {US_NOTICE_PRICING.singleStandalone()} per state</>}
+        title="Generate US privacy notices for all 20 states — in one session."
+        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA, or start fresh in under 15 minutes."
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button asChild size="lg" className="min-h-[48px]">
+            <Link to="/us-notices/mode">
+              Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="min-h-[48px] bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+          >
+            <Link to="/us-notices">View my notice projects</Link>
+          </Button>
         </div>
-        {/* HERO */}
-        <section className="border-b border-border">
-          <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground leading-tight mb-5">
-              Generate US privacy notices for all 20 states — in one session.
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mb-8">
-              Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state
-              privacy law. Pre-populated from your RoPA, or start fresh in under
-              15 minutes.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="min-h-[48px]">
-                <Link to="/us-notices/mode">
-                  Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="min-h-[48px]">
-                <Link to="/us-notices">View my notice projects</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+      </PageHero>
+      <main className="flex-1">
 
         {/* TRUST BAR */}
         <section className="border-b border-border bg-muted/30">
@@ -145,7 +130,7 @@ export default function USNoticeLanding() {
         {/* HOW IT WORKS */}
         <section className="py-16 md:py-20">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-10">
+            <h2 className="font-serif text-foreground mb-10">
               How it works
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
@@ -169,7 +154,7 @@ export default function USNoticeLanding() {
                 <Card key={step.n}>
                   <CardContent className="p-6">
                     <div className="font-serif text-3xl text-primary mb-3">{step.n}</div>
-                    <h3 className="font-medium text-lg mb-2">{step.title}</h3>
+                    <h3 className="mb-2">{step.title}</h3>
                     <p className="text-sm text-muted-foreground">{step.body}</p>
                   </CardContent>
                 </Card>
@@ -181,7 +166,7 @@ export default function USNoticeLanding() {
         {/* STATE COVERAGE */}
         <section className="py-16 md:py-20 border-t border-border bg-muted/20">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-2">
+            <h2 className="font-serif text-foreground mb-2">
               State coverage
             </h2>
             <p className="text-muted-foreground mb-8 max-w-2xl">
@@ -211,7 +196,7 @@ export default function USNoticeLanding() {
                 items={["Florida (FDBR)"]}
               />
               <div>
-                <h3 className="font-medium text-foreground mb-3">Pending states</h3>
+                <h3 className="text-foreground mb-3">Pending states</h3>
                 <div className="flex flex-wrap gap-2">
                   {PENDING_STATES.map((s) => (
                     <Badge key={s} variant="secondary" className="opacity-60">
@@ -227,14 +212,14 @@ export default function USNoticeLanding() {
         {/* PRICING */}
         <section className="py-16 md:py-20">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-2">
+            <h2 className="font-serif text-foreground mb-2">
               Pricing
             </h2>
             <p className="text-muted-foreground mb-8">
               Answering questions is always free. You only pay when you generate.
             </p>
             <Card>
-              <CardContent className="p-0 overflow-x-auto">
+              <CardContent className="cmp-table p-0 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
@@ -269,7 +254,7 @@ export default function USNoticeLanding() {
         {/* FAQ */}
         <section className="py-16 md:py-20 border-t border-border bg-muted/20">
           <div className="max-w-[820px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-8">
+            <h2 className="font-serif text-foreground mb-8">
               Frequently asked
             </h2>
             <Accordion type="single" collapsible className="w-full">
@@ -290,7 +275,7 @@ export default function USNoticeLanding() {
         {/* FOOTER CTA */}
         <section className="py-16 md:py-20 border-t border-border">
           <div className="max-w-[820px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
+            <h2 className="font-serif text-foreground mb-4">
               Start generating — answering questions is free.
             </h2>
             <p className="text-muted-foreground mb-8">
@@ -324,7 +309,7 @@ function CoverageGroup({
   return (
     <div>
       <div className="flex flex-wrap items-baseline gap-2 mb-3">
-        <h3 className={`font-medium text-foreground ${emphasized ? "text-lg" : ""}`}>
+        <h3 className="text-foreground">
           {title}
         </h3>
         <span className="text-xs text-muted-foreground italic">— {tag}</span>

@@ -190,7 +190,7 @@ export default function BriefBuilder() {
         </button>
       )}
       <div className="mb-6">
-        <h3 className="font-display font-bold text-navy text-[18px] mb-1">
+        <h3 className="text-navy mb-1">
           Build your sample Privacy Intelligence Report
         </h3>
         <p className="text-sm text-slate mb-5">
@@ -338,7 +338,7 @@ export default function BriefBuilder() {
                     {item.trackLabel}
                   </span>
                 </div>
-                <h4 className="font-display font-bold text-white text-[15px] leading-snug mb-3">
+                <h4 className="font-bold text-white text-[15px] leading-snug mb-3">
                   {item.headline}
                 </h4>
 

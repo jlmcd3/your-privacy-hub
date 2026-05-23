@@ -31,11 +31,22 @@ interface ActionItem {
   role?: string;
   action?: string;
   timeframe?: string;
+  time_horizon?: "now" | "this_quarter" | "ongoing";
 }
 
 interface RelatedSignal {
   label?: string;
   kind?: string;
+  signal?: string;
+  jurisdiction?: string;
+  significance?: string;
+}
+
+interface ContextualRecord {
+  regulatory_theory?: string;
+  precedent_novelty?: string;
+  enforcement_pattern?: string;
+  key_cases?: string[];
 }
 
 interface Update {
@@ -55,15 +66,19 @@ interface Update {
   related_development: string | null;
   attention_level: string | null;
   affected_sectors: string[] | null;
-  action_items: ActionItem[] | null;
+  affected_entities: string[] | null;
+  action_items: (ActionItem | string)[] | null;
   related_signals: RelatedSignal[] | null;
   precedent_novelty: string | null;
+  contextual_record: ContextualRecord | null;
+  contextual_teaser: string | null;
 }
 
 interface RelatedUpdate {
   id: string;
   title: string;
   source_name: string | null;
+  source_url: string | null;
   published_at: string;
 }
 
@@ -146,7 +161,7 @@ const UpdateDetail = () => {
     if (!article?.topic_tags || article.topic_tags.length === 0) return;
     (supabase as any)
       .from("updates")
-      .select("id, title, source_name, published_at")
+      .select("id, title, source_name, source_url, published_at")
       .eq("is_hidden", false)
       .overlaps("topic_tags", article.topic_tags)
       .neq("id", article.id)
@@ -227,7 +242,7 @@ const UpdateDetail = () => {
         {notFound && !loading && (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📄</p>
-            <h1 className="font-display text-[22px] text-foreground mb-2">Article not found</h1>
+            <h1 className="font-display text-foreground mb-2">Article not found</h1>
             <p className="text-muted-foreground text-sm mb-6">
               This article may have been removed or the link is incorrect.
             </p>
@@ -271,7 +286,7 @@ const UpdateDetail = () => {
             </span>
 
             {/* Title */}
-            <h1 className="font-display text-[28px] text-foreground font-bold leading-tight mb-3">{article.title}</h1>
+            <h1 className="font-display text-foreground leading-tight mb-3">{article.title}</h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground mb-4">
@@ -414,6 +429,15 @@ const UpdateDetail = () => {
                       </div>
                     );
                   })()}
+
+                  {article.affected_sectors && article.affected_sectors.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      <span className="text-meta uppercase tracking-wide text-muted-foreground font-semibold mr-1 self-center">Sectors:</span>
+                      {article.affected_sectors.map((s, i) => (
+                        <span key={i} className="text-meta px-2 py-0.5 rounded-full bg-muted text-foreground border border-border">{s}</span>
+                      ))}
+                    </div>
+                  )}
                 </section>
 
                 <InFeedAd />
@@ -451,34 +475,57 @@ const UpdateDetail = () => {
                     SECTION 2 — NEXT STEPS (paid only)
                     ======================================================== */}
                 {isPremium && article.action_items && article.action_items.length > 0 && (() => {
-                  const groups: Record<"now" | "quarter" | "ongoing", ActionItem[]> = { now: [], quarter: [], ongoing: [] };
-                  article.action_items.forEach(a => {
+                  const items = article.action_items;
+                  // Legacy: string array — show ungrouped
+                  const isLegacyStrings = items.every(i => typeof i === "string");
+                  if (isLegacyStrings) {
+                    return (
+                      <section aria-label="Next Steps" className="mt-8 pt-8 border-t border-silver mb-8">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Action Intelligence</span>
+                        </div>
+                        <h2 className="font-display text-foreground mb-3">Next Steps</h2>
+                        <ul className="list-disc pl-5 space-y-1.5">
+                          {(items as string[]).map((s, i) => (
+                            <li key={i} className="text-base text-foreground leading-relaxed">{s}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    );
+                  }
+
+                  const objs = items.filter((i): i is ActionItem => typeof i === "object" && i !== null);
+                  const groups: Record<"now" | "this_quarter" | "ongoing", ActionItem[]> = { now: [], this_quarter: [], ongoing: [] };
+                  objs.forEach(a => {
+                    const th = a.time_horizon;
+                    if (th && groups[th]) { groups[th].push(a); return; }
+                    // Fallback: derive from legacy timeframe
                     const tf = String(a.timeframe ?? "").toLowerCase();
-                    if (tf.includes("immediate") || tf.includes("7 day")) groups.now.push(a);
-                    else if (tf.includes("quarter")) groups.quarter.push(a);
-                    else if (tf.includes("monitor") || tf.includes("ongoing")) groups.ongoing.push(a);
+                    if (tf.includes("immediate") || tf.includes("7 day") || tf.includes("now")) groups.now.push(a);
+                    else if (tf.includes("quarter") || tf.includes("month")) groups.this_quarter.push(a);
                     else groups.ongoing.push(a);
                   });
-                  const bands: { key: keyof typeof groups; label: string }[] = [
-                    { key: "now", label: "Now" },
-                    { key: "quarter", label: "This Quarter" },
-                    { key: "ongoing", label: "Ongoing" },
+                  const bands: { key: keyof typeof groups; label: string; border: string; color: string }[] = [
+                    { key: "now", label: "Now", border: "border-orange-400", color: "text-orange-600" },
+                    { key: "this_quarter", label: "This Quarter", border: "border-[hsl(var(--cobalt))]", color: "text-[hsl(var(--cobalt))]" },
+                    { key: "ongoing", label: "Ongoing", border: "border-slate-300", color: "text-slate-600" },
                   ];
+                  const activeBands = bands.filter(b => groups[b.key].length > 0);
+                  if (activeBands.length === 0) return null;
                   return (
-                    <section aria-label="Next Steps" className="mb-8">
+                    <section aria-label="Next Steps" className="mt-8 pt-8 border-t border-silver mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Next Steps</span>
-                        <span className="text-meta text-muted-foreground/60">Actions by timeframe</span>
+                        <span className="text-eyebrow" style={{ color: 'hsl(var(--accent))' }}>Action Intelligence</span>
                       </div>
-                      <hr className="border-border mb-4" />
-                      <div className="space-y-3">
-                        {bands.filter(b => groups[b.key].length > 0).map(b => (
-                          <div key={b.key} className="grid grid-cols-[90px_1fr] gap-3 items-start">
-                            <span className="text-eyebrow pt-0.5" style={{ color: 'hsl(var(--accent))' }}>{b.label}</span>
+                      <h2 className="font-display text-foreground mb-4">Next Steps</h2>
+                      <div className="space-y-4">
+                        {activeBands.map(b => (
+                          <div key={b.key} className={`border-l-4 ${b.border} pl-4`}>
+                            <div className={`text-eyebrow uppercase tracking-wide font-semibold mb-2 ${b.color}`}>{b.label}</div>
                             <ul className="space-y-1.5">
                               {groups[b.key].map((a, i) => (
                                 <li key={i} className="text-base text-foreground leading-relaxed">
-                                  {a.role && <span className="font-semibold">{a.role}: </span>}
+                                  {a.role && <span className="inline-block text-meta font-semibold text-muted-foreground mr-2 px-1.5 py-0.5 rounded bg-muted">{a.role}</span>}
                                   {a.action}
                                 </li>
                               ))}
@@ -493,21 +540,22 @@ const UpdateDetail = () => {
                 {/* ========================================================
                     SECTION 3 — WATCH (paid only) — related_signals
                     ======================================================== */}
-                {isPremium && (article as any).related_signals && (article as any).related_signals.length > 0 && (
-                  <section aria-label="Watch" className="mb-8">
+                {isPremium && article.related_signals && article.related_signals.length > 0 && (
+                  <section aria-label="Watch" className="mt-8 pt-8 border-t border-silver mb-8">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>Watch</span>
-                      <span className="text-meta text-muted-foreground/60">Related signals</span>
+                      <span className="text-eyebrow" style={{ color: 'hsl(var(--cobalt))' }}>Related Signals</span>
                     </div>
-                    <hr className="border-border mb-4" />
+                    <h2 className="font-display text-foreground mb-3">Watch</h2>
                     <ul className="space-y-2">
-                      {((article as any).related_signals as RelatedSignal[]).map((sig, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-base text-foreground leading-relaxed">
-                          <span
-                            className="inline-block w-2 h-2 rounded-full mt-1.5 shrink-0"
-                            style={{ background: 'hsl(var(--cobalt))' }}
-                          />
-                          <span>{sig.label}</span>
+                      {(article.related_signals as RelatedSignal[]).map((sig, i) => (
+                        <li key={i} className="bg-muted/30 rounded-lg border border-border p-3">
+                          <div className="text-base font-semibold text-foreground">{sig.signal || sig.label}</div>
+                          {sig.jurisdiction && (
+                            <span className="inline-block text-meta px-1.5 py-0.5 rounded bg-muted text-muted-foreground mt-1 mr-2">{sig.jurisdiction}</span>
+                          )}
+                          {sig.significance && (
+                            <p className="text-sm text-muted-foreground mt-1 m-0">{sig.significance}</p>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -515,43 +563,61 @@ const UpdateDetail = () => {
                 )}
 
                 {/* ========================================================
-                    SECTION 4 — CONTEXTUAL RECORD (paid only — placeholder)
+                    SECTION 4 — CONTEXTUAL RECORD (paid only)
                     ======================================================== */}
-                {isPremium && (
-                  <section aria-label="Contextual Record" className="mb-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-eyebrow text-navy">Contextual Record</span>
-                    </div>
-                    <hr className="border-border mb-4" />
-                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
-                      <p className="text-sm italic text-muted-foreground m-0">
-                        Contextual intelligence drawing on the enforcement corpus will appear here once the enrichment pipeline update is deployed.
+                {isPremium && (() => {
+                  const cr = article.contextual_record;
+                  const hasAny = cr && (cr.regulatory_theory || cr.precedent_novelty || cr.enforcement_pattern || (cr.key_cases && cr.key_cases.length > 0));
+                  // Legacy fallbacks
+                  const legacyTheory = !cr?.regulatory_theory ? article.regulatory_theory : null;
+                  const legacyDev = !cr?.precedent_novelty ? article.related_development : null;
+                  return (
+                    <section aria-label="Contextual Record" className="mt-8 pt-8 border-t border-silver mb-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-eyebrow text-navy">Enforcement Corpus Intelligence</span>
+                      </div>
+                      <h2 className="font-display text-foreground mb-2">Contextual Record</h2>
+                      <p className="italic text-sm text-muted-foreground mb-4">
+                        Drawn from 3,500+ enforcement decisions. Patterns and precedents from the EUP corpus.
                       </p>
-                    </div>
-                  </section>
-                )}
-
-                {/* Pro: regulatory theory & related development (kept) */}
-                {isPremium && (article.regulatory_theory || article.related_development) && (
-                  <section aria-label="Regulatory context" className="mb-8 space-y-3">
-                    {article.regulatory_theory && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Regulatory theory
-                        </div>
-                        <p className="text-base leading-relaxed text-foreground m-0">{article.regulatory_theory}</p>
+                      <div className="bg-navy/[0.02] rounded-xl p-6 border border-border space-y-4">
+                        {(cr?.regulatory_theory || legacyTheory) && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory Theory</div>
+                            <p className="text-base leading-relaxed text-foreground m-0">{cr?.regulatory_theory || legacyTheory}</p>
+                          </div>
+                        )}
+                        {(cr?.precedent_novelty || legacyDev) && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Precedent &amp; Novelty</div>
+                            <p className="text-base leading-relaxed text-foreground m-0">{cr?.precedent_novelty || legacyDev}</p>
+                          </div>
+                        )}
+                        {cr?.enforcement_pattern && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Enforcement Pattern</div>
+                            <p className="text-base leading-relaxed text-foreground m-0">{cr.enforcement_pattern}</p>
+                          </div>
+                        )}
+                        {cr?.key_cases && cr.key_cases.length > 0 && (
+                          <div>
+                            <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-2">Related Cases</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {cr.key_cases.map((c, i) => (
+                                <span key={i} className="text-meta px-2 py-0.5 rounded-full bg-muted text-foreground border border-border">{c}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {!hasAny && !legacyTheory && !legacyDev && (
+                          <p className="text-sm text-muted-foreground italic text-center py-6 m-0">
+                            Contextual intelligence not yet generated for this article.
+                          </p>
+                        )}
                       </div>
-                    )}
-                    {article.related_development && (
-                      <div className="border border-border rounded-lg p-3">
-                        <div className="text-meta uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                          Related development
-                        </div>
-                        <p className="text-base leading-relaxed text-foreground m-0">{article.related_development}</p>
-                      </div>
-                    )}
-                  </section>
-                )}
+                    </section>
+                  );
+                })()}
               </>
             )}
 
@@ -586,12 +652,13 @@ const UpdateDetail = () => {
             {/* Related Updates */}
             {related.length > 0 && (
               <div className="mt-10">
-                <h2 className="font-bold text-foreground text-[15px] mb-3">Related Updates</h2>
+                <h2 className="text-foreground text-[15px] mb-3">Related Updates</h2>
                 <div className="space-y-3">
                   {related.map((r) => (
-                    <Link
+                    <a
                       key={r.id}
-                      to={`/updates/${r.id}`}
+                      href={r.source_url || `/updates/${r.id}`}
+                      {...(r.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                       className="block no-underline hover:bg-muted rounded-lg p-3 -mx-3 transition-colors"
                     >
                       <p className="text-sm text-foreground font-medium leading-snug">{r.title}</p>
@@ -599,7 +666,7 @@ const UpdateDetail = () => {
                         {r.source_name && <span>{r.source_name} · </span>}
                         {formatDate(r.published_at)}
                       </p>
-                    </Link>
+                    </a>
                   ))}
                 </div>
               </div>

@@ -116,3 +116,10 @@ verify_jwt = false
 
 [functions.generate-research-syntheses]
 verify_jwt = false
+
+[functions.enrich-with-context]
+verify_jwt = false
+
+[functions.backfill-enrichment]
+verify_jwt = false
+

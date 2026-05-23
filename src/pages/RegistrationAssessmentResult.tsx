@@ -145,9 +145,9 @@ export default function RegistrationAssessmentResult() {
   const selectedCount = selected.size;
   const crpTotal = 299;
 
-  // Tiered DIY pricing — must mirror diyPriceCents() in create-registration-checkout
-  const diyPrice = selectedCount <= 1 ? 49 : selectedCount <= 3 ? 89 : 149;
-  const diyTierLabel = selectedCount <= 1 ? "1 jurisdiction" : selectedCount <= 3 ? "2-3 jurisdictions" : "4+ jurisdictions";
+  // Flat DIY pricing — mirrors diyPriceCents() in create-registration-checkout
+  // and PRICING.tools.registration in src/config/pricing.ts (May 2026 memo).
+  const diyPrice = 45;
 
   // Confidence-tier copy: rewrite CTA framing so users understand WHY to upgrade
   const confidenceCopy: Record<string, { headline: string; subline: string }> = {
@@ -226,7 +226,7 @@ export default function RegistrationAssessmentResult() {
           <div className="max-w-5xl mx-auto py-10">
             <header className="mb-8">
               <div className="flex items-center justify-between flex-wrap gap-3">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground">Your Registration Map</h1>
+                <h1 className="text-foreground">Your Registration Map</h1>
                 <Button variant="outline" size="sm" onClick={copyShareLink}>
                   <Copy className="h-4 w-4 mr-2" />Share / save link
                 </Button>
@@ -310,8 +310,8 @@ export default function RegistrationAssessmentResult() {
                 <PlanCard
                   title="DIY Toolkit"
                   price={`$${diyPrice}`}
-                  priceFootnote={`${diyTierLabel} · ${selectedCount || "0"} selected`}
-                  blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Tiered: $49 / $89 / $149 by count."
+                  priceFootnote={`Flat — any jurisdiction count`}
+                  blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Flat $45 regardless of count."
                   cta={purchasing === "diy" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
                   disabled={purchasing !== null || selectedCount === 0}

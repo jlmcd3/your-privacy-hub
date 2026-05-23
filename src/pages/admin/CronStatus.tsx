@@ -24,7 +24,7 @@ export default function CronStatus() {
 
   return (
     <PageContainer width="wide" className="py-8">
-      <h1 className="text-2xl font-serif mb-4">Cron Schedule</h1>
+      <h1 className="font-serif mb-4">Cron Schedule</h1>
       {error && <div className="text-warn mb-4">Error: {error}</div>}
       {!jobs && !error && <div>Loading…</div>}
       {jobs && (

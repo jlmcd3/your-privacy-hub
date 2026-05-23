@@ -177,7 +177,7 @@ export default function MyReports() {
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold text-navy">My Reports</h1>
+            <h1 className="font-display text-navy">My Reports</h1>
             <p className="text-sm text-slate mt-1">
               Every assessment, playbook, and document you've generated. Click any item to re-open it or download the PDF.
             </p>

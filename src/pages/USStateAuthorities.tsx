@@ -58,7 +58,7 @@ const USStateAuthorities = () => {
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             🏛️ Authority Directory
           </div>
-          <h1 className="font-display text-[36px] text-white mb-3">U.S. State Privacy Authorities</h1>
+          <h1 className="font-display text-white mb-3">U.S. State Privacy Authorities</h1>
           <p className="text-base text-slate-light max-w-[700px]">
             Comprehensive directory of privacy regulatory authorities across all 50 U.S. states and Washington, D.C. Includes statute names, enforcement status, official websites, and complaint portals.
           </p>

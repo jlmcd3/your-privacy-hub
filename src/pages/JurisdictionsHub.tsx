@@ -54,6 +54,7 @@ type RecentItem = {
   update: string;
   fullTitle: string;
   days: string;
+  source_url: string | null;
 };
 
 export default function JurisdictionsHub() {
@@ -94,7 +95,7 @@ export default function JurisdictionsHub() {
       setRecentLoading(true);
       const { data } = await supabase
         .from("updates")
-        .select("id, title, direct_jurisdictions, published_at, ai_summary")
+        .select("id, title, source_url, direct_jurisdictions, published_at, ai_summary")
         .eq("is_hidden", false)
         .not("direct_jurisdictions", "is", null)
         .order("published_at", { ascending: false })
@@ -127,6 +128,7 @@ export default function JurisdictionsHub() {
           update: title.length > 55 ? title.substring(0, 52) + "…" : title,
           fullTitle: title,
           days: relativeDays(a.published_at),
+          source_url: a.source_url ?? null,
         });
         if (items.length >= 6) break;
       }
@@ -155,40 +157,21 @@ export default function JurisdictionsHub() {
 
         <main className="flex-1">
           {/* Page header */}
-          <div className="bg-navy text-white py-6 md:py-7 px-4">
-            <div className="max-w-[1280px] mx-auto">
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                <div>
-                  <div className="flex items-center gap-2 text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">
-                    <span>🌐</span> Jurisdictions
-                  </div>
-                  <h1 className="font-display font-bold text-3xl md:text-4xl text-white mb-2">
-                    Global Privacy Law Map
-                  </h1>
-                  <p className="text-blue-200 text-sm max-w-xl leading-relaxed">
-                    160+ jurisdictions tracked. Click any country on the map to explore its
-                    privacy law, regulator, and recent enforcement actions.
-                    Switch to Grid view to browse or filter by region.
-                  </p>
-                </div>
-
-                <div className="flex flex-nowrap items-center gap-6 overflow-x-auto lg:min-w-[620px] lg:justify-end">
-                  {statCards.map((stat) => (
-                    <div key={stat.label} className="flex flex-shrink-0 items-center gap-2.5">
-                      <div
-                        className="w-4 h-4 rounded flex-shrink-0"
-                        style={{ background: stat.color }}
-                      />
-                      <div>
-                        <div className="font-bold text-white text-lg leading-none">{stat.num}</div>
-                        <div className="text-blue-300 text-[11px] mt-0.5">{stat.label}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <header className="bg-slate-900 text-white py-12">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+              <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+                🌐 Jurisdictions
+              </span>
+              <h1 className="font-serif text-white mb-3">
+                Global Privacy Law Map
+              </h1>
+              <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
+                160+ jurisdictions tracked. Click any country on the map to explore its
+                privacy law, regulator, and recent enforcement actions.
+                Switch to Grid view to browse or filter by region.
+              </p>
             </div>
-          </div>
+          </header>
 
 
           {/* Map section */}
@@ -205,7 +188,7 @@ export default function JurisdictionsHub() {
           {(recentLoading || recentUpdates.length > 0) && (
             <div className="border-t border-fog bg-white">
               <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <h2 className="font-bold text-navy text-sm uppercase tracking-wider mb-4">
+                <h2 className="text-navy uppercase tracking-wider mb-4">
                   🕐 Recently Updated Jurisdictions
                 </h2>
                 <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
@@ -223,9 +206,10 @@ export default function JurisdictionsHub() {
                         </div>
                       ))
                     : recentUpdates.map((item) => (
-                        <Link
+                        <a
                           key={item.id}
-                          to={`/updates/${item.id}`}
+                          href={item.source_url || `/updates/${item.id}`}
+                          {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                           title={item.fullTitle}
                           aria-label={`${item.name}: ${item.fullTitle} (${item.days})`}
                           className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
@@ -236,7 +220,7 @@ export default function JurisdictionsHub() {
                           <div className="font-bold text-navy mt-1">{item.name}</div>
                           <div className="text-slate leading-snug">{item.update}</div>
                           <div className="text-slate-light mt-0.5">{item.days}</div>
-                        </Link>
+                        </a>
                       ))}
                 </div>
               </div>

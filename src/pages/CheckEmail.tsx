@@ -14,7 +14,7 @@ export default function CheckEmail() {
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8 text-center">
           <div className="text-5xl mb-5">📧</div>
-          <h1 className="font-display text-[24px] text-navy mb-2">
+          <h1 className="font-display text-navy mb-2">
             Check your inbox
           </h1>
           <p className="text-slate text-[14px] leading-relaxed mb-2">

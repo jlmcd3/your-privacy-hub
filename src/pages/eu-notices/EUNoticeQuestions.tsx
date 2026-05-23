@@ -164,7 +164,7 @@ export default function EUNoticeQuestions() {
 
       <Card className="mb-6">
         <CardContent className="p-6">
-          <h2 className="font-medium text-lg mb-2">{currentQ.text}</h2>
+          <h2 className="mb-2">{currentQ.text}</h2>
           {currentQ.whyWeAsk && (
             <p className="text-xs text-muted-foreground mb-4 flex items-start gap-1.5">
               <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />

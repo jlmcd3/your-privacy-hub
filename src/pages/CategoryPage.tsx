@@ -115,7 +115,7 @@ const CategoryPage = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Category Not Found</h1>
+          <h1 className="text-foreground mb-4">Category Not Found</h1>
           <Link to="/" className="text-primary hover:underline">
             Return to homepage →
           </Link>
@@ -146,7 +146,7 @@ const CategoryPage = () => {
               "ai-privacy": "AI & Privacy Intelligence",
             } as Record<string, string>)[slug!] || "Updates"}
           </p>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-3">
+          <h1 className="text-foreground mb-3">
             {meta.title}
           </h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
@@ -211,7 +211,7 @@ const CategoryPage = () => {
                         </>
                       )}
                     </div>
-                    <h3 className="text-sm md:text-base font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                    <h3 className="text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                       {normalizeTitle(u.title)}
                     </h3>
                     {u.summary && (

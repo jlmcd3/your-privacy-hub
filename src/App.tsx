@@ -69,6 +69,7 @@ import TestEUNotice from "./pages/admin/TestEUNotice";
 import TestRegistration from "./pages/admin/TestRegistration";
 import TestBrief from "./pages/admin/TestBrief";
 import CronStatus from "./pages/admin/CronStatus";
+import ResponsivePreview from "./pages/admin/ResponsivePreview";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import Updates from "./pages/Updates.tsx";
@@ -85,7 +86,7 @@ import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import BlankScreenDiagnostic from "./components/BlankScreenDiagnostic.tsx";
 import JurisdictionsHub from "./pages/JurisdictionsHub.tsx";
-import GlobalJurisdictionComparison from "./pages/GlobalJurisdictionComparison.tsx";
+
 import LegislationTracker from "./pages/LegislationTracker.tsx";
 import BriefPreferences from "./pages/BriefPreferences.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -193,7 +194,7 @@ const App = () => (
             <Route path="/timelines" element={<Timelines />} />
             <Route path="/timelines/:slug" element={<TimelineDetail />} />
             <Route path="/compare/us-states" element={<USStateComparison />} />
-            <Route path="/compare/jurisdictions" element={<GlobalJurisdictionComparison />} />
+            
             <Route path="/legislation-tracker" element={<LegislationTracker />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/cookie-consent" element={<CookieConsent />} />
@@ -357,6 +358,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <CronStatus />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/responsive"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <ResponsivePreview />
                   </AdminOnly>
                 </ProtectedRoute>
               }

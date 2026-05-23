@@ -1,5 +1,5 @@
 // CPPA Privacy Risk Assessment — Module 1 intake. 5-step wizard + summary.
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -151,17 +151,11 @@ export default function CPPARiskAssessment() {
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
-            {activePricing.isSubscriber && activePricing.standalonePrice > displayPrice && (
-              <> · subscriber rate (standalone ${activePricing.standalonePrice})</>
-            )}
-            {!activePricing.isSubscriber && (
-              <> · <a href="/subscribe" className="underline hover:text-amber-100">Intelligence 20% off · Professional 25% off →</a></>
-            )}
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Privacy Risk Assessment</h1>
+          <h1 className="font-serif mb-3">CPPA Privacy Risk Assessment</h1>
           <p className="text-slate-300 text-lg">A structured assessment of your organisation's CCPA/CPRA compliance posture mapped to the CPPA's enforcement priorities. Generates a compliance gap report with remediation guidance.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Submission deadline: December 31, 2027.</p>
         </div>
@@ -171,23 +165,13 @@ export default function CPPARiskAssessment() {
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <ToolOutputPreview
-          label="Sample CPPA Risk Assessment output"
-          lines={[
-            "CPPA RISK ASSESSMENT — California Privacy Protection Agency",
-            "Processing Activity: Behavioural advertising via third-party pixels",
-            "RISK LEVEL: HIGH — likely to result in significant privacy risk",
-            "  Regulatory basis: CPPA Regulations § 7150.5 — automated decision-making",
-            "  Required action: Implement opt-out mechanism before January 1, 2026",
-          ]}
-        />
         <ActiveClientLabel />
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
         <div className="bg-card border rounded-lg p-6 space-y-6">
           {step === 1 && (
             <>
-              <h2 className="text-xl font-semibold">Step 1 — Business Profile</h2>
+              <h2 className="">Step 1 — Business Profile</h2>
               <div><Label>Q1: Annual gross revenue *</Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
               <div><Label>Q2: Number of California consumers whose PI you process annually *</Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
               <div><Label>Q3: Primary business sector *</Label>
@@ -204,7 +188,7 @@ export default function CPPARiskAssessment() {
 
           {step === 2 && (
             <>
-              <h2 className="text-xl font-semibold">Step 2 — Consumer Rights Infrastructure</h2>
+              <h2 className="">Step 2 — Consumer Rights Infrastructure</h2>
               <div><Label>Q6: Right to Know / Access mechanism *</Label><div className="mt-2"><Radio name="q6" options={["Online form with identity verification", "Email or written request process", "In-app account settings", "No formal process in place"]} value={q6} onChange={setQ6} /></div></div>
               <div><Label>Q7: Right to Deletion mechanism *</Label><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
               <div><Label>Q8: Right to Correction mechanism *</Label><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
@@ -215,7 +199,7 @@ export default function CPPARiskAssessment() {
 
           {step === 3 && (
             <>
-              <h2 className="text-xl font-semibold">Step 3 — Privacy Notices</h2>
+              <h2 className="">Step 3 — Privacy Notices</h2>
               <div><Label>Q11: Privacy policy last reviewed/updated *</Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
               <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) *</Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
               <div><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? *</Label><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
@@ -225,7 +209,7 @@ export default function CPPARiskAssessment() {
 
           {step === 4 && (
             <>
-              <h2 className="text-xl font-semibold">Step 4 — Sensitive Personal Information</h2>
+              <h2 className="">Step 4 — Sensitive Personal Information</h2>
               <div><Label>Q15: Do you process any sensitive PI? *</Label><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? *</Label><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
@@ -236,7 +220,7 @@ export default function CPPARiskAssessment() {
 
           {step === 5 && (
             <>
-              <h2 className="text-xl font-semibold">Step 5 — Automated Decision-Making Technology (ADMT)</h2>
+              <h2 className="">Step 5 — Automated Decision-Making Technology (ADMT)</h2>
               <div><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? *</Label><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions *</Label>
@@ -334,7 +318,7 @@ function SummaryTable({ intake }: { intake: Record<string, any> }) {
 
   return (
     <>
-      <h2 className="text-xl font-semibold">Review your answers</h2>
+      <h2 className="">Review your answers</h2>
       <div className="rounded-lg border bg-card divide-y">
         {rows.map((r) => (
           <div key={r.label} className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3">

@@ -26,7 +26,7 @@ export default function ToolkitSection() {
     <section className="py-12 px-4 md:px-8 bg-paper">
       <div className="max-w-[1280px] mx-auto">
         <div className="text-center mb-8">
-          <h2 className="font-display font-bold text-navy text-xl mb-2">
+          <h2 className="font-display text-navy mb-2">
             Intelligence Toolkit
           </h2>
           <p className="text-slate text-sm">
@@ -41,7 +41,7 @@ export default function ToolkitSection() {
               className="group bg-card border border-fog rounded-2xl p-6 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all text-center"
             >
               <span className="text-3xl block mb-3">{t.icon}</span>
-              <h3 className="font-display font-bold text-navy text-[15px] mb-1 group-hover:text-blue transition-colors">
+              <h3 className="text-navy text-[15px] mb-1 group-hover:text-blue transition-colors">
                 {t.title}
               </h3>
               <p className="text-slate text-meta leading-relaxed mb-3">{t.sub}</p>

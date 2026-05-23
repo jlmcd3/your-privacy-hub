@@ -90,7 +90,7 @@ const RegulatorPage = () => {
       <div className="min-h-screen bg-paper">
         <Navbar />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-          <h1 className="font-display text-3xl text-navy mb-4">Regulator Not Found</h1>
+          <h1 className="font-display text-navy mb-4">Regulator Not Found</h1>
           <p className="text-slate mb-6">The regulator you're looking for is not yet in our database.</p>
           <Link to="/global-privacy-authorities" className="text-blue hover:underline">Browse all regulators →</Link>
         </div>
@@ -114,7 +114,7 @@ const RegulatorPage = () => {
           <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
             ⚖️ Regulator Profile
           </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-2">{regulator.name}</h1>
+          <h1 className="font-display text-white mb-2">{regulator.name}</h1>
           {regulator.abbreviation && <p className="text-lg text-sky font-display">{regulator.abbreviation}</p>}
           {regulator.legislation && (
             <p className="text-blue-200 text-sm mt-1">
@@ -173,7 +173,7 @@ const RegulatorPage = () => {
 
         {/* Recent Intelligence */}
         <div className="mb-8">
-          <h2 className="font-display text-xl text-navy mb-4">
+          <h2 className="font-display text-navy mb-4">
             Recent Intelligence
           </h2>
           <div className="rounded-2xl border border-sky/25 overflow-hidden shadow-eup-sm">
@@ -183,7 +183,7 @@ const RegulatorPage = () => {
                 <div className="text-eyebrow text-sky mb-1">
                   ⭐ Weekly Intelligence
                 </div>
-                <h3 className="font-display text-[15px] text-white">
+                <h3 className="text-[15px] text-white">
                   What moved at {regulator.abbreviation || regulator.name} this week
                 </h3>
               </div>
@@ -238,7 +238,7 @@ const RegulatorPage = () => {
         {/* Recent Developments */}
         {recentArticles.length > 0 && (
           <div className="mt-10 pt-8 border-t border-fog">
-            <h2 className="font-display font-bold text-navy text-lg mb-4">
+            <h2 className="font-display text-navy mb-4">
               Recent Developments
             </h2>
             <div className="space-y-4">
@@ -281,7 +281,7 @@ const RegulatorPage = () => {
 
         {/* Related */}
         <div className="border-t border-fog pt-8 mt-8">
-          <h3 className="font-display text-lg text-navy mb-4">Related Resources</h3>
+          <h3 className="text-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium">
               <span className="text-blue">→</span> {regulator.country} Jurisdiction Page

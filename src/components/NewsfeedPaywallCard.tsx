@@ -9,7 +9,7 @@ export default function NewsfeedPaywallCard() {
       {/* Blurred ghost articles behind */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white pointer-events-none" />
       <div className="relative z-10 flex flex-col items-center text-center px-8 py-10 bg-white/90 backdrop-blur-sm">
-        <h3 className="font-display font-bold text-navy text-xl mb-2">
+        <h3 className="text-navy mb-2">
           Access the full Privacy Intelligence Feed
         </h3>
         <p className="text-slate text-sm max-w-md mb-6 leading-relaxed">

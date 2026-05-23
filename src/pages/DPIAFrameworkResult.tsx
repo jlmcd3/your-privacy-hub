@@ -21,7 +21,7 @@ const sevColor = (s: string) => {
 
 const Section = ({ num, title, guidance, completion, children }: any) => (
   <section className="bg-card border rounded-lg p-6 print:break-before-page">
-    <h2 className="text-xl font-semibold mb-2">Section {num}: {title}</h2>
+    <h2 className="mb-2">Section {num}: {title}</h2>
     {guidance && (
       <details className="mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded p-3 text-sm">
         <summary className="cursor-pointer font-medium">Article 35 Requirement</summary>
@@ -101,7 +101,7 @@ const DPIAFrameworkResult = () => {
         {status === "complete" && (
           <>
             <header className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="text-3xl font-serif mb-1">Impact Assessment Builder</h1>
+              <h1 className="font-serif mb-1">Impact Assessment Builder</h1>
               <p className="text-slate-300">{meta.processing_activity_name || dpia?.intake_data?.processing_activity_name}</p>
               <p className="text-slate-400 text-xs mt-2">
                 {meta.framework_version && `Version ${meta.framework_version} · `}

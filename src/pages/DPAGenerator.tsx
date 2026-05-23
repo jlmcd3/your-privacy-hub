@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -105,62 +105,56 @@ export default function DPAGenerator() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <Helmet><title>Your Custom DPA | End User Privacy</title>
-        <meta name="description" content="Generate your custom GDPR Article 28-compliant Data Protection Agreement, calibrated to live enforcement precedents." /></Helmet>
+      <Helmet><title>Custom Data Processing Agreement | End User Privacy</title>
+        <meta name="description" content="Draft a controller-processor Data Processing Agreement that meets GDPR Article 28, with clauses calibrated to recent EU regulator enforcement decisions." /></Helmet>
       <Navbar />
       <DashboardSubnav />
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            📄 Custom DPA Generator · ${pricing.price}
+          </span>
+          <h1 className="font-serif mb-3">Custom Data Processing Agreement</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">
+            Draft a controller-processor Data Processing Agreement that meets GDPR Article 28, with clauses calibrated to recent EU regulator enforcement decisions. Use it whenever you onboard a vendor that processes personal data on your behalf.
+          </p>
+        </div>
+      </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
-        <header className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[34px] font-extrabold text-navy mb-2">Your Custom DPA</h1>
-          <p className="text-slate text-sm">Draft your custom GDPR Article 28-compliant controller-processor Data Protection Agreement, with provisions calibrated to recent DPA enforcement decisions.</p>
-          {phase === "sample" && (() => {
-            const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];
-            let currentStep = 1;
-            if (form.controllerName.trim() && form.processorName.trim()) currentStep = 2;
-            if (currentStep === 2 && form.services.trim() && form.dataCategories.length > 0) currentStep = 3;
-            if (currentStep === 3 && acknowledged) currentStep = 4;
-            return (
-              <div className="mt-4 flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  {[1, 2, 3, 4].map(n => (
-                    <span
-                      key={n}
-                      className="inline-block rounded-full"
-                      style={{
-                        width: 8, height: 8,
-                        backgroundColor: n <= currentStep ? "hsl(var(--accent))" : "hsl(var(--border))",
-                      }}
-                    />
-                  ))}
-                </div>
-                <p className="text-meta text-slate-400">Step {currentStep} of 4 — {sectionNames[currentStep - 1]}</p>
+        {phase === "sample" && (() => {
+          const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];
+          let currentStep = 1;
+          if (form.controllerName.trim() && form.processorName.trim()) currentStep = 2;
+          if (currentStep === 2 && form.services.trim() && form.dataCategories.length > 0) currentStep = 3;
+          if (currentStep === 3 && acknowledged) currentStep = 4;
+          return (
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                {[1, 2, 3, 4].map(n => (
+                  <span
+                    key={n}
+                    className="inline-block rounded-full"
+                    style={{
+                      width: 8, height: 8,
+                      backgroundColor: n <= currentStep ? "hsl(var(--accent))" : "hsl(var(--border))",
+                    }}
+                  />
+                ))}
               </div>
-            );
-          })()}
-        </header>
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
+              <p className="text-meta text-slate-400">Step {currentStep} of 4 — {sectionNames[currentStep - 1]}</p>
+            </div>
+          );
+        })()}
+        <div className="mb-4">
           <ToolTierNote />
         </div>
-        {phase !== "result" && phase !== "generating" && (
-          <ToolOutputPreview
-            label="Sample Data Processing Agreement output"
-            lines={[
-              "DATA PROCESSING AGREEMENT",
-              "Between: [Controller name] ('Controller') and [Processor name] ('Processor')",
-              "Clause 1 — Subject matter: Processor shall process personal data only on",
-              "  documented instructions from Controller, including with regard to transfers",
-              "  of personal data to a third country (Article 28(3)(a) GDPR).",
-              "Clause 2 — Duration: This Agreement commences on the Effective Date and",
-            ]}
-          />
-        )}
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display font-bold text-navy text-lg">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display text-navy">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
             <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
@@ -176,7 +170,7 @@ export default function DPAGenerator() {
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h2 className="font-display font-bold text-navy text-lg">DPA Intake</h2>
+            <h2 className="font-display text-navy">DPA Intake</h2>
             <div className="space-y-3 text-sm">
               <label className="block"><span className="font-semibold text-navy">Controller name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { RefreshCw, Copy, Check, FlaskConical, Lock } from "lucide-react";
+import { RefreshCw, Copy, Check, FlaskConical, Lock, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useSubscriberContext } from "@/hooks/useSubscriberContext";
@@ -15,9 +15,12 @@ interface Headline {
 
 interface ResearchSynthesisBlockProps {
   sectionKey: string;
+  promoteHeading?: boolean;
+  /** Render a tight one-line "What changed" pullquote instead of the full tiered card. */
+  compact?: boolean;
 }
 
-export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockProps) {
+export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: ResearchSynthesisBlockProps) {
   const [data, setData] = useState<{
     synthesis_text: string;
     generated_at: string;
@@ -36,6 +39,7 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
   const [promptError, setPromptError] = useState<string | null>(null);
   const [promptOpen, setPromptOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     supabase
@@ -78,14 +82,50 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
     padding: "1rem 1.25rem",
   } as const;
 
-  return (
-    <div className="mt-6 mb-2 rounded-r-lg" style={containerStyle}>
-      <div className="flex items-center gap-2 mb-3">
-        <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
-        <span className="text-eyebrow" style={{ color: "hsl(var(--cobalt))" }}>
-          Recent Developments — Last 30 Days
-        </span>
+  if (compact) {
+    if (!hasHeadlines) return null;
+    const topHeadline = data.headlines[0];
+    return (
+      <div
+        className="mt-6 mb-2 rounded-r"
+        style={{ borderLeft: "3px solid hsl(var(--cobalt))", background: "hsl(210 52% 97%)", padding: "0.625rem 1rem" }}
+      >
+        <p className="text-meta" style={{ lineHeight: 1.5 }}>
+          <span className="text-eyebrow mr-2" style={{ color: "hsl(var(--cobalt))" }}>
+            What changed
+          </span>
+          <span className="text-navy font-semibold">{topHeadline.title}</span>
+          {!isAnon && topHeadline.why_it_matters && (
+            <span className="text-slate"> — {topHeadline.why_it_matters}</span>
+          )}
+        </p>
       </div>
+    );
+  }
+
+  return (
+    <>
+      {(() => {
+        const collapsed = promoteHeading && !expanded;
+        return (
+      <div
+        id={promoteHeading ? "page-recent-developments-panel" : undefined}
+        className={`mt-6 mb-2 rounded-r-lg relative ${collapsed ? "overflow-hidden" : ""}`}
+        style={collapsed ? { ...containerStyle, maxHeight: "9.5rem" } : containerStyle}
+      >
+        {promoteHeading && (
+          <h2 className="font-display text-navy leading-tight mb-3" style={{ fontSize: "clamp(1.25rem, 2.4vw, 1.6rem)", fontWeight: 400 }}>
+            Last 30 Days
+          </h2>
+        )}
+        {!promoteHeading && (
+          <div className="flex items-center gap-2 mb-3">
+            <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--cobalt))" }} />
+            <span className="text-eyebrow" style={{ color: "hsl(var(--cobalt))" }}>
+              Last 30 Days
+            </span>
+          </div>
+        )}
 
       {/* ANONYMOUS: headlines list only (no links, no why-it-matters), CTA to sign up */}
       {isAnon && (
@@ -282,6 +322,42 @@ export function ResearchSynthesisBlock({ sectionKey }: ResearchSynthesisBlockPro
           </div>
         </>
       )}
+      {promoteHeading && collapsed && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
+            style={{ background: "linear-gradient(to bottom, transparent, hsl(210 52% 97%))" }}
+          />
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-expanded={false}
+            aria-controls="page-recent-developments-panel"
+            className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold hover:underline"
+            style={{ color: "hsl(var(--cobalt))" }}
+          >
+            Show more
+            <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+        </>
+      )}
+      {promoteHeading && expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          aria-expanded={true}
+          aria-controls="page-recent-developments-panel"
+          className="mt-3 flex items-center gap-1.5 text-xs font-semibold hover:underline"
+          style={{ color: "hsl(var(--cobalt))" }}
+        >
+          Show less
+          <ChevronDown className="w-3.5 h-3.5 rotate-180" aria-hidden="true" />
+        </button>
+      )}
     </div>
+        );
+      })()}
+    </>
   );
 }

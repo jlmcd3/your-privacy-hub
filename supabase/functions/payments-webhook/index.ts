@@ -46,8 +46,7 @@ Deno.serve(async (req) => {
           item?.current_period_end ?? sub.current_period_end ?? null;
         const isActive = ["active", "trialing", "past_due"].includes(sub.status);
 
-        // Resolve the lookup key (e.g. "intelligence_yearly_founding") so we
-        // can derive the new subscription_type / founding_subscriber columns.
+        // Resolve the lookup key so we can derive subscription_type.
         // Prefer Stripe's native lookup_key on the Price; fall back to the
         // lovable_external_id metadata we stamp via sync-pricing.
         const lookupKey: string | null =
@@ -55,12 +54,8 @@ Deno.serve(async (req) => {
           item?.price?.metadata?.lovable_external_id ||
           null;
 
-        let subscriptionType: "monthly" | "annual" | "annual_founding" | null = null;
-        let foundingSubscriber: boolean | null = null;
-        if (lookupKey === "intelligence_yearly_founding") {
-          subscriptionType = "annual_founding";
-          foundingSubscriber = true;
-        } else if (lookupKey === "intelligence_yearly") {
+        let subscriptionType: "monthly" | "annual" | null = null;
+        if (lookupKey === "intelligence_yearly" || lookupKey === "intelligence_annual") {
           subscriptionType = "annual";
         } else if (lookupKey === "intelligence_monthly") {
           subscriptionType = "monthly";
@@ -78,10 +73,6 @@ Deno.serve(async (req) => {
             // canceled-at-period-end sub still has access until period end.
             ...(isActive ? { is_premium: true, payment_failed: false } : {}),
             ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
-            // Only ever flip founding_subscriber TRUE here — never false, so a
-            // founding subscriber whose price changes for any reason keeps the
-            // perk for life.
-            ...(foundingSubscriber ? { founding_subscriber: true } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_customer_id", sub.customer);

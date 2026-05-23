@@ -29,14 +29,14 @@ const PrivacyPolicy = () => {
       </Helmet>
       <Navbar />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
+        <h1 className="font-display text-foreground mb-2">
           Privacy Policy
         </h1>
         <p className="text-sm text-muted-foreground mb-10">Last updated: May 15, 2026</p>
 
         <div className="prose prose-sm max-w-none text-foreground/90 space-y-8">
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">Introduction</h2>
+            <h2 className="font-display text-foreground">Introduction</h2>
             <p>
               End User Privacy ("we," "us," or "our") operates enduserprivacy.com (the "Site"). This
               Privacy Policy explains what information we collect, how we use it, with whom we share
@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">1. Who We Are</h2>
+            <h2 className="font-display text-foreground">1. Who We Are</h2>
             <p>
               End User Privacy is a privacy intelligence and compliance platform serving privacy
               professionals, including data protection officers, privacy counsel, compliance
@@ -63,11 +63,11 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               2. Information We Collect
             </h2>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               2.1 Information you provide directly
             </h3>
             <p>
@@ -97,7 +97,7 @@ const PrivacyPolicy = () => {
               <li>Any content you submit via contact forms or email</li>
             </ul>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               2.2 Information collected automatically
             </h3>
             <p>
@@ -114,7 +114,7 @@ const PrivacyPolicy = () => {
               <li>Cookies and similar tracking technologies (see Section 6)</li>
             </ul>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               2.3 Information from third parties
             </h3>
             <p>
@@ -126,7 +126,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               3. How We Use Your Information
             </h2>
             <p>We use your information for the following purposes:</p>
@@ -174,7 +174,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               4. Third-Party Service Providers
             </h2>
             <p>
@@ -182,7 +182,7 @@ const PrivacyPolicy = () => {
               providers who process data on our behalf:
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Supabase (database and authentication infrastructure)
             </h3>
             <p>
@@ -192,7 +192,7 @@ const PrivacyPolicy = () => {
               <ExtLink href="https://supabase.com/privacy">https://supabase.com/privacy</ExtLink>
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Anthropic (AI processing)
             </h3>
             <p>
@@ -205,7 +205,7 @@ const PrivacyPolicy = () => {
               </ExtLink>
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Stripe (payment processing)
             </h3>
             <p>
@@ -214,7 +214,7 @@ const PrivacyPolicy = () => {
               <ExtLink href="https://stripe.com/privacy">https://stripe.com/privacy</ExtLink>
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Google AdSense (advertising)
             </h3>
             <p>
@@ -232,7 +232,7 @@ const PrivacyPolicy = () => {
               </ExtLink>
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Lovable (hosting infrastructure)
             </h3>
             <p>
@@ -244,7 +244,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               5. Advertising and Google AdSense
             </h2>
             <p>The Site displays advertisements served by Google AdSense.</p>
@@ -281,12 +281,12 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               6. Cookies and Similar Technologies
             </h2>
             <p>We use the following categories of cookies:</p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Strictly necessary cookies
             </h3>
             <p>These are required for the Site to function. They include:</p>
@@ -299,7 +299,7 @@ const PrivacyPolicy = () => {
             </ul>
             <p>These cannot be disabled without breaking core functionality.</p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Functional cookies
             </h3>
             <p>
@@ -307,7 +307,7 @@ const PrivacyPolicy = () => {
               expire at the end of your session or within 30 days.
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Analytics cookies
             </h3>
             <p>
@@ -316,7 +316,7 @@ const PrivacyPolicy = () => {
               identities.
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               Advertising cookies
             </h3>
             <p>
@@ -324,7 +324,7 @@ const PrivacyPolicy = () => {
               fraud prevention). See Section 5.
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               How to control cookies
             </h3>
             <p>
@@ -339,7 +339,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               7. Data Retention
             </h2>
             <p>We retain your personal data as follows:</p>
@@ -364,9 +364,9 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">8. Your Rights</h2>
+            <h2 className="font-display text-foreground">8. Your Rights</h2>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               8.1 Rights under UK/EU GDPR
             </h3>
             <p>
@@ -396,7 +396,7 @@ const PrivacyPolicy = () => {
               (ico.org.uk). In Ireland, this is the Data Protection Commission (dataprotection.ie).
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               8.2 Rights under US state privacy laws
             </h3>
             <p>
@@ -416,7 +416,7 @@ const PrivacyPolicy = () => {
               will respond within 45 days.
             </p>
 
-            <h3 className="font-display text-base font-semibold text-foreground">
+            <h3 className="text-foreground">
               8.3 Email opt-out
             </h3>
             <p>
@@ -428,7 +428,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               9. International Data Transfers
             </h2>
             <p>
@@ -450,7 +450,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               10. Children's Privacy
             </h2>
             <p>
@@ -461,7 +461,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">11. Security</h2>
+            <h2 className="font-display text-foreground">11. Security</h2>
             <p>
               We implement appropriate technical and organisational measures to protect your
               personal data, including:
@@ -482,7 +482,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               12. Third-Party Links
             </h2>
             <p>
@@ -494,7 +494,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">
+            <h2 className="font-display text-foreground">
               13. Changes to This Policy
             </h2>
             <p>
@@ -506,7 +506,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-foreground">14. Contact Us</h2>
+            <h2 className="font-display text-foreground">14. Contact Us</h2>
             <p>
               For any questions, requests, or complaints regarding this Privacy Policy or our data
               practices, contact:

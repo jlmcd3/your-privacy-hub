@@ -174,7 +174,7 @@ export default function RegistrationAssessment() {
         <PageContainer>
           <div className="max-w-3xl mx-auto py-10">
             <header className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+              <h1 className="tracking-tight text-foreground">
                 Where do you need to register?
               </h1>
               <p className="text-muted-foreground mt-2">

@@ -56,7 +56,7 @@ export default function RegistrationMyFilings() {
         <div className="py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="font-display text-2xl font-bold text-navy">My Filings</h1>
+              <h1 className="font-display text-navy">My Filings</h1>
               <p className="text-sm text-slate mt-1">All your registration orders, documents, and renewal schedules.</p>
             </div>
             <Button asChild>

@@ -24,7 +24,7 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
       <div className={`bg-gradient-to-r from-navy to-navy-mid py-8 px-4 md:px-8 ${className}`}>
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
-            <h3 className="font-display text-lg text-white mb-1">
+            <h3 className="text-white mb-1">
               Free: your personalized weekly digest, every Monday
             </h3>
             <p className="text-sm text-slate-light">
@@ -56,7 +56,7 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
 
   return (
     <div className={`bg-card border border-border rounded-xl p-5 ${className}`}>
-      <h4 className="font-display text-base text-foreground mb-1">
+      <h4 className="text-base text-foreground mb-1">
         📧 Your Personalized Weekly Digest — Free
       </h4>
       <p className="text-xs text-muted-foreground mb-3">

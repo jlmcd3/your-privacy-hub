@@ -49,7 +49,7 @@ export function AddClientModal({ open, onClose, onCreated }: AddClientModalProps
         className="bg-card rounded-xl shadow-eup-lg max-w-md w-full p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold text-navy mb-4">Add a new client</h2>
+        <h2 className="text-navy mb-4">Add a new client</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="client-name" className="block text-sm font-medium text-navy mb-1">

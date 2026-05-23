@@ -1,4 +1,4 @@
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -164,40 +164,30 @@ const LIAssessment = () => {
       <Navbar />
       <DashboardSubnav />
 
-      {/* Header — matches LI Tracker */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-meta font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
-            Free preliminary signal · No account required
-          </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">
+      {/* Header */}
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            ⚖️ Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
+          </span>
+          <h1 className="font-serif text-white mb-3">
             Legitimate Interest Assessment
           </h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px] leading-relaxed">
+          <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Get an instant indication whether your proposed processing could qualify for legitimate interest under
             GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've
-            tracked. Again, we cannot provide legal advice, but we can provide actionable Intelligence.
+            tracked. We cannot provide legal advice, but we can provide actionable Intelligence.
           </p>
         </div>
-      </div>
+      </header>
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ToolTierNote className="mb-6" />
-        <ToolOutputPreview
-          label="Sample Legitimate Interest Assessment output"
-          lines={[
-            "PRELIMINARY SIGNAL: Legitimate interest MAY be available — proceed with caution",
-            "PURPOSE TEST: Legitimate purpose identified — fraud prevention (Article 6(1)(f))",
-            "NECESSITY TEST: Processing appears proportionate to stated purpose",
-            "  Concern: Retention period of 36 months requires additional justification",
-            "BALANCING TEST: Data subject impact assessment required before proceeding",
-          ]}
-        />
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
           <div className="text-eyebrow text-sky mb-2">Why you need this</div>
-          <h2 className="font-display text-xl md:text-2xl text-navy mb-4 leading-snug">
+          <h2 className="font-display text-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
           <p className="text-sm text-navy leading-relaxed mb-4 max-w-[70ch]">
@@ -216,7 +206,7 @@ const LIAssessment = () => {
         {/* HOW IT WORKS */}
         <section className="mb-10">
           <div className="text-eyebrow text-sky mb-2">How it works</div>
-          <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
+          <h2 className="font-display text-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
@@ -241,7 +231,7 @@ const LIAssessment = () => {
               const card = (
                 <div key={`card-${step.n}`} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
                   <div className="text-eyebrow text-sky mb-1">Step {step.n}</div>
-                  <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
+                  <h3 className="text-navy mb-2">{step.title}</h3>
                   <p className="text-sm text-slate leading-relaxed mb-3">{step.desc}</p>
                   <div className="mt-auto pt-3 border-t border-fog">
                     <div className="text-eyebrow text-amber-700 mb-1">Why</div>
@@ -270,7 +260,7 @@ const LIAssessment = () => {
         {/* INTAKE FORM */}
         <section className="mb-10">
           <div className="text-eyebrow text-sky mb-2">Step 01 · Free intake</div>
-          <h2 className="font-display text-xl md:text-2xl text-navy mb-5 leading-snug">Tell us about the processing</h2>
+          <h2 className="font-display text-navy mb-5 leading-snug">Tell us about the processing</h2>
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
             className="bg-card border border-fog rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
@@ -326,7 +316,7 @@ const LIAssessment = () => {
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <div className="text-eyebrow text-sky mb-1">Use case</div>
-                  <h2 className="font-display text-xl md:text-2xl text-navy leading-snug">{preview.use_case_label}</h2>
+                  <h2 className="font-display text-navy leading-snug">{preview.use_case_label}</h2>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border text-meta font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
                   {preview.strength.rating}
@@ -345,7 +335,7 @@ const LIAssessment = () => {
                       <article key={i} className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
                         <div className={`w-1.5 flex-shrink-0 ${stripeFor(p.outcome)}`} aria-hidden />
                         <div className="p-5 flex-1 min-w-0">
-                          <h4 className="font-display text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
+                          <h4 className="text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.dpa_source}</span>
                             <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.jurisdiction}</span>

@@ -30,6 +30,8 @@ export default function AdminPricingReconciliation() {
   const allOk = findings.length === 0;
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [backfillRunning, setBackfillRunning] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
 
   const handleSync = async (environment: "sandbox" | "live") => {
     setSyncing(true);
@@ -47,6 +49,22 @@ export default function AdminPricingReconciliation() {
     }
   };
 
+  const handleBackfill = async () => {
+    setBackfillRunning(true);
+    setBackfillResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("backfill-enrichment");
+      if (error) throw error;
+      setBackfillResult(
+        `Backfill complete: ${data.succeeded} enriched, ${data.skipped} already done, ${data.failed} failed.`
+      );
+    } catch (e: any) {
+      setBackfillResult(`Error: ${e.message ?? String(e)}`);
+    } finally {
+      setBackfillRunning(false);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -57,7 +75,7 @@ export default function AdminPricingReconciliation() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-navy">Pricing Reconciliation</h1>
+            <h1 className="text-navy">Pricing Reconciliation</h1>
             <p className="text-sm text-slate mt-1">
               Cross-references marketed prices in UI files against the amounts
               actually charged by Stripe edge functions. Re-run with{" "}
@@ -76,7 +94,7 @@ export default function AdminPricingReconciliation() {
 
         <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-navy">Sync All Stripe Prices</h3>
+            <h3 className="text-navy">Sync All Stripe Prices</h3>
             <p className="text-[12px] text-slate mt-1">
               Push every active entry in <code>PRICING_REGISTRY</code> to Stripe. Existing
               prices with the same lookup key are replaced; old prices are archived.
@@ -98,6 +116,32 @@ export default function AdminPricingReconciliation() {
           </pre>
         )}
 
+        <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-navy">Run Enrichment Backfill</h3>
+            <p className="text-[12px] text-slate mt-1">
+              Processes up to 20 Tier 1 articles missing contextual intelligence. Run multiple times to catch up.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <Button onClick={handleBackfill} disabled={backfillRunning}>
+              {backfillRunning ? "Running…" : "Run Enrichment Backfill"}
+            </Button>
+          </div>
+        </div>
+
+        {backfillResult && (
+          <div
+            className={`rounded-xl border p-3 mb-6 text-sm ${
+              backfillResult.startsWith("Error:")
+                ? "border-red-200 bg-red-50 text-red-900"
+                : "border-emerald-200 bg-emerald-50 text-emerald-900"
+            }`}
+          >
+            {backfillResult}
+          </div>
+        )}
+
         <div
           className={`rounded-xl border p-4 mb-6 ${
             allOk
@@ -116,7 +160,7 @@ export default function AdminPricingReconciliation() {
         </div>
 
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-navy mb-3">
+          <h2 className="text-navy mb-3">
             Reconciliation table
           </h2>
           <div className="overflow-x-auto rounded-xl border border-fog">
@@ -171,7 +215,7 @@ export default function AdminPricingReconciliation() {
 
         {findings.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-semibold text-navy mb-3">
+            <h2 className="text-navy mb-3">
               Mismatches ({findings.length})
             </h2>
             <div className="space-y-3">

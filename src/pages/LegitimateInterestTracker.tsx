@@ -89,16 +89,16 @@ const LegitimateInterestTracker = () => {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
-        <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+      <header className="bg-slate-900 text-white py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Intelligence Guide
-          </div>
-          <h1 className="font-display text-[28px] md:text-[40px] text-white mb-3 leading-tight">Legitimate Interest Tracker</h1>
-          <p className="text-sm md:text-base text-slate-light max-w-[700px]">Global privacy law, tracked daily.</p>
-          <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated || "Updated regularly"}</div>
+          </span>
+          <h1 className="font-serif text-white mb-3">Legitimate Interest Tracker</h1>
+          <p className="text-slate-300 text-lg max-w-3xl">Global privacy law, tracked daily.</p>
+          
         </div>
-      </div>
+      </header>
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intro + 3-Part Test */}
@@ -115,7 +115,7 @@ const LegitimateInterestTracker = () => {
               <Fragment key={step.n}>
                 <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md">
                   <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
-                  <h3 className="font-display text-xl text-navy mb-2">{step.title}</h3>
+                  <h3 className="text-navy mb-2">{step.title}</h3>
                   <p className="text-sm text-slate leading-relaxed">{step.desc}</p>
                 </div>
                 {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
@@ -130,7 +130,7 @@ const LegitimateInterestTracker = () => {
             <div className="flex items-baseline justify-between mb-5">
               <div>
                 <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Recent Enforcement Trends</div>
-                <h3 className="font-display text-xl text-navy">Where authorities are landing this period</h3>
+                <h3 className="text-navy">Where authorities are landing this period</h3>
               </div>
               <span className="text-[11px] text-muted-foreground">
                 {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
@@ -231,7 +231,7 @@ const LegitimateInterestTracker = () => {
                   <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
                     <div className={`w-1.5 flex-shrink-0 ${stripeFor(e.outcome)}`} aria-hidden />
                     <div className="p-5 flex-1 min-w-0">
-                      <h3 className="font-display text-lg text-navy mb-2 leading-snug">{e.processing_activity}</h3>
+                      <h3 className="text-navy mb-2 leading-snug">{e.processing_activity}</h3>
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
                         <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>
@@ -263,7 +263,7 @@ const LegitimateInterestTracker = () => {
         {/* Premium upsell */}
         <div className="bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
           <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
-          <h3 className="font-display text-xl text-white mb-3">Go deeper with Intelligence</h3>
+          <h3 className="text-white mb-3">Go deeper with Intelligence</h3>
           <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
             Get full intelligence for weekly analysis of enforcement trends, sector-specific LI risk assessments, and action items tailored to your industry and jurisdictions.
           </p>

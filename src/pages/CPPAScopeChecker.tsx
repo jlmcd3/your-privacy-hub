@@ -1,7 +1,7 @@
 // CPPA Scope Checker — free deterministic tool, no AI, no payment.
 // Determines whether CCPA/CPRA + CPPA enforcement obligations apply.
 
-import { ToolOutputPreview } from "@/components/ToolOutputPreview";
+
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -149,11 +149,11 @@ export default function CPPAScopeChecker() {
       <DashboardSubnav />
 
       <header className="bg-slate-900 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 mb-3">
-            FREE · No account required
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+            🛡️ CPPA Scope Checker · Free · No account required
           </span>
-          <h1 className="text-3xl md:text-4xl font-serif mb-3">CPPA Scope Checker</h1>
+          <h1 className="font-serif mb-3">CPPA Scope Checker</h1>
           <p className="text-slate-300 text-lg">
             Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA
             enforcement obligations apply to your business. Takes 2 minutes.
@@ -165,18 +165,6 @@ export default function CPPAScopeChecker() {
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        {!showResults && (
-          <ToolOutputPreview
-            label="Sample CPPA Scope output"
-            lines={[
-              "CPPA APPLICABILITY: IN SCOPE — obligations apply",
-              "Threshold met: Annual gross revenue exceeds $25M",
-              "OBLIGATIONS TRIGGERED:",
-              "  □ Risk Assessment required — CPPA § 1798.185(a)(15)",
-              "  □ Cybersecurity Audit required if revenue > $100M",
-            ]}
-          />
-        )}
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <div>
@@ -322,7 +310,7 @@ function ResultsPanel({
     const isGeoOut = q1 === "No";
     return (
       <div className="bg-card border rounded-lg p-8 space-y-4">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="">
           Based on your answers, CCPA/CPRA likely does not apply to you.
         </h2>
         {isGeoOut ? (
@@ -433,7 +421,7 @@ function ResultsPanel({
   return (
     <div className="space-y-6">
       <section className="border-l-4 border-emerald-500 bg-card border rounded-lg p-6">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="">
           CCPA/CPRA applies — or likely applies — to your business.
         </h2>
         {thresholdSummary && (
@@ -496,7 +484,7 @@ function ResultsPanel({
       </section>
 
       <section className="bg-card border rounded-lg p-6 space-y-3">
-        <h3 className="font-semibold">Next steps</h3>
+        <h3 className="">Next steps</h3>
         <div className="flex flex-wrap gap-3">
           {obligationMap.riskAssessmentRequired && (
             <Button onClick={() => navigate("/cppa-risk-assessment")}>
