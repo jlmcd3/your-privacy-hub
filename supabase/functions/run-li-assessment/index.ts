@@ -220,7 +220,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
   }
 }`,
-      2500
+      3500
     );
 
     let analysis: any = {};
