@@ -16,7 +16,7 @@ import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
-import ToolTierNote from "@/components/tools/ToolTierNote";
+
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
@@ -199,7 +199,7 @@ const GovernanceAssessment = () => {
         </div>
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
-          <ToolTierNote />
+          
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">

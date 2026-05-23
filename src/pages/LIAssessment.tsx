@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
-import ToolTierNote from "@/components/tools/ToolTierNote";
+
 
 const DATA_CATEGORIES = [
   "Contact data", "Purchase/transaction history", "Browsing/behavioural data",
@@ -182,7 +182,7 @@ const LIAssessment = () => {
       </header>
 
       <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <ToolTierNote className="mb-6" />
+        
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
