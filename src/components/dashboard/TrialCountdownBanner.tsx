@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 export default function TrialCountdownBanner() {
   const { user } = useAuth();
