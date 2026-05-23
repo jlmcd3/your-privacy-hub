@@ -280,7 +280,7 @@ Return JSON:
   ],
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`,
-      1500
+      2000
     );
 
     let docRecs: any = {};
