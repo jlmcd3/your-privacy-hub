@@ -556,12 +556,12 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           method: "POST",
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
-            model: "claude-opus-4-7",
+            model: "claude-sonnet-4-6",
             max_tokens: 4000,
             system: systemPrompt,
             messages: [{ role: "user", content: userPrompt }],
           }),
-          signal: AbortSignal.timeout(60000),
+          signal: AbortSignal.timeout(120000),
         });
         if (response.status !== 429 && response.status !== 529) break;
         if (attempt === 0) {
@@ -637,7 +637,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         preferences_snapshot: { ...effective, brief_role: userRole },
         generated_at: new Date().toISOString(),
         articles_used: topArticles.length,
-        generation_model: "claude-opus-4-7",
+        generation_model: "claude-sonnet-4-6",
         verification_result: verificationResult,
         issue_tags: issueTags,
       });
