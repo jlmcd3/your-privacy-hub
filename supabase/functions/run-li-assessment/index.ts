@@ -300,16 +300,15 @@ Return JSON:
       2000
     );
 
-    let docRecs: any = {};
-    try {
-      const m = docsText.match(/\{[\s\S]*\}/);
-      if (m) docRecs = JSON.parse(m[0]);
-    } catch {
+    let docRecs: any = parseLlmJson(docsText);
+    if (!docRecs) {
+      console.error("[LIA] Stage 3 parse failed even with repair. Length:", docsText.length);
       docRecs = {
         recommended_documentation: [],
         disclaimer: "This is a compliance framework tool, not legal advice."
       };
     }
+
 
     // ── ASSEMBLE FINAL REPORT ──
     const reportData = {
