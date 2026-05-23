@@ -196,6 +196,7 @@ QUALITY STANDARDS:
 Output ONLY the playbook. No preamble or commentary.`,
         messages: [{ role: "user", content: prompt }],
       }),
+      signal: AbortSignal.timeout(120000),
     });
 
     if (!aiRes.ok) {
