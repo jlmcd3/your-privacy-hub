@@ -152,7 +152,6 @@ export default function IRPlaybook() {
           <ToolSampleOverlay
             toolName="Your Breach Response Playbook" priceLabel={access.priceLabel} onPurchase={handlePurchase}
             isFreeForUser={access.isFreeForUser} isPremium={access.isPremium}
-            subscriberPrice={access.subscriberPrice} standalonePrice={access.standalonePrice}
           >
             <div className="bg-card border border-border rounded-2xl p-6">
               <h2 className="font-display text-navy mb-3">Sample playbook preview</h2>

@@ -12,8 +12,6 @@ interface Props {
   onPurchase: () => void;
   isFreeForUser: boolean;
   isPremium: boolean | null;
-  subscriberPrice: number | null;
-  standalonePrice: number | null;
 }
 
 export default function ToolSampleOverlay({
@@ -23,14 +21,7 @@ export default function ToolSampleOverlay({
   onPurchase,
   isFreeForUser,
   isPremium,
-  subscriberPrice,
-  standalonePrice,
 }: Props) {
-  // Subscribers-pay-discount messaging
-  const showSubscriberDiscount =
-    !isPremium && subscriberPrice !== null && standalonePrice !== null && subscriberPrice < standalonePrice;
-  // Free-for-subscriber messaging
-  const showFreeForSubscribers = !isPremium && subscriberPrice === null && standalonePrice !== null;
 
   return (
     <div className="relative rounded-xl overflow-hidden">
@@ -54,17 +45,9 @@ export default function ToolSampleOverlay({
           >
             {priceLabel}
           </button>
-          {showSubscriberDiscount && (
+          {!isFreeForUser && !isPremium && (
             <p className="text-[11px] text-muted-foreground">
-              Intelligence subscribers pay ${subscriberPrice} per document.{" "}
-              <Link to="/subscribe" className="text-primary font-semibold hover:underline">
-                See what's included in Intelligence →
-              </Link>
-            </p>
-          )}
-          {showFreeForSubscribers && !isFreeForUser && (
-            <p className="text-[11px] text-muted-foreground">
-              Included with an Intelligence subscription.{" "}
+              Included with Annual Platform subscription.{" "}
               <Link to="/subscribe" className="text-primary font-semibold hover:underline">
                 See plans →
               </Link>
