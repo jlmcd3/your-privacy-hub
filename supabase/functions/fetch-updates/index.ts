@@ -1531,6 +1531,17 @@ Deno.serve(async (req) => {
               if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
                 row.defense_considerations = aiSummary.defense_considerations;
               }
+              if (typeof aiSummary.urgency === "string" && aiSummary.urgency.trim()) {
+                const urgencyMap: Record<string, string> = {
+                  "Immediate": "High",
+                  "This quarter": "Medium",
+                  "Monitor": "Low",
+                };
+                const mapped = urgencyMap[aiSummary.urgency.trim()];
+                if (mapped) row.attention_level = mapped;
+              }
+
+
 
               // Batch 4C — quality validation
               const quality = assessEnrichmentQuality(aiSummary, aiSummary.entities);
