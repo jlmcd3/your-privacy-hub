@@ -205,7 +205,7 @@ Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or comm
       },
       body: JSON.stringify({
         model: "claude-opus-4-7",
-        max_tokens: 5000,
+        max_tokens: 8000,
         system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
 Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided.
