@@ -50,6 +50,7 @@ import EUNoticeReview from "./pages/eu-notices/EUNoticeReview.tsx";
 import EUNoticeDocuments from "./pages/eu-notices/EUNoticeDocuments.tsx";
 import EUNoticeRefresh from "./pages/eu-notices/EUNoticeRefresh.tsx";
 import EUNoticeLanding from "./pages/eu-notices/EUNoticeLanding.tsx";
+import NoticesRopaHub from "./pages/NoticesRopaHub.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
