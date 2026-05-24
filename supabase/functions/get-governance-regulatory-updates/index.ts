@@ -51,23 +51,12 @@ function buildActionRequired(u: any): string {
 
 const TOOL_TYPE = "governance_assessment";
 
-const DOMAIN_TAG_MAP: Record<string, string[]> = {
-  "Tool Inventory": ["shadow-it", "saas", "vendor-management"],
-  "Data Submission Risk": ["data-minimisation", "gdpr-article-5", "sensitive-data"],
-  "Vendor Data Terms": ["gdpr-article-28", "processor", "sub-processor", "controller-processor"],
-  "Internal Policy": ["data-governance", "privacy-policy", "acceptable-use"],
-  "Employee Training": ["privacy-training", "data-protection-officer"],
-  "Incident Response": ["breach-notification", "gdpr-article-33", "incident-response"],
-  "Regulatory Exposure": ["gdpr", "ccpa", "cppa", "enforcement"],
-  "Privacy Impact Assessment": ["gdpr-article-35", "dpia", "pia", "high-risk-processing"],
-  "Data Subject Rights": [
-    "data-subject-rights",
-    "gdpr-article-12",
-    "right-to-erasure",
-    "right-of-access",
-  ],
-  "Privacy Notice": ["privacy-notice", "gdpr-article-13", "gdpr-article-14", "transparency"],
-};
+const GOVERNANCE_TAGS = [
+  "enforcement", "ai-privacy", "ai-governance",
+  "children-privacy", "health-hipaa", "data-breaches",
+  "biometric-data", "cookie-consent", "adtech",
+  "cross-border", "apac-latam"
+];
 
 const SECTOR_TAGS: Record<string, string[]> = {
   healthcare: ["hipaa", "health-data", "gdpr-article-9"],
