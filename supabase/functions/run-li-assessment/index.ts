@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
+          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
         ).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
