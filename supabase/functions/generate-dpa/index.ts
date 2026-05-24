@@ -226,7 +226,27 @@ Output format:
     }
 
     const aiData = await aiRes.json();
-    const dpa_text = aiData.choices?.[0]?.message?.content ?? "";
+    const fullText = aiData.choices?.[0]?.message?.content ?? "";
+    let dpa_text = fullText;
+    let parsedAnnotations: any[] = [];
+    try {
+      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+      if (sepIdx !== -1) {
+        dpa_text = fullText.slice(0, sepIdx).trim();
+        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start !== -1 && end !== -1) {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          if (Array.isArray(arr)) parsedAnnotations = arr;
+        }
+      }
+    } catch (e) {
+      console.warn("[DPA] annotation parse failed (non-fatal):", e);
+      parsedAnnotations = [];
+    }
+
     if (!dpa_text.trim()) {
       return new Response(JSON.stringify({ error: "AI generation returned an empty document" }), {
         status: 502,
@@ -236,6 +256,7 @@ Output format:
 
     const report_data = {
       enforcement_precedents: enforcement_context.slice(0, 5),
+      annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };
 
