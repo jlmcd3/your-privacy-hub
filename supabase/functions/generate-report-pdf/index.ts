@@ -690,10 +690,11 @@ Deno.serve(async (req) => {
           upsert: true,
         });
       if (!storageError) {
-        const { data: urlData } = supabase.storage
+        // Bucket is private — issue a long-lived signed URL (1 year).
+        const { data: urlData } = await supabase.storage
           .from("assessment-reports")
-          .getPublicUrl(storagePath);
-        pdfUrl = urlData?.publicUrl || null;
+          .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+        pdfUrl = urlData?.signedUrl || null;
       }
     }
 
