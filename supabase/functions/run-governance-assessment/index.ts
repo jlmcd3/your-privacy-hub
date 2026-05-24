@@ -145,6 +145,29 @@ Return JSON:
       domainResults[key] = result;
     }
 
+    // Fetch enforcement precedents (3-5) relevant to this org's profile (before synthesis so they can be cited)
+    let enforcementPrecedents: any[] = [];
+    try {
+      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
+        body: {
+          tool: "Governance",
+          jurisdictions: intake.jurisdictions || [],
+          sector: intake.sector || undefined,
+          biometric: intake.special_category_data || undefined,
+          limit: 5,
+        },
+      });
+      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+    } catch (e) {
+      console.error("get-enforcement-context failed (non-fatal):", e);
+    }
+
+    const enforcementContextStr = enforcementPrecedents.length > 0
+      ? enforcementPrecedents.map((r: any, i: number) =>
+          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
+        ).join("\n")
+      : "No directly analogous enforcement precedents retrieved.";
+
     // ── SYNTHESIS ──
     const synthesisText = await callAnthropic("claude-sonnet-4-6", domainSystem,
       `Synthesise these ten domain findings into cross-domain patterns and an executive summary.
@@ -154,6 +177,11 @@ ${JSON.stringify(domainResults, null, 2)}
 
 ORGANISATION PROFILE:
 ${intakeSummary}
+
+ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
+${enforcementContextStr}
+
+ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a top risk, immediate action, or readiness rating in your synthesis, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
 
 Return JSON:
 {
@@ -169,7 +197,18 @@ Return JSON:
     { "processing_activity": "name the activity", "regulatory_basis": "why a DPIA is required", "priority": "Immediate | This quarter" }
   ],
   "overall_readiness_rating": "one of: Initial | Developing | Defined | Managed | Optimised",
-  "readiness_rationale": "one sentence explaining the rating"
+  "readiness_rationale": "one sentence explaining the rating",
+  "annotations": [
+    {
+      "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "regulator": "regulator name",
+      "jurisdiction": "jurisdiction",
+      "decision_date": "YYYY-MM-DD or null",
+      "summary": "one sentence what the case involved, max 25 words, plain English",
+      "outcome": "rejected | accepted | penalised | required",
+      "relevance": "one sentence why this case is relevant to this synthesis"
+    }
+  ]
 }`,
       5000
     );
@@ -191,22 +230,6 @@ Return JSON:
       };
     }
 
-    // Fetch enforcement precedents (3-5) relevant to this org's profile
-    let enforcementPrecedents: any[] = [];
-    try {
-      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
-        body: {
-          tool: "Governance",
-          jurisdictions: intake.jurisdictions || [],
-          sector: intake.sector || undefined,
-          biometric: intake.special_category_data || undefined,
-          limit: 5,
-        },
-      });
-      enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
-    } catch (e) {
-      console.error("get-enforcement-context failed (non-fatal):", e);
-    }
 
     const reportData = {
       generated_at: new Date().toISOString(),
