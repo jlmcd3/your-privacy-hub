@@ -247,6 +247,31 @@ const DPIAFrameworkResult = () => {
                 pdfUrl={dpia?.pdf_url}
                 onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
               />
+              <DownloadWordButton
+                text={[
+                  ["Section 1 — Description", [
+                    report?.section_1_description?.processing_nature,
+                    report?.section_1_description?.processing_scope,
+                    report?.section_1_description?.processing_context,
+                    report?.section_1_description?.processing_purposes,
+                    report?.section_1_description?.legal_basis_proposed,
+                  ].filter(Boolean).join("\n")],
+                  ["Section 2 — Necessity & Proportionality", [
+                    report?.section_2_necessity?.necessity_analysis,
+                    report?.section_2_necessity?.proportionality_analysis,
+                    report?.section_2_necessity?.alternatives_considered,
+                  ].filter(Boolean).join("\n")],
+                  ["Section 3 — Risks", report?.section_3_risks?.residual_risk_assessment],
+                  ["Section 4 — Mitigation", (report?.section_4_mitigation?.proposed_measures || [])
+                    .map((m: any) => m?.measure || m?.description).filter(Boolean).join("\n")],
+                  ["Section 6 — Conclusion", report?.section_6_conclusion?.review_schedule],
+                ]
+                  .filter(([, body]) => body)
+                  .map(([title, body]) => `${title}\n\n${body}`)
+                  .join("\n\n")}
+                label="DPIA Framework"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-navy bg-white border border-navy/30 hover:bg-navy/5 rounded-lg transition-colors disabled:opacity-60"
+              />
               <Button onClick={() => window.print()} variant="outline">Print</Button>
               <Button asChild variant="outline"><Link to="/dashboard">Back to Dashboard</Link></Button>
               <Button asChild variant="outline"><Link to="/governance-assessment">Run Privacy Program Assessment Tool</Link></Button>
