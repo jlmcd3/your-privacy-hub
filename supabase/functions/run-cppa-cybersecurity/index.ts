@@ -117,9 +117,9 @@ Respond with this exact JSON structure:
       "control": "string (one of the 18 CPPA cybersecurity programme components)",
       "score": 0,
       "status": "Implemented | Partial | Gap | Critical Gap",
-      "finding": "string (2-3 sentences)",
+      "finding": "string (1-2 sentences — specific gap or confirmation only)",
       "regulatory_basis": "string (cite the CPPA cybersecurity audit regulation section)",
-      "remediation": "string (specific, actionable steps)",
+      "remediation": "string (2-3 specific steps, plain language)",
       "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
     }
   ],
