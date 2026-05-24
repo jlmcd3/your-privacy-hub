@@ -127,7 +127,18 @@ Respond with this exact JSON structure:
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
   "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities)",
-  "next_steps": ["string"]
+  "next_steps": ["string"],
+  "annotations": [
+    {
+      "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "regulator": "regulator name",
+      "jurisdiction": "jurisdiction",
+      "decision_date": "YYYY-MM-DD or null",
+      "summary": "one sentence what the case involved, max 25 words, plain English",
+      "outcome": "rejected | accepted | penalised | required",
+      "relevance": "one sentence why this case is relevant to this report"
+    }
+  ]
 }
 
 The 18 CPPA cybersecurity programme components to assess (one object per control):
