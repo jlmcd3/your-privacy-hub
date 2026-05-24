@@ -240,12 +240,32 @@ Output ONLY the compliance assessment. No preamble.`,
     }
 
     const aiData = await aiRes.json();
-    const assessment_text = aiData.content?.[0]?.text ?? "";
+    const fullText = aiData.content?.[0]?.text ?? "";
+    let assessment_text = fullText;
+    let parsedAnnotations: any[] = [];
+    try {
+      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+      if (sepIdx !== -1) {
+        assessment_text = fullText.slice(0, sepIdx).trim();
+        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start !== -1 && end !== -1) {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          if (Array.isArray(arr)) parsedAnnotations = arr;
+        }
+      }
+    } catch (e) {
+      console.warn("[Biometric] annotation parse failed (non-fatal):", e);
+      parsedAnnotations = [];
+    }
 
     const report_data = {
       bipa_risk: bipaRisk,
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
+      annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };
 
