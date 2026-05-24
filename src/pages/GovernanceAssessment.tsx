@@ -181,7 +181,8 @@ const GovernanceAssessment = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
+      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title>
+        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
