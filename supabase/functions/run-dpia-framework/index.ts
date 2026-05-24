@@ -158,7 +158,18 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
       }
     ],
     "residual_risk_assessment": "framework guidance on assessing residual risk after mitigation",
-    "completion_guidance": "What the organisation must complete in this section"
+    "completion_guidance": "What the organisation must complete in this section",
+    "annotations": [
+      {
+        "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+        "regulator": "regulator name",
+        "jurisdiction": "jurisdiction",
+        "decision_date": "YYYY-MM-DD or null",
+        "summary": "one sentence what the case involved, max 25 words, plain English",
+        "outcome": "rejected | accepted | penalised | required",
+        "relevance": "one sentence why this case is relevant to a risk in this DPIA"
+      }
+    ]
   }
 }`,
         6000
