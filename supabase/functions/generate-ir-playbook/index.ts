@@ -237,6 +237,7 @@ Output ONLY the playbook. No preamble or commentary.`,
     let playbook_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/\*\*/g, '')
+      .replace(/^>\s?/gm, '')
       .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
     try {
@@ -245,6 +246,7 @@ Output ONLY the playbook. No preamble or commentary.`,
         playbook_text = fullText.slice(0, sepIdx).trim()
           .replace(/^#{1,6}\s+/gm, '')
           .replace(/\*\*/g, '')
+          .replace(/^>\s?/gm, '')
           .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
         const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
