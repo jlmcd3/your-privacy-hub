@@ -568,7 +568,7 @@ const Dashboard = () => {
                 };
                 return (
                   <div key={b.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                    <h3 className="m-0">
+                    <h3 className="m-0 flex items-stretch">
                       <button
                         type="button"
                         id={headerId}
@@ -576,7 +576,7 @@ const Dashboard = () => {
                         onKeyDown={onKeyDown}
                         aria-expanded={isOpen}
                         aria-controls={panelId}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="flex-1 flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       >
                         {isOpen
                           ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" aria-hidden="true" />
@@ -597,6 +597,17 @@ const Dashboard = () => {
                           <p className="text-sm text-slate-700 font-medium mt-1 line-clamp-1">{headline}</p>
                         </div>
                       </button>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteBrief(b.id); }}
+                          aria-label="Delete report (admin)"
+                          title="Delete report"
+                          className="px-3 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors bg-transparent border-none border-l border-slate-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                      )}
                     </h3>
                     <div
                       id={panelId}
