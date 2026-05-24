@@ -64,7 +64,7 @@ function formatEnforcementContext(rows: any[]): string {
   return rows
     .map(
       (e, i) =>
-        `${i + 1}. ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
+        `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
           e.decision_date ? new Date(e.decision_date).getFullYear() : "—"
         }\n   Fine: ${
           e.fine_amount ?? (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "Not disclosed")
