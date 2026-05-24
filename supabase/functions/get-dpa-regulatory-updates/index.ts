@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
     const notedIds = new Set((noted ?? []).map((n: any) => n.article_id));
 
     const results: RegulatoryUpdate[] = [];
-    for (const u of relevant) {
+    for (const u of withUrl) {
       if (notedIds.has(u.id)) continue;
       const urgency = mapUrgency(u.attention_level);
       if (!urgency) continue;
