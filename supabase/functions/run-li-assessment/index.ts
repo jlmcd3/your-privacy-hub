@@ -211,6 +211,8 @@ ${precedentContext}
 ENFORCEMENT PRECEDENTS (recent regulator fines/decisions, cite by code [E1]–[E5]):
 ${enforcementContextStr}
 
+ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a verdict, risk factor, or recommended action in your assessment, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
+
 Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIFIC facts above — do not generalise. Return JSON with this exact structure:
 {
   "purpose_test": {
