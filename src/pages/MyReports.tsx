@@ -76,10 +76,22 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
 
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
+  const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Scope reports to the active workspace. When the personal workspace is
+  // active, hide anything tied to a real client (and vice versa). Rows with
+  // no client_id are treated as personal.
+  const visibleRows = rows.filter((r) => {
+    if (!hasClients) return true;
+    if (isPersonalActive) {
+      return !r.client_id || r.client_id === personal?.id;
+    }
+    return r.client_id === activeClientId;
+  });
 
   async function handleDelete(row: ReportRow) {
     const table = TOOL_TABLE[row.tool];
