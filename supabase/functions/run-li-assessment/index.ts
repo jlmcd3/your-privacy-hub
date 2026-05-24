@@ -245,7 +245,18 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "closest_rejected_precedent": "Name from the database (REQUIRED non-empty string; if none, write 'None identified in current database' — never null)",
     "key_distinguishing_factors": ["factors distinguishing this case from precedents"],
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
-  }
+  },
+  "annotations": [
+    {
+      "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "regulator": "regulator name",
+      "jurisdiction": "jurisdiction",
+      "decision_date": "YYYY-MM-DD or null",
+      "summary": "one sentence what the case involved, max 25 words, plain English",
+      "outcome": "rejected | accepted | penalised | required",
+      "relevance": "one sentence why this case is relevant to this assessment"
+    }
+  ]
 }`,
       3500
     );
