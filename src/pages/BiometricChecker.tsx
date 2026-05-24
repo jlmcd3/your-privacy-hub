@@ -92,7 +92,7 @@ export default function BiometricChecker() {
           </span>
           <h1 className="font-serif mb-3">Biometric Privacy Compliance Assessment</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
-            A per-jurisdiction read on your biometric data processing — surfacing the consent, disclosure, and retention obligations that apply under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with a litigation risk estimate where it matters. Run it before deploying facial recognition, fingerprint, voiceprint, or other biometric identifiers.
+            A per-jurisdiction read on your biometric data processing — surfacing obligations under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with cited enforcement decisions behind every priority action.
           </p>
         </div>
       </header>
