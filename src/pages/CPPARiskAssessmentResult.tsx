@@ -139,6 +139,13 @@ export default function CPPARiskAssessmentResult() {
                         {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
                         {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                         {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
+                        <AnnotationCallout
+                          annotations={(report?.annotations || []).filter(
+                            (a: any) => a.relevance?.toLowerCase().includes(
+                              (d.domain || "").toLowerCase().slice(0, 20)
+                            )
+                          )}
+                        />
                       </AccordionContent>
                     </AccordionItem>
                   ))}
