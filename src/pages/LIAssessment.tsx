@@ -196,10 +196,7 @@ const LIAssessment = () => {
             against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
           </p>
           <p className="text-sm text-navy leading-relaxed max-w-[70ch]">
-            Recent fines from the CNIL, ICO, Garante and others have hit organisations that either skipped this record
-            entirely or produced one that was generic, undated, or didn't address the specific facts of the processing.
-            This tool produces that record — grounded in tracked regulator decisions so your reasoning lines up with how
-            DPAs actually decide these cases.
+            Recent fines from the CNIL, ICO, Garante and others have hit organisations that skipped this record or produced a generic one. The full assessment cites the specific enforcement decisions behind each test verdict — so you can see exactly what informed the analysis.
           </p>
         </section>
 
