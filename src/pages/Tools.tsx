@@ -214,7 +214,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$45",
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
-      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis that template-based assessments most commonly omit. The prompts are specific to your processing type — AI systems, biometric data, profiling, and systematic monitoring each present distinct risk considerations.",
+      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit — with cited supervisory authority decisions.",
       "The output is designed to be reviewed by the appropriate privacy professional in your organisation and retained as part of your permanent accountability record. It is intended to form the basis of a documented professional review, not to substitute for it.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
