@@ -75,6 +75,7 @@ export default function DPAResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <DownloadWordButton text={row?.document_text || ""} label="Custom DPA" />
                 {row.document_text && <CopyButton text={row.document_text} />}
               </>
             }
