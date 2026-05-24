@@ -110,7 +110,7 @@ const DIFFERENTIATORS = [
     checks: [
       "3,500+ decisions across 119 regulatory authorities",
       "DPA notices, ICO actions, FTC settlements, HHS OCR agreements",
-      "Applied before every tool produces a single word of output",
+      "Cited in every output — the enforcement cases behind each finding are visible and traceable",
     ],
   },
   {
