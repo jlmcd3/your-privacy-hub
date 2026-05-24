@@ -69,6 +69,10 @@ export default function BiometricCheckerResult() {
         pdfUrl={row.pdf_url}
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
       />
+      <DownloadWordButton
+        text={row?.analysis_text || (row?.report_data as any)?.assessment_text || ""}
+        label="Biometric Compliance Assessment"
+      />
       {text && <CopyButton text={text} />}
     </>
   );
