@@ -236,7 +236,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$15",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks.",
-      "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population.",
+      "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — and cites the specific corpus decisions behind every priority action.",
       "The assessment is designed to be the starting point for a conversation with your privacy or legal team. Multi-jurisdiction assessments are included with Professional subscriptions.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
