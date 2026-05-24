@@ -43,7 +43,7 @@ const TOOLS: Tool[] = [
   {
     icon: ShieldCheck,
     title: "Privacy Program Assessment",
-    blurb: "Score your program against the domains regulators actually inspect — calibrated to enforcement precedent.",
+    blurb: "Score your program against the domains regulators actually inspect — cited enforcement decisions behind every risk finding.",
     price: "$55",
     cta: "Run assessment",
     href: "/governance-assessment",
