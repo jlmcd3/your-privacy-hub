@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { AnnotationAppendix } from "@/components/AnnotationCallout";
 
 export default function DPAResult() {
   const { id } = useParams();
@@ -78,6 +79,7 @@ export default function DPAResult() {
             }
           >
             <AssessmentReport text={row.document_text || ""} sectionChipLabel={null} />
+            <AnnotationAppendix annotations={row?.annotations} />
           </ReportShell>
         )}
       </main>

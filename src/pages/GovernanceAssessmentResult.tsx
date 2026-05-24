@@ -10,6 +10,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
+import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
 
 const ratingColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -168,6 +169,13 @@ const GovernanceAssessmentResult = () => {
                       {r.domain && <p className="text-xs text-muted-foreground">{r.domain}</p>}
                       {r.severity && <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${sevColor(r.severity)}`}>{r.severity}</span>}
                       {r.why_urgent && <p className="text-sm mt-2">{r.why_urgent}</p>}
+                      <AnnotationCallout
+                        annotations={(report?.annotations || []).filter(
+                          (a: any) => a.relevance?.toLowerCase().includes(
+                            (r.risk_title || r.risk_name || r.name || "").toLowerCase().slice(0, 20)
+                          )
+                        )}
+                      />
                     </div>
                   ))}
                 </div>
@@ -227,6 +235,25 @@ const GovernanceAssessmentResult = () => {
                             {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
                             {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
                           </div>
+                          <details className="mt-3">
+                            <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
+                              Enforcement citations
+                              <AnnotationBadge
+                                count={(report?.annotations || []).filter(
+                                  (a: any) => a.relevance?.toLowerCase().includes(
+                                    (d.domain_name || "").toLowerCase().slice(0, 15)
+                                  )
+                                ).length}
+                              />
+                            </summary>
+                            <AnnotationCallout
+                              annotations={(report?.annotations || []).filter(
+                                (a: any) => a.relevance?.toLowerCase().includes(
+                                  (d.domain_name || "").toLowerCase().slice(0, 15)
+                                )
+                              )}
+                            />
+                          </details>
                         </AccordionContent>
                       </AccordionItem>
                     ))}
@@ -255,6 +282,25 @@ const GovernanceAssessmentResult = () => {
                           {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
                           {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
                         </div>
+                        <details className="mt-3">
+                          <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
+                            Enforcement citations
+                            <AnnotationBadge
+                              count={(report?.annotations || []).filter(
+                                (a: any) => a.relevance?.toLowerCase().includes(
+                                  (d.domain_name || "").toLowerCase().slice(0, 15)
+                                )
+                              ).length}
+                            />
+                          </summary>
+                          <AnnotationCallout
+                            annotations={(report?.annotations || []).filter(
+                              (a: any) => a.relevance?.toLowerCase().includes(
+                                (d.domain_name || "").toLowerCase().slice(0, 15)
+                              )
+                            )}
+                          />
+                        </details>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
