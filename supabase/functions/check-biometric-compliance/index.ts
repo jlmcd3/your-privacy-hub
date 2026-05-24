@@ -152,7 +152,7 @@ MHMD has a private right of action via the WA Consumer Protection Act.
 Address MHMD obligations explicitly in the Washington section.
 ` : ""}${otherUsStateApplies ? `
 OTHER US STATE — APPLICABILITY FLAG
-"Other US state" is in scope. Produce a dedicated "### Other US State — General US Biometric Privacy Posture" section that:
+"Other US state" is in scope. Produce a dedicated "Other US State — General US Biometric Privacy Posture" section that:
   - notes Texas Capture or Use of Biometric Identifier Act (CUBI) requirements (notice, consent, retention <=1 year past purpose, no sale absent consent — Texas AG enforcement only, no private right of action),
   - notes Washington My Health My Data Act exposure where biometrics infer health status,
   - covers the broader pattern across CA/CO/CT/VA/UT/OR comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and DPIAs,
