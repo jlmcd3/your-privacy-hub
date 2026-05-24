@@ -258,6 +258,30 @@ export default function MyReports() {
           ...clientMeta(r.client_id),
         });
       });
+      (usNotices?.data || []).forEach((r: any) => {
+        all.push({
+          id: r.id,
+          tool: "us_notice",
+          tool_label: "US Privacy Notice",
+          created_at: r.created_at,
+          status: r.status || "in_progress",
+          summary: `US notice · ${r.scope || "—"}`,
+          view_path: `/us-notices/${r.id}/documents`,
+          ...clientMeta(r.client_id),
+        });
+      });
+      (euNotices?.data || []).forEach((r: any) => {
+        all.push({
+          id: r.id,
+          tool: "eu_notice",
+          tool_label: "EU / Global Privacy Notice",
+          created_at: r.created_at,
+          status: r.status || "in_progress",
+          summary: `EU/Global notice · ${r.scope || "—"}`,
+          view_path: `/eu-notices/documents`,
+          ...clientMeta(r.client_id),
+        });
+      });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
