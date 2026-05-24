@@ -271,7 +271,7 @@ export default function MyReports() {
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
-          ) : rows.length === 0 ? (
+          ) : visibleRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-slate-light mx-auto mb-3" />
@@ -281,7 +281,7 @@ export default function MyReports() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {rows.map((r) => (
+              {visibleRows.map((r) => (
                 <Card key={`${r.tool}-${r.id}`} className="border-border/60">
                   <CardContent className="py-4 flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0 flex-1">
