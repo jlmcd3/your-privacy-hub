@@ -130,7 +130,7 @@ const DIFFERENTIATORS = [
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
     checkColor: "text-amber-600",
     checks: [
-      "Provisions informed by enforcement failures, not generic templates",
+      "Provisions informed by enforcement failures — with a Drafting Notes appendix citing the specific cases",
       "Jurisdiction-specific and calibrated to your processing activities",
       "Your inputs are never retained or used to train models",
     ],
