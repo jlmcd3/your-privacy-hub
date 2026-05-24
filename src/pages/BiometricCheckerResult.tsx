@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { AnnotationCallout } from "@/components/AnnotationCallout";
 import TranslateReportButton from "@/components/TranslateReportButton";
 
 export default function BiometricCheckerResult() {
@@ -108,6 +109,15 @@ export default function BiometricCheckerResult() {
             callout={callout}
           >
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
+            {Array.isArray(row?.annotations) && row.annotations.length > 0 && (
+              <div className="mt-8 border-t pt-6">
+                <h3 className="text-lg font-semibold mb-2">Priority Action — Enforcement Basis</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  The following corpus citations inform the priority actions above.
+                </p>
+                <AnnotationCallout annotations={row.annotations} />
+              </div>
+            )}
           </ReportShell>
         )}
       </main>
