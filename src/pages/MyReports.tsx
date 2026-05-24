@@ -133,7 +133,7 @@ export default function MyReports() {
         is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
       });
 
-      const [li, dpia, gov, dpa, ir, bio, reg, ropa] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, reg, ropa, usNotices, euNotices] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -161,6 +161,18 @@ export default function MyReports() {
               .in("client_id", clientIds)
               .eq("status", "in_progress")
               .order("last_activity_at", { ascending: false })
+          : Promise.resolve({ data: [] as any[] } as any),
+        clientIds.length > 0
+          ? supabase.from("us_notice_sessions" as any)
+              .select("id, client_id, status, created_at, scope")
+              .in("client_id", clientIds)
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] as any[] } as any),
+        clientIds.length > 0
+          ? supabase.from("eu_notice_sessions" as any)
+              .select("id, client_id, status, created_at, scope")
+              .in("client_id", clientIds)
+              .order("created_at", { ascending: false })
           : Promise.resolve({ data: [] as any[] } as any),
       ]);
 
