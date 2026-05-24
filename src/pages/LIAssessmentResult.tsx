@@ -8,6 +8,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
+import DownloadWordButton from "@/components/DownloadWordButton";
 
 const strengthColor = (s: string) => {
   const v = (s || "").toLowerCase();
