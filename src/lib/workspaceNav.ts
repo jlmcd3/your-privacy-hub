@@ -91,10 +91,11 @@ export const WORK_ITEMS: WorkspaceItem[] = [
     match: (p) => FILING_PATH.test(p),
   },
   {
-    to: "/ropa",
+    to: "/notices-ropa",
     label: "Notices & RoPA",
     icon: ScrollText,
     match: (p) =>
+      p === "/notices-ropa" ||
       p === "/ropa" ||
       p.startsWith("/ropa/") ||
       p.startsWith("/us-notices") ||
