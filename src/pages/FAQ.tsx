@@ -33,7 +33,11 @@ const faqs = [
   },
   {
     q: "How is the analysis produced?",
-    a: "AI-generated with a built-in verification pass. After the brief is generated, a second AI call checks every enforcement table entry against the source articles to verify that fine amounts, regulator names, and other specific facts are directly traceable to the original sources. Sections with thin source coverage are flagged in the brief itself.",
+    a: "Professionally curated with a built-in verification pass. For compliance tools, every output includes enforcement citations so you can verify the source. For the weekly Intelligence Report, data is confirmed against sources.",
+  },
+  {
+    q: "What are the enforcement citations in tool outputs?",
+    a: "Smart Tools (LIA, DPIA, Governance Assessment, DPA Generator, IR Playbook, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings — the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources and legal counsel review are still required before relying on any regulatory position.",
   },
   {
     q: "How do I cancel my subscription?",
