@@ -62,6 +62,25 @@ const JURISDICTION_TAG_MAP: Record<string, string[]> = {
   US: ["us-federal", "us-states", "ftc"],
 };
 
+const JURISDICTION_SLUG_MAP: Record<string, string[]> = {
+  "GDPR": ["eu", "gdpr", "edpb", "european-union", "eea"],
+  "UK GDPR": ["uk", "united-kingdom", "ico", "uk-gdpr"],
+  "US - Various States": ["us-states", "us-ca", "us-ny", "us-tx", "us-il", "us-co", "us-va", "us-wa"],
+  "US - HIPAA": ["us-federal", "hipaa", "hhs"],
+  "CCPA / CPRA": ["california", "us-ca", "ccpa", "cpra"],
+  "California": ["california", "us-ca", "ccpa", "cpra", "cppa"],
+  "Illinois (BIPA)": ["us-il", "illinois", "bipa"],
+  "Texas (CUBI)": ["us-tx", "texas"],
+  "Washington (MHMD)": ["us-wa", "washington"],
+  "EU (GDPR)": ["eu", "gdpr", "edpb", "european-union"],
+  "Switzerland": ["switzerland", "fadp", "ch"],
+  "Australia": ["australia", "oaic", "au"],
+  "Canada": ["canada", "pipeda", "ca"],
+  "Brazil": ["brazil", "lgpd", "br"],
+  "Japan": ["japan", "appi", "jp"],
+  "India": ["india", "dpdpa", "in"],
+};
+
 function detectCategory(text: string): string | null {
   const t = (text ?? "").toLowerCase();
   if (!t) return null;
