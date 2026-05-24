@@ -147,7 +147,8 @@ export default function CPPARiskAssessment() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title></Helmet>
+      <Helmet><title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title>
+        <meta name="description" content="California CPPA risk assessment structured to the agency's regulations — domain findings supported by cited CPPA and AG enforcement context." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
