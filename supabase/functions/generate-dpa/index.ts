@@ -35,6 +35,7 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const AI_MODEL = "google/gemini-2.5-flash";
 
 interface EnforcementCtx {
+  id?: string;
   regulator?: string;
   jurisdiction?: string;
   decision_date?: string;
@@ -111,7 +112,7 @@ Deno.serve(async (req) => {
         ? enforcement_context
             .map(
               (e, i) =>
-                `${i + 1}. ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
+                `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
                   e.industry_sector ?? e.sector ?? "—"
                 } sector\n   Fine: ${fmtFine(e)}\n   What went wrong: ${
                   e.key_compliance_failure ?? e.violation ?? "—"
@@ -175,7 +176,25 @@ Requirements:
 - Be specific – avoid vague obligations
 - Where enforcement context shows regulators have penalised absent or vague provisions, make those provisions explicit and detailed
 - Mark any fields requiring controller/processor input as [TO BE COMPLETED: description]
-- Output ONLY the DPA document. No preamble, commentary, or explanation.`;
+- Include an annotations array listing every enforcement case from the ENFORCEMENT CONTEXT above that informed a clause choice. Use the exact id value from each case (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge.
+
+Output format:
+- First, output ONLY the DPA document. No preamble, commentary, or explanation.
+- Then, on a new line, output the exact separator:
+===ANNOTATIONS===
+- Then, output a JSON array of annotation objects with this shape:
+[
+  {
+    "enforcement_action_id": "exact id string from the enforcement context above",
+    "regulator": "regulator name",
+    "jurisdiction": "jurisdiction",
+    "decision_date": "YYYY-MM-DD or null",
+    "summary": "one sentence what the case involved, max 25 words, plain English",
+    "outcome": "rejected | accepted | penalised | required",
+    "relevance": "one sentence why this case informed a specific clause choice"
+  }
+]
+- If no cases from the context informed any clause choice, output an empty array [].`;
 
     const aiController = new AbortController();
     const aiTimeout = setTimeout(() => aiController.abort(), 85_000);
@@ -207,7 +226,27 @@ Requirements:
     }
 
     const aiData = await aiRes.json();
-    const dpa_text = aiData.choices?.[0]?.message?.content ?? "";
+    const fullText = aiData.choices?.[0]?.message?.content ?? "";
+    let dpa_text = fullText;
+    let parsedAnnotations: any[] = [];
+    try {
+      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+      if (sepIdx !== -1) {
+        dpa_text = fullText.slice(0, sepIdx).trim();
+        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start !== -1 && end !== -1) {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          if (Array.isArray(arr)) parsedAnnotations = arr;
+        }
+      }
+    } catch (e) {
+      console.warn("[DPA] annotation parse failed (non-fatal):", e);
+      parsedAnnotations = [];
+    }
+
     if (!dpa_text.trim()) {
       return new Response(JSON.stringify({ error: "AI generation returned an empty document" }), {
         status: 502,
@@ -217,6 +256,7 @@ Requirements:
 
     const report_data = {
       enforcement_precedents: enforcement_context.slice(0, 5),
+      annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };
 

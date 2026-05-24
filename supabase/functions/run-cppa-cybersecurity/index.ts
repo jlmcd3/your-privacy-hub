@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
 
     // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
     let enforcementContext = "";
+    let enforcementResults: any[] = [];
     try {
       const sector = (row.intake_data as any)?.industry_sector
         ?? (row.intake_data as any)?.sector
@@ -86,9 +87,10 @@ Deno.serve(async (req) => {
       );
       if (ecRes.ok) {
         const ec = await ecRes.json();
-        if (ec?.results?.length) {
-          enforcementContext = ec.results.map((r: any) =>
-            `- ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
+        enforcementResults = ec?.results || [];
+        if (enforcementResults.length) {
+          enforcementContext = enforcementResults.map((r: any, i: number) =>
+            `[E${i + 1}] id:${r.id} ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
           ).join("\n");
         }
       }
@@ -104,7 +106,7 @@ Respond ONLY with valid JSON matching the schema provided.`;
 Intake data:
 ${JSON.stringify(row.intake_data, null, 2)}
 
-${enforcementContext ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant):\n${enforcementContext}\n` : ""}
+${enforcementContext ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant, tagged [E1], [E2], etc.):\n${enforcementContext}\n\nANNOTATION REQUIREMENT: For each enforcement action cited above, if it directly supports a control finding, severity rating, or remediation in your report, include it in the annotations array using the id value from the enforcement context exactly as provided (the value after 'id:'). You MUST only cite enforcement actions from the context above — never cite cases from training knowledge.\n` : ""}
 Respond with this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall readiness posture and top 3 priorities)",
@@ -125,7 +127,18 @@ Respond with this exact JSON structure:
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
   "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities)",
-  "next_steps": ["string"]
+  "next_steps": ["string"],
+  "annotations": [
+    {
+      "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "regulator": "regulator name",
+      "jurisdiction": "jurisdiction",
+      "decision_date": "YYYY-MM-DD or null",
+      "summary": "one sentence what the case involved, max 25 words, plain English",
+      "outcome": "rejected | accepted | penalised | required",
+      "relevance": "one sentence why this case is relevant to this report"
+    }
+  ]
 }
 
 The 18 CPPA cybersecurity programme components to assess (one object per control):
@@ -158,6 +171,10 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
         console.error("[CPPA Cyber] Parse error:", e, "Tail:", text.slice(-200));
       }
     }
+
+    try {
+      report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
+    } catch { report.annotations = []; }
 
     await supabase
       .from("cppa_assessments")

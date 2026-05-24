@@ -45,7 +45,7 @@ function formatEnforcementContext(rows: any[]): string {
   return rows
     .map(
       (e, i) =>
-        `${i + 1}. ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
+        `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
           e.decision_date ? new Date(e.decision_date).getFullYear() : "—"
         }\n   Fine: ${
           e.fine_amount ?? (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "Not disclosed")
@@ -189,7 +189,21 @@ Compliance risk rating: [LOW / MEDIUM / HIGH / CRITICAL]
 [One sentence explaining the rating based on enforcement activity and likely gap]
 ---
 
-Output ONLY the compliance assessment. No preamble.`;
+After all jurisdiction sections, add:
+===ANNOTATIONS===
+followed by a JSON array citing enforcement actions that directly supported a priority action, risk rating, or enforcement posture assessment above. Use the exact id values from the enforcement context above (the value after 'id:'). Only cite cases from the ENFORCEMENT PRECEDENTS above — never from training knowledge. Each annotation object has this shape:
+{
+  "enforcement_action_id": "exact id string",
+  "regulator": "regulator name",
+  "jurisdiction": "jurisdiction",
+  "decision_date": "YYYY-MM-DD or null",
+  "summary": "one sentence what the case involved, max 25 words, plain English",
+  "outcome": "rejected | accepted | penalised | required",
+  "relevance": "one sentence why this case is relevant to this assessment"
+}
+If no cases informed the assessment, output an empty array [].
+
+Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No preamble.`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -226,12 +240,32 @@ Output ONLY the compliance assessment. No preamble.`,
     }
 
     const aiData = await aiRes.json();
-    const assessment_text = aiData.content?.[0]?.text ?? "";
+    const fullText = aiData.content?.[0]?.text ?? "";
+    let assessment_text = fullText;
+    let parsedAnnotations: any[] = [];
+    try {
+      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+      if (sepIdx !== -1) {
+        assessment_text = fullText.slice(0, sepIdx).trim();
+        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start !== -1 && end !== -1) {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          if (Array.isArray(arr)) parsedAnnotations = arr;
+        }
+      }
+    } catch (e) {
+      console.warn("[Biometric] annotation parse failed (non-fatal):", e);
+      parsedAnnotations = [];
+    }
 
     const report_data = {
       bipa_risk: bipaRisk,
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
+      annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };
 

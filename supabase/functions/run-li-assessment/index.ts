@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
+          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
         ).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
@@ -211,6 +211,8 @@ ${precedentContext}
 ENFORCEMENT PRECEDENTS (recent regulator fines/decisions, cite by code [E1]–[E5]):
 ${enforcementContextStr}
 
+ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a verdict, risk factor, or recommended action in your assessment, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
+
 Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIFIC facts above — do not generalise. Return JSON with this exact structure:
 {
   "purpose_test": {
@@ -243,7 +245,18 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     "closest_rejected_precedent": "Name from the database (REQUIRED non-empty string; if none, write 'None identified in current database' — never null)",
     "key_distinguishing_factors": ["factors distinguishing this case from precedents"],
     "blocking_issues": ["issues that would prevent reliance on legitimate interest unless resolved — empty array if none"]
-  }
+  },
+  "annotations": [
+    {
+      "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "regulator": "regulator name",
+      "jurisdiction": "jurisdiction",
+      "decision_date": "YYYY-MM-DD or null",
+      "summary": "one sentence what the case involved, max 25 words, plain English",
+      "outcome": "rejected | accepted | penalised | required",
+      "relevance": "one sentence why this case is relevant to this assessment"
+    }
+  ]
 }`,
       3500
     );
@@ -344,6 +357,7 @@ Return JSON:
       precedent_database_size: (allPrecedents || []).length,
       enforcement_precedents: enforcementPrecedents,
       three_part_test: analysis,
+      annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
       documentation_recommendations: docRecs,
       disclaimer: "This report is a compliance framework tool produced to assist in identifying areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under GDPR Article 6(1)(f) or equivalent provisions.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`
