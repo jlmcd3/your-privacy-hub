@@ -282,6 +282,25 @@ const GovernanceAssessmentResult = () => {
                           {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
                           {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
                         </div>
+                        <details className="mt-3">
+                          <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
+                            Enforcement citations
+                            <AnnotationBadge
+                              count={(report?.annotations || []).filter(
+                                (a: any) => a.relevance?.toLowerCase().includes(
+                                  (d.domain_name || "").toLowerCase().slice(0, 15)
+                                )
+                              ).length}
+                            />
+                          </summary>
+                          <AnnotationCallout
+                            annotations={(report?.annotations || []).filter(
+                              (a: any) => a.relevance?.toLowerCase().includes(
+                                (d.domain_name || "").toLowerCase().slice(0, 15)
+                              )
+                            )}
+                          />
+                        </details>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
