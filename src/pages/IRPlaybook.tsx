@@ -96,7 +96,7 @@ export default function IRPlaybook() {
           </span>
           <h1 className="font-serif mb-3">Incident Response Playbook</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
-            A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and stakeholder communication templates — drafted to your incident facts so your team can act inside the 72-hour clock. Generate it the moment you suspect a personal data breach, or keep one on the shelf and ready.
+            A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation.
           </p>
         </div>
       </header>
