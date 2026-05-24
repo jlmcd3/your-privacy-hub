@@ -162,6 +162,13 @@ const DPIAFrameworkResult = () => {
                     {r.severity && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.severity)}`}>Severity: {r.severity}</span>}
                   </div>
                   {r.affected_rights && <p className="text-xs text-muted-foreground mt-2">Affected rights: {Array.isArray(r.affected_rights) ? r.affected_rights.join(", ") : r.affected_rights}</p>}
+                  <AnnotationCallout
+                    annotations={(report?.annotations || []).filter(
+                      (a: any) => a.relevance?.toLowerCase().includes(
+                        (r.risk_type || r.type || "").toLowerCase().slice(0, 20)
+                      )
+                    )}
+                  />
                 </div>
               ))}
               <Field label="Residual risk guidance" value={report?.section_3_risks?.residual_risk_assessment} />
