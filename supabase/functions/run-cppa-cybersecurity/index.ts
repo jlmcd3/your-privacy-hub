@@ -172,6 +172,10 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       }
     }
 
+    try {
+      report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
+    } catch { report.annotations = []; }
+
     await supabase
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report })
