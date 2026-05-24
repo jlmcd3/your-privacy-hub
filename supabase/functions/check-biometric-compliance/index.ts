@@ -189,7 +189,21 @@ Compliance risk rating: [LOW / MEDIUM / HIGH / CRITICAL]
 [One sentence explaining the rating based on enforcement activity and likely gap]
 ---
 
-Output ONLY the compliance assessment. No preamble.`;
+After all jurisdiction sections, add:
+===ANNOTATIONS===
+followed by a JSON array citing enforcement actions that directly supported a priority action, risk rating, or enforcement posture assessment above. Use the exact id values from the enforcement context above (the value after 'id:'). Only cite cases from the ENFORCEMENT PRECEDENTS above — never from training knowledge. Each annotation object has this shape:
+{
+  "enforcement_action_id": "exact id string",
+  "regulator": "regulator name",
+  "jurisdiction": "jurisdiction",
+  "decision_date": "YYYY-MM-DD or null",
+  "summary": "one sentence what the case involved, max 25 words, plain English",
+  "outcome": "rejected | accepted | penalised | required",
+  "relevance": "one sentence why this case is relevant to this assessment"
+}
+If no cases informed the assessment, output an empty array [].
+
+Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No preamble.`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
