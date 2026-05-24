@@ -15,7 +15,7 @@ import PremiumGate from "@/components/PremiumGate";
 import { CitedParagraphs } from "@/components/brief/CitedText";
 import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
-import { ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
 
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
@@ -23,6 +23,8 @@ import TrialCountdownBanner from "@/components/dashboard/TrialCountdownBanner";
 import WorkspaceStatusLine from "@/components/WorkspaceStatusLine";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useClientStore } from "@/stores/clientStore";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { toast } from "@/hooks/use-toast";
 
 
 interface EnforcementRow {
