@@ -164,6 +164,22 @@ Deno.serve(async (req) => {
       return false;
     });
 
+    const jurisdictionSlugs = new Set<string>(
+      JURISDICTION_SLUG_MAP["California"],
+    );
+    const jurisdictionFiltered = relevant.filter((u: any) => {
+      const direct: string[] = u.direct_jurisdictions ?? [];
+      const affected: string[] = u.affected_jurisdictions ?? [];
+      if (!direct || direct.length === 0) return true;
+      if (direct.some((d) => jurisdictionSlugs.has(d))) return true;
+      if (affected.some((d) => jurisdictionSlugs.has(d))) return true;
+      return false;
+    });
+
+    const withUrl = jurisdictionFiltered.filter(
+      (u: any) => u.url && u.url.trim().length > 0,
+    );
+
     const { data: noted } = await admin
       .from("tool_regulatory_update_acknowledgements")
       .select("article_id")
@@ -173,7 +189,7 @@ Deno.serve(async (req) => {
     const notedIds = new Set((noted ?? []).map((n: any) => n.article_id));
 
     const results: RegulatoryUpdate[] = [];
-    for (const u of relevant) {
+    for (const u of withUrl) {
       if (notedIds.has(u.id)) continue;
       const urgency = mapUrgency(u.attention_level);
       if (!urgency) continue;
