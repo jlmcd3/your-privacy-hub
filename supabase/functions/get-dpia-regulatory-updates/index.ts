@@ -51,28 +51,10 @@ function buildActionRequired(u: any): string {
 
 const TOOL_TYPE = "dpia";
 
-const DPIA_TAGS = [
-  "gdpr-article-35",
-  "dpia",
-  "pia",
-  "high-risk-processing",
-  "edpb",
-  "ico",
-  "supervisory-authority",
-  "necessity-proportionality",
-  "legitimate-purpose",
-];
+const DPIA_TAGS = ["enforcement", "ai-privacy", "ai-governance",
+  "health-hipaa", "biometric-data", "data-breaches"];
 
-const DATA_CAT_TAG_MAP: Record<string, string[]> = {
-  health: ["health-data", "gdpr-article-9", "special-category"],
-  biometric: ["biometric-data", "bipa", "gdpr-article-9"],
-  location: ["location-data", "tracking"],
-  financial: ["financial-data", "glba"],
-  children: ["children-privacy", "coppa"],
-  criminal: ["criminal-data", "gdpr-article-10"],
-  political: ["political-data", "gdpr-article-9"],
-  automated_decision: ["automated-decision-making", "gdpr-article-22", "ai-governance"],
-};
+const DATA_CAT_TAG_MAP: Record<string, string[]> = {};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

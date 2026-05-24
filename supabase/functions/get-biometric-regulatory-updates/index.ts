@@ -51,20 +51,8 @@ function buildActionRequired(u: any): string {
 
 const TOOL_TYPE = "biometric";
 
-const BIOMETRIC_TAGS = [
-  "biometric",
-  "biometric-data",
-  "bipa",
-  "facial-recognition",
-  "fingerprint",
-  "voice-recognition",
-  "biometric-privacy",
-  "illinois-bipa",
-  "texas-cubi",
-  "washington-mhmd",
-  "gdpr-article-9",
-  "special-category",
-];
+const BIOMETRIC_TAGS = ["biometric-data", "enforcement",
+  "health-hipaa", "data-breaches"];
 
 const JURISDICTION_TAG_MAP: Record<string, string[]> = {
   "Illinois (BIPA)": ["illinois", "bipa", "us-il"],

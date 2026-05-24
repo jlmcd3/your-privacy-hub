@@ -49,15 +49,8 @@ function buildActionRequired(u: any): string {
   );
 }
 
-const CPPA_BASE_TAGS = [
-  "california",
-  "ccpa",
-  "cpra",
-  "cppa",
-  "us-ca",
-  "california-ag",
-  "california-privacy",
-];
+const CPPA_BASE_TAGS = ["enforcement", "data-breaches", "adtech",
+  "ai-privacy", "ai-governance"];
 
 const RISK_TAGS = [
   "consumer-rights",

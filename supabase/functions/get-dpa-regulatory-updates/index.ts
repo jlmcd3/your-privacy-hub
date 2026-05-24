@@ -51,21 +51,7 @@ function buildActionRequired(u: any): string {
 
 const TOOL_TYPE = "dpa_generator";
 
-const DPA_TAGS = [
-  "gdpr-article-28",
-  "processor",
-  "sub-processor",
-  "data-processing-agreement",
-  "controller-processor",
-  "edpb",
-  "ico",
-  "article-28",
-  "processor-contract",
-  "data-transfers",
-  "sccs",
-  "adequacy",
-  "transfer-mechanism",
-];
+const DPA_TAGS = ["enforcement", "cross-border", "apac-latam"];
 
 const JURISDICTION_TAG_MAP: Record<string, string[]> = {
   "EU / GDPR": ["eu", "gdpr", "edpb", "european-union"],

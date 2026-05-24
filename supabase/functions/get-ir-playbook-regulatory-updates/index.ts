@@ -52,18 +52,7 @@ function buildActionRequired(u: any): string {
 const TOOL_TYPE = "ir_playbook";
 const DOMAIN_LABEL = "Breach Notification";
 
-const BREACH_TAGS = [
-  "breach-notification",
-  "gdpr-article-33",
-  "uk-gdpr",
-  "hipaa-breach",
-  "data-breach",
-  "incident-response",
-  "breach-notification-law",
-  "notification-timeline",
-  "dpa-portal",
-  "regulator-notification",
-];
+const BREACH_TAGS = ["data-breaches", "enforcement"];
 
 const JURISDICTION_TAG_MAP: Record<string, string[]> = {
   "GDPR": ["eu", "gdpr", "edpb", "european-union"],

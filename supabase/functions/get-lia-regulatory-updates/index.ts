@@ -51,28 +51,10 @@ function buildActionRequired(u: any): string {
 
 const TOOL_TYPE = "lia";
 
-const LIA_TAGS = [
-  "legitimate-interest",
-  "gdpr-article-6",
-  "edpb-guidelines",
-  "balancing-test",
-  "three-part-test",
-  "lia",
-  "legitimate-interests",
-  "edpb",
-  "ico",
-  "article-6-1-f",
-];
+const LIA_TAGS = ["enforcement", "adtech", "cookie-consent",
+  "ai-privacy", "ai-governance"];
 
-const CATEGORY_TAG_MAP: Record<string, string[]> = {
-  direct_marketing: ["direct-marketing", "marketing-consent", "epriv", "spam"],
-  fraud_prevention: ["fraud-prevention", "financial-privacy"],
-  employee_monitoring: ["employee-privacy", "workplace-monitoring", "hr-privacy"],
-  behavioral_advertising: ["adtech", "cookie-consent", "behavioural-advertising", "tracking"],
-  research_analytics: ["research", "statistics", "anonymisation"],
-  it_security: ["cybersecurity", "security-monitoring"],
-  contractual_administration: ["gdpr-article-6", "contract-performance"],
-};
+const CATEGORY_TAG_MAP: Record<string, string[]> = {};
 
 const JURISDICTION_TAG_MAP: Record<string, string[]> = {
   EU: ["eu", "gdpr", "edpb", "european-union"],
