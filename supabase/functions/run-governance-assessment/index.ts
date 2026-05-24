@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyCaller } from "../_shared/verify-caller.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -54,6 +55,12 @@ Deno.serve(async (req) => {
 
   let assessment_id: string | undefined;
   try {
+    const caller = await verifyCaller(req);
+    if (!caller.internal && !caller.userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     ({ assessment_id } = await req.json());
     if (!assessment_id) return new Response(JSON.stringify({ error: "assessment_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
