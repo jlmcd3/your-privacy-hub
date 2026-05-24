@@ -157,9 +157,9 @@ export const PRICING_REGISTRY = {
     productName: "Professional — Monthly",
     description:
       "Monthly Professional subscription. Everything in Intelligence plus 3 seats. Annual subscription required to activate client management.",
-    amountCents: 3000,
+    amountCents: 3500,
     currency: "usd",
-    displayPrice: "$30",
+    displayPrice: "$35",
     displaySuffix: "/month",
     recurringInterval: "month",
     active: true,
@@ -170,10 +170,10 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $60. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
-    amountCents: 30000,
+      "Annual Professional subscription. Save $70 — pay for 10 months, get 12. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
+    amountCents: 35000,
     currency: "usd",
-    displayPrice: "$300",
+    displayPrice: "$350",
     displaySuffix: "/year",
     recurringInterval: "year",
     active: true,
@@ -237,9 +237,9 @@ export const PRICING_REGISTRY = {
     productKey: "governance_v8",
     productName: "Privacy Program Assessment (Standalone)",
     description: "Standalone per-use price for the Privacy Program Assessment Tool.",
-    amountCents: 5500,
+    amountCents: 6500,
     currency: "usd",
-    displayPrice: "$55",
+    displayPrice: "$65",
     displaySuffix: " flat",
     active: true,
   },
@@ -249,9 +249,9 @@ export const PRICING_REGISTRY = {
     productKey: "governance_v8",
     productName: "Privacy Program Assessment (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Privacy Program Assessment Tool.",
-    amountCents: 5500,
+    amountCents: 6500,
     currency: "usd",
-    displayPrice: "$55",
+    displayPrice: "$65",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -263,9 +263,9 @@ export const PRICING_REGISTRY = {
     productKey: "lia_v8",
     productName: "Legitimate Interest Assessment (Standalone)",
     description: "Standalone per-use price for the LIA Tool.",
-    amountCents: 3500,
+    amountCents: 4500,
     currency: "usd",
-    displayPrice: "$35",
+    displayPrice: "$45",
     displaySuffix: " flat",
     active: true,
   },
@@ -275,9 +275,9 @@ export const PRICING_REGISTRY = {
     productKey: "lia_v8",
     productName: "Legitimate Interest Assessment (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the LIA Tool.",
-    amountCents: 3500,
+    amountCents: 4500,
     currency: "usd",
-    displayPrice: "$35",
+    displayPrice: "$45",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -289,9 +289,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpia_v8",
     productName: "Impact Assessment Builder (Standalone)",
     description: "Standalone per-use price for the DPIA Tool.",
-    amountCents: 4500,
+    amountCents: 5500,
     currency: "usd",
-    displayPrice: "$45",
+    displayPrice: "$55",
     displaySuffix: " flat",
     active: true,
   },
@@ -301,9 +301,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpia_v8",
     productName: "Impact Assessment Builder (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPIA Tool.",
-    amountCents: 4500,
+    amountCents: 5500,
     currency: "usd",
-    displayPrice: "$45",
+    displayPrice: "$55",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -315,9 +315,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpa_v8",
     productName: "Custom DPA Generator (Standalone)",
     description: "Standalone per-use price for the DPA Generator.",
-    amountCents: 4500,
+    amountCents: 3000,
     currency: "usd",
-    displayPrice: "$45",
+    displayPrice: "$30",
     displaySuffix: " flat",
     active: true,
   },
@@ -327,9 +327,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpa_v8",
     productName: "Custom DPA Generator (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPA Generator.",
-    amountCents: 4500,
+    amountCents: 2500,
     currency: "usd",
-    displayPrice: "$45",
+    displayPrice: "$25",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -341,9 +341,9 @@ export const PRICING_REGISTRY = {
     productKey: "ir_v8",
     productName: "Breach Response Playbook (Standalone)",
     description: "Standalone per-use price for the Breach Response Playbook.",
-    amountCents: 2500,
+    amountCents: 3000,
     currency: "usd",
-    displayPrice: "$25",
+    displayPrice: "$30",
     displaySuffix: " flat",
     active: true,
   },
@@ -353,9 +353,9 @@ export const PRICING_REGISTRY = {
     productKey: "ir_v8",
     productName: "Breach Response Playbook (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Breach Response Playbook.",
-    amountCents: 2500,
+    amountCents: 3000,
     currency: "usd",
-    displayPrice: "$25",
+    displayPrice: "$30",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -367,9 +367,9 @@ export const PRICING_REGISTRY = {
     productKey: "biometric_v8",
     productName: "Biometric Compliance Check (Standalone)",
     description: "Standalone per-use price for the Biometric Compliance Check.",
-    amountCents: 1500,
+    amountCents: 2500,
     currency: "usd",
-    displayPrice: "$15",
+    displayPrice: "$25",
     displaySuffix: " flat",
     active: true,
   },
@@ -379,9 +379,9 @@ export const PRICING_REGISTRY = {
     productKey: "biometric_v8",
     productName: "Biometric Compliance Check (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the Biometric Compliance Check.",
-    amountCents: 1500,
+    amountCents: 2500,
     currency: "usd",
-    displayPrice: "$15",
+    displayPrice: "$25",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -457,9 +457,9 @@ export const PRICING_REGISTRY = {
     productKey: "us_notice_v8",
     productName: "US Privacy Notice Builder (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for any US notice variant.",
-    amountCents: 2500,
+    amountCents: 2000,
     currency: "usd",
-    displayPrice: "$25",
+    displayPrice: "$20",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -471,9 +471,9 @@ export const PRICING_REGISTRY = {
     productKey: "eu_notice_v8",
     productName: "EU & Global Privacy Notice Builder (Standalone)",
     description: "Uniform per-use price for any EU/global notice variant.",
-    amountCents: 5000,
+    amountCents: 4000,
     currency: "usd",
-    displayPrice: "$50",
+    displayPrice: "$40",
     displaySuffix: " flat",
     active: true,
   },
@@ -483,9 +483,9 @@ export const PRICING_REGISTRY = {
     productKey: "eu_notice_v8",
     productName: "EU & Global Privacy Notice Builder (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for any EU/global notice variant.",
-    amountCents: 5000,
+    amountCents: 3000,
     currency: "usd",
-    displayPrice: "$50",
+    displayPrice: "$30",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -523,9 +523,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",
     description: "Complete CPPA audit readiness bundle.",
-    amountCents: 12500,
+    amountCents: 11000,
     currency: "usd",
-    displayPrice: "$125",
+    displayPrice: "$110",
     displaySuffix: " flat",
     active: true,
   },
@@ -561,9 +561,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the CPPA Full Audit Suite.",
-    amountCents: 12500,
+    amountCents: 11000,
     currency: "usd",
-    displayPrice: "$125",
+    displayPrice: "$110",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -767,18 +767,18 @@ export const PRICING = {
   },
   professional: {
     monthly: {
-      display: '$30',
-      dollars: 30,
-      cents: 3000,
+      display: '$35',
+      dollars: 35,
+      cents: 3500,
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
     annual: {
-      display: '$300',
-      dollars: 300,
-      cents: 30000,
+      display: '$350',
+      dollars: 350,
+      cents: 35000,
       label: 'year',
-      savingDisplay: 'Save $60',
+      savingDisplay: 'Save $70 — pay for 10 months, get 12',
       note: 'Annual subscription required to activate client management',
       stripePriceId: 'professional_annual',
     },
@@ -791,9 +791,9 @@ export const PRICING = {
     },
     // Legacy alias — some UI still reads `.base`.
     base: {
-      display: '$30',
-      dollars: 30,
-      cents: 3000,
+      display: '$35',
+      dollars: 35,
+      cents: 3500,
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
@@ -803,24 +803,24 @@ export const PRICING = {
   },
   tools: {
     cppa_scope:   { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
-    biometric:    { name: 'Biometric Compliance Check',         dollars: 15, display: '$15',  stripePriceId: 'biometric_standalone_v2' },
-    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 25, display: '$25',  stripePriceId: 'ir_standalone_v2' },
-    lia:          { name: 'Legitimate Interest Assessment',     dollars: 35, display: '$35',  stripePriceId: 'li_standalone_v2' },
+    biometric:    { name: 'Biometric Compliance Check',         dollars: 25, display: '$25',  stripePriceId: 'biometric_standalone_v2' },
+    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 30, display: '$30',  stripePriceId: 'ir_standalone_v2' },
+    lia:          { name: 'Legitimate Interest Assessment',     dollars: 45, display: '$45',  stripePriceId: 'li_standalone_v2' },
     us_notice:    { name: 'US Privacy Notice Builder',          dollars: 25, display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
-    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 45, display: '$45',  stripePriceId: 'dpia_standalone_v2' },
-    dpa:          { name: 'Custom DPA Generator',               dollars: 45, display: '$45',  stripePriceId: 'dpa_standalone_v2' },
+    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 55, display: '$55',  stripePriceId: 'dpia_standalone_v2' },
+    dpa:          { name: 'Custom DPA Generator',               dollars: 30, display: '$30',  stripePriceId: 'dpa_standalone_v2' },
     ropa:         { name: 'RoPA Builder',                       dollars: 40, display: '$40',  stripePriceId: 'ropa_initial_standalone' },
-    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'eu_notice_v7_standalone' },
+    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 40, display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
     registration: { name: 'Registration Filings',               dollars: 45, display: '$45',  stripePriceId: 'registration_standalone' },
-    governance:   { name: 'Privacy Program Assessment',         dollars: 55, display: '$55',  stripePriceId: 'hc_standalone_v2' },
+    governance:   { name: 'Privacy Program Assessment',         dollars: 65, display: '$65',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
-    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 25, display: '$25',  stripePriceId: 'ir_standalone_v2' },
+    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 30, display: '$30',  stripePriceId: 'ir_standalone_v2' },
     usNotice:     { name: 'US Privacy Notice Builder',          dollars: 25, display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
-    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 50, display: '$50',  stripePriceId: 'eu_notice_v7_standalone' },
+    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 40, display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
     cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_standalone' },
     cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_standalone' },
   },
@@ -830,19 +830,116 @@ export type ToolKey = keyof typeof PRICING.tools;
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
 /**
- * v2 model: no permanent structural subscriber discount on tools.
- * Returns the full standalone price for every tier. Founding subscriber
- * discount is applied separately by `getEffectiveToolPrice` (see
- * src/lib/foundingSubscriber.ts).
+ * Per-tier subscriber pricing for tools that have differentiated rates.
+ * "free" means no Stripe charge — the checkout gate checks this before
+ * invoking Stripe. monthlyCapLimit is the abuse cap (calendar-month reset).
+ * Tools not listed here charge the standalone rate for all tiers.
  */
-export function getToolPrice(toolKey: ToolKey, _tier?: SubscriptionTier): number {
+export const SUBSCRIBER_PRICING: Record<string, Record<string, {
+  dollars: number;
+  display: string;
+  free: boolean;
+  monthlyCapLimit: number | null;
+}>> = {
+  biometric: {
+    intelligence_monthly: { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
+    intelligence_annual:  { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
+  },
+  ir_playbook: {
+    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+  dpa: {
+    intelligence_monthly: { dollars: 25, display: '$25',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 25, display: '$25',  free: false, monthlyCapLimit: null },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+  us_notice: {
+    intelligence_monthly: { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+  eu_notice: {
+    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+  // camelCase aliases
+  irPlaybook: {
+    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+  usNotice: {
+    intelligence_monthly: { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+  euNotice: {
+    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
+    intelligence_annual:  { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
+    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
+  },
+};
+
+/**
+ * Returns the effective price in dollars for a tool at a given subscription
+ * tier. Checks SUBSCRIBER_PRICING first; falls back to standalone.
+ *
+ * tier values:
+ *   'anonymous' | 'free'               → standalone price
+ *   'intelligence_monthly'             → Intel Monthly rate
+ *   'intelligence_annual'              → Intel Annual rate
+ *   'professional_monthly'             → Pro Monthly rate
+ *   'professional_annual'              → Pro Annual rate
+ *
+ * Legacy single-value tier aliases still accepted:
+ *   'intelligence'  → maps to 'intelligence_monthly'
+ *   'professional'  → maps to 'professional_annual'
+ */
+export function getToolPrice(toolKey: ToolKey, tier?: string): number {
+  const normalisedTier = normaliseTier(tier);
+  const subscriberEntry = SUBSCRIBER_PRICING[toolKey]?.[normalisedTier];
+  if (subscriberEntry) return subscriberEntry.dollars;
   const tool = PRICING.tools[toolKey];
   return tool.dollars;
 }
 
-export function getToolPriceDisplay(toolKey: ToolKey, _tier?: SubscriptionTier): string {
-  const price = getToolPrice(toolKey);
+export function getToolPriceDisplay(toolKey: ToolKey, tier?: string): string {
+  const normalisedTier = normaliseTier(tier);
+  const subscriberEntry = SUBSCRIBER_PRICING[toolKey]?.[normalisedTier];
+  if (subscriberEntry) return subscriberEntry.display;
+  const price = PRICING.tools[toolKey].dollars;
   return price === 0 ? 'Free' : `$${price}`;
+}
+
+/** Returns true if the tool is free for this subscriber tier (no Stripe charge). */
+export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
+  const normalisedTier = normaliseTier(tier);
+  return SUBSCRIBER_PRICING[toolKey]?.[normalisedTier]?.free === true;
+}
+
+/** Returns the monthly abuse cap for a tool at a tier, or null if uncapped. */
+export function getToolMonthlyCapLimit(toolKey: string, tier?: string): number | null {
+  const normalisedTier = normaliseTier(tier);
+  return SUBSCRIBER_PRICING[toolKey]?.[normalisedTier]?.monthlyCapLimit ?? null;
+}
+
+function normaliseTier(tier?: string): string {
+  if (!tier) return 'anonymous';
+  if (tier === 'intelligence') return 'intelligence_monthly';
+  if (tier === 'professional') return 'professional_annual';
+  return tier;
 }
 
 // ── TOOL CLASSIFICATION ───────────────────────────────────────────────────

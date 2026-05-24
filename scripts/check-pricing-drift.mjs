@@ -142,29 +142,37 @@ function parseEdgeFunction(rel) {
   return out;
 }
 
-// ─── Canonical price lookup for a slug (v8 founding model) ───────────────
+// ─── Canonical price lookup for a slug (May 2026 memo) ──────────────────
+// Per-slug subscriber overrides where memo introduces a discount.
+// All values in cents. Tools not listed → subscriber == standalone.
+const SUBSCRIBER_OVERRIDE_CENTS = {
+  dpa_generator:                2500,
+  us_notice_single:             2000,
+  us_notice_all_states:         2000,
+  us_notice_refresh:            2000,
+  eu_notice_single:             3000,
+  eu_notice_suite:              3000,
+  eu_notice_full_international: 3000,
+  eu_notice_refresh:            3000,
+};
+// cppa_suite is its own PRICING_REGISTRY entry (110 flat), not risk+cyber.
+const SUITE_STANDALONE_CENTS = 11000;
+
 function canonicalCentsForSlug(slug, canonical) {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (!key) return null;
   let standaloneDollars;
-  let isSmart;
   if (key === "__suite__") {
-    if (!canonical.tools.cppaRisk || !canonical.tools.cppaCyber) return null;
-    standaloneDollars = canonical.tools.cppaRisk.dollars + canonical.tools.cppaCyber.dollars;
-    isSmart = true; // CPPA suite classified as Smart
-  } else {
-    if (!canonical.tools[key]) return null;
-    standaloneDollars = canonical.tools[key].dollars;
-    isSmart = SMART_TOOL_KEYS.has(key);
-    if (!isSmart && !CONVENIENCE_TOOL_KEYS.has(key)) {
-      // Unknown classification — default to standalone (no discount).
-      return { standalone: standaloneDollars * 100, subscriber: standaloneDollars * 100 };
-    }
+    const standalone = SUITE_STANDALONE_CENTS;
+    return { standalone, subscriber: standalone };
   }
+  if (!canonical.tools[key]) return null;
+  standaloneDollars = canonical.tools[key].dollars;
   const standalone = standaloneDollars * 100;
-  // Founding-subscriber discount retired — subscriber rate mirrors standalone.
-  return { standalone, subscriber: standalone };
+  const subscriber = SUBSCRIBER_OVERRIDE_CENTS[slug] ?? standalone;
+  return { standalone, subscriber };
 }
+
 
 // ─── Compare ─────────────────────────────────────────────────────────────
 function compareEdge(label, edge, canonical) {
