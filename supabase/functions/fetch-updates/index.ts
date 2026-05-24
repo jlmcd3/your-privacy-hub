@@ -137,6 +137,27 @@ const RSS_SOURCES = [
     regulator: "European Data Protection Board",
   },
   {
+    url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/feed/",
+    source: "ICO",
+    domain: "ico.org.uk",
+    defaultCategory: "eu-uk",
+    regulator: "Information Commissioner's Office",
+  },
+  {
+    url: "https://ico.org.uk/action-weve-taken/enforcement/feed/",
+    source: "ICO Enforcement",
+    domain: "ico.org.uk",
+    defaultCategory: "eu-uk",
+    regulator: "Information Commissioner's Office",
+  },
+  {
+    url: "https://www.bfdi.bund.de/SharedDocs/RSS/DE/Meldungen.xml",
+    source: "BfDI",
+    domain: "bfdi.bund.de",
+    defaultCategory: "eu-uk",
+    regulator: "Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit",
+  },
+  {
     url: "https://www.cnil.fr/en/rss.xml",
     source: "CNIL",
     domain: "cnil.fr",
