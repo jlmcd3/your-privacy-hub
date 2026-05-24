@@ -293,6 +293,7 @@ Output ONLY the compliance assessment. No preamble.`,
         const { data, error } = await supabase
           .from("biometric_assessments")
           .update({
+            client_id: body.client_id ?? null,
             status: "complete",
             intake_data: body,
             jurisdictions: body.jurisdictions,
@@ -310,6 +311,7 @@ Output ONLY the compliance assessment. No preamble.`,
           .from("biometric_assessments")
           .insert({
             user_id: resolvedUserId,
+            client_id: body.client_id ?? null,
             status: "complete",
             intake_data: body,
             jurisdictions: body.jurisdictions,
