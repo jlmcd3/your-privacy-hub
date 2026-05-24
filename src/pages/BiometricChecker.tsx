@@ -82,7 +82,7 @@ export default function BiometricChecker() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Per-jurisdiction biometric privacy compliance read covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with a litigation risk estimate where it matters." /></Helmet>
+        <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
