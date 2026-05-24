@@ -86,7 +86,7 @@ export default function IRPlaybook() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Incident Response Playbook | End User Privacy</title>
-        <meta name="description" content="A jurisdiction-specific data breach response runbook with regulator notification deadlines, DPA portal links, and stakeholder communication templates — drafted to your incident facts." /></Helmet>
+        <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
