@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { AnnotationCallout } from "@/components/AnnotationCallout";
 import TranslateReportButton from "@/components/TranslateReportButton";
 
 export default function BiometricCheckerResult() {
