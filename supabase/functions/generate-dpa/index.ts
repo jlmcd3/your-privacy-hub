@@ -35,6 +35,7 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const AI_MODEL = "google/gemini-2.5-flash";
 
 interface EnforcementCtx {
+  id?: string;
   regulator?: string;
   jurisdiction?: string;
   decision_date?: string;
