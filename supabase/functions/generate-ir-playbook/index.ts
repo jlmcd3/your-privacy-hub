@@ -41,6 +41,7 @@ interface Body {
   organisationType: string;
   assessment_id?: string;
   user_id?: string;
+  client_id?: string | null;
 }
 
 const supabase = createClient(
