@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 
 export default function IRPlaybookResult() {
@@ -83,6 +84,7 @@ export default function IRPlaybookResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <DownloadWordButton text={row?.playbook_text || ""} label="Breach Response Playbook" />
                 {row.playbook_text && <CopyButton text={row.playbook_text} />}
               </>
             }

@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
 
 export default function DPAResult() {
@@ -74,6 +75,7 @@ export default function DPAResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <DownloadWordButton text={row?.document_text || ""} label="Custom DPA" />
                 {row.document_text && <CopyButton text={row.document_text} />}
               </>
             }

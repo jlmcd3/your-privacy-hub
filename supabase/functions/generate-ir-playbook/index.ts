@@ -41,6 +41,7 @@ interface Body {
   organisationType: string;
   assessment_id?: string;
   user_id?: string;
+  client_id?: string | null;
 }
 
 const supabase = createClient(
@@ -237,6 +238,7 @@ Output ONLY the playbook. No preamble or commentary.`,
     let playbook_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/\*\*/g, '')
+      .replace(/^>\s?/gm, '')
       .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
     try {
@@ -245,6 +247,7 @@ Output ONLY the playbook. No preamble or commentary.`,
         playbook_text = fullText.slice(0, sepIdx).trim()
           .replace(/^#{1,6}\s+/gm, '')
           .replace(/\*\*/g, '')
+          .replace(/^>\s?/gm, '')
           .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
         const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
@@ -277,6 +280,7 @@ Output ONLY the playbook. No preamble or commentary.`,
         const { data, error } = await supabase
           .from("ir_playbooks")
           .update({
+            client_id: body.client_id ?? null,
             status: "complete",
             intake_data: body,
             playbook_text,
@@ -293,6 +297,7 @@ Output ONLY the playbook. No preamble or commentary.`,
           .from("ir_playbooks")
           .insert({
             user_id: resolvedUserId,
+            client_id: body.client_id ?? null,
             status: "complete",
             intake_data: body,
             playbook_text,

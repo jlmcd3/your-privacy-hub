@@ -16,6 +16,7 @@ interface Body {
   enrolledCount: string;
   assessment_id?: string;
   user_id?: string;
+  client_id?: string | null;
   is_free_tier?: boolean;
 }
 
@@ -254,6 +255,7 @@ Output ONLY the compliance assessment. No preamble.`,
     let assessment_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/\*\*/g, '')
+      .replace(/^>\s?/gm, '')
       .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
     try {
@@ -262,6 +264,7 @@ Output ONLY the compliance assessment. No preamble.`,
         assessment_text = fullText.slice(0, sepIdx).trim()
           .replace(/^#{1,6}\s+/gm, '')
           .replace(/\*\*/g, '')
+          .replace(/^>\s?/gm, '')
           .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
         const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
@@ -291,6 +294,7 @@ Output ONLY the compliance assessment. No preamble.`,
         const { data, error } = await supabase
           .from("biometric_assessments")
           .update({
+            client_id: body.client_id ?? null,
             status: "complete",
             intake_data: body,
             jurisdictions: body.jurisdictions,
@@ -308,6 +312,7 @@ Output ONLY the compliance assessment. No preamble.`,
           .from("biometric_assessments")
           .insert({
             user_id: resolvedUserId,
+            client_id: body.client_id ?? null,
             status: "complete",
             intake_data: body,
             jurisdictions: body.jurisdictions,
