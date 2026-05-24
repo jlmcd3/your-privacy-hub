@@ -67,7 +67,7 @@ const TOOLS: Tool[] = [
   {
     icon: FileSignature,
     title: "DPA Generator",
-    blurb: "Generate a controller-to-processor Data Processing Agreement tailored to your jurisdictions and transfers.",
+    blurb: "Generate a controller-to-processor DPA — includes a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
     price: "$45 per run",
     cta: "Generate DPA",
     href: "/dpa-generator",
