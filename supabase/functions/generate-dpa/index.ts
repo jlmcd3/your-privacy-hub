@@ -173,7 +173,7 @@ Draft the complete DPA with ALL of the following sections. Number clauses hierar
 5. SECURITY MEASURES (Article 32) – specify technical and organisational measures calibrated to the data categories listed above
 6. DATA BREACH NOTIFICATION (Article 33) – include the specific notification timeline and minimum content requirements
 7. DATA SUBJECT RIGHTS ASSISTANCE (Articles 12-23)
-8. POST-TERMINATION OBLIGATIONS
+8. POST-TERMINATION OBLIGATIONS — MUST include an explicit clause stating that, at the Controller's choice, the Processor shall delete or return all Personal Data to the Controller after the end of the provision of services, and delete existing copies unless retention is required by law (Article 28(3)(g)). Use the exact phrase "delete or return" and reference "Personal Data" within the same sentence.
 9. AUDIT AND INSPECTION RIGHTS – use ${body.auditRights} standard
 ${transferSection}
 10. LIABILITY
