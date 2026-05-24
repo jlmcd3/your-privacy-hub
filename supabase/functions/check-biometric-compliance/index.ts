@@ -1,5 +1,6 @@
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyCaller } from "../_shared/verify-caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +59,16 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const caller = await verifyCaller(req);
+    if (!caller.internal && !caller.userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const body = (await req.json()) as Body;
+    const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+
 
     if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
       return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
@@ -297,7 +307,7 @@ Output ONLY the compliance assessment. No preamble.`,
         const { data, error } = await supabase
           .from("biometric_assessments")
           .insert({
-            user_id: body.user_id ?? null,
+            user_id: resolvedUserId,
             status: "complete",
             intake_data: body,
             jurisdictions: body.jurisdictions,

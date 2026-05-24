@@ -9,6 +9,7 @@ import {
   runRegistrationAssessment,
   type IntakeData,
 } from "../_shared/registration-engine.ts";
+import { verifyCaller } from "../_shared/verify-caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +28,9 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const intake = (body.intake_data || {}) as IntakeData;
-    const userId = body.user_id || null;
+    // Anonymous-friendly: only trust user_id from verified JWT or internal calls.
+    const caller = await verifyCaller(req).catch(() => ({ userId: null, internal: false }));
+    const userId = caller.internal ? (body.user_id || null) : (caller.userId || null);
     const existingId = body.assessment_id || null;
     const shareableToken = body.shareable_token || null;
 
