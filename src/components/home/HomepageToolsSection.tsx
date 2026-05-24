@@ -49,12 +49,12 @@ const ASSESSMENTS: Product[] = [
 const DOCUMENTS: Product[] = [
   {
     title: "DPA Generator",
-    blurb: "Generate a controller-to-processor Data Processing Agreement tailored to your jurisdictions and transfers.",
+    blurb: "Generate a controller-to-processor DPA tailored to your jurisdictions — with a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
     href: "/dpa-generator",
   },
   {
     title: "Incident Response Playbook",
-    blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook for your stack.",
+    blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook — enforcement decisions cited for every deadline and threshold recommendation.",
     href: "/ir-playbook",
   },
   {
