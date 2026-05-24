@@ -20,7 +20,7 @@ async function callAnthropic(system: string, user: string): Promise<string> {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 10000,
+      max_tokens: 6000,
       system,
       messages: [{ role: "user", content: user }],
     }),
