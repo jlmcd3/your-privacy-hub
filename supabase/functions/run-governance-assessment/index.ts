@@ -243,6 +243,7 @@ Return JSON:
       interaction_effects: synthesis.interaction_effects || "",
       domain_findings: domainResults,
       enforcement_precedents: enforcementPrecedents,
+      annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
