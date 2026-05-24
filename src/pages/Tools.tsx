@@ -192,8 +192,8 @@ const TOOLS: ToolDef[] = [
     freeBadge: "Step 1 free",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
-      "The Legitimate Interest Assessment guides you through the purpose test, necessity test, and balancing test with prompts calibrated to your specific processing activity. A direct marketing assessment asks different questions than one covering employee monitoring or fraud prevention. The analysis draws from enforcement decisions relevant to your use case.",
-      "The generated document is a starting point for legal review, not a replacement for it. It is structured to be presented to your legal or privacy professional for sign-off, annotated where your specific circumstances require professional judgment, and retained as part of your Record of Processing Activities.",
+      "The analysis draws from enforcement decisions relevant to your use case — and cites them directly in the output.",
+      "The generated document is a starting point for legal review, not a replacement for it. It is structured to be presented to your legal or privacy professional for sign-off, with enforcement citations visible alongside each test verdict.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
