@@ -191,7 +191,7 @@ const GovernanceAssessment = () => {
             ⚖️ Privacy Programme Assessment · ${pricing.price}
           </span>
           <h1 className="font-serif mb-3">Privacy Program Assessment Tool</h1>
-          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
+          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
               ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."
