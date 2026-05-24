@@ -107,8 +107,8 @@ Deno.serve(async (req) => {
     const jurisdictions: string[] = intake?.jurisdictions ?? [];
     const sector: string = (intake?.sector ?? "").toLowerCase();
 
-    const tagSet = new Set<string>();
-    for (const tags of Object.values(DOMAIN_TAG_MAP)) tags.forEach((t) => tagSet.add(t));
+    const allTags = GOVERNANCE_TAGS;
+    const tagSet = new Set<string>(allTags);
     for (const j of jurisdictions) tagSet.add(String(j).toLowerCase());
     for (const [key, tags] of Object.entries(SECTOR_TAGS)) {
       if (sector.includes(key)) tags.forEach((t) => tagSet.add(t));
