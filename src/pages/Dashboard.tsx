@@ -211,6 +211,20 @@ const Dashboard = () => {
   const [showDigestPrefs, setShowDigestPrefs] = useState(false);
   const [digestPrefsSet, setDigestPrefsSet] = useState(false);
   const [freeDigest, setFreeDigest] = useState<any>(null);
+  const { isAdmin } = useIsAdmin();
+
+  async function handleDeleteBrief(id: string) {
+    if (!window.confirm("Delete this weekly report? This cannot be undone.")) return;
+    const { error } = await (supabase as any).from("custom_briefs").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setBriefArchive((prev) => prev.filter((b) => b.id !== id));
+    setCustomBrief((prev: any) => (prev?.id === id ? null : prev));
+    if (expandedBriefId === id) setExpandedBriefId(null);
+    toast({ title: "Report deleted" });
+  }
 
   // The Intelligence Report is a per-user product, not per-client. If the
   // user lands here while a client workspace is active, snap the workspace
