@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
         ? enforcement_context
             .map(
               (e, i) =>
-                `${i + 1}. ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
+                `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
                   e.industry_sector ?? e.sector ?? "—"
                 } sector\n   Fine: ${fmtFine(e)}\n   What went wrong: ${
                   e.key_compliance_failure ?? e.violation ?? "—"
