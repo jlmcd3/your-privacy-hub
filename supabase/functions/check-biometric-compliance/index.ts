@@ -16,6 +16,7 @@ interface Body {
   enrolledCount: string;
   assessment_id?: string;
   user_id?: string;
+  client_id?: string | null;
   is_free_tier?: boolean;
 }
 
