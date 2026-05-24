@@ -223,7 +223,26 @@ Output ONLY the playbook. No preamble or commentary.`,
     }
 
     const aiData = await aiRes.json();
-    const playbook_text = aiData.content?.[0]?.text ?? "";
+    const fullText = aiData.content?.[0]?.text ?? "";
+    let playbook_text = fullText;
+    let parsedAnnotations: any[] = [];
+    try {
+      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+      if (sepIdx !== -1) {
+        playbook_text = fullText.slice(0, sepIdx).trim();
+        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        const start = cleaned.indexOf("[");
+        const end = cleaned.lastIndexOf("]");
+        if (start !== -1 && end !== -1) {
+          const arr = JSON.parse(cleaned.slice(start, end + 1));
+          if (Array.isArray(arr)) parsedAnnotations = arr;
+        }
+      }
+    } catch (e) {
+      console.warn("[IR Playbook] annotation parse failed (non-fatal):", e);
+      parsedAnnotations = [];
+    }
 
     const portals = body.jurisdictions
       .filter((j) => DPA_PORTALS[j])
@@ -232,6 +251,7 @@ Output ONLY the playbook. No preamble or commentary.`,
     const report_data = {
       portals,
       enforcement_precedents: enforcement_context.slice(0, 5),
+      annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };
 
