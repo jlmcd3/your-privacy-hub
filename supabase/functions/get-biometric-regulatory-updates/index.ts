@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
           "affected_jurisdictions, published_at",
       )
       .gte("published_at", document_created_at)
-      .in("attention_level", ["high", "medium"])
+      .in("attention_level", ["High", "Medium"])
       .eq("is_hidden", false)
       .order("published_at", { ascending: false })
       .limit(200);
