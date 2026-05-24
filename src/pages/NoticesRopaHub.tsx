@@ -166,17 +166,17 @@ export default function NoticesRopaHub() {
 
                     <div className="mt-auto pt-2 flex items-center gap-2">
                       <Button asChild size="sm" className="gap-1">
-                        <Link to={t.startPath}>
-                          {has ? "Open" : "Start"}
+                        <Link to={has ? t.viewPath : t.startPath}>
+                          {has ? "View documents" : "Start"}
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                       </Button>
                       {has && (
                         <Link
-                          to={t.viewPath}
+                          to={t.startPath}
                           className="text-xs text-cobalt hover:underline"
                         >
-                          View documents
+                          Start new
                         </Link>
                       )}
                     </div>
