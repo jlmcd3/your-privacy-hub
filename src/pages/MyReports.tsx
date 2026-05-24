@@ -133,7 +133,7 @@ export default function MyReports() {
         is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
       });
 
-      const [li, dpia, gov, dpa, ir, bio, reg, ropa] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, reg, ropa, usNotices, euNotices] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -161,6 +161,18 @@ export default function MyReports() {
               .in("client_id", clientIds)
               .eq("status", "in_progress")
               .order("last_activity_at", { ascending: false })
+          : Promise.resolve({ data: [] as any[] } as any),
+        clientIds.length > 0
+          ? supabase.from("us_notice_sessions" as any)
+              .select("id, client_id, status, created_at, scope")
+              .in("client_id", clientIds)
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] as any[] } as any),
+        clientIds.length > 0
+          ? supabase.from("eu_notice_sessions" as any)
+              .select("id, client_id, status, created_at, scope")
+              .in("client_id", clientIds)
+              .order("created_at", { ascending: false })
           : Promise.resolve({ data: [] as any[] } as any),
       ]);
 
@@ -243,6 +255,30 @@ export default function MyReports() {
           status: "in_progress",
           summary,
           view_path: "/ropa/activities",
+          ...clientMeta(r.client_id),
+        });
+      });
+      (usNotices?.data || []).forEach((r: any) => {
+        all.push({
+          id: r.id,
+          tool: "us_notice",
+          tool_label: "US Privacy Notice",
+          created_at: r.created_at,
+          status: r.status || "in_progress",
+          summary: `US notice · ${r.scope || "—"}`,
+          view_path: `/us-notices/${r.id}/documents`,
+          ...clientMeta(r.client_id),
+        });
+      });
+      (euNotices?.data || []).forEach((r: any) => {
+        all.push({
+          id: r.id,
+          tool: "eu_notice",
+          tool_label: "EU / Global Privacy Notice",
+          created_at: r.created_at,
+          status: r.status || "in_progress",
+          summary: `EU/Global notice · ${r.scope || "—"}`,
+          view_path: `/eu-notices/documents`,
           ...clientMeta(r.client_id),
         });
       });
