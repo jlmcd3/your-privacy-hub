@@ -171,6 +171,17 @@ const LIAssessmentResult = () => {
                 ↓ PDF preparing...
               </button>
             ) : null}
+            <DownloadWordButton
+              text={[
+                report?.three_part_test?.overall_assessment?.summary,
+                report?.three_part_test?.purpose_test?.analysis,
+                report?.three_part_test?.necessity_test?.analysis,
+                report?.three_part_test?.balancing_test?.analysis,
+              ]
+                .filter(Boolean)
+                .join("\n\n")}
+              label="Legitimate Interest Assessment"
+            />
           </div>
         </div>
       </header>
