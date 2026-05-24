@@ -153,15 +153,7 @@ Deno.serve(async (req) => {
       const urgency = mapUrgency(u.attention_level);
       if (!urgency) continue;
 
-      // Resolve domain by first matching domain whose tags intersect article tags.
-      const articleTags: string[] = u.topic_tags ?? [];
-      let domain = "General";
-      for (const [domainName, tags] of Object.entries(DOMAIN_TAG_MAP)) {
-        if (articleTags.some((t) => tags.includes(t))) {
-          domain = domainName;
-          break;
-        }
-      }
+      const domain = "General";
 
       let jurisdiction_name = jurisdictions[0] ?? "Multiple jurisdictions";
       const direct: string[] = u.direct_jurisdictions ?? [];
