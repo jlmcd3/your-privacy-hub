@@ -123,3 +123,25 @@ verify_jwt = false
 [functions.backfill-enrichment]
 verify_jwt = false
 
+[functions.get-ir-playbook-regulatory-updates]
+verify_jwt = false
+
+[functions.get-dpa-regulatory-updates]
+verify_jwt = false
+
+[functions.get-governance-regulatory-updates]
+verify_jwt = false
+
+[functions.get-lia-regulatory-updates]
+verify_jwt = false
+
+[functions.get-dpia-regulatory-updates]
+verify_jwt = false
+
+[functions.get-cppa-regulatory-updates]
+verify_jwt = false
+
+[functions.get-biometric-regulatory-updates]
+verify_jwt = false
+
+
