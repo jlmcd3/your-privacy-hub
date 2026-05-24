@@ -152,7 +152,7 @@ MHMD has a private right of action via the WA Consumer Protection Act.
 Address MHMD obligations explicitly in the Washington section.
 ` : ""}${otherUsStateApplies ? `
 OTHER US STATE — APPLICABILITY FLAG
-"Other US state" is in scope. Produce a dedicated "### Other US State — General US Biometric Privacy Posture" section that:
+"Other US state" is in scope. Produce a dedicated "Other US State — General US Biometric Privacy Posture" section that:
   - notes Texas Capture or Use of Biometric Identifier Act (CUBI) requirements (notice, consent, retention <=1 year past purpose, no sale absent consent — Texas AG enforcement only, no private right of action),
   - notes Washington My Health My Data Act exposure where biometrics infer health status,
   - covers the broader pattern across CA/CO/CT/VA/UT/OR comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and DPIAs,
@@ -163,29 +163,29 @@ ${formatEnforcementContext(enforcement_context)}
 
 For each jurisdiction, structure your output EXACTLY as follows:
 
-### [JURISDICTION] — [LAW NAME]
+[JURISDICTION] — [LAW NAME]
 
-**Applies to this organisation:** [Yes / Conditional / No] — [one sentence reason]
+Applies to this organisation: [Yes / Conditional / No] — [one sentence reason]
 
-**Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:**
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 [Numbered list of specific obligations relevant to this org type and purpose]
 
-**Consent and notice:**
+Consent and notice:
 [Specific format, timing, and language requirements]
 
-**Retention and destruction:**
+Retention and destruction:
 [Specific rules including any mandatory destruction timelines or schedules]
 
-**Sale and sharing restrictions:**
+Sale and sharing restrictions:
 [Specific prohibitions]
 
-**Current enforcement posture:**
+Current enforcement posture:
 [Based on enforcement context: what regulators are actively targeting]
 
-**Priority actions:**
+Priority actions:
 [3–5 numbered actions specific to this organisation type and purpose]
 
-**Compliance risk rating:** [LOW / MEDIUM / HIGH / CRITICAL]
+Compliance risk rating: [LOW / MEDIUM / HIGH / CRITICAL]
 [One sentence explaining the rating based on enforcement activity and likely gap]
 ---
 
