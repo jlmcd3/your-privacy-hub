@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import DownloadWordButton from "@/components/DownloadWordButton";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
