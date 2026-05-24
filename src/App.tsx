@@ -596,6 +596,8 @@ const App = () => (
               }
             />
             <Route path="/horizon" element={<Horizon />} />
+            {/* Combined Notices & RoPA hub */}
+            <Route path="/notices-ropa" element={<ProtectedRoute><NoticesRopaHub /></ProtectedRoute>} />
             {/* RoPA Builder */}
             <Route path="/ropa" element={<ProtectedRoute><RopaHome /></ProtectedRoute>} />
             <Route path="/ropa/setup" element={<ProtectedRoute><RopaSetup /></ProtectedRoute>} />
