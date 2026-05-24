@@ -169,6 +169,13 @@ const GovernanceAssessmentResult = () => {
                       {r.domain && <p className="text-xs text-muted-foreground">{r.domain}</p>}
                       {r.severity && <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${sevColor(r.severity)}`}>{r.severity}</span>}
                       {r.why_urgent && <p className="text-sm mt-2">{r.why_urgent}</p>}
+                      <AnnotationCallout
+                        annotations={(report?.annotations || []).filter(
+                          (a: any) => a.relevance?.toLowerCase().includes(
+                            (r.risk_title || r.risk_name || r.name || "").toLowerCase().slice(0, 20)
+                          )
+                        )}
+                      />
                     </div>
                   ))}
                 </div>
