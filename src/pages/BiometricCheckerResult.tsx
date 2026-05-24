@@ -107,7 +107,7 @@ export default function BiometricCheckerResult() {
             actions={actions}
             callout={callout}
           >
-            <AssessmentReport text={text || ""} />
+            <AssessmentReport text={text || ""} sectionChipLabel={null} />
           </ReportShell>
         )}
       </main>
