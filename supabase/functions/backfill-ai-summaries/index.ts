@@ -378,6 +378,15 @@ Deno.serve(async (req) => {
       if (typeof aiSummary.defense_considerations === "string" && aiSummary.defense_considerations.trim()) {
         updatePayload.defense_considerations = aiSummary.defense_considerations;
       }
+      if (typeof aiSummary.urgency === "string" && aiSummary.urgency.trim()) {
+        const urgencyMap: Record<string, string> = {
+          "Immediate": "High",
+          "This quarter": "Medium",
+          "Monitor": "Low",
+        };
+        const mapped = urgencyMap[aiSummary.urgency.trim()];
+        if (mapped) updatePayload.attention_level = mapped;
+      }
       await supabase.from("updates").update(updatePayload).eq("id", article.id);
       updated++;
     } else if (result.kind === "model_skip" || result.kind === "permanent_error") {
