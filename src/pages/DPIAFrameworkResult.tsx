@@ -10,6 +10,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
+import { AnnotationCallout } from "@/components/AnnotationCallout";
 
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
