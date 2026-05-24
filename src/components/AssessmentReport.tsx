@@ -152,7 +152,7 @@ function splitSections(text: string): Section[] {
   const sections: Section[] = [];
   let current: Section = { heading: null, body: "" };
   for (const line of lines) {
-    const m = /^###\s+(.+)$/.exec(line);
+    const m = /^(?:#{1,3}\s+)?([A-Z][A-Z\s\(\)\/0-9,\.]+(?:\s+[—–-]\s+.+)?)$/.exec(line);
     if (m) {
       // close previous section
       if (current.heading || current.body.trim()) sections.push(current);
