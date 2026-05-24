@@ -192,7 +192,8 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
         await supabase.from("cppa_assessments").update({ status: "error" }).eq("id", body.assessment_id);
       }
     } catch (_) { /* ignore */ }
-    return new Response(JSON.stringify({ error: "Assessment failed" }), {
+    const isTimeout = (e as any)?.name === "TimeoutError";
+    return new Response(JSON.stringify({ error: isTimeout ? "Assessment timed out — please retry" : "Assessment failed" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
