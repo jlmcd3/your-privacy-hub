@@ -84,6 +84,7 @@ export default function IRPlaybookResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
+                <DownloadWordButton text={row?.playbook_text || ""} label="Breach Response Playbook" />
                 {row.playbook_text && <CopyButton text={row.playbook_text} />}
               </>
             }
