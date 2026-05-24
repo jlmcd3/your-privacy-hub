@@ -633,8 +633,10 @@ function stripHtml(html: string): string {
     .replace(/&gt;/gi, ">")
     .replace(/&#\d+;/g, " ")
     .replace(/&[a-z]+;/gi, " ")
-    // Remove any leftover tag fragments like "p " or "div " at the start
-    .replace(/^[a-z]{1,10}\s+/i, "")
+    // NOTE: previously stripped a leading 1–10 letter "word" here to clean
+    // leftover tag fragments like "p ". That was unsafe — all tags are
+    // already removed above, so this regex was eating real first words
+    // ("We", "On", "FTC", "Issues", "Act", etc.). Removed.
     // Collapse whitespace
     .replace(/\s+/g, " ")
     .trim();
