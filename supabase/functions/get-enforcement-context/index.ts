@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
     .from("enforcement_actions")
     .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related")
     .gte("enrichment_version", 1)
+    .not("source_database", "is", null)
     .order("precedent_significance", { ascending: false, nullsFirst: false })
     .order("decision_date", { ascending: false, nullsFirst: false })
     .limit(limit * 4); // overfetch then re-rank
