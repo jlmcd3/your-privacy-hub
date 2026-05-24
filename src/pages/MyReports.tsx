@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,10 +76,22 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
 
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
+  const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Scope reports to the active workspace. When the personal workspace is
+  // active, hide anything tied to a real client (and vice versa). Rows with
+  // no client_id are treated as personal.
+  const visibleRows = rows.filter((r) => {
+    if (!hasClients) return true;
+    if (isPersonalActive) {
+      return !r.client_id || r.client_id === personal?.id;
+    }
+    return r.client_id === activeClientId;
+  });
 
   async function handleDelete(row: ReportRow) {
     const table = TOOL_TABLE[row.tool];
@@ -258,7 +271,7 @@ export default function MyReports() {
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
-          ) : rows.length === 0 ? (
+          ) : visibleRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-slate-light mx-auto mb-3" />
@@ -268,7 +281,7 @@ export default function MyReports() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {rows.map((r) => (
+              {visibleRows.map((r) => (
                 <Card key={`${r.tool}-${r.id}`} className="border-border/60">
                   <CardContent className="py-4 flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0 flex-1">

@@ -16,6 +16,7 @@ import { Loader2, FileText, Calendar, ArrowRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,9 +31,16 @@ import {
 
 export default function RegistrationMyFilings() {
   const { user } = useAuth();
+  const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const visibleOrders = orders.filter((o) => {
+    if (!hasClients) return true;
+    if (isPersonalActive) return !o.client_id || o.client_id === personal?.id;
+    return o.client_id === activeClientId;
+  });
 
   async function handleDelete(orderId: string) {
     setDeletingId(orderId);
@@ -90,7 +98,7 @@ export default function RegistrationMyFilings() {
 
           {loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
-          ) : orders.length === 0 ? (
+          ) : visibleOrders.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-10 h-10 text-slate-light mx-auto mb-3" />
@@ -100,7 +108,7 @@ export default function RegistrationMyFilings() {
             </Card>
           ) : (
             <div className="space-y-4">
-              {orders.map((o) => {
+              {visibleOrders.map((o) => {
                 const filings = o.registration_filings || [];
                 const hasReminders = o.renewal_reminders_enabled !== false;
                 return (
