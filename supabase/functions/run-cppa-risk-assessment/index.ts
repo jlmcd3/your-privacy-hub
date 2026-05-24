@@ -170,6 +170,10 @@ Key regulatory deadline: CPPA cybersecurity audit regulations take effect for hi
       }
     }
 
+    try {
+      report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
+    } catch { report.annotations = []; }
+
     await supabase
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report })
