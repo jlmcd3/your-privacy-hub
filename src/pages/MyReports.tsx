@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import {
   AlertDialog,
   AlertDialogAction,
