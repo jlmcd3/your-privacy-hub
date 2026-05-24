@@ -170,7 +170,21 @@ A checklist of records to create and maintain under GDPR Article 33(5) and equiv
 7. POST-INCIDENT ACTIONS
 Remediation steps, root cause analysis requirements, and follow-up obligations.
 
-Output ONLY the playbook. No preamble or commentary.`;
+ANNOTATIONS: After the seven sections, add a line:
+===ANNOTATIONS===
+followed by a JSON array of enforcement citations that directly supported a timeline deadline, threshold test, or notification requirement in sections 1-7. Use the exact id values from the enforcement context above (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge. Each annotation object has this shape:
+{
+  "enforcement_action_id": "exact id string",
+  "regulator": "regulator name",
+  "jurisdiction": "jurisdiction",
+  "decision_date": "YYYY-MM-DD or null",
+  "summary": "one sentence what the case involved, max 25 words, plain English",
+  "outcome": "rejected | accepted | penalised | required",
+  "relevance": "one sentence why this case is relevant to this playbook"
+}
+If no cases informed the playbook, output an empty array [].
+
+Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or commentary.`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
