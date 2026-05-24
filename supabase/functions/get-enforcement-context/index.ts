@@ -70,9 +70,29 @@ Deno.serve(async (req) => {
     .order("decision_date", { ascending: false, nullsFirst: false })
     .limit(limit * 4); // overfetch then re-rank
 
-  if (q.tool) query = query.contains("tool_relevance", [q.tool]);
+  // tool_relevance is now a soft preference (scoring boost only), not a hard filter
   if (q.data_categories?.length) query = query.overlaps("data_categories", q.data_categories);
-  if (q.jurisdictions?.length) query = query.in("jurisdiction", q.jurisdictions);
+  if (q.jurisdictions?.length) {
+    const jurisdictionAliases: Record<string, string[]> = {
+      "United Kingdom": ["United Kingdom", "UK", "GB", "England", "Great Britain"],
+      "UK": ["United Kingdom", "UK", "GB", "England", "Great Britain"],
+      "GB": ["United Kingdom", "UK", "GB", "England", "Great Britain"],
+      "United States": ["United States", "USA", "US", "United States of America"],
+      "USA": ["United States", "USA", "US", "United States of America"],
+      "US": ["United States", "USA", "US", "United States of America"],
+      "Germany": ["Germany", "Deutschland", "DE"],
+      "DE": ["Germany", "Deutschland", "DE"],
+      "France": ["France", "FR"],
+      "Ireland": ["Ireland", "IE"],
+      "Netherlands": ["Netherlands", "The Netherlands", "NL"],
+      "Italy": ["Italy", "IT"],
+      "Spain": ["Spain", "ES"],
+      "California": ["California", "US-CA"],
+      "US-CA": ["California", "US-CA"],
+    };
+    const expanded = [...new Set(q.jurisdictions.flatMap((j) => jurisdictionAliases[j] ?? [j]))];
+    query = query.in("jurisdiction", expanded);
+  }
   if (q.sector) query = query.eq("industry_sector", q.sector);
   if (q.biometric) query = query.eq("biometric_related", true);
   if (q.breach) query = query.eq("breach_related", true);
@@ -83,8 +103,30 @@ Deno.serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
+  let finalRows = rows ?? [];
+
+  // Fallback: if primary query returns nothing, re-run without jurisdiction filter
+  if (finalRows.length === 0 && q.jurisdictions?.length) {
+    let fallbackQuery = supabase
+      .from("enforcement_actions")
+      .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related")
+      .gte("enrichment_version", 1)
+      .not("source_database", "is", null)
+      .order("precedent_significance", { ascending: false, nullsFirst: false })
+      .limit(limit * 4);
+
+    if (q.data_categories?.length) {
+      fallbackQuery = fallbackQuery.overlaps("data_categories", q.data_categories);
+    }
+    if (q.biometric) fallbackQuery = fallbackQuery.eq("biometric_related", true);
+    if (q.breach) fallbackQuery = fallbackQuery.eq("breach_related", true);
+
+    const { data: fallbackRows } = await fallbackQuery;
+    finalRows = fallbackRows ?? [];
+  }
+
   // Score & re-rank
-  const scored = (rows ?? []).map((r) => {
+  const scored = finalRows.map((r) => {
     let score = (r.precedent_significance ?? 1) * 2;
     if (q.data_categories?.length && r.data_categories) {
       const overlap = r.data_categories.filter((c: string) => q.data_categories!.includes(c)).length;
