@@ -22,7 +22,46 @@ const verdictColor = (v: string) => {
   return "bg-amber-100 text-amber-800";
 };
 
-const TestCard = ({ title, test }: { title: string; test: any }) => (
+const AnnotationCallout = ({ annotations }: { annotations: any[] }) => {
+  if (!Array.isArray(annotations) || annotations.length === 0) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      {annotations.map((a: any, i: number) => (
+        <div key={i} className="bg-slate-50 dark:bg-slate-900/40 border-l-2 border-slate-300 dark:border-slate-600 rounded-r px-3 py-2">
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                📋 Corpus citation
+              </span>
+              <p className="text-xs text-foreground mt-0.5">
+                <span className="font-medium">{a.regulator}</span>
+                {a.jurisdiction ? ` · ${a.jurisdiction}` : ""}
+                {a.decision_date ? ` · ${a.decision_date?.slice(0,7)}` : ""}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">{a.summary}</p>
+              {a.relevance && (
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 italic">{a.relevance}</p>
+              )}
+            </div>
+            {a.enforcement_action_id && (
+              <Link
+                to={`/enforcement-intelligence/${a.enforcement_action_id}`}
+                className="text-[11px] text-blue-700 hover:underline shrink-0 whitespace-nowrap"
+              >
+                View case →
+              </Link>
+            )}
+          </div>
+        </div>
+      ))}
+      <p className="text-[10px] text-muted-foreground italic mt-1 leading-relaxed">
+        Enforcement citations are drawn from enforcement actions tracked by EUP on a regular basis. Actual enforcement actions can lag publication, so please review primary sources and consult qualified legal counsel before relying on any regulatory position.
+      </p>
+    </div>
+  );
+};
+
+const TestCard = ({ title, test, annotations }: { title: string; test: any; annotations?: any[] }) => (
   <div className="bg-card border rounded-lg p-5">
     <div className="flex items-center justify-between mb-3">
       <h3 className="">{title}</h3>
@@ -46,6 +85,11 @@ const TestCard = ({ title, test }: { title: string; test: any }) => (
         <ul className="list-disc pl-5 text-sm space-y-1">{test.risk_factors.map((f: string, i: number) => <li key={i}>{f}</li>)}</ul>
       </div>
     )}
+    <AnnotationCallout
+      annotations={(annotations || []).filter(
+        (a: any) => a.relevance?.toLowerCase().includes(title.toLowerCase().replace(" test",""))
+      )}
+    />
   </div>
 );
 
