@@ -92,7 +92,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
 
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}`
+          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}`
         ).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
@@ -109,7 +109,9 @@ Jurisdictions: ${jurisdictions}
 ${orgContext}
 
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
-${enforcementContextStr}`;
+${enforcementContextStr}
+
+ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigation measure in section_3_risks, include it in the section_3_risks.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.`;
 
     const [textA, textB] = await Promise.all([
       callAnthropic("claude-sonnet-4-6", system,
