@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import DownloadWordButton from "@/components/DownloadWordButton";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -189,6 +190,14 @@ export default function CPPACybersecurityResult() {
           <>
             <CybersecurityReportBody row={row} />
             <div className="flex gap-2 flex-wrap">
+              <DownloadWordButton
+                text={[
+                  row?.report_data?.executive_summary,
+                  ...(Array.isArray(row?.report_data?.controls) ? row.report_data.controls.map((c: any) =>
+                    `${c.control}\nStatus: ${c.status ?? ""}\n${c.finding ?? ""}\n${c.remediation ?? ""}`) : [])
+                ].filter(Boolean).join("\n\n")}
+                label="CPPA Cybersecurity Readiness"
+              />
               <Button asChild variant="outline"><Link to="/cppa-cybersecurity">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
             </div>

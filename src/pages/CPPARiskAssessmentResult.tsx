@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import DownloadWordButton from "@/components/DownloadWordButton";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -183,6 +184,14 @@ export default function CPPARiskAssessmentResult() {
             </section>
 
             <div className="flex gap-2 flex-wrap">
+              <DownloadWordButton
+                text={[
+                  report?.executive_summary,
+                  ...(Array.isArray(report?.domains) ? report.domains.map((d: any) =>
+                    `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding ?? ""}\n${d.remediation ?? ""}`) : [])
+                ].filter(Boolean).join("\n\n")}
+                label="CPPA Risk Assessment"
+              />
               <Button asChild variant="outline"><Link to="/cppa-risk-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
             </div>
