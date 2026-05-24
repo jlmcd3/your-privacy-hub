@@ -75,7 +75,7 @@ const TOOLS: Tool[] = [
   {
     icon: Fingerprint,
     title: "Biometric Compliance Check",
-    blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state biometric statutes.",
+    blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions cited to enforcement actions.",
     price: "Included with Annual Platform · $15 standalone",
     cta: "Check compliance",
     href: "/biometric-checker",
