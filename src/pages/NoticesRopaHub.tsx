@@ -40,13 +40,11 @@ export default function NoticesRopaHub() {
         supabase
           .from("us_notice_sessions" as any)
           .select("id, created_at")
-          .eq("user_id", user.id)
           .eq("client_id", client.id)
           .order("created_at", { ascending: false }),
         supabase
           .from("eu_notice_sessions" as any)
           .select("id, created_at")
-          .eq("user_id", user.id)
           .eq("client_id", client.id)
           .order("created_at", { ascending: false }),
         supabase
