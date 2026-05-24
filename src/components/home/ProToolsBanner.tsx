@@ -43,7 +43,7 @@ const TOOLS: Tool[] = [
   {
     icon: ShieldCheck,
     title: "Privacy Program Assessment",
-    blurb: "Score your program against the domains regulators actually inspect — calibrated to enforcement precedent.",
+    blurb: "Score your program against the domains regulators actually inspect — cited enforcement decisions behind every risk finding.",
     price: "$55",
     cta: "Run assessment",
     href: "/governance-assessment",
@@ -51,7 +51,7 @@ const TOOLS: Tool[] = [
   {
     icon: Scale,
     title: "Legitimate Interest Assessment",
-    blurb: "Build a defensible three-part LIA, with prompts tuned to your specific processing activity.",
+    blurb: "Build a defensible three-part LIA — each test verdict annotated with cited enforcement precedents.",
     price: "$35",
     cta: "Build LIA",
     href: "/li-assessment",
@@ -59,7 +59,7 @@ const TOOLS: Tool[] = [
   {
     icon: FileSearch,
     title: "Impact Assessment Builder (DPIA)",
-    blurb: "Article 35-aligned DPIA with the necessity and proportionality analysis most templates omit.",
+    blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
     price: "$45",
     cta: "Build DPIA",
     href: "/dpia-framework",
@@ -67,7 +67,7 @@ const TOOLS: Tool[] = [
   {
     icon: FileSignature,
     title: "DPA Generator",
-    blurb: "Generate a controller-to-processor Data Processing Agreement tailored to your jurisdictions and transfers.",
+    blurb: "Generate a controller-to-processor DPA — includes a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
     price: "$45 per run",
     cta: "Generate DPA",
     href: "/dpa-generator",
@@ -75,7 +75,7 @@ const TOOLS: Tool[] = [
   {
     icon: Fingerprint,
     title: "Biometric Compliance Check",
-    blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state biometric statutes.",
+    blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions cited to enforcement actions.",
     price: "Included with Annual Platform · $15 standalone",
     cta: "Check compliance",
     href: "/biometric-checker",
@@ -83,7 +83,7 @@ const TOOLS: Tool[] = [
   {
     icon: Siren,
     title: "Incident Response Playbook",
-    blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook for your stack.",
+    blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook — cited enforcement decisions behind every deadline recommendation.",
     price: "Included with Annual Platform",
     cta: "Build playbook",
     href: "/ir-playbook",
@@ -115,7 +115,7 @@ const TOOLS: Tool[] = [
   {
     icon: ShieldAlert,
     title: "CPPA Risk Assessment",
-    blurb: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
+    blurb: "California-specific risk assessment aligned to CPPA regulations — domain findings supported by cited enforcement context.",
     price: "$55 per run",
     cta: "Run CPPA assessment",
     href: "/cppa-risk-assessment",
@@ -123,7 +123,7 @@ const TOOLS: Tool[] = [
   {
     icon: Lock,
     title: "CPPA Cybersecurity Audit",
-    blurb: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit requirements.",
+    blurb: "Structured cybersecurity audit aligned to CPPA regulations — control gap findings supported by cited enforcement and regulatory guidance.",
     price: "$70 per run",
     cta: "Run cybersecurity audit",
     href: "/cppa-cybersecurity",

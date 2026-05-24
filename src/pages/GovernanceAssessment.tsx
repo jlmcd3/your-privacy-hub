@@ -181,7 +181,8 @@ const GovernanceAssessment = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
+      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title>
+        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
@@ -190,7 +191,7 @@ const GovernanceAssessment = () => {
             ⚖️ Privacy Programme Assessment · ${pricing.price}
           </span>
           <h1 className="font-serif mb-3">Privacy Program Assessment Tool</h1>
-          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains, mapped to applicable regulatory frameworks.</p>
+          <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
               ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."

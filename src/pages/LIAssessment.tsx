@@ -159,7 +159,7 @@ const LIAssessment = () => {
     <div className="min-h-screen flex flex-col bg-paper">
       <Helmet>
         <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
-        <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest, with regulator precedents. Optional full three-part test." />
+        <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
@@ -196,10 +196,7 @@ const LIAssessment = () => {
             against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
           </p>
           <p className="text-sm text-navy leading-relaxed max-w-[70ch]">
-            Recent fines from the CNIL, ICO, Garante and others have hit organisations that either skipped this record
-            entirely or produced one that was generic, undated, or didn't address the specific facts of the processing.
-            This tool produces that record — grounded in tracked regulator decisions so your reasoning lines up with how
-            DPAs actually decide these cases.
+            Recent fines from the CNIL, ICO, Garante and others have hit organisations that skipped this record or produced a generic one. The full assessment cites the specific enforcement decisions behind each test verdict — so you can see exactly what informed the analysis.
           </p>
         </section>
 
@@ -251,9 +248,7 @@ const LIAssessment = () => {
           </div>
 
           <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-meta text-amber-900 max-w-[70ch]">
-            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory
-            decisions. Your final legitimate interest determination should be reviewed and signed off by qualified
-            counsel before you rely on it operationally.
+            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory decisions — and cites them directly in the output so you can see the enforcement basis for each verdict. Your final determination should be reviewed by qualified legal counsel.
           </div>
         </section>
 

@@ -67,7 +67,7 @@ export default function SearchFirstHero() {
                   Your Compliance Tools — to do your job well
                 </p>
                 <p className="text-meta text-white/60 leading-snug">
-                  LIA, DPIA, DPA Generator, RoPA Builder, CPPA Suite. Enforcement-calibrated.
+                  LIA, DPIA, DPA, IR Playbook, Governance. Enforcement-calibrated — with annotated reasoning in every output.
                 </p>
               </a>
               </div>

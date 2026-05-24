@@ -35,7 +35,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "AI investigation prompt — pre-loaded with regulatory context, ready to paste into any AI assistant", free: false, intel: true, platform: true },
   { feature: "Priority Monday delivery", free: false, intel: true, platform: true },
 
-  { isSection: true, feature: "The action layer — compliance tools" },
+  { isSection: true, feature: "The action layer — compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
   { feature: "Governance Assessment (Smart Tool)", free: false, intel: "$55", platform: "$55" },
   { feature: "Legitimate Interest Assessment (Smart Tool)", free: false, intel: "$35", platform: "$35" },
@@ -135,6 +135,7 @@ const Subscribe = () => {
                   "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "AI investigation prompt on every article",
                   "Access to all compliance tools at standalone prices",
+                  "Enforcement corpus citations in every Smart Tool output",
 
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">

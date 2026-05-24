@@ -106,7 +106,7 @@ export default function DPAGenerator() {
   return (
     <div className="min-h-screen bg-paper">
       <Helmet><title>Custom Data Processing Agreement | End User Privacy</title>
-        <meta name="description" content="Draft a controller-processor Data Processing Agreement that meets GDPR Article 28, with clauses calibrated to recent EU regulator enforcement decisions." /></Helmet>
+        <meta name="description" content="Draft a GDPR Article 28 controller-processor DPA with clauses calibrated to enforcement decisions — includes a Drafting Notes appendix citing the evidence behind every provision." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">

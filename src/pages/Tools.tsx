@@ -52,7 +52,7 @@ const SECTION_HEADERS: Record<ToolSection, {
 }> = {
   assessments: {
     label: "Assessments",
-    title: "Know where you stand against what regulators actually enforce",
+    title: "Know where you stand — with cited enforcement evidence in every output",
     note: "Available individually at standalone prices",
     iconPath: "M4 3h10l3 3v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z M7 8h8 M7 11h6 M7 14h3",
     colors: {
@@ -110,7 +110,7 @@ const DIFFERENTIATORS = [
     checks: [
       "3,500+ decisions across 119 regulatory authorities",
       "DPA notices, ICO actions, FTC settlements, HHS OCR agreements",
-      "Applied before every tool produces a single word of output",
+      "Cited in every output — the enforcement cases behind each finding are visible and traceable",
     ],
   },
   {
@@ -119,7 +119,7 @@ const DIFFERENTIATORS = [
     body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
     checkColor: "text-accent",
     checks: [
-      "Scored against enforcement precedents, not best-practice checklists",
+      "Scored against enforcement precedents — with cited decisions shown alongside each finding",
       "Findings ordered by likelihood of regulatory scrutiny",
       "Dated, scored output structured for professional review",
     ],
@@ -130,7 +130,7 @@ const DIFFERENTIATORS = [
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
     checkColor: "text-amber-600",
     checks: [
-      "Provisions informed by enforcement failures, not generic templates",
+      "Provisions informed by enforcement failures — with a Drafting Notes appendix citing the specific cases",
       "Jurisdiction-specific and calibrated to your processing activities",
       "Your inputs are never retained or used to train models",
     ],
@@ -170,7 +170,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "A privacy programme that looks complete on paper and one that would survive a regulatory investigation are not always the same thing. The difference typically lies in whether the gaps have been identified and addressed before something goes wrong — rather than after.",
       "The Privacy Programme Assessment works through the domains that supervisory authorities focus on during formal investigations: lawful basis documentation, data subject rights processes, retention schedules, processor oversight, and security measures. Each domain is scored against enforcement precedents — not a generic best-practice checklist — and findings are ordered by the likelihood of regulatory scrutiny, not by topic area.",
-      "The output is a dated, scored assessment document produced for internal review. It is not a regulatory audit and does not carry the authority of one. It is designed to be reviewed by your privacy professional or legal adviser and used as a structured starting point for remediation planning.",
+      "The output is a dated, scored assessment document with cited enforcement decisions behind every risk finding. It is not a regulatory audit and does not carry the authority of one.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -192,8 +192,8 @@ const TOOLS: ToolDef[] = [
     freeBadge: "Step 1 free",
     body: [
       "Supervisory authorities across the EU and UK have been consistent on one point: it is not sufficient to have decided that legitimate interest applies. The decision must be documented, the documentation must demonstrate genuine analysis of all three limbs of the test, and it must be capable of being produced on request.",
-      "The Legitimate Interest Assessment guides you through the purpose test, necessity test, and balancing test with prompts calibrated to your specific processing activity. A direct marketing assessment asks different questions than one covering employee monitoring or fraud prevention. The analysis draws from enforcement decisions relevant to your use case.",
-      "The generated document is a starting point for legal review, not a replacement for it. It is structured to be presented to your legal or privacy professional for sign-off, annotated where your specific circumstances require professional judgment, and retained as part of your Record of Processing Activities.",
+      "The analysis draws from enforcement decisions relevant to your use case — and cites them directly in the output.",
+      "The generated document is a starting point for legal review, not a replacement for it. It is structured to be presented to your legal or privacy professional for sign-off, with enforcement citations visible alongside each test verdict.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -214,7 +214,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$45",
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
-      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis that template-based assessments most commonly omit. The prompts are specific to your processing type — AI systems, biometric data, profiling, and systematic monitoring each present distinct risk considerations.",
+      "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit — with cited supervisory authority decisions.",
       "The output is designed to be reviewed by the appropriate privacy professional in your organisation and retained as part of your permanent accountability record. It is intended to form the basis of a documented professional review, not to substitute for it.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -236,7 +236,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$15",
     body: [
       "Biometric data obligations are complex, jurisdiction-specific, and frequently underestimated. GDPR Article 9 conditions apply across the EU and EEA. BIPA in Illinois creates direct statutory liability — $1,000 to $5,000 per violation per individual — with courts interpreting violation broadly. Texas, Washington, and other US jurisdictions have their own frameworks.",
-      "The Biometric Privacy Compliance Assessment produces a per-jurisdiction assessment specific to your biometric data types, organisation type, and processing purpose. The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — not only the statutory text. For Illinois, the tool includes a mathematical illustration of potential BIPA statutory exposure based on your enrolled population.",
+      "The analysis incorporates current enforcement posture — what regulators and courts are actively scrutinising — and cites the specific corpus decisions behind every priority action.",
       "The assessment is designed to be the starting point for a conversation with your privacy or legal team. Multi-jurisdiction assessments are included with Professional subscriptions.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -260,7 +260,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$45",
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
-      "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. The resulting provisions reflect that intelligence. Each agreement is structured for legal review before execution.",
+      "Before generating your document, the tool reviews enforcement decisions involving comparable controller-processor relationships, data categories, and jurisdictions. Every provision reflects that intelligence — and a Drafting Notes appendix cites the specific decisions.",
       "This tool generates a draft legal document. It does not constitute legal advice, and the output should be reviewed by qualified legal counsel before execution.",
     ],
     sampleSections: [
@@ -281,7 +281,7 @@ const TOOLS: ToolDef[] = [
     freeBadge: "Deadline lookup free",
     body: [
       "Effective breach response is almost entirely a function of preparation. Organisations that know their notification deadlines, their regulator portal URLs, and their minimum content requirements before an incident occurs consistently achieve better outcomes — faster resolution, stronger regulatory relationships, and more defensible documentation — than those that begin from scratch under time pressure.",
-      "Your Breach Response Playbook produces a sequenced, jurisdiction-specific response plan from a 90-second intake. Notification deadlines are calculated from your discovery time. Supervisory authority portal URLs are hardcoded and verified. Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance.",
+      "Enforcement decisions involving notification failures in comparable contexts are incorporated into the timeline and content guidance and cited directly in the output.",
       "The output includes a documentation checklist aligned to Article 33(5) — the accountability record that regulators expect to see demonstrating that your organisation's response was systematic and timely. For Professional subscribers, this tool is included at no additional cost.",
     ],
     sampleSections: [
@@ -403,7 +403,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$55",
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
-      "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
+      "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews. Each domain finding is supported by cited CPPA and AG enforcement context.",
       "Standalone per-use price: $55. The output is structured for review by California privacy counsel before being relied upon.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -423,7 +423,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: "$70",
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
-      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the components the regulation enumerates, identifies gaps against the specific control expectations the CPPA has surfaced in guidance, and produces remediation guidance ordered by likelihood of regulatory focus.",
+      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each component the regulation enumerates, identifies gaps against the CPPA's specific control expectations, and cites material enforcement and regulatory guidance.",
       "Standalone per-use price: $70. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],

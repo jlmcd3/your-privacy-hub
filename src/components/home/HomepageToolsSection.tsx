@@ -11,32 +11,32 @@ type Product = {
 const ASSESSMENTS: Product[] = [
   {
     title: "Privacy Program Assessment",
-    blurb: "Score your program against the domains regulators actually inspect — calibrated to enforcement precedent.",
+    blurb: "Score your program against the domains regulators actually inspect — with cited enforcement decisions behind every risk finding.",
     href: "/governance-assessment",
   },
   {
     title: "Legitimate Interest Assessment",
-    blurb: "Build a defensible three-part LIA, with prompts tuned to your specific processing activity.",
+    blurb: "Build a defensible three-part LIA — each test verdict backed by cited enforcement precedents.",
     href: "/li-assessment",
   },
   {
     title: "Impact Assessment Builder (DPIA)",
-    blurb: "Article 35-aligned DPIA with the necessity and proportionality analysis most templates omit.",
+    blurb: "Article 35-aligned DPIA with necessity and proportionality analysis — annotated with supervisory authority decisions.",
     href: "/dpia-framework",
   },
   {
     title: "Biometric Compliance Check",
-    blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state biometric statutes.",
+    blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions backed by cited enforcement decisions.",
     href: "/biometric-checker",
   },
   {
     title: "CPPA Risk Assessment",
-    blurb: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
+    blurb: "California-specific risk assessment aligned to CPPA regulations — domain findings supported by cited CPPA and AG enforcement context.",
     href: "/cppa-risk-assessment",
   },
   {
     title: "CPPA Cybersecurity Audit",
-    blurb: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit requirements.",
+    blurb: "Structured cybersecurity audit aligned to CPPA regulations — control gaps supported by cited enforcement and regulatory guidance.",
     href: "/cppa-cybersecurity",
   },
   {
@@ -49,12 +49,12 @@ const ASSESSMENTS: Product[] = [
 const DOCUMENTS: Product[] = [
   {
     title: "DPA Generator",
-    blurb: "Generate a controller-to-processor Data Processing Agreement tailored to your jurisdictions and transfers.",
+    blurb: "Generate a controller-to-processor DPA tailored to your jurisdictions — with a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
     href: "/dpa-generator",
   },
   {
     title: "Incident Response Playbook",
-    blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook for your stack.",
+    blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook — enforcement decisions cited for every deadline and threshold recommendation.",
     href: "/ir-playbook",
   },
   {
