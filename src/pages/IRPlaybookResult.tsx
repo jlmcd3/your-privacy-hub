@@ -93,6 +93,14 @@ export default function IRPlaybookResult() {
             }
           >
             <AssessmentReport text={row.playbook_text || ""} sectionChipLabel={null} />
+            {Array.isArray(row?.annotations) && row.annotations.length > 0 && (
+              <div className="mt-8 border-t pt-6">
+                <h3 className="text-lg font-semibold mb-3">
+                  Enforcement Basis for Timeline Recommendations
+                </h3>
+                <AnnotationCallout annotations={row.annotations} />
+              </div>
+            )}
           </ReportShell>
         )}
       </main>
