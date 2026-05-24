@@ -20,11 +20,11 @@ async function callAnthropic(system: string, user: string): Promise<string> {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 10000,
+      max_tokens: 6000,
       system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(90_000),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
@@ -117,9 +117,9 @@ Respond with this exact JSON structure:
       "control": "string (one of the 18 CPPA cybersecurity programme components)",
       "score": 0,
       "status": "Implemented | Partial | Gap | Critical Gap",
-      "finding": "string (2-3 sentences)",
+      "finding": "string (1-2 sentences — specific gap or confirmation only)",
       "regulatory_basis": "string (cite the CPPA cybersecurity audit regulation section)",
-      "remediation": "string (specific, actionable steps)",
+      "remediation": "string (2-3 specific steps, plain language)",
       "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
     }
   ],
