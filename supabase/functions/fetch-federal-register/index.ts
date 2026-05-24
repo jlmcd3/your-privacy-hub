@@ -170,7 +170,7 @@ Deno.serve(async () => {
     inserted: results.inserted,
     skipped: results.skipped,
     fetched: results.fetched,
-    metadata: { errors: results.errors },
+    metadata: { errors: results.errors, filtered_irrelevant: results.filtered_irrelevant },
   });
 
   return new Response(JSON.stringify(results), {
