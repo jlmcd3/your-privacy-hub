@@ -3428,6 +3428,50 @@ export type Database = {
         }
         Relationships: []
       }
+      tool_regulatory_update_acknowledgements: {
+        Row: {
+          article_id: string
+          article_title: string
+          document_id: string
+          id: string
+          jurisdiction_name: string | null
+          noted_at: string
+          tool_type: string
+          urgency: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          article_title: string
+          document_id: string
+          id?: string
+          jurisdiction_name?: string | null
+          noted_at?: string
+          tool_type: string
+          urgency: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          article_title?: string
+          document_id?: string
+          id?: string
+          jurisdiction_name?: string | null
+          noted_at?: string
+          tool_type?: string
+          urgency?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_regulatory_update_acknowledgements_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       translation_glossary: {
         Row: {
           authority: string | null
