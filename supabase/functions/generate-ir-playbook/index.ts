@@ -282,7 +282,7 @@ Output ONLY the playbook. No preamble or commentary.`,
         const { data, error } = await supabase
           .from("ir_playbooks")
           .insert({
-            user_id: body.user_id ?? null,
+            user_id: resolvedUserId,
             status: "complete",
             intake_data: body,
             playbook_text,
