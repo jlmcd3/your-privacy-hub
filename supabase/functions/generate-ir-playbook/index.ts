@@ -156,29 +156,29 @@ ENFORCEMENT CONTEXT — BREACH NOTIFICATION FAILURES
 The following cases show where organisations were penalised for breach notification failures. Use this to calibrate your timeline and content recommendations:
 ${formatEnforcementContext(enforcement_context)}
 
-Generate the following seven sections:
+Generate the following seven sections. Each section MUST begin with the exact heading line shown (including the word "Section" and the number), so downstream tooling can locate them:
 
-1. IMMEDIATE ACTIONS (0–2 HOURS)
+Section 1: IMMEDIATE ACTIONS (0–2 HOURS)
 Numbered, specific steps. Name the role responsible for each. Be direct.
 
-2. BREACH ASSESSMENT CHECKLIST
+Section 2: BREACH ASSESSMENT CHECKLIST
 For each jurisdiction listed, state: (a) the notification threshold test, (b) whether this incident likely meets it based on the data types and count provided, (c) your confidence level (High / Medium / Low) and a one-sentence reason.
 
-3. REGULATORY NOTIFICATION TIMELINE
+Section 3: REGULATORY NOTIFICATION TIMELINE
 For each jurisdiction: the deadline (hours from discovery), the notification portal URL (use the portals provided above), the minimum content required for initial notification, what can be filed as preliminary versus what must follow, and – based on the enforcement context – specific omissions that have been penalised.
 
-4. INDIVIDUAL NOTIFICATION DECISION TREE
+Section 4: INDIVIDUAL NOTIFICATION DECISION TREE
 Step-by-step logic for determining whether individuals must be notified, with jurisdiction-specific thresholds. If required: content elements, delivery method, and deadline.
 
-5. NOTIFICATION TEMPLATES
+Section 5: NOTIFICATION TEMPLATES
 (a) A DPA initial notification letter template for the primary jurisdiction.
 (b) An individual notification template if individual notification is required.
-Mark all placeholder fields [IN SQUARE BRACKETS].
+Mark all placeholder fields [IN SQUARE BRACKETS]. The word "template" MUST appear in this section heading or body.
 
-6. DOCUMENTATION & ACCOUNTABILITY RECORD
-A checklist of records to create and maintain under GDPR Article 33(5) and equivalent requirements. Format as a list of documents with the information each must contain. This is the organisation's accountability trail.
+Section 6: DOCUMENTATION & ACCOUNTABILITY CHECKLIST
+A documentation checklist of records to create and maintain under GDPR Article 33(5) and equivalent requirements. Format as a list of documents with the information each must contain. This is the organisation's accountability trail. The words "documentation" and "checklist" MUST both appear in this section.
 
-7. POST-INCIDENT ACTIONS
+Section 7: POST-INCIDENT ACTIONS
 Remediation steps, root cause analysis requirements, and follow-up obligations.
 
 ANNOTATIONS: After the seven sections, add a line:
