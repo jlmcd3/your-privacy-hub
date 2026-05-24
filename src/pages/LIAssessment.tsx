@@ -159,7 +159,7 @@ const LIAssessment = () => {
     <div className="min-h-screen flex flex-col bg-paper">
       <Helmet>
         <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
-        <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest, with regulator precedents. Optional full three-part test." />
+        <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
