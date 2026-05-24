@@ -90,7 +90,7 @@ async function fetchAgency(agencySlug: string, since: string) {
 
 Deno.serve(async () => {
   const run = await startRun(supabase, "fetch-federal-register", { agencies: AGENCIES.length });
-  const results = { inserted: 0, skipped: 0, fetched: 0, errors: [] as string[] };
+  const results = { inserted: 0, skipped: 0, fetched: 0, filtered_irrelevant: 0, errors: [] as string[] };
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   try {
@@ -110,24 +110,30 @@ Deno.serve(async () => {
           results.skipped++;
           continue;
         }
-        // Filter out low-value federal notices: meetings and job postings.
-        const titleLower = (doc.title || "").toLowerCase();
-        if (
-          /notice of (a |an )?(public )?meeting/.test(titleLower) ||
-          /sunshine act meeting/.test(titleLower) ||
-          /notice of (a |an )?(available )?position/.test(titleLower) ||
-          /notice of (a |an )?(job )?(opening|vacancy)/.test(titleLower)
-        ) {
-          results.skipped++;
+        const title = doc.title || "";
+        const summary = doc.abstract || doc.excerpt || "";
+
+        // Hard exclusions: meetings, PRA notices, FDA drug clearances, Medicaid,
+        // grants, job postings, vaccine/clinical, etc.
+        if (isExcluded(title, summary)) {
+          results.filtered_irrelevant++;
           continue;
         }
+
+        // Privacy / data protection / cybersecurity / AI relevance gate.
+        // Title OR abstract must contain a topic keyword.
+        if (!isFederalPrivacyRelevant(title, summary)) {
+          results.filtered_irrelevant++;
+          continue;
+        }
+
         const legalWeight = doc.type === "Rule" || doc.type === "RULE" ? "Binding" : "Proposal";
         const agencyName = doc.agencies?.[0]?.name || "Federal Agency";
 
         const { error } = await supabase.from("updates").upsert(
           {
-            title: (doc.title || "Federal Register Notice").slice(0, 400),
-            summary: (doc.abstract || doc.excerpt || `${doc.type} published by ${agencyName}`).slice(0, 500),
+            title: (title || "Federal Register Notice").slice(0, 400),
+            summary: (summary || `${doc.type} published by ${agencyName}`).slice(0, 500),
             url: docUrl,
             source_name: "Federal Register",
             source_domain: "federalregister.gov",
