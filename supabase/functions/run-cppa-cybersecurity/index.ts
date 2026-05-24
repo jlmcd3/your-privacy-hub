@@ -24,7 +24,7 @@ async function callAnthropic(system: string, user: string): Promise<string> {
       system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(140_000),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
@@ -192,7 +192,8 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
         await supabase.from("cppa_assessments").update({ status: "error" }).eq("id", body.assessment_id);
       }
     } catch (_) { /* ignore */ }
-    return new Response(JSON.stringify({ error: "Assessment failed" }), {
+    const isTimeout = (e as any)?.name === "TimeoutError";
+    return new Response(JSON.stringify({ error: isTimeout ? "Assessment timed out — please retry" : "Assessment failed" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
