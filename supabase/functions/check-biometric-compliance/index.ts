@@ -241,12 +241,18 @@ Output ONLY the compliance assessment. No preamble.`,
 
     const aiData = await aiRes.json();
     const fullText = aiData.content?.[0]?.text ?? "";
-    let assessment_text = fullText;
+    let assessment_text = fullText
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*/g, '')
+      .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
     try {
       const sepIdx = fullText.indexOf("===ANNOTATIONS===");
       if (sepIdx !== -1) {
-        assessment_text = fullText.slice(0, sepIdx).trim();
+        assessment_text = fullText.slice(0, sepIdx).trim()
+          .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*/g, '')
+          .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
         const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
         const start = cleaned.indexOf("[");

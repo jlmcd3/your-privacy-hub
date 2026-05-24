@@ -227,12 +227,18 @@ Output format:
 
     const aiData = await aiRes.json();
     const fullText = aiData.choices?.[0]?.message?.content ?? "";
-    let dpa_text = fullText;
+    let dpa_text = fullText
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*/g, '')
+      .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
     try {
       const sepIdx = fullText.indexOf("===ANNOTATIONS===");
       if (sepIdx !== -1) {
-        dpa_text = fullText.slice(0, sepIdx).trim();
+        dpa_text = fullText.slice(0, sepIdx).trim()
+          .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*/g, '')
+          .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
         const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
         const start = cleaned.indexOf("[");

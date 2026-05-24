@@ -224,12 +224,18 @@ Output ONLY the playbook. No preamble or commentary.`,
 
     const aiData = await aiRes.json();
     const fullText = aiData.content?.[0]?.text ?? "";
-    let playbook_text = fullText;
+    let playbook_text = fullText
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*/g, '')
+      .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
     try {
       const sepIdx = fullText.indexOf("===ANNOTATIONS===");
       if (sepIdx !== -1) {
-        playbook_text = fullText.slice(0, sepIdx).trim();
+        playbook_text = fullText.slice(0, sepIdx).trim()
+          .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*/g, '')
+          .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
         const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
         const start = cleaned.indexOf("[");
