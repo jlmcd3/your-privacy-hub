@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
 
     // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
     let enforcementContext = "";
+    let enforcementResults: any[] = [];
     try {
       const sector = (row.intake_data as any)?.industry_sector
         ?? (row.intake_data as any)?.sector
@@ -86,9 +87,10 @@ Deno.serve(async (req) => {
       );
       if (ecRes.ok) {
         const ec = await ecRes.json();
-        if (ec?.results?.length) {
-          enforcementContext = ec.results.map((r: any) =>
-            `- ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
+        enforcementResults = ec?.results || [];
+        if (enforcementResults.length) {
+          enforcementContext = enforcementResults.map((r: any, i: number) =>
+            `[E${i + 1}] id:${r.id} ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
           ).join("\n");
         }
       }
