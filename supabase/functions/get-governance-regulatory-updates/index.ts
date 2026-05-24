@@ -139,6 +139,10 @@ Deno.serve(async (req) => {
       return false;
     });
 
+    const withUrl = relevant.filter(
+      (u: any) => u.url && u.url.trim().length > 0,
+    );
+
     const { data: noted } = await admin
       .from("tool_regulatory_update_acknowledgements")
       .select("article_id")
@@ -148,7 +152,7 @@ Deno.serve(async (req) => {
     const notedIds = new Set((noted ?? []).map((n: any) => n.article_id));
 
     const results: RegulatoryUpdate[] = [];
-    for (const u of relevant) {
+    for (const u of withUrl) {
       if (notedIds.has(u.id)) continue;
       const urgency = mapUrgency(u.attention_level);
       if (!urgency) continue;
