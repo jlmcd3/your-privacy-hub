@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
+import { AnnotationCallout } from "@/components/AnnotationCallout";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
