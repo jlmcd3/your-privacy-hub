@@ -119,7 +119,7 @@ const DIFFERENTIATORS = [
     body: "A compliance checklist tells you whether documentation exists. An enforcement-calibrated assessment tells you which gaps are most likely to attract scrutiny – and ranks them accordingly.",
     checkColor: "text-accent",
     checks: [
-      "Scored against enforcement precedents, not best-practice checklists",
+      "Scored against enforcement precedents — with cited decisions shown alongside each finding",
       "Findings ordered by likelihood of regulatory scrutiny",
       "Dated, scored output structured for professional review",
     ],
