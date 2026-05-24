@@ -176,7 +176,25 @@ Requirements:
 - Be specific – avoid vague obligations
 - Where enforcement context shows regulators have penalised absent or vague provisions, make those provisions explicit and detailed
 - Mark any fields requiring controller/processor input as [TO BE COMPLETED: description]
-- Output ONLY the DPA document. No preamble, commentary, or explanation.`;
+- Include an annotations array listing every enforcement case from the ENFORCEMENT CONTEXT above that informed a clause choice. Use the exact id value from each case (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge.
+
+Output format:
+- First, output ONLY the DPA document. No preamble, commentary, or explanation.
+- Then, on a new line, output the exact separator:
+===ANNOTATIONS===
+- Then, output a JSON array of annotation objects with this shape:
+[
+  {
+    "enforcement_action_id": "exact id string from the enforcement context above",
+    "regulator": "regulator name",
+    "jurisdiction": "jurisdiction",
+    "decision_date": "YYYY-MM-DD or null",
+    "summary": "one sentence what the case involved, max 25 words, plain English",
+    "outcome": "rejected | accepted | penalised | required",
+    "relevance": "one sentence why this case informed a specific clause choice"
+  }
+]
+- If no cases from the context informed any clause choice, output an empty array [].`;
 
     const aiController = new AbortController();
     const aiTimeout = setTimeout(() => aiController.abort(), 85_000);
