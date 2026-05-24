@@ -106,7 +106,7 @@ Respond ONLY with valid JSON matching the schema provided.`;
 Intake data:
 ${JSON.stringify(row.intake_data, null, 2)}
 
-${enforcementContext ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant):\n${enforcementContext}\n` : ""}
+${enforcementContext ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant, tagged [E1], [E2], etc.):\n${enforcementContext}\n\nANNOTATION REQUIREMENT: For each enforcement action cited above, if it directly supports a control finding, severity rating, or remediation in your report, include it in the annotations array using the id value from the enforcement context exactly as provided (the value after 'id:'). You MUST only cite enforcement actions from the context above — never cite cases from training knowledge.\n` : ""}
 Respond with this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall readiness posture and top 3 priorities)",
