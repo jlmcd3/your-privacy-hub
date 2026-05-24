@@ -52,7 +52,7 @@ const SECTION_HEADERS: Record<ToolSection, {
 }> = {
   assessments: {
     label: "Assessments",
-    title: "Know where you stand against what regulators actually enforce",
+    title: "Know where you stand — with cited enforcement evidence in every output",
     note: "Available individually at standalone prices",
     iconPath: "M4 3h10l3 3v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z M7 8h8 M7 11h6 M7 14h3",
     colors: {
