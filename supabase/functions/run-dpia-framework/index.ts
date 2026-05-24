@@ -238,6 +238,11 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     reportData.generated_at = new Date().toISOString();
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
+    try {
+      reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
+        ? reportData.section_3_risks.annotations
+        : [];
+    } catch { reportData.annotations = []; }
 
     await supabase.from("dpia_frameworks").update({
       status: "complete",
