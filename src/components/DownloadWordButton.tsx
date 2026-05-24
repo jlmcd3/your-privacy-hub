@@ -1,19 +1,19 @@
-// DownloadWordButton — generates a .docx download from stored document text.
-// Styled to match PDFDownloadButton (white-on-navy in ReportShell header).
-// Uses a Blob + anchor approach — no edge function needed for plain-text tools.
-// For structured JSON tools (LIA, DPIA, Governance) callers build a clean
-// plain-text representation first and pass it via the `text` prop.
-
+// DownloadWordButton — generates a real .docx (ZIP/OOXML) download.
+// Uses the `docx` npm package which produces a proper Word-compatible file.
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+} from "docx";
 
 interface Props {
-  /** The document text to export. Pass the raw string stored in the DB. */
   text: string;
-  /** Used as the downloaded filename, e.g. "Custom DPA" → "Custom-DPA.docx" */
   label: string;
-  /** Optional className override (defaults match in-header white-on-navy chrome). */
   className?: string;
 }
 
@@ -27,49 +27,74 @@ export default function DownloadWordButton({ text, label, className }: Props) {
     }
     setBusy(true);
     try {
-      const escape = (s: string) =>
-        s
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
+      const lines = text.split("\n");
+      const children: Paragraph[] = [];
 
-      const paragraphs = text
-        .split("\n")
-        .map((line) => {
-          const trimmed = line.trim();
-          if (!trimmed) {
-            return `<w:p><w:pPr><w:spacing w:after="0"/></w:pPr></w:p>`;
-          }
-          const isHeading =
-            trimmed === trimmed.toUpperCase() &&
-            trimmed.length < 80 &&
-            trimmed.length > 2;
-          const runProps = isHeading
-            ? `<w:rPr><w:b/><w:sz w:val="24"/></w:rPr>`
-            : `<w:rPr><w:sz w:val="20"/></w:rPr>`;
-          return `<w:p><w:pPr><w:spacing w:after="120"/></w:pPr><w:r>${runProps}<w:t xml:space="preserve">${escape(
-            trimmed
-          )}</w:t></w:r></w:p>`;
-        })
-        .join("\n");
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        if (!line.trim()) {
+          children.push(new Paragraph({ spacing: { after: 120 } }));
+          continue;
+        }
 
-      const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <w:body>
-    <w:sectPr>
-      <w:pgSz w:w="12240" w:h="15840"/>
-      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"
-               w:header="720" w:footer="720" w:gutter="0"/>
-    </w:sectPr>
-    ${paragraphs}
-  </w:body>
-</w:document>`;
+        const trimmed = line.trim();
+        const isMainHeading =
+          trimmed === trimmed.toUpperCase() &&
+          trimmed.length > 2 &&
+          trimmed.length < 80 &&
+          !/^\d+\./.test(trimmed);
 
-      const blob = new Blob([xml], {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        const isNumberedHeading = /^\d+(\.\d+)*\.\s+[A-Z]/.test(trimmed);
+        const bulletMatch = line.match(/^([•\-\*])\s+(.+)/);
+
+        if (isMainHeading) {
+          children.push(
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 240, after: 120 },
+              children: [new TextRun({ text: trimmed, bold: true, size: 24 })],
+            })
+          );
+        } else if (isNumberedHeading) {
+          children.push(
+            new Paragraph({
+              heading: HeadingLevel.HEADING_2,
+              spacing: { before: 200, after: 80 },
+              children: [new TextRun({ text: trimmed, bold: true, size: 22 })],
+            })
+          );
+        } else if (bulletMatch) {
+          children.push(
+            new Paragraph({
+              bullet: { level: 0 },
+              spacing: { after: 80 },
+              children: [new TextRun({ text: bulletMatch[2].trim(), size: 20 })],
+            })
+          );
+        } else {
+          children.push(
+            new Paragraph({
+              spacing: { after: 100 },
+              children: [new TextRun({ text: trimmed, size: 20 })],
+            })
+          );
+        }
+      }
+
+      const doc = new Document({
+        sections: [
+          {
+            properties: {
+              page: {
+                margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+              },
+            },
+            children,
+          },
+        ],
       });
+
+      const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
