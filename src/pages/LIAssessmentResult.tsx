@@ -219,9 +219,9 @@ const LIAssessmentResult = () => {
 
             {/* Three-Part Test */}
             <section className="grid md:grid-cols-3 gap-4">
-              <TestCard title="Purpose Test" test={report?.three_part_test?.purpose_test} />
-              <TestCard title="Necessity Test" test={report?.three_part_test?.necessity_test} />
-              <TestCard title="Balancing Test" test={report?.three_part_test?.balancing_test} />
+              <TestCard title="Purpose Test" test={report?.three_part_test?.purpose_test} annotations={report?.annotations} />
+              <TestCard title="Necessity Test" test={report?.three_part_test?.necessity_test} annotations={report?.annotations} />
+              <TestCard title="Balancing Test" test={report?.three_part_test?.balancing_test} annotations={report?.annotations} />
             </section>
 
             {/* Blocking Issues Alert */}
