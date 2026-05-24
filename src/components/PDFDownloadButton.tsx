@@ -31,15 +31,10 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
   const baseClass =
     "inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg no-underline transition-colors disabled:opacity-60";
 
-  if (pdfUrl) {
-    return (
-      <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className={baseClass}>
-        ↓ Download PDF
-      </a>
-    );
-  }
-
-  const handleGenerate = async () => {
+  // Always (re)generate or refresh through the edge function so the URL
+  // returned is a fresh signed URL against the now-private bucket. Legacy
+  // public URLs stored in `pdf_url` no longer resolve.
+  const handleDownload = async () => {
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-report-pdf", {
@@ -53,7 +48,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
       if (!data?.pdf_url) {
         throw new Error(data?.error || "PDF generation is not yet configured. Please try again later.");
       }
-      toast.success("PDF ready");
+      if (!pdfUrl) toast.success("PDF ready");
       onGenerated?.(data.pdf_url);
       window.open(data.pdf_url, "_blank", "noopener");
     } catch (e: any) {
@@ -65,8 +60,8 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
   };
 
   return (
-    <button type="button" onClick={handleGenerate} disabled={busy} className={baseClass}>
-      {busy ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</> : "↓ Download PDF"}
+    <button type="button" onClick={handleDownload} disabled={busy} className={baseClass}>
+      {busy ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {pdfUrl ? "Preparing…" : "Generating…"}</> : "↓ Download PDF"}
     </button>
   );
 }
