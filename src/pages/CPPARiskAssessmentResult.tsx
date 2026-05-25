@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
-import { AnnotationCallout } from "@/components/AnnotationCallout";
+import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 
 const riskColor = (r: string) => {
@@ -182,6 +182,9 @@ export default function CPPARiskAssessmentResult() {
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
               ⚠️ This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.
             </section>
+
+            <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
+
 
             <div className="flex gap-2 flex-wrap">
               <DownloadWordButton

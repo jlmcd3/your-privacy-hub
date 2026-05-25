@@ -43,7 +43,7 @@ async function aiGenerate(prompt: string): Promise<string> {
         {
           role: "system",
           content:
-            "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean Markdown only — no preamble, no chat, no translated text. Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of.",
+            "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean plain text only — NO markdown symbols of any kind. Do not use #, ##, ###, **, *, _, backticks, or > for formatting. Structure documents with section headings on their own line in Title Case followed by a blank line, then prose or bullet items. For bullets, use the bullet character • followed by a space at the start of the line (not * or -). Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of. No preamble, no chat, no translated text.",
         },
         { role: "user", content: prompt },
       ],
@@ -107,19 +107,30 @@ Jurisdiction requirements:
 - Languages: ${(r.language_requirements || []).join(", ") || "English"}
 - Notes: ${r.notes || "None"}
 
-Output Markdown with clear headings, bullet points, and signature blocks where relevant. Use [Bracketed Placeholders] for fields the user must complete.`;
+Output clean plain text with clear section headings (Title Case, on their own line, followed by a blank line), bullet items using the • character, and signature blocks where relevant. Do not use markdown symbols (#, **, *, _, backticks, >). Use [Bracketed Placeholders] for fields the user must complete.`;
           const content = await aiGenerate(prompt);
           return { docDef, content };
         })
       );
 
       for (const { docDef, content } of results) {
+        const cleaned = (content || "")
+          .replace(/^#{1,6}\s+/gm, '')          // strip leading heading hashes
+          .replace(/\*\*\*([^*]+)\*\*\*/g, '$1') // strip bold+italic
+          .replace(/\*\*([^*]+)\*\*/g, '$1')     // strip bold
+          .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1') // strip italics
+          .replace(/^>\s?/gm, '')                // strip blockquote >
+          .replace(/^\s*\*\s+/gm, '• ')          // convert * bullets to •
+          .replace(/^\s*-\s+/gm, '• ')           // convert - bullets to •
+          .replace(/`([^`]+)`/g, '$1')           // strip inline code backticks
+          .replace(/^\s*[-_]{3,}\s*$/gm, '');    // strip horizontal rules
+
         await supabase.from("registration_documents").insert({
           order_id,
           jurisdiction_code: r.jurisdiction_code,
           document_type: docDef.type,
           language: "en",
-          content_text: content,
+          content_text: cleaned,
           generation_model: MODEL,
           status: "ready",
         });

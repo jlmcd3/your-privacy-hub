@@ -259,7 +259,7 @@ export default function MyReports() {
           id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
           created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
           summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
-          view_path: `/registration-manager/order/${r.id}?from=reports`,
+          view_path: `/registration-manager/documents/${r.id}?from=reports`,
           deletable: !isPaid && filingsCount === 0,
           ...clientMeta(r.client_id),
         });

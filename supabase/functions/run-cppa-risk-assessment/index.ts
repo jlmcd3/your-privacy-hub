@@ -10,6 +10,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function stripMd(s: string | undefined | null): string {
+  if (!s) return s ?? "";
+  return s
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1')
+    .replace(/^>\s?/gm, '')
+    .replace(/^\s*\*\s+/gm, '• ')
+    .replace(/^\s*-\s+/gm, '• ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-_]{3,}\s*$/gm, '');
+}
+
+
+
 async function callAnthropic(system: string, user: string): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -173,6 +189,27 @@ Key regulatory deadline: CPPA cybersecurity audit regulations take effect for hi
     try {
       report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
     } catch { report.annotations = []; }
+
+    // Strip any stray markdown the model produced in prose fields
+    report.executive_summary = stripMd(report.executive_summary);
+    report.enforcement_context = stripMd(report.enforcement_context);
+    report.domains = (Array.isArray(report.domains) ? report.domains : []).map((d: any) => ({
+      ...d,
+      finding: stripMd(d?.finding),
+      regulatory_basis: stripMd(d?.regulatory_basis),
+      remediation: stripMd(d?.remediation),
+    }));
+    report.top_risks = (Array.isArray(report.top_risks) ? report.top_risks : []).map((r: any) => ({
+      ...r,
+      title: stripMd(r?.title),
+      description: stripMd(r?.description),
+      consequence: stripMd(r?.consequence),
+      risk: stripMd(r?.risk),
+      why_urgent: stripMd(r?.why_urgent),
+    }));
+    report.next_steps = (Array.isArray(report.next_steps) ? report.next_steps : []).map((s: any) =>
+      typeof s === "string" ? stripMd(s) : s
+    );
 
     await supabase
       .from("cppa_assessments")

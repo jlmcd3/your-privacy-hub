@@ -10,6 +10,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function stripMd(s: string | undefined | null): string {
+  if (!s) return s ?? "";
+  return s
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1')
+    .replace(/^>\s?/gm, '')
+    .replace(/^\s*\*\s+/gm, '• ')
+    .replace(/^\s*-\s+/gm, '• ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-_]{3,}\s*$/gm, '');
+}
+
+
+
 async function callAnthropic(system: string, user: string): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -175,6 +191,25 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
     try {
       report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
     } catch { report.annotations = []; }
+
+    // Strip any stray markdown the model produced in prose fields
+    report.executive_summary = stripMd(report.executive_summary);
+    report.enforcement_context = stripMd(report.enforcement_context);
+    report.controls = (Array.isArray(report.controls) ? report.controls : []).map((c: any) => ({
+      ...c,
+      finding: stripMd(c?.finding),
+      regulatory_basis: stripMd(c?.regulatory_basis),
+      remediation: stripMd(c?.remediation),
+    }));
+    report.top_risks = (Array.isArray(report.top_risks) ? report.top_risks : []).map((r: any) => ({
+      ...r,
+      title: stripMd(r?.title),
+      description: stripMd(r?.description),
+      consequence: stripMd(r?.consequence),
+    }));
+    report.next_steps = (Array.isArray(report.next_steps) ? report.next_steps : []).map((s: any) =>
+      typeof s === "string" ? stripMd(s) : s
+    );
 
     await supabase
       .from("cppa_assessments")
