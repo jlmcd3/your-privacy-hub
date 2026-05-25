@@ -43,6 +43,7 @@ const Pills = ({ options, value, onChange }: { options: string[]; value: string[
 
 const DPIAFramework = () => {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [params] = useSearchParams();
