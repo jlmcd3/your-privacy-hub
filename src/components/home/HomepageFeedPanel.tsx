@@ -210,7 +210,7 @@ const HomepageArticleCard = ({
 
   return (
     <div
-      className={`px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
+      className={`relative px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
         ${isSelected
           ? "bg-blue-50/60 border-l-[3px] border-gold"
           : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-fog/40`
