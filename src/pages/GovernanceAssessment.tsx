@@ -18,6 +18,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useActiveClient } from "@/hooks/useActiveClient";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
