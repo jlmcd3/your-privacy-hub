@@ -107,7 +107,7 @@ Jurisdiction requirements:
 - Languages: ${(r.language_requirements || []).join(", ") || "English"}
 - Notes: ${r.notes || "None"}
 
-Output Markdown with clear headings, bullet points, and signature blocks where relevant. Use [Bracketed Placeholders] for fields the user must complete.`;
+Output clean plain text with clear section headings (Title Case, on their own line, followed by a blank line), bullet items using the • character, and signature blocks where relevant. Do not use markdown symbols (#, **, *, _, backticks, >). Use [Bracketed Placeholders] for fields the user must complete.`;
           const content = await aiGenerate(prompt);
           return { docDef, content };
         })
