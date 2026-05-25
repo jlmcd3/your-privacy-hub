@@ -241,6 +241,13 @@ const HomepageArticleCard = ({
         />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1 mb-1">
+            <Link
+              to="/updates"
+              className="text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-gold text-white hover:opacity-90 no-underline transition-opacity"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Open feed →
+            </Link>
             {article.source_name && (
               <span className="text-meta font-semibold text-slate uppercase tracking-wide">
                 {article.source_name}
