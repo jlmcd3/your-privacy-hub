@@ -4,80 +4,82 @@
 
 @layer base {
   :root {
-    --navy: 210 55% 13%;
-    --navy-mid: 211 52% 19%;
-    --navy-light: 210 52% 24%;
-    --steel: 213 51% 34%;
-    --blue: 210 52% 50%;
-    --blue-light: 210 52% 59%;
-    --sky: 204 65% 74%;
-    --slate: 215 16% 47%;
-    --slate-light: 215 18% 65%;
-    --silver: 214 32% 91%;
-    --fog: 210 30% 93%;
+    /* ============================================================
+       EUP Brand Guidelines v7 — May 2026
+       Raw brand palette (HSL space-separated for shadcn / opacity modifiers)
+       ============================================================ */
+    --brand-navy: 209 68% 16%;          /* #0d2a45 */
+    --brand-ocean: 206 62% 27%;          /* #1a4a6e */
+    --brand-slate-teal: 190 51% 36%;     /* #2d7a8a */
+    --brand-teal: 173 58% 39%;           /* #2a9d8f — primary accent */
+    --brand-light-teal: 155 47% 58%;     /* #5dcaa5 — dark-bg accent */
+    --brand-steel: 199 19% 52%;          /* #6b8f9e */
+    --brand-mist: 199 27% 77%;           /* #b5ccd6 */
+    --brand-cloud: 200 21% 93%;          /* #e8eff2 */
+    --brand-shadow: 211 70% 12%;         /* #0a1f35 */
+    --brand-card-border: 50 9% 87%;      /* #e0e0dc */
+
+    /* Functional severity palette (data displays only) */
+    --severity-critical: 1 45% 51%;      /* #b94a48 */
+    --severity-warning: 25 76% 44%;      /* #d97706 */
+    --severity-success: 173 58% 39%;     /* brand teal */
+    --severity-info: 206 62% 27%;        /* brand ocean */
+
+    /* ============================================================
+       Legacy token aliases — point at v7 brand colors so existing
+       Tailwind classes (bg-navy, bg-gold, text-cobalt, bg-fog, etc.)
+       automatically render in the new palette during migration.
+       ============================================================ */
+    --navy: 209 68% 16%;                 /* was #0D1F35 → brand-navy */
+    --navy-mid: 206 62% 27%;             /* → brand-ocean */
+    --navy-light: 190 51% 36%;           /* → brand-slate-teal */
+    --steel: 199 19% 52%;                /* → brand-steel */
+    --blue: 173 58% 39%;                 /* → brand-teal (interactive) */
+    --blue-light: 155 47% 58%;           /* → brand-light-teal */
+    --sky: 199 27% 77%;                  /* → brand-mist */
+    --slate: 199 19% 52%;                /* → brand-steel */
+    --slate-light: 199 27% 77%;          /* → brand-mist */
+    --silver: 50 9% 87%;                 /* → brand-card-border */
+    --fog: 200 21% 93%;                  /* → brand-cloud */
     --white: 0 0% 100%;
-    --paper: 210 40% 94%;
-    --accent: 36 57% 47%;          /* #C8922A gold — CTAs, primary buttons, active nav underlines */
-    --accent-light: 36 57% 55%;    /* slightly lighter hover state */
-    --cobalt: 221 84% 53%;         /* #2563EB — interactive elements, active sidebar items, inline links */
-    --warn: 16 74% 52%;
-    /* --gold removed; use --accent (gold === accent #C8922A) */
+    --paper: 200 21% 93%;                /* → brand-cloud */
+    --accent: 173 58% 39%;               /* was gold #C8922A → brand-teal */
+    --accent-light: 155 47% 58%;         /* → brand-light-teal */
+    --cobalt: 173 58% 39%;               /* was #2563EB → brand-teal */
+    --warn: 25 76% 44%;                  /* → severity-warning */
 
-    --background: 210 40% 94%;
-    --foreground: 210 55% 13%;
+    /* shadcn semantic tokens */
+    --background: 0 0% 100%;
+    --foreground: 209 68% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 210 55% 13%;
+    --card-foreground: 209 68% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 210 55% 13%;
-    --primary: 213 51% 34%;
+    --popover-foreground: 209 68% 16%;
+    --primary: 209 68% 16%;              /* navy */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 30% 93%;
-    --secondary-foreground: 210 55% 13%;
-    --muted: 210 30% 93%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 36 57% 47%;
+    --secondary: 200 21% 93%;            /* cloud */
+    --secondary-foreground: 209 68% 16%;
+    --muted: 200 21% 93%;
+    --muted-foreground: 199 19% 52%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 16 74% 52%;
+    --destructive: 1 45% 51%;            /* severity-critical */
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 210 52% 50%;
-    --radius: 0.5rem;
+    --border: 50 9% 87%;                 /* card border #e0e0dc */
+    --input: 199 27% 77%;                /* mist */
+    --ring: 173 58% 39%;                 /* teal focus ring */
+    --radius: 0.75rem;                   /* 12px — card default per brand */
 
-    --sidebar-background: 210 47% 97%;
-    --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 210 55% 13%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 199 19% 52%;
+    --sidebar-primary: 209 68% 16%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 30% 93%;
-    --sidebar-accent-foreground: 210 55% 13%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 210 52% 50%;
+    --sidebar-accent: 200 21% 93%;
+    --sidebar-accent-foreground: 209 68% 16%;
+    --sidebar-border: 50 9% 87%;
+    --sidebar-ring: 173 58% 39%;
   }
 
-  .dark {
-    --background: 210 55% 13%;
-    --foreground: 210 47% 97%;
-    --card: 211 52% 19%;
-    --card-foreground: 210 47% 97%;
-    --popover: 211 52% 19%;
-    --popover-foreground: 210 47% 97%;
-    --primary: 204 65% 74%;
-    --primary-foreground: 210 55% 13%;
-    --secondary: 210 52% 24%;
-    --secondary-foreground: 210 47% 97%;
-    --muted: 210 52% 24%;
-    --muted-foreground: 215 18% 65%;
-    --accent: 36 70% 60%;          /* gold lifted for dark backgrounds */
-    --accent-light: 36 70% 68%;
-    --cobalt: 221 90% 65%;         /* cobalt lifted for dark backgrounds */
-    --accent-foreground: 210 55% 13%;
-    --destructive: 16 74% 52%;
-    --destructive-foreground: 210 47% 97%;
-    --border: 210 52% 24%;
-    --input: 210 52% 24%;
-    --ring: 204 65% 74%;
-  }
-}
+  /* Dark mode is intentionally undefined in v7 — see brand guidelines §5. */
 
 @layer base {
   * {
