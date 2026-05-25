@@ -112,6 +112,13 @@
     font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.125rem); /* 17px → 18px */
     line-height: 1.35;
   }
+
+  /* Dark hero containers (Compliance Tools, Intelligence, Research subpages)
+     should always render headings in white, regardless of per-page class hygiene. */
+  .bg-slate-900 :is(h1, h2, h3, h4, h5, h6),
+  .bg-brand-navy :is(h1, h2, h3, h4, h5, h6) {
+    color: #ffffff;
+  }
 }
 
 /* Custom utility classes */
