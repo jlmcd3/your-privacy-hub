@@ -383,7 +383,7 @@ const Navbar = () => {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
-          <img src="/logo.png" alt="End User Privacy" width={1111} height={281} className="h-10 w-auto shrink-0 rounded-md object-contain" />
+          <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
         </Link>
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6 ml-12 xl:ml-16">
