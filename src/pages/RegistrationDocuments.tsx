@@ -1,7 +1,7 @@
 // Detail view of all generated documents for an order — preview + download.
 // Mirrors RegistrationOrder but focuses on document browsing.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
