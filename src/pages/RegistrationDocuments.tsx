@@ -15,6 +15,21 @@ import { Loader2, FileText, ArrowLeft, Download, Mail, Printer } from "lucide-re
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
+import DownloadWordButton from "@/components/DownloadWordButton";
+
+// Strip markdown syntax characters (*, #, backticks) from AI-generated text
+// so the rendered document reads as a clean letter/report.
+function cleanMarkdown(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/^#{1,6}\s+/gm, "")              // heading hashes
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")      // bold+italic
+    .replace(/\*\*(.+?)\*\*/g, "$1")          // bold
+    .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, "$1") // italics
+    .replace(/^\s*\*\s+/gm, "• ")             // bullet asterisks → bullet
+    .replace(/`([^`]+)`/g, "$1")              // inline code
+    .replace(/^\s*[-_]{3,}\s*$/gm, "");       // hr lines
+}
 
 // TODO: wire a "Download all as ZIP" edge function (`bundle-registration-documents`)
 // that streams a ZIP of every doc.content_text + any doc.pdf_url for the order.
