@@ -47,12 +47,13 @@ export default function DownloadWordButton({ text, label, className }: Props) {
         const isNumberedHeading = /^\d+(\.\d+)*\.\s+[A-Z]/.test(trimmed);
         const bulletMatch = line.match(/^([•\-\*])\s+(.+)/);
 
+        const runProps = { font: "Times New Roman", size: 22 };
         if (isMainHeading) {
           children.push(
             new Paragraph({
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 240, after: 120 },
-              children: [new TextRun({ text: trimmed, bold: true, size: 24 })],
+              children: [new TextRun({ text: trimmed, bold: true, ...runProps })],
             })
           );
         } else if (isNumberedHeading) {
@@ -60,7 +61,7 @@ export default function DownloadWordButton({ text, label, className }: Props) {
             new Paragraph({
               heading: HeadingLevel.HEADING_2,
               spacing: { before: 200, after: 80 },
-              children: [new TextRun({ text: trimmed, bold: true, size: 22 })],
+              children: [new TextRun({ text: trimmed, bold: true, ...runProps })],
             })
           );
         } else if (bulletMatch) {
@@ -68,20 +69,25 @@ export default function DownloadWordButton({ text, label, className }: Props) {
             new Paragraph({
               bullet: { level: 0 },
               spacing: { after: 80 },
-              children: [new TextRun({ text: bulletMatch[2].trim(), size: 20 })],
+              children: [new TextRun({ text: bulletMatch[2].trim(), ...runProps })],
             })
           );
         } else {
           children.push(
             new Paragraph({
               spacing: { after: 100 },
-              children: [new TextRun({ text: trimmed, size: 20 })],
+              children: [new TextRun({ text: trimmed, ...runProps })],
             })
           );
         }
       }
 
       const doc = new Document({
+        styles: {
+          default: {
+            document: { run: { font: "Times New Roman", size: 22 } },
+          },
+        },
         sections: [
           {
             properties: {

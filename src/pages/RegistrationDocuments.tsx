@@ -175,7 +175,7 @@ export default function RegistrationDocuments() {
                 <CardContent className="pt-4">
                   {selected ? (
                     <>
-                      <pre className="whitespace-pre-wrap text-sm text-brand-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded">
+                      <pre className="whitespace-pre-wrap text-brand-navy max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
                         {cleanMarkdown(selected.content_text || "") || "(empty)"}
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">
@@ -195,7 +195,7 @@ export default function RegistrationDocuments() {
                             if (!w) { toast.error("Pop-up blocked"); return; }
                             const title = `${DOC_LABELS[selected.document_type] || selected.document_type} — ${selected.jurisdiction_code}`;
                             const cleaned = cleanMarkdown(selected.content_text || "");
-                            w.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 24px;line-height:1.5;color:#1a1a1a}h1{font-size:18px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;font-size:13px}</style></head><body><h1>${title}</h1><pre>${cleaned.replace(/[&<>]/g, (c: string) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
+                            w.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:'Times New Roman',Times,serif;font-size:11pt;max-width:780px;margin:40px auto;padding:0 24px;line-height:1.5;color:#1a1a1a}h1{font-family:'Times New Roman',Times,serif;font-size:11pt;font-weight:bold;margin-bottom:24px}pre{white-space:pre-wrap;font-family:'Times New Roman',Times,serif;font-size:11pt}</style></head><body><h1>${title}</h1><pre>${cleaned.replace(/[&<>]/g, (c: string) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
                             w.document.close();
                           }}
                         >

@@ -272,7 +272,7 @@ export default function EUNoticeDocuments() {
               {preview ? ` · v${preview.doc.version_number}` : ""}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-auto rounded border bg-muted/30 p-4 whitespace-pre-wrap font-body text-sm leading-relaxed">
+          <div className="flex-1 overflow-auto rounded border bg-muted/30 p-4 whitespace-pre-wrap leading-relaxed" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
             {preview?.text}
           </div>
           <DialogFooter className="gap-2 sm:gap-2">
