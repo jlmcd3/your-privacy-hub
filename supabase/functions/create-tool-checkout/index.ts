@@ -341,6 +341,7 @@ Deno.serve(async (req) => {
     if (MODULE_FOR_TOOL[tool_type]) {
       const baseRow = {
         user_id: user_id || null,
+        client_id: client_id || null,
         status: "pending" as const,
         intake_data: intake_data || {},
         purchase_price_cents: amountCents,
