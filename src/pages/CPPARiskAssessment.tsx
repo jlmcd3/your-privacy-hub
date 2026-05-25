@@ -68,6 +68,7 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 
 export default function CPPARiskAssessment() {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_risk_assessment");
