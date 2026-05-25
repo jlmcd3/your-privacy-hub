@@ -370,6 +370,7 @@ const GovernanceAssessment = () => {
           open={checkoutOpen}
           toolType="governance_assessment"
           userId={user?.id}
+          clientId={clientId}
           intakeData={intakeForCheckout}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
