@@ -206,12 +206,12 @@ function BlockList({ blocks }: { blocks: Block[] }) {
           return (
             <ol key={idx} className="space-y-2.5">
               {b.items.map((it, j) => (
-                <li key={j} className="flex gap-3">
+                <li key={j} className="flex gap-2">
                   <span
-                    className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--navy))] text-white text-meta font-semibold mt-[1px]"
+                    className="flex-shrink-0 text-sm font-semibold text-brand-navy tabular-nums leading-relaxed min-w-[1.5rem]"
                     aria-hidden
                   >
-                    {j + 1}
+                    {j + 1}.
                   </span>
                   <span className="text-sm leading-relaxed text-foreground">
                     {renderInline(it, `ol-${idx}-${j}`)}
@@ -221,6 +221,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
             </ol>
           );
         }
+
         // ul
         return (
           <ul key={idx} className="space-y-2">
