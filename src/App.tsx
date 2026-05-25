@@ -70,6 +70,7 @@ import TestEUNotice from "./pages/admin/TestEUNotice";
 import TestRegistration from "./pages/admin/TestRegistration";
 import TestBrief from "./pages/admin/TestBrief";
 import CronStatus from "./pages/admin/CronStatus";
+import AdminSubscribers from "./pages/admin/AdminSubscribers";
 import ResponsivePreview from "./pages/admin/ResponsivePreview";
 import Terms from "./pages/Terms.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
@@ -364,6 +365,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <CronStatus />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/subscribers"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminSubscribers />
                   </AdminOnly>
                 </ProtectedRoute>
               }
