@@ -133,7 +133,7 @@ const PillarPage = ({
   };
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>{title} — Privacy Law Guide 2026 | End User Privacy</title>
         <meta name="description" content={subtitle} />
@@ -143,21 +143,21 @@ const PillarPage = ({
       <Navbar />
 
       {/* Hero */}
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-10 md:py-14 px-4 md:px-8">
+      <div className="bg-gradient-to-br from-brand-ocean to-brand-slate-teal py-10 md:py-14 px-4 md:px-8">
         <div className="max-w-[860px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-brand-mist mb-4 bg-brand-mist/10 px-3 py-1.5 rounded-full border border-brand-mist/20">
             {icon} Intelligence Guide
           </div>
           <h1 className="font-display text-white mb-3 leading-tight">{title}</h1>
           {subtitleHtml ? (
             <p
-              className="text-sm md:text-base text-slate-light max-w-[700px] [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
+              className="text-sm md:text-base text-brand-mist max-w-[700px] [&_a]:text-brand-mist [&_a]:no-underline [&_a:hover]:underline"
               dangerouslySetInnerHTML={{ __html: subtitleHtml }}
             />
           ) : (
-            <p className="text-sm md:text-base text-slate-light max-w-[700px]">{subtitle}</p>
+            <p className="text-sm md:text-base text-brand-mist max-w-[700px]">{subtitle}</p>
           )}
-          <div className="text-[11px] text-slate-light mt-4">Last updated: {lastUpdated}</div>
+          <div className="text-[11px] text-brand-mist mt-4">Last updated: {lastUpdated}</div>
 
           {/* Stat bar */}
           {heroStats && heroStats.length > 0 && (
@@ -165,7 +165,7 @@ const PillarPage = ({
               {heroStats.map((stat, idx) => (
                 <div key={idx} className="bg-white/10 rounded-lg px-4 py-3 text-center">
                   <p className="font-display text-[22px] text-white font-bold leading-none mb-1">{stat.value}</p>
-                  <p className="text-[11px] text-slate-light leading-snug">{stat.label}</p>
+                  <p className="text-[11px] text-brand-mist leading-snug">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -175,7 +175,7 @@ const PillarPage = ({
           {!user && emailCaptureText && (
             <div className="mt-5 max-w-[500px]">
               {captureSent ? (
-                <p className="text-[12px] text-slate-light">You're subscribed — updates will arrive Monday morning.</p>
+                <p className="text-[12px] text-brand-mist">You're subscribed — updates will arrive Monday morning.</p>
               ) : (
                 <form onSubmit={handleEmailCapture} className="flex gap-2">
                   <input
@@ -183,7 +183,7 @@ const PillarPage = ({
                     value={captureEmail}
                     onChange={(e) => setCaptureEmail(e.target.value)}
                     placeholder={emailCaptureText}
-                    className="flex-1 text-[12px] px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder:text-slate-light focus:outline-none focus:border-white/40"
+                    className="flex-1 text-[12px] px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder:text-brand-mist focus:outline-none focus:border-white/40"
                     required
                   />
                   <button
@@ -199,7 +199,7 @@ const PillarPage = ({
 
           {/* Contextual chip — free registered users */}
           {user && !isPremium && emailCaptureText && (
-            <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-slate-light bg-white/10 px-3 py-1.5 rounded-full">
+            <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-brand-mist bg-white/10 px-3 py-1.5 rounded-full">
               <span>Intelligence subscribers see full tables and analysis on every update.</span>
               <Link to="/subscribe" className="text-sky-300 font-semibold hover:text-white transition-colors">
                 Get Intelligence →
@@ -214,8 +214,8 @@ const PillarPage = ({
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         {/* Intro */}
-        <div className="bg-card border border-fog rounded-2xl p-5 md:p-8 shadow-eup-sm mb-6">
-          <p className="text-[15px] text-navy leading-relaxed">{intro}</p>
+        <div className="bg-card border border-brand-cloud rounded-2xl p-5 md:p-8 shadow-eup-sm mb-6">
+          <p className="text-[15px] text-brand-navy leading-relaxed">{intro}</p>
         </div>
 
         {/* Assessment CTA — shown to all users when this pillar has an associated tool/assessment.
@@ -227,7 +227,7 @@ const PillarPage = ({
                 <div className="text-[11px] font-bold tracking-widest uppercase text-[hsl(var(--accent))] mb-1.5">
                   ✓ Assessment tool
                 </div>
-                <h3 className="text-[16px] text-navy leading-snug mb-1">
+                <h3 className="text-[16px] text-brand-navy leading-snug mb-1">
                   {toolCta.heading}
                 </h3>
                 <p className="text-sm text-slate leading-relaxed">{toolCta.description}</p>
@@ -246,9 +246,9 @@ const PillarPage = ({
         {sections.length > 1 && (
           <details
             open
-            className="mb-8 rounded-xl border border-fog bg-card md:open:block group"
+            className="mb-8 rounded-xl border border-brand-cloud bg-card md:open:block group"
           >
-            <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-navy md:cursor-default">
+            <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-brand-navy md:cursor-default">
               <span>On this page</span>
               <span className="md:hidden text-slate text-[11px] group-open:rotate-180 transition-transform">▼</span>
             </summary>
@@ -256,7 +256,7 @@ const PillarPage = ({
               {recentArticles.length > 0 && (
                 <a
                   href="#recent-developments"
-                  className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                  className="text-sm text-brand-teal hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
                 >
                   <span className="text-slate">→</span>
                   <span>Recent developments <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-[hsl(var(--cobalt)/0.12)] text-[hsl(var(--cobalt))] align-middle">Live</span></span>
@@ -272,7 +272,7 @@ const PillarPage = ({
                   <a
                     key={i}
                     href={`#${slug}`}
-                    className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                    className="text-sm text-brand-teal hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
                   >
                     <span className="text-slate">→</span>
                     <span>{sec.heading}</span>
@@ -285,25 +285,25 @@ const PillarPage = ({
 
         {/* "What changed this week" CTA — hidden for premium users (they already get it). */}
         {!premiumLoading && !isPremium && (
-          <div className="rounded-xl border border-sky/20 overflow-hidden shadow-eup-sm mb-10 bg-card">
-            <div className="bg-gradient-to-br from-navy to-navy-mid px-5 py-4 flex items-start justify-between gap-4">
+          <div className="rounded-xl border border-brand-mist/20 overflow-hidden shadow-eup-sm mb-10 bg-card">
+            <div className="bg-gradient-to-br from-brand-navy to-brand-ocean px-5 py-4 flex items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">
+                <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-1">
                   ⭐ Weekly Intelligence
                 </div>
                 <h3 className="text-[16px] text-white leading-snug">
                   {intelligenceLabel || "What changed in this area this week"}
                 </h3>
               </div>
-              <Lock className="w-4 h-4 text-sky/60 shrink-0 mt-1" />
+              <Lock className="w-4 h-4 text-brand-mist/60 shrink-0 mt-1" />
             </div>
             <div className="p-5 md:p-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-              <p className="text-sm text-navy leading-relaxed font-medium">
+              <p className="text-sm text-brand-navy leading-relaxed font-medium">
                 {midPageCtaMessage || "Intelligence subscribers get full analysis on every development in this area."}
               </p>
               <Link
                 to="/subscribe"
-                className="inline-flex w-full sm:w-auto items-center justify-center text-[12px] font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
+                className="inline-flex w-full sm:w-auto items-center justify-center text-[12px] font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2.5 rounded-lg no-underline hover:opacity-90 transition-all whitespace-nowrap"
               >
                 Get full intelligence →
               </Link>
@@ -315,7 +315,7 @@ const PillarPage = ({
         {recentArticles.length > 0 && (
           <div id="recent-developments" className="scroll-mt-24 mb-10">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="font-display text-navy">Recent developments</h2>
+              <h2 className="font-display text-brand-navy">Recent developments</h2>
               <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-[hsl(var(--cobalt)/0.12)] text-[hsl(var(--cobalt))]">
                 Live
               </span>
@@ -342,11 +342,11 @@ const PillarPage = ({
             return (
               <React.Fragment key={i}>
                 <div id={slug} className="scroll-mt-24">
-                  <h2 className="font-display text-navy mb-3">{sec.heading}</h2>
+                  <h2 className="font-display text-brand-navy mb-3">{sec.heading}</h2>
                   <div
-                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line [&_a]:text-sky [&_a]:no-underline [&_a:hover]:underline"
+                    className="text-[14px] text-slate leading-relaxed whitespace-pre-line [&_a]:text-brand-mist [&_a]:no-underline [&_a:hover]:underline"
                     dangerouslySetInnerHTML={{
-                      __html: sec.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-navy font-semibold">$1</strong>'),
+                      __html: sec.content.replace(/\*\*(.+?)\*\*/g, '<strong class="text-brand-navy font-semibold">$1</strong>'),
                     }}
                   />
                 </div>
@@ -357,16 +357,16 @@ const PillarPage = ({
 
 
         {/* Related links */}
-        <div className="mt-12 pt-8 border-t border-fog">
-          <h3 className="text-navy mb-4">Related Resources</h3>
+        <div className="mt-12 pt-8 border-t border-brand-cloud">
+          <h3 className="text-brand-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link
                 key={i}
                 to={link.href}
-                className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium"
+                className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium"
               >
-                <span className="text-blue">→</span> {link.label}
+                <span className="text-brand-teal">→</span> {link.label}
               </Link>
             ))}
           </div>
@@ -374,7 +374,7 @@ const PillarPage = ({
             <div className="mt-6">
               <Link
                 to={directoryLink.href}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal rounded-lg shadow-eup-sm hover:opacity-90 transition-all no-underline"
               >
                 {directoryLink.label} →
               </Link>
@@ -385,15 +385,15 @@ const PillarPage = ({
 
         {/* Premium CTA — hidden for premium users */}
         {!isPremium && (
-          <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Weekly Intelligence</div>
+          <div className="mt-12 bg-gradient-to-br from-brand-navy to-brand-ocean rounded-2xl p-6 md:p-8 text-center">
+            <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-2">⭐ Weekly Intelligence</div>
             <h3 className="text-white mb-3">Get weekly intelligence on {title}</h3>
-            <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
+            <p className="text-sm text-brand-mist mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>
             <Link
               to="/subscribe"
-              className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
+              className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
             >
               Get full intelligence →
             </Link>

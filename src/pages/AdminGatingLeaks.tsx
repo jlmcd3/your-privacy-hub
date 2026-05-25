@@ -43,11 +43,11 @@ export default function AdminGatingLeaks() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-navy">Gating Leak Scanner</h1>
+            <h1 className="text-brand-navy">Gating Leak Scanner</h1>
             <p className="text-sm text-slate mt-1">
               Cross-references route protection against user-visible Pro/Premium
               labels. Re-run with{" "}
-              <code className="bg-fog px-1.5 py-0.5 rounded text-[12px]">
+              <code className="bg-brand-cloud px-1.5 py-0.5 rounded text-[12px]">
                 node scripts/scan-gating-leaks.mjs
               </code>
               .
@@ -92,7 +92,7 @@ export default function AdminGatingLeaks() {
           if (!items.length) return null;
           return (
             <section key={sev} className="mb-8">
-              <h2 className="text-navy mb-3 capitalize">
+              <h2 className="text-brand-navy mb-3 capitalize">
                 {sev} ({items.length})
               </h2>
               <div className="space-y-3">

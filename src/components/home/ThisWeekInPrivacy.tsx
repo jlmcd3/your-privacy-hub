@@ -72,7 +72,7 @@ export default function ThisWeekInPrivacy() {
     const headline = trends[0]?.title || "Privacy Intelligence Synthesis";
 
     return (
-      <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
+      <div className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-2xl p-6 text-white mb-6">
         <div className="flex items-center gap-2 mb-3">
           <h2 className="font-display text-white">
             This Week in Privacy
@@ -101,7 +101,7 @@ export default function ThisWeekInPrivacy() {
 
         <Link
           to="/#brief"
-          className="inline-block text-meta font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
+          className="inline-block text-meta font-semibold text-brand-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
         >
           Read this week's brief →
         </Link>
@@ -121,7 +121,7 @@ export default function ThisWeekInPrivacy() {
     : [];
 
   return (
-    <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-white mb-6">
+    <div className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-2xl p-6 text-white mb-6">
       <div className="flex items-center gap-2 mb-3">
         <h2 className="font-display text-white">
           This Week in Privacy
@@ -150,7 +150,7 @@ export default function ThisWeekInPrivacy() {
 
       <Link
         to="/#brief"
-        className="inline-block text-meta font-semibold text-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
+        className="inline-block text-meta font-semibold text-brand-navy bg-white hover:bg-white/90 px-4 py-2 rounded-lg no-underline transition-colors"
       >
         Read this week's brief →
       </Link>

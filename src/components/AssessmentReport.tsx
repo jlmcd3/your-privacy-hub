@@ -183,7 +183,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
           return (
             <div key={idx} className="pt-2">
               {/* DM Sans medium reads cleaner than DM Serif Display bold at this size */}
-              <h4 className="text-sm font-semibold text-navy tracking-tight uppercase">
+              <h4 className="text-sm font-semibold text-brand-navy tracking-tight uppercase">
                 {b.text}
               </h4>
               <div className="mt-1 h-[2px] w-10 bg-[hsl(var(--steel))] rounded-full" />
@@ -304,7 +304,7 @@ export default function AssessmentReport({
                   {sectionChipLabel}
                 </span>
               )}
-              <h3 className="text-navy leading-tight">
+              <h3 className="text-brand-navy leading-tight">
                 {jurisdiction}
               </h3>
               {statute && (

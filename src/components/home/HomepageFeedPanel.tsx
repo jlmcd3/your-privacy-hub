@@ -27,8 +27,8 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 
 const SLOT_LABELS = [
   { icon: "👁", text: "What any visitor sees", className: "text-slate/60 text-sm" },
-  { icon: "✉", text: "Free account view", className: "text-blue text-sm font-medium" },
-  { icon: "⭐", text: "Platform view", className: "text-gold text-sm font-semibold" },
+  { icon: "✉", text: "Free account view", className: "text-brand-teal text-sm font-medium" },
+  { icon: "⭐", text: "Platform view", className: "text-brand-teal text-sm font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
@@ -92,7 +92,7 @@ const HomepageArticleCard = ({
     const sentence = shortWhy ? (shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy) : null;
     const alertNode = sentence ? (
       <p className="text-body mt-2" style={{ color: '#92400E' }}>
-        <span className="font-semibold text-warn">Alert: </span>{sentence}
+        <span className="font-semibold text-severity-warning">Alert: </span>{sentence}
       </p>
     ) : null;
 
@@ -101,7 +101,7 @@ const HomepageArticleCard = ({
       article.why_it_matters_short ??
       article.ai_summary?.why_it_matters_short;
     const contextNode = why ? (
-      <p className="text-body text-steel mt-2">
+      <p className="text-body text-brand-steel mt-2">
         <span className="font-semibold">Context: </span>{why}
       </p>
     ) : null;
@@ -112,10 +112,10 @@ const HomepageArticleCard = ({
           {excerpt}
           {alertNode}
           <div className="flex flex-col gap-1 mt-1">
-            <Link to="/signup" className="text-meta font-semibold text-steel hover:underline no-underline">
+            <Link to="/signup" className="text-meta font-semibold text-brand-steel hover:underline no-underline">
               Register free to see Context →
             </Link>
-            <Link to="/subscribe" className="text-meta font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-meta font-semibold text-brand-teal hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -130,7 +130,7 @@ const HomepageArticleCard = ({
           {alertNode}
           {contextNode}
           <div className="mt-1.5">
-            <Link to="/subscribe" className="text-meta font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-meta font-semibold text-brand-teal hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -148,7 +148,7 @@ const HomepageArticleCard = ({
           {contextNode}
           {(impact || actionProse || watchProse) && (
             <p className="text-body mt-2" style={{ color: '#78350F' }}>
-              <span className="font-semibold text-gold">Analysis and Guidance: </span>
+              <span className="font-semibold text-brand-teal">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
               {actionProse}
@@ -160,8 +160,8 @@ const HomepageArticleCard = ({
             ⭐ Platform feature preview
           </p>
           <InvestigationPrompt item={article} />
-          <div className="pt-1.5 border-t border-fog">
-            <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
+          <div className="pt-1.5 border-t border-brand-cloud">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
@@ -180,7 +180,7 @@ const HomepageArticleCard = ({
           {contextNode}
           {(impact || actionProse || watchProse) && (
             <p className="text-body mt-2" style={{ color: '#78350F' }}>
-              <span className="font-semibold text-gold">Analysis and Guidance: </span>
+              <span className="font-semibold text-brand-teal">Analysis and Guidance: </span>
               {impact}
               {impact && (actionProse || watchProse) && " "}
               {actionProse}
@@ -189,8 +189,8 @@ const HomepageArticleCard = ({
             </p>
           )}
           <InvestigationPrompt item={article} />
-          <div className="pt-1.5 border-t border-fog">
-            <Link to={toolCTA.href} className="text-meta font-semibold text-gold hover:underline no-underline">
+          <div className="pt-1.5 border-t border-brand-cloud">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
@@ -210,10 +210,10 @@ const HomepageArticleCard = ({
 
   return (
     <div
-      className={`relative px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
+      className={`relative px-3 py-3.5 border-b border-brand-cloud last:border-0 cursor-pointer transition-colors
         ${isSelected
-          ? "bg-blue-50/60 border-l-[3px] border-gold"
-          : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-fog/40`
+          ? "bg-blue-50/60 border-l-[3px] border-brand-teal"
+          : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-brand-cloud/40`
         }`}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("a")) return;
@@ -224,7 +224,7 @@ const HomepageArticleCard = ({
         <div className={`mb-1.5 ${tierLabel.className}`}>
           {tierLabel.icon} {tierLabel.text}
           {demoTier === "paid" && (
-            <div className="text-meta text-gold/80 font-normal mt-0.5">
+            <div className="text-meta text-brand-teal/80 font-normal mt-0.5">
               + AI investigation prompt, pre-built for this article
             </div>
           )}
@@ -247,7 +247,7 @@ const HomepageArticleCard = ({
               </span>
             )}
             {article.published_at && (
-              <span className="text-meta text-slate-light">
+              <span className="text-meta text-brand-mist">
                 {fmtDate(article.published_at)}
               </span>
             )}
@@ -259,7 +259,7 @@ const HomepageArticleCard = ({
           </div>
           <Link
             to="/updates"
-            className="absolute top-3 right-3 text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-gold text-white hover:opacity-90 no-underline transition-opacity"
+            className="absolute top-3 right-3 text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-brand-teal text-white hover:opacity-90 no-underline transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
             Open feed →
@@ -269,7 +269,7 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-card-title text-gray-900 hover:text-blue block no-underline transition-colors"
+              className="text-card-title text-gray-900 hover:text-brand-teal block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
@@ -451,7 +451,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         <div className="flex gap-6">
           <div className="flex-1 space-y-4">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="animate-pulse flex gap-3 py-3 border-b border-fog">
+              <div key={i} className="animate-pulse flex gap-3 py-3 border-b border-brand-cloud">
                 <div className="w-10 h-10 rounded-md bg-slate-100 flex-shrink-0" />
                 <div className="flex-1 space-y-1.5">
                   <div className="h-2.5 bg-slate-100 rounded w-24" />
@@ -472,8 +472,8 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
   if (!articles.length) {
     return (
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
-        <div className="rounded-xl border border-dashed border-fog bg-card px-6 py-10 text-center">
-          <h2 className="font-display text-navy mb-2">
+        <div className="rounded-xl border border-dashed border-brand-cloud bg-card px-6 py-10 text-center">
+          <h2 className="font-display text-brand-navy mb-2">
             No developments available yet
           </h2>
           <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">
@@ -481,7 +481,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           </p>
           <Link
             to="/updates"
-            className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+            className="inline-flex items-center gap-2 bg-brand-teal text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Open the full Privacy Intelligence Feed →
           </Link>
@@ -496,7 +496,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
         <p className="text-eyebrow text-slate/60 mb-1">
           Today's regulatory developments
         </p>
-        <h2 className="text-section-h2 text-navy">
+        <h2 className="text-section-h2 text-brand-navy">
           {isAuthenticated
             ? "Today's intelligence"
             : "What you see — and what you're missing"}
@@ -533,10 +533,10 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           })()}
 
 
-          <div className="mt-5 pt-4 border-t border-fog">
+          <div className="mt-5 pt-4 border-t border-brand-cloud">
             <Link
               to="/updates"
-              className="inline-flex items-center gap-2 bg-gold text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 bg-brand-teal text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               Open the full Privacy Intelligence Feed →
             </Link>

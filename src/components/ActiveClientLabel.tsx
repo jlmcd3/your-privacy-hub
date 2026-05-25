@@ -26,17 +26,17 @@ export default function ActiveClientLabel() {
   return (
     <div className="mb-4 text-sm text-slate inline-flex items-center gap-1.5 relative" ref={ref}>
       <span>Generating for:</span>
-      <span className="font-semibold text-navy">{activeClient.name}</span>
-      <span className="text-slate-light">·</span>
+      <span className="font-semibold text-brand-navy">{activeClient.name}</span>
+      <span className="text-brand-mist">·</span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="text-blue hover:text-navy bg-transparent border-none cursor-pointer font-medium inline-flex items-center gap-0.5"
+        className="text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer font-medium inline-flex items-center gap-0.5"
       >
         Change <ChevronDown className="w-3 h-3" />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-40 min-w-[220px] bg-card border border-fog rounded-md shadow-eup-md py-1">
+        <div className="absolute left-0 top-full mt-1 z-40 min-w-[220px] bg-card border border-brand-cloud rounded-md shadow-eup-md py-1">
           {clients.map((c) => {
             const active = c.id === activeClient.id;
             return (
@@ -47,10 +47,10 @@ export default function ActiveClientLabel() {
                   setActiveClient(c);
                   setOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm text-navy hover:bg-fog bg-transparent border-none cursor-pointer text-left"
+                className="w-full flex items-center justify-between px-3 py-2 text-sm text-brand-navy hover:bg-brand-cloud bg-transparent border-none cursor-pointer text-left"
               >
                 <span className={active ? 'font-semibold' : ''}>{c.name}</span>
-                {active && <Check className="w-3.5 h-3.5 text-blue" />}
+                {active && <Check className="w-3.5 h-3.5 text-brand-teal" />}
               </button>
             );
           })}

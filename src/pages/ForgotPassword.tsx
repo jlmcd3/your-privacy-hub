@@ -28,27 +28,27 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Reset Password | End User Privacy</title></Helmet>
       <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
-        <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
+        <div className="w-full max-w-md bg-card border border-brand-cloud rounded-2xl shadow-eup-sm p-8">
           {!sent ? (
             <>
-              <h1 className="font-display text-navy text-center mb-1.5">
+              <h1 className="font-display text-brand-navy text-center mb-1.5">
                 Reset Password
               </h1>
               <p className="text-sm text-slate text-center mb-7">
                 Enter your email and we'll send you a link to reset your password.
               </p>
               {error && (
-                <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
+                <div className="mb-5 p-3 rounded-lg bg-severity-warning/10 border border-severity-warning/30 text-severity-warning text-sm text-center">
                   {error}
                 </div>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-navy mb-1.5">
+                  <label className="block text-sm font-medium text-brand-navy mb-1.5">
                     Email
                   </label>
                   <input
@@ -56,20 +56,20 @@ export default function ForgotPassword() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-[14px] bg-paper border border-silver rounded-lg text-navy outline-none placeholder:text-slate-light focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+                    className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none placeholder:text-brand-mist focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
                     placeholder="you@company.com"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer border-none"
+                  className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal rounded-lg hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer border-none"
                 >
                   {loading ? "Sending…" : "Send Reset Link"}
                 </button>
               </form>
               <div className="text-center mt-5">
-                <Link to="/login" className="text-sm text-blue hover:text-navy no-underline">
+                <Link to="/login" className="text-sm text-brand-teal hover:text-brand-navy no-underline">
                   ← Back to Sign In
                 </Link>
               </div>
@@ -77,22 +77,22 @@ export default function ForgotPassword() {
           ) : (
             <div className="text-center py-4">
               <div className="text-4xl mb-4">📧</div>
-              <h2 className="font-display text-navy mb-2">Check your inbox</h2>
+              <h2 className="font-display text-brand-navy mb-2">Check your inbox</h2>
               <p className="text-slate text-sm leading-relaxed mb-6">
                 We sent a password reset link to <strong>{email}</strong>.
                 Click the link in that email to set a new password.
               </p>
-              <p className="text-slate-light text-[12px] mb-6">
+              <p className="text-brand-mist text-[12px] mb-6">
                 Didn't receive it? Check your spam folder, or{" "}
                 <button
                   onClick={() => setSent(false)}
-                  className="text-blue hover:text-navy bg-transparent border-none cursor-pointer p-0 text-[12px]"
+                  className="text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer p-0 text-[12px]"
                 >
                   try again
                 </button>
                 .
               </p>
-              <Link to="/login" className="text-sm text-blue hover:text-navy no-underline">
+              <Link to="/login" className="text-sm text-brand-teal hover:text-brand-navy no-underline">
                 ← Back to Sign In
               </Link>
             </div>

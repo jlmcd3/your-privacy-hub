@@ -115,7 +115,7 @@ function BillCard({
   return (
     <div
       className={`bg-white rounded-2xl border p-5 transition-all hover:shadow-eup-sm ${
-        variant === "imminent" ? "border-red-500/40" : "border-fog"
+        variant === "imminent" ? "border-red-500/40" : "border-brand-cloud"
       }`}
     >
       <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-4">
@@ -133,7 +133,7 @@ function BillCard({
               {bill.jurisdiction}
             </span>
             {bill.bill_number && (
-              <span className="font-mono text-[11px] text-slate-light">{bill.bill_number}</span>
+              <span className="font-mono text-[11px] text-brand-mist">{bill.bill_number}</span>
             )}
             <span
               className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
@@ -147,7 +147,7 @@ function BillCard({
               </span>
             )}
           </div>
-          <h3 className="text-navy text-[15px] mb-2">{bill.bill_name}</h3>
+          <h3 className="text-brand-navy text-[15px] mb-2">{bill.bill_name}</h3>
           {bill.summary && (
             <p className="text-slate text-sm leading-relaxed mb-3 line-clamp-3">{bill.summary}</p>
           )}
@@ -158,7 +158,7 @@ function BillCard({
                 What to do now
               </div>
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-sm text-navy leading-snug m-0">
+                <p className="text-sm text-brand-navy leading-snug m-0">
                   Prepare ahead of enactment — assess your exposure with the recommended tool.
                 </p>
                 <Link
@@ -171,13 +171,13 @@ function BillCard({
             </div>
           )}
 
-          <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-light">
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-brand-mist">
             {bill.source_url ? (
               <a
                 href={bill.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue hover:underline font-medium"
+                className="text-brand-teal hover:underline font-medium"
               >
                 View at {bill.source_name ?? "source"} →
               </a>
@@ -188,7 +188,7 @@ function BillCard({
             {bill.jurisdiction_slug && (
               <Link
                 to={`/jurisdiction/${bill.jurisdiction_slug}`}
-                className="text-blue hover:underline font-medium"
+                className="text-brand-teal hover:underline font-medium"
               >
                 · Jurisdiction page →
               </Link>
@@ -197,8 +197,8 @@ function BillCard({
         </div>
 
         {/* Prominent date */}
-        <div className="md:text-right md:border-l md:border-fog md:pl-4">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-light mb-1">
+        <div className="md:text-right md:border-l md:border-brand-cloud md:pl-4">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-brand-mist mb-1">
             {dateLabel}
           </div>
           <div className={`font-display text-xl md:text-2xl leading-tight ${dateTone}`}>
@@ -299,7 +299,7 @@ export default function LegislationTracker() {
             <ResearchSynthesisBlock sectionKey="legislation__page" promoteHeading />
           </div>
 
-          <div className="text-[11px] text-slate-light mb-6">
+          <div className="text-[11px] text-brand-mist mb-6">
             Bills not seen in their source for 60+ days are marked <span className="font-semibold">stale</span>. Updated daily at 06:00 UTC.
           </div>
 
@@ -309,7 +309,7 @@ export default function LegislationTracker() {
                 <button
                   key={r}
                   onClick={() => setRegion(r)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${region === r ? "bg-navy text-white border-navy" : "bg-white text-slate border-fog hover:border-navy/20"}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${region === r ? "bg-brand-navy text-white border-brand-navy" : "bg-white text-slate border-brand-cloud hover:border-brand-navy/20"}`}
                 >
                   {r}
                 </button>
@@ -322,7 +322,7 @@ export default function LegislationTracker() {
                   <button
                     key={s}
                     onClick={() => setStage(s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${stage === s ? "bg-navy text-white border-navy" : "bg-white text-slate border-fog hover:border-navy/20"}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${stage === s ? "bg-brand-navy text-white border-brand-navy" : "bg-white text-slate border-brand-cloud hover:border-brand-navy/20"}`}
                     style={cfg && stage === s ? { background: cfg.color, borderColor: cfg.color } : {}}
                   >
                     {s === "All Stages" ? s : STAGE_CONFIG[s as Stage].label}
@@ -341,7 +341,7 @@ export default function LegislationTracker() {
               {recentlyEnacted.length > 0 && (
                 <section className="mb-10">
                   <div className="flex items-baseline gap-3 mb-2">
-                    <h2 className="font-display text-navy leading-tight">Recently enacted</h2>
+                    <h2 className="font-display text-brand-navy leading-tight">Recently enacted</h2>
                     <span className="text-meta uppercase tracking-wider font-semibold text-emerald-700">
                       Last 90 days · {recentlyEnacted.length}
                     </span>
@@ -362,14 +362,14 @@ export default function LegislationTracker() {
               {tracks.map((track) => (
                 <section key={track.id} className="mb-10">
                   <div className={`flex items-center gap-3 mb-1 pl-3 border-l-4 ${track.tone.split(" ")[0]}`}>
-                    <h2 className="font-display text-navy leading-tight">{track.label}</h2>
+                    <h2 className="font-display text-brand-navy leading-tight">{track.label}</h2>
                     <span className={`text-meta uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${track.tone}`}>
                       {track.bills.length}
                     </span>
                   </div>
                   <p className="text-sm text-slate mb-4 pl-4">{track.sub}</p>
                   {track.bills.length === 0 ? (
-                    <p className="text-meta text-slate-light pl-4">No bills in this track for the current filters.</p>
+                    <p className="text-meta text-brand-mist pl-4">No bills in this track for the current filters.</p>
                   ) : (
                     <div className="space-y-3">
                       {track.bills.map((bill) => (
@@ -390,21 +390,21 @@ export default function LegislationTracker() {
             </>
           )}
 
-          <div className="mt-14 pt-8 border-t border-fog space-y-10">
+          <div className="mt-14 pt-8 border-t border-brand-cloud space-y-10">
             <section id="us-federal" className="scroll-mt-24">
-              <h2 className="font-display text-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
+              <h2 className="font-display text-brand-navy mb-4 leading-tight">U.S. Federal Privacy Legislation</h2>
               <ResearchSynthesisBlock sectionKey="legislation__us_federal" compact />
             </section>
             <section id="us-states" className="scroll-mt-24">
-              <h2 className="font-display text-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
+              <h2 className="font-display text-brand-navy mb-4 leading-tight">U.S. State Privacy Legislation in Progress</h2>
               <ResearchSynthesisBlock sectionKey="legislation__us_states" compact />
             </section>
             <section id="eu-uk" className="scroll-mt-24">
-              <h2 className="font-display text-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
+              <h2 className="font-display text-brand-navy mb-4 leading-tight">European Privacy and AI Legislation</h2>
               <ResearchSynthesisBlock sectionKey="legislation__eu_uk" compact />
             </section>
             <section id="global" className="scroll-mt-24">
-              <h2 className="font-display text-navy mb-4 leading-tight">Global Privacy Legislation</h2>
+              <h2 className="font-display text-brand-navy mb-4 leading-tight">Global Privacy Legislation</h2>
               <ResearchSynthesisBlock sectionKey="legislation__global" compact />
             </section>
           </div>

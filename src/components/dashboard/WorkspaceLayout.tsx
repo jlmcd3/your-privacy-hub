@@ -17,7 +17,7 @@ interface WorkspaceLayoutProps {
 export default function WorkspaceLayout({
   children,
   showFooter = true,
-  className = "bg-paper",
+  className = "bg-brand-cloud",
 }: WorkspaceLayoutProps) {
   return (
     <div className={`min-h-screen flex flex-col ${className}`}>

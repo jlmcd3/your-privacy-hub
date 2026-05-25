@@ -210,7 +210,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               </div>
               <Link
                 to={tool.href}
-                className="inline-flex items-center justify-center bg-navy text-white font-semibold text-sm py-2.5 px-4 rounded-xl no-underline hover:opacity-90 transition-all"
+                className="inline-flex items-center justify-center bg-brand-navy text-white font-semibold text-sm py-2.5 px-4 rounded-xl no-underline hover:opacity-90 transition-all"
               >
                 {tool.cta} →
               </Link>
@@ -221,7 +221,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel">
+          <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel">
             Your Recent Reports
           </h3>
           {hasFilings && (

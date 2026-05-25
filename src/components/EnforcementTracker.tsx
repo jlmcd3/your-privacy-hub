@@ -22,16 +22,16 @@ const EnforcementTracker = () => {
       <div className="max-w-[1280px] mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-8">
           <div>
-            <h2 className="font-display tracking-tight text-navy">Enforcement Tracker</h2>
+            <h2 className="font-display tracking-tight text-brand-navy">Enforcement Tracker</h2>
             <p className="text-sm text-slate mt-1">Every fine, order and sanction — all jurisdictions, updated as decisions are issued.</p>
           </div>
-          <a href="/enforcement-tracker" className="text-sm font-medium text-blue flex items-center gap-1 hover:gap-2 transition-all no-underline">
+          <a href="/enforcement-tracker" className="text-sm font-medium text-brand-teal flex items-center gap-1 hover:gap-2 transition-all no-underline">
             View full tracker →
           </a>
         </div>
 
-        <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
-          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm">
+          <div className="px-4 md:px-6 py-4 md:py-5 bg-brand-navy flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h3 className="text-white">Recent Enforcement Actions</h3>
               <div className="flex items-center gap-2 mt-1">
@@ -40,9 +40,9 @@ const EnforcementTracker = () => {
               </div>
             </div>
             <div className="relative w-full sm:w-auto">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-light" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-mist" />
               <input
-                className="w-full sm:w-auto pl-8 pr-3.5 py-1.5 text-sm bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-slate-light focus:border-sky transition-colors"
+                className="w-full sm:w-auto pl-8 pr-3.5 py-1.5 text-sm bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-brand-mist focus:border-brand-mist transition-colors"
                 placeholder="Search actions…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -51,7 +51,7 @@ const EnforcementTracker = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse min-w-[700px]">
-              <thead className="bg-fog">
+              <thead className="bg-brand-cloud">
                 <tr>
                   {["Regulator", "Company", "Jurisdiction", "Alleged Violation", "Fine", "Date"].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] font-semibold tracking-wider uppercase text-slate text-left border-b border-silver">
@@ -62,21 +62,21 @@ const EnforcementTracker = () => {
               </thead>
               <tbody>
                 {filtered.map((row, i) => (
-                  <tr key={i} className="hover:bg-paper transition-colors">
-                    <td className="px-4 py-3 text-sm text-navy border-b border-fog">{row.regulator}</td>
-                    <td className="px-4 py-3 text-sm text-navy font-medium border-b border-fog">{row.company}</td>
-                    <td className="px-4 py-3 text-sm text-navy border-b border-fog">{row.jurisdiction}</td>
-                    <td className="px-4 py-3 text-sm text-navy border-b border-fog max-w-[300px]">{row.violation}</td>
-                    <td className="px-4 py-3 font-semibold text-warn font-display text-sm border-b border-fog">{row.fine}</td>
-                    <td className="px-4 py-3 text-sm text-navy border-b border-fog whitespace-nowrap">{row.date}</td>
+                  <tr key={i} className="hover:bg-brand-cloud transition-colors">
+                    <td className="px-4 py-3 text-sm text-brand-navy border-b border-brand-cloud">{row.regulator}</td>
+                    <td className="px-4 py-3 text-sm text-brand-navy font-medium border-b border-brand-cloud">{row.company}</td>
+                    <td className="px-4 py-3 text-sm text-brand-navy border-b border-brand-cloud">{row.jurisdiction}</td>
+                    <td className="px-4 py-3 text-sm text-brand-navy border-b border-brand-cloud max-w-[300px]">{row.violation}</td>
+                    <td className="px-4 py-3 font-semibold text-severity-warning font-display text-sm border-b border-brand-cloud">{row.fine}</td>
+                    <td className="px-4 py-3 text-sm text-brand-navy border-b border-brand-cloud whitespace-nowrap">{row.date}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="p-5 md:p-7 text-center bg-gradient-to-b from-transparent to-fog border-t border-fog">
+          <div className="p-5 md:p-7 text-center bg-gradient-to-b from-transparent to-brand-cloud border-t border-brand-cloud">
             <p className="text-slate text-sm mb-3">Full searchable enforcement database available with Intelligence</p>
-            <button onClick={() => navigate("/subscribe")} className="inline-block px-5 py-2 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
+            <button onClick={() => navigate("/subscribe")} className="inline-block px-5 py-2 text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 transition-all border-none cursor-pointer">
               Upgrade for Full Access →
             </button>
           </div>

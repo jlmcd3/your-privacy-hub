@@ -104,7 +104,7 @@ export default function DPAGenerator() {
 
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Custom Data Processing Agreement | End User Privacy</title>
         <meta name="description" content="Draft a GDPR Article 28 controller-processor DPA with clauses calibrated to enforcement decisions — includes a Drafting Notes appendix citing the evidence behind every provision." /></Helmet>
       <Navbar />
@@ -154,7 +154,7 @@ export default function DPAGenerator() {
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display text-navy">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display text-brand-navy">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
             <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
@@ -165,23 +165,23 @@ export default function DPAGenerator() {
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-sm font-semibold text-navy mb-1">Generating your Custom DPA</p>
+            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your Custom DPA</p>
             <p className="text-meta text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h2 className="font-display text-navy">DPA Intake</h2>
+            <h2 className="font-display text-brand-navy">DPA Intake</h2>
             <div className="space-y-3 text-sm">
-              <label className="block"><span className="font-semibold text-navy">Controller name</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Controller name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
-              <label className="block"><span className="font-semibold text-navy">Controller jurisdiction</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Controller jurisdiction</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
                   {JURS.map(j => <option key={j}>{j}</option>)}</select></label>
-              <label className="block"><span className="font-semibold text-navy">Processor name</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Processor name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
-              <label className="block"><span className="font-semibold text-navy">Services description</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Services description</span>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
-              <fieldset><legend className="font-semibold text-navy">Data categories</legend>
+              <fieldset><legend className="font-semibold text-brand-navy">Data categories</legend>
                 <div className="grid grid-cols-2 gap-1.5 mt-1">
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
@@ -198,7 +198,7 @@ export default function DPAGenerator() {
             <button
               type="button"
               onClick={handlePurchase}
-              className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all"
+              className="w-full bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all"
             >
               {access.isFreeForUser ? "Generate — Free" : `Generate — $${pricing.price}`}
             </button>

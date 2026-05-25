@@ -103,7 +103,7 @@ export default function TranslateReportButton({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={loading !== null}
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-fog bg-white text-slate text-sm font-medium hover:border-navy/30 transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-brand-cloud bg-white text-slate text-sm font-medium hover:border-brand-navy/30 transition-colors disabled:opacity-60"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -118,9 +118,9 @@ export default function TranslateReportButton({
       {open && !loading && (
         <div
           role="listbox"
-          className="absolute right-0 mt-1.5 w-56 bg-white border border-fog rounded-xl shadow-lg z-50 overflow-hidden"
+          className="absolute right-0 mt-1.5 w-56 bg-white border border-brand-cloud rounded-xl shadow-lg z-50 overflow-hidden"
         >
-          <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-fog">
+          <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-brand-cloud">
             Translate report
           </div>
           {LANGUAGES.map((l) => {
@@ -130,18 +130,18 @@ export default function TranslateReportButton({
                 key={l.code}
                 type="button"
                 onClick={() => handleSelect(l.code)}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-paper transition-colors ${
-                  isActive ? "text-navy font-medium" : "text-slate"
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-brand-cloud transition-colors ${
+                  isActive ? "text-brand-navy font-medium" : "text-slate"
                 }`}
                 role="option"
                 aria-selected={isActive}
               >
                 <span>{l.flag} {l.label}</span>
-                {isActive && <Check className="w-4 h-4 text-navy" />}
+                {isActive && <Check className="w-4 h-4 text-brand-navy" />}
               </button>
             );
           })}
-          <div className="px-3 py-2 text-[11px] text-muted-foreground border-t border-fog leading-snug">
+          <div className="px-3 py-2 text-[11px] text-muted-foreground border-t border-brand-cloud leading-snug">
             Translations use the official GDPR statutory glossary for legal accuracy.
           </div>
         </div>

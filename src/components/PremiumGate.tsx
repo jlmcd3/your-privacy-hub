@@ -30,7 +30,7 @@ export default function PremiumGate({ message, blur = true, children }: PremiumG
             <p className="text-sm text-muted-foreground leading-snug mb-3">{message}</p>
             <Link
               to="/subscribe"
-              className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
+              className="inline-block bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               See Plans →
             </Link>
@@ -52,7 +52,7 @@ export default function PremiumGate({ message, blur = true, children }: PremiumG
       <p className="text-sm text-muted-foreground mb-3">{message}</p>
       <Link
         to="/subscribe"
-        className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
+        className="inline-block bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-5 py-2 rounded-xl no-underline hover:opacity-90 transition-all"
       >
         See Plans →
       </Link>

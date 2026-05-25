@@ -77,7 +77,7 @@ const FAQ = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-b from-navy to-navy-light py-16 px-4">
+      <section className="bg-gradient-to-b from-brand-navy to-brand-slate-teal py-16 px-4">
         <div className="max-w-[760px] mx-auto">
         <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-accent-light bg-accent-light/10 px-3 py-1.5 rounded-full border border-accent-light/20 mb-4">
           ❓ FREQUENTLY ASKED QUESTIONS
@@ -85,9 +85,9 @@ const FAQ = () => {
         <h1 className="font-display text-white mb-3">
           Everything you need to know
         </h1>
-        <p className="text-slate-light text-[15px]">
+        <p className="text-brand-mist text-[15px]">
           Can't find your answer? Email us at{" "}
-          <a href="mailto:hello@enduserprivacy.com" className="text-sky hover:underline">
+          <a href="mailto:hello@enduserprivacy.com" className="text-brand-mist hover:underline">
             hello@enduserprivacy.com
           </a>
         </p>
@@ -99,7 +99,7 @@ const FAQ = () => {
       {/* Accordion */}
       <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1">
         {faqs.map((faq, i) => (
-          <div key={i} className="bg-card border border-fog rounded-xl mb-3 overflow-hidden">
+          <div key={i} className="bg-card border border-brand-cloud rounded-xl mb-3 overflow-hidden">
             <button
               onClick={() => {
                 setOpenIndices(prev => {
@@ -108,9 +108,9 @@ const FAQ = () => {
                   return next;
                 });
               }}
-              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-fog transition-colors text-left"
+              className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left"
             >
-              <span className="font-medium text-navy text-[15px] pr-4">{faq.q}</span>
+              <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
               <ChevronDown
                 className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
               />
@@ -121,11 +121,11 @@ const FAQ = () => {
           </div>
         ))}
 
-        <h2 className="font-display text-navy mt-10 mb-4">Pricing</h2>
+        <h2 className="font-display text-brand-navy mt-10 mb-4">Pricing</h2>
         {pricingFaqs.map((faq, j) => {
           const i = faqs.length + j;
           return (
-            <div key={i} className="bg-card border border-fog rounded-xl mb-3 overflow-hidden">
+            <div key={i} className="bg-card border border-brand-cloud rounded-xl mb-3 overflow-hidden">
               <button
                 onClick={() => {
                   setOpenIndices(prev => {
@@ -134,9 +134,9 @@ const FAQ = () => {
                     return next;
                   });
                 }}
-                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-fog transition-colors text-left"
+                className="w-full flex justify-between items-center px-6 py-4 cursor-pointer hover:bg-brand-cloud transition-colors text-left"
               >
-                <span className="font-medium text-navy text-[15px] pr-4">{faq.q}</span>
+                <span className="font-medium text-brand-navy text-[15px] pr-4">{faq.q}</span>
                 <ChevronDown
                   className={`w-4 h-4 shrink-0 text-silver transition-transform duration-200 ${openIndices.has(i) ? "rotate-180" : ""}`}
                 />
@@ -149,12 +149,12 @@ const FAQ = () => {
         })}
 
         {/* Bottom CTA */}
-        <div className="bg-navy rounded-2xl p-8 text-center mt-12">
+        <div className="bg-brand-navy rounded-2xl p-8 text-center mt-12">
           <h2 className="text-white font-display mb-2">Still have questions?</h2>
-          <p className="text-slate-light text-[14px] mb-4">We're happy to help.</p>
+          <p className="text-brand-mist text-[14px] mb-4">We're happy to help.</p>
           <a
             href="mailto:hello@enduserprivacy.com"
-            className="inline-block px-6 py-3 bg-white text-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
+            className="inline-block px-6 py-3 bg-white text-brand-navy font-semibold rounded-lg hover:opacity-90 transition-all no-underline text-[14px]"
           >
             Email us →
           </a>

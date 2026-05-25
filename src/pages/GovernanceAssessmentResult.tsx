@@ -368,7 +368,7 @@ const GovernanceAssessmentResult = () => {
                   .filter(Boolean)
                   .join("\n\n")}
                 label="Governance Assessment"
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-navy bg-white border border-navy/30 hover:bg-navy/5 rounded-lg transition-colors disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white border border-brand-navy/30 hover:bg-brand-navy/5 rounded-lg transition-colors disabled:opacity-60"
               />
             </div>
           </>

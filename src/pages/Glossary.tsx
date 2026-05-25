@@ -77,7 +77,7 @@ function highlight(text: string, q: string) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-accent/20 text-navy rounded-sm px-0.5">{text.slice(idx, idx + q.length)}</mark>
+      <mark className="bg-accent/20 text-brand-navy rounded-sm px-0.5">{text.slice(idx, idx + q.length)}</mark>
       {text.slice(idx + q.length)}
     </>
   );
@@ -86,28 +86,28 @@ function highlight(text: string, q: string) {
 const TermCard = ({ t, q }: { t: Term; q: string }) => {
   const tool = TOOL_LINKS[t.slug];
   return (
-    <div className="block p-4 bg-card border border-fog rounded-xl hover:border-blue/30 hover:shadow-eup-sm transition-all">
+    <div className="block p-4 bg-card border border-brand-cloud rounded-xl hover:border-brand-teal/30 hover:shadow-eup-sm transition-all">
       <Link to={`/glossary/${t.slug}`} className="no-underline">
-        <h3 className="text-navy mb-1">{highlight(t.term, q)}</h3>
+        <h3 className="text-brand-navy mb-1">{highlight(t.term, q)}</h3>
         <p className="text-xs text-slate line-clamp-2 leading-relaxed">{t.definition}</p>
       </Link>
       <div className="flex gap-1.5 mt-2 flex-wrap items-center">
         {t.regulations && t.regulations.length > 0 && (
-          <span className="text-meta text-slate-light uppercase tracking-wider font-semibold mr-0.5">
+          <span className="text-meta text-brand-mist uppercase tracking-wider font-semibold mr-0.5">
             Regulated in:
           </span>
         )}
         {(t.regulations || []).map((r) => (
           <span
             key={r}
-            className="font-mono-code text-meta px-1.5 py-0.5 rounded-full bg-blue/10 text-blue font-medium"
+            className="font-mono-code text-meta px-1.5 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal font-medium"
           >
             {r}
           </span>
         ))}
       </div>
       {tool && (
-        <div className="mt-3 pt-3 border-t border-fog">
+        <div className="mt-3 pt-3 border-t border-brand-cloud">
           <Link to={tool.href} className="text-xs font-semibold text-accent hover:underline no-underline">
             See in practice → {tool.label}
           </Link>
@@ -161,7 +161,7 @@ const Glossary = () => {
   const toggleTheme = (id: string) => setOpenThemes((s) => ({ ...s, [id]: !s[id] }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper">
+    <div className="min-h-screen flex flex-col bg-brand-cloud">
       <Helmet>
         <title>Privacy Law Glossary 2026 — GDPR, CCPA &amp; Data Protection Terms | End User Privacy</title>
         <meta
@@ -186,15 +186,15 @@ const Glossary = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {/* Search */}
-        <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-paper/95 backdrop-blur border-b border-fog mb-6">
+        <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-brand-cloud/95 backdrop-blur border-b border-brand-cloud mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-light w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-mist w-4 h-4" />
             <input
               type="search"
               placeholder="Search terms, definitions, or regulations (e.g. consent, GDPR, DPIA)…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full py-2.5 pl-10 pr-4 text-sm border border-silver rounded-lg bg-card text-navy outline-none focus:border-blue transition-colors"
+              className="w-full py-2.5 pl-10 pr-4 text-sm border border-silver rounded-lg bg-card text-brand-navy outline-none focus:border-brand-teal transition-colors"
             />
           </div>
           {q && (
@@ -210,14 +210,14 @@ const Glossary = () => {
             <a
               key={t.id}
               href={`#theme-${t.id}`}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-silver text-navy hover:border-accent no-underline"
+              className="text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-silver text-brand-navy hover:border-accent no-underline"
             >
               {t.label}
             </a>
           ))}
           <a
             href="#az"
-            className="text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-silver text-navy hover:border-accent no-underline"
+            className="text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-silver text-brand-navy hover:border-accent no-underline"
           >
             A–Z index
           </a>
@@ -234,17 +234,17 @@ const Glossary = () => {
               <section
                 key={theme.id}
                 id={`theme-${theme.id}`}
-                className="border border-fog rounded-xl bg-card overflow-hidden scroll-mt-24"
+                className="border border-brand-cloud rounded-xl bg-card overflow-hidden scroll-mt-24"
               >
                 <button
                   onClick={() => toggleTheme(theme.id)}
-                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-paper transition-colors"
+                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-brand-cloud transition-colors"
                 >
                   <div>
-                    <h2 className="text-navy text-lg mb-0.5 flex items-center gap-2">
+                    <h2 className="text-brand-navy text-lg mb-0.5 flex items-center gap-2">
                       {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                       {theme.label}
-                      <span className="text-xs font-normal text-slate-light">({theme.items.length})</span>
+                      <span className="text-xs font-normal text-brand-mist">({theme.items.length})</span>
                     </h2>
                     <p className="text-xs text-slate ml-6">{theme.description}</p>
                   </div>
@@ -267,7 +267,7 @@ const Glossary = () => {
         {/* A–Z for everything else */}
         <div id="az" className="scroll-mt-24">
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-navy">A–Z index</h2>
+            <h2 className="text-brand-navy">A–Z index</h2>
             <span className="text-xs text-slate">{sortedOther.length} additional terms</span>
           </div>
 
@@ -277,7 +277,7 @@ const Glossary = () => {
                 key={l}
                 href={`#letter-${l}`}
                 className={`w-8 h-8 flex items-center justify-center text-xs font-semibold rounded-lg no-underline transition-colors ${
-                  groupedAZ[l] ? "text-blue hover:bg-blue/10" : "text-slate/30 pointer-events-none"
+                  groupedAZ[l] ? "text-brand-teal hover:bg-brand-teal/10" : "text-slate/30 pointer-events-none"
                 }`}
               >
                 {l}
@@ -287,7 +287,7 @@ const Glossary = () => {
 
           {Object.entries(groupedAZ).map(([letter, terms]) => (
             <div key={letter} id={`letter-${letter}`} className="mb-8 scroll-mt-24">
-              <h3 className="text-navy mb-4 border-b border-fog pb-2">{letter}</h3>
+              <h3 className="text-brand-navy mb-4 border-b border-brand-cloud pb-2">{letter}</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {terms.map((t) => (
                   <TermCard key={t.slug} t={t} q={q} />

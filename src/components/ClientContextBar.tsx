@@ -38,7 +38,7 @@ export default function ClientContextBar() {
 
   // Distinct visual treatment based on workspace type.
   const bandClass = inPersonal
-    ? 'bg-[#EEF2F8] border-b border-fog'
+    ? 'bg-[#EEF2F8] border-b border-brand-cloud'
     : 'bg-amber-50 border-b border-amber-200';
   const labelText = inPersonal ? 'Personal workspace' : 'Client';
   const Icon = inPersonal ? User : Briefcase;
@@ -46,10 +46,10 @@ export default function ClientContextBar() {
   return (
     <div className={`w-full ${bandClass}`}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between">
-        <div className="text-sm text-navy/80 flex items-center gap-1.5 min-w-0">
+        <div className="text-sm text-brand-navy/80 flex items-center gap-1.5 min-w-0">
           <Icon className="w-3.5 h-3.5 shrink-0" />
           <span className="shrink-0">{labelText}:</span>
-          <span className="font-semibold text-navy truncate">
+          <span className="font-semibold text-brand-navy truncate">
             {activeClient.name}
           </span>
         </div>
@@ -57,12 +57,12 @@ export default function ClientContextBar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="text-sm font-medium text-navy/80 hover:text-navy bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
+            className="text-sm font-medium text-brand-navy/80 hover:text-brand-navy bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
           >
             Switch <ChevronDown className="w-3.5 h-3.5" />
           </button>
           {open && (
-            <div className="absolute right-0 top-full mt-1 z-50 min-w-[260px] bg-card border border-fog rounded-md shadow-eup-md py-1">
+            <div className="absolute right-0 top-full mt-1 z-50 min-w-[260px] bg-card border border-brand-cloud rounded-md shadow-eup-md py-1">
               {personal && (
                 <>
                   <div className="px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate">
@@ -77,7 +77,7 @@ export default function ClientContextBar() {
                       setOpen(false);
                     }}
                   />
-                  <div className="my-1 border-t border-fog" />
+                  <div className="my-1 border-t border-brand-cloud" />
                 </>
               )}
               <div className="px-3 pt-1 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate">
@@ -118,7 +118,7 @@ function WorkspaceRow({
     <button
       type="button"
       onClick={onSelect}
-      className="w-full flex items-center justify-between px-3 py-2 text-sm text-navy hover:bg-fog bg-transparent border-none cursor-pointer text-left"
+      className="w-full flex items-center justify-between px-3 py-2 text-sm text-brand-navy hover:bg-brand-cloud bg-transparent border-none cursor-pointer text-left"
     >
       <span className="flex items-center gap-2 min-w-0">
         {icon}
@@ -126,7 +126,7 @@ function WorkspaceRow({
           {name}
         </span>
       </span>
-      {active && <Check className="w-3.5 h-3.5 text-blue shrink-0" />}
+      {active && <Check className="w-3.5 h-3.5 text-brand-teal shrink-0" />}
     </button>
   );
 }

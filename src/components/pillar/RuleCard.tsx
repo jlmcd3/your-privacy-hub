@@ -34,7 +34,7 @@ export function RuleCard({
   return (
     <div className={`border-l-4 rounded-r-lg px-5 py-4 mb-4 ${borderColor}`}>
       <p className={`text-[11px] font-bold tracking-wider uppercase mb-2 ${labelColor}`}>{label}</p>
-      <p className="text-[14px] font-medium text-navy leading-relaxed mb-1">{requirement}</p>
+      <p className="text-[14px] font-medium text-brand-navy leading-relaxed mb-1">{requirement}</p>
       {detail && <p className="text-sm text-slate leading-relaxed">{detail}</p>}
       {enforcementLink && (
         <Link to={enforcementLink} className="text-[12px] text-sky-700 hover:underline mt-2 inline-block">

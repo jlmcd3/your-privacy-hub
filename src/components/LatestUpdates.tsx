@@ -129,7 +129,7 @@ const TOPIC_FILTERS = [
 ];
 
 const SkeletonCard = () => (
-  <div className="flex gap-4 p-4 bg-card border border-fog rounded-2xl animate-pulse">
+  <div className="flex gap-4 p-4 bg-card border border-brand-cloud rounded-2xl animate-pulse">
     <div className="flex-1 space-y-2">
       <div className="h-3 w-1/3 bg-muted rounded" />
       <div className="h-4 w-full bg-muted rounded" />
@@ -199,16 +199,16 @@ const LatestUpdates = () => {
   );
 
   return (
-    <section className="pt-0 pb-10 md:pb-16 bg-paper">
+    <section className="pt-0 pb-10 md:pb-16 bg-brand-cloud">
       <div className="mx-auto">
-        <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
+        <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm">
           {/* Dark header bar */}
-          <div className="px-4 md:px-6 py-4 md:py-5 bg-navy flex flex-col gap-3">
+          <div className="px-4 md:px-6 py-4 md:py-5 bg-brand-navy flex flex-col gap-3">
             <div>
               <h2 className="text-white tracking-tight font-sans">
                 Privacy Intelligence Feed
               </h2>
-              <p className="text-[12px] text-slate-light">
+              <p className="text-[12px] text-brand-mist">
                 Updated daily and analyzed for key takeaways.{" "}
               </p>
             </div>
@@ -222,7 +222,7 @@ const LatestUpdates = () => {
                 <p className="text-[12px] font-semibold text-white">
                   Select your article feed by region and subject matter
                 </p>
-                <span className="flex items-center gap-1 text-[11px] font-medium text-sky group-hover:text-white whitespace-nowrap transition-colors">
+                <span className="flex items-center gap-1 text-[11px] font-medium text-brand-mist group-hover:text-white whitespace-nowrap transition-colors">
                   Open feed <ArrowRight className="w-3 h-3" />
                 </span>
               </div>
@@ -230,7 +230,7 @@ const LatestUpdates = () => {
                 {LOCATION_FILTERS.map((f) => (
                   <span
                     key={f.key}
-                    className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
+                    className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-white/[0.06] text-brand-mist border border-white/10"
                   >
                     {f.label}
                   </span>
@@ -239,7 +239,7 @@ const LatestUpdates = () => {
                 {TOPIC_FILTERS.map((f) => (
                   <span
                     key={f.key}
-                    className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-white/[0.06] text-slate-light border border-white/10"
+                    className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-white/[0.06] text-brand-mist border border-white/10"
                   >
                     {f.label}
                   </span>

@@ -81,7 +81,7 @@ const LegitimateInterestTracker = () => {
   }, [entries, outcomeFilter, signalFilter, jurisdictionFilter]);
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Legitimate Interest Tracker — GDPR & UK GDPR Article 6(1)(f) | End User Privacy</title>
         <meta name="description" content="Track what EU and UK data protection authorities have accepted, rejected, and conditioned under GDPR and UK GDPR legitimate interest. Updated weekly from regulatory decisions and guidance." />
@@ -103,7 +103,7 @@ const LegitimateInterestTracker = () => {
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intro + 3-Part Test */}
         <div className="mb-10">
-          <p className="text-[14px] text-navy leading-relaxed mb-6 max-w-[70ch]">
+          <p className="text-[14px] text-brand-navy leading-relaxed mb-6 max-w-[70ch]">
             Under GDPR Article 6(1)(f) and the equivalent provision of the UK GDPR, organizations may rely on legitimate interest as a lawful basis for processing — but only if they can satisfy a <strong>three-part test</strong>. This tracker compiles enforcement decisions and official guidance from EU and UK data protection authorities showing which processing activities pass or fail that test.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">
@@ -113,12 +113,12 @@ const LegitimateInterestTracker = () => {
               { n: "03", title: "Balancing", desc: "The individual's rights, freedoms, and reasonable expectations must not override the interest." },
             ].map((step, i) => (
               <Fragment key={step.n}>
-                <div className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md">
-                  <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Step {step.n}</div>
-                  <h3 className="text-navy mb-2">{step.title}</h3>
+                <div className="bg-card border-t-4 border-brand-navy p-5 shadow-eup-sm rounded-md">
+                  <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-1">Step {step.n}</div>
+                  <h3 className="text-brand-navy mb-2">{step.title}</h3>
                   <p className="text-sm text-slate leading-relaxed">{step.desc}</p>
                 </div>
-                {i < 2 && <span className="hidden md:flex items-center justify-center text-navy/30 text-2xl" aria-hidden>→</span>}
+                {i < 2 && <span className="hidden md:flex items-center justify-center text-brand-navy/30 text-2xl" aria-hidden>→</span>}
               </Fragment>
             ))}
           </div>
@@ -126,18 +126,18 @@ const LegitimateInterestTracker = () => {
 
         {/* Trend summary */}
         {trendSummary && (
-          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 shadow-eup-sm mb-10">
+          <div className="bg-card border border-brand-cloud rounded-2xl p-6 md:p-8 shadow-eup-sm mb-10">
             <div className="flex items-baseline justify-between mb-5">
               <div>
-                <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-1">Recent Enforcement Trends</div>
-                <h3 className="text-navy">Where authorities are landing this period</h3>
+                <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-1">Recent Enforcement Trends</div>
+                <h3 className="text-brand-navy">Where authorities are landing this period</h3>
               </div>
               <span className="text-[11px] text-muted-foreground">
                 {new Date(trendSummary.period_end).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               </span>
             </div>
             <p className="text-sm text-slate leading-relaxed mb-6">{trendSummary.summary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-5 border-t border-fog">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-5 border-t border-brand-cloud">
               <div className="border-l-2 border-green-600 pl-4">
                 <h4 className="text-[11px] font-bold mb-3 uppercase tracking-wider text-green-700">Broadly Accepted</h4>
                 <div className="flex flex-wrap gap-1.5">
@@ -228,16 +228,16 @@ const LegitimateInterestTracker = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
               {filtered.map((e, idx) => (
                 <Fragment key={e.id}>
-                  <article className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
+                  <article className="bg-card border border-brand-cloud rounded-xl shadow-eup-sm relative overflow-hidden flex">
                     <div className={`w-1.5 flex-shrink-0 ${stripeFor(e.outcome)}`} aria-hidden />
                     <div className="p-5 flex-1 min-w-0">
-                      <h3 className="text-navy mb-2 leading-snug">{e.processing_activity}</h3>
+                      <h3 className="text-brand-navy mb-2 leading-snug">{e.processing_activity}</h3>
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.dpa_source}</span>
                         <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded">{e.jurisdiction}</span>
                       </div>
                       <p className="text-sm text-slate leading-relaxed mb-4">{e.summary}</p>
-                      <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
+                      <div className="flex items-center justify-between gap-3 pt-3 border-t border-brand-cloud">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className={`text-[11px] font-bold uppercase tracking-wider capitalize ${accentFor(e.outcome)}`}>{e.outcome}</span>
                           <span className="text-muted-foreground/40">·</span>
@@ -261,13 +261,13 @@ const LegitimateInterestTracker = () => {
         </div>
 
         {/* Premium upsell */}
-        <div className="bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-          <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">⭐ Intelligence Intelligence</div>
+        <div className="bg-gradient-to-br from-brand-navy to-brand-ocean rounded-2xl p-6 md:p-8 text-center">
+          <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="text-white mb-3">Go deeper with Intelligence</h3>
-          <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
+          <p className="text-sm text-brand-mist mb-5 max-w-[500px] mx-auto">
             Get full intelligence for weekly analysis of enforcement trends, sector-specific LI risk assessments, and action items tailored to your industry and jurisdictions.
           </p>
-          <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
+          <Link to="/subscribe" className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline">
             Unlock Weekly Intelligence →
           </Link>
         </div>

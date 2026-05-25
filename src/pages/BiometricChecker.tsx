@@ -80,7 +80,7 @@ export default function BiometricChecker() {
       : "Analyse — $15";
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
         <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>
       <Navbar />
@@ -104,7 +104,7 @@ export default function BiometricChecker() {
 
         {phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between"><h2 className="font-display text-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
+            <div className="flex items-center justify-between"><h2 className="font-display text-brand-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
             {result.bipa_risk && (
               <div className="border-2 border-amber-400 bg-amber-50 rounded-xl p-4">
                 <h3 className="text-amber-900 mb-2">⚠️ BIPA Litigation Risk Estimate</h3>
@@ -119,20 +119,20 @@ export default function BiometricChecker() {
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-sm font-semibold text-navy">Analysing biometric obligations across {form.jurisdictions.join(", ")}…</p>
+            <p className="text-sm font-semibold text-brand-navy">Analysing biometric obligations across {form.jurisdictions.join(", ")}…</p>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <fieldset className="text-sm"><legend className="font-semibold text-navy">Biometric data types</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types</legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
-            <label className="block text-sm"><span className="font-semibold text-navy">Organisation type</span>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.orgType} onChange={e => setForm(f => ({ ...f, orgType: e.target.value }))}>
                 {ORG.map(o => <option key={o}>{o}</option>)}</select></label>
-            <label className="block text-sm"><span className="font-semibold text-navy">Primary purpose</span>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Primary purpose</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}>
                 {PURPOSE.map(p => <option key={p}>{p}</option>)}</select></label>
-            <fieldset className="text-sm"><legend className="font-semibold text-navy">Jurisdictions</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions</legend>
               <div className="grid grid-cols-1 gap-1 mt-1">{JURS.map(j => {
                 const isIL = j.includes("Illinois");
                 const isWA = j.includes("Washington");
@@ -156,7 +156,7 @@ export default function BiometricChecker() {
                 </p>
               )}
             </fieldset>
-            <label className="block text-sm"><span className="font-semibold text-navy">Individuals enrolled</span>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Individuals enrolled</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.enrolledCount} onChange={e => setForm(f => ({ ...f, enrolledCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
 
@@ -171,7 +171,7 @@ export default function BiometricChecker() {
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">
                 <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
-                  className="bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
+                  className="bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
                   {ctaLabel}</button>
                 {access.user && !access.isPremium && (
                   <Link to="/subscribe" className="bg-card border border-primary text-primary font-semibold text-sm px-6 py-3 rounded-xl hover:bg-primary/5 no-underline">Subscribe instead →</Link>

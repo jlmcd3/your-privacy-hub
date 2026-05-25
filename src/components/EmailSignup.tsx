@@ -21,20 +21,20 @@ const EmailSignup = ({ variant = "card", className = "", source }: EmailSignupPr
 
   if (variant === "strip") {
     return (
-      <div className={`bg-gradient-to-r from-navy to-navy-mid py-8 px-4 md:px-8 ${className}`}>
+      <div className={`bg-gradient-to-r from-brand-navy to-brand-ocean py-8 px-4 md:px-8 ${className}`}>
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
             <h3 className="text-white mb-1">
               Free: your personalized weekly digest, every Monday
             </h3>
-            <p className="text-sm text-slate-light">
+            <p className="text-sm text-brand-mist">
               Create a free account to get filtered regulatory developments every Monday — plus minimal enrichment views on articles. Always free.
             </p>
           </div>
           <div className="flex flex-col items-center md:items-end gap-1.5 w-full md:w-auto">
             <Link
               to={signupHref}
-              className="px-5 py-2.5 text-sm font-semibold text-navy bg-white rounded-lg hover:bg-white/90 transition-colors no-underline"
+              className="px-5 py-2.5 text-sm font-semibold text-brand-navy bg-white rounded-lg hover:bg-white/90 transition-colors no-underline"
             >
               Create free account
             </Link>

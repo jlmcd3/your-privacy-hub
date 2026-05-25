@@ -94,7 +94,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
           <span className="text-eyebrow mr-2" style={{ color: "hsl(var(--cobalt))" }}>
             What changed
           </span>
-          <span className="text-navy font-semibold">{topHeadline.title}</span>
+          <span className="text-brand-navy font-semibold">{topHeadline.title}</span>
           {!isAnon && topHeadline.why_it_matters && (
             <span className="text-slate"> — {topHeadline.why_it_matters}</span>
           )}
@@ -114,7 +114,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
         style={collapsed ? { ...containerStyle, maxHeight: "9.5rem" } : containerStyle}
       >
         {promoteHeading && (
-          <h2 className="font-display text-navy leading-tight mb-3" style={{ fontSize: "clamp(1.25rem, 2.4vw, 1.6rem)", fontWeight: 400 }}>
+          <h2 className="font-display text-brand-navy leading-tight mb-3" style={{ fontSize: "clamp(1.25rem, 2.4vw, 1.6rem)", fontWeight: 400 }}>
             Last 30 Days
           </h2>
         )}

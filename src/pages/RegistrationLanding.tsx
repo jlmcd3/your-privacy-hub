@@ -50,7 +50,7 @@ const FAQS = [
 export default function RegistrationLanding() {
   const { hasToolAccess } = useSubscriptionTier();
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Privacy Registration Manager — DPO, RoPA, AI Act Filings | End User Privacy</title>
         <meta
@@ -109,7 +109,7 @@ export default function RegistrationLanding() {
             ].map((b, i) => (
               <div key={i} className="space-y-2">
                 <b.icon className="w-6 h-6 text-amber-600" />
-                <h3 className="text-navy">{b.title}</h3>
+                <h3 className="text-brand-navy">{b.title}</h3>
                 <p className="text-sm text-slate leading-relaxed">{b.body}</p>
               </div>
             ))}
@@ -118,7 +118,7 @@ export default function RegistrationLanding() {
 
         {/* 3. How it works */}
         <section id="how-it-works" className="py-12 border-t border-border/40">
-          <h2 className="font-display text-navy text-center mb-8">How it works</h2>
+          <h2 className="font-display text-brand-navy text-center mb-8">How it works</h2>
           <div className="grid md:grid-cols-4 gap-4">
             {[
               ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
@@ -129,7 +129,7 @@ export default function RegistrationLanding() {
               <Card key={n} className="border-border/60">
                 <CardContent className="p-5">
                   <div className="text-3xl font-display font-bold text-accent mb-2">{n}</div>
-                  <div className="font-semibold text-navy mb-1">{t}</div>
+                  <div className="font-semibold text-brand-navy mb-1">{t}</div>
                   <p className="text-xs text-slate leading-relaxed">{b}</p>
                 </CardContent>
               </Card>
@@ -139,7 +139,7 @@ export default function RegistrationLanding() {
 
         {/* 4. What you get */}
         <section className="py-12 border-t border-border/40">
-          <h2 className="font-display text-navy text-center mb-8">What you get</h2>
+          <h2 className="font-display text-brand-navy text-center mb-8">What you get</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
               { icon: ShieldCheck, t: "DPO Appointment Letter", b: "Authority-specific format with mandatory fields." },
@@ -152,7 +152,7 @@ export default function RegistrationLanding() {
               <div key={i} className="flex gap-3">
                 <b.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-semibold text-navy text-sm">{b.t}</div>
+                  <div className="font-semibold text-brand-navy text-sm">{b.t}</div>
                   <p className="text-xs text-slate">{b.b}</p>
                 </div>
               </div>
@@ -161,9 +161,9 @@ export default function RegistrationLanding() {
         </section>
 
         {/* 5. Confidence model */}
-        <section className="py-12 border-t border-border/40 bg-fog/40 rounded-xl">
+        <section className="py-12 border-t border-border/40 bg-brand-cloud/40 rounded-xl">
           <div className="max-w-3xl mx-auto px-4">
-            <h2 className="font-display text-navy mb-4">Three-tier confidence rating</h2>
+            <h2 className="font-display text-brand-navy mb-4">Three-tier confidence rating</h2>
             <p className="text-slate text-sm mb-6">
               Every recommendation is rated based on how directly the law applies to your inputs.
             </p>
@@ -186,12 +186,12 @@ export default function RegistrationLanding() {
 
         {/* 6. Pricing */}
         <section className="py-12 border-t border-border/40">
-          <h2 className="font-display text-navy text-center mb-8">Pricing</h2>
+          <h2 className="font-display text-brand-navy text-center mb-8">Pricing</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card className="border-border/60">
               <CardHeader>
-                <CardTitle className="text-navy">Free scoping assessment</CardTitle>
-                <div className="text-3xl font-bold text-navy">$0</div>
+                <CardTitle className="text-brand-navy">Free scoping assessment</CardTitle>
+                <div className="text-3xl font-bold text-brand-navy">$0</div>
                 <p className="text-xs text-slate mt-1">Answer ~12 questions. We map your obligations across 30+ jurisdictions.</p>
               </CardHeader>
               <CardContent>
@@ -202,11 +202,11 @@ export default function RegistrationLanding() {
                 </ul>
               </CardContent>
             </Card>
-            <Card className="border-2 border-navy">
+            <Card className="border-2 border-brand-navy">
               <CardHeader>
-                <Badge className="w-fit mb-2 bg-navy text-white">PER FILING</Badge>
-                <CardTitle className="text-navy">Generate a filing</CardTitle>
-                <div className="text-3xl font-bold text-navy">$50<span className="text-sm font-normal text-slate"> per filing</span></div>
+                <Badge className="w-fit mb-2 bg-brand-navy text-white">PER FILING</Badge>
+                <CardTitle className="text-brand-navy">Generate a filing</CardTitle>
+                <div className="text-3xl font-bold text-brand-navy">$50<span className="text-sm font-normal text-slate"> per filing</span></div>
                 <p className="text-xs text-slate">Flat rate. Same price for every jurisdiction.</p>
               </CardHeader>
               <CardContent>
@@ -216,13 +216,13 @@ export default function RegistrationLanding() {
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Verified portal URLs and submission instructions</li>
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Optional annual renewal monitoring</li>
                 </ul>
-                <p className="text-meta text-slate-light mt-3 italic">
+                <p className="text-meta text-brand-mist mt-3 italic">
                   You (or your counsel) submit all filings. We do not file on your behalf.
                 </p>
               </CardContent>
             </Card>
           </div>
-          <p className="text-center text-xs text-slate-light mt-6">
+          <p className="text-center text-xs text-brand-mist mt-6">
             Professional Annual subscribers: 1 free Convenience Tool run per client per month.
           </p>
         </section>
@@ -230,7 +230,7 @@ export default function RegistrationLanding() {
 
         {/* 7. Jurisdictions */}
         <section className="py-12 border-t border-border/40 text-center">
-          <h2 className="font-display text-navy mb-3">30+ jurisdictions covered</h2>
+          <h2 className="font-display text-brand-navy mb-3">30+ jurisdictions covered</h2>
           <p className="text-slate text-sm max-w-2xl mx-auto">
             All 27 EU member states, EEA (Norway, Iceland, Liechtenstein), UK, Switzerland — with rolling
             additions for the U.S., LATAM, APAC, and Africa.
@@ -241,15 +241,15 @@ export default function RegistrationLanding() {
         <section className="py-10 border-t border-border/40">
           <div className="grid md:grid-cols-3 gap-4 text-center max-w-4xl mx-auto">
             <div>
-              <div className="text-2xl font-bold text-navy">Monthly</div>
+              <div className="text-2xl font-bold text-brand-navy">Monthly</div>
               <p className="text-xs text-slate">Authority website monitoring</p>
             </div>
             <div>
-              <div className="text-2xl font-bold text-navy">Weekly</div>
+              <div className="text-2xl font-bold text-brand-navy">Weekly</div>
               <p className="text-xs text-slate">EU AI Act updates</p>
             </div>
             <div>
-              <div className="text-2xl font-bold text-navy">Audit trail</div>
+              <div className="text-2xl font-bold text-brand-navy">Audit trail</div>
               <p className="text-xs text-slate">Verification date on every filing</p>
             </div>
           </div>
@@ -257,11 +257,11 @@ export default function RegistrationLanding() {
 
         {/* 9. FAQ */}
         <section className="py-12 border-t border-border/40 max-w-3xl mx-auto">
-          <h2 className="font-display text-navy mb-6">Frequently asked questions</h2>
+          <h2 className="font-display text-brand-navy mb-6">Frequently asked questions</h2>
           <div className="space-y-4">
             {FAQS.map((f, i) => (
               <div key={i} className="border-b border-border/40 pb-4">
-                <div className="font-semibold text-navy text-sm mb-1">{f.q}</div>
+                <div className="font-semibold text-brand-navy text-sm mb-1">{f.q}</div>
                 <p className="text-sm text-slate leading-relaxed">{f.a}</p>
               </div>
             ))}
@@ -270,9 +270,9 @@ export default function RegistrationLanding() {
 
         {/* 10. Final CTA + disclaimer */}
         <section className="py-12 text-center">
-          <h2 className="font-display text-navy mb-3">Ready to start?</h2>
+          <h2 className="font-display text-brand-navy mb-3">Ready to start?</h2>
           <p className="text-slate text-sm mb-6">The free assessment takes about 5 minutes.</p>
-          <Button size="lg" asChild className="bg-navy hover:bg-navy/90 text-white">
+          <Button size="lg" asChild className="bg-brand-navy hover:bg-brand-navy/90 text-white">
             <Link to="/registration-manager/start">Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
           </Button>
           <div className="mt-10 max-w-3xl mx-auto">

@@ -75,11 +75,11 @@ export default function AdminPricingReconciliation() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-navy">Pricing Reconciliation</h1>
+            <h1 className="text-brand-navy">Pricing Reconciliation</h1>
             <p className="text-sm text-slate mt-1">
               Cross-references marketed prices in UI files against the amounts
               actually charged by Stripe edge functions. Re-run with{" "}
-              <code className="bg-fog px-1.5 py-0.5 rounded text-[12px]">
+              <code className="bg-brand-cloud px-1.5 py-0.5 rounded text-[12px]">
                 node scripts/scan-pricing.mjs
               </code>
               .
@@ -92,9 +92,9 @@ export default function AdminPricingReconciliation() {
           <NavReportButton />
         </header>
 
-        <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
+        <div className="rounded-xl border border-brand-cloud bg-card p-4 mb-6 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-navy">Sync All Stripe Prices</h3>
+            <h3 className="text-brand-navy">Sync All Stripe Prices</h3>
             <p className="text-[12px] text-slate mt-1">
               Push every active entry in <code>PRICING_REGISTRY</code> to Stripe. Existing
               prices with the same lookup key are replaced; old prices are archived.
@@ -111,14 +111,14 @@ export default function AdminPricingReconciliation() {
         </div>
 
         {syncResult && (
-          <pre className="rounded-xl border border-fog bg-fog/30 p-3 mb-6 text-[11px] overflow-x-auto whitespace-pre-wrap">
+          <pre className="rounded-xl border border-brand-cloud bg-brand-cloud/30 p-3 mb-6 text-[11px] overflow-x-auto whitespace-pre-wrap">
             {syncResult}
           </pre>
         )}
 
-        <div className="rounded-xl border border-fog bg-card p-4 mb-6 flex items-start justify-between gap-4">
+        <div className="rounded-xl border border-brand-cloud bg-card p-4 mb-6 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-navy">Run Enrichment Backfill</h3>
+            <h3 className="text-brand-navy">Run Enrichment Backfill</h3>
             <p className="text-[12px] text-slate mt-1">
               Processes up to 20 Tier 1 articles missing contextual intelligence. Run multiple times to catch up.
             </p>
@@ -160,12 +160,12 @@ export default function AdminPricingReconciliation() {
         </div>
 
         <section className="mb-8">
-          <h2 className="text-navy mb-3">
+          <h2 className="text-brand-navy mb-3">
             Reconciliation table
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-fog">
+          <div className="overflow-x-auto rounded-xl border border-brand-cloud">
             <table className="w-full text-sm">
-              <thead className="bg-fog text-navy">
+              <thead className="bg-brand-cloud text-brand-navy">
                 <tr>
                   <th className="text-left px-3 py-2">Product</th>
                   <th className="text-left px-3 py-2">Server (standalone)</th>
@@ -181,14 +181,14 @@ export default function AdminPricingReconciliation() {
                   return (
                     <tr
                       key={i}
-                      className={`border-t border-fog ${
+                      className={`border-t border-brand-cloud ${
                         status === "fail" ? "bg-red-50" : ""
                       }`}
                     >
-                      <td className="px-3 py-2 font-medium text-navy">
+                      <td className="px-3 py-2 font-medium text-brand-navy">
                         {r.product}
                         {r.unmigrated && (
-                          <span className="ml-2 text-[11px] uppercase tracking-wider text-slate bg-fog px-1.5 py-0.5 rounded">
+                          <span className="ml-2 text-[11px] uppercase tracking-wider text-slate bg-brand-cloud px-1.5 py-0.5 rounded">
                             not in registry
                           </span>
                         )}
@@ -215,7 +215,7 @@ export default function AdminPricingReconciliation() {
 
         {findings.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-navy mb-3">
+            <h2 className="text-brand-navy mb-3">
               Mismatches ({findings.length})
             </h2>
             <div className="space-y-3">
@@ -227,7 +227,7 @@ export default function AdminPricingReconciliation() {
                   <div className="text-[12px] font-mono uppercase tracking-wider text-red-700 mb-1">
                     {f.severity}
                   </div>
-                  <div className="font-semibold text-navy mb-1">{f.product}</div>
+                  <div className="font-semibold text-brand-navy mb-1">{f.product}</div>
                   <p className="text-[14px] text-red-800">{f.issue}</p>
                   {f.ui_prices_seen.length > 0 && (
                     <p className="text-[12px] text-slate mt-1">

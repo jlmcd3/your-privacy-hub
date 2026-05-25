@@ -87,7 +87,7 @@ function SectionBlock({ icon, title, subtitle, content, sourceMap }: { icon: str
   if (!content) return null;
   return (
     <section className="py-7 border-b border-slate-100 last:border-0">
-      <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-1">
+      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
         <span className="mr-2"><FlagIcon icon={icon} /></span>{title}
       </h3>
       {subtitle && (
@@ -106,7 +106,7 @@ function BriefSkeleton() {
   return (
     <div className="bg-slate-100 rounded-2xl p-4 md:p-6 mb-8 animate-pulse">
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
+        <div className="bg-gradient-to-r from-brand-navy to-brand-steel px-6 py-5">
           <div className="h-3 w-48 bg-white/20 rounded mb-3" />
           <div className="h-5 w-3/4 bg-white/30 rounded mb-2" />
           <div className="h-3 w-40 bg-white/20 rounded" />
@@ -335,7 +335,7 @@ const Dashboard = () => {
         {showDigestPrefs && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-              <h2 className="font-display text-navy mb-6">
+              <h2 className="font-display text-brand-navy mb-6">
                 Your weekly digest
               </h2>
               <DigestPreferences
@@ -352,7 +352,7 @@ const Dashboard = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Premium upsell banner */}
           <div className="mb-6">
-            <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 text-center">
+            <div className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-2xl p-6 text-center">
               <div className="text-eyebrow text-amber-400 mb-2">
                 ⭐ Get Intelligence
               </div>
@@ -366,7 +366,7 @@ const Dashboard = () => {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to="/subscribe"
-                  className="bg-white text-navy font-bold text-sm py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
+                  className="bg-white text-brand-navy font-bold text-sm py-2.5 px-8 rounded-xl no-underline hover:opacity-90 transition-all"
                 >
                   Get full intelligence — {`${INTELLIGENCE_PRICING.monthly()}`} →
                 </Link>
@@ -381,7 +381,7 @@ const Dashboard = () => {
                 <p className="text-card-title text-gray-900 mb-1">Set up your weekly digest</p>
                 <p className="text-sm text-gray-700">Choose 2 regions and 2 topics to receive a personalized weekly update every Monday.</p>
               </div>
-              <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-navy text-white font-semibold text-sm px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
+              <button onClick={() => setShowDigestPrefs(true)} className="flex-shrink-0 bg-brand-navy text-white font-semibold text-sm px-4 py-2 rounded-xl border-none cursor-pointer hover:opacity-90">
                 Set up digest →
               </button>
             </div>
@@ -389,8 +389,8 @@ const Dashboard = () => {
 
           {/* Digest card */}
           {digestPrefsSet && (
-            <div className="bg-card border border-fog rounded-2xl overflow-hidden">
-              <div className="bg-navy px-6 py-4 flex items-center justify-between">
+            <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden">
+              <div className="bg-brand-navy px-6 py-4 flex items-center justify-between">
                 <div>
                   <p className="text-eyebrow text-amber-400 mb-0.5">Your Weekly Digest</p>
                   <p className="text-white text-sm">{freeDigest ? freeDigest.week_label : "Your first digest arrives Monday"}</p>
@@ -419,33 +419,33 @@ const Dashboard = () => {
               )}
 
               {freeDigest && freeDigest.digest_items?.length > 0 && (
-                <div className="divide-y divide-fog">
+                <div className="divide-y divide-brand-cloud">
                   {freeDigest.digest_items.map((item: any, i: number) => (
-                    <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 px-6 py-4 no-underline hover:bg-fog/50 transition-colors group">
+                    <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 px-6 py-4 no-underline hover:bg-brand-cloud/50 transition-colors group">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-meta font-medium text-steel">{item.region_label}</span>
-                          <span className="text-meta text-slate-light">·</span>
-                          <span className="text-meta text-slate-light">{item.source_name}</span>
+                          <span className="text-meta font-medium text-brand-steel">{item.region_label}</span>
+                          <span className="text-meta text-brand-mist">·</span>
+                          <span className="text-meta text-brand-mist">{item.source_name}</span>
                         </div>
-                        <p className="text-card-title text-gray-900 leading-snug group-hover:text-steel transition-colors mb-1">{item.title}</p>
+                        <p className="text-card-title text-gray-900 leading-snug group-hover:text-brand-steel transition-colors mb-1">{item.title}</p>
                         {item.summary && <p className="text-meta text-gray-700 leading-relaxed line-clamp-2">{item.summary}</p>}
                       </div>
-                      <span className="text-slate-light text-lg flex-shrink-0 mt-0.5">→</span>
+                      <span className="text-brand-mist text-lg flex-shrink-0 mt-0.5">→</span>
                     </a>
                   ))}
                 </div>
               )}
 
               {freeDigest?.pattern_observation && (
-                <div className="px-6 py-4 bg-blue-50/50 border-t border-fog">
-                  <p className="text-sm text-steel leading-relaxed"><span className="font-semibold">This week: </span>{freeDigest.pattern_observation}</p>
+                <div className="px-6 py-4 bg-blue-50/50 border-t border-brand-cloud">
+                  <p className="text-sm text-brand-steel leading-relaxed"><span className="font-semibold">This week: </span>{freeDigest.pattern_observation}</p>
                 </div>
               )}
 
-              <div className="px-6 py-4 border-t border-fog flex items-center justify-between gap-4">
+              <div className="px-6 py-4 border-t border-brand-cloud flex items-center justify-between gap-4">
                 <p className="text-sm text-gray-700">Get full intelligence for analysis, priorities, and action items.</p>
-                <Link to="/subscribe" className="flex-shrink-0 text-meta font-bold text-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
+                <Link to="/subscribe" className="flex-shrink-0 text-meta font-bold text-brand-navy bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg no-underline transition-colors">Get full intelligence →</Link>
               </div>
             </div>
           )}
@@ -464,7 +464,7 @@ const Dashboard = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <TrialCountdownBanner />
         <div className="mb-6 pb-6 border-b border-gray-100">
-          <h1 className="font-display text-navy mb-1">
+          <h1 className="font-display text-brand-navy mb-1">
             Privacy Intelligence Workspace
           </h1>
           <WorkspaceStatusLine />
@@ -652,9 +652,9 @@ const Dashboard = () => {
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
 
                 {/* Document header */}
-                <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
+                <div className="bg-gradient-to-r from-brand-navy to-brand-steel px-6 py-5">
                   <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
-                    <span className="text-meta font-bold uppercase tracking-[0.15em] text-sky">
+                    <span className="text-meta font-bold uppercase tracking-[0.15em] text-brand-mist">
                       ⭐ End User Privacy Intelligence Report
                     </span>
                     <span className="text-meta text-blue-300">
@@ -674,7 +674,7 @@ const Dashboard = () => {
 
                   {/* Executive Summary */}
                   <section className="py-7 border-b border-slate-100">
-                    <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-4">Executive Summary</h3>
+                    <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">Executive Summary</h3>
                     <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                       <CitedParagraphs content={brief.executive_summary} sourceMap={brief.source_map ?? {}} />
                     </div>
@@ -695,7 +695,7 @@ const Dashboard = () => {
                   {/* Enforcement table */}
                   {brief.enforcement_table && brief.enforcement_table.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">
                         ⚖️ Enforcement Actions This Week
                       </h3>
                       <div className="cmp-table overflow-x-auto rounded-xl border border-slate-100">
@@ -712,7 +712,7 @@ const Dashboard = () => {
                           <tbody>
                             {brief.enforcement_table.map((row, i) => (
                               <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} border-b border-slate-100`}>
-                                <td className="py-3 px-4 font-medium text-navy text-sm">
+                                <td className="py-3 px-4 font-medium text-brand-navy text-sm">
                                   {row.regulator}
                                   <div className="text-meta text-slate-400">{row.jurisdiction}</div>
                                 </td>
@@ -722,7 +722,7 @@ const Dashboard = () => {
                                     {row.action_type}
                                   </span>
                                 </td>
-                                <td className="py-3 px-4 font-semibold text-navy">{row.amount}</td>
+                                <td className="py-3 px-4 font-semibold text-brand-navy">{row.amount}</td>
                                 <td className="py-3 px-4 text-slate-500 text-meta">{row.significance}</td>
                               </tr>
                             ))}
@@ -735,7 +735,7 @@ const Dashboard = () => {
                   {/* Top 10 enforcement signals — ranked by significance + recency */}
                   {brief.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-1">
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
                         🔝 Top 10 Enforcement Signals
                       </h3>
                       <p className="text-meta text-slate-500 mb-4">
@@ -744,19 +744,19 @@ const Dashboard = () => {
                       <ol className="space-y-3 list-none p-0 m-0">
                         {brief.top_enforcement_signals.map((s, i) => (
                           <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
-                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-navy text-white text-meta font-bold flex items-center justify-center">
+                            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-navy text-white text-meta font-bold flex items-center justify-center">
                               {i + 1}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-3 mb-1">
                                 <Link
                                   to={`/enforcement-intelligence/${s.id}`}
-                                  className="font-display font-semibold text-navy hover:text-navy/80 text-sm leading-snug no-underline"
+                                  className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline"
                                 >
                                   {s.subject || s.regulator}
                                 </Link>
                                 {s.fine && (
-                                  <span className="text-meta font-semibold text-navy whitespace-nowrap tabular-nums">
+                                  <span className="text-meta font-semibold text-brand-navy whitespace-nowrap tabular-nums">
                                     {s.fine}
                                   </span>
                                 )}
@@ -782,7 +782,7 @@ const Dashboard = () => {
                       <div className="mt-4">
                         <Link
                           to="/enforcement-intelligence"
-                          className="text-meta font-semibold text-navy hover:underline"
+                          className="text-meta font-semibold text-brand-navy hover:underline"
                         >
                           Browse all enforcement actions →
                         </Link>
@@ -792,7 +792,7 @@ const Dashboard = () => {
 
                   {brief.cross_jurisdiction_patterns && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-4">
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">
                         🌐 Cross-Jurisdiction Patterns
                       </h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
@@ -804,7 +804,7 @@ const Dashboard = () => {
                   {/* Trend signal */}
                   {brief.trend_signal && (
                     <section className="py-7 border-b border-slate-100">
-                      <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-4">📡 Trend Signal</h3>
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-4">📡 Trend Signal</h3>
                       <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
                         <CitedParagraphs content={brief.trend_signal} sourceMap={brief.source_map ?? {}} />
                       </div>
@@ -815,7 +815,7 @@ const Dashboard = () => {
                   {/* Why this matters / Action items — dark section */}
                   {brief.why_this_matters && (
                     <section className="py-7">
-                      <div className="bg-navy rounded-xl p-6">
+                      <div className="bg-brand-navy rounded-xl p-6">
                         <h3 className="text-meta uppercase tracking-[0.12em] text-amber-400 mb-5">
                           🎯 Action Items for This Week
                         </h3>
@@ -835,7 +835,7 @@ const Dashboard = () => {
             {brief.source_map && Object.keys(brief.source_map).length > 0 && (
               <div className="bg-slate-100 rounded-2xl p-4 md:p-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
-                  <h3 className="text-meta uppercase tracking-[0.12em] text-steel mb-3 flex items-center gap-2">
+                  <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-3 flex items-center gap-2">
                     <span>📚</span> All source articles for this report
                   </h3>
                   <p className="text-meta text-slate-400 mb-4">
@@ -856,12 +856,12 @@ const Dashboard = () => {
                             [{num}]
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-navy group-hover:text-steel transition-colors line-clamp-2">
+                            <p className="text-sm font-medium text-brand-navy group-hover:text-brand-steel transition-colors line-clamp-2">
                               {src.title}
                             </p>
                             <p className="text-meta text-slate-400 mt-0.5">{src.source}</p>
                           </div>
-                          <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-steel transition-colors flex-shrink-0 mt-0.5" />
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-brand-steel transition-colors flex-shrink-0 mt-0.5" />
                         </a>
                       ))}
                   </div>

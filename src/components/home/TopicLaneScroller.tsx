@@ -31,24 +31,24 @@ export default function TopicLaneScroller({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg flag-emoji">{laneIcon}</span>
-          <h3 className="text-navy text-[15px]">{laneTitle}</h3>
+          <h3 className="text-brand-navy text-[15px]">{laneTitle}</h3>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => scroll("left")}
-            className="w-7 h-7 rounded-full bg-fog flex items-center justify-center hover:bg-blue/10 transition-colors border-none cursor-pointer"
+            className="w-7 h-7 rounded-full bg-brand-cloud flex items-center justify-center hover:bg-brand-teal/10 transition-colors border-none cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4 text-slate" />
           </button>
           <button
             onClick={() => scroll("right")}
-            className="w-7 h-7 rounded-full bg-fog flex items-center justify-center hover:bg-blue/10 transition-colors border-none cursor-pointer"
+            className="w-7 h-7 rounded-full bg-brand-cloud flex items-center justify-center hover:bg-brand-teal/10 transition-colors border-none cursor-pointer"
           >
             <ChevronRight className="w-4 h-4 text-slate" />
           </button>
           <Link
             to={laneHref}
-            className="text-blue text-xs font-semibold no-underline hover:underline ml-1"
+            className="text-brand-teal text-xs font-semibold no-underline hover:underline ml-1"
           >
             See all →
           </Link>
@@ -64,7 +64,7 @@ export default function TopicLaneScroller({
         {cards.filter((card, i, arr) => arr.findIndex(c => c.id === card.id) === i).map((card, i) => (
           <div
             key={card.id + '-' + i}
-            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-fog p-3 hover:shadow-eup-sm hover:-translate-y-0.5 transition-all ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
+            className={`flex-shrink-0 w-[230px] sm:w-[250px] bg-white rounded-xl border border-brand-cloud p-3 hover:shadow-eup-sm hover:-translate-y-0.5 transition-all ${isEnforcement ? "border-l-[3px] border-l-amber-500" : ""}`}
           >
             <ArticleCard item={card} variant="compact" />
           </div>

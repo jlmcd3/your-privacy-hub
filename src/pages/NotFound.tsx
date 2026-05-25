@@ -19,7 +19,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-screen bg-brand-cloud flex flex-col">
       <Helmet>
         <title>Page Not Found | End User Privacy</title>
       </Helmet>
@@ -27,8 +27,8 @@ const NotFound = () => {
 
       <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-[560px] w-full text-center">
-          <p className="text-[48px] font-bold text-navy mb-2">404</p>
-          <h1 className="font-display text-navy mb-2">
+          <p className="text-[48px] font-bold text-brand-navy mb-2">404</p>
+          <h1 className="font-display text-brand-navy mb-2">
             Page not found
           </h1>
           <p className="text-[14px] text-slate mb-8">
@@ -40,10 +40,10 @@ const NotFound = () => {
               <Link
                 key={d.href}
                 to={d.href}
-                className="group bg-card border border-fog rounded-xl p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all text-left"
+                className="group bg-card border border-brand-cloud rounded-xl p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all text-left"
               >
                 <span className="text-2xl block mb-2">{d.icon}</span>
-                <p className="font-display font-bold text-navy text-[14px] mb-0.5 group-hover:text-blue transition-colors">
+                <p className="font-display font-bold text-brand-navy text-[14px] mb-0.5 group-hover:text-brand-teal transition-colors">
                   {d.title}
                 </p>
                 <p className="text-slate text-[12px]">{d.desc}</p>
@@ -53,7 +53,7 @@ const NotFound = () => {
 
           <Link
             to="/"
-            className="text-blue text-sm font-semibold hover:text-navy transition-colors no-underline"
+            className="text-brand-teal text-sm font-semibold hover:text-brand-navy transition-colors no-underline"
           >
             ← Back to homepage
           </Link>

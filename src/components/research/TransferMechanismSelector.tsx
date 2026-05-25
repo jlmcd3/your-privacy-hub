@@ -100,9 +100,9 @@ export function TransferMechanismSelector() {
   const mechanisms = useMemo(() => mechanismsFor(from, to), [from, to]);
 
   return (
-    <div className="rounded-2xl border border-fog bg-card shadow-eup-sm overflow-hidden">
-      <div className="px-5 py-4 bg-navy text-white">
-        <p className="text-[11px] font-semibold tracking-widest uppercase text-sky">Quick answer</p>
+    <div className="rounded-2xl border border-brand-cloud bg-card shadow-eup-sm overflow-hidden">
+      <div className="px-5 py-4 bg-brand-navy text-white">
+        <p className="text-[11px] font-semibold tracking-widest uppercase text-brand-mist">Quick answer</p>
         <h3 className="text-white text-lg mt-1">Which mechanism do I need?</h3>
       </div>
       <div className="p-5 grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-end">
@@ -111,20 +111,20 @@ export function TransferMechanismSelector() {
           <select
             value={from}
             onChange={(e) => setFrom(e.target.value as FromKey)}
-            className="mt-1.5 w-full py-2 px-3 text-sm border border-silver rounded-lg bg-paper text-navy outline-none focus:border-blue"
+            className="mt-1.5 w-full py-2 px-3 text-sm border border-silver rounded-lg bg-brand-cloud text-brand-navy outline-none focus:border-brand-teal"
           >
             {FROM_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </label>
-        <ArrowRight className="hidden md:block w-5 h-5 text-slate-light mb-3 mx-auto" />
+        <ArrowRight className="hidden md:block w-5 h-5 text-brand-mist mb-3 mx-auto" />
         <label className="block">
           <span className="text-xs font-semibold uppercase tracking-wider text-slate">Transferring to</span>
           <select
             value={to}
             onChange={(e) => setTo(e.target.value as ToKey)}
-            className="mt-1.5 w-full py-2 px-3 text-sm border border-silver rounded-lg bg-paper text-navy outline-none focus:border-blue"
+            className="mt-1.5 w-full py-2 px-3 text-sm border border-silver rounded-lg bg-brand-cloud text-brand-navy outline-none focus:border-brand-teal"
           >
             {TO_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -136,13 +136,13 @@ export function TransferMechanismSelector() {
         {mechanisms.map((m) => (
           <div
             key={m.name}
-            className="border-l-4 border-cobalt bg-paper rounded-lg p-4 flex flex-col gap-2"
+            className="border-l-4 border-brand-teal bg-brand-cloud rounded-lg p-4 flex flex-col gap-2"
           >
-            <p className="text-sm font-semibold text-navy">{m.name}</p>
+            <p className="text-sm font-semibold text-brand-navy">{m.name}</p>
             <p className="text-xs text-slate leading-relaxed flex-1">{m.why}</p>
             <div className="flex flex-wrap gap-3 pt-1 text-xs">
               {m.href && (
-                <a href={m.href} className="text-blue font-medium hover:underline no-underline">
+                <a href={m.href} className="text-brand-teal font-medium hover:underline no-underline">
                   Read in detail ↓
                 </a>
               )}
@@ -155,7 +155,7 @@ export function TransferMechanismSelector() {
           </div>
         ))}
       </div>
-      <p className="px-5 pb-4 text-[11px] text-slate-light">
+      <p className="px-5 pb-4 text-[11px] text-brand-mist">
         Guidance only — confirm jurisdiction-specific requirements with counsel before relying on a mechanism.
       </p>
     </div>

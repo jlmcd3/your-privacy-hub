@@ -27,7 +27,7 @@ export default function SectionShell({
           <p className="text-eyebrow !text-sm text-[hsl(var(--cobalt))] mb-1">
             {eyebrow}
           </p>
-          <h2 className="text-section-h2 text-navy">
+          <h2 className="text-section-h2 text-brand-navy">
             {headline}
           </h2>
           <p className="text-base text-slate mt-0.5">{subline}</p>

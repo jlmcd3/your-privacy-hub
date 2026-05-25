@@ -106,7 +106,7 @@ const DIFFERENTIATORS = [
     icon: "⚖️",
     title: "Calibrated to enforcement precedent, not just statutory text",
     body: "Regulatory guidance and enforcement decisions frequently diverge – what a law requires and what a regulator has actually penalised are not always the same thing.",
-    checkColor: "text-navy",
+    checkColor: "text-brand-navy",
     checks: [
       "3,500+ decisions across 119 regulatory authorities",
       "DPA notices, ICO actions, FTC settlements, HHS OCR agreements",
@@ -498,11 +498,11 @@ export default function Tools() {
       <div className="bg-background py-14 px-4">
         <div className="max-w-[1100px] mx-auto grid md:grid-cols-3 gap-5">
           {DIFFERENTIATORS.map((d) => (
-            <div key={d.title} className="bg-card border border-fog rounded-2xl p-6">
+            <div key={d.title} className="bg-card border border-brand-cloud rounded-2xl p-6">
               <div className="text-[28px] mb-3">{d.icon}</div>
               <h3 className="text-card-title text-gray-900 mb-3 leading-snug">{d.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{d.body}</p>
-              <hr className="my-4 border-t border-fog" />
+              <hr className="my-4 border-t border-brand-cloud" />
               <ul className="space-y-1.5">
                 {d.checks.map((c) => (
                   <li key={c} className="flex gap-2 text-xs text-slate leading-snug">
@@ -517,7 +517,7 @@ export default function Tools() {
       </div>
 
       {/* ── Grouped tool sections ──────────────────────────────────────── */}
-      <div id="tools" className="border-t border-fog">
+      <div id="tools" className="border-t border-brand-cloud">
         {toolsBySection.map(({ section, tools }, secIdx) => {
           const hdr = SECTION_HEADERS[section];
           return (
@@ -551,7 +551,7 @@ export default function Tools() {
                 <div
                   key={tool.slug}
                   id={secIdx === 0 && toolIdx === 0 ? "tools-list" : undefined}
-                  className="max-w-[860px] mx-auto px-4 py-12 border-b border-fog last:border-0"
+                  className="max-w-[860px] mx-auto px-4 py-12 border-b border-brand-cloud last:border-0"
                 >
                   {/* Tool header row — icon and pricing pill share the top line */}
                   <div className="mb-6">
@@ -584,7 +584,7 @@ export default function Tools() {
                       </div>
                     </div>
 
-                    <h2 className="font-display text-navy mb-1">{tool.name}</h2>
+                    <h2 className="font-display text-brand-navy mb-1">{tool.name}</h2>
                     <p className="text-sm text-gray-600">{tool.tagline}</p>
                     {tool.freeBadge && (
                       <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
@@ -617,7 +617,7 @@ export default function Tools() {
                     >
                       See a sample output →
                     </button>
-                    <Link to={tool.href} className="text-sm font-semibold text-white bg-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                    <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
                       Open tool →
                     </Link>
                   </div>
@@ -629,7 +629,7 @@ export default function Tools() {
       </div>
 
       {/* ── Closing pricing section ───────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-navy to-navy-mid py-14 px-4">
+      <div className="bg-gradient-to-br from-brand-navy to-brand-ocean py-14 px-4">
         <div className="max-w-[760px] mx-auto text-center">
           <h2 className="font-display text-white mb-4">
             Available individually at standalone prices.
@@ -645,7 +645,7 @@ export default function Tools() {
               </div>
             ))}
           </div>
-          <Link to="/subscribe" className="inline-block text-sm font-semibold text-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
+          <Link to="/subscribe" className="inline-block text-sm font-semibold text-brand-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
             Start 10-day Intelligence trial →
           </Link>
           <p className="text-blue-200/60 text-meta mt-4">
@@ -664,7 +664,7 @@ export default function Tools() {
             className="bg-card border border-border rounded-2xl max-w-[680px] w-full max-h-[85vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-navy px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0">
+            <div className="bg-brand-navy px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0">
               <div>
                 <p className="text-eyebrow text-amber-400 mb-0.5">Sample Output</p>
                 <p className="text-white font-semibold text-[15px]">{activeTool.name}</p>
@@ -699,7 +699,7 @@ export default function Tools() {
                 <Link
                   to={activeTool.href}
                   onClick={() => setSampleModal(null)}
-                  className="flex-1 text-center bg-navy text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-all no-underline"
+                  className="flex-1 text-center bg-brand-navy text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-all no-underline"
                 >
                   Open {activeTool.name} →
                 </Link>

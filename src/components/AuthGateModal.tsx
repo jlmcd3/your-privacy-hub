@@ -40,12 +40,12 @@ export default function AuthGateModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 mb-3">
-          <h2 className="font-display text-navy leading-snug">
+          <h2 className="font-display text-brand-navy leading-snug">
             {heading}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-light hover:text-navy text-[24px] leading-none bg-transparent border-none cursor-pointer -mt-1"
+            className="text-brand-mist hover:text-brand-navy text-[24px] leading-none bg-transparent border-none cursor-pointer -mt-1"
             aria-label="Close"
           >
             ×
@@ -56,7 +56,7 @@ export default function AuthGateModal({
         <div className="flex flex-col gap-2.5">
           <Link
             to={`/signup?redirect=${encoded}`}
-            className="text-center bg-navy text-white font-bold text-[14px] py-3 px-5 rounded-xl no-underline hover:opacity-90 transition-all"
+            className="text-center bg-brand-navy text-white font-bold text-[14px] py-3 px-5 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Create free account
           </Link>
@@ -68,7 +68,7 @@ export default function AuthGateModal({
           </Link>
         </div>
 
-        <p className="text-[11px] text-slate-light text-center mt-4">
+        <p className="text-[11px] text-brand-mist text-center mt-4">
           Intelligence subscribers receive subscriber pricing on every tool.
         </p>
       </div>

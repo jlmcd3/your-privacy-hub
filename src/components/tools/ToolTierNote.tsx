@@ -46,7 +46,7 @@ export default function ToolTierNote({ isCppa = false, className = "" }: ToolTie
     return (
       <p className={`text-[11px] text-slate mt-2 ${className}`}>
         Annual Platform subscribers get this tool {isCppa ? "at the subscriber rate" : "included"}.
-        <Link to="/subscribe" className="text-navy underline ml-1">
+        <Link to="/subscribe" className="text-brand-navy underline ml-1">
           Upgrade →
         </Link>
       </p>

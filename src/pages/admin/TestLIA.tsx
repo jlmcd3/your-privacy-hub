@@ -185,7 +185,7 @@ export default function TestLIA() {
   const argStrength = result?.three_part_test?.overall_assessment?.argument_strength;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
@@ -248,7 +248,7 @@ export default function TestLIA() {
               <h2 className="font-serif mb-2">Result Page</h2>
               {assessmentId && (
                 <a
-                  className="text-blue underline"
+                  className="text-brand-teal underline"
                   href={`/li-assessment/result/${assessmentId}`}
                   target="_blank"
                   rel="noreferrer"

@@ -38,9 +38,9 @@ export function ClientSwitcher({ alwaysShow = false, className }: ClientSwitcher
           const selected = all.find((c) => c.id === e.target.value);
           if (selected) setActiveClient(selected);
         }}
-        className="bg-card border border-fog rounded-md px-3 py-1.5 pr-8 text-sm
-          font-medium text-navy shadow-sm cursor-pointer appearance-none
-          focus:outline-none focus:ring-2 focus:ring-blue"
+        className="bg-card border border-brand-cloud rounded-md px-3 py-1.5 pr-8 text-sm
+          font-medium text-brand-navy shadow-sm cursor-pointer appearance-none
+          focus:outline-none focus:ring-2 focus:ring-brand-teal"
         aria-label="Switch workspace"
       >
         {personal && (
@@ -58,7 +58,7 @@ export function ClientSwitcher({ alwaysShow = false, className }: ClientSwitcher
           </optgroup>
         )}
       </select>
-      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-light">
+      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-brand-mist">
         ▾
       </span>
     </div>

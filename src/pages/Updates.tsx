@@ -501,7 +501,7 @@ const Updates = () => {
                   <Link
                     to="/dashboard"
                     aria-label="View your latest Privacy Intelligence Report"
-                    className="group block bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-lg px-4 py-3 mb-4 text-sm font-semibold text-gold text-center no-underline transition-colors"
+                    className="group block bg-brand-teal/10 hover:bg-brand-teal/20 border border-brand-teal/30 rounded-lg px-4 py-3 mb-4 text-sm font-semibold text-brand-teal text-center no-underline transition-colors"
                   >
                     View your latest Privacy Intelligence Report →
                   </Link>
@@ -509,9 +509,9 @@ const Updates = () => {
                   <Link
                     to="/get-intelligence"
                     aria-label="Get your privacy intelligence — customized and analyzed for your priorities and responsibilities"
-                    className="group block bg-sky/10 hover:bg-sky/20 border border-sky/30 hover:border-sky/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
+                    className="group block bg-brand-mist/10 hover:bg-brand-mist/20 border border-brand-mist/30 hover:border-brand-mist/50 rounded-xl px-5 py-3 mb-4 transition-all no-underline text-center"
                   >
-                    <p className="text-sm font-semibold m-0 text-blue group-hover:text-navy transition-colors">
+                    <p className="text-sm font-semibold m-0 text-brand-teal group-hover:text-brand-navy transition-colors">
                       Get your privacy intelligence — customized and analyzed for your priorities and responsibilities →
                     </p>
                   </Link>
@@ -520,7 +520,7 @@ const Updates = () => {
                 {/* Filter gate chip — anon users clicking a gated control (sector / date) */}
                 {showFilterGate && !user && (
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sky-50 border border-sky-200/60 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <p className="text-sm text-navy flex-1">
+                        <p className="text-sm text-brand-navy flex-1">
                             Register free to filter by your industry and date range
                         </p>
                         <Link
@@ -558,13 +558,13 @@ const Updates = () => {
                                 }
                                 setSearchTerm(value);
                             }}
-                            className="w-full pl-12 pr-4 py-3.5 border-2 border-border rounded-lg text-base bg-background shadow-sm focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/20 transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-12 pr-4 py-3.5 border-2 border-border rounded-lg text-base bg-background shadow-sm focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all placeholder:text-muted-foreground"
                         />
                     </div>
                     <select
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
-                        className="px-4 py-3.5 border-2 border-border rounded-lg text-base bg-background focus:outline-none focus:border-cobalt"
+                        className="px-4 py-3.5 border-2 border-border rounded-lg text-base bg-background focus:outline-none focus:border-brand-teal"
                     >
                         {DATE_RANGES.map((d) => (
                             <option key={d.key} value={d.key}>{d.label}</option>

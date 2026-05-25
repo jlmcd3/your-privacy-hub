@@ -270,7 +270,7 @@ const DPIAFrameworkResult = () => {
                   .map(([title, body]) => `${title}\n\n${body}`)
                   .join("\n\n")}
                 label="DPIA Framework"
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-navy bg-white border border-navy/30 hover:bg-navy/5 rounded-lg transition-colors disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white border border-brand-navy/30 hover:bg-brand-navy/5 rounded-lg transition-colors disabled:opacity-60"
               />
               <Button onClick={() => window.print()} variant="outline">Print</Button>
               <Button asChild variant="outline"><Link to="/dashboard">Back to Dashboard</Link></Button>

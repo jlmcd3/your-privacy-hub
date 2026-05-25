@@ -176,21 +176,21 @@ export default function BriefBuilder() {
   const canGenerate = !!jurisdiction && !!role && tracks.length > 0;
 
   return (
-    <div ref={rootRef} className="bg-card border border-fog rounded-2xl p-6 md:p-8 relative">
+    <div ref={rootRef} className="bg-card border border-brand-cloud rounded-2xl p-6 md:p-8 relative">
       {showCollapsePill && (
         <button
           type="button"
           onClick={collapseBrief}
           aria-label="Collapse brief (Esc)"
           title="Collapse brief (Esc)"
-          className="fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 px-4 h-11 rounded-full bg-navy text-white shadow-eup-md hover:bg-navy/90 transition-all border border-navy-light text-sm font-semibold"
+          className="fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 px-4 h-11 rounded-full bg-brand-navy text-white shadow-eup-md hover:bg-brand-navy/90 transition-all border border-brand-slate-teal text-sm font-semibold"
         >
           <X className="w-4 h-4" />
           Collapse brief
         </button>
       )}
       <div className="mb-6">
-        <h3 className="text-navy mb-1">
+        <h3 className="text-brand-navy mb-1">
           Build your sample Privacy Intelligence Report
         </h3>
         <p className="text-sm text-slate mb-5">
@@ -200,13 +200,13 @@ export default function BriefBuilder() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-navy mb-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-widest text-brand-navy mb-1.5">
               Your jurisdiction
             </label>
             <select
               value={jurisdiction}
               onChange={(e) => { setJurisdiction(e.target.value); setBriefShown(false); }}
-              className="w-full px-3.5 py-2.5 text-sm bg-paper border border-silver rounded-lg text-navy outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+              className="w-full px-3.5 py-2.5 text-sm bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
             >
               <option value="">Select your jurisdiction…</option>
               {JURISDICTIONS.map((j) => (
@@ -215,13 +215,13 @@ export default function BriefBuilder() {
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-widest text-navy mb-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-widest text-brand-navy mb-1.5">
               Your role
             </label>
             <select
               value={role}
               onChange={(e) => { setRole(e.target.value); setBriefShown(false); }}
-              className="w-full px-3.5 py-2.5 text-sm bg-paper border border-silver rounded-lg text-navy outline-none focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+              className="w-full px-3.5 py-2.5 text-sm bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
             >
               <option value="">Select your role…</option>
               {ROLES.map((r) => (
@@ -233,7 +233,7 @@ export default function BriefBuilder() {
       </div>
 
       <div className="mb-6">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-navy mb-3">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-brand-navy mb-3">
           Select your topic tracks
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -246,12 +246,12 @@ export default function BriefBuilder() {
                 onClick={() => { toggleTrack(track.value); setBriefShown(false); }}
                 className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-left w-full transition-all cursor-pointer ${
                   sel
-                    ? "bg-navy border-navy shadow-eup-sm"
-                    : "bg-white border-fog hover:border-navy/40"
+                    ? "bg-brand-navy border-brand-navy shadow-eup-sm"
+                    : "bg-white border-brand-cloud hover:border-brand-navy/40"
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm font-semibold leading-tight ${sel ? "text-white" : "text-navy"}`}>
+                  <p className={`text-sm font-semibold leading-tight ${sel ? "text-white" : "text-brand-navy"}`}>
                     {track.label}
                   </p>
                   <p className={`text-[11px] mt-0.5 leading-snug ${sel ? "text-blue-200" : "text-slate"}`}>
@@ -276,7 +276,7 @@ export default function BriefBuilder() {
             type="button"
             disabled={!canGenerate}
             onClick={() => setBriefShown(true)}
-            className="px-8 py-3 rounded-xl text-[14px] font-bold bg-navy text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="px-8 py-3 rounded-xl text-[14px] font-bold bg-brand-navy text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Generate Brief →
           </button>
@@ -290,7 +290,7 @@ export default function BriefBuilder() {
 
       {briefShown && briefItems.length > 0 && (
         <div className="mt-2">
-          <div className="bg-gradient-to-br from-navy to-steel rounded-xl p-5 mb-4">
+          <div className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-xl p-5 mb-4">
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
                 ⭐ Your Privacy Intelligence Report
@@ -331,7 +331,7 @@ export default function BriefBuilder() {
             {briefItems.map((item) => (
               <div
                 key={item.track}
-                className="bg-gradient-to-br from-navy to-steel rounded-xl p-5 text-white"
+                className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-xl p-5 text-white"
               >
                 <div className="flex items-center gap-1.5 mb-3">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300/80">
@@ -394,7 +394,7 @@ export default function BriefBuilder() {
           </div>
 
           <div className="mt-5 p-5 bg-amber-400/10 border border-amber-400/20 rounded-xl text-center">
-            <p className="text-[14px] font-semibold text-navy mb-1">
+            <p className="text-[14px] font-semibold text-brand-navy mb-1">
               This is your brief. Every Monday. Automatically.
             </p>
             <p className="text-sm text-slate mb-4">
@@ -402,7 +402,7 @@ export default function BriefBuilder() {
             </p>
             <a
               href="/get-intelligence"
-              className="inline-block text-sm font-bold text-navy bg-amber-400 hover:opacity-90 transition-all px-6 py-2.5 rounded-xl no-underline"
+              className="inline-block text-sm font-bold text-brand-navy bg-amber-400 hover:opacity-90 transition-all px-6 py-2.5 rounded-xl no-underline"
               onClick={(e) => {
                 const target = document.getElementById("pro-plan-card");
                 if (target) {
@@ -419,7 +419,7 @@ export default function BriefBuilder() {
             <button
               type="button"
               onClick={() => setBriefShown(false)}
-              className="text-[12px] text-slate hover:text-navy underline underline-offset-2"
+              className="text-[12px] text-slate hover:text-brand-navy underline underline-offset-2"
             >
               ← Change my selections
             </button>

@@ -67,15 +67,15 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
   const topicLabel = TOPIC_LABELS[signal.topic_area] || signal.topic_area.replace(/-/g, " ");
 
   return (
-    <div className="rounded-xl border border-fog bg-white p-5 mb-6">
+    <div className="rounded-xl border border-brand-cloud bg-white p-5 mb-6">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-steel" />
-          <h3 className="text-[15px] text-navy">
+          <TrendingUp className="w-4 h-4 text-brand-steel" />
+          <h3 className="text-[15px] text-brand-navy">
             {signal.period_days}-Day Context: {topicLabel}
           </h3>
         </div>
-        <span className="text-meta text-slate bg-fog px-2 py-0.5 rounded-full">
+        <span className="text-meta text-slate bg-brand-cloud px-2 py-0.5 rounded-full">
           {new Date(signal.period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           {" – "}
           {new Date(signal.period_end).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -92,13 +92,13 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
       {/* Key observations */}
       {observations.length > 0 && (
         <div className="mb-4">
-          <p className="text-eyebrow text-navy mb-2">
+          <p className="text-eyebrow text-brand-navy mb-2">
             Key Observations
           </p>
           <ul className="space-y-1.5">
             {observations.map((obs, i) => (
               <li key={i} className="flex gap-2 text-meta text-slate leading-relaxed">
-                <ArrowRight className="w-3 h-3 text-steel flex-shrink-0 mt-0.5" />
+                <ArrowRight className="w-3 h-3 text-brand-steel flex-shrink-0 mt-0.5" />
                 <span>{obs}</span>
               </li>
             ))}
@@ -107,10 +107,10 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
       )}
 
       {/* Metadata row */}
-      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-fog">
+      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-brand-cloud">
         {signal.jurisdictions_active && signal.jurisdictions_active.length > 0 && (
           <div className="flex items-center gap-1">
-            <Globe className="w-3 h-3 text-slate-light" />
+            <Globe className="w-3 h-3 text-brand-mist" />
             <span className="text-meta text-slate">
               {signal.jurisdictions_active.slice(0, 4).join(", ")}
               {signal.jurisdictions_active.length > 4 && ` +${signal.jurisdictions_active.length - 4}`}
@@ -119,7 +119,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
         )}
         {signal.sectors_affected && signal.sectors_affected.length > 0 && (
           <div className="flex items-center gap-1">
-            <Building2 className="w-3 h-3 text-slate-light" />
+            <Building2 className="w-3 h-3 text-brand-mist" />
             <span className="text-meta text-slate">
               {signal.sectors_affected.slice(0, 3).join(", ")}
               {signal.sectors_affected.length > 3 && ` +${signal.sectors_affected.length - 3}`}
@@ -127,7 +127,7 @@ export default function LongitudinalContext({ topicArea }: LongitudinalContextPr
           </div>
         )}
         {signal.article_count && (
-          <span className="text-meta text-slate-light ml-auto">
+          <span className="text-meta text-brand-mist ml-auto">
             Based on {signal.article_count} articles
           </span>
         )}

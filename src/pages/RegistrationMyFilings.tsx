@@ -88,7 +88,7 @@ export default function RegistrationMyFilings() {
         <div className="py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="font-display text-navy">My Filings</h1>
+              <h1 className="font-display text-brand-navy">My Filings</h1>
               <p className="text-sm text-slate mt-1">All your registration orders, documents, and renewal schedules.</p>
             </div>
             <Button asChild>
@@ -97,11 +97,11 @@ export default function RegistrationMyFilings() {
           </div>
 
           {loading ? (
-            <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
+            <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
           ) : visibleOrders.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <FileText className="w-10 h-10 text-slate-light mx-auto mb-3" />
+                <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
                 <p className="text-slate mb-4">You haven't started a registration yet.</p>
                 <Button asChild><Link to="/registration-manager/start">Start free assessment</Link></Button>
               </CardContent>
@@ -116,7 +116,7 @@ export default function RegistrationMyFilings() {
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between flex-wrap gap-3">
                         <div>
-                          <CardTitle className="text-base text-navy">
+                          <CardTitle className="text-base text-brand-navy">
                             {o.tier === "diy" ? "DIY" : o.tier === "counsel_review" || o.tier === "done_for_you" ? "Counsel-Ready Pack" : "Renewal"} · {o.jurisdictions.length} jurisdiction{o.jurisdictions.length === 1 ? "" : "s"}
                           </CardTitle>
                           <p className="text-xs text-slate mt-1">

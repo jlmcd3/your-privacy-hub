@@ -47,19 +47,19 @@ const USStateAuthorities = () => {
   const statusFilters = ["All", "Enacted", "Pending", "None"];
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>U.S. State Privacy Authorities Directory | End User Privacy</title>
         <meta name="description" content="Complete directory of privacy regulatory authorities across all 50 U.S. states. Statute names, enforcement status, websites, and complaint portals." />
       </Helmet>
       <Navbar />
-      <div className="bg-gradient-to-br from-navy-mid to-navy-light py-12 px-8">
+      <div className="bg-gradient-to-br from-brand-ocean to-brand-slate-teal py-12 px-8">
         <div className="max-w-[1280px] mx-auto">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-sky mb-4 bg-sky/10 px-3 py-1.5 rounded-full border border-sky/20">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-brand-mist mb-4 bg-brand-mist/10 px-3 py-1.5 rounded-full border border-brand-mist/20">
             🏛️ Authority Directory
           </div>
           <h1 className="font-display text-white mb-3">U.S. State Privacy Authorities</h1>
-          <p className="text-base text-slate-light max-w-[700px]">
+          <p className="text-base text-brand-mist max-w-[700px]">
             Comprehensive directory of privacy regulatory authorities across all 50 U.S. states and Washington, D.C. Includes statute names, enforcement status, official websites, and complaint portals.
           </p>
         </div>
@@ -68,11 +68,11 @@ const USStateAuthorities = () => {
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Filters */}
-        <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-fog shadow-eup-sm">
+        <div className="flex gap-3 items-center mb-8 p-4 bg-card rounded-xl border border-brand-cloud shadow-eup-sm">
           <div className="relative flex-1 max-w-[400px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-light w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-mist w-4 h-4" />
             <input
-              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-paper text-navy outline-none focus:border-blue transition-colors"
+              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-brand-cloud text-brand-navy outline-none focus:border-brand-teal transition-colors"
               placeholder="Search states, authorities, or statutes…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -85,21 +85,21 @@ const USStateAuthorities = () => {
               onClick={() => setStatusFilter(f)}
               className={`px-3.5 py-1.5 text-xs font-medium border rounded-full cursor-pointer transition-all ${
                 statusFilter === f
-                  ? "bg-navy text-white border-navy"
-                  : "bg-card text-slate border-silver hover:bg-navy hover:text-white hover:border-navy"
+                  ? "bg-brand-navy text-white border-brand-navy"
+                  : "bg-card text-slate border-silver hover:bg-brand-navy hover:text-white hover:border-brand-navy"
               }`}
             >
               {f}
             </span>
           ))}
-          <span className="ml-auto text-[12px] text-slate-light">{filtered.length} results</span>
+          <span className="ml-auto text-[12px] text-brand-mist">{filtered.length} results</span>
         </div>
 
         {/* Compare CTA */}
         <div className="mb-4">
           <Link
             to="/compare/us-states"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue border border-blue/30 rounded-lg hover:bg-blue hover:text-white hover:border-blue transition-colors no-underline"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-brand-teal border border-brand-teal/30 rounded-lg hover:bg-brand-teal hover:text-white hover:border-brand-teal transition-colors no-underline"
           >
             Compare enacted state laws side by side →
           </Link>
@@ -115,24 +115,24 @@ const USStateAuthorities = () => {
             return (
               <div
                 key={state.id}
-                className="grid grid-cols-[4px_minmax(170px,200px)_1fr_minmax(180px,260px)_100px_140px] items-stretch bg-card rounded-lg border border-fog hover:border-navy/30 hover:shadow-eup-sm transition overflow-hidden"
+                className="grid grid-cols-[4px_minmax(170px,200px)_1fr_minmax(180px,260px)_100px_140px] items-stretch bg-card rounded-lg border border-brand-cloud hover:border-brand-navy/30 hover:shadow-eup-sm transition overflow-hidden"
               >
                 <div className={`${style.stripe} self-stretch`} aria-hidden="true" />
 
                 <div className="px-5 py-4">
                   <Link
                     to={`/jurisdiction/${slug}`}
-                    className="font-display text-[20px] leading-tight text-navy no-underline hover:underline"
+                    className="font-display text-[20px] leading-tight text-brand-navy no-underline hover:underline"
                   >
                     {state.state}
                   </Link>
-                  <div className="text-[11px] uppercase tracking-wider text-slate-light mt-0.5">
+                  <div className="text-[11px] uppercase tracking-wider text-brand-mist mt-0.5">
                     {style.subtitle(state.effective_date)}
                   </div>
                 </div>
 
                 <div className="py-4 pr-4">
-                  <div className="text-sm font-semibold text-navy leading-snug">
+                  <div className="text-sm font-semibold text-brand-navy leading-snug">
                     {state.authority_name}
                   </div>
                   <div className="text-xs text-slate mt-0.5">{state.authority_type}</div>
@@ -144,14 +144,14 @@ const USStateAuthorities = () => {
                       href={state.statute_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="italic text-blue hover:text-navy no-underline"
+                      className="italic text-brand-teal hover:text-brand-navy no-underline"
                     >
                       {state.statute_name} ↗
                     </a>
                   ) : state.statute_name ? (
-                    <span className="italic text-navy/80">{state.statute_name}</span>
+                    <span className="italic text-brand-navy/80">{state.statute_name}</span>
                   ) : (
-                    <span className="italic text-slate-light">No statute enacted</span>
+                    <span className="italic text-brand-mist">No statute enacted</span>
                   )}
                 </div>
 
@@ -165,7 +165,7 @@ const USStateAuthorities = () => {
                   {showView && (
                     <Link
                       to={`/jurisdiction/${slug}`}
-                      className="text-blue hover:text-navy no-underline font-semibold"
+                      className="text-brand-teal hover:text-brand-navy no-underline font-semibold"
                     >
                       View →
                     </Link>

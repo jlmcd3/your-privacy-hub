@@ -40,7 +40,7 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
           e.stopPropagation();
           setOpen(!open);
         }}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-paper/60 rounded-t-lg transition-colors"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-brand-cloud/60 rounded-t-lg transition-colors"
         aria-expanded={open}
       >
         <span className="flex items-center gap-2 min-w-0">

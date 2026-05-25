@@ -26,8 +26,8 @@ export default function IndustryFilter({ selected, onChange }: IndustryFilterPro
           onClick={() => onChange(ind.slug)}
           className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
             selected === ind.slug
-              ? "bg-navy text-white border-navy"
-              : "bg-white text-slate border-fog hover:border-navy/20"
+              ? "bg-brand-navy text-white border-brand-navy"
+              : "bg-white text-slate border-brand-cloud hover:border-brand-navy/20"
           }`}
         >
           <span>{ind.icon}</span>

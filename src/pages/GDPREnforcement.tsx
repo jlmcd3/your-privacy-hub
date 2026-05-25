@@ -84,8 +84,8 @@ const DIVERGENCE_ITEMS: {
 
 function ComparisonTable() {
   return (
-    <div className="rounded-xl border border-fog bg-card overflow-hidden">
-      <div className="grid grid-cols-[1fr_1fr] bg-navy text-white text-meta uppercase tracking-wider font-semibold">
+    <div className="rounded-xl border border-brand-cloud bg-card overflow-hidden">
+      <div className="grid grid-cols-[1fr_1fr] bg-brand-navy text-white text-meta uppercase tracking-wider font-semibold">
         <div className="px-4 py-3 border-r border-white/15 flex items-center gap-2">
           <span aria-hidden>🇪🇺</span> EU GDPR
         </div>
@@ -96,16 +96,16 @@ function ComparisonTable() {
       {COMPARISON_ROWS.map((row, idx) => (
         <div
           key={row.dimension}
-          className={`border-t border-fog ${idx % 2 === 1 ? "bg-paper/40" : ""}`}
+          className={`border-t border-brand-cloud ${idx % 2 === 1 ? "bg-brand-cloud/40" : ""}`}
         >
           <div className="px-4 pt-3 pb-1 text-eyebrow text-slate uppercase tracking-wider font-semibold">
             {row.dimension}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="px-4 py-3 text-sm text-navy leading-relaxed md:border-r border-fog">
+            <div className="px-4 py-3 text-sm text-brand-navy leading-relaxed md:border-r border-brand-cloud">
               {row.eu}
             </div>
-            <div className="px-4 py-3 text-sm text-navy leading-relaxed border-t md:border-t-0 border-fog">
+            <div className="px-4 py-3 text-sm text-brand-navy leading-relaxed border-t md:border-t-0 border-brand-cloud">
               {row.uk}
             </div>
           </div>
@@ -137,18 +137,18 @@ function ComparisonTable() {
 
 function DivergenceTracker() {
   return (
-    <div className="rounded-xl border border-cobalt/30 bg-cobalt/5 p-4 md:p-5">
-      <div className="text-eyebrow uppercase tracking-wider text-cobalt font-semibold mb-3">
+    <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 p-4 md:p-5">
+      <div className="text-eyebrow uppercase tracking-wider text-brand-teal font-semibold mb-3">
         Divergence Tracker · UK ⇢ EU
       </div>
       <ul className="space-y-4">
         {DIVERGENCE_ITEMS.map((item) => (
-          <li key={item.area} className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-2 md:gap-4 pb-4 border-b border-cobalt/15 last:border-0 last:pb-0">
+          <li key={item.area} className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-2 md:gap-4 pb-4 border-b border-brand-teal/15 last:border-0 last:pb-0">
             <div>
-              <div className="font-display text-navy text-base leading-snug mb-1">{item.area}</div>
+              <div className="font-display text-brand-navy text-base leading-snug mb-1">{item.area}</div>
               <div className="text-sm text-slate leading-relaxed">{item.detail}</div>
             </div>
-            <div className="text-meta uppercase tracking-wider text-slate-light font-semibold md:text-right">
+            <div className="text-meta uppercase tracking-wider text-brand-mist font-semibold md:text-right">
               {item.effective}
             </div>
           </li>
@@ -160,33 +160,33 @@ function DivergenceTracker() {
 
 function RecentEnforcement() {
   return (
-    <details className="rounded-xl border border-fog bg-card group">
-      <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-sm font-semibold text-navy">
+    <details className="rounded-xl border border-brand-cloud bg-card group">
+      <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-sm font-semibold text-brand-navy">
         <span>Recent enforcement — landmark cases</span>
         <span className="text-slate text-[11px] group-open:rotate-180 transition-transform">▼</span>
       </summary>
-      <div className="px-4 pb-4 pt-1 text-sm text-navy leading-relaxed space-y-3">
+      <div className="px-4 pb-4 pt-1 text-sm text-brand-navy leading-relaxed space-y-3">
         <p>
           The largest GDPR fines include <strong>Meta's €1.2 billion</strong> from the Irish{" "}
-          <Link to="/regulator/dpc" className="text-cobalt no-underline hover:underline">DPC</Link> for
+          <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">DPC</Link> for
           transfers to the U.S. without adequate safeguards (2023), <strong>Amazon's €746 million</strong> from
-          Luxembourg's <Link to="/regulator/cnpd" className="text-cobalt no-underline hover:underline">CNPD</Link>{" "}
+          Luxembourg's <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">CNPD</Link>{" "}
           for targeted advertising violations (2021), and multiple fines against{" "}
           <strong>Google, TikTok, and Clearview AI</strong> across various jurisdictions.
         </p>
         <p>
           Enforcement activity is concentrated in <strong>Ireland (
-          <Link to="/regulator/dpc" className="text-cobalt no-underline hover:underline">DPC</Link>), France (
-          <Link to="/regulator/cnil" className="text-cobalt no-underline hover:underline">CNIL</Link>), Luxembourg (
-          <Link to="/regulator/cnpd" className="text-cobalt no-underline hover:underline">CNPD</Link>), Italy (
-          <Link to="/regulator/garante" className="text-cobalt no-underline hover:underline">Garante</Link>), and Spain (
-          <Link to="/regulator/aepd" className="text-cobalt no-underline hover:underline">AEPD</Link>)</strong>. The{" "}
-          <Link to="/regulator/edpb" className="text-cobalt no-underline hover:underline">EDPB</Link> has
+          <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">DPC</Link>), France (
+          <Link to="/regulator/cnil" className="text-brand-teal no-underline hover:underline">CNIL</Link>), Luxembourg (
+          <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">CNPD</Link>), Italy (
+          <Link to="/regulator/garante" className="text-brand-teal no-underline hover:underline">Garante</Link>), and Spain (
+          <Link to="/regulator/aepd" className="text-brand-teal no-underline hover:underline">AEPD</Link>)</strong>. The{" "}
+          <Link to="/regulator/edpb" className="text-brand-teal no-underline hover:underline">EDPB</Link> has
           increasingly used dispute resolution to override lead-authority draft decisions, and its 2026 binding
           guidance on AI training data marks a significant expansion of enforcement scope.
         </p>
         <p>
-          <Link to="/enforcement-tracker" className="text-cobalt font-semibold no-underline hover:underline">
+          <Link to="/enforcement-tracker" className="text-brand-teal font-semibold no-underline hover:underline">
             See all GDPR &amp; UK GDPR enforcement actions in the Enforcement Tracker →
           </Link>
         </p>

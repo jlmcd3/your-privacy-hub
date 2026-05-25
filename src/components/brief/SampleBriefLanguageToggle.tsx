@@ -94,8 +94,8 @@ const SampleBriefLanguageToggle: React.FC<Props> = ({ englishContent, onLanguage
         disabled={isLoading}
         className={`text-[12px] px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
           ${isActive
-            ? "bg-navy text-white border-navy"
-            : "bg-white text-slate-700 border-slate-200 hover:border-navy hover:bg-slate-50"}
+            ? "bg-brand-navy text-white border-brand-navy"
+            : "bg-white text-slate-700 border-slate-200 hover:border-brand-navy hover:bg-slate-50"}
           ${isLoading ? "opacity-60 cursor-wait" : ""}`}
       >
         <span className="mr-1">{chip.flag}</span>
@@ -132,8 +132,8 @@ const SampleBriefLanguageToggle: React.FC<Props> = ({ englishContent, onLanguage
             onClick={handleEnglish}
             className={`text-[12px] px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
               ${activeLang === null
-                ? "bg-navy text-white border-navy"
-                : "bg-white text-slate-700 border-slate-200 hover:border-navy hover:bg-slate-50"}`}
+                ? "bg-brand-navy text-white border-brand-navy"
+                : "bg-white text-slate-700 border-slate-200 hover:border-brand-navy hover:bg-slate-50"}`}
           >
             🔄 English (original)
           </button>

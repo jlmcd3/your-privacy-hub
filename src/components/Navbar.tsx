@@ -233,24 +233,24 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(o => !o)}
-        className="w-8 h-8 rounded-full flex items-center justify-center bg-transparent border border-transparent hover:border-fog hover:bg-fog/40 transition-colors cursor-pointer text-slate hover:text-navy"
+        className="w-8 h-8 rounded-full flex items-center justify-center bg-transparent border border-transparent hover:border-brand-cloud hover:bg-brand-cloud/40 transition-colors cursor-pointer text-slate hover:text-brand-navy"
       >
         <UserCircle2 className="w-6 h-6" aria-hidden="true" />
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-1 min-w-[180px] bg-card border border-fog rounded-xl shadow-eup-md py-1.5 z-50"
+          className="absolute right-0 top-full mt-1 min-w-[180px] bg-card border border-brand-cloud rounded-xl shadow-eup-md py-1.5 z-50"
         >
           <Link
             to="/account"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-sm font-medium text-navy hover:bg-fog no-underline"
+            className="block px-4 py-2 text-sm font-medium text-brand-navy hover:bg-brand-cloud no-underline"
           >
             Account settings
           </Link>
-          <div className="border-t border-fog my-1" />
+          <div className="border-t border-brand-cloud my-1" />
           <button
             type="button"
             role="menuitem"
@@ -258,7 +258,7 @@ const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
               setOpen(false);
               await onSignOut();
             }}
-            className="block w-full text-left px-4 py-2 text-sm font-medium text-slate hover:text-navy hover:bg-fog bg-transparent border-none cursor-pointer"
+            className="block w-full text-left px-4 py-2 text-sm font-medium text-slate hover:text-brand-navy hover:bg-brand-cloud bg-transparent border-none cursor-pointer"
           >
             Sign out
           </button>
@@ -330,7 +330,7 @@ const Navbar = () => {
       <Link
         key={sub.label}
         to={sub.href}
-        className={`flex items-start px-3 py-2 rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy ${mobile ? "" : ""}`}
+        className={`flex items-start px-3 py-2 rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy ${mobile ? "" : ""}`}
         onClick={() => {
           if (mobile) setMobileOpen(false);
           setOpenDropdown(null);
@@ -344,7 +344,7 @@ const Navbar = () => {
                 className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                   sub.badgeGreen
                     ? "bg-accent/10 text-accent border border-accent/20"
-                    : "bg-blue/10 text-blue border border-blue/20"
+                    : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                 }`}
               >
                 {sub.badge}
@@ -352,7 +352,7 @@ const Navbar = () => {
             )}
           </span>
           {sub.description && (
-            <span className="block text-meta text-slate-light mt-0.5 leading-snug">
+            <span className="block text-meta text-brand-mist mt-0.5 leading-snug">
               {sub.description}
             </span>
           )}
@@ -379,7 +379,7 @@ const Navbar = () => {
 
   return (
     <>
-    <nav className="bg-navy border-b border-navy sticky top-0 z-50">
+    <nav className="bg-brand-navy border-b border-brand-navy sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
         {/* Logo */}
         <Link to="/" className="no-underline flex items-center">
@@ -430,7 +430,7 @@ const Navbar = () => {
                 {item.sections && openDropdown === item.label && (
                   <div ref={dropdownRef} className="absolute left-0 top-full pt-1 z-50">
                     <div
-                      className={`bg-card border border-fog rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
+                      className={`bg-card border border-brand-cloud rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
                             ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-stretch"
@@ -444,10 +444,10 @@ const Navbar = () => {
                           const bottomItems = section.items.filter((it) => it.bottom);
                           return (
                             <div key={si}>
-                              {section.divider && !item.wide && <div className="border-t border-fog my-1.5" />}
+                              {section.divider && !item.wide && <div className="border-t border-brand-cloud my-1.5" />}
                               {section.header && (
                                 <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                                  <span className="text-eyebrow text-slate-light">
+                                  <span className="text-eyebrow text-brand-mist">
                                     {section.header}
                                   </span>
                                   {section.headerBadge && (
@@ -455,7 +455,7 @@ const Navbar = () => {
                                       className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                         section.headerBadgeGreen
                                           ? "bg-accent/10 text-accent border border-accent/20"
-                                          : "bg-blue/10 text-blue border border-blue/20"
+                                          : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                                       }`}
                                     >
                                       {section.headerBadge}
@@ -538,7 +538,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-fog bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+        <div className="lg:hidden border-t border-brand-cloud bg-card px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
           {navItems.map((item) => (
             <div key={item.label}>
               {item.href && !item.sections ? (
@@ -546,7 +546,7 @@ const Navbar = () => {
                   to={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium no-underline ${
-                    item.accent ? "text-amber-500" : "text-navy"
+                    item.accent ? "text-amber-500" : "text-brand-navy"
                   }`}
                 >
                   {item.label}
@@ -554,7 +554,7 @@ const Navbar = () => {
               ) : (
                 <>
                   <button
-                    className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium text-navy bg-transparent border-none cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium text-brand-navy bg-transparent border-none cursor-pointer"
                     onClick={() =>
                       setOpenDropdown(openDropdown === item.label ? null : item.label)
                     }
@@ -572,7 +572,7 @@ const Navbar = () => {
                         <div key={si}>
                           {section.header && (
                             <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-eyebrow text-slate-light">
+                              <span className="text-eyebrow text-brand-mist">
                                 {section.header}
                               </span>
                               {section.headerBadge && (
@@ -580,7 +580,7 @@ const Navbar = () => {
                                   className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                     section.headerBadgeGreen
                                       ? "bg-accent/10 text-accent border border-accent/20"
-                                      : "bg-blue/10 text-blue border border-blue/20"
+                                      : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                                   }`}
                                 >
                                   {section.headerBadge}
@@ -597,12 +597,12 @@ const Navbar = () => {
               )}
             </div>
           ))}
-          <div className="pt-3 border-t border-fog space-y-2">
+          <div className="pt-3 border-t border-brand-cloud space-y-2">
             {user ? (
               <>
                 <Link
                   to="/dashboard"
-                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-brand-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-blue px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => {
                     setMobileOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -621,7 +621,7 @@ const Navbar = () => {
                 )}
                 <Link
                   to="/account"
-                  className="block text-center text-sm font-medium text-slate border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-medium text-slate border border-brand-cloud px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   Account settings
@@ -631,7 +631,7 @@ const Navbar = () => {
                     setMobileOpen(false);
                     await handleSignOut();
                   }}
-                  className="w-full text-center text-sm font-medium text-slate border border-fog px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
+                  className="w-full text-center text-sm font-medium text-slate border border-brand-cloud px-4 py-2.5 rounded-lg bg-transparent cursor-pointer"
                 >
                   Sign out
                 </button>
@@ -640,14 +640,14 @@ const Navbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="block text-center text-sm font-medium text-navy border border-fog px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-medium text-brand-navy border border-brand-cloud px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/subscribe"
-                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2.5 rounded-lg no-underline"
+                  className="block text-center text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2.5 rounded-lg no-underline"
                   onClick={() => setMobileOpen(false)}
                 >
                   See Plans →

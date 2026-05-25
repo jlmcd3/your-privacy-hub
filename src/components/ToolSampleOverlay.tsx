@@ -41,7 +41,7 @@ export default function ToolSampleOverlay({
           <button
             onClick={onPurchase}
             type="button"
-            className="w-full bg-gradient-to-br from-navy to-blue text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all mb-3"
+            className="w-full bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-[14px] px-6 py-3 rounded-xl hover:opacity-90 transition-all mb-3"
           >
             {priceLabel}
           </button>

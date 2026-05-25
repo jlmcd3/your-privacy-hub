@@ -3,9 +3,9 @@ import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
 
 const MECHANISM_TABLE = `
-<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
   <table class="w-full text-sm border-collapse">
-    <thead class="bg-fog text-slate">
+    <thead class="bg-brand-cloud text-slate">
       <tr>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Mechanism</th>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Who can use it</th>
@@ -14,46 +14,46 @@ const MECHANISM_TABLE = `
       </tr>
     </thead>
     <tbody class="bg-card">
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">
           Adequacy decision
-          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Art. 45</div>
+          <div class="text-[11px] font-normal text-brand-mist mt-0.5">GDPR Art. 45</div>
         </td>
         <td class="px-4 py-3 text-slate">Any exporter transferring to a country on the EU/UK adequacy list.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-emerald-700">Low.</strong> No transfer-specific contract needed; a DPA still applies under Art. 28.</td>
         <td class="px-4 py-3 text-slate">Default whenever the destination is covered — UK, Japan, Canada (commercial), Switzerland, South Korea, New Zealand, Israel, EU–US DPF certified importers.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">
           2021 Standard Contractual Clauses
-          <div class="text-[11px] font-normal text-slate-light mt-0.5">Commission Decision 2021/914</div>
+          <div class="text-[11px] font-normal text-brand-mist mt-0.5">Commission Decision 2021/914</div>
         </td>
         <td class="px-4 py-3 text-slate">Any exporter — four modules cover C2C, C2P, P2P, P2C scenarios.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-amber-700">Medium.</strong> Module selection, annex completion and a Transfer Impact Assessment per data flow.</td>
         <td class="px-4 py-3 text-slate">Default for non-adequate destinations. Also recommended as fallback alongside DPF certifications.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">
           Binding Corporate Rules
-          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Art. 47</div>
+          <div class="text-[11px] font-normal text-brand-mist mt-0.5">GDPR Art. 47</div>
         </td>
         <td class="px-4 py-3 text-slate">Multinational corporate groups for intra-group transfers only.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-rose-700">High.</strong> 18–36 month lead supervisory authority approval process.</td>
         <td class="px-4 py-3 text-slate">Established groups with significant intra-group data flows that want a durable, audit-friendly mechanism.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">
           Article 49 derogations
-          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Art. 49</div>
+          <div class="text-[11px] font-normal text-brand-mist mt-0.5">GDPR Art. 49</div>
         </td>
         <td class="px-4 py-3 text-slate">Any exporter — but only for occasional, non-systematic transfers.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-emerald-700">Low</strong> for one-offs; <strong class="text-rose-700">unusable</strong> for ongoing flows.</td>
         <td class="px-4 py-3 text-slate">Explicit consent, contract necessity, legal claims, vital interests, or compelling legitimate interests on a narrow basis.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">
           Certification / Codes of Conduct
-          <div class="text-[11px] font-normal text-slate-light mt-0.5">GDPR Arts. 40–42</div>
+          <div class="text-[11px] font-normal text-brand-mist mt-0.5">GDPR Arts. 40–42</div>
         </td>
         <td class="px-4 py-3 text-slate">Sectoral participants once a Commission-approved scheme exists.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-amber-700">Medium.</strong> Depends on scheme; ongoing monitoring required.</td>
@@ -65,9 +65,9 @@ const MECHANISM_TABLE = `
 `;
 
 const ADEQUACY_TABLE = `
-<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
   <table class="w-full text-sm border-collapse">
-    <thead class="bg-fog text-slate">
+    <thead class="bg-brand-cloud text-slate">
       <tr>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Country / Territory</th>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Adopted</th>
@@ -76,21 +76,21 @@ const ADEQUACY_TABLE = `
       </tr>
     </thead>
     <tbody class="bg-card">
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">United Kingdom</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2025</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Renewal under review</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Japan</td><td class="px-4 py-3 text-slate">2019</td><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">South Korea</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Switzerland</td><td class="px-4 py-3 text-slate">2000</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Canada (commercial)</td><td class="px-4 py-3 text-slate">2001</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">New Zealand</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Israel</td><td class="px-4 py-3 text-slate">2011</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Argentina</td><td class="px-4 py-3 text-slate">2003</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Uruguay</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">Andorra, Faroe Islands, Guernsey, Isle of Man, Jersey</td><td class="px-4 py-3 text-slate">2010–2013</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 font-medium text-navy">United States (DPF-certified entities)</td><td class="px-4 py-3 text-slate">Jul 2023</td><td class="px-4 py-3 text-slate">2024 (first review)</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Schrems III challenge pending</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">United Kingdom</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2025</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Renewal under review</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Japan</td><td class="px-4 py-3 text-slate">2019</td><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">South Korea</td><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force (mutual)</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Switzerland</td><td class="px-4 py-3 text-slate">2000</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Canada (commercial)</td><td class="px-4 py-3 text-slate">2001</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">New Zealand</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Israel</td><td class="px-4 py-3 text-slate">2011</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Argentina</td><td class="px-4 py-3 text-slate">2003</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Uruguay</td><td class="px-4 py-3 text-slate">2012</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">Andorra, Faroe Islands, Guernsey, Isle of Man, Jersey</td><td class="px-4 py-3 text-slate">2010–2013</td><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">In force</span></td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 font-medium text-brand-navy">United States (DPF-certified entities)</td><td class="px-4 py-3 text-slate">Jul 2023</td><td class="px-4 py-3 text-slate">2024 (first review)</td><td class="px-4 py-3"><span class="inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">Schrems III challenge pending</span></td></tr>
     </tbody>
   </table>
 </div>
-<p class="text-[11px] text-slate-light mt-2">Adequacy decisions cover specific scopes (e.g. commercial transfers in Canada, certified entities in the US). Always confirm scope against the operative Commission decision.</p>
+<p class="text-[11px] text-brand-mist mt-2">Adequacy decisions cover specific scopes (e.g. commercial transfers in Canada, certified entities in the US). Always confirm scope against the operative Commission decision.</p>
 `;
 
 export default function CrossBorderTransfersPage() {

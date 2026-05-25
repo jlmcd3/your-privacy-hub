@@ -9,7 +9,7 @@ const TIERED_STATE_LAWS = `
       <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-600 text-white">Highest obligation</span>
       <span class="text-xs text-rose-900 font-semibold">Private right of action · no cure period · per-scan damages</span>
     </div>
-    <h3 class="text-navy text-lg mb-1">Illinois — BIPA</h3>
+    <h3 class="text-brand-navy text-lg mb-1">Illinois — BIPA</h3>
     <p class="text-sm text-slate leading-relaxed">
       <a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&amp;ChapterID=57" target="_blank" rel="noopener noreferrer">740 ILCS 14</a> requires written informed consent before collecting biometric identifiers, a publicly available retention and destruction schedule, no sale or trade of biometric data, and reasonable security. The <strong>private right of action</strong> allows $1,000 per negligent and $5,000 per intentional or reckless violation, and <a href="https://courts.illinois.gov/Opinions/SupremeCourt/2023/127891.pdf" target="_blank" rel="noopener noreferrer">Cothron v. White Castle</a> (2023) confirmed damages accrue <em>per scan</em>. Even a small employee population can produce nine-figure exposure.
     </p>
@@ -20,7 +20,7 @@ const TIERED_STATE_LAWS = `
       <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-600 text-white">Moderate obligation</span>
       <span class="text-xs text-amber-900 font-semibold">AG enforcement · consent + retention · large state-led settlements</span>
     </div>
-    <h3 class="text-navy text-lg mb-1">Texas — CUBI · Washington — RCW 19.375</h3>
+    <h3 class="text-brand-navy text-lg mb-1">Texas — CUBI · Washington — RCW 19.375</h3>
     <p class="text-sm text-slate leading-relaxed">
       <strong><a href="https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm" target="_blank" rel="noopener noreferrer">Texas CUBI</a></strong> prohibits capturing biometric identifiers for commercial purposes without informed consent and is enforced exclusively by the Attorney General. In 2024 Texas secured a <strong>$1.4B settlement from Meta</strong> for unauthorized facial recognition — the largest single-state biometric recovery to date.
       <br /><br />
@@ -28,12 +28,12 @@ const TIERED_STATE_LAWS = `
     </p>
   </div>
 
-  <div class="rounded-xl border-l-4 border-slate-400 bg-paper p-5">
+  <div class="rounded-xl border-l-4 border-slate-400 bg-brand-cloud p-5">
     <div class="flex items-center gap-2 mb-2">
       <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-600 text-white">Disclosure / sensitive-data tier</span>
       <span class="text-xs text-slate font-semibold">Comprehensive privacy laws — biometric data treated as sensitive</span>
     </div>
-    <h3 class="text-navy text-lg mb-1">California, Colorado, Virginia, Connecticut, Oregon, Montana, Texas TDPSA…</h3>
+    <h3 class="text-brand-navy text-lg mb-1">California, Colorado, Virginia, Connecticut, Oregon, Montana, Texas TDPSA…</h3>
     <p class="text-sm text-slate leading-relaxed">
       Nearly every <a href="/us-state-privacy-laws">comprehensive U.S. state privacy law</a> classifies biometric data as <strong>sensitive personal information</strong>, requiring opt-in consent (or a right to limit, under California), disclosure in the privacy notice, and inclusion in data subject request workflows. Enforced by state Attorneys General (and the CPPA in California), without a private right of action specific to biometrics.
     </p>
@@ -42,9 +42,9 @@ const TIERED_STATE_LAWS = `
 `;
 
 const ENFORCEMENT_HISTORY = `
-<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
   <table class="w-full text-sm border-collapse">
-    <thead class="bg-fog text-slate">
+    <thead class="bg-brand-cloud text-slate">
       <tr>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Year</th>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Defendant</th>
@@ -54,17 +54,17 @@ const ENFORCEMENT_HISTORY = `
       </tr>
     </thead>
     <tbody class="bg-card">
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3 font-semibold text-navy">Meta (Texas AG)</td><td class="px-4 py-3 text-slate">Texas CUBI</td><td class="px-4 py-3 font-semibold text-rose-700">$1.4B</td><td class="px-4 py-3 text-slate">Unauthorised facial recognition in Tag Suggestions</td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2022</td><td class="px-4 py-3 font-semibold text-navy">BNSF Railway</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$228M (jury)</td><td class="px-4 py-3 text-slate">Fingerprint timekeeping by a third-party vendor</td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2022</td><td class="px-4 py-3 font-semibold text-navy">Google</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$100M</td><td class="px-4 py-3 text-slate">Google Photos face grouping</td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 font-semibold text-navy">Facebook / Meta</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$650M</td><td class="px-4 py-3 text-slate">Tag Suggestions face templates</td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3 font-semibold text-navy">Rite Aid (FTC)</td><td class="px-4 py-3 text-slate">FTC Act §5</td><td class="px-4 py-3 font-semibold text-rose-700">5-year ban</td><td class="px-4 py-3 text-slate">Facial recognition for theft detection — disparate impact</td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3 font-semibold text-navy">TikTok</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$92M</td><td class="px-4 py-3 text-slate">In-app facial geometry collection</td></tr>
-      <tr class="border-t border-fog"><td class="px-4 py-3 text-slate">2020</td><td class="px-4 py-3 font-semibold text-navy">Clearview AI (multi-DPA)</td><td class="px-4 py-3 text-slate">GDPR Art. 9</td><td class="px-4 py-3 font-semibold text-rose-700">€20M+ cumulative</td><td class="px-4 py-3 text-slate">Scraped facial images — France, Italy, UK, Greece, Netherlands</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2024</td><td class="px-4 py-3 font-semibold text-brand-navy">Meta (Texas AG)</td><td class="px-4 py-3 text-slate">Texas CUBI</td><td class="px-4 py-3 font-semibold text-rose-700">$1.4B</td><td class="px-4 py-3 text-slate">Unauthorised facial recognition in Tag Suggestions</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2022</td><td class="px-4 py-3 font-semibold text-brand-navy">BNSF Railway</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$228M (jury)</td><td class="px-4 py-3 text-slate">Fingerprint timekeeping by a third-party vendor</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2022</td><td class="px-4 py-3 font-semibold text-brand-navy">Google</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$100M</td><td class="px-4 py-3 text-slate">Google Photos face grouping</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2021</td><td class="px-4 py-3 font-semibold text-brand-navy">Facebook / Meta</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$650M</td><td class="px-4 py-3 text-slate">Tag Suggestions face templates</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3 font-semibold text-brand-navy">Rite Aid (FTC)</td><td class="px-4 py-3 text-slate">FTC Act §5</td><td class="px-4 py-3 font-semibold text-rose-700">5-year ban</td><td class="px-4 py-3 text-slate">Facial recognition for theft detection — disparate impact</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2023</td><td class="px-4 py-3 font-semibold text-brand-navy">TikTok</td><td class="px-4 py-3 text-slate">Illinois BIPA</td><td class="px-4 py-3 font-semibold text-rose-700">$92M</td><td class="px-4 py-3 text-slate">In-app facial geometry collection</td></tr>
+      <tr class="border-t border-brand-cloud"><td class="px-4 py-3 text-slate">2020</td><td class="px-4 py-3 font-semibold text-brand-navy">Clearview AI (multi-DPA)</td><td class="px-4 py-3 text-slate">GDPR Art. 9</td><td class="px-4 py-3 font-semibold text-rose-700">€20M+ cumulative</td><td class="px-4 py-3 text-slate">Scraped facial images — France, Italy, UK, Greece, Netherlands</td></tr>
     </tbody>
   </table>
 </div>
-<p class="text-[11px] text-slate-light mt-2">Settlement amounts as reported by court filings and AG press releases; BIPA totals are net of attorneys' fees.</p>
+<p class="text-[11px] text-brand-mist mt-2">Settlement amounts as reported by court filings and AG press releases; BIPA totals are net of attorneys' fees.</p>
 `;
 
 export default function BiometricPrivacyPage() {

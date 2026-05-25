@@ -27,8 +27,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (loading || (user && roleConfirmed === null)) {
     return (
-      <div className="min-h-screen bg-paper flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue/30 border-t-blue rounded-full animate-spin" />
+      <div className="min-h-screen bg-brand-cloud flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-brand-teal/30 border-t-blue rounded-full animate-spin" />
       </div>
     );
   }

@@ -29,7 +29,7 @@ export default function ExportPDFButton({ jurisdictionName }: ExportPDFButtonPro
   return (
     <button
       onClick={handleExport}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-fog bg-white text-slate text-xs font-semibold hover:border-blue/30 hover:text-navy transition-all cursor-pointer no-print"
+      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-cloud bg-white text-slate text-xs font-semibold hover:border-brand-teal/30 hover:text-brand-navy transition-all cursor-pointer no-print"
     >
       <Download className="w-3.5 h-3.5" />
       Export PDF

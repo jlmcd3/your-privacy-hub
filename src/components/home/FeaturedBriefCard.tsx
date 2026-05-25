@@ -42,7 +42,7 @@ export default function FeaturedBriefCard({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="block relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#0c1e38] via-navy to-steel text-white mb-6 no-underline group"
+      className="block relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#0c1e38] via-brand-navy to-brand-steel text-white mb-6 no-underline group"
     >
       {/* Subtle texture overlays */}
       <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(ellipse_at_top_right,_#60a5fa,_transparent_60%)]" />
@@ -95,7 +95,7 @@ export default function FeaturedBriefCard({
           </p>
         )}
 
-        <span className="inline-flex items-center gap-2 bg-white text-navy font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-all">
+        <span className="inline-flex items-center gap-2 bg-white text-brand-navy font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-all">
           Read full analysis ↗
         </span>
 

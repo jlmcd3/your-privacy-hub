@@ -81,21 +81,21 @@ export default function BiometricCheckerResult() {
     <div className="border-l-4 border-[hsl(var(--warn))] bg-[hsl(var(--warn)/0.06)] rounded-r-md px-4 py-3">
       <h3 className="text-[hsl(var(--warn))] mb-1">⚠️ BIPA Litigation Risk Estimate</h3>
       <p className="text-sm text-foreground">
-        Low end: <span className="font-medium text-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
+        Low end: <span className="font-medium text-brand-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-brand-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
       </p>
       {bipaRisk.note && <p className="text-meta text-muted-foreground mt-1">{bipaRisk.note}</p>}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Biometric Compliance Assessment | End User Privacy</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
         <ClientContextBadge />
         {loading ? (
-          <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
+          <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
         ) : !row ? (
           <div className="bg-card border border-border rounded-2xl p-8 text-center">
             <p className="text-slate">Assessment not found or you don't have access.</p>
@@ -103,7 +103,7 @@ export default function BiometricCheckerResult() {
           </div>
         ) : row.status === "pending" || row.status === "processing" ? (
           <div className="bg-card border border-border rounded-2xl p-10 text-center">
-            <Loader2 className="w-6 h-6 animate-spin text-navy mx-auto mb-3" />
+            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" />
             <p className="text-foreground">Your assessment is being generated.</p>
           </div>
         ) : (

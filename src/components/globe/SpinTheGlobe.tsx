@@ -388,7 +388,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {!compact && (
         <div className="text-center mb-6">
-          <h2 className="font-display text-navy mb-2">Feeling Curious?</h2>
+          <h2 className="font-display text-brand-navy mb-2">Feeling Curious?</h2>
           <p className="text-slate text-sm max-w-md mx-auto">
             Spin the globe and discover a jurisdiction you may not have been tracking.
             Every country has a story.
@@ -409,7 +409,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       />
 
       {!ready && (
-        <p className="text-slate-light text-[11px] mt-1 animate-pulse">Loading globe…</p>
+        <p className="text-brand-mist text-[11px] mt-1 animate-pulse">Loading globe…</p>
       )}
 
       {/* Controls */}
@@ -423,14 +423,14 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
             onClick={handleSpin}
             className={compact
               ? "group relative overflow-hidden bg-white/15 border border-white/20 text-white font-bold text-[12px] px-6 py-2 rounded-xl hover:bg-white/25 transition-all cursor-pointer w-full"
-              : "group relative overflow-hidden bg-gradient-to-br from-navy to-steel text-white font-bold text-[15px] px-10 py-4 rounded-2xl shadow-eup-md hover:shadow-eup-lg transition-all hover:-translate-y-0.5 cursor-pointer border-none w-full"
+              : "group relative overflow-hidden bg-gradient-to-br from-brand-navy to-brand-steel text-white font-bold text-[15px] px-10 py-4 rounded-2xl shadow-eup-md hover:shadow-eup-lg transition-all hover:-translate-y-0.5 cursor-pointer border-none w-full"
             }
           >
             <span className="relative z-10 flex items-center justify-center gap-2.5">
               🌍 Spin the Globe to discover a jurisdiction
             </span>
             {!compact && (
-              <div className="absolute inset-0 bg-gradient-to-br from-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-teal/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             )}
           </button>
         )}
@@ -439,7 +439,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           <div className="flex flex-col items-center gap-3 mt-4">
             <div className="flex gap-1.5">
               {[0,1,2].map(i => (
-                <div key={i} className="w-2.5 h-2.5 rounded-full bg-blue animate-bounce"
+                <div key={i} className="w-2.5 h-2.5 rounded-full bg-brand-teal animate-bounce"
                   style={{ animationDelay: `${i*0.15}s` }} />
               ))}
             </div>
@@ -451,7 +451,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           <div className="w-full animate-fade-up">
             <div className={compact
               ? "bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm p-3 text-center w-full"
-              : "bg-white border border-fog rounded-2xl shadow-eup-md p-6 text-center w-full"
+              : "bg-white border border-brand-cloud rounded-2xl shadow-eup-md p-6 text-center w-full"
             }>
               {/* Country flag — smaller in compact */}
               <div className="flex justify-center mb-1">
@@ -464,18 +464,18 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 />
               </div>
 
-              <div className={compact ? "text-[11px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[11px] font-bold uppercase tracking-widest text-slate-light mb-1"}>
+              <div className={compact ? "text-[11px] font-bold uppercase tracking-widest text-white/50 mb-0.5" : "text-[11px] font-bold uppercase tracking-widest text-brand-mist mb-1"}>
                 The globe chose
               </div>
               <h3 className={compact
                 ? "font-display text-white mb-1"
-                : "font-display text-navy mb-2"
+                : "font-display text-brand-navy mb-2"
               }>{picked.name}</h3>
 
               {!compact && (
                 <div className="flex items-center justify-center gap-2 mb-3 flex-wrap">
-                  <span className="text-[11px] bg-fog text-slate px-2.5 py-0.5 rounded-full font-medium">{picked.law}</span>
-                  <span className="text-[11px] bg-fog text-slate px-2.5 py-0.5 rounded-full font-medium">{picked.regulator}</span>
+                  <span className="text-[11px] bg-brand-cloud text-slate px-2.5 py-0.5 rounded-full font-medium">{picked.law}</span>
+                  <span className="text-[11px] bg-brand-cloud text-slate px-2.5 py-0.5 rounded-full font-medium">{picked.regulator}</span>
                 </div>
               )}
 
@@ -487,8 +487,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                 <Link
                   to={`/jurisdiction/${picked.slug}`}
                   className={compact
-                    ? "block bg-white text-navy font-bold text-[11px] py-1.5 px-3 rounded-lg no-underline hover:bg-white/90 transition-all"
-                    : "block bg-gradient-to-br from-navy to-blue text-white font-bold text-sm py-3 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
+                    ? "block bg-white text-brand-navy font-bold text-[11px] py-1.5 px-3 rounded-lg no-underline hover:bg-white/90 transition-all"
+                    : "block bg-gradient-to-br from-brand-navy to-brand-teal text-white font-bold text-sm py-3 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
                   }
                 >
                   {compact ? `Explore ${picked.name} →` : `See what's happening in ${picked.name} →`}
@@ -497,7 +497,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
                   onClick={handleReset}
                   className={compact
                     ? "text-white/60 text-[11px] font-medium hover:text-white transition-colors cursor-pointer bg-transparent border-none py-0.5"
-                    : "text-slate text-sm font-medium hover:text-navy transition-colors cursor-pointer bg-transparent border-none py-1"
+                    : "text-slate text-sm font-medium hover:text-brand-navy transition-colors cursor-pointer bg-transparent border-none py-1"
                   }
                 >
                   ↩ Spin again

@@ -101,7 +101,7 @@ export default function DashboardSubnav() {
   return (
     <nav
       aria-label="Dashboard sections"
-      className="border-b border-fog bg-card sticky top-14 md:top-16 z-30 backdrop-blur-sm bg-card/95"
+      className="border-b border-brand-cloud bg-card sticky top-14 md:top-16 z-30 backdrop-blur-sm bg-card/95"
     >
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2">
@@ -119,8 +119,8 @@ export default function DashboardSubnav() {
                     className={cn(
                       "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline whitespace-nowrap",
                       active
-                        ? "bg-navy text-white"
-                        : "text-slate hover:bg-fog hover:text-navy",
+                        ? "bg-brand-navy text-white"
+                        : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
                     )}
                     aria-current={active ? "page" : undefined}
                   >
@@ -139,8 +139,8 @@ export default function DashboardSubnav() {
             className={cn(
               "flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline",
               accountActive
-                ? "bg-fog text-navy"
-                : "text-slate hover:bg-fog hover:text-navy",
+                ? "bg-brand-cloud text-brand-navy"
+                : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
             )}
             aria-current={accountActive ? "page" : undefined}
           >

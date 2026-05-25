@@ -93,7 +93,7 @@ const GlobalAuthorities = () => {
   }, [searchTerm, filter]);
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Global Privacy Authority Directory — 119+ DPAs | End User Privacy</title>
         <meta
@@ -118,7 +118,7 @@ const GlobalAuthorities = () => {
       <AdBanner variant="leaderboard" className="mt-6" />
 
       {/* Sticky filter + search bar */}
-      <div className="sticky top-0 z-30 bg-paper/95 backdrop-blur border-b border-fog">
+      <div className="sticky top-0 z-30 bg-brand-cloud/95 backdrop-blur border-b border-brand-cloud">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             {FILTERS.map((f) => {
@@ -129,12 +129,12 @@ const GlobalAuthorities = () => {
                   onClick={() => setFilter(f)}
                   className={`text-xs font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full border transition-colors ${
                     active
-                      ? "bg-navy text-white border-navy"
-                      : "bg-card text-slate border-silver hover:border-navy/40"
+                      ? "bg-brand-navy text-white border-brand-navy"
+                      : "bg-card text-slate border-silver hover:border-brand-navy/40"
                   }`}
                 >
                   {f === "All" ? "All" : `${REGION_FLAG[f as RegionGroup]} ${f}`}
-                  <span className={`ml-1.5 text-[10px] ${active ? "text-white/80" : "text-slate-light"}`}>
+                  <span className={`ml-1.5 text-[10px] ${active ? "text-white/80" : "text-brand-mist"}`}>
                     {counts[f] ?? 0}
                   </span>
                 </button>
@@ -142,9 +142,9 @@ const GlobalAuthorities = () => {
             })}
           </div>
           <div className="relative w-full lg:max-w-[360px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-light w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-mist w-4 h-4" />
             <input
-              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-card text-navy outline-none focus:border-blue transition-colors"
+              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-card text-brand-navy outline-none focus:border-brand-teal transition-colors"
               placeholder="Search ICO, CNIL, country, legislation…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -172,7 +172,7 @@ const GlobalAuthorities = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="bg-card border border-fog rounded-xl p-10 text-center text-slate">
+          <div className="bg-card border border-brand-cloud rounded-xl p-10 text-center text-slate">
             No authorities match your search.
           </div>
         ) : (
@@ -182,7 +182,7 @@ const GlobalAuthorities = () => {
               return (
                 <div
                   key={entry.id}
-                  className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm flex flex-col gap-3 hover:border-navy/30 transition-colors"
+                  className="bg-card border border-brand-cloud rounded-xl p-5 shadow-eup-sm flex flex-col gap-3 hover:border-brand-navy/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -191,7 +191,7 @@ const GlobalAuthorities = () => {
                       </div>
                       <Link
                         to={`/jurisdiction/${entry.slug || slugify(entry.country)}`}
-                        className="block mt-1 text-sm font-semibold text-navy hover:text-blue no-underline"
+                        className="block mt-1 text-sm font-semibold text-brand-navy hover:text-brand-teal no-underline"
                       >
                         {entry.authority_name}
                       </Link>
@@ -209,21 +209,21 @@ const GlobalAuthorities = () => {
 
                   {entry.primary_legislation && (
                     <div className="text-xs text-slate">
-                      <span className="text-slate-light">Law: </span>
+                      <span className="text-brand-mist">Law: </span>
                       {entry.primary_legislation}
                       {entry.legislation_abbreviation && (
-                        <span className="text-slate-light"> ({entry.legislation_abbreviation})</span>
+                        <span className="text-brand-mist"> ({entry.legislation_abbreviation})</span>
                       )}
                     </div>
                   )}
 
-                  <div className="mt-auto pt-3 border-t border-fog flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+                  <div className="mt-auto pt-3 border-t border-brand-cloud flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
                     {entry.website && (
                       <a
                         href={entry.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue hover:underline no-underline"
+                        className="text-brand-teal hover:underline no-underline"
                       >
                         Website ↗
                       </a>
@@ -233,12 +233,12 @@ const GlobalAuthorities = () => {
                         href={entry.complaint_portal}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue hover:underline no-underline font-medium"
+                        className="text-brand-teal hover:underline no-underline font-medium"
                       >
                         File complaint / notify ↗
                       </a>
                     ) : (
-                      <span className="text-slate-light">No public complaint portal</span>
+                      <span className="text-brand-mist">No public complaint portal</span>
                     )}
                   </div>
                 </div>

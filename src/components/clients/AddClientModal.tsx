@@ -49,10 +49,10 @@ export function AddClientModal({ open, onClose, onCreated }: AddClientModalProps
         className="bg-card rounded-xl shadow-eup-lg max-w-md w-full p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-navy mb-4">Add a new client</h2>
+        <h2 className="text-brand-navy mb-4">Add a new client</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="client-name" className="block text-sm font-medium text-navy mb-1">
+            <label htmlFor="client-name" className="block text-sm font-medium text-brand-navy mb-1">
               Client name <span className="text-red-500">*</span>
             </label>
             <input
@@ -62,19 +62,19 @@ export function AddClientModal({ open, onClose, onCreated }: AddClientModalProps
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-fog rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue"
+              className="w-full border border-brand-cloud rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
               placeholder="e.g. Acme Corporation"
             />
           </div>
           <div>
-            <label htmlFor="client-sector" className="block text-sm font-medium text-navy mb-1">
+            <label htmlFor="client-sector" className="block text-sm font-medium text-brand-navy mb-1">
               Sector
             </label>
             <select
               id="client-sector"
               value={sector}
               onChange={(e) => setSector(e.target.value)}
-              className="w-full border border-fog rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue"
+              className="w-full border border-brand-cloud rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
             >
               <option value="">Select sector (optional)…</option>
               {SECTORS.map((s) => (
@@ -88,14 +88,14 @@ export function AddClientModal({ open, onClose, onCreated }: AddClientModalProps
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate hover:text-navy bg-transparent border border-fog rounded-md"
+              className="px-4 py-2 text-sm font-medium text-slate hover:text-brand-navy bg-transparent border border-brand-cloud rounded-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || !name.trim()}
-              className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-md hover:opacity-90 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal rounded-md hover:opacity-90 disabled:opacity-50"
             >
               {submitting ? 'Creating…' : 'Create client'}
             </button>

@@ -36,7 +36,7 @@ const confidenceStyle = (c?: string | null) => {
     case "low":
       return "bg-slate-100 text-slate-700 border-slate-200";
     default:
-      return "bg-fog text-slate border-silver";
+      return "bg-brand-cloud text-slate border-silver";
   }
 };
 
@@ -70,35 +70,35 @@ function matchesWatchlist(item: HorizonItem, watch: WatchItem[]): boolean {
 
 function HorizonCard({ item }: { item: HorizonItem }) {
   return (
-    <article className="bg-card border border-fog rounded-2xl p-5 hover:border-silver transition-colors">
+    <article className="bg-card border border-brand-cloud rounded-2xl p-5 hover:border-silver transition-colors">
       <div className="flex flex-wrap items-center gap-2 mb-3">
         {item.timeline_label && (
-          <span className="text-[11px] font-bold uppercase tracking-widest text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-brand-navy bg-brand-cloud border border-silver/60 px-2 py-0.5 rounded">
             {item.timeline_label}
           </span>
         )}
         {item.jurisdiction && (
           <span className="text-[11px] font-medium text-slate">{item.jurisdiction}</span>
         )}
-        {item.sector && <span className="text-[11px] text-slate-light">· {item.sector}</span>}
+        {item.sector && <span className="text-[11px] text-brand-mist">· {item.sector}</span>}
         {item.confidence && (
           <span className={`ml-auto text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-full ${confidenceStyle(item.confidence)}`}>
             {item.confidence} confidence
           </span>
         )}
       </div>
-      <h2 className="font-display text-navy leading-snug mb-2">
+      <h2 className="font-display text-brand-navy leading-snug mb-2">
         {item.anticipated_development}
       </h2>
       {item.source_signal && (
         <p className="text-sm text-slate leading-relaxed mb-2">
-          <span className="font-semibold text-navy">Source signal: </span>
+          <span className="font-semibold text-brand-navy">Source signal: </span>
           {item.source_signal}
         </p>
       )}
       {item.recommended_action && (
         <p className="text-sm text-slate leading-relaxed">
-          <span className="font-semibold text-navy">Recommended action: </span>
+          <span className="font-semibold text-brand-navy">Recommended action: </span>
           {item.recommended_action}
         </p>
       )}
@@ -165,7 +165,7 @@ export default function Horizon() {
     items.filter((i) => matchesWatchlist(i, watch)).length === 0;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Enforcement Forecast Intelligence | Anticipated Privacy Developments — End User Privacy</title>
         <meta
@@ -200,21 +200,21 @@ export default function Horizon() {
       <main className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Watchlist controls */}
         {hasWatchlist && (
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-fog bg-card px-4 py-3">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand-cloud bg-card px-4 py-3">
             <div className="flex flex-wrap items-center gap-2 min-w-0">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-light">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-brand-mist">
                 Following
               </span>
               {watch.slice(0, 6).map((w) => (
                 <span
                   key={`${w.type}-${w.slug}`}
-                  className="text-[11px] font-medium text-navy bg-fog border border-silver/60 px-2 py-0.5 rounded-full"
+                  className="text-[11px] font-medium text-brand-navy bg-brand-cloud border border-silver/60 px-2 py-0.5 rounded-full"
                 >
                   {w.label}
                 </span>
               ))}
               {watch.length > 6 && (
-                <span className="text-[11px] text-slate-light">
+                <span className="text-[11px] text-brand-mist">
                   +{watch.length - 6} more
                 </span>
               )}
@@ -230,7 +230,7 @@ export default function Horizon() {
         )}
 
         {filteredEmpty && (
-          <div className="mb-6 rounded-lg border border-fog bg-card px-4 py-3 text-sm text-slate">
+          <div className="mb-6 rounded-lg border border-brand-cloud bg-card px-4 py-3 text-sm text-slate">
             No signals matched your watchlist this period — showing all global signals instead.
           </div>
         )}
@@ -238,16 +238,16 @@ export default function Horizon() {
         {/* Companion card → Enforcement Intelligence */}
         <Link
           to="/enforcement-intelligence"
-          className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-fog bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
+          className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-brand-cloud bg-card px-4 py-3 no-underline transition-colors hover:border-silver"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-navy">Evidence view</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-brand-navy">Evidence view</span>
             <span className="text-sm text-slate truncate">
-              <span className="font-semibold text-navy">Enforcement Intelligence</span>
-              <span className="text-slate-light"> — Verified cases underlying these forecasts</span>
+              <span className="font-semibold text-brand-navy">Enforcement Intelligence</span>
+              <span className="text-brand-mist"> — Verified cases underlying these forecasts</span>
             </span>
           </div>
-          <span className="text-sm text-slate-light group-hover:text-navy transition-colors shrink-0">→</span>
+          <span className="text-sm text-brand-mist group-hover:text-brand-navy transition-colors shrink-0">→</span>
         </Link>
 
         {/* Action card → Registration Manager */}
@@ -258,8 +258,8 @@ export default function Horizon() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-[11px] font-bold uppercase tracking-widest text-amber-800">Act on signals</span>
             <span className="text-sm text-slate truncate">
-              <span className="font-semibold text-navy">Your Registration Filings</span>
-              <span className="text-slate-light"> — Get ahead of upcoming filing & DPO obligations</span>
+              <span className="font-semibold text-brand-navy">Your Registration Filings</span>
+              <span className="text-brand-mist"> — Get ahead of upcoming filing & DPO obligations</span>
             </span>
           </div>
           <span className="text-sm text-amber-700 group-hover:text-amber-900 transition-colors shrink-0">→</span>
@@ -272,7 +272,7 @@ export default function Horizon() {
             <p className="text-slate text-[14px] mb-3">
               No horizon signals published yet. Check back next week.
             </p>
-            <Link to="/updates" className="text-blue text-sm font-medium no-underline">
+            <Link to="/updates" className="text-brand-teal text-sm font-medium no-underline">
               Browse latest regulatory updates →
             </Link>
           </div>

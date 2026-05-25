@@ -10,11 +10,11 @@ const topics = [
 
 const ResearchTopics = () => {
   return (
-    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-paper">
+    <section className="pt-5 pb-10 md:pt-8 md:pb-16 px-4 md:px-8 bg-brand-cloud">
       <div className="max-w-[1280px] mx-auto">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="font-display tracking-tight text-navy">Research Topics</h2>
+            <h2 className="font-display tracking-tight text-brand-navy">Research Topics</h2>
             <p className="text-sm text-slate mt-1">In-depth regulatory landscape guides</p>
           </div>
         </div>
@@ -24,17 +24,17 @@ const ResearchTopics = () => {
             <Link
               key={topic.title}
               to={topic.href}
-              className="group bg-card border border-fog rounded-xl p-5 md:p-6 no-underline flex flex-col relative overflow-hidden hover:shadow-eup-md hover:border-silver hover:-translate-y-0.5 transition-all"
+              className="group bg-card border border-brand-cloud rounded-xl p-5 md:p-6 no-underline flex flex-col relative overflow-hidden hover:shadow-eup-md hover:border-silver hover:-translate-y-0.5 transition-all"
             >
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-steel to-blue scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300" />
-              <div className="w-10 h-10 bg-fog rounded-lg flex items-center justify-center text-xl mb-3.5 group-hover:bg-sky transition-colors">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-steel to-brand-teal scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300" />
+              <div className="w-10 h-10 bg-brand-cloud rounded-lg flex items-center justify-center text-xl mb-3.5 group-hover:bg-brand-mist transition-colors">
                 {topic.icon}
               </div>
-              <div className="font-display text-[15px] text-navy mb-2">{topic.title}</div>
+              <div className="font-display text-[15px] text-brand-navy mb-2">{topic.title}</div>
               <div className="text-xs text-slate leading-relaxed flex-1">{topic.desc}</div>
-              <div className="flex justify-between items-center mt-4 pt-3 border-t border-fog">
-                <span className="text-[11px] text-slate-light">{topic.updated}</span>
-                <span className="text-[12px] text-blue">→</span>
+              <div className="flex justify-between items-center mt-4 pt-3 border-t border-brand-cloud">
+                <span className="text-[11px] text-brand-mist">{topic.updated}</span>
+                <span className="text-[12px] text-brand-teal">→</span>
               </div>
             </Link>
           ))}

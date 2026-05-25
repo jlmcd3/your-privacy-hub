@@ -11,7 +11,7 @@ export { STATUS_CONFIG };
 export default function MapLegend() {
   return (
     <div className="absolute bottom-3 left-3 bg-white/95 rounded-xl px-4 py-3 shadow-eup-md text-xs">
-      <div className="font-bold text-navy text-[11px] uppercase tracking-widest mb-2">
+      <div className="font-bold text-brand-navy text-[11px] uppercase tracking-widest mb-2">
         Law Status
       </div>
       {Object.entries(STATUS_CONFIG).map(([key, val]) => (
@@ -26,7 +26,7 @@ export default function MapLegend() {
           <span className="text-slate font-medium">{val.label}</span>
         </div>
       ))}
-      <div className="mt-2 pt-2 border-t border-fog text-[11px] text-slate-light leading-snug">
+      <div className="mt-2 pt-2 border-t border-brand-cloud text-[11px] text-brand-mist leading-snug">
         Countries not shown are too small<br/>to render at this map scale.
       </div>
     </div>

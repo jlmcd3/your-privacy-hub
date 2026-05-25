@@ -64,7 +64,7 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
   if (tier === "free") {
     return (
       <div className={`text-sm ${className}`}>
-        <div className="font-bold text-navy">{standaloneDisplay}{unit}</div>
+        <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
       </div>
     );
   }
@@ -72,7 +72,7 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
   // Paid subscriber — show standalone price plus free-run status
   return (
     <div className={`text-sm ${className}`}>
-      <div className="font-bold text-navy">{standaloneDisplay}{unit}</div>
+      <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
       {hasFreeRun ? (
         <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
           🎁 You have 1 free Convenience Tool run available this month — this run will be free.

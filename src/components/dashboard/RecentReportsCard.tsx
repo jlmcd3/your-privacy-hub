@@ -69,7 +69,7 @@ export default function RecentReportsCard() {
   return (
     <section className="bg-card border border-border rounded-2xl p-5 my-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-display text-navy text-[16px] flex items-center gap-2">
+        <h2 className="font-display text-brand-navy text-[16px] flex items-center gap-2">
           <FileText className="w-4 h-4" /> Recent reports
         </h2>
         <Link to="/dashboard/reports" className="text-[12px] font-semibold text-primary hover:underline">
@@ -81,7 +81,7 @@ export default function RecentReportsCard() {
           <li key={`${it.tool_label}-${it.id}`}>
             <Link to={it.view_path} className="flex items-center justify-between py-2.5 group no-underline">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-navy group-hover:text-primary truncate">{it.tool_label}</p>
+                <p className="text-sm font-semibold text-brand-navy group-hover:text-primary truncate">{it.tool_label}</p>
                 <p className="text-[12px] text-slate truncate">{it.summary}</p>
               </div>
               <span className="text-[11px] text-muted-foreground whitespace-nowrap ml-3">

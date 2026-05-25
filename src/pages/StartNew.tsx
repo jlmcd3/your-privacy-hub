@@ -218,14 +218,14 @@ export default function StartNew() {
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
-            <h1 className="font-display text-navy">Start new work</h1>
+            <h1 className="font-display text-brand-navy">Start new work</h1>
             <p className="text-sm text-slate mt-1 inline-flex items-center gap-1.5">
               <WorkspaceIcon className="w-3.5 h-3.5" />
               <span>
-                for <span className="font-semibold text-navy">{workspaceLabel}</span>
+                for <span className="font-semibold text-brand-navy">{workspaceLabel}</span>
               </span>
             </p>
-            <p className="text-xs text-slate-light mt-2">
+            <p className="text-xs text-brand-mist mt-2">
               Pick a tool to begin. New work will be saved under{" "}
               {isPersonalActive ? "your personal workspace" : clientName}.
             </p>
@@ -233,7 +233,7 @@ export default function StartNew() {
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-navy" />
+              <Loader2 className="w-6 h-6 animate-spin text-brand-navy" />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -243,10 +243,10 @@ export default function StartNew() {
                 return (
                   <Card
                     key={tool.key}
-                    className="p-5 flex flex-col gap-3 border border-fog hover:border-navy/40 transition-colors"
+                    className="p-5 flex flex-col gap-3 border border-brand-cloud hover:border-brand-navy/40 transition-colors"
                   >
                     <div>
-                      <h2 className="text-base font-semibold text-navy leading-snug">
+                      <h2 className="text-base font-semibold text-brand-navy leading-snug">
                         {tool.label}
                       </h2>
                       <p className="text-xs text-slate mt-1.5 leading-relaxed">
@@ -268,7 +268,7 @@ export default function StartNew() {
                         </Badge>
                       )}
                       {!has && tool.table && (
-                        <span className="text-[10px] text-slate-light">
+                        <span className="text-[10px] text-brand-mist">
                           No work yet for this workspace
                         </span>
                       )}
@@ -286,7 +286,7 @@ export default function StartNew() {
                       {has && tool.viewPath && (
                         <Link
                           to={tool.viewPath}
-                          className="text-xs text-cobalt hover:underline"
+                          className="text-xs text-brand-teal hover:underline"
                         >
                           View existing
                         </Link>
@@ -298,9 +298,9 @@ export default function StartNew() {
             </div>
           )}
 
-          <p className="text-xs text-slate-light mt-8">
+          <p className="text-xs text-brand-mist mt-8">
             Looking for tool descriptions, pricing, or samples?{" "}
-            <Link to="/tools" className="text-cobalt hover:underline">
+            <Link to="/tools" className="text-brand-teal hover:underline">
               See the full tool catalog
             </Link>
             .

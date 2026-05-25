@@ -63,7 +63,7 @@ export default function ReportShell({
 
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-sky">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-mist">
               Compliance Tool · Customised Analysis
             </p>
             <h1 className="font-display leading-tight text-white mt-1">
@@ -84,7 +84,7 @@ export default function ReportShell({
         {/* Top legal disclaimer — visible, brand-aware, not alarming */}
         <div className="border-l-4 border-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.08)] rounded-r-md px-4 py-3">
           <p className="text-[12px] leading-relaxed text-foreground">
-            <span className="font-semibold text-navy">{topDisclaimerLead}</span>{" "}
+            <span className="font-semibold text-brand-navy">{topDisclaimerLead}</span>{" "}
             {topDisclaimer ?? (
               <>
                 This document is a compliance framework generated for informational
@@ -105,7 +105,7 @@ export default function ReportShell({
         <div className="pt-2">
           <Link
             to={backHref}
-            className="inline-flex items-center text-sm text-slate hover:text-navy no-underline"
+            className="inline-flex items-center text-sm text-slate hover:text-brand-navy no-underline"
           >
             {backLabel}
           </Link>

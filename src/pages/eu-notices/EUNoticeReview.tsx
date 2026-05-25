@@ -406,7 +406,7 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => navigate(`/eu-notices/frameworks/${sessionId}`)}
-              className="text-sm font-semibold text-cobalt hover:underline inline-flex items-center gap-1"
+              className="text-sm font-semibold text-brand-teal hover:underline inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" /> Edit scope →
             </button>
@@ -425,7 +425,7 @@ export default function EUNoticeReview() {
             {frameworks.map((f) => (
               <span
                 key={f.framework_code}
-                className="text-meta px-2 py-0.5 rounded-full bg-navy/10 text-navy font-mono"
+                className="text-meta px-2 py-0.5 rounded-full bg-brand-navy/10 text-brand-navy font-mono"
               >
                 {f.framework_name}
               </span>
@@ -439,7 +439,7 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => setShowAllFrameworks((v) => !v)}
-              className="text-sm font-semibold text-cobalt hover:underline"
+              className="text-sm font-semibold text-brand-teal hover:underline"
             >
               {showAllFrameworks ? "Show flagged only" : `Show all ${frameworks.length} frameworks`}
             </button>
@@ -469,7 +469,7 @@ export default function EUNoticeReview() {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                       )}
-                      <span className="flex-1 text-sm font-semibold text-navy truncate">
+                      <span className="flex-1 text-sm font-semibold text-brand-navy truncate">
                         {fw.framework_name}
                       </span>
                       <Chip color="neutral">{fw.region}</Chip>
@@ -494,13 +494,13 @@ export default function EUNoticeReview() {
                           {section.questions.slice(0, 6).map((q) => (
                             <li key={q.key} className="py-2">
                               <p className="text-muted-foreground text-meta">{q.text}</p>
-                              <p className="text-navy">{formatAnswer(q, answers[q.key])}</p>
+                              <p className="text-brand-navy">{formatAnswer(q, answers[q.key])}</p>
                             </li>
                           ))}
                         </ul>
                         <button
                           onClick={() => navigate(`/eu-notices/questions/${sessionId}`)}
-                          className="mt-2 inline-flex items-center gap-1 text-cobalt font-semibold hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-brand-teal font-semibold hover:underline"
                         >
                           Edit answers →
                         </button>
@@ -524,11 +524,11 @@ export default function EUNoticeReview() {
                 >
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-sm text-navy">{f.message}</p>
+                    <p className="text-sm text-brand-navy">{f.message}</p>
                   </div>
                   <button
                     onClick={() => markReviewed(f)}
-                    className="text-meta font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
+                    className="text-meta font-semibold text-muted-foreground hover:text-brand-navy whitespace-nowrap"
                   >
                     Mark as reviewed
                   </button>
@@ -549,7 +549,7 @@ export default function EUNoticeReview() {
                   <p className="text-sm text-muted-foreground">{f.message}</p>
                   <button
                     onClick={() => markReviewed(f)}
-                    className="text-meta font-semibold text-muted-foreground hover:text-navy whitespace-nowrap"
+                    className="text-meta font-semibold text-muted-foreground hover:text-brand-navy whitespace-nowrap"
                   >
                     Dismiss
                   </button>
@@ -605,7 +605,7 @@ export default function EUNoticeReview() {
                 {frameworks.length} framework notice{frameworks.length === 1 ? "" : "s"} —{" "}
                 {SCOPE_LABEL[scope]}
               </span>
-              <span className="font-semibold text-navy">
+              <span className="font-semibold text-brand-navy">
                 {pricing.loading
                   ? "…"
                   : session?.payment_confirmed
@@ -637,7 +637,7 @@ export default function EUNoticeReview() {
               </div>
             )}
             {!pricing.isSubscriber && !session?.payment_confirmed && pricing.standalonePrice > pricing.subscriberPrice && (
-              <p className="text-meta text-cobalt mt-2">
+              <p className="text-meta text-brand-teal mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"
@@ -676,14 +676,14 @@ export default function EUNoticeReview() {
           <div className="flex justify-between gap-3">
             <button
               onClick={() => navigate(`/eu-notices/questions/${sessionId}`)}
-              className="text-sm font-semibold text-muted-foreground hover:text-navy inline-flex items-center gap-1"
+              className="text-sm font-semibold text-muted-foreground hover:text-brand-navy inline-flex items-center gap-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back to questions
             </button>
             <button
               onClick={handleGenerateClick}
               disabled={generateDisabled || generating}
-              className="bg-navy text-white text-sm font-semibold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy/90 transition inline-flex items-center gap-2"
+              className="bg-brand-navy text-white text-sm font-semibold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition inline-flex items-center gap-2"
             >
               {generating ? (
                 <>
@@ -704,8 +704,8 @@ export default function EUNoticeReview() {
       {/* Generation progress modal */}
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-navy mb-4">
+          <div className="bg-brand-cloud rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-brand-navy mb-4">
               Generating your EU & global privacy notices…
             </h3>
             <ul className="space-y-2 text-sm">
@@ -769,9 +769,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-border rounded-xl bg-paper p-5">
+    <section className="border border-border rounded-xl bg-brand-cloud p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[15px] font-serif text-navy">{title}</h2>
+        <h2 className="text-[15px] font-serif text-brand-navy">{title}</h2>
         {action}
       </div>
       {children}
@@ -783,7 +783,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-2">
       <dt className="text-muted-foreground min-w-[90px]">{label}:</dt>
-      <dd className="text-navy">{value}</dd>
+      <dd className="text-brand-navy">{value}</dd>
     </div>
   );
 }
@@ -824,7 +824,7 @@ function GenStepRow({ status, label }: { status: GenStatus; label: string }) {
       ) : (
         <span className="w-4 h-4 rounded-full border border-muted-foreground/40" />
       )}
-      <span className={status === "done" ? "text-navy" : "text-muted-foreground"}>{label}</span>
+      <span className={status === "done" ? "text-brand-navy" : "text-muted-foreground"}>{label}</span>
     </li>
   );
 }

@@ -49,7 +49,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Document header */}
       {!hideHeader && (
-      <div className="bg-gradient-to-r from-navy to-steel px-6 py-5">
+      <div className="bg-gradient-to-r from-brand-navy to-brand-steel px-6 py-5">
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">
             ⭐ Your Personalized Brief — {customBrief.week_label}
@@ -122,7 +122,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.your_week && (
           <section className="py-7">
-            <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel mb-4">This Week</h3>
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-4">This Week</h3>
             <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
               <CitedParagraphs content={sections.your_week} sourceMap={sourceMap} />
             </div>
@@ -132,7 +132,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.industry_intelligence && (
           <section className="py-7">
-            <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel mb-4">Your Industry</h3>
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-4">Your Industry</h3>
             <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
               <CitedParagraphs content={sections.industry_intelligence} sourceMap={sourceMap} />
             </div>
@@ -142,7 +142,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.jurisdiction_developments && (
           <section className="py-7">
-            <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel mb-4">Your Jurisdictions</h3>
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-4">Your Jurisdictions</h3>
             <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
               <CitedParagraphs content={sections.jurisdiction_developments} sourceMap={sourceMap} />
             </div>
@@ -152,7 +152,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.topic_depth && (
           <section className="py-7">
-            <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel mb-4">Topic Focus</h3>
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-4">Topic Focus</h3>
             <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
               <CitedParagraphs content={sections.topic_depth} sourceMap={sourceMap} />
             </div>
@@ -162,7 +162,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.enforcement_pattern_for_you && (
           <section className="py-7">
-            <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel mb-4">Enforcement Patterns</h3>
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-4">Enforcement Patterns</h3>
             <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
               <CitedParagraphs content={sections.enforcement_pattern_for_you} sourceMap={sourceMap} />
             </div>
@@ -183,7 +183,7 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.continuity_from_last_week && (
           <section className="py-7">
-            <h3 className="text-[11px] uppercase tracking-[0.12em] text-steel mb-4">From Last Week</h3>
+            <h3 className="text-[11px] uppercase tracking-[0.12em] text-brand-steel mb-4">From Last Week</h3>
             <div className="text-[15px] text-slate-700 leading-relaxed space-y-3">
               <CitedParagraphs content={sections.continuity_from_last_week} sourceMap={sourceMap} />
             </div>
@@ -193,12 +193,12 @@ export default function CustomBriefDocument({ customBrief, sourceMap, hideHeader
 
         {sections.your_action_items?.length > 0 && (
           <section className="py-7">
-            <div className="bg-navy rounded-xl p-6">
+            <div className="bg-brand-navy rounded-xl p-6">
               <h3 className="text-[11px] uppercase tracking-[0.12em] text-amber-400 mb-5">🎯 Action Items</h3>
               <div className="space-y-3">
                 {sections.your_action_items.map((item: any, i: number) => (
                   <div key={i} className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-500 text-navy text-[11px] font-bold flex items-center justify-center mt-0.5">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-500 text-brand-navy text-[11px] font-bold flex items-center justify-center mt-0.5">
                       {i + 1}
                     </span>
                     <div>
