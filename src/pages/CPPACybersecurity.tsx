@@ -202,6 +202,7 @@ export default function CPPACybersecurity() {
           open={checkoutOpen}
           toolType={isSuite ? "cppa_suite" : "cppa_cybersecurity"}
           userId={user?.id}
+          clientId={clientId}
           intakeData={intake}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id, suiteCyberId) => {
