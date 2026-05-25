@@ -1,0 +1,7 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End User Privacy">
+  <title>End User Privacy</title>
+  <circle cx="24" cy="24" r="22" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.75"/>
+  <ellipse cx="24" cy="24" rx="8" ry="22" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.35"/>
+  <line x1="2" y1="24" x2="46" y2="24" stroke="#5dcaa5" stroke-width="1.75"/>
+  <circle cx="36" cy="24" r="3" fill="#5dcaa5"/>
+</svg>
