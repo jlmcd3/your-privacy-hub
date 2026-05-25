@@ -20,7 +20,15 @@
 // All colours come from the design tokens defined in src/index.css and
 // tailwind.config.ts. No hardcoded hex values.
 
-import { ReactNode } from "react";
+import { ReactNode, CSSProperties } from "react";
+
+// Document body typography — matches the downloadable Word file so the
+// on-screen preview reads as the same document.
+const REPORT_BODY_STYLE: CSSProperties = {
+  fontFamily: "'Times New Roman', Times, serif",
+  fontSize: "11pt",
+  lineHeight: 1.55,
+};
 
 // ───────────────────────── inline formatter ─────────────────────────
 // Render **bold** spans inside an arbitrary string. We deliberately
@@ -38,7 +46,7 @@ function renderInline(text: string, keyPrefix = "i"): ReactNode[] {
     parts.push(
       // Use medium weight (500) so emphasized phrases remain readable
       // without the letterforms bleeding into each other.
-      <strong key={`${keyPrefix}-${n++}`} className="font-medium text-foreground">
+      <strong key={`${keyPrefix}-${n++}`} className="font-bold text-foreground">
         {match[1]}
       </strong>
     );
@@ -188,7 +196,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
               </h4>
               <div className="mt-1 h-[2px] w-10 bg-[hsl(var(--steel))] rounded-full" />
               {b.trailing && (
-                <p className="mt-2 text-sm leading-relaxed text-foreground">
+                <p className="mt-2 text-foreground" style={REPORT_BODY_STYLE}>
                   {renderInline(b.trailing, `sh-${idx}`)}
                 </p>
               )}
@@ -197,7 +205,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
         }
         if (b.type === "para") {
           return (
-            <p key={idx} className="text-sm leading-relaxed text-foreground">
+            <p key={idx} className="text-foreground" style={REPORT_BODY_STYLE}>
               {renderInline(b.text, `p-${idx}`)}
             </p>
           );
@@ -213,7 +221,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                   >
                     {j + 1}.
                   </span>
-                  <span className="text-sm leading-relaxed text-foreground">
+                  <span className="text-foreground" style={REPORT_BODY_STYLE}>
                     {renderInline(it, `ol-${idx}-${j}`)}
                   </span>
                 </li>
@@ -231,7 +239,7 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                   className="flex-shrink-0 mt-[9px] w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent))]"
                   aria-hidden
                 />
-                <span className="text-sm leading-relaxed text-foreground">
+                <span className="text-foreground" style={REPORT_BODY_STYLE}>
                   {renderInline(it, `ul-${idx}-${j}`)}
                 </span>
               </li>

@@ -49,14 +49,14 @@ Deno.serve(async (req) => {
   const limit = Math.min(q.limit ?? 8, 25);
   const cacheKey = await sha256(JSON.stringify({ ...q, limit }));
 
-  // Check cache (24h TTL)
+  // Check cache (2h TTL — short enough to recover from empty-result edge cases within a working session)
   const { data: cached } = await supabase
     .from("enforcement_context_cache")
     .select("response, created_at")
     .eq("cache_key", cacheKey)
     .maybeSingle();
 
-  if (cached && Date.now() - new Date(cached.created_at).getTime() < 86400000) {
+  if (cached && Date.now() - new Date(cached.created_at).getTime() < 7200000) {
     return new Response(JSON.stringify({ ...cached.response, cached: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

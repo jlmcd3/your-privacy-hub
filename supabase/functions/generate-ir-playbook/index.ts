@@ -237,7 +237,9 @@ Output ONLY the playbook. No preamble or commentary.`,
     const fullText = aiData.content?.[0]?.text ?? "";
     let playbook_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*\*/g, '')
       .replace(/\*\*/g, '')
+      .replace(/\*([^*\n]+)\*/g, '$1')
       .replace(/^>\s?/gm, '')
       .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
@@ -246,7 +248,9 @@ Output ONLY the playbook. No preamble or commentary.`,
       if (sepIdx !== -1) {
         playbook_text = fullText.slice(0, sepIdx).trim()
           .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*\*/g, '')
           .replace(/\*\*/g, '')
+          .replace(/\*([^*\n]+)\*/g, '$1')
           .replace(/^>\s?/gm, '')
           .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();

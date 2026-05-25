@@ -27,7 +27,15 @@ export default function DownloadWordButton({ text, label, className }: Props) {
     }
     setBusy(true);
     try {
-      const lines = text.split("\n");
+      // Defensive strip: remove any markdown italic/bold/heading syntax that
+      // survived the edge-function strip chain (e.g. *CaseName* inline italics).
+      const strippedText = text
+        .replace(/^#{1,6}\s+/gm, '')
+        .replace(/\*\*\*/g, '')
+        .replace(/\*\*/g, '')
+        .replace(/\*([^*\n]+)\*/g, '$1')
+        .replace(/^>\s?/gm, '');
+      const lines = strippedText.split("\n");
       const children: Paragraph[] = [];
 
       for (const raw of lines) {

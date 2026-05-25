@@ -254,7 +254,9 @@ Output ONLY the compliance assessment. No preamble.`,
     const fullText = aiData.content?.[0]?.text ?? "";
     let assessment_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*\*/g, '')
       .replace(/\*\*/g, '')
+      .replace(/\*([^*\n]+)\*/g, '$1')
       .replace(/^>\s?/gm, '')
       .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
@@ -263,7 +265,9 @@ Output ONLY the compliance assessment. No preamble.`,
       if (sepIdx !== -1) {
         assessment_text = fullText.slice(0, sepIdx).trim()
           .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*\*/g, '')
           .replace(/\*\*/g, '')
+          .replace(/\*([^*\n]+)\*/g, '$1')
           .replace(/^>\s?/gm, '')
           .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();

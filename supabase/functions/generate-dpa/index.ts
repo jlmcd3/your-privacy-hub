@@ -241,7 +241,9 @@ Output format:
     const fullText = aiData.choices?.[0]?.message?.content ?? "";
     let dpa_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*\*/g, '')
       .replace(/\*\*/g, '')
+      .replace(/\*([^*\n]+)\*/g, '$1')
       .replace(/^>\s?/gm, '')
       .replace(/^\*\s+/gm, '• ');
     let parsedAnnotations: any[] = [];
@@ -250,7 +252,9 @@ Output format:
       if (sepIdx !== -1) {
         dpa_text = fullText.slice(0, sepIdx).trim()
           .replace(/^#{1,6}\s+/gm, '')
+          .replace(/\*\*\*/g, '')
           .replace(/\*\*/g, '')
+          .replace(/\*([^*\n]+)\*/g, '$1')
           .replace(/^>\s?/gm, '')
           .replace(/^\*\s+/gm, '• ');
         const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
