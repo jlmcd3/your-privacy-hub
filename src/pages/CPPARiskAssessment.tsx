@@ -267,6 +267,7 @@ export default function CPPARiskAssessment() {
           open={checkoutOpen}
           toolType={isSuite ? "cppa_suite" : "cppa_risk_assessment"}
           userId={user?.id}
+          clientId={clientId}
           intakeData={intake}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id, suiteCyberId) => {
