@@ -138,10 +138,23 @@ serve(async (req) => {
     }
     const totalCents = unitAmount * quantity;
 
+    // Derive client_id from the linked assessment so the order is filed under
+    // the same client subaccount the assessment was generated in.
+    let derivedClientId: string | null = null;
+    if (assessment_id) {
+      const { data: a } = await adminClient
+        .from("registration_assessments")
+        .select("client_id")
+        .eq("id", assessment_id)
+        .maybeSingle();
+      derivedClientId = (a as any)?.client_id ?? null;
+    }
+
     const { data: order, error: orderErr } = await adminClient
       .from("registration_orders")
       .insert({
         user_id: user.id,
+        client_id: derivedClientId,
         assessment_id: assessment_id || null,
         tier,
         jurisdictions: codes,
