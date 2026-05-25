@@ -252,17 +252,36 @@ Return JSON:
     }
 
 
+    const strippedDomainFindings: Record<string, any> = {};
+    for (const [k, v] of Object.entries(domainResults || {})) {
+      const dn: any = v;
+      strippedDomainFindings[k] = {
+        ...dn,
+        current_state: stripMd(dn?.current_state),
+        gap_description: stripMd(dn?.gap_description),
+        regulatory_basis: stripMd(dn?.regulatory_basis),
+        recommended_action: stripMd(dn?.recommended_action),
+      };
+    }
+
     const reportData = {
       generated_at: new Date().toISOString(),
       assessment_id,
       organisation_profile: intake,
-      executive_summary: synthesis.executive_summary,
-      top_three_risks: synthesis.top_three_risks || [],
-      immediate_actions: synthesis.immediate_actions || [],
+      executive_summary: stripMd(synthesis.executive_summary),
+      top_three_risks: (synthesis.top_three_risks || []).map((r: any) => ({
+        ...r,
+        risk: stripMd(r?.risk),
+        why_urgent: stripMd(r?.why_urgent),
+      })),
+      immediate_actions: (synthesis.immediate_actions || []).map((a: any) => ({
+        ...a,
+        action: stripMd(a?.action),
+      })),
       overall_readiness_rating: synthesis.overall_readiness_rating || "Initial",
-      readiness_rationale: synthesis.readiness_rationale || "",
-      interaction_effects: synthesis.interaction_effects || "",
-      domain_findings: domainResults,
+      readiness_rationale: stripMd(synthesis.readiness_rationale || ""),
+      interaction_effects: stripMd(synthesis.interaction_effects || ""),
+      domain_findings: strippedDomainFindings,
       enforcement_precedents: enforcementPrecedents,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
