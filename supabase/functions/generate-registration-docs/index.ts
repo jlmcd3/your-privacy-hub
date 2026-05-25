@@ -43,7 +43,7 @@ async function aiGenerate(prompt: string): Promise<string> {
         {
           role: "system",
           content:
-            "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean Markdown only — no preamble, no chat, no translated text. Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of.",
+            "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean plain text only — NO markdown symbols of any kind. Do not use #, ##, ###, **, *, _, backticks, or > for formatting. Structure documents with section headings on their own line in Title Case followed by a blank line, then prose or bullet items. For bullets, use the bullet character • followed by a space at the start of the line (not * or -). Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of. No preamble, no chat, no translated text.",
         },
         { role: "user", content: prompt },
       ],
