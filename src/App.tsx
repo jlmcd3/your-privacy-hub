@@ -77,6 +77,7 @@ import Updates from "./pages/Updates.tsx";
 import UpdateDetail from "./pages/UpdateDetail.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import LogoPreview from "./pages/LogoPreview.tsx";
 import DevOnly from "./components/DevOnly.tsx";
 import AdminOnly from "./components/AdminOnly.tsx";
 import About from "./pages/About.tsx";
@@ -173,6 +174,7 @@ const App = () => (
           <BlankScreenDiagnostic />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/logo-preview" element={<LogoPreview />} />
             <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
             <Route path="/enforcement" element={<Enforcement />} />
