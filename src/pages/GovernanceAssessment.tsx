@@ -60,6 +60,7 @@ const GovernanceAssessment = () => {
   const { toast } = useToast();
   const pricing = useToolPrice("governance_assessment");
   const { isPremium } = usePremiumStatus();
+  const { clientId } = useActiveClient();
 
   const [step, setStep] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
