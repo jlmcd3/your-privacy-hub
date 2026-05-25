@@ -192,6 +192,7 @@ export default function BiometricChecker() {
         open={checkoutOpen}
         toolType="biometric_checker"
         userId={access.user?.id}
+        clientId={clientId}
         intakeData={form}
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
