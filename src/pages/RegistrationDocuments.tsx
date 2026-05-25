@@ -1,7 +1,7 @@
 // Detail view of all generated documents for an order — preview + download.
 // Mirrors RegistrationOrder but focuses on document browsing.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -49,6 +49,13 @@ export default function RegistrationDocuments() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [emailing, setEmailing] = useState(false);
+  const previewRef = useRef<HTMLPreElement>(null);
+
+  // Reset scroll position when switching documents
+  useEffect(() => {
+    if (previewRef.current) previewRef.current.scrollTop = 0;
+    window.scrollTo({ top: 0 });
+  }, [selected?.id]);
 
   useEffect(() => {
     if (!id) return;
@@ -175,7 +182,7 @@ export default function RegistrationDocuments() {
                 <CardContent className="pt-4">
                   {selected ? (
                     <>
-                      <pre className="whitespace-pre-wrap text-brand-navy max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
+                      <pre ref={previewRef} className="whitespace-pre-wrap text-brand-navy max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
                         {cleanMarkdown(selected.content_text || "") || "(empty)"}
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">
