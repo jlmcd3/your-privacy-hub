@@ -399,6 +399,7 @@ const LIAssessmentIntake = () => {
           open={checkoutOpen}
           toolType="li_assessment"
           userId={user?.id}
+          clientId={clientId}
           intakeData={intakeForCheckout ?? {}}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
