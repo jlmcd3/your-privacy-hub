@@ -181,7 +181,7 @@ export default function EUNoticeDocuments() {
     <EUNoticeShell title="Documents — EU & Global Notice Builder" heading="Your generated notices" step="documents">
       <div className="mb-6 flex items-center justify-between">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/eu-notices"><ArrowLeft className="h-4 w-4 mr-1.5" /> Back to dashboard</Link>
+          <Link to="/dashboard"><ArrowLeft className="h-4 w-4 mr-1.5" /> Back to dashboard</Link>
         </Button>
       </div>
 
