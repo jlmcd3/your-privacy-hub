@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
       result_summary,
       status: "completed",
       user_id: userId,
+      client_id: clientId,
     };
 
     if (existingId && shareableToken) {
