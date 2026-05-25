@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     const userId = caller.internal ? (body.user_id || null) : (caller.userId || null);
     const existingId = body.assessment_id || null;
     const shareableToken = body.shareable_token || null;
+    const clientId = body.client_id || null;
 
     if (!intake.organization_country && !(intake.markets_served || []).length) {
       return new Response(
