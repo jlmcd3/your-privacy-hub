@@ -209,6 +209,7 @@ export default function DPAGenerator() {
         open={checkoutOpen}
         toolType="dpa_generator"
         userId={access.user?.id}
+        clientId={clientId}
         intakeData={form}
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
