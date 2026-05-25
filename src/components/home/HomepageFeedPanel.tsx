@@ -210,7 +210,7 @@ const HomepageArticleCard = ({
 
   return (
     <div
-      className={`px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
+      className={`relative px-3 py-3.5 border-b border-fog last:border-0 cursor-pointer transition-colors
         ${isSelected
           ? "bg-blue-50/60 border-l-[3px] border-gold"
           : `${evenRow ? "bg-slate-50" : "bg-white"} hover:bg-fog/40`
@@ -240,14 +240,7 @@ const HomepageArticleCard = ({
           onError={(e) => { (e.target as HTMLImageElement).src = eupTile; }}
         />
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1 mb-1">
-            <Link
-              to="/updates"
-              className="text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-gold text-white hover:opacity-90 no-underline transition-opacity"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Open feed →
-            </Link>
+          <div className="flex flex-wrap items-center gap-1 mb-1 pr-20">
             {article.source_name && (
               <span className="text-meta font-semibold text-slate uppercase tracking-wide">
                 {article.source_name}
@@ -264,6 +257,13 @@ const HomepageArticleCard = ({
               </span>
             )}
           </div>
+          <Link
+            to="/updates"
+            className="absolute top-3 right-3 text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-gold text-white hover:opacity-90 no-underline transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Open feed →
+          </Link>
           {article.source_url ? (
             <a
               href={article.source_url}
