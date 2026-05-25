@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     .eq("cache_key", cacheKey)
     .maybeSingle();
 
-  if (cached && Date.now() - new Date(cached.created_at).getTime() < 86400000) {
+  if (cached && Date.now() - new Date(cached.created_at).getTime() < 7200000) {
     return new Response(JSON.stringify({ ...cached.response, cached: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
