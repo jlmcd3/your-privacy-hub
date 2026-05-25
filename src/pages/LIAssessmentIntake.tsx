@@ -49,6 +49,7 @@ const Pills = ({ options, value, onChange }: { options: string[]; value: string[
 const LIAssessmentIntake = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const { toast } = useToast();
   const navigate = useNavigate();
   const pricing = useToolPrice("li_assessment");
