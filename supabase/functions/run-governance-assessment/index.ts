@@ -11,6 +11,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function stripMd(s: string | undefined | null): string {
+  if (!s) return s ?? "";
+  return s
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1')
+    .replace(/^>\s?/gm, '')
+    .replace(/^\s*\*\s+/gm, '• ')
+    .replace(/^\s*-\s+/gm, '• ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-_]{3,}\s*$/gm, '');
+}
+
 async function callAnthropic(model: string, system: string, user: string, maxTokens = 2000): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
