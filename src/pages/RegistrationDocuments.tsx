@@ -49,6 +49,13 @@ export default function RegistrationDocuments() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [emailing, setEmailing] = useState(false);
+  const previewRef = useRef<HTMLPreElement>(null);
+
+  // Reset scroll position when switching documents
+  useEffect(() => {
+    if (previewRef.current) previewRef.current.scrollTop = 0;
+    window.scrollTo({ top: 0 });
+  }, [selected?.id]);
 
   useEffect(() => {
     if (!id) return;
