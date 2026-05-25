@@ -15,6 +15,21 @@ import { Loader2, FileText, ArrowLeft, Download, Mail, Printer } from "lucide-re
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
+import DownloadWordButton from "@/components/DownloadWordButton";
+
+// Strip markdown syntax characters (*, #, backticks) from AI-generated text
+// so the rendered document reads as a clean letter/report.
+function cleanMarkdown(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/^#{1,6}\s+/gm, "")              // heading hashes
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")      // bold+italic
+    .replace(/\*\*(.+?)\*\*/g, "$1")          // bold
+    .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, "$1") // italics
+    .replace(/^\s*\*\s+/gm, "• ")             // bullet asterisks → bullet
+    .replace(/`([^`]+)`/g, "$1")              // inline code
+    .replace(/^\s*[-_]{3,}\s*$/gm, "");       // hr lines
+}
 
 // TODO: wire a "Download all as ZIP" edge function (`bundle-registration-documents`)
 // that streams a ZIP of every doc.content_text + any doc.pdf_url for the order.
@@ -161,10 +176,17 @@ export default function RegistrationDocuments() {
                   {selected ? (
                     <>
                       <pre className="whitespace-pre-wrap text-sm text-brand-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded">
-                        {selected.content_text || "(empty)"}
+                        {cleanMarkdown(selected.content_text || "") || "(empty)"}
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {selected.content_text && <CopyButton text={selected.content_text} />}
+                        {selected.content_text && <CopyButton text={cleanMarkdown(selected.content_text)} />}
+                        {selected.content_text && (
+                          <DownloadWordButton
+                            text={cleanMarkdown(selected.content_text)}
+                            label={`${DOC_LABELS[selected.document_type] || selected.document_type}-${selected.jurisdiction_code}`}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white hover:bg-brand-cloud border border-border rounded-lg transition-colors disabled:opacity-60"
+                          />
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -172,7 +194,8 @@ export default function RegistrationDocuments() {
                             const w = window.open("", "_blank");
                             if (!w) { toast.error("Pop-up blocked"); return; }
                             const title = `${DOC_LABELS[selected.document_type] || selected.document_type} — ${selected.jurisdiction_code}`;
-                            w.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 24px;line-height:1.5;color:#1a1a1a}h1{font-size:18px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;font-size:13px}</style></head><body><h1>${title}</h1><pre>${(selected.content_text || "").replace(/[&<>]/g, (c: string) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
+                            const cleaned = cleanMarkdown(selected.content_text || "");
+                            w.document.write(`<!doctype html><html><head><title>${title}</title><style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 24px;line-height:1.5;color:#1a1a1a}h1{font-size:18px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;font-size:13px}</style></head><body><h1>${title}</h1><pre>${cleaned.replace(/[&<>]/g, (c: string) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
                             w.document.close();
                           }}
                         >
