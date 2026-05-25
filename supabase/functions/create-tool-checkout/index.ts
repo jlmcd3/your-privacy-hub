@@ -416,10 +416,12 @@ Deno.serve(async (req) => {
           purchased_as_standalone: true,
           purchase_price_cents: amountCents,
           ...filteredIntake,
+          client_id: client_id ?? (filteredIntake as any).client_id ?? null,
         };
       } else {
         assessmentData = {
           user_id,
+          client_id: client_id || null,
           status: "pending",
           intake_data: intake_data || {},
           purchased_as_standalone: true,
