@@ -182,7 +182,7 @@ export default function RegistrationDocuments() {
                 <CardContent className="pt-4">
                   {selected ? (
                     <>
-                      <pre className="whitespace-pre-wrap text-brand-navy max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
+                      <pre ref={previewRef} className="whitespace-pre-wrap text-brand-navy max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
                         {cleanMarkdown(selected.content_text || "") || "(empty)"}
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">
