@@ -154,7 +154,7 @@ const GovernanceAssessment = () => {
       setPurchasing(true);
       const { data, error } = await supabase.functions.invoke(
         "run-governance-assessment",
-        { body: { intake_data: buildIntake(), user_id: user.id } }
+        { body: { intake_data: buildIntake(), user_id: user.id, client_id: clientId ?? null } }
       );
       setPurchasing(false);
       if (error || !data?.id) {
