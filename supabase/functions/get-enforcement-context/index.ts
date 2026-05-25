@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
   const limit = Math.min(q.limit ?? 8, 25);
   const cacheKey = await sha256(JSON.stringify({ ...q, limit }));
 
-  // Check cache (24h TTL)
+  // Check cache (2h TTL — short enough to recover from empty-result edge cases within a working session)
   const { data: cached } = await supabase
     .from("enforcement_context_cache")
     .select("response, created_at")
