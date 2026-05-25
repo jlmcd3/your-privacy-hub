@@ -3,38 +3,38 @@ import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 
 const TRACK_OVERVIEW = `
 <div class="grid gap-4 md:grid-cols-3">
-  <a href="#hipaa" class="block rounded-xl border-l-4 border-cobalt bg-card p-4 hover:shadow-eup-sm transition-shadow no-underline">
-    <p class="text-[10px] font-semibold uppercase tracking-wider text-cobalt">Track 1</p>
-    <h3 class="text-navy text-base mt-1 mb-1">HIPAA covered entities &amp; business associates</h3>
+  <a href="#hipaa" class="block rounded-xl border-l-4 border-brand-teal bg-card p-4 hover:shadow-eup-sm transition-shadow no-underline">
+    <p class="text-[10px] font-semibold uppercase tracking-wider text-brand-teal">Track 1</p>
+    <h3 class="text-brand-navy text-base mt-1 mb-1">HIPAA covered entities &amp; business associates</h3>
     <p class="text-xs text-slate">Healthcare providers, health plans, clearinghouses, and the vendors that handle PHI on their behalf.</p>
   </a>
   <a href="#consumer-health" class="block rounded-xl border-l-4 border-amber-500 bg-card p-4 hover:shadow-eup-sm transition-shadow no-underline">
     <p class="text-[10px] font-semibold uppercase tracking-wider text-amber-700">Track 2</p>
-    <h3 class="text-navy text-base mt-1 mb-1">Consumer health data laws (non-HIPAA)</h3>
+    <h3 class="text-brand-navy text-base mt-1 mb-1">Consumer health data laws (non-HIPAA)</h3>
     <p class="text-xs text-slate">Health apps, wearables, DTC platforms, and ad-tech — regulated by the FTC and state consumer health statutes.</p>
   </a>
   <a href="#state-health" class="block rounded-xl border-l-4 border-emerald-500 bg-card p-4 hover:shadow-eup-sm transition-shadow no-underline">
     <p class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Track 3</p>
-    <h3 class="text-navy text-base mt-1 mb-1">State health privacy laws</h3>
+    <h3 class="text-brand-navy text-base mt-1 mb-1">State health privacy laws</h3>
     <p class="text-xs text-slate">Reproductive, mental health, gender-affirming care, and biometric provisions layered into state comprehensive laws.</p>
   </a>
 </div>
 `;
 
 const HIPAA_TRACK = `
-<div class="rounded-xl border-l-4 border-cobalt bg-cobalt/5 p-5 mb-5">
-  <p class="text-[11px] font-semibold uppercase tracking-wider text-cobalt mb-2">Step 1 — Does HIPAA apply to you?</p>
+<div class="rounded-xl border-l-4 border-brand-teal bg-brand-teal/5 p-5 mb-5">
+  <p class="text-[11px] font-semibold uppercase tracking-wider text-brand-teal mb-2">Step 1 — Does HIPAA apply to you?</p>
   <div class="grid gap-3 sm:grid-cols-2">
-    <div class="bg-card rounded-lg p-3 border border-fog">
-      <p class="text-sm font-semibold text-navy mb-1">You are a <em>Covered Entity</em> if you are…</p>
+    <div class="bg-card rounded-lg p-3 border border-brand-cloud">
+      <p class="text-sm font-semibold text-brand-navy mb-1">You are a <em>Covered Entity</em> if you are…</p>
       <ul class="text-xs text-slate list-disc list-inside space-y-0.5">
         <li>A healthcare provider that transmits health information electronically in a standard transaction</li>
         <li>A health plan (insurer, HMO, ERISA group health plan)</li>
         <li>A healthcare clearinghouse</li>
       </ul>
     </div>
-    <div class="bg-card rounded-lg p-3 border border-fog">
-      <p class="text-sm font-semibold text-navy mb-1">You are a <em>Business Associate</em> if you…</p>
+    <div class="bg-card rounded-lg p-3 border border-brand-cloud">
+      <p class="text-sm font-semibold text-brand-navy mb-1">You are a <em>Business Associate</em> if you…</p>
       <ul class="text-xs text-slate list-disc list-inside space-y-0.5">
         <li>Create, receive, maintain, or transmit PHI on behalf of a covered entity</li>
         <li>Provide legal, actuarial, accounting, consulting, data aggregation, management, accreditation, or financial services involving PHI</li>
@@ -42,7 +42,7 @@ const HIPAA_TRACK = `
       </ul>
     </div>
   </div>
-  <p class="text-xs text-slate-light mt-3">If neither applies, jump to <a href="#consumer-health" class="text-blue">Track 2 — Consumer health data laws</a>. HIPAA does <em>not</em> cover most health apps, wearables, or DTC wellness platforms.</p>
+  <p class="text-xs text-brand-mist mt-3">If neither applies, jump to <a href="#consumer-health" class="text-brand-teal">Track 2 — Consumer health data laws</a>. HIPAA does <em>not</em> cover most health apps, wearables, or DTC wellness platforms.</p>
 </div>
 
 <p>HIPAA's <a href="https://www.hhs.gov/hipaa/for-professionals/privacy/index.html" target="_blank" rel="noopener noreferrer">Privacy Rule</a> and <a href="https://www.hhs.gov/hipaa/for-professionals/security/index.html" target="_blank" rel="noopener noreferrer">Security Rule</a> govern PHI use and disclosure by covered entities and business associates. Key obligations: the <strong>Minimum Necessary Standard</strong>, mandatory <a href="https://www.hhs.gov/hipaa/for-professionals/covered-entities/sample-business-associate-agreement-provisions/index.html" target="_blank" rel="noopener noreferrer">Business Associate Agreements</a>, the <a href="https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html" target="_blank" rel="noopener noreferrer">Breach Notification Rule</a> (60-day window), and the patient Right of Access (30 days). <a href="https://www.hhs.gov/ocr" target="_blank" rel="noopener noreferrer">HHS OCR</a> enforces through audits and civil monetary penalties ranging from $100 to $50,000 per violation, up to $2M annually per category.</p>
@@ -51,26 +51,26 @@ const HIPAA_TRACK = `
 const CONSUMER_HEALTH_TRACK = `
 <p>If you operate a health app, wearable, fitness tracker, or any direct-to-consumer platform handling health information, you are very likely <strong>outside HIPAA</strong> but firmly inside the FTC's jurisdiction and a fast-growing set of state consumer health statutes.</p>
 
-<div class="rounded-xl border border-fog bg-card p-5 mt-4">
+<div class="rounded-xl border border-brand-cloud bg-card p-5 mt-4">
   <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-700 mb-3">Key statutes — non-HIPAA consumer health</p>
   <div class="grid gap-3 md:grid-cols-2">
     <div class="border-l-2 border-amber-500 pl-3">
-      <p class="text-sm font-semibold text-navy">FTC Health Breach Notification Rule</p>
+      <p class="text-sm font-semibold text-brand-navy">FTC Health Breach Notification Rule</p>
       <p class="text-xs text-slate mt-1">Covers vendors of personal health records and related entities not subject to HIPAA. "Breach" includes <em>unauthorized sharing</em> with ad platforms, not only security incidents. Enforced via consent orders and civil penalties (GoodRx — $1.5M; BetterHelp — $7.8M; Premom — consent order).</p>
-      <a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer" class="text-blue text-xs mt-1 inline-block">FTC rule text ↗</a>
+      <a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer" class="text-brand-teal text-xs mt-1 inline-block">FTC rule text ↗</a>
     </div>
     <div class="border-l-2 border-amber-500 pl-3">
-      <p class="text-sm font-semibold text-navy">Washington My Health My Data Act (MHMDA)</p>
+      <p class="text-sm font-semibold text-brand-navy">Washington My Health My Data Act (MHMDA)</p>
       <p class="text-xs text-slate mt-1">RCW 70.372 — the strictest consumer health statute. Broad scope (any regulated entity collecting WA consumer health data), opt-in consent, geofencing ban around healthcare facilities, and a <strong>private right of action</strong>. Effective March 31, 2024.</p>
-      <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=70.372" target="_blank" rel="noopener noreferrer" class="text-blue text-xs mt-1 inline-block">Statute ↗</a>
+      <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=70.372" target="_blank" rel="noopener noreferrer" class="text-brand-teal text-xs mt-1 inline-block">Statute ↗</a>
     </div>
     <div class="border-l-2 border-amber-500 pl-3">
-      <p class="text-sm font-semibold text-navy">Nevada SB 370</p>
+      <p class="text-sm font-semibold text-brand-navy">Nevada SB 370</p>
       <p class="text-xs text-slate mt-1">Mirrors MHMDA's structure but enforced solely by the Nevada AG (no private right of action). Effective March 31, 2024.</p>
-      <a href="https://www.leg.state.nv.us/App/NELIS/REL/82nd2023/Bill/SB370/Overview" target="_blank" rel="noopener noreferrer" class="text-blue text-xs mt-1 inline-block">Bill page ↗</a>
+      <a href="https://www.leg.state.nv.us/App/NELIS/REL/82nd2023/Bill/SB370/Overview" target="_blank" rel="noopener noreferrer" class="text-brand-teal text-xs mt-1 inline-block">Bill page ↗</a>
     </div>
     <div class="border-l-2 border-amber-500 pl-3">
-      <p class="text-sm font-semibold text-navy">Connecticut SB 3 health data amendments</p>
+      <p class="text-sm font-semibold text-brand-navy">Connecticut SB 3 health data amendments</p>
       <p class="text-xs text-slate mt-1">Layered on top of the Connecticut Data Privacy Act — adds consent and geofencing rules for consumer health data.</p>
     </div>
   </div>
@@ -92,9 +92,9 @@ const AI_HEALTH = `
 `;
 
 const BREACH_COMPARISON = `
-<div class="cmp-table overflow-x-auto rounded-xl border border-fog">
+<div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
   <table class="w-full text-sm border-collapse">
-    <thead class="bg-fog text-slate">
+    <thead class="bg-brand-cloud text-slate">
       <tr>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Regime</th>
         <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">Trigger threshold</th>
@@ -103,26 +103,26 @@ const BREACH_COMPARISON = `
       </tr>
     </thead>
     <tbody class="bg-card">
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">HIPAA Breach Notification Rule</td>
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">HIPAA Breach Notification Rule</td>
         <td class="px-4 py-3 text-slate">Unauthorized acquisition, access, use or disclosure of unsecured PHI — presumed a breach unless 4-factor risk assessment shows low probability of compromise.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-rose-700">≤ 60 days</strong> from discovery to notify affected individuals. HHS notice within 60 days (≥500 affected) or annually (&lt;500). Media notice if ≥500 in a state or jurisdiction.</td>
         <td class="px-4 py-3 text-slate">Affected individuals, HHS OCR, prominent media outlets (when ≥500), and (for business associates) the covered entity within 60 days.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">FTC Health Breach Notification Rule</td>
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">FTC Health Breach Notification Rule</td>
         <td class="px-4 py-3 text-slate">Acquisition of identifiable health information without authorization, including <em>unauthorized sharing</em> with third-party ad platforms.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-rose-700">≤ 60 days</strong> for individuals. FTC within 10 business days if ≥500 affected; otherwise annually.</td>
         <td class="px-4 py-3 text-slate">Affected individuals, FTC, and prominent media outlets if ≥500 residents of a state are affected.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">Washington MHMDA</td>
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">Washington MHMDA</td>
         <td class="px-4 py-3 text-slate">No separate breach rule — but unauthorized processing or sharing exposes the regulated entity to private right of action under the Washington Consumer Protection Act.</td>
         <td class="px-4 py-3 text-slate">Defer to Washington's general breach statute (RCW 19.255) — <strong class="text-rose-700">≤ 30 days</strong> for affected individuals and AG if ≥500 residents.</td>
         <td class="px-4 py-3 text-slate">Affected Washington consumers, Washington AG (if ≥500 affected), credit reporting agencies for certain data types.</td>
       </tr>
-      <tr class="border-t border-fog align-top">
-        <td class="px-4 py-3 font-semibold text-navy">GDPR Art. 33–34 (special category health data)</td>
+      <tr class="border-t border-brand-cloud align-top">
+        <td class="px-4 py-3 font-semibold text-brand-navy">GDPR Art. 33–34 (special category health data)</td>
         <td class="px-4 py-3 text-slate">Personal data breach likely to result in a risk to rights and freedoms (Art. 33). Health data is special category — the threshold to notify individuals (high risk) is met quickly.</td>
         <td class="px-4 py-3 text-slate"><strong class="text-rose-700">≤ 72 hours</strong> to the lead supervisory authority. Individuals "without undue delay" when high risk.</td>
         <td class="px-4 py-3 text-slate">Lead supervisory authority, affected data subjects when high risk, processors must notify controllers without undue delay.</td>
@@ -130,7 +130,7 @@ const BREACH_COMPARISON = `
     </tbody>
   </table>
 </div>
-<p class="text-[11px] text-slate-light mt-2">Timelines run from <em>discovery</em>, not from incident occurrence. Stack obligations carefully — a single event can trigger HIPAA, FTC HBR, and state breach laws simultaneously.</p>
+<p class="text-[11px] text-brand-mist mt-2">Timelines run from <em>discovery</em>, not from incident occurrence. Stack obligations carefully — a single event can trigger HIPAA, FTC HBR, and state breach laws simultaneously.</p>
 `;
 
 export default function HealthDataPrivacyPage() {

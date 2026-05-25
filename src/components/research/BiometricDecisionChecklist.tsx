@@ -64,17 +64,17 @@ export function BiometricDecisionChecklist() {
   const setAnswer = (id: string, value: Answer) => setAnswers((s) => ({ ...s, [id]: value }));
 
   return (
-    <div className="rounded-2xl border border-fog bg-card shadow-eup-sm overflow-hidden">
-      <div className="px-5 py-4 bg-navy text-white">
-        <p className="text-[11px] font-semibold tracking-widest uppercase text-sky">Compliance triage</p>
+    <div className="rounded-2xl border border-brand-cloud bg-card shadow-eup-sm overflow-hidden">
+      <div className="px-5 py-4 bg-brand-navy text-white">
+        <p className="text-[11px] font-semibold tracking-widest uppercase text-brand-mist">Compliance triage</p>
         <h3 className="text-white text-lg mt-1">Does biometric law apply to you?</h3>
-        <p className="text-xs text-slate-light mt-1">Answer four questions to surface the in-scope statutes.</p>
+        <p className="text-xs text-brand-mist mt-1">Answer four questions to surface the in-scope statutes.</p>
       </div>
-      <ol className="divide-y divide-fog">
+      <ol className="divide-y divide-brand-cloud">
         {QUESTIONS.map((q, idx) => (
           <li key={q.id} className="px-5 py-4 flex flex-col sm:flex-row sm:items-start gap-3">
             <div className="flex-1">
-              <p className="text-sm text-navy">
+              <p className="text-sm text-brand-navy">
                 <span className="font-semibold text-slate mr-1">{idx + 1}.</span>
                 {q.label}
               </p>
@@ -91,7 +91,7 @@ export function BiometricDecisionChecklist() {
                         ? opt === "yes"
                           ? "bg-emerald-600 text-white border-emerald-600"
                           : "bg-slate-600 text-white border-slate-600"
-                        : "bg-paper text-slate border-silver hover:border-navy/40"
+                        : "bg-brand-cloud text-slate border-silver hover:border-brand-navy/40"
                     }`}
                   >
                     {opt === "yes" ? <Check className="inline w-3 h-3 mr-1" /> : <X className="inline w-3 h-3 mr-1" />}
@@ -111,13 +111,13 @@ export function BiometricDecisionChecklist() {
               ? "border-rose-500 bg-rose-50"
               : result.tone === "moderate"
               ? "border-amber-500 bg-amber-50"
-              : "border-slate-300 bg-paper"
+              : "border-slate-300 bg-brand-cloud"
           }`}
         >
-          <p className="text-sm font-semibold text-navy">{result.title}</p>
+          <p className="text-sm font-semibold text-brand-navy">{result.title}</p>
           <p className="text-xs text-slate mt-1 leading-relaxed">{result.body}</p>
           {result.statutes.length > 0 && (
-            <ul className="mt-3 space-y-1 text-xs text-navy list-disc list-inside">
+            <ul className="mt-3 space-y-1 text-xs text-brand-navy list-disc list-inside">
               {result.statutes.map((s) => (
                 <li key={s}>{s}</li>
               ))}
@@ -132,7 +132,7 @@ export function BiometricDecisionChecklist() {
             </Link>
             <button
               onClick={() => setAnswers({})}
-              className="text-xs text-slate hover:text-navy underline-offset-2 hover:underline bg-transparent border-none cursor-pointer"
+              className="text-xs text-slate hover:text-brand-navy underline-offset-2 hover:underline bg-transparent border-none cursor-pointer"
             >
               Reset
             </button>

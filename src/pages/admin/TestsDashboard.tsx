@@ -113,7 +113,7 @@ export default function TestsDashboard() {
         <div className="py-8">
           <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-display text-navy">Tool Tests</h1>
+              <h1 className="font-display text-brand-navy">Tool Tests</h1>
               <p className="text-sm text-slate mt-1">
                 Pick any combination of tool test pages and run them. Selected
                 tests load inline below so you can review them without leaving
@@ -130,21 +130,21 @@ export default function TestsDashboard() {
             </Button>
           </div>
 
-          <Card className="p-4 mb-6 border border-fog">
+          <Card className="p-4 mb-6 border border-brand-cloud">
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={allSelected ? true : someSelected ? "indeterminate" : false}
                 onCheckedChange={toggleAll}
                 aria-label="Select all tests"
               />
-              <span className="text-sm font-semibold text-navy">
+              <span className="text-sm font-semibold text-brand-navy">
                 Select all ({TESTS.length})
               </span>
               {selected.size > 0 && (
                 <button
                   type="button"
                   onClick={() => setSelected(new Set())}
-                  className="ml-3 text-xs text-cobalt hover:underline bg-transparent border-none cursor-pointer"
+                  className="ml-3 text-xs text-brand-teal hover:underline bg-transparent border-none cursor-pointer"
                 >
                   Clear
                 </button>
@@ -168,7 +168,7 @@ export default function TestsDashboard() {
                         <Card
                           key={t.id}
                           className={`p-3 border transition-colors ${
-                            checked ? "border-cobalt bg-cobalt/5" : "border-fog"
+                            checked ? "border-brand-teal bg-brand-teal/5" : "border-brand-cloud"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -178,7 +178,7 @@ export default function TestsDashboard() {
                                 onCheckedChange={() => toggle(t.id)}
                                 aria-label={t.label}
                               />
-                              <span className="text-sm text-navy truncate">
+                              <span className="text-sm text-brand-navy truncate">
                                 {t.label}
                               </span>
                             </label>
@@ -186,7 +186,7 @@ export default function TestsDashboard() {
                               to={t.path}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-slate hover:text-cobalt no-underline inline-flex items-center gap-1 shrink-0"
+                              className="text-xs text-slate hover:text-brand-teal no-underline inline-flex items-center gap-1 shrink-0"
                               title="Open in a new tab"
                             >
                               Open
@@ -206,7 +206,7 @@ export default function TestsDashboard() {
             <div ref={runsRef} className="mt-10 scroll-mt-20">
 
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-display text-navy text-xl">
+                <h2 className="font-display text-brand-navy text-xl">
                   Test runs ({running.length})
                 </h2>
                 <Button
@@ -221,10 +221,10 @@ export default function TestsDashboard() {
               </div>
               <div className="space-y-4">
                 {running.map((r) => (
-                  <Card key={r.id} className="border border-fog overflow-hidden">
-                    <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-fog bg-cloud">
+                  <Card key={r.id} className="border border-brand-cloud overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-cloud bg-cloud">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-sm font-semibold text-navy truncate">
+                        <span className="text-sm font-semibold text-brand-navy truncate">
                           {r.label}
                         </span>
                         <code className="text-xs text-slate-500 truncate">
@@ -245,7 +245,7 @@ export default function TestsDashboard() {
                           to={r.path}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center h-7 px-2 text-slate hover:text-cobalt rounded-md hover:bg-fog/40"
+                          className="inline-flex items-center justify-center h-7 px-2 text-slate hover:text-brand-teal rounded-md hover:bg-brand-cloud/40"
                           title="Open in new tab"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />

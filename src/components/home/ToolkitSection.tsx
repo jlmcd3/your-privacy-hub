@@ -23,10 +23,10 @@ const tools = [
 
 export default function ToolkitSection() {
   return (
-    <section className="py-12 px-4 md:px-8 bg-paper">
+    <section className="py-12 px-4 md:px-8 bg-brand-cloud">
       <div className="max-w-[1280px] mx-auto">
         <div className="text-center mb-8">
-          <h2 className="font-display text-navy mb-2">
+          <h2 className="font-display text-brand-navy mb-2">
             Intelligence Toolkit
           </h2>
           <p className="text-slate text-sm">
@@ -38,21 +38,21 @@ export default function ToolkitSection() {
             <Link
               key={t.href}
               to={t.href}
-              className="group bg-card border border-fog rounded-2xl p-6 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all text-center"
+              className="group bg-card border border-brand-cloud rounded-2xl p-6 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all text-center"
             >
               <span className="text-3xl block mb-3">{t.icon}</span>
-              <h3 className="text-navy text-[15px] mb-1 group-hover:text-blue transition-colors">
+              <h3 className="text-brand-navy text-[15px] mb-1 group-hover:text-brand-teal transition-colors">
                 {t.title}
               </h3>
               <p className="text-slate text-meta leading-relaxed mb-3">{t.sub}</p>
-              <span className="text-blue text-meta font-semibold">Explore →</span>
+              <span className="text-brand-teal text-meta font-semibold">Explore →</span>
             </Link>
           ))}
         </div>
         <div className="text-center mt-6">
           <Link
             to="/tools"
-            className="text-blue text-sm font-semibold hover:text-navy transition-colors no-underline"
+            className="text-brand-teal text-sm font-semibold hover:text-brand-navy transition-colors no-underline"
           >
             See all tools →
           </Link>

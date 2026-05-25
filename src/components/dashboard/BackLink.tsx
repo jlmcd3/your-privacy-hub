@@ -16,7 +16,7 @@ export default function BackLink({ to, label, className }: BackLinkProps) {
     <Link
       to={to}
       className={cn(
-        "inline-flex items-center gap-1 text-sm text-slate hover:text-navy no-underline font-medium transition-colors",
+        "inline-flex items-center gap-1 text-sm text-slate hover:text-brand-navy no-underline font-medium transition-colors",
         className,
       )}
     >

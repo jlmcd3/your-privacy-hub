@@ -70,7 +70,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-screen bg-brand-cloud flex flex-col">
       <Helmet>
         <title>Sign In | End User Privacy</title>
         <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
@@ -79,7 +79,7 @@ const Login = () => {
       <div className="flex-1 flex flex-col lg:flex-row">
 
         {/* Left panel — hidden on mobile */}
-        <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-navy to-steel flex-col justify-center px-12 py-16">
+        <div className="hidden lg:flex lg:w-[420px] bg-gradient-to-br from-brand-navy to-brand-steel flex-col justify-center px-12 py-16">
           <div className="text-amber-400 text-[11px] font-bold uppercase tracking-widest mb-4">End User Privacy</div>
           <h2 className="font-display text-white leading-tight mb-6">
             Global privacy law, tracked daily.
@@ -101,9 +101,9 @@ const Login = () => {
         </div>
 
         {/* Right panel — form */}
-        <div className="flex-1 flex items-center justify-center py-16 px-4 bg-paper">
-          <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8">
-            <h1 className="font-display text-navy text-center mb-1.5">Sign In</h1>
+        <div className="flex-1 flex items-center justify-center py-16 px-4 bg-brand-cloud">
+          <div className="w-full max-w-md bg-card border border-brand-cloud rounded-2xl shadow-eup-sm p-8">
+            <h1 className="font-display text-brand-navy text-center mb-1.5">Sign In</h1>
             <p className="text-sm text-slate text-center mb-7">
               {safeRedirect?.includes("subscribe")
                 ? "Sign in to complete your subscription"
@@ -115,25 +115,25 @@ const Login = () => {
             </p>
 
             {error && (
-              <div className="mb-5 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-sm text-center">
+              <div className="mb-5 p-3 rounded-lg bg-severity-warning/10 border border-severity-warning/30 text-severity-warning text-sm text-center">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-brand-navy mb-1.5">Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-[14px] bg-paper border border-silver rounded-lg text-navy outline-none placeholder:text-slate-light focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+                  className="w-full px-3.5 py-2.5 text-[14px] bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none placeholder:text-brand-mist focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
                   placeholder="you@company.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-brand-navy mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -148,7 +148,7 @@ const Login = () => {
                     spellCheck={false}
                     autoCorrect="off"
                     autoCapitalize="off"
-                    className="w-full px-3.5 py-2.5 pr-11 text-[14px] bg-paper border border-silver rounded-lg text-navy outline-none placeholder:text-slate-light focus:border-blue focus:ring-1 focus:ring-blue transition-colors"
+                    className="w-full px-3.5 py-2.5 pr-11 text-[14px] bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none placeholder:text-brand-mist focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
                     placeholder="Your password"
                   />
                   <button
@@ -158,7 +158,7 @@ const Login = () => {
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     aria-pressed={showPassword}
                     tabIndex={-1}
-                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate hover:text-navy transition-colors bg-transparent border-none cursor-pointer"
+                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-slate hover:text-brand-navy transition-colors bg-transparent border-none cursor-pointer"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -167,7 +167,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-steel to-blue rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
+                className="w-full py-3 text-[14px] font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal rounded-lg shadow-[0_2px_8px_rgba(59,130,196,0.25)] hover:opacity-90 hover:-translate-y-px transition-all disabled:opacity-50 cursor-pointer border-none"
               >
                 {loading ? "Signing in…" : "Sign In"}
               </button>
@@ -176,13 +176,13 @@ const Login = () => {
             <div className="flex items-center justify-between mt-6 text-sm">
               <Link
                 to={safeRedirect ? `/signup?redirect=${encodeURIComponent(safeRedirect)}` : "/signup"}
-                className="text-blue font-medium hover:underline no-underline"
+                className="text-brand-teal font-medium hover:underline no-underline"
               >
                 Create account
               </Link>
               <Link
                 to="/forgot-password"
-                className="text-slate hover:text-navy transition-colors no-underline"
+                className="text-slate hover:text-brand-navy transition-colors no-underline"
               >
                 Forgot password?
               </Link>

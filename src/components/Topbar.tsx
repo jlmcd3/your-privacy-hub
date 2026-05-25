@@ -44,20 +44,20 @@ const Topbar = () => {
   }, []);
 
   return (
-    <div className="bg-navy text-slate-light text-meta tracking-wide py-1.5 border-b border-navy-light hidden md:block">
+    <div className="bg-brand-navy text-brand-mist text-meta tracking-wide py-1.5 border-b border-brand-slate-teal hidden md:block">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex gap-5 items-center">
-          <span className="text-navy-light hidden lg:inline">·</span>
-          <Link to="/updates" className="hidden lg:inline hover:text-sky transition-colors no-underline text-slate-light">
+          <span className="text-brand-slate-teal hidden lg:inline">·</span>
+          <Link to="/updates" className="hidden lg:inline hover:text-brand-mist transition-colors no-underline text-brand-mist">
             Last update: {lastUpdate}
           </Link>
-          <span className="text-navy-light hidden xl:inline">·</span>
-          <Link to="/dashboard" className="hover:text-sky transition-colors hidden xl:inline no-underline text-slate-light">{briefLabel}</Link>
+          <span className="text-brand-slate-teal hidden xl:inline">·</span>
+          <Link to="/dashboard" className="hover:text-brand-mist transition-colors hidden xl:inline no-underline text-brand-mist">{briefLabel}</Link>
         </div>
         <div className="flex gap-4 items-center">
-          <Link to="/about" className="hover:text-sky transition-colors no-underline text-slate-light">About</Link>
-          <Link to="/contact" className="hover:text-sky transition-colors no-underline text-slate-light">Contact</Link>
-          <Link to="/login" className="hover:text-sky transition-colors no-underline text-slate-light">Log In</Link>
+          <Link to="/about" className="hover:text-brand-mist transition-colors no-underline text-brand-mist">About</Link>
+          <Link to="/contact" className="hover:text-brand-mist transition-colors no-underline text-brand-mist">Contact</Link>
+          <Link to="/login" className="hover:text-brand-mist transition-colors no-underline text-brand-mist">Log In</Link>
         </div>
       </div>
     </div>

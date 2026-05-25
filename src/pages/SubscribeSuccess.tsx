@@ -89,7 +89,7 @@ export default function SubscribeSuccess() {
       ];
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>{hasToolAccess ? "Welcome to Professional" : "Welcome to Intelligence"} | End User Privacy</title>
       </Helmet>
@@ -105,14 +105,14 @@ export default function SubscribeSuccess() {
           <div className="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">
             ⭐ Payment Confirmed
           </div>
-          <h1 className="font-display text-navy mb-3 leading-tight">
+          <h1 className="font-display text-brand-navy mb-3 leading-tight">
             {headline}
           </h1>
           <p className="text-slate text-[15px] leading-relaxed max-w-md mx-auto">
             {subheadline}
           </p>
           {!activated && isPremium && (
-            <p className="text-slate-light text-[12px] mt-3 animate-pulse">
+            <p className="text-brand-mist text-[12px] mt-3 animate-pulse">
               Activating your account…
             </p>
           )}
@@ -120,18 +120,18 @@ export default function SubscribeSuccess() {
 
         {/* What happens next */}
         <div className="mb-8">
-          <h2 className="font-display text-navy mb-4">
+          <h2 className="font-display text-brand-navy mb-4">
             What happens next
           </h2>
           <div className="space-y-3">
             {NEXT_STEPS.map((step) => (
               <div
                 key={step.title}
-                className="flex gap-4 p-4 bg-card border border-fog rounded-xl"
+                className="flex gap-4 p-4 bg-card border border-brand-cloud rounded-xl"
               >
                 <div className="text-2xl flex-shrink-0 mt-0.5">{step.icon}</div>
                 <div>
-                  <div className="font-semibold text-navy text-[14px] mb-0.5">
+                  <div className="font-semibold text-brand-navy text-[14px] mb-0.5">
                     {step.title}
                   </div>
                   <p className="text-slate text-sm leading-relaxed">{step.body}</p>
@@ -154,22 +154,22 @@ export default function SubscribeSuccess() {
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             to="/brief-preferences?from=subscribe"
-            className="flex-1 text-center bg-amber-400 text-navy font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
+            className="flex-1 text-center bg-amber-400 text-brand-navy font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Personalize your Privacy Intelligence Report →
           </Link>
           <Link
             to={hasToolAccess ? "/tools" : "/dashboard"}
-            className="flex-1 text-center bg-gradient-to-br from-navy to-blue text-white font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
+            className="flex-1 text-center bg-gradient-to-br from-brand-navy to-brand-teal text-white font-bold text-[14px] py-3.5 px-6 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             {hasToolAccess ? "Browse compliance tools →" : "Open My Intelligence Brief →"}
           </Link>
         </div>
 
-        <p className="text-center text-slate-light text-[12px] mt-6">
-          Questions? <Link to="/contact" className="text-blue hover:text-navy no-underline">Contact us</Link>
-          {" "}· <Link to="/faq" className="text-blue hover:text-navy no-underline">FAQ</Link>
-          {" "}· Cancel anytime from <Link to="/account" className="text-blue hover:text-navy no-underline">My Account</Link>
+        <p className="text-center text-brand-mist text-[12px] mt-6">
+          Questions? <Link to="/contact" className="text-brand-teal hover:text-brand-navy no-underline">Contact us</Link>
+          {" "}· <Link to="/faq" className="text-brand-teal hover:text-brand-navy no-underline">FAQ</Link>
+          {" "}· Cancel anytime from <Link to="/account" className="text-brand-teal hover:text-brand-navy no-underline">My Account</Link>
         </p>
       </div>
 

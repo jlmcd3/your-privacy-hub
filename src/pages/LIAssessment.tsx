@@ -156,7 +156,7 @@ const LIAssessment = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper">
+    <div className="min-h-screen flex flex-col bg-brand-cloud">
       <Helmet>
         <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
@@ -186,24 +186,24 @@ const LIAssessment = () => {
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}
         <section className="mb-10">
-          <div className="text-eyebrow text-sky mb-2">Why you need this</div>
-          <h2 className="font-display text-navy mb-4 leading-snug">
+          <div className="text-eyebrow text-brand-mist mb-2">Why you need this</div>
+          <h2 className="font-display text-brand-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
-          <p className="text-sm text-navy leading-relaxed mb-4 max-w-[70ch]">
+          <p className="text-sm text-brand-navy leading-relaxed mb-4 max-w-[70ch]">
             Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR. Regulators don't
             accept it on assertion: if challenged, you must produce a written record showing you tested your processing
             against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
           </p>
-          <p className="text-sm text-navy leading-relaxed max-w-[70ch]">
+          <p className="text-sm text-brand-navy leading-relaxed max-w-[70ch]">
             Recent fines from the CNIL, ICO, Garante and others have hit organisations that skipped this record or produced a generic one. The full assessment cites the specific enforcement decisions behind each test verdict — so you can see exactly what informed the analysis.
           </p>
         </section>
 
         {/* HOW IT WORKS */}
         <section className="mb-10">
-          <div className="text-eyebrow text-sky mb-2">How it works</div>
-          <h2 className="font-display text-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
+          <div className="text-eyebrow text-brand-mist mb-2">How it works</div>
+          <h2 className="font-display text-brand-navy mb-5 leading-snug">Three steps — and why each one matters</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
@@ -226,20 +226,20 @@ const LIAssessment = () => {
               },
             ].flatMap((step, i, arr) => {
               const card = (
-                <div key={`card-${step.n}`} className="bg-card border-t-4 border-navy p-5 shadow-eup-sm rounded-md flex flex-col">
-                  <div className="text-eyebrow text-sky mb-1">Step {step.n}</div>
-                  <h3 className="text-navy mb-2">{step.title}</h3>
+                <div key={`card-${step.n}`} className="bg-card border-t-4 border-brand-navy p-5 shadow-eup-sm rounded-md flex flex-col">
+                  <div className="text-eyebrow text-brand-mist mb-1">Step {step.n}</div>
+                  <h3 className="text-brand-navy mb-2">{step.title}</h3>
                   <p className="text-sm text-slate leading-relaxed mb-3">{step.desc}</p>
-                  <div className="mt-auto pt-3 border-t border-fog">
+                  <div className="mt-auto pt-3 border-t border-brand-cloud">
                     <div className="text-eyebrow text-amber-700 mb-1">Why</div>
-                    <p className="text-meta text-navy leading-relaxed">{step.why}</p>
+                    <p className="text-meta text-brand-navy leading-relaxed">{step.why}</p>
                   </div>
                 </div>
               );
               if (i === arr.length - 1) return [card];
               return [
                 card,
-                <span key={`arrow-${step.n}`} className="flex md:flex items-center justify-center text-navy/30 text-2xl md:text-2xl" aria-hidden>
+                <span key={`arrow-${step.n}`} className="flex md:flex items-center justify-center text-brand-navy/30 text-2xl md:text-2xl" aria-hidden>
                   <span className="md:hidden">↓</span>
                   <span className="hidden md:inline">→</span>
                 </span>,
@@ -254,47 +254,47 @@ const LIAssessment = () => {
 
         {/* INTAKE FORM */}
         <section className="mb-10">
-          <div className="text-eyebrow text-sky mb-2">Step 01 · Free intake</div>
-          <h2 className="font-display text-navy mb-5 leading-snug">Tell us about the processing</h2>
+          <div className="text-eyebrow text-brand-mist mb-2">Step 01 · Free intake</div>
+          <h2 className="font-display text-brand-navy mb-5 leading-snug">Tell us about the processing</h2>
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
-            className="bg-card border border-fog rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
+            className="bg-card border border-brand-cloud rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
           >
             <div>
-              <Label htmlFor="desc" className="text-sm font-semibold text-navy">What processing are you considering? *</Label>
+              <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering? *</Label>
               <Textarea
                 id="desc"
                 value={processingDescription}
                 onChange={(e) => setProcessingDescription(e.target.value)}
                 placeholder="e.g. Send personalised product recommendations to existing customers based on their purchase history."
-                className="mt-2 min-h-24 border-fog"
+                className="mt-2 min-h-24 border-brand-cloud"
               />
               <p className="text-meta text-muted-foreground mt-1">A sentence or two is enough. More detail produces a sharper signal.</p>
             </div>
 
             <div>
-              <Label className="text-sm font-semibold text-navy">Data categories involved *</Label>
+              <Label className="text-sm font-semibold text-brand-navy">Data categories involved *</Label>
               <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
             </div>
 
             <div>
-              <Label htmlFor="rel" className="text-sm font-semibold text-navy">Your relationship with data subjects *</Label>
-              <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-fog bg-background text-sm">
+              <Label htmlFor="rel" className="text-sm font-semibold text-brand-navy">Your relationship with data subjects *</Label>
+              <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm">
                 <option value="">Select…</option>
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
 
             <div>
-              <Label className="text-sm font-semibold text-navy">Jurisdictions where this processing applies *</Label>
+              <Label className="text-sm font-semibold text-brand-navy">Jurisdictions where this processing applies *</Label>
               <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
             </div>
 
-            <div className="pt-2 border-t border-fog">
+            <div className="pt-2 border-t border-brand-cloud">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-6 py-3 rounded-md bg-navy text-white font-semibold hover:bg-navy-mid disabled:opacity-60 transition-colors"
+                className="w-full sm:w-auto px-6 py-3 rounded-md bg-brand-navy text-white font-semibold hover:bg-brand-ocean disabled:opacity-60 transition-colors"
               >
                 {loading ? "Analysing precedents…" : "Get my preliminary signal — Free"}
               </button>
@@ -306,37 +306,37 @@ const LIAssessment = () => {
         {/* PREVIEW SIGNAL */}
         {preview && (
           <section id="preview-signal">
-            <div className="text-eyebrow text-sky mb-2">Preliminary signal</div>
-            <div className="bg-card border-t-4 border-navy rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6">
+            <div className="text-eyebrow text-brand-mist mb-2">Preliminary signal</div>
+            <div className="bg-card border-t-4 border-brand-navy rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <div className="text-eyebrow text-sky mb-1">Use case</div>
-                  <h2 className="font-display text-navy leading-snug">{preview.use_case_label}</h2>
+                  <div className="text-eyebrow text-brand-mist mb-1">Use case</div>
+                  <h2 className="font-display text-brand-navy leading-snug">{preview.use_case_label}</h2>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border text-meta font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
                   {preview.strength.rating}
                 </span>
               </div>
 
-              <p className="text-sm text-navy leading-relaxed">{preview.strength.rationale}</p>
+              <p className="text-sm text-brand-navy leading-relaxed">{preview.strength.rationale}</p>
 
               {preview.precedents.length > 0 ? (
-                <div className="pt-5 border-t border-fog">
-                  <h3 className="text-eyebrow text-sky mb-3">
+                <div className="pt-5 border-t border-brand-cloud">
+                  <h3 className="text-eyebrow text-brand-mist mb-3">
                     Most analogous regulator decisions ({preview.precedents_matched} matched)
                   </h3>
                   <div className="space-y-5">
                     {preview.precedents.map((p, i) => (
-                      <article key={i} className="bg-card border border-fog rounded-xl shadow-eup-sm relative overflow-hidden flex">
+                      <article key={i} className="bg-card border border-brand-cloud rounded-xl shadow-eup-sm relative overflow-hidden flex">
                         <div className={`w-1.5 flex-shrink-0 ${stripeFor(p.outcome)}`} aria-hidden />
                         <div className="p-5 flex-1 min-w-0">
-                          <h4 className="text-lg text-navy mb-2 leading-snug">{p.processing_activity}</h4>
+                          <h4 className="text-lg text-brand-navy mb-2 leading-snug">{p.processing_activity}</h4>
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.dpa_source}</span>
                             <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.jurisdiction}</span>
                           </div>
                           <p className="text-sm text-slate leading-relaxed mb-4">{p.summary}</p>
-                          <div className="flex items-center justify-between gap-3 pt-3 border-t border-fog">
+                          <div className="flex items-center justify-between gap-3 pt-3 border-t border-brand-cloud">
                             <span className={`text-eyebrow capitalize ${accentFor(p.outcome)}`}>
                               {p.outcome}
                             </span>
@@ -358,17 +358,17 @@ const LIAssessment = () => {
                 </p>
               )}
 
-              <div className="bg-paper border-l-4 border-navy/40 rounded p-4 text-sm text-navy leading-relaxed">
+              <div className="bg-brand-cloud border-l-4 border-brand-navy/40 rounded p-4 text-sm text-brand-navy leading-relaxed">
                 <strong>What's next.</strong> The preliminary signal cannot tell you whether <em>your specific facts</em> pass the
                 necessity and balancing tests — that requires the deeper questions on safeguards, reasonable expectations,
                 data minimisation, and harm severity. Continue to the full assessment to capture those facts and produce a
                 report you can review with counsel.
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-fog">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-brand-cloud">
                 <button
                   onClick={handleContinue}
-                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-navy text-white font-semibold hover:bg-navy-mid transition-colors"
+                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-brand-navy text-white font-semibold hover:bg-brand-ocean transition-colors"
                 >
                   Continue to full assessment — ${pricing.price}
                 </button>

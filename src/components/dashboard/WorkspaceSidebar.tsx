@@ -30,7 +30,7 @@ function NavItem({ item, active }: { item: WorkspaceItem; active: boolean }) {
       title={item.label}
       className={cn(
         "inline-flex items-center gap-2 px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline justify-center lg:justify-start",
-        active ? "bg-navy text-white" : "text-slate hover:bg-fog hover:text-navy",
+        active ? "bg-brand-navy text-white" : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
       )}
       aria-current={active ? "page" : undefined}
     >
@@ -84,8 +84,8 @@ function WorkspaceSection({
         className={cn(
           "w-full inline-flex items-center gap-2 px-2 lg:px-3 py-2 rounded-lg text-sm font-semibold transition-colors bg-transparent border-none cursor-pointer text-left justify-center lg:justify-start",
           isActiveWorkspace
-            ? "text-cobalt"
-            : "text-navy hover:bg-fog",
+            ? "text-brand-teal"
+            : "text-brand-navy hover:bg-brand-cloud",
         )}
         aria-expanded={open}
       >
@@ -93,7 +93,7 @@ function WorkspaceSection({
         <span className="hidden lg:inline flex-1 truncate">
           {workspace.name}
         </span>
-        <span className="hidden lg:inline shrink-0 text-slate-light">
+        <span className="hidden lg:inline shrink-0 text-brand-mist">
           {open ? (
             <ChevronDown className="w-3.5 h-3.5" />
           ) : (
@@ -103,7 +103,7 @@ function WorkspaceSection({
       </button>
 
       {open && (
-        <ul className="hidden lg:flex flex-col gap-0.5 mt-0.5 ml-2 pl-3 border-l border-fog">
+        <ul className="hidden lg:flex flex-col gap-0.5 mt-0.5 ml-2 pl-3 border-l border-brand-cloud">
           {WORK_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isActiveWorkspace && activeTo === item.to;
@@ -115,8 +115,8 @@ function WorkspaceSection({
                   className={cn(
                     "inline-flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors no-underline w-full",
                     active
-                      ? "bg-navy text-white font-medium"
-                      : "text-slate hover:bg-fog hover:text-navy",
+                      ? "bg-brand-navy text-white font-medium"
+                      : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
                   )}
                   aria-current={active ? "page" : undefined}
                 >
@@ -156,7 +156,7 @@ export default function WorkspaceSidebar() {
   return (
     <aside
       aria-label="Workspace navigation"
-      className="hidden md:flex flex-col w-14 lg:w-[240px] shrink-0 border-r border-fog bg-card sticky top-14 md:top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto transition-[width] duration-200"
+      className="hidden md:flex flex-col w-14 lg:w-[240px] shrink-0 border-r border-brand-cloud bg-card sticky top-14 md:top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto transition-[width] duration-200"
     >
       <div className="p-2 lg:p-3">
         {/* Intelligence — always personal */}
@@ -190,7 +190,7 @@ export default function WorkspaceSidebar() {
             <NavLink
               to="/clients"
               title="Manage clients"
-              className="hidden lg:inline-flex items-center text-slate-light hover:text-navy no-underline -mt-2"
+              className="hidden lg:inline-flex items-center text-brand-mist hover:text-brand-navy no-underline -mt-2"
             >
               <Plus className="w-3.5 h-3.5" />
             </NavLink>
@@ -198,7 +198,7 @@ export default function WorkspaceSidebar() {
           {clients.length === 0 ? (
             <NavLink
               to="/clients"
-              className="hidden lg:inline-flex items-center gap-2 px-3 py-2 text-xs text-slate hover:text-navy no-underline"
+              className="hidden lg:inline-flex items-center gap-2 px-3 py-2 text-xs text-slate hover:text-brand-navy no-underline"
             >
               <Plus className="w-3.5 h-3.5" />
               Add a client
@@ -217,7 +217,7 @@ export default function WorkspaceSidebar() {
               ))}
               <NavLink
                 to="/clients"
-                className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 mt-1 text-xs text-slate hover:text-navy no-underline"
+                className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 mt-1 text-xs text-slate hover:text-brand-navy no-underline"
               >
                 <Plus className="w-3 h-3" />
                 Manage clients

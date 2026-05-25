@@ -36,7 +36,7 @@ export function TieredFeed({
     <button
       onClick={onLoadMore}
       disabled={isLoadingMore}
-      className="mt-4 w-full text-[12px] px-4 py-2.5 rounded-lg border border-fog text-slate hover:bg-slate-50 transition-colors disabled:opacity-50"
+      className="mt-4 w-full text-[12px] px-4 py-2.5 rounded-lg border border-brand-cloud text-slate hover:bg-slate-50 transition-colors disabled:opacity-50"
     >
       {isLoadingMore ? "Loading…" : "Load more updates"}
     </button>

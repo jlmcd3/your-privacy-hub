@@ -305,7 +305,7 @@ export default function EnforcementActionDetail() {
               <div className="text-[11px] font-bold uppercase tracking-widest text-amber-800 mb-1">
                 Avoid this category of risk
               </div>
-              <h3 className="text-navy mb-1">
+              <h3 className="text-brand-navy mb-1">
                 Are your registrations & DPO appointments current in {action.jurisdiction}?
               </h3>
               <p className="text-sm text-muted-foreground">

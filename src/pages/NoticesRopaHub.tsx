@@ -112,21 +112,21 @@ export default function NoticesRopaHub() {
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
-            <h1 className="font-display text-navy">Notices & RoPA</h1>
+            <h1 className="font-display text-brand-navy">Notices & RoPA</h1>
             <p className="text-sm text-slate mt-1 inline-flex items-center gap-1.5">
               <WorkspaceIcon className="w-3.5 h-3.5" />
               <span>
-                for <span className="font-semibold text-navy">{workspaceLabel}</span>
+                for <span className="font-semibold text-brand-navy">{workspaceLabel}</span>
               </span>
             </p>
-            <p className="text-xs text-slate-light mt-2">
+            <p className="text-xs text-brand-mist mt-2">
               Privacy notices and Records of Processing Activities for this workspace.
             </p>
           </div>
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-navy" />
+              <Loader2 className="w-6 h-6 animate-spin text-brand-navy" />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -136,14 +136,14 @@ export default function NoticesRopaHub() {
                 return (
                   <Card
                     key={t.key}
-                    className="p-5 flex flex-col gap-3 border border-fog hover:border-navy/40 transition-colors"
+                    className="p-5 flex flex-col gap-3 border border-brand-cloud hover:border-brand-navy/40 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-md bg-navy/5 text-navy">
+                      <div className="p-2 rounded-md bg-brand-navy/5 text-brand-navy">
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1">
-                        <h2 className="text-base font-semibold text-navy leading-snug">
+                        <h2 className="text-base font-semibold text-brand-navy leading-snug">
                           {t.label}
                         </h2>
                         <p className="text-xs text-slate mt-1.5 leading-relaxed">
@@ -158,7 +158,7 @@ export default function NoticesRopaHub() {
                           {t.count} {t.count === 1 ? "session" : "sessions"}
                         </Badge>
                       ) : (
-                        <span className="text-[10px] text-slate-light">
+                        <span className="text-[10px] text-brand-mist">
                           No work yet for this workspace
                         </span>
                       )}
@@ -174,7 +174,7 @@ export default function NoticesRopaHub() {
                       {has && (
                         <Link
                           to={t.startPath}
-                          className="text-xs text-cobalt hover:underline"
+                          className="text-xs text-brand-teal hover:underline"
                         >
                           Start new
                         </Link>

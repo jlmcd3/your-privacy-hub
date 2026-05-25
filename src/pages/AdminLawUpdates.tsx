@@ -134,25 +134,25 @@ export default function AdminLawUpdates() {
   if (!allowed) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Law Update Candidates | Admin | End User Privacy</title>
       </Helmet>
       <Navbar />
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="font-display text-navy mb-2">State Privacy Law Updates</h1>
+        <h1 className="font-display text-brand-navy mb-2">State Privacy Law Updates</h1>
         <p className="text-sm text-slate mb-8">
           Candidates flagged by the bi-monthly law monitor. Each must be confirmed before any
           public page is updated.
         </p>
 
-        <h2 className="font-display text-navy mb-3">
+        <h2 className="font-display text-brand-navy mb-3">
           Pending review ({pending.length})
         </h2>
         {loading ? (
           <p className="text-sm text-slate">Loading…</p>
         ) : pending.length === 0 ? (
-          <div className="bg-card border border-fog rounded-xl p-6 text-sm text-slate">
+          <div className="bg-card border border-brand-cloud rounded-xl p-6 text-sm text-slate">
             No pending candidates.
           </div>
         ) : (
@@ -160,11 +160,11 @@ export default function AdminLawUpdates() {
             {pending.map((c) => (
               <div
                 key={c.id}
-                className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm"
+                className="bg-card border border-brand-cloud rounded-xl p-5 shadow-eup-sm"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap mb-2">
                   <div>
-                    <h3 className="text-navy">
+                    <h3 className="text-brand-navy">
                       {c.state_name} — {c.detected_law_name || "(unnamed law)"}
                     </h3>
                     <p className="text-[12px] text-slate mt-1">
@@ -185,13 +185,13 @@ export default function AdminLawUpdates() {
                     {c.source_summary}
                   </p>
                 )}
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-light mb-4">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-brand-mist mb-4">
                   {c.detected_statute_url && (
                     <a
                       href={c.detected_statute_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue hover:underline"
+                      className="text-brand-teal hover:underline"
                     >
                       Statute ↗
                     </a>
@@ -220,15 +220,15 @@ export default function AdminLawUpdates() {
           </div>
         )}
 
-        <h2 className="font-display text-navy mb-3">History</h2>
+        <h2 className="font-display text-brand-navy mb-3">History</h2>
         {history.length === 0 ? (
-          <div className="bg-card border border-fog rounded-xl p-6 text-sm text-slate">
+          <div className="bg-card border border-brand-cloud rounded-xl p-6 text-sm text-slate">
             No reviewed candidates yet.
           </div>
         ) : (
-          <div className="bg-card border border-fog rounded-xl overflow-hidden">
+          <div className="bg-card border border-brand-cloud rounded-xl overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-fog/40 text-slate text-[11px] uppercase tracking-wider">
+              <thead className="bg-brand-cloud/40 text-slate text-[11px] uppercase tracking-wider">
                 <tr>
                   <th className="text-left px-4 py-2">State</th>
                   <th className="text-left px-4 py-2">Law</th>
@@ -239,8 +239,8 @@ export default function AdminLawUpdates() {
               </thead>
               <tbody>
                 {history.map((c) => (
-                  <tr key={c.id} className="border-t border-fog">
-                    <td className="px-4 py-2 text-navy">{c.state_name}</td>
+                  <tr key={c.id} className="border-t border-brand-cloud">
+                    <td className="px-4 py-2 text-brand-navy">{c.state_name}</td>
                     <td className="px-4 py-2 text-slate">{c.detected_law_name || "—"}</td>
                     <td className="px-4 py-2">
                       <span

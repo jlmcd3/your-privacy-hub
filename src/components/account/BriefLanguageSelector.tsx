@@ -77,10 +77,10 @@ export default function BriefLanguageSelector() {
   };
 
   return (
-    <div className="bg-card border border-fog rounded-2xl p-6 mb-4">
+    <div className="bg-card border border-brand-cloud rounded-2xl p-6 mb-4">
       <div className="flex items-center gap-2 mb-2">
-        <Globe className="w-4 h-4 text-navy" />
-        <h2 className="text-navy text-[14px] uppercase tracking-wider">
+        <Globe className="w-4 h-4 text-brand-navy" />
+        <h2 className="text-brand-navy text-[14px] uppercase tracking-wider">
           Weekly Brief Language
         </h2>
         <PremiumBadge />
@@ -93,7 +93,7 @@ export default function BriefLanguageSelector() {
         value={language}
         onChange={handleChange}
         disabled={!loaded}
-        className="w-full sm:w-auto sm:min-w-[260px] bg-paper border border-fog rounded-lg px-3 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-blue/30 focus:border-blue cursor-pointer disabled:opacity-50"
+        className="w-full sm:w-auto sm:min-w-[260px] bg-brand-cloud border border-brand-cloud rounded-lg px-3 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-teal/30 focus:border-brand-teal cursor-pointer disabled:opacity-50"
       >
         {LANGUAGES.map((l) => (
           <option key={l.code} value={l.code}>
@@ -105,7 +105,7 @@ export default function BriefLanguageSelector() {
         <p className="mt-2 text-[12px] text-accent transition-opacity">Preference saved ✓</p>
       )}
       {status === "error" && (
-        <p className="mt-2 text-[12px] text-warn">Could not save — please try again</p>
+        <p className="mt-2 text-[12px] text-severity-warning">Could not save — please try again</p>
       )}
     </div>
   );

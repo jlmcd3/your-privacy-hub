@@ -44,7 +44,7 @@ export default function StickyRailAd({ className = '', topOffset = 96 }: StickyR
           />
         ) : (
           <div
-            className="flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl"
+            className="flex items-center justify-center bg-brand-cloud/40 border border-silver/60 rounded-xl"
             style={{ width: 300, height: 600 }}
           >
             <span className="text-meta uppercase tracking-widest text-slate/60">

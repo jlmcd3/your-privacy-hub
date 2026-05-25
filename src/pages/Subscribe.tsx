@@ -92,7 +92,7 @@ const Subscribe = () => {
 
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>{`Two products. One mission. — ${PRICING.intelligence.monthly.display}/month or Professional from ${PRICING.professional.monthly.display}/month | End User Privacy`}</title>
         <meta
@@ -106,12 +106,12 @@ const Subscribe = () => {
 
 
       {/* Two-product hero */}
-      <div className="bg-gradient-to-br from-navy to-navy-mid py-14 md:py-20 px-4 md:px-8">
+      <div className="bg-gradient-to-br from-brand-navy to-brand-ocean py-14 md:py-20 px-4 md:px-8">
         <div className="max-w-[800px] mx-auto">
           <h1 className="font-display text-white mb-4 leading-tight">
             Two products. One mission.
           </h1>
-          <p className="text-[15px] text-slate-light max-w-[600px] leading-relaxed mb-10">
+          <p className="text-[15px] text-brand-mist max-w-[600px] leading-relaxed mb-10">
             Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.
             Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>
@@ -119,7 +119,7 @@ const Subscribe = () => {
           <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
             {/* Intelligence card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
-              <p className="text-eyebrow text-sky mb-2">
+              <p className="text-eyebrow text-brand-mist mb-2">
                 Privacy Intelligence
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
@@ -139,14 +139,14 @@ const Subscribe = () => {
 
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
-                    <span className="text-sky font-bold">✓</span> {item}
+                    <span className="text-brand-mist font-bold">✓</span> {item}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => startCheckout("month")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-sm font-bold bg-white text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start free 10-day trial →
               </button>
@@ -192,7 +192,7 @@ const Subscribe = () => {
               <button
                 onClick={() => startCheckout("year")}
                 disabled={!!loading}
-                className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-navy hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
               >
                 Start Professional →
               </button>
@@ -246,16 +246,16 @@ const Subscribe = () => {
       </div>
 
       {/* Registration Manager mention */}
-      <div className="bg-white border-b border-fog py-4 px-4 mt-6">
+      <div className="bg-white border-b border-brand-cloud py-4 px-4 mt-6">
         <div className="max-w-[720px] mx-auto text-center text-sm text-slate">
           Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
           <Link
             to="/registration-manager"
-            className="text-navy font-semibold underline underline-offset-2 hover:text-navy-mid"
+            className="text-brand-navy font-semibold underline underline-offset-2 hover:text-brand-ocean"
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-slate-light">— $45 per filing.</span>
+          <span className="text-brand-mist">— $45 per filing.</span>
         </div>
       </div>
 
@@ -265,7 +265,7 @@ const Subscribe = () => {
 
       {/* Feature comparison table */}
       <div className="max-w-3xl mx-auto px-4 mt-12 mb-8">
-        <h2 className="text-center font-display text-navy mb-6">
+        <h2 className="text-center font-display text-brand-navy mb-6">
           What's included at each level
         </h2>
         <div className="cmp-table overflow-x-auto">
@@ -274,7 +274,7 @@ const Subscribe = () => {
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-3 pr-4 font-semibold text-gray-700 w-1/2">Feature</th>
                 <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
-                <th className="text-center py-3 px-2 font-semibold text-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
+                <th className="text-center py-3 px-2 font-semibold text-brand-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
                 <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
               </tr>
             </thead>
@@ -305,7 +305,7 @@ const Subscribe = () => {
                 <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="py-2.5 pr-4 text-gray-700">{feature}</td>
                   <td className="py-2.5 px-2 text-center text-gray-400">{anon}</td>
-                  <td className="py-2.5 px-2 text-center font-medium text-steel">{intel}</td>
+                  <td className="py-2.5 px-2 text-center font-medium text-brand-steel">{intel}</td>
                   <td className="py-2.5 px-2 text-center font-medium" style={{color:'hsl(var(--gold))'}}>{platform}</td>
                 </tr>
               ))}
@@ -323,7 +323,7 @@ const Subscribe = () => {
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
             <span className="text-green-600 text-lg flex-shrink-0 mt-0.5">✓</span>
             <div>
-              <p className="font-bold text-navy text-sm mb-0.5">
+              <p className="font-bold text-brand-navy text-sm mb-0.5">
                 Your Intelligence Report is configured and ready.
               </p>
               <p className="text-sm text-slate">
@@ -336,7 +336,7 @@ const Subscribe = () => {
 
       <div id="brief-builder-section" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="text-center mb-6">
-          <h2 className="font-display text-navy mb-2">
+          <h2 className="font-display text-brand-navy mb-2">
             See what your report would look like
           </h2>
           <p className="text-slate text-sm">
@@ -349,19 +349,19 @@ const Subscribe = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Three-column comparison table */}
         <div className="mb-14">
-          <h2 className="font-display text-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
-          <div className="bg-card border border-fog rounded-2xl overflow-hidden shadow-eup-sm">
+          <h2 className="font-display text-brand-navy text-center mb-8">Free vs. Intelligence vs. Professional</h2>
+          <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm">
             <div className="cmp-table overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-fog">
+                  <tr className="bg-brand-cloud">
                     <th className="px-5 py-3.5 text-left text-meta font-semibold tracking-wider uppercase text-slate">
                       Feature
                     </th>
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-slate w-[110px]">
                       Free
                     </th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-sky w-[170px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-brand-mist w-[170px]">
                       Intelligence ({PRICING.intelligence.monthly.display}/mo)
                     </th>
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[230px]">
@@ -373,10 +373,10 @@ const Subscribe = () => {
                   {comparisonRows.map((row, i) => {
                     if ("isSection" in row && row.isSection) {
                       return (
-                        <tr key={i} className="bg-navy/5">
+                        <tr key={i} className="bg-brand-navy/5">
                           <td
                             colSpan={4}
-                            className="px-5 py-2 text-eyebrow text-navy/60 border-t border-fog"
+                            className="px-5 py-2 text-eyebrow text-brand-navy/60 border-t border-brand-cloud"
                           >
                             {row.feature}
                           </td>
@@ -389,11 +389,11 @@ const Subscribe = () => {
                           color === "platform"
                             ? "text-amber-500"
                             : color === "intel"
-                              ? "text-sky"
+                              ? "text-brand-mist"
                               : "text-accent";
                         return <Check className={`w-4 h-4 ${cls} mx-auto`} />;
                       }
-                      if (val === false) return <XIcon className="w-4 h-4 text-slate-light mx-auto" />;
+                      if (val === false) return <XIcon className="w-4 h-4 text-brand-mist mx-auto" />;
                       if (val === "Included") {
                         return <span className="text-meta font-semibold text-green-600">Included</span>;
                       }
@@ -402,11 +402,11 @@ const Subscribe = () => {
                     };
                     const dataRow = row as Exclude<ComparisonRow, { isSection: true }>;
                     return (
-                      <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-paper/50"}>
-                        <td className="px-5 py-3 text-sm text-navy border-t border-fog">{dataRow.feature}</td>
-                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.free, "free")}</td>
-                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.intel, "intel")}</td>
-                        <td className="px-5 py-3 text-center border-t border-fog">{renderCell(dataRow.platform, "platform")}</td>
+                      <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-brand-cloud/50"}>
+                        <td className="px-5 py-3 text-sm text-brand-navy border-t border-brand-cloud">{dataRow.feature}</td>
+                        <td className="px-5 py-3 text-center border-t border-brand-cloud">{renderCell(dataRow.free, "free")}</td>
+                        <td className="px-5 py-3 text-center border-t border-brand-cloud">{renderCell(dataRow.intel, "intel")}</td>
+                        <td className="px-5 py-3 text-center border-t border-brand-cloud">{renderCell(dataRow.platform, "platform")}</td>
                       </tr>
                     );
                   })}
@@ -423,7 +423,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.09em] text-slate mb-3">
               Where we fit
             </p>
-            <h2 className="font-display text-navy mb-3 leading-tight">
+            <h2 className="font-display text-brand-navy mb-3 leading-tight">
               The missing piece of the privacy toolkit
             </h2>
             <p className="text-sm text-slate max-w-[480px] mx-auto leading-relaxed">
@@ -433,7 +433,7 @@ const Subscribe = () => {
           </div>
 
           {/* Donut chart + legend card */}
-          <div className="bg-card border border-fog rounded-2xl p-6 md:p-8 mb-5">
+          <div className="bg-card border border-brand-cloud rounded-2xl p-6 md:p-8 mb-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               {/* SVG donut chart */}
               <div className="flex items-center justify-center">
@@ -479,25 +479,25 @@ const Subscribe = () => {
                     color: "bg-[#C7D5E8]",
                     name: "Legal research",
                     desc: "Statutes, case law, and regulatory guidance for teams that need primary source access.",
-                    nameClass: "text-navy",
+                    nameClass: "text-brand-navy",
                   },
                   {
                     color: "bg-[#C7D5E8]",
                     name: "Compliance management",
                     desc: "Programme workflows, DSAR handling, consent management, and data mapping.",
-                    nameClass: "text-navy",
+                    nameClass: "text-brand-navy",
                   },
                   {
                     color: "bg-[#C7D5E8]",
                     name: "Privacy technology",
                     desc: "Consent banners, cookie management, preference centres, and data discovery.",
-                    nameClass: "text-navy",
+                    nameClass: "text-brand-navy",
                   },
                   {
                     color: "bg-[#C7D5E8]",
                     name: "Professional development",
                     desc: "Credentials, community, events, and continuing education.",
-                    nameClass: "text-navy",
+                    nameClass: "text-brand-navy",
                   },
                 ].map((item) => (
                   <div key={item.name} className="flex items-start gap-2.5">
@@ -519,7 +519,7 @@ const Subscribe = () => {
             <p className="text-meta font-bold uppercase tracking-[0.07em] text-amber-800 mb-1">
               End User Privacy
             </p>
-            <h3 className="text-navy mb-2 leading-snug">
+            <h3 className="text-brand-navy mb-2 leading-snug">
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">
@@ -530,7 +530,7 @@ const Subscribe = () => {
           </div>
 
           {/* Body copy card */}
-          <div className="bg-card border border-fog rounded-2xl px-6 py-5 mb-5">
+          <div className="bg-card border border-brand-cloud rounded-2xl px-6 py-5 mb-5">
             <p className="text-sm text-slate leading-relaxed mb-4">
               The privacy professional's toolkit has four well-established categories, each
               with excellent tools. Legal research databases give you access to the primary
@@ -539,7 +539,7 @@ const Subscribe = () => {
               community. Privacy technology keeps your websites and data practices running
               correctly.
             </p>
-            <div className="h-px bg-fog my-4" />
+            <div className="h-px bg-brand-cloud my-4" />
             <p className="text-sm text-slate leading-relaxed">
               Our tools monitor what is happening across the regulatory landscape
               automatically, synthesise it, and tell you what it means for your specific work.
@@ -547,7 +547,7 @@ const Subscribe = () => {
           </div>
 
           {/* Closing quote */}
-          <div className="border-l-[3px] border-amber-500 bg-card border border-fog rounded-r-xl px-5 py-4">
+          <div className="border-l-[3px] border-amber-500 bg-card border border-brand-cloud rounded-r-xl px-5 py-4">
             <p className="text-sm text-slate leading-relaxed italic">
               "End User Privacy is the monitoring and intelligence layer you add once, and
               then stop having to think about — working alongside the professional tools you
@@ -556,7 +556,7 @@ const Subscribe = () => {
           </div>
         </div>
 
-        {error && <p className="text-center text-warn text-sm mt-6">{error}</p>}
+        {error && <p className="text-center text-severity-warning text-sm mt-6">{error}</p>}
 
         {/* Free digest signup */}
         <FreeDigestSignup source="website" className="mt-10" />

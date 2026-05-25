@@ -138,7 +138,7 @@ export default function TestDPA() {
   const failCount = assertions.filter((a) => a.passed === false).length;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         <div>
@@ -183,7 +183,7 @@ export default function TestDPA() {
               <div className="border rounded-lg p-4 bg-card">
                 <h2 className="font-serif mb-2">Result Page</h2>
                 <a
-                  className="text-blue underline"
+                  className="text-brand-teal underline"
                   href={`/dpa-generator/result/${recordId}`}
                   target="_blank"
                   rel="noreferrer"

@@ -299,18 +299,18 @@ export default function MyReports() {
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
-            <h1 className="font-display text-navy">My Reports</h1>
+            <h1 className="font-display text-brand-navy">My Reports</h1>
             <p className="text-sm text-slate mt-1">
               Every assessment, playbook, and document you've generated. Click any item to re-open it or download the PDF.
             </p>
           </div>
 
           {authLoading || loading ? (
-            <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
+            <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
           ) : visibleRows.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <FileText className="w-10 h-10 text-slate-light mx-auto mb-3" />
+                <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
                 <p className="text-slate mb-4">You haven't generated any reports yet.</p>
                 <Button asChild><Link to="/tools">Browse tools</Link></Button>
               </CardContent>
@@ -322,7 +322,7 @@ export default function MyReports() {
                   <CardContent className="py-4 flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-display font-semibold text-navy text-[14px]">{r.tool_label}</span>
+                        <span className="font-display font-semibold text-brand-navy text-[14px]">{r.tool_label}</span>
                         {r.status === "in_progress" ? (
                           <Badge className="text-[11px] bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
                             in progress
@@ -335,7 +335,7 @@ export default function MyReports() {
                         {r.client_name && !r.is_personal_client && (
                           <Badge
                             variant="outline"
-                            className="text-[11px] border-cobalt/40 text-cobalt"
+                            className="text-[11px] border-brand-teal/40 text-brand-teal"
                             title={`Client workspace: ${r.client_name}`}
                           >
                             {r.client_name}

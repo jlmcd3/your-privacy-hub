@@ -168,7 +168,7 @@ function CountRow({
   const content = (
     <>
       <span className="text-slate">{label}</span>
-      <span className="font-semibold text-navy tabular-nums">{value}</span>
+      <span className="font-semibold text-brand-navy tabular-nums">{value}</span>
     </>
   );
   if (onClick) {
@@ -177,14 +177,14 @@ function CountRow({
         type="button"
         onClick={onClick}
         aria-label={ariaLabel ?? label}
-        className="w-full flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0 bg-transparent border-x-0 border-t-0 cursor-pointer text-left hover:bg-fog/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue/40 rounded"
+        className="w-full flex items-baseline justify-between text-sm py-1 border-b border-brand-cloud/40 last:border-0 bg-transparent border-x-0 border-t-0 cursor-pointer text-left hover:bg-brand-cloud/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal/40 rounded"
       >
         {content}
       </button>
     );
   }
   return (
-    <div className="flex items-baseline justify-between text-sm py-1 border-b border-fog/40 last:border-0">
+    <div className="flex items-baseline justify-between text-sm py-1 border-b border-brand-cloud/40 last:border-0">
       {content}
     </div>
   );
@@ -215,11 +215,11 @@ function ClientCard({
     (counts?.registrationCount ?? 0);
 
   return (
-    <article className="bg-card border border-fog rounded-xl p-5 shadow-eup-sm hover:shadow-eup-md transition-shadow">
+    <article className="bg-card border border-brand-cloud rounded-xl p-5 shadow-eup-sm hover:shadow-eup-md transition-shadow">
       <header className="flex items-start justify-between mb-3">
         <div>
-          <h2 className="text-navy flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-slate-light" />
+          <h2 className="text-brand-navy flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-brand-mist" />
             {client.name}
           </h2>
           {client.sector && (
@@ -236,7 +236,7 @@ function ClientCard({
           </button>
           <button
             onClick={onOpen}
-            className="text-sm font-semibold text-blue hover:text-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
+            className="text-sm font-semibold text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
           >
             Open <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -246,7 +246,7 @@ function ClientCard({
       {loading ? (
         <div className="space-y-2 animate-pulse">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 bg-fog/60 rounded" />
+            <div key={i} className="h-4 bg-brand-cloud/60 rounded" />
           ))}
         </div>
       ) : total === 0 ? (
@@ -256,7 +256,7 @@ function ClientCard({
           </p>
           <Link
             to="/dashboard"
-            className="text-sm font-semibold text-blue hover:text-navy no-underline"
+            className="text-sm font-semibold text-brand-teal hover:text-brand-navy no-underline"
           >
             Go to tools →
           </Link>
@@ -394,7 +394,7 @@ export default function ClientsPortfolio() {
       <main className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-navy">{heading}</h1>
+          <h1 className="text-brand-navy">{heading}</h1>
           <p className="text-sm text-slate mt-1">
             Your complete compliance document status across all clients.
           </p>
@@ -402,7 +402,7 @@ export default function ClientsPortfolio() {
         {showAddButton && (
           <button
             onClick={handleAddClick}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg hover:opacity-90"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2 rounded-lg hover:opacity-90"
           >
             <Plus className="w-4 h-4" /> Add client
           </button>
@@ -413,7 +413,7 @@ export default function ClientsPortfolio() {
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <Lock className="w-5 h-5 text-amber-600 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm text-navy font-medium">
+            <p className="text-sm text-brand-navy font-medium">
               Managing compliance for multiple clients requires an Intelligence subscription.
             </p>
             <Link
@@ -425,7 +425,7 @@ export default function ClientsPortfolio() {
           </div>
           <button
             onClick={() => setShowGate(false)}
-            className="text-slate hover:text-navy bg-transparent border-none text-sm"
+            className="text-slate hover:text-brand-navy bg-transparent border-none text-sm"
             aria-label="Dismiss"
           >
             ✕
@@ -436,17 +436,17 @@ export default function ClientsPortfolio() {
       {(isLoadingClients || premiumLoading) && clients.length === 0 ? (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-48 bg-fog/40 rounded-xl animate-pulse" />
+            <div key={i} className="h-48 bg-brand-cloud/40 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : clients.length === 0 ? (
-        <div className="bg-card border border-fog rounded-xl p-8 text-center">
+        <div className="bg-card border border-brand-cloud rounded-xl p-8 text-center">
           <p className="text-slate mb-4">
             You don't have any clients set up yet.
           </p>
           <button
             onClick={handleAddClick}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-gradient-to-br from-steel to-blue px-4 py-2 rounded-lg hover:opacity-90"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-gradient-to-br from-brand-steel to-brand-teal px-4 py-2 rounded-lg hover:opacity-90"
           >
             <Plus className="w-4 h-4" /> Add your first client
           </button>
@@ -469,8 +469,8 @@ export default function ClientsPortfolio() {
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-card border border-fog rounded-xl shadow-eup-md max-w-md w-full p-5">
-            <h3 className="text-navy mb-2">
+          <div className="bg-card border border-brand-cloud rounded-xl shadow-eup-md max-w-md w-full p-5">
+            <h3 className="text-brand-navy mb-2">
               Delete {confirmDelete.name}?
             </h3>
             <p className="text-sm text-slate mb-4">
@@ -481,7 +481,7 @@ export default function ClientsPortfolio() {
               <button
                 onClick={() => setConfirmDelete(null)}
                 disabled={deleting}
-                className="text-sm px-3 py-1.5 border border-fog rounded-md bg-card text-slate"
+                className="text-sm px-3 py-1.5 border border-brand-cloud rounded-md bg-card text-slate"
               >
                 Cancel
               </button>

@@ -115,7 +115,7 @@ export default function SessionCheckoutModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 overflow-y-auto p-4 sm:p-8">
-      <div className="relative w-full max-w-[680px] bg-paper rounded-2xl shadow-2xl my-auto">
+      <div className="relative w-full max-w-[680px] bg-brand-cloud rounded-2xl shadow-2xl my-auto">
         <button
           onClick={onClose}
           aria-label="Close checkout"
@@ -127,7 +127,7 @@ export default function SessionCheckoutModal({
           {confirming ? (
             <div className="p-10 text-center">
               <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-              <p className="text-[14px] font-semibold text-navy mb-1">
+              <p className="text-[14px] font-semibold text-brand-navy mb-1">
                 Confirming your purchase…
               </p>
               <p className="text-[12px] text-muted-foreground">
@@ -139,7 +139,7 @@ export default function SessionCheckoutModal({
               <p className="text-sm text-amber-700 mb-4">{confirmError}</p>
               <button
                 onClick={() => onComplete?.(sessionId)}
-                className="bg-navy text-white text-sm font-semibold px-5 py-2 rounded-lg"
+                className="bg-brand-navy text-white text-sm font-semibold px-5 py-2 rounded-lg"
               >
                 Continue
               </button>

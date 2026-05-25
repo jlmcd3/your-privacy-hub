@@ -145,7 +145,7 @@ const AdminSeedLI = () => {
   if (!user) return <div className="p-8">Unauthorized</div>;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Navbar />
       <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="font-display text-foreground mb-2">Admin: LI Tracker Setup</h1>

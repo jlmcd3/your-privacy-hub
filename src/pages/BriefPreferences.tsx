@@ -156,13 +156,13 @@ const Toggle = ({
     onClick={() => onToggle(id)}
     className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-left w-full transition-all cursor-pointer ${
       selected
-        ? "bg-navy text-white border-navy shadow-eup-sm"
-        : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
+        ? "bg-brand-navy text-white border-brand-navy shadow-eup-sm"
+        : "bg-white text-slate border-brand-cloud hover:border-brand-navy/30 hover:text-brand-navy"
     }`}
   >
     <span className="text-lg flex-shrink-0 mt-0.5"><FlagIcon icon={icon} /></span>
     <div className="flex-1 min-w-0">
-      <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-navy"}`}>{label}</p>
+      <p className={`text-sm font-semibold leading-tight ${selected ? "text-white" : "text-brand-navy"}`}>{label}</p>
       {description && (
         <p className={`text-meta mt-0.5 leading-snug ${selected ? "text-blue-200" : "text-slate"}`}>{description}</p>
       )}
@@ -259,7 +259,7 @@ export default function BriefPreferences() {
       <WorkspaceLayout className="bg-background">
         <main className="flex-1 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
           {fromSubscribe && (
-            <div className="mb-8 bg-gradient-to-r from-navy to-steel rounded-2xl p-5 text-white">
+            <div className="mb-8 bg-gradient-to-r from-brand-navy to-brand-steel rounded-2xl p-5 text-white">
               <p className="text-eyebrow text-amber-400 mb-1">
                 ⭐ Welcome to Intelligence
               </p>
@@ -273,16 +273,16 @@ export default function BriefPreferences() {
             </div>
           )}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-1.5 text-blue text-xs font-bold uppercase tracking-widest mb-3">
+            <div className="inline-flex items-center gap-1.5 text-brand-teal text-xs font-bold uppercase tracking-widest mb-3">
               <span>⭐</span> Intelligence
             </div>
-            <h1 className="font-display text-navy mb-2">Configure your Privacy Intelligence Report</h1>
+            <h1 className="font-display text-brand-navy mb-2">Configure your Privacy Intelligence Report</h1>
             <p className="text-slate text-sm mb-3 max-w-lg">
               Your Privacy Intelligence Report is created specifically for your regulatory environment. The more context you
               provide, the more precisely it speaks to your actual compliance obligations.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 max-w-lg">
-              <p className="text-meta text-navy leading-snug">
+              <p className="text-meta text-brand-navy leading-snug">
                 <span className="font-semibold">These preferences apply to your next scheduled report.</span>{" "}
                 Already-published reports in your archive remain unchanged.
               </p>
@@ -291,7 +291,7 @@ export default function BriefPreferences() {
 
           {/* Role */}
           <div className="mb-8">
-            <h2 className="text-navy text-[15px] mb-1">Your role</h2>
+            <h2 className="text-brand-navy text-[15px] mb-1">Your role</h2>
             <p className="text-slate text-xs mb-4">Your report is shaped by how you use regulatory intelligence.</p>
             <div className="flex flex-wrap gap-2">
               {ROLES.map((r) => (
@@ -303,8 +303,8 @@ export default function BriefPreferences() {
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                     role === r.id
-                      ? "bg-navy text-white border-navy shadow-eup-sm"
-                      : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
+                      ? "bg-brand-navy text-white border-brand-navy shadow-eup-sm"
+                      : "bg-white text-slate border-brand-cloud hover:border-brand-navy/30 hover:text-brand-navy"
                   }`}
                 >
                   <span><FlagIcon icon={r.icon} /></span>
@@ -317,7 +317,7 @@ export default function BriefPreferences() {
 
           {/* Industries */}
           <div className="mb-8">
-            <h2 className="text-navy text-[15px] mb-1">Your sector</h2>
+            <h2 className="text-brand-navy text-[15px] mb-1">Your sector</h2>
             <p className="text-slate text-xs mb-4">Select all that apply to your organization.</p>
             <div className="flex flex-wrap gap-2">
               {INDUSTRIES.map((i) => (
@@ -333,7 +333,7 @@ export default function BriefPreferences() {
 
           {/* Jurisdictions */}
           <div className="mb-8">
-            <h2 className="text-navy text-[15px] mb-1">Your regulatory geography</h2>
+            <h2 className="text-brand-navy text-[15px] mb-1">Your regulatory geography</h2>
             <p className="text-slate text-xs mb-4">Which regions are most relevant to your compliance footprint?</p>
             <div className="flex flex-wrap gap-2">
               {PREF_JURISDICTIONS.map((j) => (
@@ -349,7 +349,7 @@ export default function BriefPreferences() {
 
           {/* Brief format */}
           <div className="mb-8">
-            <h2 className="text-navy text-[15px] mb-1">Your report format</h2>
+            <h2 className="text-brand-navy text-[15px] mb-1">Your report format</h2>
             <p className="text-slate text-xs mb-4">How would you like to receive your report?</p>
             <div className="flex flex-wrap gap-2">
               {BRIEF_FORMATS.map((f) => (
@@ -361,8 +361,8 @@ export default function BriefPreferences() {
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
                     prefs.format === f.id
-                      ? "bg-navy text-white border-navy shadow-eup-sm"
-                      : "bg-white text-slate border-fog hover:border-navy/30 hover:text-navy"
+                      ? "bg-brand-navy text-white border-brand-navy shadow-eup-sm"
+                      : "bg-white text-slate border-brand-cloud hover:border-brand-navy/30 hover:text-brand-navy"
                   }`}
                 >
                   <span><FlagIcon icon={f.icon} /></span>
@@ -374,14 +374,14 @@ export default function BriefPreferences() {
           </div>
 
           {isPremium === false && (
-            <div className="mt-6 mb-4 bg-fog rounded-2xl p-6 text-center">
+            <div className="mt-6 mb-4 bg-brand-cloud rounded-2xl p-6 text-center">
               <p className="text-slate text-sm mb-3">
                 Intelligence requires a subscription ({`${INTELLIGENCE_PRICING.monthly()}`}). Preferences are saved and
                 will activate once you subscribe.
               </p>
               <Link
                 to="/subscribe"
-                className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+                className="inline-block bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
               >
                 Get Intelligence →
               </Link>
@@ -389,11 +389,11 @@ export default function BriefPreferences() {
           )}
 
           {/* Save */}
-          <div className="flex items-center gap-4 pt-4 border-t border-fog">
+          <div className="flex items-center gap-4 pt-4 border-t border-brand-cloud">
             <button
               onClick={save}
               disabled={saving}
-              className="bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-8 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer border-none"
+              className="bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-8 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer border-none"
             >
               {saving ? "Saving…" : saved ? "✓ Saved" : "Save Preferences →"}
             </button>

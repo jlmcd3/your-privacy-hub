@@ -246,7 +246,7 @@ export default function RopaReview() {
         })()}
         {/* Header */}
         <header>
-          <h1 className="font-serif text-navy mb-3">
+          <h1 className="font-serif text-brand-navy mb-3">
             Review before generating your RoPA
           </h1>
           <div className="flex flex-wrap gap-2">
@@ -270,7 +270,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setEditDrawerOpen(true)}
-              className="text-sm font-semibold text-cobalt hover:underline"
+              className="text-sm font-semibold text-brand-teal hover:underline"
             >
               Edit →
             </button>
@@ -295,7 +295,7 @@ export default function RopaReview() {
             {(profile.selected_jurisdictions ?? []).map((j) => (
               <span
                 key={j}
-                className="text-meta px-2 py-0.5 rounded-full bg-navy/10 text-navy font-mono"
+                className="text-meta px-2 py-0.5 rounded-full bg-brand-navy/10 text-brand-navy font-mono"
               >
                 {j}
               </span>
@@ -309,7 +309,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setShowAllActivities((v) => !v)}
-              className="text-sm font-semibold text-cobalt hover:underline"
+              className="text-sm font-semibold text-brand-teal hover:underline"
             >
               {showAllActivities
                 ? "Show flagged only"
@@ -337,7 +337,7 @@ export default function RopaReview() {
                       ) : (
                         <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                       )}
-                      <span className="flex-1 text-sm font-semibold text-navy truncate">
+                      <span className="flex-1 text-sm font-semibold text-brand-navy truncate">
                         {a.display_name}
                       </span>
                       <Chip color="neutral">{a.category}</Chip>
@@ -350,7 +350,7 @@ export default function RopaReview() {
                         <p>{a.is_high_risk ? "Marked high-risk" : "Standard risk"}</p>
                         <button
                           onClick={() => navigate(`/ropa/activity/${a.id}`)}
-                          className="mt-2 inline-flex items-center gap-1 text-cobalt font-semibold hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-brand-teal font-semibold hover:underline"
                         >
                           Edit answers →
                         </button>
@@ -382,14 +382,14 @@ export default function RopaReview() {
                       {f.activity_id && (
                         <button
                           onClick={() => navigate(`/ropa/activity/${f.activity_id}`)}
-                          className="text-meta font-semibold text-cobalt hover:underline"
+                          className="text-meta font-semibold text-brand-teal hover:underline"
                         >
                           Resolve in activity →
                         </button>
                       )}
                       <button
                         onClick={() => resolveFlag(f.id)}
-                        className="text-meta font-semibold text-muted-foreground hover:text-navy"
+                        className="text-meta font-semibold text-muted-foreground hover:text-brand-navy"
                       >
                         Mark as reviewed
                       </button>
@@ -417,7 +417,7 @@ export default function RopaReview() {
                   <div className="pl-3 -mt-1 mb-2">
                     <button
                       onClick={() => resolveFlag(f.id)}
-                      className="text-meta font-semibold text-muted-foreground hover:text-navy"
+                      className="text-meta font-semibold text-muted-foreground hover:text-brand-navy"
                     >
                       Dismiss
                     </button>
@@ -496,7 +496,7 @@ export default function RopaReview() {
               <span>
                 PDF · {allActivities.length} activit{allActivities.length === 1 ? "y" : "ies"}
               </span>
-              <span className="font-semibold text-navy">
+              <span className="font-semibold text-brand-navy">
                 {pricing.loading
                   ? "…"
                   : currentSession?.payment_confirmed
@@ -516,7 +516,7 @@ export default function RopaReview() {
               <span>+ Excel worksheet</span><span>Included</span>
             </div>
             {!pricing.isSubscriber && !currentSession?.payment_confirmed && (
-              <p className="text-meta text-cobalt mt-2">
+              <p className="text-meta text-brand-teal mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"
@@ -555,7 +555,7 @@ export default function RopaReview() {
           <button
             onClick={handleGenerateClick}
             disabled={generateDisabled || generating}
-            className="w-full bg-navy text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navy/90 transition"
+            className="w-full bg-brand-navy text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition"
           >
             {generating
               ? "Generating…"
@@ -587,8 +587,8 @@ export default function RopaReview() {
       {/* Generation progress modal */}
       {generating && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-paper rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-navy mb-4">Building your RoPA…</h3>
+          <div className="bg-brand-cloud rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-brand-navy mb-4">Building your RoPA…</h3>
             <ul className="space-y-2 text-sm">
               <GenStepRow done={genSteps.client === "done"} label="Client record" />
               <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
@@ -635,9 +635,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-border rounded-xl bg-paper p-5">
+    <section className="border border-border rounded-xl bg-brand-cloud p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[15px] font-serif text-navy">{title}</h2>
+        <h2 className="text-[15px] font-serif text-brand-navy">{title}</h2>
         {action}
       </div>
       {children}
@@ -649,7 +649,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-2">
       <dt className="text-muted-foreground min-w-[90px]">{label}:</dt>
-      <dd className="text-navy">{value}</dd>
+      <dd className="text-brand-navy">{value}</dd>
     </div>
   );
 }
@@ -707,7 +707,7 @@ function GenStepRow({
       ) : (
         <span className="w-4 h-4 rounded-full border border-muted-foreground/30 inline-block" />
       )}
-      <span className={done ? "text-navy" : "text-muted-foreground"}>{label}</span>
+      <span className={done ? "text-brand-navy" : "text-muted-foreground"}>{label}</span>
     </li>
   );
 }

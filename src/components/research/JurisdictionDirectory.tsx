@@ -176,7 +176,7 @@ export function JurisdictionDirectory() {
   return (
     <div className="space-y-5">
       {/* Filter bar + legend */}
-      <div className="rounded-xl border border-fog bg-card p-4 shadow-sm">
+      <div className="rounded-xl border border-brand-cloud bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span className="text-meta font-semibold tracking-wider uppercase text-slate mr-1">
             Status:
@@ -187,8 +187,8 @@ export function JurisdictionDirectory() {
               onClick={() => setFilter(f.value)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-full transition-all cursor-pointer ${
                 filter === f.value
-                  ? "bg-navy text-white border-navy"
-                  : "bg-card text-slate border-fog hover:border-navy/30"
+                  ? "bg-brand-navy text-white border-brand-navy"
+                  : "bg-card text-slate border-brand-cloud hover:border-brand-navy/30"
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${f.dot}`} aria-hidden />
@@ -197,7 +197,7 @@ export function JurisdictionDirectory() {
           ))}
           <span className="ml-auto text-meta text-slate">{totalShown} jurisdictions</span>
         </div>
-        <div className="text-meta text-slate-light">
+        <div className="text-meta text-brand-mist">
           Adequacy refers to EU GDPR adequacy status. EU member states are inherently adequate; UK
           and Switzerland hold standalone adequacy decisions.
         </div>
@@ -210,12 +210,12 @@ export function JurisdictionDirectory() {
         if (visible.length === 0) return null;
         const isOpen = openRegions[region] ?? true;
         return (
-          <section key={region} className="rounded-xl border border-fog bg-card overflow-hidden">
+          <section key={region} className="rounded-xl border border-brand-cloud bg-card overflow-hidden">
             <button
               onClick={() =>
                 setOpenRegions((s) => ({ ...s, [region]: !isOpen }))
               }
-              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-navy text-white hover:bg-navy-mid transition-colors"
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-brand-navy text-white hover:bg-brand-ocean transition-colors"
               aria-expanded={isOpen}
             >
               <span className="flex items-center gap-3">
@@ -238,14 +238,14 @@ export function JurisdictionDirectory() {
                   return (
                     <div
                       key={key}
-                      className="grid grid-cols-[4px_1fr] items-stretch bg-paper/40 rounded-lg border border-fog hover:border-navy/30 transition overflow-hidden"
+                      className="grid grid-cols-[4px_1fr] items-stretch bg-brand-cloud/40 rounded-lg border border-brand-cloud hover:border-brand-navy/30 transition overflow-hidden"
                     >
                       <div className={`${sStyle.stripe} self-stretch`} aria-hidden />
                       <div className="px-4 py-3">
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <Link
                             to={`/jurisdiction/${entry.slug}`}
-                            className="font-display text-base md:text-[17px] leading-tight text-navy no-underline hover:underline"
+                            className="font-display text-base md:text-[17px] leading-tight text-brand-navy no-underline hover:underline"
                           >
                             {entry.country}
                           </Link>
@@ -264,21 +264,21 @@ export function JurisdictionDirectory() {
                         {/* Primary fields */}
                         <div className="space-y-1 text-meta">
                           <div>
-                            <span className="text-slate-light uppercase tracking-wider font-semibold mr-1.5">Law:</span>
-                            <span className="text-navy font-medium">{entry.primary_legislation}</span>
+                            <span className="text-brand-mist uppercase tracking-wider font-semibold mr-1.5">Law:</span>
+                            <span className="text-brand-navy font-medium">{entry.primary_legislation}</span>
                           </div>
                           {m.effective && (
                             <div>
-                              <span className="text-slate-light uppercase tracking-wider font-semibold mr-1.5">Effective:</span>
-                              <span className="text-navy">{m.effective}</span>
+                              <span className="text-brand-mist uppercase tracking-wider font-semibold mr-1.5">Effective:</span>
+                              <span className="text-brand-navy">{m.effective}</span>
                             </div>
                           )}
                           <div>
-                            <span className="text-slate-light uppercase tracking-wider font-semibold mr-1.5">Authority:</span>
-                            <span className="text-navy">
+                            <span className="text-brand-mist uppercase tracking-wider font-semibold mr-1.5">Authority:</span>
+                            <span className="text-brand-navy">
                               {entry.authority_name}
                               {entry.authority_abbreviation && entry.authority_abbreviation !== entry.authority_name && (
-                                <span className="text-slate-light"> ({entry.authority_abbreviation})</span>
+                                <span className="text-brand-mist"> ({entry.authority_abbreviation})</span>
                               )}
                             </span>
                           </div>
@@ -287,19 +287,19 @@ export function JurisdictionDirectory() {
                         {/* Expandable secondary detail */}
                         <button
                           onClick={() => setExpanded((s) => ({ ...s, [key]: !open }))}
-                          className="mt-2 text-meta font-semibold text-cobalt hover:underline"
+                          className="mt-2 text-meta font-semibold text-brand-teal hover:underline"
                         >
                           {open ? "Hide detail ▲" : "Show detail ▼"}
                         </button>
                         {open && (
-                          <div className="mt-2 pt-2 border-t border-fog space-y-1.5 text-meta text-slate leading-relaxed">
+                          <div className="mt-2 pt-2 border-t border-brand-cloud space-y-1.5 text-meta text-slate leading-relaxed">
                             {entry.notes && <p>{entry.notes}</p>}
                             <div className="flex flex-wrap gap-x-3 gap-y-1 pt-1">
                               <a
                                 href={entry.website}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-cobalt font-semibold no-underline hover:underline"
+                                className="text-brand-teal font-semibold no-underline hover:underline"
                               >
                                 Authority site ↗
                               </a>
@@ -308,14 +308,14 @@ export function JurisdictionDirectory() {
                                   href={entry.complaint_portal}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-cobalt font-semibold no-underline hover:underline"
+                                  className="text-brand-teal font-semibold no-underline hover:underline"
                                 >
                                   Complaint portal ↗
                                 </a>
                               )}
                               <Link
                                 to={`/jurisdiction/${entry.slug}`}
-                                className="text-cobalt font-semibold no-underline hover:underline"
+                                className="text-brand-teal font-semibold no-underline hover:underline"
                               >
                                 Full jurisdiction page →
                               </Link>

@@ -50,11 +50,11 @@ export default function PatternSignalCards() {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[15px] text-navy">
+        <h3 className="text-[15px] text-brand-navy">
           Enforcement Pattern Signals
         </h3>
         {reportDate && (
-          <span className="text-meta text-slate bg-fog px-2 py-0.5 rounded-full">
+          <span className="text-meta text-slate bg-brand-cloud px-2 py-0.5 rounded-full">
             {new Date(reportDate).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -71,7 +71,7 @@ export default function PatternSignalCards() {
           return (
             <div
               key={i}
-              className="rounded-xl border border-fog bg-white p-4 flex flex-col gap-2"
+              className="rounded-xl border border-brand-cloud bg-white p-4 flex flex-col gap-2"
             >
               <div className="flex items-center gap-2">
                 <span
@@ -81,7 +81,7 @@ export default function PatternSignalCards() {
                   {strength}
                 </span>
               </div>
-              <h4 className="font-bold text-sm text-navy leading-snug">
+              <h4 className="font-bold text-sm text-brand-navy leading-snug">
                 {p.pattern}
               </h4>
               <p className="text-meta text-slate leading-relaxed line-clamp-3 flex-1">
@@ -92,7 +92,7 @@ export default function PatternSignalCards() {
                   {p.sectors_targeted.slice(0, 3).map((s) => (
                     <span
                       key={s}
-                      className="text-meta font-medium text-slate bg-fog px-1.5 py-0.5 rounded"
+                      className="text-meta font-medium text-slate bg-brand-cloud px-1.5 py-0.5 rounded"
                     >
                       {s}
                     </span>
@@ -100,7 +100,7 @@ export default function PatternSignalCards() {
                 </div>
               )}
               {p.example && (
-                <p className="text-meta text-slate-light italic leading-snug line-clamp-2 border-t border-fog pt-2 mt-auto">
+                <p className="text-meta text-brand-mist italic leading-snug line-clamp-2 border-t border-brand-cloud pt-2 mt-auto">
                   {p.example}
                 </p>
               )}

@@ -90,9 +90,9 @@ function ProductColumn({ label, products }: { label: string; products: Product[]
           <li key={p.href}>
             <Link
               to={p.href}
-              className="block rounded-lg border border-fog bg-paper px-4 py-3 no-underline hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card transition-colors"
+              className="block rounded-lg border border-brand-cloud bg-brand-cloud px-4 py-3 no-underline hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card transition-colors"
             >
-              <h3 className="text-navy mb-1 leading-snug">
+              <h3 className="text-brand-navy mb-1 leading-snug">
                 {p.title}
               </h3>
               <p className="text-meta text-slate leading-relaxed">{p.blurb}</p>

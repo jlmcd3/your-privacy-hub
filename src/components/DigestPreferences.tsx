@@ -104,8 +104,8 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
                 onClick={() => toggleRegion(r.key)}
                 className={`text-sm px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
                   sel
-                    ? "bg-navy text-white border-navy"
-                    : "bg-white text-slate border-fog hover:border-navy/30"
+                    ? "bg-brand-navy text-white border-brand-navy"
+                    : "bg-white text-slate border-brand-cloud hover:border-brand-navy/30"
                 }`}
               >
                 {r.flag} {r.label}
@@ -133,8 +133,8 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
                 onClick={() => toggleTopic(t.key)}
                 className={`text-sm px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
                   sel
-                    ? "bg-navy text-white border-navy"
-                    : "bg-white text-slate border-fog hover:border-navy/30"
+                    ? "bg-brand-navy text-white border-brand-navy"
+                    : "bg-white text-slate border-brand-cloud hover:border-brand-navy/30"
                 }`}
               >
                 {t.label}
@@ -150,7 +150,7 @@ export default function DigestPreferences({ userId, onSave, onSkip, compact = fa
       <button
         onClick={handleSave}
         disabled={!canSave || saving}
-        className="w-full py-3 text-[14px] font-semibold text-white bg-navy rounded-xl border-none cursor-pointer hover:opacity-90 transition-all disabled:opacity-50"
+        className="w-full py-3 text-[14px] font-semibold text-white bg-brand-navy rounded-xl border-none cursor-pointer hover:opacity-90 transition-all disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save my digest preferences →"}
       </button>

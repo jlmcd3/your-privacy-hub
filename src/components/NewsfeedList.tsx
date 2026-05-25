@@ -86,7 +86,7 @@ export default function NewsfeedList({
           <button
             onClick={handleLoadMore}
             disabled={isLoading}
-            className="border border-blue/30 text-blue font-semibold text-sm px-8 py-3 rounded-xl hover:bg-blue/5 transition-all disabled:opacity-50"
+            className="border border-brand-teal/30 text-brand-teal font-semibold text-sm px-8 py-3 rounded-xl hover:bg-brand-teal/5 transition-all disabled:opacity-50"
           >
             {isLoading ? "Loading…" : "Load 15 more updates →"}
           </button>

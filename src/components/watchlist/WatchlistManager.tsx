@@ -58,16 +58,16 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
 
   if (!isPremium) {
     return (
-      <div className="bg-fog rounded-2xl p-6 text-center">
+      <div className="bg-brand-cloud rounded-2xl p-6 text-center">
         <Lock className="w-8 h-8 text-slate mx-auto mb-3" />
-        <h3 className="text-navy text-[15px] mb-2">Watchlist is an Intelligence feature</h3>
+        <h3 className="text-brand-navy text-[15px] mb-2">Watchlist is an Intelligence feature</h3>
         <p className="text-slate text-sm mb-4">
           Follow specific jurisdictions, regulators, and topics to receive
           weekly digest updates on what changed.
         </p>
         <Link
           to="/subscribe"
-          className="inline-block bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+          className="inline-block bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
         >
           Get Intelligence →
         </Link>
@@ -78,9 +78,9 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Bell className="w-5 h-5 text-blue" />
-        <h2 className="text-navy text-[16px]">My Watchlist</h2>
-        <span className="text-xs text-slate-light">· Alerts delivered in your weekly digest</span>
+        <Bell className="w-5 h-5 text-brand-teal" />
+        <h2 className="text-brand-navy text-[16px]">My Watchlist</h2>
+        <span className="text-xs text-brand-mist">· Alerts delivered in your weekly digest</span>
       </div>
 
       {items.length > 0 && (
@@ -88,7 +88,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
           {items.map(item => (
             <div
               key={item.id}
-              className="flex items-center gap-1.5 bg-blue/5 text-navy border border-blue/20 px-3 py-1.5 rounded-full text-xs font-semibold"
+              className="flex items-center gap-1.5 bg-brand-teal/5 text-brand-navy border border-brand-teal/20 px-3 py-1.5 rounded-full text-xs font-semibold"
             >
               {item.flag && <span>{item.flag}</span>}
               {item.label}
@@ -110,7 +110,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
 
       {(["jurisdictions", "topics"] as const).map(type => (
         <div key={type}>
-          <h3 className="text-navy uppercase tracking-widest mb-3 capitalize">
+          <h3 className="text-brand-navy uppercase tracking-widest mb-3 capitalize">
             {type === "jurisdictions" ? "🌐 Jurisdictions" : "📂 Topics"}
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -123,14 +123,14 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                   disabled={inList}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                     inList
-                      ? "bg-blue/10 text-blue border-blue/30 cursor-default"
-                      : "bg-white text-slate border-fog hover:border-blue/30 hover:text-navy"
+                      ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30 cursor-default"
+                      : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
                   }`}
                 >
                   {s.flag && <span>{s.flag}</span>}
                   {s.label}
                   {!inList && <Plus className="w-3 h-3" />}
-                  {inList  && <span className="text-blue">✓</span>}
+                  {inList  && <span className="text-brand-teal">✓</span>}
                 </button>
               );
             })}

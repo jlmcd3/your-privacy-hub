@@ -70,7 +70,7 @@ export default function AdBanner({ variant = 'leaderboard', className = '' }: Ad
   if (!ADSENSE_CONFIG.enabled) {
     return (
       <div
-        className={`flex items-center justify-center bg-fog/40 border border-silver/60 rounded-xl my-3 ${className}`}
+        className={`flex items-center justify-center bg-brand-cloud/40 border border-silver/60 rounded-xl my-3 ${className}`}
         style={{ minHeight: h, maxWidth: w, marginLeft: 'auto', marginRight: 'auto' }}
         aria-label="Advertisement placeholder"
       >

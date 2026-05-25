@@ -28,8 +28,8 @@ interface SpotlightArticle {
 
 const SLOT_LABELS = [
   { icon: "👁", text: "What any visitor sees", className: "text-slate/60" },
-  { icon: "✉", text: "Free account — see this level on every article", className: "text-blue font-medium" },
-  { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-gold font-semibold" },
+  { icon: "✉", text: "Free account — see this level on every article", className: "text-brand-teal font-medium" },
+  { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-brand-teal font-semibold" },
 ];
 
 const SpotlightCard = ({
@@ -83,7 +83,7 @@ const SpotlightCard = ({
             </span>
           )}
           {article.published_at && (
-            <span className="text-meta text-slate-light">
+            <span className="text-meta text-brand-mist">
               {fmtDate(article.published_at)}
             </span>
           )}
@@ -104,13 +104,13 @@ const SpotlightCard = ({
             href={article.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-bold text-navy hover:text-blue leading-snug block mb-2 no-underline transition-colors"
+            className="text-sm font-bold text-brand-navy hover:text-brand-teal leading-snug block mb-2 no-underline transition-colors"
           >
             {normalizeTitle(article.title)}
             <ExternalLink className="w-3 h-3 inline ml-1 opacity-40" />
           </a>
         ) : (
-          <p className="text-sm font-bold text-navy leading-snug mb-2">
+          <p className="text-sm font-bold text-brand-navy leading-snug mb-2">
             {normalizeTitle(article.title)}
           </p>
         )}
@@ -124,7 +124,7 @@ const SpotlightCard = ({
               <p className="text-sm text-slate leading-relaxed mb-2">{firstSentence}</p>
               <Link
                 to={briefHref}
-                className="inline-flex items-center gap-1.5 text-meta font-semibold text-gold hover:underline no-underline"
+                className="inline-flex items-center gap-1.5 text-meta font-semibold text-brand-teal hover:underline no-underline"
               >
                 <Sparkles className="w-3 h-3" />
                 {briefLabel}
@@ -139,10 +139,10 @@ const SpotlightCard = ({
           return (
             <div>
               <p className="text-sm text-slate leading-relaxed mb-2">{why}</p>
-              <div className="rounded-lg bg-paper border border-fog px-3 py-2">
+              <div className="rounded-lg bg-brand-cloud border border-brand-cloud px-3 py-2">
                 <p className="text-meta text-slate/70 italic">
                   Platform subscribers see what to do about this and what to watch for next.{" "}
-                  <Link to="/subscribe" className="text-gold font-semibold no-underline hover:underline">
+                  <Link to="/subscribe" className="text-brand-teal font-semibold no-underline hover:underline">
                     See Platform →
                   </Link>
                 </p>
@@ -177,8 +177,8 @@ const SpotlightCard = ({
 };
 
 const FeedCtaBanner = ({ count }: { count: number }) => (
-  <div className="rounded-2xl bg-navy px-6 py-8 text-center mt-6">
-    <p className="text-eyebrow text-gold mb-2">
+  <div className="rounded-2xl bg-brand-navy px-6 py-8 text-center mt-6">
+    <p className="text-eyebrow text-brand-teal mb-2">
       Privacy Intelligence Feed
     </p>
     <h2 className="text-section-h2 text-white mb-2">
@@ -190,7 +190,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
     </p>
     <Link
       to="/updates"
-      className="inline-block bg-gold text-white font-semibold text-[15px] px-7 py-3 rounded-xl no-underline hover:opacity-90 transition-all"
+      className="inline-block bg-brand-teal text-white font-semibold text-[15px] px-7 py-3 rounded-xl no-underline hover:opacity-90 transition-all"
     >
       Open the full Privacy Intelligence Feed →
     </Link>
@@ -330,9 +330,9 @@ export default function HomepageSpotlight() {
   if (!article) {
     return (
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
-        <div className="rounded-2xl border border-dashed border-fog bg-slate-50/60 px-6 py-12 text-center">
+        <div className="rounded-2xl border border-dashed border-brand-cloud bg-slate-50/60 px-6 py-12 text-center">
           <Sparkles className="w-8 h-8 mx-auto text-slate/40 mb-3" aria-hidden />
-          <h2 className="font-display text-navy mb-2">
+          <h2 className="font-display text-brand-navy mb-2">
             No new developments yet today
           </h2>
           <p className="text-sm text-slate max-w-md mx-auto mb-5 leading-relaxed">
@@ -343,13 +343,13 @@ export default function HomepageSpotlight() {
           <div className="flex flex-wrap gap-2 justify-center">
             <Link
               to="/updates"
-              className="text-xs px-4 py-2 rounded-lg bg-navy text-white font-medium hover:bg-navy/90 transition-colors no-underline"
+              className="text-xs px-4 py-2 rounded-lg bg-brand-navy text-white font-medium hover:bg-brand-navy/90 transition-colors no-underline"
             >
               Browse the full feed →
             </Link>
             <Link
               to="/#brief"
-              className="text-xs px-4 py-2 rounded-lg border border-fog text-navy font-medium hover:bg-white transition-colors no-underline"
+              className="text-xs px-4 py-2 rounded-lg border border-brand-cloud text-brand-navy font-medium hover:bg-white transition-colors no-underline"
             >
               Build an Intelligence Brief
             </Link>
@@ -365,7 +365,7 @@ export default function HomepageSpotlight() {
         <p className="text-eyebrow text-slate/60 mb-1">
           Today's top regulatory development
         </p>
-        <h2 className="text-section-h2 text-navy">
+        <h2 className="text-section-h2 text-brand-navy">
           What you see — and what you're missing
         </h2>
         <p className="text-sm text-slate mt-1">
@@ -377,7 +377,7 @@ export default function HomepageSpotlight() {
         {tiers.map((tier, i) => {
           const label = SLOT_LABELS[i];
           return (
-            <div key={tier} className="py-5 border-b border-fog last:border-0">
+            <div key={tier} className="py-5 border-b border-brand-cloud last:border-0">
               <div className={`text-meta uppercase tracking-wider mb-3 ${label.className}`}>
                 {label.icon} {label.text}
               </div>

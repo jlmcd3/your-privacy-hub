@@ -35,7 +35,7 @@ const TOOLTIP_STYLE = {
 export default function EnforcementCharts() {
   return (
     <div className="mt-10 space-y-6">
-      <h2 className="font-display text-navy">
+      <h2 className="font-display text-brand-navy">
         📊 Enforcement Analytics
       </h2>
 
@@ -45,17 +45,17 @@ export default function EnforcementCharts() {
           { label: "Actions this month",      value: "23",       sub: "new decisions issued",     color: "text-amber-500" },
           { label: "Average fine size",       value: "€4.2M",    sub: "GDPR enforcement only",    color: "text-blue-500" },
         ].map(k => (
-          <div key={k.label} className="bg-white rounded-2xl border border-fog p-5">
+          <div key={k.label} className="bg-white rounded-2xl border border-brand-cloud p-5">
             <div className={`font-display font-bold text-3xl ${k.color}`}>{k.value}</div>
-            <div className="text-navy font-semibold text-sm mt-1">{k.label}</div>
+            <div className="text-brand-navy font-semibold text-sm mt-1">{k.label}</div>
             <div className="text-slate text-xs mt-0.5">{k.sub}</div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-fog p-6">
-          <h3 className="text-navy text-[14px] mb-4">Top Regulators by Fine Volume (€M, 2023–2026)</h3>
+        <div className="bg-white rounded-2xl border border-brand-cloud p-6">
+          <h3 className="text-brand-navy text-[14px] mb-4">Top Regulators by Fine Volume (€M, 2023–2026)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={FINE_BY_REGULATOR} layout="vertical" margin={{ left: 10, right: 20, top: 0, bottom: 0 }}>
               <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={v => `€${v}M`} />
@@ -70,8 +70,8 @@ export default function EnforcementCharts() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-2xl border border-fog p-6">
-          <h3 className="text-navy text-[14px] mb-4">Enforcement Actions by Law (%)</h3>
+        <div className="bg-white rounded-2xl border border-brand-cloud p-6">
+          <h3 className="text-brand-navy text-[14px] mb-4">Enforcement Actions by Law (%)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie
@@ -93,8 +93,8 @@ export default function EnforcementCharts() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-fog p-6">
-        <h3 className="text-navy text-[14px] mb-4">Monthly Enforcement Actions (Oct 2025 – Mar 2026)</h3>
+      <div className="bg-white rounded-2xl border border-brand-cloud p-6">
+        <h3 className="text-brand-navy text-[14px] mb-4">Monthly Enforcement Actions (Oct 2025 – Mar 2026)</h3>
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={MONTHLY_FINES}>
             <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} />
@@ -105,7 +105,7 @@ export default function EnforcementCharts() {
         </ResponsiveContainer>
       </div>
 
-      <p className="text-slate-light text-xs text-right">
+      <p className="text-brand-mist text-xs text-right">
         Data reflects tracked enforcement actions. Amounts in EUR equivalent. Updated weekly.
       </p>
     </div>

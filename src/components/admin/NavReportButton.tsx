@@ -24,7 +24,7 @@ export default function NavReportButton() {
         type="button"
         onClick={onClick}
         disabled={busy}
-        className="inline-flex items-center gap-2 bg-gradient-to-br from-navy to-blue text-white font-semibold text-sm px-4 py-2 rounded-xl hover:opacity-90 transition-all disabled:opacity-60"
+        className="inline-flex items-center gap-2 bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-4 py-2 rounded-xl hover:opacity-90 transition-all disabled:opacity-60"
       >
         {busy ? "Generating…" : "📄 Generate Nav_Report (.docx)"}
       </button>

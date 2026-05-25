@@ -69,10 +69,10 @@ export function CrossToolPrompt({
   const [dismissed, dismiss] = useDismissed(dismissKey);
   if (!enabled || !isSecondVisit || dismissed) return null;
   return (
-    <div className="mb-4 bg-card border border-fog rounded-xl p-4 flex items-start gap-3 shadow-eup-sm">
-      <div className="text-blue mt-0.5">{icon ?? <Globe2 className="w-5 h-5" />}</div>
+    <div className="mb-4 bg-card border border-brand-cloud rounded-xl p-4 flex items-start gap-3 shadow-eup-sm">
+      <div className="text-brand-teal mt-0.5">{icon ?? <Globe2 className="w-5 h-5" />}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-navy">{title}</p>
+        <p className="text-sm font-semibold text-brand-navy">{title}</p>
         <p className="text-xs text-slate mt-0.5">{body}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button asChild size="sm">
@@ -87,7 +87,7 @@ export function CrossToolPrompt({
         type="button"
         onClick={dismiss}
         aria-label="Dismiss"
-        className="text-slate hover:text-navy bg-transparent border-none"
+        className="text-slate hover:text-brand-navy bg-transparent border-none"
       >
         <X className="w-4 h-4" />
       </button>
@@ -110,7 +110,7 @@ export function RelatedToolsChips({ tools }: { tools: RelatedToolChip[] }) {
         <Link
           key={t.to}
           to={t.to}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-fog bg-card text-navy hover:bg-fog/40 no-underline"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-brand-cloud bg-card text-brand-navy hover:bg-brand-cloud/40 no-underline"
         >
           {t.icon ?? <FileText className="w-3.5 h-3.5" />}
           {t.label}

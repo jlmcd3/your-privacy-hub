@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 
 const GetIntelligence = () => (
-  <div className="min-h-screen bg-paper">
+  <div className="min-h-screen bg-brand-cloud">
     <Helmet>
       <title>Build Your Sample Privacy Intelligence Report | End User Privacy</title>
       <meta

@@ -44,16 +44,16 @@ export default function ResponsivePreview() {
   };
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Responsive Preview · Admin</title>
         <meta name="robots" content="noindex,nofollow" />
       </Helmet>
 
-      <div className="border-b border-fog bg-card sticky top-0 z-10">
+      <div className="border-b border-brand-cloud bg-card sticky top-0 z-10">
         <div className="max-w-[1600px] mx-auto px-4 py-3 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold text-navy">Responsive Preview</h1>
+            <h1 className="text-lg font-semibold text-brand-navy">Responsive Preview</h1>
             <p className="text-xs text-slate">
               Renders the chosen route inside fixed-width iframes. Use to spot
               layout breakage between standard breakpoints.
@@ -70,7 +70,7 @@ export default function ResponsivePreview() {
                 const v = e.target.value;
                 if (v !== "__custom") setPath(v);
               }}
-              className="text-sm border border-fog rounded px-2 py-1 bg-card"
+              className="text-sm border border-brand-cloud rounded px-2 py-1 bg-card"
             >
               {DEFAULT_ROUTES.map((r) => (
                 <option key={r.path} value={r.path}>
@@ -84,7 +84,7 @@ export default function ResponsivePreview() {
               value={path}
               onChange={(e) => setPath(e.target.value)}
               placeholder="/path"
-              className="text-sm border border-fog rounded px-2 py-1 bg-card flex-1 min-w-[200px] max-w-[400px] font-mono"
+              className="text-sm border border-brand-cloud rounded px-2 py-1 bg-card flex-1 min-w-[200px] max-w-[400px] font-mono"
             />
           </div>
 
@@ -99,8 +99,8 @@ export default function ResponsivePreview() {
                 onClick={() => toggleWidth(w)}
                 className={`text-xs px-2 py-1 rounded border transition-colors ${
                   widths.includes(w)
-                    ? "bg-navy text-white border-navy"
-                    : "bg-card text-slate border-fog hover:border-slate"
+                    ? "bg-brand-navy text-white border-brand-navy"
+                    : "bg-card text-slate border-brand-cloud hover:border-slate"
                 }`}
               >
                 {w}px
@@ -112,12 +112,12 @@ export default function ResponsivePreview() {
               onChange={(e) => setCustomWidth(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addCustom()}
               placeholder="custom"
-              className="text-xs border border-fog rounded px-2 py-1 w-20"
+              className="text-xs border border-brand-cloud rounded px-2 py-1 w-20"
             />
             <button
               type="button"
               onClick={addCustom}
-              className="text-xs px-2 py-1 rounded border border-fog hover:bg-fog"
+              className="text-xs px-2 py-1 rounded border border-brand-cloud hover:bg-brand-cloud"
             >
               + Add
             </button>
@@ -133,7 +133,7 @@ export default function ResponsivePreview() {
               <button
                 type="button"
                 onClick={() => toggleWidth(w)}
-                className="text-xs text-slate-light hover:text-warn"
+                className="text-xs text-brand-mist hover:text-severity-warning"
                 title="Remove"
               >
                 ×
@@ -143,7 +143,7 @@ export default function ResponsivePreview() {
               src={path}
               title={`Preview at ${w}px`}
               style={{ width: `${w}px`, height: "900px" }}
-              className="border border-fog rounded bg-white shadow-eup-sm"
+              className="border border-brand-cloud rounded bg-white shadow-eup-sm"
             />
           </div>
         ))}

@@ -60,10 +60,10 @@ export default function RegistrationDocuments() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper">
+      <div className="min-h-screen bg-brand-cloud">
         <Navbar />
         <PageContainer>
-          <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
+          <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
         </PageContainer>
         <Footer />
       </div>
@@ -72,7 +72,7 @@ export default function RegistrationDocuments() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-paper">
+      <div className="min-h-screen bg-brand-cloud">
         <Navbar />
         <PageContainer>
           <div className="py-20 text-center">
@@ -86,7 +86,7 @@ export default function RegistrationDocuments() {
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>Registration Documents | End User Privacy</title>
       </Helmet>
@@ -99,7 +99,7 @@ export default function RegistrationDocuments() {
 
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="font-display text-navy">Registration Documents</h1>
+              <h1 className="font-display text-brand-navy">Registration Documents</h1>
               <p className="text-sm text-slate mt-1">
                 {docs.length} document{docs.length === 1 ? "" : "s"} across {order.jurisdictions.length} jurisdiction{order.jurisdictions.length === 1 ? "" : "s"}
               </p>
@@ -117,7 +117,7 @@ export default function RegistrationDocuments() {
           {docs.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <FileText className="w-10 h-10 text-slate-light mx-auto mb-3" />
+                <FileText className="w-10 h-10 text-brand-mist mx-auto mb-3" />
                 <p className="text-slate">No documents generated yet.</p>
                 <Button asChild className="mt-4">
                   <Link to={`/registration-manager/order/${order.id}`}>Go to order</Link>
@@ -134,13 +134,13 @@ export default function RegistrationDocuments() {
                     onClick={() => setSelected(d)}
                     className={`w-full text-left p-3 rounded-lg border transition-colors ${
                       selected?.id === d.id
-                        ? "border-navy bg-navy/5"
-                        : "border-border/60 hover:bg-fog"
+                        ? "border-brand-navy bg-brand-navy/5"
+                        : "border-border/60 hover:bg-brand-cloud"
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <FileText className="w-4 h-4 text-slate flex-shrink-0" />
-                      <span className="text-sm font-medium text-navy truncate">
+                      <span className="text-sm font-medium text-brand-navy truncate">
                         <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
                         - {DOC_LABELS[d.document_type] || d.document_type}
                       </span>
@@ -160,7 +160,7 @@ export default function RegistrationDocuments() {
                 <CardContent className="pt-4">
                   {selected ? (
                     <>
-                      <pre className="whitespace-pre-wrap text-sm text-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-fog/30 rounded">
+                      <pre className="whitespace-pre-wrap text-sm text-brand-navy font-mono max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded">
                         {selected.content_text || "(empty)"}
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">

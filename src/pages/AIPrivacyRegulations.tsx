@@ -26,11 +26,11 @@ const AIPrivacyRegulations = () => (
       href: "/governance-assessment",
     }}
     introBlock={
-      <div className="rounded-xl border border-cobalt/30 bg-cobalt/5 px-5 py-4">
-        <div className="text-[11px] font-bold tracking-wider uppercase text-cobalt mb-1.5">
+      <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 px-5 py-4">
+        <div className="text-[11px] font-bold tracking-wider uppercase text-brand-teal mb-1.5">
           Why this matters now
         </div>
-        <p className="text-sm text-navy leading-relaxed m-0">
+        <p className="text-sm text-brand-navy leading-relaxed m-0">
           AI compliance is no longer prospective. The EU AI Act's prohibitions and
           general-purpose-model obligations are live, the EDPB's March 2026 binding
           guidance on AI training data is enforceable across all 27 EU DPAs, and

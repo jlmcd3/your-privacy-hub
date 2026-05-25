@@ -11,14 +11,14 @@ const QUICK_LINKS = [
 
 const SearchBar = () => {
   return (
-    <div className="py-4 md:py-5 px-4 md:px-8 bg-card border-b border-fog">
+    <div className="py-4 md:py-5 px-4 md:px-8 bg-card border-b border-brand-cloud">
       <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div className="flex gap-1.5 items-center flex-wrap">
           {QUICK_LINKS.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="text-[12px] font-medium text-slate bg-fog px-2.5 py-1 rounded-full border border-fog cursor-pointer hover:bg-navy hover:text-white transition-all whitespace-nowrap no-underline"
+              className="text-[12px] font-medium text-slate bg-brand-cloud px-2.5 py-1 rounded-full border border-brand-cloud cursor-pointer hover:bg-brand-navy hover:text-white transition-all whitespace-nowrap no-underline"
             >
               {link.label}
             </a>

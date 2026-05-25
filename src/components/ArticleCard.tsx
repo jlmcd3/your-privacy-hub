@@ -106,12 +106,12 @@ const isEnriched = (item: ArticleItem): boolean => {
 
 // Legal weight badge colors
 const WEIGHT_COLORS: Record<string, string> = {
-  'Binding Decision': 'bg-navy text-white',
+  'Binding Decision': 'bg-brand-navy text-white',
   'Binding Guidance': 'bg-blue-700 text-white',
   'Soft Guidance': 'bg-blue-200 text-blue-800',
   'Enforcement Signal': 'bg-amber-100 text-amber-800',
   'Commentary': 'bg-gray-100 text-gray-600',
-  'In effect': 'bg-navy text-white',
+  'In effect': 'bg-brand-navy text-white',
   'Enforcement action': 'bg-red-100 text-red-800',
   'Guidance issued': 'bg-blue-200 text-blue-800',
   'Proposed': 'bg-amber-100 text-amber-800',
@@ -122,7 +122,7 @@ const WEIGHT_COLORS: Record<string, string> = {
 // — Intelligence badge for enriched articles —
 const IntelligenceBadge = () => (
   <span className="inline-flex items-center gap-1 px-1.5 py-1 rounded text-[11px] font-semibold font-sans"
-    style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
+    style={{ background: 'hsl(var(--brand-teal) / 0.12)', color: 'hsl(var(--brand-teal))' }}>
     <Sparkles className="w-3 h-3" />
     Intelligence
   </span>
@@ -143,7 +143,7 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   if (!hasContent) return null;
 
   return (
-    <div className="mt-3 rounded-lg border" style={{ borderColor: '#C8D5F0', background: '#F7F9FF' }}>
+    <div className="mt-3 rounded-lg border" style={{ borderColor: 'hsl(var(--brand-teal) / 0.25)', background: 'hsl(var(--brand-teal) / 0.05)' }}>
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }}
@@ -151,28 +151,28 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
         aria-expanded={open}
       >
         <span className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" style={{ color: '#4A6FA5' }} />
-          <span className="text-[12px] font-bold" style={{ color: '#4A6FA5' }}>
+          <Sparkles className="w-3.5 h-3.5" style={{ color: 'hsl(var(--brand-teal))' }} />
+          <span className="text-[12px] font-bold" style={{ color: 'hsl(var(--brand-teal))' }}>
             Intelligence Card
           </span>
           <span className="text-[11px] text-slate">
             — connect the dots, compliance impact, action items
           </span>
         </span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: '#4A6FA5' }} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: 'hsl(var(--brand-teal))' }} />
       </button>
 
       {open && (
-        <div className="px-3 pb-3 pt-1 space-y-3 border-t" style={{ borderColor: '#E0E8F5' }}>
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t" style={{ borderColor: 'hsl(var(--brand-teal) / 0.18)' }}>
           {/* Connect the dots — related signals */}
           {signals && signals.length > 0 && (
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: 'hsl(var(--brand-teal))' }}>
                 Connect the dots
               </p>
               <ul className="space-y-1">
                 {signals.map((sig, i) => (
-                  <li key={i} className="text-[12px] text-navy flex gap-1.5">
+                  <li key={i} className="text-[12px] text-brand-navy flex gap-1.5">
                     <span className="text-slate-400 flex-shrink-0">•</span>
                     <span>{sig.label}</span>
                   </li>
@@ -184,16 +184,16 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
 
           {/* Regulatory theory + related */}
           {(regTheory || related) && (
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: '#E0E8F5' }}>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: 'hsl(var(--brand-teal) / 0.18)' }}>
               {regTheory && (
                 <div className="text-[11px]">
-                  <span className="font-bold text-navy">Regulatory theory: </span>
+                  <span className="font-bold text-brand-navy">Regulatory theory: </span>
                   <span className="text-slate">{regTheory}</span>
                 </div>
               )}
               {related && (
                 <div className="text-[11px]">
-                  <span className="font-bold text-navy">Related: </span>
+                  <span className="font-bold text-brand-navy">Related: </span>
                   <span className="text-slate">{related}</span>
                 </div>
               )}
@@ -205,12 +205,12 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
             <div className="flex gap-3 pt-1">
               {urgency && (
                 <span className="text-[11px] text-slate">
-                  Urgency: <span className="font-semibold text-navy">{urgency}</span>
+                  Urgency: <span className="font-semibold text-brand-navy">{urgency}</span>
                 </span>
               )}
               {weight && (
                 <span className="text-[11px] text-slate">
-                  Legal weight: <span className="font-semibold text-navy">{weight}</span>
+                  Legal weight: <span className="font-semibold text-brand-navy">{weight}</span>
                 </span>
               )}
             </div>
@@ -225,9 +225,9 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
 const CompactCard = ({ item }: { item: ArticleItem }) => {
   const enriched = isEnriched(item);
   const wrapperClass = `block group rounded-xl px-3 py-2.5 -mx-3 transition-colors no-underline ${
-    enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-fog/40'
+    enriched ? 'hover:bg-[hsl(var(--brand-teal) / 0.1)]' : 'hover:bg-brand-cloud/40'
   }`;
-  const wrapperStyle = enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined;
+  const wrapperStyle = enriched ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined;
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     item.source_url ? (
       <a href={item.source_url} target="_blank" rel="noopener noreferrer" className={wrapperClass} style={wrapperStyle}>
@@ -241,7 +241,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   return (
     <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-blue transition-colors line-clamp-2 flex-1">
+        <p className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-brand-teal transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
@@ -252,7 +252,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
         </p>
       )}
       <div className="flex flex-wrap items-center gap-1.5 mt-1">
-        <p className="text-[11px] text-slate-light">
+        <p className="text-[11px] text-brand-mist">
           {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
         </p>
         {item.category && (
@@ -281,7 +281,7 @@ const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
     <div className="mt-2">
       <Link
         to={href}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline no-underline"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline no-underline"
       >
         <Sparkles className="w-3 h-3" />
         {label}
@@ -366,7 +366,7 @@ const FullCard = ({
   return (
     <div
       className={`flex gap-4 items-start py-5 border-b border-gray-200 last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
-      style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      style={accentBackground ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined}
     >
       {/* Article thumbnail */}
       <img
@@ -383,7 +383,7 @@ const FullCard = ({
             <span className="text-meta font-semibold text-slate uppercase tracking-wide">{item.source_name}</span>
           )}
           {item.published_at && (
-            <span className="text-meta text-slate-light">{fmtDate(item.published_at)}</span>
+            <span className="text-meta text-brand-mist">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -424,7 +424,7 @@ const FullCard = ({
         {/* Title */}
         <TitleLink
           item={item}
-          className="text-card-title text-gray-900 hover:text-blue block mb-1 no-underline transition-colors"
+          className="text-card-title text-gray-900 hover:text-brand-teal block mb-1 no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
@@ -444,7 +444,7 @@ const FullCard = ({
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
           return (
             <p className="text-sm leading-relaxed mt-2" style={{ color: '#92400E' }}>
-              <span className="font-semibold text-warn">Alert: </span>{firstSentence}
+              <span className="font-semibold text-severity-warning">Alert: </span>{firstSentence}
             </p>
           );
         })()}
@@ -452,10 +452,10 @@ const FullCard = ({
         {/* ── ANONYMOUS CTAs ─────────── */}
         {tier === 'anonymous' && (
           <div className="flex flex-col gap-1 mt-1.5">
-            <Link to="/signup" className="text-sm font-semibold text-steel hover:underline no-underline">
+            <Link to="/signup" className="text-sm font-semibold text-brand-steel hover:underline no-underline">
               Register free to see Context →
             </Link>
-            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -466,7 +466,7 @@ const FullCard = ({
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
-            <p className="text-sm text-steel leading-relaxed mt-2">
+            <p className="text-sm text-brand-steel leading-relaxed mt-2">
               <span className="font-semibold">Context: </span>{why}
             </p>
           );
@@ -475,7 +475,7 @@ const FullCard = ({
         {/* ── FREE CTA ─────────── */}
         {tier === 'free' && (
           <div className="mt-1.5">
-            <Link to="/subscribe" className="text-sm font-semibold text-gold hover:underline no-underline">
+            <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
               Subscribe to see Analysis and Guidance →
             </Link>
           </div>
@@ -489,8 +489,8 @@ const FullCard = ({
             return (
               <div className="mt-2 space-y-2">
                 <InvestigationPrompt item={item} />
-                <div className="pt-2 border-t border-fog">
-                  <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
+                <div className="pt-2 border-t border-brand-cloud">
+                  <Link to={toolCTA.href} className="text-sm font-semibold text-brand-teal hover:underline no-underline">
                     {toolCTA.label}
                   </Link>
                 </div>
@@ -501,7 +501,7 @@ const FullCard = ({
           return (
             <div className="mt-2 space-y-2">
               <p className="text-sm leading-relaxed mt-2" style={{ color: '#78350F' }}>
-                <span className="font-semibold text-gold">Analysis and Guidance: </span>
+                <span className="font-semibold text-brand-teal">Analysis and Guidance: </span>
                 {impact}
                 {impact && (actionProse || watchProse) && ' '}
                 {actionProse}
@@ -509,8 +509,8 @@ const FullCard = ({
                 {watchProse && <span className="italic">{watchProse}</span>}
               </p>
               <InvestigationPrompt item={item} />
-              <div className="pt-2 border-t border-fog">
-                <Link to={toolCTA.href} className="text-sm font-semibold text-gold hover:underline no-underline">
+              <div className="pt-2 border-t border-brand-cloud">
+                <Link to={toolCTA.href} className="text-sm font-semibold text-brand-teal hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
@@ -524,11 +524,11 @@ const FullCard = ({
 
 // — FEATURED variant ——————————————————————————————————
 const FeaturedCard = ({ item }: { item: ArticleItem }) => (
-  <div className="bg-gradient-to-br from-navy to-steel rounded-2xl p-6 relative">
+  <div className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-2xl p-6 relative">
     {isEnriched(item) && (
       <div className="absolute top-3 right-3">
         <span className="inline-flex items-center gap-1 px-1.5 py-1 rounded text-[11px] font-semibold font-sans"
-          style={{ background: 'rgba(232,238,255,0.2)', color: '#B8CCFF' }}>
+          style={{ background: 'rgba(232,238,255,0.2)', color: 'hsl(var(--brand-teal) / 0.6)' }}>
           <Sparkles className="w-3 h-3" />
           Intelligence
         </span>
@@ -565,13 +565,13 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
   return (
     <div
       className={`flex items-start gap-3 py-2 ${enriched ? 'px-3 rounded-md' : ''}`}
-      style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      style={enriched ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined}
     >
       <div className="flex-1 min-w-0">
         <a
           href={item.source_url || `/updates/${item.id}`}
           {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="text-sm font-semibold text-gray-900 hover:text-blue no-underline leading-snug block">
+          className="text-sm font-semibold text-gray-900 hover:text-brand-teal no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </a>
         {item.summary && (
@@ -579,18 +579,18 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
             {stripHtml(item.summary)}
           </p>
         )}
-        <p className="text-[11px] text-slate-light mt-0.5">
+        <p className="text-[11px] text-brand-mist mt-0.5">
           {[item.source_name, fmtDate(item.published_at)].filter(Boolean).join(' · ')}
         </p>
       </div>
       {enriched && (
         <span className="flex-shrink-0">
-          <Sparkles className="w-3 h-3" style={{ color: '#4A6FA5' }} />
+          <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
         </span>
       )}
       {item.source_url && (
         <a href={item.source_url} target="_blank" rel="noopener noreferrer"
-          className="flex-shrink-0 text-slate-light hover:text-blue mt-0.5">
+          className="flex-shrink-0 text-brand-mist hover:text-brand-teal mt-0.5">
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       )}
@@ -603,7 +603,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
   const articleUrl = item.source_url || (item as any).url || '#';
   const hasExternal = articleUrl && articleUrl !== '#';
   return (
-    <div className="group relative flex gap-3 py-3 border-b border-fog hover:bg-slate-50/50 transition-colors">
+    <div className="group relative flex gap-3 py-3 border-b border-brand-cloud hover:bg-slate-50/50 transition-colors">
       <a
         href={hasExternal ? articleUrl : `/updates/${item.id}`}
         {...(hasExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
@@ -689,7 +689,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             href={item.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-slate-light hover:text-sky-700 transition-colors"
+            className="text-brand-mist hover:text-sky-700 transition-colors"
             aria-label="Open source article"
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -717,11 +717,11 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
         {s?.why_it_matters && (
           <div
             className="border-l-4 px-3 py-2 rounded-r-lg mb-3"
-            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+            style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.12)' }}
           >
             <p
               className="text-[11px] font-bold tracking-wider uppercase mb-1"
-              style={{ color: '#4A6FA5' }}
+              style={{ color: 'hsl(var(--brand-teal))' }}
             >
               Why it matters
             </p>
@@ -759,7 +759,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 // — HOMEPAGE variant (anonymous users — uniform internal-link card) ——
 export const HomepageCard = ({ item }: { item: ArticleItem }) => {
   return (
-    <div className="flex gap-3 items-start py-3 border-b border-fog last:border-0">
+    <div className="flex gap-3 items-start py-3 border-b border-brand-cloud last:border-0">
       <img
         src={item.image_url || EUP_TILE}
         alt=""
@@ -775,7 +775,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
             </span>
           )}
           {item.published_at && (
-            <span className="text-[11px] text-slate-light">{fmtDate(item.published_at)}</span>
+            <span className="text-[11px] text-brand-mist">{fmtDate(item.published_at)}</span>
           )}
           {item.category && (
             <span className={`${CATEGORY_BADGE_CLASS} ${categoryClass(item.category)}`}>
@@ -786,7 +786,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-sm font-semibold text-gray-900 hover:text-blue leading-snug block no-underline transition-colors"
+          className="text-sm font-semibold text-gray-900 hover:text-brand-teal leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}

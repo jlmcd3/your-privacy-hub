@@ -73,7 +73,7 @@ export function ResearchPageLayout({
   const { isPremium } = usePremiumStatus();
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet>
         <title>{metaTitle}</title>
         <meta name="description" content={metaDescription} />
@@ -109,14 +109,14 @@ export function ResearchPageLayout({
               className="mb-4 -mx-2 px-2 overflow-x-auto"
             >
               <ul className="flex flex-nowrap items-center gap-2 min-w-min">
-                <li className="text-[11px] font-semibold tracking-wider uppercase text-slate-light pr-1 shrink-0">
+                <li className="text-[11px] font-semibold tracking-wider uppercase text-brand-mist pr-1 shrink-0">
                   Jump to:
                 </li>
                 {sections.map((s) => (
                   <li key={s.id} className="shrink-0">
                     <a
                       href={`#${s.id}`}
-                      className="inline-block px-3 py-1.5 text-xs font-semibold text-navy bg-card border border-fog rounded-full hover:border-cobalt hover:text-cobalt transition-colors no-underline whitespace-nowrap"
+                      className="inline-block px-3 py-1.5 text-xs font-semibold text-brand-navy bg-card border border-brand-cloud rounded-full hover:border-brand-teal hover:text-brand-teal transition-colors no-underline whitespace-nowrap"
                     >
                       {s.h2}
                     </a>
@@ -125,8 +125,8 @@ export function ResearchPageLayout({
               </ul>
             </nav>
 
-            <details className="mb-8 rounded-xl border border-fog bg-card group md:hidden">
-              <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-navy">
+            <details className="mb-8 rounded-xl border border-brand-cloud bg-card group md:hidden">
+              <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between text-[12px] font-semibold tracking-wider uppercase text-brand-navy">
                 <span>On this page</span>
                 <span className="text-slate text-[11px] group-open:rotate-180 transition-transform">▼</span>
               </summary>
@@ -135,7 +135,7 @@ export function ResearchPageLayout({
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="text-sm text-blue hover:text-navy transition-colors no-underline flex items-start gap-2"
+                    className="text-sm text-brand-teal hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
                   >
                     <span className="text-slate">→</span>
                     <span>{s.h2}</span>
@@ -146,7 +146,7 @@ export function ResearchPageLayout({
           </>
         )}
 
-        <h2 className="font-display text-navy mb-6 leading-tight">
+        <h2 className="font-display text-brand-navy mb-6 leading-tight">
           Full Analysis
         </h2>
         <div className="space-y-12">
@@ -154,7 +154,7 @@ export function ResearchPageLayout({
             const placement = sec.toolCtaPlacement ?? "bottom";
             return (
               <section key={sec.id} id={sec.id} className="scroll-mt-24">
-                <h3 className="font-display text-navy mb-4 leading-tight">
+                <h3 className="font-display text-brand-navy mb-4 leading-tight">
                   {sec.h2}
                 </h3>
                 {sec.complianceTrigger && (
@@ -162,7 +162,7 @@ export function ResearchPageLayout({
                     <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
                       Compliance trigger
                     </div>
-                    <p className="text-sm text-navy leading-relaxed m-0">
+                    <p className="text-sm text-brand-navy leading-relaxed m-0">
                       {sec.complianceTrigger}
                     </p>
                   </div>
@@ -170,7 +170,7 @@ export function ResearchPageLayout({
                 {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
                 {sec.content && (
                   <div
-                    className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-cobalt [&_a]:font-bold [&_a]:underline [&_a:hover]:text-navy [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-navy [&_strong]:font-semibold [&_a_strong]:text-cobalt"
+                    className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal [&_a]:font-bold [&_a]:underline [&_a:hover]:text-brand-navy [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_a_strong]:text-brand-teal"
                     dangerouslySetInnerHTML={{ __html: sec.content }}
                   />
                 )}
@@ -184,16 +184,16 @@ export function ResearchPageLayout({
 
 
         {/* Related resources */}
-        <div className="mt-14 pt-8 border-t border-fog">
-          <h3 className="text-navy mb-4">Related Resources</h3>
+        <div className="mt-14 pt-8 border-t border-brand-cloud">
+          <h3 className="text-brand-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relatedLinks.map((link, i) => (
               <Link
                 key={i}
                 to={link.href}
-                className="flex items-center gap-2 p-3 bg-card border border-fog rounded-lg hover:bg-fog transition-colors no-underline text-sm text-navy font-medium"
+                className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium"
               >
-                <span className="text-blue">→</span> {link.label}
+                <span className="text-brand-teal">→</span> {link.label}
               </Link>
             ))}
           </div>
@@ -201,19 +201,19 @@ export function ResearchPageLayout({
 
         {/* Intelligence upsell */}
         {!isPremium && (
-          <div className="mt-12 bg-gradient-to-br from-navy to-navy-mid rounded-2xl p-6 md:p-8 text-center">
-            <div className="text-[11px] font-bold tracking-widest uppercase text-sky mb-2">
+          <div className="mt-12 bg-gradient-to-br from-brand-navy to-brand-ocean rounded-2xl p-6 md:p-8 text-center">
+            <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-2">
               ⭐ Weekly Intelligence
             </div>
             <h2 className="text-white mb-3">
               Get weekly intelligence on {intelligenceUpsellTopic ?? header.title}
             </h2>
-            <p className="text-sm text-slate-light mb-5 max-w-[500px] mx-auto">
+            <p className="text-sm text-brand-mist mb-5 max-w-[500px] mx-auto">
               Intelligence subscribers receive a structured weekly brief covering every material development in this area — enforcement actions, regulatory guidance, and what it means for your compliance posture.
             </p>
             <Link
               to="/subscribe"
-              className="inline-block px-6 py-3 text-sm font-semibold text-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
+              className="inline-block px-6 py-3 text-sm font-semibold text-brand-navy bg-white rounded-lg shadow-eup-md hover:-translate-y-0.5 transition-all no-underline"
             >
               Get full intelligence →
             </Link>

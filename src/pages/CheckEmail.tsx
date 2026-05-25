@@ -8,20 +8,20 @@ export default function CheckEmail() {
   const email = searchParams.get("email");
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Check Your Email | End User Privacy</title></Helmet>
       <Navbar />
       <div className="flex items-center justify-center py-16 px-4">
-        <div className="w-full max-w-md bg-card border border-fog rounded-2xl shadow-eup-sm p-8 text-center">
+        <div className="w-full max-w-md bg-card border border-brand-cloud rounded-2xl shadow-eup-sm p-8 text-center">
           <div className="text-5xl mb-5">📧</div>
-          <h1 className="font-display text-navy mb-2">
+          <h1 className="font-display text-brand-navy mb-2">
             Check your inbox
           </h1>
           <p className="text-slate text-[14px] leading-relaxed mb-2">
             We sent a confirmation link to
           </p>
           {email ? (
-            <p className="font-semibold text-navy text-[15px] mb-5">{email}</p>
+            <p className="font-semibold text-brand-navy text-[15px] mb-5">{email}</p>
           ) : (
             <p className="text-slate text-[14px] mb-5">your registered email address</p>
           )}
@@ -30,8 +30,8 @@ export default function CheckEmail() {
             The link expires in 24 hours.
           </p>
 
-          <div className="bg-fog rounded-xl p-4 mb-6 text-left">
-            <p className="text-[12px] font-semibold text-navy mb-2">Didn't get it?</p>
+          <div className="bg-brand-cloud rounded-xl p-4 mb-6 text-left">
+            <p className="text-[12px] font-semibold text-brand-navy mb-2">Didn't get it?</p>
             <ul className="text-[12px] text-slate space-y-1">
               <li>• Check your spam or junk folder</li>
               <li>• Make sure you used the right email address</li>
@@ -41,7 +41,7 @@ export default function CheckEmail() {
 
           <Link
             to={`/login?redirect=${encodeURIComponent("/onboarding-profile")}`}
-            className="block text-center text-sm text-blue hover:text-navy no-underline"
+            className="block text-center text-sm text-brand-teal hover:text-brand-navy no-underline"
           >
             Already confirmed? Sign in →
           </Link>

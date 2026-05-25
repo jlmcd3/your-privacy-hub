@@ -340,7 +340,7 @@ const UpdateDetail = () => {
                     <div className="text-meta uppercase tracking-wide font-semibold mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
                       Why it matters
                     </div>
-                    <p className="text-base leading-relaxed text-navy">
+                    <p className="text-base leading-relaxed text-brand-navy">
                       {ai?.why_it_matters_short || (ai?.why_it_matters?.split('. ')[0] + '…')}
                     </p>
                   </div>
@@ -381,7 +381,7 @@ const UpdateDetail = () => {
                       className="border-l-4 px-4 py-3 mb-4 rounded-r"
                       style={{ borderColor: 'hsl(var(--cobalt))', background: 'hsl(var(--cobalt) / 0.08)' }}
                     >
-                      <p className="text-base leading-relaxed text-navy m-0">
+                      <p className="text-base leading-relaxed text-brand-navy m-0">
                         {ai.why_it_matters.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
                       </p>
                     </div>
@@ -574,13 +574,13 @@ const UpdateDetail = () => {
                   return (
                     <section aria-label="Contextual Record" className="mt-8 pt-8 border-t border-silver mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-eyebrow text-navy">Enforcement Corpus Intelligence</span>
+                        <span className="text-eyebrow text-brand-navy">Enforcement Corpus Intelligence</span>
                       </div>
                       <h2 className="font-display text-foreground mb-2">Contextual Record</h2>
                       <p className="italic text-sm text-muted-foreground mb-4">
                         Drawn from 3,500+ enforcement decisions. Patterns and precedents from the EUP corpus.
                       </p>
-                      <div className="bg-navy/[0.02] rounded-xl p-6 border border-border space-y-4">
+                      <div className="bg-brand-navy/[0.02] rounded-xl p-6 border border-border space-y-4">
                         {(cr?.regulatory_theory || legacyTheory) && (
                           <div>
                             <div className="text-eyebrow uppercase tracking-wide font-semibold text-muted-foreground mb-1">Regulatory Theory</div>

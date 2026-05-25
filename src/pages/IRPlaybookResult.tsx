@@ -40,14 +40,14 @@ export default function IRPlaybookResult() {
   const intake = row?.intake_data || {};
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Your Breach Response Playbook | End User Privacy</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
         <ClientContextBadge />
         {loading ? (
-          <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-navy" /></div>
+          <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
         ) : !row ? (
           <div className="bg-card border border-border rounded-2xl p-8 text-center">
             <p className="text-slate">Playbook not found or you don't have access.</p>
@@ -55,7 +55,7 @@ export default function IRPlaybookResult() {
           </div>
         ) : row.status === "pending" || row.status === "processing" ? (
           <div className="bg-card border border-border rounded-2xl p-10 text-center">
-            <Loader2 className="w-6 h-6 animate-spin text-navy mx-auto mb-3" />
+            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" />
             <p className="text-foreground">Your playbook is being generated.</p>
           </div>
         ) : (

@@ -57,7 +57,7 @@ export default function SponsorshipBanner({
 
   const inner = (
     <div
-      className={`flex items-center justify-center gap-3 py-2 px-4 bg-fog/60 border border-silver/60 rounded-lg ${className}`}
+      className={`flex items-center justify-center gap-3 py-2 px-4 bg-brand-cloud/60 border border-silver/60 rounded-lg ${className}`}
       data-sponsorship-placement={placement}
       aria-label={`${sponsor.label ?? "Sponsored by"} ${sponsor.sponsor_name}`}
     >
@@ -71,7 +71,7 @@ export default function SponsorshipBanner({
           className="h-5 w-auto object-contain"
         />
       ) : null}
-      <span className="text-[12px] font-semibold text-navy">
+      <span className="text-[12px] font-semibold text-brand-navy">
         {sponsor.sponsor_name}
       </span>
     </div>

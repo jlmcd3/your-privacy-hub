@@ -59,7 +59,7 @@ function getPriorityStyle(_priority: string, days: number) {
   if (days < 0)   return { bg: "bg-slate-50", border: "border-slate-200", badge: "bg-slate-200 text-slate-500", text: "Done" };
   if (days <= 14) return { bg: "bg-red-50",    border: "border-red-200",   badge: "bg-red-500 text-white",      text: `${days}d` };
   if (days <= 60) return { bg: "bg-amber-50",  border: "border-amber-200", badge: "bg-amber-400 text-white",    text: `${days}d` };
-  return           { bg: "bg-blue-50",   border: "border-blue-100",  badge: "bg-blue/10 text-blue border border-blue/20", text: `${days}d` };
+  return           { bg: "bg-blue-50",   border: "border-blue-100",  badge: "bg-brand-teal/10 text-brand-teal border border-brand-teal/20", text: `${days}d` };
 }
 
 export default function DeadlineCountdown() {
@@ -74,14 +74,14 @@ export default function DeadlineCountdown() {
     .sort((a, b) => a.days - b.days);
 
   return (
-    <div className="bg-white rounded-2xl border border-fog shadow-eup-sm mb-8">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-fog">
-        <h2 className="font-display text-navy text-[15px] flex items-center gap-2">
+    <div className="bg-white rounded-2xl border border-brand-cloud shadow-eup-sm mb-8">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-brand-cloud">
+        <h2 className="font-display text-brand-navy text-[15px] flex items-center gap-2">
           ⏱ Upcoming Regulatory Deadlines
         </h2>
-        <span className="text-xs text-slate-light">Next 12 months</span>
+        <span className="text-xs text-brand-mist">Next 12 months</span>
       </div>
-      <div className="divide-y divide-fog">
+      <div className="divide-y divide-brand-cloud">
         {sorted.map(d => {
           const style = getPriorityStyle(d.priority, d.days);
           return (
@@ -97,16 +97,16 @@ export default function DeadlineCountdown() {
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-base flag-emoji">{d.flag}</span>
                   <span className="text-[11px] font-bold text-slate uppercase tracking-wider">{d.jurisdiction}</span>
-                  <span className="text-[11px] px-1.5 py-0.5 bg-fog rounded-full text-slate-light capitalize">
+                  <span className="text-[11px] px-1.5 py-0.5 bg-brand-cloud rounded-full text-brand-mist capitalize">
                     {d.type.replace(/_/g, " ")}
                   </span>
                 </div>
-                <div className="font-bold text-navy text-sm leading-snug">{d.title}</div>
+                <div className="font-bold text-brand-navy text-sm leading-snug">{d.title}</div>
                 <div className="text-slate text-[11px] mt-0.5 leading-snug line-clamp-1">{d.description}</div>
               </div>
 
               <div className="flex-shrink-0 text-right">
-                <div className="text-[11px] font-bold text-navy">
+                <div className="text-[11px] font-bold text-brand-navy">
                   {d.date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 </div>
               </div>

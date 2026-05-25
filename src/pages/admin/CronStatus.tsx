@@ -25,12 +25,12 @@ export default function CronStatus() {
   return (
     <PageContainer width="wide" className="py-8">
       <h1 className="font-serif mb-4">Cron Schedule</h1>
-      {error && <div className="text-warn mb-4">Error: {error}</div>}
+      {error && <div className="text-severity-warning mb-4">Error: {error}</div>}
       {!jobs && !error && <div>Loading…</div>}
       {jobs && (
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-fog text-left">
+            <tr className="border-b border-brand-cloud text-left">
               <th className="py-2 pr-4">Job name</th>
               <th className="py-2 pr-4">Schedule</th>
               <th className="py-2 pr-4">Active</th>
@@ -39,7 +39,7 @@ export default function CronStatus() {
           </thead>
           <tbody>
             {jobs.map((j) => (
-              <tr key={j.jobid} className="border-b border-fog/60 align-top">
+              <tr key={j.jobid} className="border-b border-brand-cloud/60 align-top">
                 <td className="py-2 pr-4 font-mono">{j.jobname ?? `#${j.jobid}`}</td>
                 <td className="py-2 pr-4 font-mono">{j.schedule}</td>
                 <td className="py-2 pr-4">{j.active ? "yes" : "no"}</td>

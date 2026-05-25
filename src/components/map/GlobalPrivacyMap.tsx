@@ -340,8 +340,8 @@ export default function GlobalPrivacyMap() {
               onClick={() => setRegion(r)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                 region === r
-                  ? "bg-blue/10 text-blue border-blue/30"
-                  : "bg-white text-slate border-fog hover:border-blue/20"
+                  ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30"
+                  : "bg-white text-slate border-brand-cloud hover:border-brand-teal/20"
               }`}
             >
               {r}
@@ -355,8 +355,8 @@ export default function GlobalPrivacyMap() {
               onClick={() => setView(v)}
               className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer capitalize ${
                 view === v
-                  ? "bg-navy text-white border-navy"
-                  : "bg-white text-slate border-fog hover:border-navy/20"
+                  ? "bg-brand-navy text-white border-brand-navy"
+                  : "bg-white text-slate border-brand-cloud hover:border-brand-navy/20"
               }`}
             >
               {v === "map" ? "🗺 Map" : "⊞ Grid"}
@@ -368,16 +368,16 @@ export default function GlobalPrivacyMap() {
       {view === "map" ? (
         <div ref={containerRef} className="min-w-0">
           {loading ? (
-            <div className="h-[400px] flex items-center justify-center bg-fog rounded-2xl text-slate text-sm animate-pulse">
+            <div className="h-[400px] flex items-center justify-center bg-brand-cloud rounded-2xl text-slate text-sm animate-pulse">
               Loading map data…
             </div>
           ) : (
-            <div className="relative rounded-2xl overflow-hidden shadow-eup-md border border-fog">
+            <div className="relative rounded-2xl overflow-hidden shadow-eup-md border border-brand-cloud">
               <svg ref={svgRef} width={dims.w} height={dims.h} style={{ display: "block" }} />
 
               {tooltip && (
                 <div
-                  className="absolute pointer-events-none z-50 bg-navy text-white px-4 py-3 rounded-xl shadow-eup-md text-xs"
+                  className="absolute pointer-events-none z-50 bg-brand-navy text-white px-4 py-3 rounded-xl shadow-eup-md text-xs"
                   style={{
                     left: Math.min(tooltip.x + 16, dims.w - 200),
                     top: Math.max(tooltip.y - 70, 8),
@@ -405,14 +405,14 @@ export default function GlobalPrivacyMap() {
             <Link
               key={j.slug}
               to={`/jurisdiction/${j.slug}`}
-              className="bg-white rounded-xl border border-fog p-4 text-left hover:shadow-eup-sm hover:-translate-y-0.5 transition-all cursor-pointer no-underline block"
+              className="bg-white rounded-xl border border-brand-cloud p-4 text-left hover:shadow-eup-sm hover:-translate-y-0.5 transition-all cursor-pointer no-underline block"
               style={{
                 borderLeftWidth: 3,
                 borderLeftColor: STATUS_CONFIG[j.status as keyof typeof STATUS_CONFIG]?.color,
               }}
             >
               <div className="text-2xl mb-1.5 flag-emoji">{j.flag}</div>
-              <div className="font-bold text-navy text-sm leading-tight">{j.name}</div>
+              <div className="font-bold text-brand-navy text-sm leading-tight">{j.name}</div>
               <div className="text-[11px] text-slate mt-0.5">{j.region}</div>
               <div
                 className="inline-block mt-2 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"

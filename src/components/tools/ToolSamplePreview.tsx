@@ -30,7 +30,7 @@ function LISample() {
   return (
     <div className="space-y-5">
       <section>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-2">Processing Purpose</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-2">Processing Purpose</p>
         <p className="text-sm text-foreground leading-relaxed">
           The proposed processing — using browsing history and purchase data to deliver
           personalized product recommendations to existing customers — falls within the
@@ -38,7 +38,7 @@ function LISample() {
         </p>
       </section>
       <section>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-2">Necessity Assessment</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-2">Necessity Assessment</p>
         <p className="text-sm text-foreground leading-relaxed">
           The CNIL's 2024 guidance on recommendation systems establishes that
           personalization can satisfy the necessity test only where the controller
@@ -52,7 +52,7 @@ function LISample() {
         </div>
       </section>
       <section>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-2">Balancing Test (excerpt)</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-2">Balancing Test (excerpt)</p>
         <p className="text-sm text-foreground leading-relaxed">
           The balance tilts on three factors: the reasonable expectations of an existing
           customer, the granularity of profiling involved, and the availability of an
@@ -67,7 +67,7 @@ function LISample() {
         </div>
       </section>
       <section>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-2">Precedent Landscape</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-2">Precedent Landscape</p>
         <div className="space-y-2">
           <div className="h-3 bg-muted rounded w-full" />
           <div className="h-3 bg-muted rounded w-10/12" />
@@ -101,7 +101,7 @@ function HealthcheckSample() {
           </div>
         </div>
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-1">Readiness Score</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-1">Readiness Score</p>
           <p className="text-sm text-foreground leading-relaxed">
             Your organization scores <strong>72 / 100</strong> on the governance readiness index —
             above the median for similar organizations, with focused gaps in AI governance and
@@ -110,7 +110,7 @@ function HealthcheckSample() {
         </div>
       </section>
       <section>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-3">Top Findings</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-3">Top Findings</p>
         <div className="space-y-2">
           {findings.map((f, i) => (
             <div key={i} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
@@ -139,7 +139,7 @@ function DPIASample() {
   return (
     <div className="space-y-5">
       <section>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-2">Section 1 — Processing Description</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-2">Section 1 — Processing Description</p>
         <p className="text-sm text-foreground leading-relaxed">
           The processing activity involves continuous location monitoring of approximately
           250 employees via a company-issued mobile application during working hours.
@@ -159,7 +159,7 @@ function DPIASample() {
         "Section 6 — DPO Sign-off & Residual Risk",
       ].map((title) => (
         <section key={title}>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-steel mb-2">{title}</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-2">{title}</p>
           <div className="space-y-2">
             <div className="h-3 bg-muted rounded w-full" />
             <div className="h-3 bg-muted rounded w-11/12" />
@@ -205,7 +205,7 @@ export default function ToolSamplePreview({
 
         {/* CTA panel */}
         <div className="px-6 pb-6 -mt-8 relative z-10">
-          <div className="bg-gradient-to-br from-navy to-steel text-white rounded-xl p-6 shadow-lg text-center">
+          <div className="bg-gradient-to-br from-brand-navy to-brand-steel text-white rounded-xl p-6 shadow-lg text-center">
             <Lock className="w-6 h-6 mx-auto mb-3 text-amber-400" />
             <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-2">
               Purchase to unlock your full report
@@ -218,7 +218,7 @@ export default function ToolSamplePreview({
               size="lg"
               onClick={onPurchase}
               disabled={purchasing || !stripeConfigured}
-              className="bg-white text-navy hover:bg-white/90 font-bold disabled:opacity-70"
+              className="bg-white text-brand-navy hover:bg-white/90 font-bold disabled:opacity-70"
             >
               {!stripeConfigured
                 ? `Payments Coming Soon — $${price}`

@@ -63,9 +63,9 @@ export function ActionBrief({
         <p className="text-sm text-slate leading-snug flex flex-wrap
                       items-baseline gap-x-1">
           <span>This requires</span>
-          <span className="font-semibold text-navy">{label} action</span>
+          <span className="font-semibold text-brand-navy">{label} action</span>
           <span>by</span>
-          <span className="font-semibold text-navy">{salutation}</span>
+          <span className="font-semibold text-brand-navy">{salutation}</span>
           <span>because</span>
           {/* Blurred compliance_impact preview */}
           <span
@@ -99,7 +99,7 @@ export function ActionBrief({
   // ── FULL STATE — paid subscribers ─────────────────────────────────
   return (
     <div
-      className="border-l-[3px] border-amber-400 bg-navy/[0.04]
+      className="border-l-[3px] border-amber-400 bg-brand-navy/[0.04]
                  rounded-r-lg px-4 py-3 mt-3"
     >
       <p className="text-[11px] font-bold uppercase tracking-widest
@@ -108,9 +108,9 @@ export function ActionBrief({
       </p>
       {/* Summary sentence */}
       <p className="text-sm leading-snug mb-2">
-        <span className="font-semibold text-navy capitalize">{label} action</span>
+        <span className="font-semibold text-brand-navy capitalize">{label} action</span>
         <span className="text-slate"> required by </span>
-        <span className="font-semibold text-navy">{salutation}</span>
+        <span className="font-semibold text-brand-navy">{salutation}</span>
       </p>
       {/* Full compliance impact */}
       {compliance_impact && (

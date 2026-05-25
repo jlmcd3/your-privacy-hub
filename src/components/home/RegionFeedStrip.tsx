@@ -29,7 +29,7 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
           <a
             key={i}
             {...props}
-            className="bg-white rounded-xl border border-fog p-5 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
+            className="bg-white rounded-xl border border-brand-cloud p-5 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all group"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl flag-emoji">{item.flag}</span>
@@ -37,13 +37,13 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
                 <div className="text-meta font-bold text-slate uppercase tracking-wider">
                   {item.jurisdiction}
                 </div>
-                <div className="text-meta text-slate-light">{item.date}</div>
+                <div className="text-meta text-brand-mist">{item.date}</div>
               </div>
-              <span className="ml-auto text-eyebrow bg-blue/5 text-blue border border-blue/10 px-1.5 py-0.5 rounded-full">
+              <span className="ml-auto text-eyebrow bg-brand-teal/5 text-brand-teal border border-brand-teal/10 px-1.5 py-0.5 rounded-full">
                 {item.category}
               </span>
             </div>
-            <h4 className="font-bold text-navy text-sm leading-snug group-hover:text-blue transition-colors line-clamp-2">
+            <h4 className="font-bold text-brand-navy text-sm leading-snug group-hover:text-brand-teal transition-colors line-clamp-2">
               {normalizeTitle(item.headline)}
             </h4>
             {item.summary && (

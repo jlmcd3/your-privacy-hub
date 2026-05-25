@@ -177,7 +177,7 @@ export default function JurisdictionsHub() {
           {/* Map section */}
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <GlobalPrivacyMap />
-            <p className="text-xs text-slate-light text-center mt-3">
+            <p className="text-xs text-brand-mist text-center mt-3">
               Some small jurisdictions (e.g. Singapore, Luxembourg city-state areas) are
               tracked in our database but are too small to render at this map scale.
               Use Grid view or search to find them.
@@ -186,9 +186,9 @@ export default function JurisdictionsHub() {
 
           {/* Recently updated strip — dynamic. Hidden when no live data. */}
           {(recentLoading || recentUpdates.length > 0) && (
-            <div className="border-t border-fog bg-white">
+            <div className="border-t border-brand-cloud bg-white">
               <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <h2 className="text-navy uppercase tracking-wider mb-4">
+                <h2 className="text-brand-navy uppercase tracking-wider mb-4">
                   🕐 Recently Updated Jurisdictions
                 </h2>
                 <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
@@ -196,7 +196,7 @@ export default function JurisdictionsHub() {
                     ? Array.from({ length: 5 }).map((_, i) => (
                         <div
                           key={i}
-                          className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 w-[220px] animate-pulse"
+                          className="flex-shrink-0 bg-brand-cloud rounded-xl px-4 py-3 w-[220px] animate-pulse"
                           aria-hidden="true"
                         >
                           <div className="h-4 w-6 bg-slate-200 rounded mb-2" />
@@ -212,14 +212,14 @@ export default function JurisdictionsHub() {
                           {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                           title={item.fullTitle}
                           aria-label={`${item.name}: ${item.fullTitle} (${item.days})`}
-                          className="flex-shrink-0 bg-fog rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
+                          className="flex-shrink-0 bg-brand-cloud rounded-xl px-4 py-3 text-xs no-underline hover:shadow-eup-sm transition-all max-w-[260px]"
                         >
                           <span className="text-base" role="img" aria-label={`${item.name} flag`}>
                             {item.flag}
                           </span>
-                          <div className="font-bold text-navy mt-1">{item.name}</div>
+                          <div className="font-bold text-brand-navy mt-1">{item.name}</div>
                           <div className="text-slate leading-snug">{item.update}</div>
-                          <div className="text-slate-light mt-0.5">{item.days}</div>
+                          <div className="text-brand-mist mt-0.5">{item.days}</div>
                         </a>
                       ))}
                 </div>

@@ -128,7 +128,7 @@ export default function AdminEmailSignups() {
 
   if (authLoading || isAdmin === null) {
     return (
-      <div className="min-h-screen bg-paper">
+      <div className="min-h-screen bg-brand-cloud">
         <Navbar />
         <div className="max-w-6xl mx-auto px-4 py-16 text-center text-sm text-slate">Loading…</div>
         <Footer />
@@ -139,13 +139,13 @@ export default function AdminEmailSignups() {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-brand-cloud">
       <Helmet><title>Email Signups — Admin</title></Helmet>
       <Navbar />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-navy">Email signups</h1>
+            <h1 className="font-display text-brand-navy">Email signups</h1>
             <p className="text-sm text-slate mt-1">
               Showing {filtered.length} of {rows.length} {rows.length === 1000 ? "(capped at 1000)" : ""}
             </p>
@@ -154,13 +154,13 @@ export default function AdminEmailSignups() {
         </div>
 
         {/* Filters */}
-        <div className="bg-card border border-fog rounded-xl p-4 mb-4 grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="bg-card border border-brand-cloud rounded-xl p-4 mb-4 grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
             <label className="block text-[11px] font-semibold text-slate mb-1 uppercase tracking-wide">Source</label>
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              className="w-full text-sm border border-fog rounded-lg px-2 py-2 bg-background"
+              className="w-full text-sm border border-brand-cloud rounded-lg px-2 py-2 bg-background"
             >
               <option value="all">All sources</option>
               <option value="__none__">(no source)</option>
@@ -175,7 +175,7 @@ export default function AdminEmailSignups() {
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="w-full text-sm border border-fog rounded-lg px-2 py-2 bg-background"
+              className="w-full text-sm border border-brand-cloud rounded-lg px-2 py-2 bg-background"
             />
           </div>
           <div>
@@ -184,7 +184,7 @@ export default function AdminEmailSignups() {
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="w-full text-sm border border-fog rounded-lg px-2 py-2 bg-background"
+              className="w-full text-sm border border-brand-cloud rounded-lg px-2 py-2 bg-background"
             />
           </div>
           <div>
@@ -194,20 +194,20 @@ export default function AdminEmailSignups() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="contains…"
-              className="w-full text-sm border border-fog rounded-lg px-2 py-2 bg-background"
+              className="w-full text-sm border border-brand-cloud rounded-lg px-2 py-2 bg-background"
             />
           </div>
           <div className="flex items-end gap-2">
             <button
               onClick={resetFilters}
-              className="text-sm px-3 py-2 rounded-lg border border-fog bg-background hover:bg-slate-50"
+              className="text-sm px-3 py-2 rounded-lg border border-brand-cloud bg-background hover:bg-slate-50"
             >
               Reset
             </button>
             <button
               onClick={exportCsv}
               disabled={filtered.length === 0}
-              className="flex-1 text-sm px-3 py-2 rounded-lg bg-navy text-white font-medium hover:bg-navy-mid disabled:opacity-50"
+              className="flex-1 text-sm px-3 py-2 rounded-lg bg-brand-navy text-white font-medium hover:bg-brand-ocean disabled:opacity-50"
             >
               Export CSV
             </button>
@@ -215,7 +215,7 @@ export default function AdminEmailSignups() {
         </div>
 
         {/* Table */}
-        <div className="bg-card border border-fog rounded-xl overflow-hidden">
+        <div className="bg-card border border-brand-cloud rounded-xl overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-sm text-slate">Loading signups…</div>
           ) : error ? (
@@ -225,7 +225,7 @@ export default function AdminEmailSignups() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-fog">
+                <thead className="bg-slate-50 border-b border-brand-cloud">
                   <tr className="text-left text-[11px] uppercase tracking-wide text-slate">
                     <th className="px-4 py-2 font-semibold">Email</th>
                     <th className="px-4 py-2 font-semibold">Source</th>
@@ -234,10 +234,10 @@ export default function AdminEmailSignups() {
                     <th className="px-4 py-2 font-semibold">Unsubscribed</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-fog">
+                <tbody className="divide-y divide-brand-cloud">
                   {filtered.map((r) => (
                     <tr key={r.id} className="hover:bg-slate-50/50">
-                      <td className="px-4 py-2 text-navy font-mono text-[12px]">{r.email}</td>
+                      <td className="px-4 py-2 text-brand-navy font-mono text-[12px]">{r.email}</td>
                       <td className="px-4 py-2 text-slate">{r.source ?? "—"}</td>
                       <td className="px-4 py-2">
                         {r.confirmed ? (

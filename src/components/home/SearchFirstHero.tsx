@@ -4,7 +4,7 @@ import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
 export default function SearchFirstHero() {
   return (
-    <div className="relative bg-gradient-to-br from-navy via-navy-mid to-navy-light border-b border-white/10 overflow-hidden">
+    <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-brand-slate-teal border-b border-white/10 overflow-hidden">
       <StarFieldBackground />
       <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">

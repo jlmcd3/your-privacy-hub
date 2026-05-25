@@ -22,7 +22,7 @@ function LawCell({ lawName }: { lawName: string }) {
     <span className="text-sm">
       <Link
         to={entry.internalPath}
-        className="text-cobalt hover:underline font-medium no-underline"
+        className="text-brand-teal hover:underline font-medium no-underline"
       >
         {lawName}
       </Link>
@@ -31,7 +31,7 @@ function LawCell({ lawName }: { lawName: string }) {
           href={entry.officialUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="ml-1 text-xs text-muted-foreground hover:text-cobalt no-underline"
+          className="ml-1 text-xs text-muted-foreground hover:text-brand-teal no-underline"
           title="View official source"
           aria-label={`Official source for ${lawName}`}
         >
