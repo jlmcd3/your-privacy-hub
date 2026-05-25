@@ -204,6 +204,7 @@ const DPIAFramework = () => {
           open={checkoutOpen}
           toolType="dpia_framework"
           userId={user?.id}
+          clientId={clientId}
           intakeData={buildIntake()}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
