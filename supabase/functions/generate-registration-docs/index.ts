@@ -114,12 +114,23 @@ Output clean plain text with clear section headings (Title Case, on their own li
       );
 
       for (const { docDef, content } of results) {
+        const cleaned = (content || "")
+          .replace(/^#{1,6}\s+/gm, '')          // strip leading heading hashes
+          .replace(/\*\*\*([^*]+)\*\*\*/g, '$1') // strip bold+italic
+          .replace(/\*\*([^*]+)\*\*/g, '$1')     // strip bold
+          .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1') // strip italics
+          .replace(/^>\s?/gm, '')                // strip blockquote >
+          .replace(/^\s*\*\s+/gm, '• ')          // convert * bullets to •
+          .replace(/^\s*-\s+/gm, '• ')           // convert - bullets to •
+          .replace(/`([^`]+)`/g, '$1')           // strip inline code backticks
+          .replace(/^\s*[-_]{3,}\s*$/gm, '');    // strip horizontal rules
+
         await supabase.from("registration_documents").insert({
           order_id,
           jurisdiction_code: r.jurisdiction_code,
           document_type: docDef.type,
           language: "en",
-          content_text: content,
+          content_text: cleaned,
           generation_model: MODEL,
           status: "ready",
         });
