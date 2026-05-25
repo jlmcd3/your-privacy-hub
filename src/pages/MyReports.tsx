@@ -102,6 +102,26 @@ export default function MyReports() {
     if (!table) return;
     const key = `${row.tool}-${row.id}`;
     setDeletingId(key);
+
+    // Admins always go through the force-delete edge function so blocking
+    // child rows (NO ACTION FKs, paid registration orders, etc.) are cleared
+    // and the delete cannot be blocked by RLS or constraints.
+    if (isAdmin) {
+      const { data, error } = await supabase.functions.invoke(
+        "admin-force-delete-report",
+        { body: { tool: row.tool, id: row.id } },
+      );
+      setDeletingId(null);
+      if (error || (data && (data as any).error)) {
+        const msg = (data as any)?.error || error?.message || "Unknown error";
+        toast({ title: "Couldn't delete report", description: msg, variant: "destructive" });
+        return;
+      }
+      setRows((prev) => prev.filter((x) => !(x.tool === row.tool && x.id === row.id)));
+      toast({ title: "Report deleted", description: row.tool_label });
+      return;
+    }
+
     const { error } = await supabase.from(table as any).delete().eq("id", row.id);
     setDeletingId(null);
     if (error) {
