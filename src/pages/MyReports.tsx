@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,8 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 
 // Map tool key -> Supabase table name used for deletion.
 // registration_orders is included, but the RLS DELETE policy only allows
-// deleting orders that are NOT paid AND have no filings attached. The UI
-// respects that by hiding the button when `deletable === false` on the row.
+// owners to delete unpaid orders with no filings attached. Admins can
+// delete anything via the admin DELETE RLS policies.
 const TOOL_TABLE: Partial<Record<string, string>> = {
   li: "li_assessments",
   dpia: "dpia_frameworks",
@@ -41,6 +42,8 @@ const TOOL_TABLE: Partial<Record<string, string>> = {
   biometric: "biometric_assessments",
   ropa: "ropa_sessions",
   registration: "registration_orders",
+  us_notice: "us_notice_sessions",
+  eu_notice: "eu_notice_sessions",
 };
 
 type ReportRow = {
@@ -77,6 +80,7 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
   const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
+  const { isAdmin } = useIsAdmin();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
