@@ -81,38 +81,35 @@
 
   /* Dark mode is intentionally undefined in v7 — see brand guidelines §5. */
 
-@layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Sans', system-ui, sans-serif;
-    font-size: 16px;
-    line-height: 1.65;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    font-size: 14px;     /* product UI default (v7 §0.1) */
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Fluid headings — scale smoothly between mobile and desktop instead of
-     snapping at the 768px breakpoint. Min/max match the previous stepped
-     values so existing designs are preserved at the endpoints. */
-  h1 {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px */
+  /* Fluid headings — scale smoothly between mobile and desktop. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
     font-weight: 400;
-    line-height: 1.1;
+    color: hsl(var(--brand-navy));
     letter-spacing: -0.01em;
   }
+  h1 {
+    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px */
+    line-height: 1.1;
+  }
   h2 {
-    font-family: Georgia, 'Times New Roman', serif;
     font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px */
-    font-weight: 400;
     line-height: 1.2;
   }
   h3 {
-    font-family: 'DM Sans', system-ui, sans-serif;
     font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.125rem); /* 17px → 18px */
-    font-weight: 600;
     line-height: 1.35;
   }
 }
