@@ -119,7 +119,7 @@ const DPIAFramework = () => {
       setPurchasing(true);
       const { data, error } = await supabase.functions.invoke(
         "run-dpia-framework",
-        { body: { intake_data: buildIntake(), user_id: user.id } }
+        { body: { intake_data: buildIntake(), user_id: user.id, client_id: clientId ?? null } }
       );
       setPurchasing(false);
       if (error || !data?.id) {
