@@ -116,7 +116,7 @@
 
 /* Custom utility classes */
 .font-display {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
 }
 
 .font-body {
@@ -124,47 +124,15 @@
 }
 
 /* ============================================================
-   TYPOGRAPHY UTILITY CLASSES
+   TYPOGRAPHY UTILITY CLASSES — Brand v7
    ------------------------------------------------------------
-   Use these in place of ad-hoc text-[Xpx]/font-bold/uppercase
-   combinations. Each class encodes one semantic role.
+   Heading family is DM Serif Display (Georgia fallback). Body
+   family is DM Sans. See EUP Brand Guidelines v7 §1–§2.
    ============================================================ */
-
-/* --- Heading scale (use on real <h1>/<h2>/<h3> elements) --- */
-
-/*
-  CANONICAL TYPE SCALE — use these classes, not ad-hoc text-[Xpx]
-  ----------------------------------------------------------------
-  .text-eyebrow    12px  DM Sans 700 uppercase tracking  — badges, tags, labels above headings
-  .text-label      12px  DM Sans 600 uppercase tracking  — table column headers, form section labels
-  .text-meta       13px  DM Sans 400                     — timestamps, source lines, secondary info
-  .text-body       16px  DM Sans 400                     — primary body copy, lead paragraphs, long-form prose
-  .text-nav        14px  DM Sans 500 tracking            — navigation items
-  .text-cta        15px  DM Sans 700                     — buttons, CTAs
-  .text-card-title 20/22px DM Sans 600                   — article-card and tile titles (mobile/desktop)
-  .text-section-h2 26/32px Georgia 400                   — major in-page section headings
-  .text-page-h1    32/44px Georgia 400                   — page-level H1s
-  .text-hero-h1    40/56px Georgia 400                   — landing/hero headings only
-
-  Tailwind utilities (restored to industry-standard):
-  text-xs (12px)   — badges, tiny chrome
-  text-sm (14px)   — secondary copy, table cells, dense UI
-  text-base (16px) — body copy (= .text-body)
-  text-lg (18px)   — sub-headings, prominent card text
-  text-xl (20px)   — small section headings (sans)
-  text-2xl (24px)  — sub-section headings where Georgia isn't appropriate
-  text-3xl (30px)  — large page titles where font-display isn't applied
-  text-4xl (36px)  — section H1s
-  text-5xl (48px)  — heroes only
-
-  HARD FLOOR: 12px. Nothing below this anywhere on the site.
-  GEORGIA: headings only (text-section-h2 and above, or font-display class).
-           Do not use Georgia on body copy, table cells, or UI chrome.
-*/
 
 /* Hero H1 — used on dark hero sections (landing, jurisdiction, regulator) */
 .text-hero-h1 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
   font-size: clamp(2.5rem, 1.7rem + 4vw, 3.5rem); /* 40px → 56px fluid */
   font-weight: 400;
   line-height: 1.1;
@@ -173,7 +141,7 @@
 
 /* Page H1 — used on standard light-background page headers */
 .text-page-h1 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
   font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem); /* 32px → 44px fluid */
   font-weight: 400;
   line-height: 1.15;
@@ -181,7 +149,7 @@
 
 /* Section H2 — used for major page sections */
 .text-section-h2 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
   font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2rem); /* 26px → 32px fluid */
   font-weight: 400;
   line-height: 1.2;
@@ -193,6 +161,43 @@
   font-size: clamp(1.25rem, 1.18rem + 0.35vw, 1.375rem); /* 20px → 22px fluid */
   font-weight: 600;
   line-height: 1.3;
+}
+
+/* --- Brand v7 typography primitives (Section 2) --- */
+.text-display-hero {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 48px;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: hsl(var(--brand-navy));
+}
+.text-display-section {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 32px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: hsl(var(--brand-navy));
+}
+.text-display-card {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.3;
+  color: hsl(var(--brand-navy));
+}
+.text-label-caps {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--brand-steel));
+}
+.text-body-marketing {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 /* --- Supporting text roles --- */
