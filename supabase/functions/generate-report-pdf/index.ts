@@ -144,7 +144,7 @@ function buildLIReportHTML(report: any, _assessment: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1916; line-height: 1.6; margin: 40px; max-width: 800px; }
+body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
 h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
 h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
 h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
@@ -204,7 +204,7 @@ function buildGovernanceReportHTML(report: any, _assessment: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1916; line-height: 1.6; margin: 40px; max-width: 800px; }
+body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
 h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
 h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
 h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
@@ -261,7 +261,7 @@ function buildDPIAReportHTML(report: any, _dpia: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1916; line-height: 1.6; margin: 40px; max-width: 800px; }
+body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
 h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
 h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
 .guidance { background: #f4f0fd; border-left: 4px solid #5b3a8a; padding: 10px 14px; margin: 12px 0; font-size: 12px; }
@@ -457,8 +457,8 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     --gold:#c0911f; --gold-soft:#fbf3df; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#1a5276;
   }
   * { box-sizing: border-box; }
-  body { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:var(--navy-ink);
-    background:var(--paper); font-size:12px; line-height:1.55; margin:0;
+  body { font-family:'Times New Roman', Times, serif; color:var(--navy-ink);
+    background:var(--paper); font-size:11pt; line-height:1.5; margin:0;
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:22px 26px 24px; }

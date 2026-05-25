@@ -12,6 +12,8 @@ import BackLink from "@/components/dashboard/BackLink";
 import { toast } from "sonner";
 import { Loader2, FileText, Download } from "lucide-react";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
+import DownloadWordButton from "@/components/DownloadWordButton";
+import CopyButton from "@/components/CopyButton";
 
 const DOC_LABELS: Record<string, string> = {
   dpo_appointment: "DPO Appointment Letter",
@@ -168,17 +170,25 @@ export default function RegistrationOrder() {
   );
 }
 
+// Strip markdown syntax characters from AI-generated text so the rendered
+// document reads as a clean letter/report. Mirrors RegistrationDocuments.tsx.
+function cleanMarkdown(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/(?<!\*)\*(?!\s)([^*\n]+?)\*(?!\*)/g, "$1")
+    .replace(/^\s*\*\s+/gm, "• ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^\s*[-_]{3,}\s*$/gm, "");
+}
+
 function DocRow({ doc }: { doc: any }) {
   const [open, setOpen] = useState(false);
-  function downloadMd() {
-    const blob = new Blob([doc.content_text || ""], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${doc.jurisdiction_code}-${doc.document_type}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  const cleanedText = cleanMarkdown(doc.content_text || "");
+  const downloadLabel = `${DOC_LABELS[doc.document_type] || doc.document_type}-${doc.jurisdiction_code}`;
+
   return (
     <div className="py-3">
       <div className="flex items-center justify-between">
@@ -189,13 +199,23 @@ function DocRow({ doc }: { doc: any }) {
           <FileText className="h-4 w-4" />
           {DOC_LABELS[doc.document_type] || doc.document_type}
         </button>
-        <Button onClick={downloadMd} variant="ghost" size="sm">
-          <Download className="h-4 w-4 mr-1" />Download
-        </Button>
+        <div className="flex items-center gap-2">
+          {doc.content_text && <CopyButton text={cleanedText} />}
+          {doc.content_text && (
+            <DownloadWordButton
+              text={cleanedText}
+              label={downloadLabel}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white hover:bg-brand-cloud border border-border rounded-lg transition-colors disabled:opacity-60"
+            />
+          )}
+        </div>
       </div>
       {open && (
-        <pre className="mt-3 text-xs whitespace-pre-wrap bg-muted/30 p-3 rounded max-h-96 overflow-auto">
-          {doc.content_text}
+        <pre
+          className="mt-3 whitespace-pre-wrap bg-muted/30 p-3 rounded max-h-96 overflow-auto text-brand-navy"
+          style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt", lineHeight: 1.5 }}
+        >
+          {cleanedText || "(empty)"}
         </pre>
       )}
     </div>
