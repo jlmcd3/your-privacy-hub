@@ -38,7 +38,7 @@ export default function ClientContextBar() {
 
   // Distinct visual treatment based on workspace type.
   const bandClass = inPersonal
-    ? 'bg-[#EEF2F8] border-b border-brand-cloud'
+    ? 'bg-[hsl(var(--brand-teal) / 0.1)] border-b border-brand-cloud'
     : 'bg-amber-50 border-b border-amber-200';
   const labelText = inPersonal ? 'Personal workspace' : 'Client';
   const Icon = inPersonal ? User : Briefcase;

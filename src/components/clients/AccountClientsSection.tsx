@@ -236,7 +236,7 @@ export function AccountClientsSection() {
           <h2 className="text-brand-navy text-[14px] uppercase tracking-wider">
             My Workspace
           </h2>
-          <span className="text-[11px] font-bold uppercase tracking-wider bg-[#EEF2F8] text-brand-navy px-2 py-0.5 rounded">
+          <span className="text-[11px] font-bold uppercase tracking-wider bg-[hsl(var(--brand-teal) / 0.1)] text-brand-navy px-2 py-0.5 rounded">
             Personal
           </span>
         </div>

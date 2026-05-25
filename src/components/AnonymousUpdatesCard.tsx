@@ -101,8 +101,8 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
           </p>
         )}
         {shortWhy && (
-          <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}>
-            <p className="text-[11px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#4A6FA5' }}>
+          <div className="mt-2 border-l-4 px-3 py-2 rounded-r-lg" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.12)' }}>
+            <p className="text-[11px] font-bold uppercase tracking-wider mb-0.5" style={{ color: 'hsl(var(--brand-teal))' }}>
               Why it matters
             </p>
             <p className="text-xs text-brand-navy leading-relaxed line-clamp-2">{stripHtml(shortWhy)}</p>

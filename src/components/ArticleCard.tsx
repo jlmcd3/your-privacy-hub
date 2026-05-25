@@ -122,7 +122,7 @@ const WEIGHT_COLORS: Record<string, string> = {
 // — Intelligence badge for enriched articles —
 const IntelligenceBadge = () => (
   <span className="inline-flex items-center gap-1 px-1.5 py-1 rounded text-[11px] font-semibold font-sans"
-    style={{ background: '#E8EEFF', color: '#4A6FA5' }}>
+    style={{ background: 'hsl(var(--brand-teal) / 0.12)', color: 'hsl(var(--brand-teal))' }}>
     <Sparkles className="w-3 h-3" />
     Intelligence
   </span>
@@ -143,7 +143,7 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   if (!hasContent) return null;
 
   return (
-    <div className="mt-3 rounded-lg border" style={{ borderColor: '#C8D5F0', background: '#F7F9FF' }}>
+    <div className="mt-3 rounded-lg border" style={{ borderColor: 'hsl(var(--brand-teal) / 0.25)', background: 'hsl(var(--brand-teal) / 0.05)' }}>
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }}
@@ -151,23 +151,23 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
         aria-expanded={open}
       >
         <span className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" style={{ color: '#4A6FA5' }} />
-          <span className="text-[12px] font-bold" style={{ color: '#4A6FA5' }}>
+          <Sparkles className="w-3.5 h-3.5" style={{ color: 'hsl(var(--brand-teal))' }} />
+          <span className="text-[12px] font-bold" style={{ color: 'hsl(var(--brand-teal))' }}>
             Intelligence Card
           </span>
           <span className="text-[11px] text-slate">
             — connect the dots, compliance impact, action items
           </span>
         </span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: '#4A6FA5' }} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: 'hsl(var(--brand-teal))' }} />
       </button>
 
       {open && (
-        <div className="px-3 pb-3 pt-1 space-y-3 border-t" style={{ borderColor: '#E0E8F5' }}>
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t" style={{ borderColor: 'hsl(var(--brand-teal) / 0.18)' }}>
           {/* Connect the dots — related signals */}
           {signals && signals.length > 0 && (
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4A6FA5' }}>
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: 'hsl(var(--brand-teal))' }}>
                 Connect the dots
               </p>
               <ul className="space-y-1">
@@ -184,7 +184,7 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
 
           {/* Regulatory theory + related */}
           {(regTheory || related) && (
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: '#E0E8F5' }}>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t" style={{ borderColor: 'hsl(var(--brand-teal) / 0.18)' }}>
               {regTheory && (
                 <div className="text-[11px]">
                   <span className="font-bold text-brand-navy">Regulatory theory: </span>
@@ -225,9 +225,9 @@ const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
 const CompactCard = ({ item }: { item: ArticleItem }) => {
   const enriched = isEnriched(item);
   const wrapperClass = `block group rounded-xl px-3 py-2.5 -mx-3 transition-colors no-underline ${
-    enriched ? 'hover:bg-[#e4eafc]' : 'hover:bg-brand-cloud/40'
+    enriched ? 'hover:bg-[hsl(var(--brand-teal) / 0.1)]' : 'hover:bg-brand-cloud/40'
   }`;
-  const wrapperStyle = enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined;
+  const wrapperStyle = enriched ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined;
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     item.source_url ? (
       <a href={item.source_url} target="_blank" rel="noopener noreferrer" className={wrapperClass} style={wrapperStyle}>
@@ -366,7 +366,7 @@ const FullCard = ({
   return (
     <div
       className={`flex gap-4 items-start py-5 border-b border-gray-200 last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
-      style={accentBackground ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      style={accentBackground ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined}
     >
       {/* Article thumbnail */}
       <img
@@ -528,7 +528,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
     {isEnriched(item) && (
       <div className="absolute top-3 right-3">
         <span className="inline-flex items-center gap-1 px-1.5 py-1 rounded text-[11px] font-semibold font-sans"
-          style={{ background: 'rgba(232,238,255,0.2)', color: '#B8CCFF' }}>
+          style={{ background: 'rgba(232,238,255,0.2)', color: 'hsl(var(--brand-teal) / 0.6)' }}>
           <Sparkles className="w-3 h-3" />
           Intelligence
         </span>
@@ -565,7 +565,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
   return (
     <div
       className={`flex items-start gap-3 py-2 ${enriched ? 'px-3 rounded-md' : ''}`}
-      style={enriched ? { background: '#F0F4FF', borderLeft: '3px solid #4A6FA5' } : undefined}
+      style={enriched ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined}
     >
       <div className="flex-1 min-w-0">
         <a
@@ -585,7 +585,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
       </div>
       {enriched && (
         <span className="flex-shrink-0">
-          <Sparkles className="w-3 h-3" style={{ color: '#4A6FA5' }} />
+          <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
         </span>
       )}
       {item.source_url && (
@@ -717,11 +717,11 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
         {s?.why_it_matters && (
           <div
             className="border-l-4 px-3 py-2 rounded-r-lg mb-3"
-            style={{ borderColor: '#4A6FA5', background: '#E8EEFF' }}
+            style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.12)' }}
           >
             <p
               className="text-[11px] font-bold tracking-wider uppercase mb-1"
-              style={{ color: '#4A6FA5' }}
+              style={{ color: 'hsl(var(--brand-teal))' }}
             >
               Why it matters
             </p>
