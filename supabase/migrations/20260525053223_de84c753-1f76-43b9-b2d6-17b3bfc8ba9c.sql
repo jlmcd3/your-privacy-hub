@@ -1,0 +1,2 @@
+ALTER TABLE public.cppa_assessments ADD COLUMN IF NOT EXISTS client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_cppa_assessments_client_id ON public.cppa_assessments(client_id);

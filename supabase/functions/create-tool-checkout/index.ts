@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, user_id, intake_data, return_url, environment, embedded, success_path } = await req.json();
+    const { tool_type, user_id, client_id, intake_data, return_url, environment, embedded, success_path } = await req.json();
     const tool = TOOLS[tool_type];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Invalid tool type" }), {
@@ -341,6 +341,7 @@ Deno.serve(async (req) => {
     if (MODULE_FOR_TOOL[tool_type]) {
       const baseRow = {
         user_id: user_id || null,
+        client_id: client_id || null,
         status: "pending" as const,
         intake_data: intake_data || {},
         purchase_price_cents: amountCents,
@@ -415,10 +416,12 @@ Deno.serve(async (req) => {
           purchased_as_standalone: true,
           purchase_price_cents: amountCents,
           ...filteredIntake,
+          client_id: client_id ?? (filteredIntake as any).client_id ?? null,
         };
       } else {
         assessmentData = {
           user_id,
+          client_id: client_id || null,
           status: "pending",
           intake_data: intake_data || {},
           purchased_as_standalone: true,

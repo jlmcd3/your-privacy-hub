@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
@@ -67,6 +68,7 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 
 export default function CPPARiskAssessment() {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_risk_assessment");
@@ -265,6 +267,7 @@ export default function CPPARiskAssessment() {
           open={checkoutOpen}
           toolType={isSuite ? "cppa_suite" : "cppa_risk_assessment"}
           userId={user?.id}
+          clientId={clientId}
           intakeData={intake}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id, suiteCyberId) => {

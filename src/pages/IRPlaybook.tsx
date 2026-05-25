@@ -164,6 +164,7 @@ export default function IRPlaybook() {
         open={checkoutOpen}
         toolType="ir_playbook"
         userId={access.user?.id}
+        clientId={clientId}
         intakeData={form}
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {

@@ -24,6 +24,7 @@ interface Props {
   open: boolean;
   toolType: ToolType;
   userId?: string;
+  clientId?: string | null;
   intakeData?: Record<string, unknown>;
   onClose: () => void;
   /** Called only after backend confirms the purchase row was written. */
@@ -34,6 +35,7 @@ export default function ToolCheckoutModal({
   open,
   toolType,
   userId,
+  clientId,
   intakeData,
   onClose,
   onComplete,
@@ -48,6 +50,7 @@ export default function ToolCheckoutModal({
       body: {
         tool_type: toolType,
         user_id: userId,
+        client_id: clientId ?? null,
         intake_data: intakeData ?? {},
         return_url: window.location.origin,
         environment: getStripeEnvironment(),
@@ -60,7 +63,7 @@ export default function ToolCheckoutModal({
     lastAssessmentIdRef.current = data.assessment_id;
     lastSuiteCyberIdRef.current = data.suite_cyber_id || "";
     return data.client_secret as string;
-  }, [toolType, userId, intakeData]);
+  }, [toolType, userId, clientId, intakeData]);
 
   const confirmAndComplete = useCallback(async () => {
     const id = lastAssessmentIdRef.current;

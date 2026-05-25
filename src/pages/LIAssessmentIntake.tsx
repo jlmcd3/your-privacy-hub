@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
@@ -48,6 +49,7 @@ const Pills = ({ options, value, onChange }: { options: string[]; value: string[
 const LIAssessmentIntake = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const { toast } = useToast();
   const navigate = useNavigate();
   const pricing = useToolPrice("li_assessment");
@@ -397,6 +399,7 @@ const LIAssessmentIntake = () => {
           open={checkoutOpen}
           toolType="li_assessment"
           userId={user?.id}
+          clientId={clientId}
           intakeData={intakeForCheckout ?? {}}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {

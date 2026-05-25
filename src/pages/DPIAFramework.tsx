@@ -16,6 +16,7 @@ import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import { useActiveClient } from "@/hooks/useActiveClient";
 
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
@@ -42,6 +43,7 @@ const Pills = ({ options, value, onChange }: { options: string[]; value: string[
 
 const DPIAFramework = () => {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [params] = useSearchParams();
@@ -117,7 +119,7 @@ const DPIAFramework = () => {
       setPurchasing(true);
       const { data, error } = await supabase.functions.invoke(
         "run-dpia-framework",
-        { body: { intake_data: buildIntake(), user_id: user.id } }
+        { body: { intake_data: buildIntake(), user_id: user.id, client_id: clientId ?? null } }
       );
       setPurchasing(false);
       if (error || !data?.id) {
@@ -202,6 +204,7 @@ const DPIAFramework = () => {
           open={checkoutOpen}
           toolType="dpia_framework"
           userId={user?.id}
+          clientId={clientId}
           intakeData={buildIntake()}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {

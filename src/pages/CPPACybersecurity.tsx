@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 
 const MATURITY = [
@@ -49,6 +50,7 @@ const CONTROLS: Control[] = [
 
 export default function CPPACybersecurity() {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_cybersecurity");
@@ -200,6 +202,7 @@ export default function CPPACybersecurity() {
           open={checkoutOpen}
           toolType={isSuite ? "cppa_suite" : "cppa_cybersecurity"}
           userId={user?.id}
+          clientId={clientId}
           intakeData={intake}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id, suiteCyberId) => {

@@ -18,6 +18,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { useActiveClient } from "@/hooks/useActiveClient";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -59,6 +60,7 @@ const GovernanceAssessment = () => {
   const { toast } = useToast();
   const pricing = useToolPrice("governance_assessment");
   const { isPremium } = usePremiumStatus();
+  const { clientId } = useActiveClient();
 
   const [step, setStep] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
@@ -152,7 +154,7 @@ const GovernanceAssessment = () => {
       setPurchasing(true);
       const { data, error } = await supabase.functions.invoke(
         "run-governance-assessment",
-        { body: { intake_data: buildIntake(), user_id: user.id } }
+        { body: { intake_data: buildIntake(), user_id: user.id, client_id: clientId ?? null } }
       );
       setPurchasing(false);
       if (error || !data?.id) {
@@ -368,6 +370,7 @@ const GovernanceAssessment = () => {
           open={checkoutOpen}
           toolType="governance_assessment"
           userId={user?.id}
+          clientId={clientId}
           intakeData={intakeForCheckout}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {

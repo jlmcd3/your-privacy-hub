@@ -302,6 +302,7 @@ Output format:
           .from("dpa_documents")
           .insert({
             user_id: resolvedUserId,
+            client_id: (body as any).client_id ?? null,
             status: "complete",
             intake_data: body,
             document_text: dpa_text,
