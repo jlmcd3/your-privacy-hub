@@ -228,6 +228,7 @@ export type Database = {
       }
       cppa_assessments: {
         Row: {
+          client_id: string | null
           created_at: string
           document_a_text: string | null
           document_b_text: string | null
@@ -242,6 +243,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string
           document_a_text?: string | null
           document_b_text?: string | null
@@ -256,6 +258,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string
           document_a_text?: string | null
           document_b_text?: string | null
@@ -269,7 +272,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cppa_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cppa_scope_checks: {
         Row: {
