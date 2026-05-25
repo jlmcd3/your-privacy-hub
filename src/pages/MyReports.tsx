@@ -259,14 +259,25 @@ export default function MyReports() {
         });
       });
       (usNotices?.data || []).forEach((r: any) => {
+        const status = r.status || "in_progress";
+        let viewPath: string;
+        if (status === "generated" || status === "completed") {
+          viewPath = `/us-notices/${r.id}/documents`;
+        } else if (status === "ready_to_generate" || status === "questions_complete") {
+          viewPath = `/us-notices/${r.id}/review`;
+        } else if (status === "in_progress") {
+          viewPath = `/us-notices/${r.id}/questions`;
+        } else {
+          viewPath = `/us-notices/${r.id}/states`;
+        }
         all.push({
           id: r.id,
           tool: "us_notice",
           tool_label: "US Privacy Notice",
           created_at: r.created_at,
-          status: r.status || "in_progress",
+          status,
           summary: `US notice · ${r.scope || "—"}`,
-          view_path: `/us-notices/${r.id}/documents`,
+          view_path: viewPath,
           ...clientMeta(r.client_id),
         });
       });
