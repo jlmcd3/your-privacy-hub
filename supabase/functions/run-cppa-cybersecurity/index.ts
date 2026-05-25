@@ -192,6 +192,25 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
     } catch { report.annotations = []; }
 
+    // Strip any stray markdown the model produced in prose fields
+    report.executive_summary = stripMd(report.executive_summary);
+    report.enforcement_context = stripMd(report.enforcement_context);
+    report.controls = (Array.isArray(report.controls) ? report.controls : []).map((c: any) => ({
+      ...c,
+      finding: stripMd(c?.finding),
+      regulatory_basis: stripMd(c?.regulatory_basis),
+      remediation: stripMd(c?.remediation),
+    }));
+    report.top_risks = (Array.isArray(report.top_risks) ? report.top_risks : []).map((r: any) => ({
+      ...r,
+      title: stripMd(r?.title),
+      description: stripMd(r?.description),
+      consequence: stripMd(r?.consequence),
+    }));
+    report.next_steps = (Array.isArray(report.next_steps) ? report.next_steps : []).map((s: any) =>
+      typeof s === "string" ? stripMd(s) : s
+    );
+
     await supabase
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report })
