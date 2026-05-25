@@ -50,6 +50,7 @@ const CONTROLS: Control[] = [
 
 export default function CPPACybersecurity() {
   const { user } = useAuth();
+  const { clientId } = useActiveClient();
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("cppa_cybersecurity");
