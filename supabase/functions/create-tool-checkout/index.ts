@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, user_id, intake_data, return_url, environment, embedded, success_path } = await req.json();
+    const { tool_type, user_id, client_id, intake_data, return_url, environment, embedded, success_path } = await req.json();
     const tool = TOOLS[tool_type];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Invalid tool type" }), {
