@@ -136,9 +136,17 @@ export default {
       fontSize: {
         sm: ['0.875rem', { lineHeight: '1.55' }],
         base: ['1rem', { lineHeight: '1.65' }],
-        // Fluid scale — smooth between min and max widths instead of snapping
-        // at md/lg breakpoints. Use sparingly for hero / section copy where
-        // smooth scaling matters more than precise pixel control.
+        // --- EUP Brand v7 type scale (Section 1.2) ---
+        'display-hero': ['48px', { lineHeight: '1.1', letterSpacing: '-0.015em' }],
+        'display-section': ['32px', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
+        'display-card': ['18px', { lineHeight: '1.3' }],
+        'body-large': ['15px', { lineHeight: '1.55' }],
+        'body-base': ['14px', { lineHeight: '1.55' }],
+        'body-marketing': ['13px', { lineHeight: '1.55' }],
+        'body-small': ['12px', { lineHeight: '1.45' }],
+        'body-tiny': ['11px', { lineHeight: '1.4' }],
+        'label-caps': ['10px', { lineHeight: '1.4', letterSpacing: '0.12em' }],
+        // Fluid scale — smooth between min and max widths.
         'fluid-sm': ['clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem)', { lineHeight: '1.55' }],
         'fluid-base': ['clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem)', { lineHeight: '1.6' }],
         'fluid-lg': ['clamp(1rem, 0.95rem + 0.3vw, 1.1875rem)', { lineHeight: '1.5' }],
